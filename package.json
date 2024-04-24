@@ -8,7 +8,8 @@
   "license": "ISC",
   "scripts": {
     "build": "tsc",
-    "build:docs": "npx typedoc --plugin typedoc-plugin-missing-exports",
+    "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
+    "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "jest fs.test.js"
   },
   "dependencies": {
