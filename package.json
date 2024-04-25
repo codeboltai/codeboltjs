@@ -12,6 +12,11 @@
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "jest fs.test.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeboltai/codeboltjs"
+  },
+  "homepage": "https://codeboltai.github.io",
   "dependencies": {
     "typedoc-plugin-missing-exports": "^2.2.0",
     "ws": "^8.16.0"
