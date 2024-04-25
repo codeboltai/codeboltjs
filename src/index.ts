@@ -89,4 +89,6 @@ class Codebolt {
     dbmemory = dbmemory;
 }
 
-export default new Codebolt();
+// export default new Codebolt();
+
+module.exports = new Codebolt();
