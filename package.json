@@ -1,10 +1,10 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "keywords": [],
   "author": "",
-  "main": "src/index.ts",
+  "main": "index.js",
   "license": "ISC",
   "scripts": {
     "build": "tsc",
