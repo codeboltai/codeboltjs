@@ -27,7 +27,7 @@ const cbchat = {
         })
       
 
-    }
+    },
 
     /**
      * Sends a message through the WebSocket connection.
