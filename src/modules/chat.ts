@@ -13,6 +13,22 @@ class CustomEventEmitter extends EventEmitter {}
 const cbchat = {
     eventEmitter: new CustomEventEmitter(),
 
+    getChatHistory() {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "getChatHistory"
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getChatHistoryResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                }
+            })
+        })
+      
+
+    }
+
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
