@@ -15,6 +15,7 @@ import cboutputparsers from './modules/outputparsers';
 import cbproject from './modules/project';
 import git from './modules/git';
 import dbmemory from './modules/dbmemory';
+import cbstate from './modules/state'
 import WebSocket from 'ws';
 
 /**
@@ -87,6 +88,7 @@ class Codebolt {
     outputparsers = cboutputparsers;
     project = cbproject;
     dbmemory = dbmemory;
+    cbstate=cbstate;
 }
 
 // export default new Codebolt();
