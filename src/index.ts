@@ -15,8 +15,10 @@ import cboutputparsers from './modules/outputparsers';
 import cbproject from './modules/project';
 import git from './modules/git';
 import dbmemory from './modules/dbmemory';
-import cbstate from './modules/state'
+import cbstate from './modules/state';
+import task from './modules/task';
 import WebSocket from 'ws';
+
 
 /**
  * @class Codebolt
@@ -89,6 +91,7 @@ class Codebolt {
     project = cbproject;
     dbmemory = dbmemory;
     cbstate=cbstate;
+    taskplaner=task
 }
 
 // export default new Codebolt();
