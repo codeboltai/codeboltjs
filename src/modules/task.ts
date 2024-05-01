@@ -12,8 +12,12 @@ const taskplaner = {
     addTask: async (task: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "addTask",
-                "task": task
+                "type": "taskEvent",
+                "action":"addTask",
+                message:{
+                    "task": task
+                }
+               
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
@@ -30,12 +34,35 @@ const taskplaner = {
     getTasks: async (): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "getTasks"
+                "type":"taskEvent",
+                "action": "getTasks"
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getTasksResponse") {
                     resolve(response); // Resolve the promise with the response data from retrieving tasks
+                }
+            });
+        });
+    },
+    /**
+     * Updates an existing task using a WebSocket message.
+     * @param {string} task - The updated task information.
+     * @returns {Promise<any>} A promise that resolves with the response from the update task event.
+     */
+    updateTask: async ( task: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "taskEvent",
+                "action": "updateTask",
+                message: {
+                    "task": task
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "updateTaskResponse") {
+                    resolve(response); // Resolve the promise with the response data from updating the task
                 }
             });
         });
