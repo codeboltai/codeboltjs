@@ -72,7 +72,6 @@ class Codebolt {
     start_browser(objective:string, url:string, previous_command:string, browser_content:string) {
         cbbrowser.newPage();
     }
-
     websocket: WebSocket | null = null;
     fs = cbfs;
     git=git;
