@@ -1,9 +1,15 @@
 import cbws from './websocket';
+import { EventEmitter } from 'events';
 
+/**
+ * CustomEventEmitter class that extends the Node.js EventEmitter class.
+ */
+class CustomEventEmitter extends EventEmitter {}
 /**
  * A module for executing commands in a terminal-like environment via WebSocket.
  */
 const cbterminal = {
+    eventEmitter: new CustomEventEmitter(),
 
     /**
      * Executes a given command and returns the result.
@@ -26,6 +32,81 @@ const cbterminal = {
                 }
             });
         });
+    },
+
+    /**
+     * Executes a given command and keeps running until an error occurs.
+     * Listens for messages from the WebSocket and resolves the promise when an error is encountered.
+     *
+     * @param {string} command - The command to be executed.
+     * @returns {Promise<any>} A promise that resolves when an error occurs during command execution.
+     */
+    executeCommandRunUntilError: async (command: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "executeCommandRunUntilError",
+                "message": command,
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if ( response.type === "commandError") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+
+    /**
+     * Executes a given command and keeps running until interrupted.
+     * Listens for messages from the WebSocket and resolves the promise when an interruption signal is received.
+     *
+     * @param {string} command - The command to be executed.
+     * @returns {Promise<any>} A promise that resolves when an interruption signal is received during command execution.
+     */
+    executeCommandRunUnitlIntrupt: async (command: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "executeCommandRunUnitlIntrupt",
+                "message": command,
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "terminalIntruptResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+
+    /**
+     * Executes a given command and streams the output.
+     * Listens for messages from the WebSocket and streams the output data.
+     *
+     * @param {string} command - The command to be executed.
+     * @returns {Promise<any>} A promise that streams the output data during command execution.
+     */
+    executeCommandWithStream(command: string) {
+         // Send the process started message
+         cbws.getWebsocket.send(JSON.stringify({
+            "type": "executeCommandWithStream",
+            "message": command,
+        }));
+        // Register event listener for WebSocket messages
+        cbws.getWebsocket.on('message', (data: string) => {
+            const response = JSON.parse(data);
+            console.log("Received message:", response);
+            if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") 
+            // Emit a custom event based on the message type
+            this.eventEmitter.emit("serverEvents", response.response);
+        });
+
+        // Return an object that includes the event emitter and the stopProcess method
+        return {
+            event: this.eventEmitter
+        };
     }
+   
+
+ 
 };
 export default cbterminal;
