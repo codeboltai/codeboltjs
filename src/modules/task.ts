@@ -45,6 +45,7 @@ const taskplaner = {
             });
         });
     },
+    
     /**
      * Updates an existing task using a WebSocket message.
      * @param {string} task - The updated task information.
