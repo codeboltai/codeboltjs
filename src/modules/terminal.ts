@@ -63,15 +63,34 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<any>} A promise that resolves when an interruption signal is received during command execution.
      */
-    executeCommandRunUnitlIntrupt: async (command: string): Promise<any> => {
+    executeCommandRunUnitlInterrupt: async (command: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "executeCommandRunUnitlIntrupt",
+                "type": "executeCommandRunUnitlInterrupt",
                 "message": command,
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "terminalIntruptResponse") {
+                if (response.type === "terminalInterruptResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+    /**
+     * Sends a manual interrupt signal to the terminal.
+     *
+     * @returns {void}
+     */
+    sendManualInterrupt(): Promise<any>  {
+       
+        return new Promise((resolve, reject) => {
+           cbws.getWebsocket.send(JSON.stringify({
+            "type": "sendInterruptToTerminal"
+        }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "terminalInterrupted") {
                     resolve(response);
                 }
             });
