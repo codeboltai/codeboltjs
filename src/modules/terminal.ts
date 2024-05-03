@@ -100,9 +100,8 @@ const cbterminal = {
         });
 
         // Return an object that includes the event emitter and the stopProcess method
-        return {
-            event: this.eventEmitter
-        };
+        return this.eventEmitter
+    
     }
    
 
