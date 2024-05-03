@@ -56,27 +56,7 @@ const cbterminal = {
         });
     },
 
-    /**
-     * Executes a given command and keeps running until interrupted.
-     * Listens for messages from the WebSocket and resolves the promise when an interruption signal is received.
-     *
-     * @param {string} command - The command to be executed.
-     * @returns {Promise<any>} A promise that resolves when an interruption signal is received during command execution.
-     */
-    executeCommandRunUnitlInterrupt: async (command: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
-                "type": "executeCommandRunUnitlInterrupt",
-                "message": command,
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "terminalInterruptResponse") {
-                    resolve(response);
-                }
-            });
-        });
-    },
+  
     /**
      * Sends a manual interrupt signal to the terminal.
      *
