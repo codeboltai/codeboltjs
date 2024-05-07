@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
-class CustomEventEmitter extends EventEmitter {}
+export class CustomEventEmitter extends EventEmitter {}
 
 /**
  * Chat module to interact with the WebSocket server.

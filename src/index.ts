@@ -97,6 +97,6 @@ class Codebolt {
     debug=debug;
 }
 
-// export default new Codebolt();
+export default new Codebolt();
 
-module.exports = new Codebolt();
+// module.exports = new Codebolt();

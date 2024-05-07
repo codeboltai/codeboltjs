@@ -1,6 +1,6 @@
 import cbws from './websocket';
 
-enum logType{
+export enum logType{
     info="info",
     error="error",
     warning="warning"
