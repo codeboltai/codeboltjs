@@ -10,7 +10,8 @@ const VectorDB = {
     getVector: async (key: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "getVector",
+                "type":"vectordbEvent",
+                "action": "getVector",
                 "message": {
                     item: key
                 },
@@ -34,7 +35,8 @@ const VectorDB = {
     addVectorItem: async ( item: any): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "addVectorItem",
+                "type":"vectordbEvent",
+                "action": "addVectorItem",
                 "message": {
                     item: item
                 },
@@ -57,7 +59,8 @@ const VectorDB = {
     queryVectorItem: async (key: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "queryVectorItem",
+                "type":"vectordbEvent",
+                "action": "queryVectorItem",
                 "message": {
                     item: key
                 },
