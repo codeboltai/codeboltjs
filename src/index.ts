@@ -17,8 +17,8 @@ import git from './modules/git';
 import dbmemory from './modules/dbmemory';
 import cbstate from './modules/state';
 import task from './modules/task';
-
 import vectorDB from './modules/vectordb';
+import debug from './modules/debug'
 import WebSocket from 'ws';
 
 
@@ -94,6 +94,7 @@ class Codebolt {
     cbstate=cbstate;
     taskplaner=task;
     vectordb=vectorDB;
+    debug=debug;
 }
 
 // export default new Codebolt();
