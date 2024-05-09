@@ -1,3 +1,5 @@
+import cbws from './websocket';
+
 /**
  * A utility module for working with code.
  */
@@ -12,6 +14,20 @@ const cbcodeutils = {
     getCodeTree: (fileName: any, source: any, filePath: any): Promise<any> => {
         return new Promise((resolve, reject) => {
             // Implementation would go here
+        });
+    },
+    getAllFilesAsMarkDown:()=>{
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getAllFilesMarkdown"
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getAllFilesMarkdownResponse") {
+                    resolve(response.markdown); // Resolve the Promise with the response data
+                } 
+            });
         });
     }
 };
