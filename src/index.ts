@@ -20,47 +20,62 @@ import task from './modules/task';
 import vectorDB from './modules/vectordb';
 import debug from './modules/debug'
 import tokenizer from './modules/tokenizer'
-import WebSocket from 'ws';
+import WebSocket, { EventEmitter } from 'ws';
 
 
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
  */
-class Codebolt {
+class Codebolt extends EventEmitter { // Extend EventEmitter
 
     /**
      * @constructor
      * @description Initializes the websocket connection.
      */
-    constructor(){
+    constructor() {
+        super()
         this.websocket = cbws.getWebsocket;
+        this.userMessageListener(); // Call setupMessageListener() to subscribe to WebSocket messages
     }
-
+    /**
+         * @method setupMessageListener
+         * @description Sets up a listener for incoming WebSocket messages.
+         */
+    userMessageListener() {
+        if (!this.websocket) return;
+        this.websocket.on('message', (data: string) => {
+            const response = JSON.parse(data);
+            if (response.type === "messageResponse") {
+              this.emit(response.message)
+            } 
+        });
+    }
     /**
      * @method waitForConnection
      * @description Waits for the WebSocket connection to open.
      * @returns {Promise<void>} A promise that resolves when the WebSocket connection is open.
      */
-     async waitForConnection() {
+    async waitForConnection() {
         return new Promise<void>((resolve, reject) => {
             if (!this.websocket) {
                 reject(new Error('WebSocket is not initialized'));
                 return;
             }
-    
+
             if (this.websocket.readyState === WebSocket.OPEN) {
                 resolve();
                 return;
             }
-    
+
             this.websocket.addEventListener('open', () => {
                 resolve();
             });
-    
+
             this.websocket.addEventListener('error', (error) => {
                 reject(error);
             });
+
         });
     }
 
@@ -72,12 +87,12 @@ class Codebolt {
      * @param {string} previous_command - The previous command executed.
      * @param {string} browser_content - The content of the browser.
      */
-    start_browser(objective:string, url:string, previous_command:string, browser_content:string) {
+    start_browser(objective: string, url: string, previous_command: string, browser_content: string) {
         cbbrowser.newPage();
     }
     websocket: WebSocket | null = null;
     fs = cbfs;
-    git=git;
+    git = git;
     llm = cbllm;
     browser = cbbrowser;
     chat = cbchat;
@@ -92,11 +107,11 @@ class Codebolt {
     outputparsers = cboutputparsers;
     project = cbproject;
     dbmemory = dbmemory;
-    cbstate=cbstate;
-    taskplaner=task;
-    vectordb=vectorDB;
-    debug=debug;
-    tokenizer=tokenizer;
+    cbstate = cbstate;
+    taskplaner = task;
+    vectordb = vectorDB;
+    debug = debug;
+    tokenizer = tokenizer;
 }
 
 export default new Codebolt();
