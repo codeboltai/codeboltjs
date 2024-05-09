@@ -20,8 +20,10 @@ import task from './modules/task';
 import vectorDB from './modules/vectordb';
 import debug from './modules/debug'
 import tokenizer from './modules/tokenizer'
-import WebSocket, { EventEmitter } from 'ws';
+import WebSocket from 'ws';
+import { EventEmitter } from 'events';
 export class CustomEventEmitter extends EventEmitter {}
+
 let eventEmitter= new CustomEventEmitter();
 
 /**
