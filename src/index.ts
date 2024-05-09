@@ -21,22 +21,23 @@ import vectorDB from './modules/vectordb';
 import debug from './modules/debug'
 import tokenizer from './modules/tokenizer'
 import WebSocket, { EventEmitter } from 'ws';
-
+export class CustomEventEmitter extends EventEmitter {}
+let eventEmitter= new CustomEventEmitter();
 
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
  */
-class Codebolt extends EventEmitter { // Extend EventEmitter
+class Codebolt  { // Extend EventEmitter
 
     /**
      * @constructor
      * @description Initializes the websocket connection.
      */
     constructor() {
-        super()
+
         this.websocket = cbws.getWebsocket;
-        this.userMessageListener(); // Call setupMessageListener() to subscribe to WebSocket messages
+     
     }
     /**
          * @method setupMessageListener
@@ -47,9 +48,10 @@ class Codebolt extends EventEmitter { // Extend EventEmitter
         this.websocket.on('message', (data: string) => {
             const response = JSON.parse(data);
             if (response.type === "messageResponse") {
-              this.emit(response.message)
+                eventEmitter.emit("userMessage", response.response);
             } 
         });
+        return eventEmitter;
     }
     /**
      * @method waitForConnection
