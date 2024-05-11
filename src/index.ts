@@ -39,7 +39,6 @@ class Codebolt  { // Extend EventEmitter
     constructor() {
 
         this.websocket = cbws.getWebsocket;
-     
     }
     /**
          * @method setupMessageListener
