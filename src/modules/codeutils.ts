@@ -11,9 +11,18 @@ const cbcodeutils = {
      * @param {any} filePath - The file path where the source code is located.
      * @returns {Promise<any>} A promise that resolves with the code tree.
      */
-    getCodeTree: (fileName: any, source: any, filePath: any): Promise<any> => {
+    getCodeTree: (): Promise<any> => {
         return new Promise((resolve, reject) => {
-            // Implementation would go here
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getCodeTree"
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getCodeTreeResponse") {
+                    resolve(response.markdown); // Resolve the Promise with the response data
+                } 
+            });
         });
     },
     getAllFilesAsMarkDown:()=>{
