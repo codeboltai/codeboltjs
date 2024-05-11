@@ -92,6 +92,14 @@ const cbchat = {
                 }));
             }
         };
+    },
+    stopProcess: () => {
+        // Implement the logic to stop the process here
+        console.log("Stopping process...");
+        // For example, you might want to send a specific message to the server to stop the process
+        cbws.getWebsocket.send(JSON.stringify({
+            "type": "processStoped"
+        }));
     }
 };
 

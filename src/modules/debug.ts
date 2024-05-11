@@ -12,6 +12,7 @@ export const debug={
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "debugEvent",
+                "action":"addLog",
                 message:{
                    log,
                    type
