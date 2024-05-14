@@ -4,13 +4,8 @@ import cbws from './websocket';
  * A utility module for working with code.
  */
 const cbcodeutils = {
-    /**
-     * Asynchronously generates a code tree from the provided source code.
-     * @param {any} fileName - The name of the file.
-     * @param {any} source - The source code to generate the tree from.
-     * @param {any} filePath - The file path where the source code is located.
-     * @returns {Promise<any>} A promise that resolves with the code tree.
-     */
+  
+    
     getCodeTree: (): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
@@ -21,6 +16,23 @@ const cbcodeutils = {
                 const response = JSON.parse(data);
                 if (response.type === "getCodeTreeResponse") {
                     resolve(response.markdown); // Resolve the Promise with the response data
+                } 
+            });
+        });
+    },
+    getJsTree: (filePath:string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getJsTree",
+                payload:{
+                    filePath
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getgetJsTreeResponse") {
+                    resolve(response.payload); // Resolve the Promise with the response data
                 } 
             });
         });
@@ -38,6 +50,25 @@ const cbcodeutils = {
                 } 
             });
         });
+    },
+    matchProblem:(matcherDefinition:object, problemPatterns:[], problems:[])=>{
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getJsTree",
+                payload:{
+                    matcherDefinition,
+                    problemPatterns,
+                    problems
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getgetJsTreeResponse") {
+                    resolve(response.payload); // Resolve the Promise with the response data
+                } 
+            });
+        }); 
     }
 };
 
