@@ -31,8 +31,8 @@ const cbcodeutils = {
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "getgetJsTreeResponse") {
-                    resolve(response.payload); // Resolve the Promise with the response data
+                if (response.type === "getJsTreeResponse") {
+                    resolve(resolve); // Resolve the Promise with the response data
                 } 
             });
         });
@@ -65,7 +65,7 @@ const cbcodeutils = {
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getgetJsTreeResponse") {
-                    resolve(response.payload); // Resolve the Promise with the response data
+                    resolve(resolve); // Resolve the Promise with the response data
                 } 
             });
         }); 
