@@ -51,15 +51,14 @@ const cbcodeutils = {
             });
         });
     },
-    matchProblem:(matcherDefinition:object, problemPatterns:[], problems:[])=>{
+    performMatch:(matcherDefinition:object, problemPatterns:[], problems:[])=>{
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "codeEvent",
-                "action":"getJsTree",
+                "action":"performMatch",
                 payload:{
                     matcherDefinition,
                     problemPatterns,
-                    problems
                 }
             }));
             cbws.getWebsocket.on('message', (data: string) => {
@@ -69,7 +68,41 @@ const cbcodeutils = {
                 } 
             });
         }); 
+    },
+    getMatcherList:()=>{
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getMatcherList",
+                
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getMatcherListTreeResponse") {
+                    resolve(resolve); // Resolve the Promise with the response data
+                } 
+            });
+        }); 
+    },
+    matchDetail:(matcher:string)=>{
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "codeEvent",
+                "action":"getMatchDetail",
+                payload:{
+                    match:matcher
+                }
+                
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "matchDetailTreeResponse") {
+                    resolve(resolve); // Resolve the Promise with the response data
+                } 
+            });
+        }); 
     }
+
 };
 
 export default cbcodeutils;
