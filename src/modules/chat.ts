@@ -3,18 +3,23 @@ import cbws from './websocket';
 import { EventEmitter } from 'events';
 import {ChatMessage} from  '@codebolt/common'
 
+
+
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
-export class CustomEventEmitter extends EventEmitter {}
-
+class CustomEventEmitter extends EventEmitter {}
 /**
  * Chat module to interact with the WebSocket server.
  */
 const cbchat = {
     eventEmitter: new CustomEventEmitter(),
 
-    getChatHistory():Promise<ChatMessage[]> {
+    /**
+     * Retrieves the chat history from the server.
+     * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
+     */
+    getChatHistory: (): Promise<ChatMessage[]> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "getChatHistory"
@@ -26,15 +31,28 @@ const cbchat = {
                 }
             })
         })
-      
+    },
 
+    /**
+     * @method setupMessageListener
+     * @description Sets up a listener for incoming WebSocket messages.
+     */
+    userMessageListener: () => {
+        if (!cbws.getWebsocket) return;
+        cbws.getWebsocket.on('message', (data: string) => {
+            const response = JSON.parse(data);
+            if (response.type === "messageResponse") {
+                cbchat.eventEmitter.emit("userMessage", response.response);
+            } 
+        });
+        return cbchat.eventEmitter;
     },
 
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
      */
-    sendMessage(message: string) {
+    sendMessage: (message: string) => {
         console.log(message);
         cbws.getWebsocket.send(JSON.stringify({
             "type": "sendMessage",
@@ -47,7 +65,7 @@ const cbchat = {
      * @param {string} message - The message for which a reply is expected.
      * @returns {Promise<any>} A promise that resolves with the reply.
      */
-    waitforReply(message: string): Promise<any> {
+    waitforReply: (message: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "waitforReply",

@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
-export class CustomEventEmitter extends EventEmitter {}
+class CustomEventEmitter extends EventEmitter {}
 /**
  * A module for executing commands in a terminal-like environment via WebSocket.
  */

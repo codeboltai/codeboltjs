@@ -264,3 +264,12 @@ const cbbrowser = {
 }
 
 export default cbbrowser;
+
+
+
+/***
+
+start_browser(objective: string, url: string, previous_command: string, browser_content: string) {
+    cbbrowser.newPage();
+}
+ */

@@ -22,9 +22,7 @@ import debug from './modules/debug'
 import tokenizer from './modules/tokenizer'
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
-export class CustomEventEmitter extends EventEmitter {}
 
-let eventEmitter= new CustomEventEmitter();
 
 /**
  * @class Codebolt
@@ -40,20 +38,7 @@ class Codebolt  { // Extend EventEmitter
 
         this.websocket = cbws.getWebsocket;
     }
-    /**
-         * @method setupMessageListener
-         * @description Sets up a listener for incoming WebSocket messages.
-         */
-    userMessageListener() {
-        if (!this.websocket) return;
-        this.websocket.on('message', (data: string) => {
-            const response = JSON.parse(data);
-            if (response.type === "messageResponse") {
-                eventEmitter.emit("userMessage", response.response);
-            } 
-        });
-        return eventEmitter;
-    }
+    
     /**
      * @method waitForConnection
      * @description Waits for the WebSocket connection to open.
@@ -82,17 +67,6 @@ class Codebolt  { // Extend EventEmitter
         });
     }
 
-    /**
-     * @method start_browser
-     * @description Starts a new browser page.
-     * @param {string} objective - The objective of the browser session.
-     * @param {string} url - The URL to navigate to.
-     * @param {string} previous_command - The previous command executed.
-     * @param {string} browser_content - The content of the browser.
-     */
-    start_browser(objective: string, url: string, previous_command: string, browser_content: string) {
-        cbbrowser.newPage();
-    }
     websocket: WebSocket | null = null;
     fs = cbfs;
     git = git;
