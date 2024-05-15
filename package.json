@@ -18,7 +18,7 @@
   "license": "MIT",
   "homepage": "https://codeboltai.github.io",
   "dependencies": {
-    "@codebolt/common": "^1.0.3",
+    "@codebolt/common": "^1.0.4",
     "typedoc-plugin-missing-exports": "^2.2.0",
     "ws": "^8.17.0"
   },

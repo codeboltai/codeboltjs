@@ -1,5 +1,5 @@
 import cbws from './websocket';
-
+import {GoToPageResponse,UrlResponse} from  '@codebolt/common'
 /**
  * A module for interacting with a browser through WebSockets.
  */
@@ -19,7 +19,7 @@ const cbbrowser = {
      * Retrieves the current URL of the browser's active page.
      * @returns {Promise<any>} A promise that resolves with the URL.
      */
-    getUrl: () => {
+    getUrl: ():Promise<UrlResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "browserEvent",
@@ -39,7 +39,7 @@ const cbbrowser = {
      * @param {string} url - The URL to navigate to.
      * @returns {Promise<any>} A promise that resolves when navigation is complete.
      */
-    goToPage: (url: string) => {
+    goToPage: (url: string):Promise<GoToPageResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "browserEvent",
