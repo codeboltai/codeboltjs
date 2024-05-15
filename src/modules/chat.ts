@@ -1,6 +1,7 @@
 // chat.ts
 import cbws from './websocket';
 import { EventEmitter } from 'events';
+import {ChatMessage} from  '@codebolt/common'
 
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
@@ -13,7 +14,7 @@ export class CustomEventEmitter extends EventEmitter {}
 const cbchat = {
     eventEmitter: new CustomEventEmitter(),
 
-    getChatHistory() {
+    getChatHistory():Promise<ChatMessage[]> {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "getChatHistory"
