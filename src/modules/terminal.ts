@@ -1,6 +1,6 @@
 import cbws from './websocket';
 import { EventEmitter } from 'events';
-
+import {CommandError,CommandFinish,CommandOutput,TerminalInterruptResponse,TerminalInterrupted } from '@codebolt/types';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
@@ -17,9 +17,9 @@ const cbterminal = {
      * of the executed command and resolves the promise accordingly.
      *
      * @param {string} command - The command to be executed.
-     * @returns {Promise<any>} A promise that resolves with the command's output, error, or finish signal.
+     * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command: string): Promise<any> => {
+    executeCommand: async (command: string): Promise<CommandOutput|CommandError> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommand",
@@ -39,9 +39,9 @@ const cbterminal = {
      * Listens for messages from the WebSocket and resolves the promise when an error is encountered.
      *
      * @param {string} command - The command to be executed.
-     * @returns {Promise<any>} A promise that resolves when an error occurs during command execution.
+     * @returns {Promise<CommandError>} A promise that resolves when an error occurs during command execution.
      */
-    executeCommandRunUntilError: async (command: string): Promise<any> => {
+    executeCommandRunUntilError: async (command: string): Promise<CommandError> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommandRunUntilError",
@@ -60,9 +60,9 @@ const cbterminal = {
     /**
      * Sends a manual interrupt signal to the terminal.
      *
-     * @returns {void}
+     * @returns {Promise<TerminalInterruptResponse>} 
      */
-    sendManualInterrupt(): Promise<any>  {
+    sendManualInterrupt(): Promise<TerminalInterruptResponse>  {
        
         return new Promise((resolve, reject) => {
            cbws.getWebsocket.send(JSON.stringify({
@@ -82,9 +82,9 @@ const cbterminal = {
      * Listens for messages from the WebSocket and streams the output data.
      *
      * @param {string} command - The command to be executed.
-     * @returns {Promise<any>} A promise that streams the output data during command execution.
+     * @returns {EventEmitter} A promise that streams the output data during command execution.
      */
-    executeCommandWithStream(command: string) {
+    executeCommandWithStream(command: string):EventEmitter {
          // Send the process started message
          cbws.getWebsocket.send(JSON.stringify({
             "type": "executeCommandWithStream",

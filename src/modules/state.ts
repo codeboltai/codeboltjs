@@ -1,11 +1,12 @@
 import cbws from './websocket';
+import {ApplicationState,AddToAgentStateResponse,GetAgentStateResponse } from '@codebolt/types';
 
-/**
- * Retrieves the application state asynchronously.
- * @returns {Promise<any>} A promise that resolves with the application state.
- */
 const cbstate = {
-    getApplicationState: async (): Promise<any> => {
+    /**
+     * Retrieves the current application state from the server via WebSocket.
+     * @returns {Promise<ApplicationState>} A promise that resolves with the application state.
+     */
+    getApplicationState: async (): Promise<ApplicationState> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "getAppState",
@@ -19,7 +20,13 @@ const cbstate = {
             });
         });
     },
-    addToAgentState: async (key: string, value: string): Promise<void> => {
+    /**
+     * Adds a key-value pair to the agent's state on the server via WebSocket.
+     * @param {string} key - The key to add to the agent's state.
+     * @param {string} value - The value associated with the key.
+     * @returns {Promise<AddToAgentStateResponse>} A promise that resolves with the response to the addition request.
+     */
+    addToAgentState: async (key: string, value: string): Promise<AddToAgentStateResponse> => {
       return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentStateEvent",
@@ -38,7 +45,11 @@ const cbstate = {
             });
         });  
     },
-    getAgentState: async (): Promise<any> => {
+    /**
+     * Retrieves the current state of the agent from the server via WebSocket.
+     * @returns {Promise<GetAgentStateResponse>} A promise that resolves with the agent's state.
+     */
+    getAgentState: async (): Promise<GetAgentStateResponse> => {
        return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentStateEvent",

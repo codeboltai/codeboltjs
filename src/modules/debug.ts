@@ -1,5 +1,5 @@
 import cbws from './websocket';
-
+import {DebugAddLogResponse,OpenDebugBrowserResponse } from '@codebolt/types';
 export enum logType{
     info="info",
     error="error",
@@ -8,7 +8,13 @@ export enum logType{
 
 
 export const debug={
-    debug(log:string,type:logType) {
+    /**
+     * Sends a log message to the debug websocket and waits for a response.
+     * @param {string} log - The log message to send.
+     * @param {logType} type - The type of the log message (info, error, warning).
+     * @returns {Promise<DebugAddLogResponse>} A promise that resolves with the response from the debug event.
+     */
+    debug:(log:string,type:logType):Promise<DebugAddLogResponse>=> {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "debugEvent",
@@ -28,7 +34,13 @@ export const debug={
       
 
     },
-    openDebugBrowser(url:string,port:number){
+    /**
+     * Requests to open a debug browser at the specified URL and port.
+     * @param {string} url - The URL where the debug browser should be opened.
+     * @param {number} port - The port on which the debug browser will listen.
+     * @returns {Promise<OpenDebugBrowserResponse>} A promise that resolves with the response from the open debug browser event.
+     */
+    openDebugBrowser:(url:string,port:number):Promise<OpenDebugBrowserResponse>=>{
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "debugEvent",

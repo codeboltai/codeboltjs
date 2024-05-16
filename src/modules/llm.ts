@@ -1,5 +1,5 @@
 import cbws from './websocket';
-
+import {LLMResponse } from '@codebolt/types';
 /**
  * A module for interacting with language learning models (LLMs) via WebSocket.
  */
@@ -12,9 +12,9 @@ const cbllm = {
      * 
      * @param {string} message - The input message or prompt to be sent to the LLM.
      * @param {string} llmrole - The role of the LLM to determine which model to use.
-     * @returns {Promise<any>} A promise that resolves with the LLM's response.
+     * @returns {Promise<LLMResponse>} A promise that resolves with the LLM's response.
      */
-    inference: async (message: string, llmrole: string): Promise<any> => {
+    inference: async (message: string, llmrole: string): Promise<LLMResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "inference",

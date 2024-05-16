@@ -1,3 +1,4 @@
+import { AddTokenResponse, GetTokenResponse } from '@codebolt/types';
 import cbws from './websocket';
 
 /**
@@ -6,11 +7,11 @@ import cbws from './websocket';
 const tokenizer = {
   
     /**
-     * Adds a token asynchronously.
-     * @param {string} key - The key of the token to add.
-     * @returns {Promise<any>} A promise that resolves with the response.
+     * Adds a token to the system via WebSocket.
+     * @param {string} key - The key associated with the token to be added.
+     * @returns {Promise<AddTokenResponse>} A promise that resolves with the response from the add token event.
      */
-    addToken: async (key: string): Promise<any> => {
+    addToken: async (key: string): Promise<AddTokenResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"tokenizerEvent",
@@ -28,7 +29,12 @@ const tokenizer = {
         });
     },
 
-    getToken: async (key: string): Promise<any> => {
+    /**
+     * Retrieves a token from the system via WebSocket.
+     * @param {string} key - The key associated with the token to be retrieved.
+     * @returns {Promise<GetTokenResponse>} A promise that resolves with the response from the get token event.
+     */
+    getToken: async (key: string): Promise<GetTokenResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"tokenizerEvent",

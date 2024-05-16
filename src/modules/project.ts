@@ -1,5 +1,5 @@
 import cbws from './websocket';
-
+import {GetProjectPathResponse } from '@codebolt/types';
 /**
  * A module for interacting with project settings and paths.
  */
@@ -14,9 +14,9 @@ const cbproject = {
     },
     /**
      * Retrieves the path of the current project.
-     * @returns {Promise<any>} A promise that resolves with the project path response.
+     * @returns {Promise<GetProjectPathResponse>} A promise that resolves with the project path response.
      */
-    getProjectPath: (): Promise<any> => {
+    getProjectPath: (): Promise<GetProjectPathResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "settingEvent",

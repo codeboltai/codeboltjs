@@ -1,5 +1,5 @@
 import cbws from './websocket';
-
+import {AddTaskResponse,GetTasksResponse,UpdateTasksResponse } from '@codebolt/types';
 /**
  * Manages task operations via WebSocket communication.
  */
@@ -7,9 +7,9 @@ const taskplaner = {
     /**
      * Adds a task using a WebSocket message.
      * @param {string} task - The task to be added.
-     * @returns {Promise<any>} A promise that resolves with the response from the add task event.
+     * @returns {Promise<AddTaskResponse>} A promise that resolves with the response from the add task event.
      */
-    addTask: async (task: string): Promise<any> => {
+    addTask: async (task: string): Promise<AddTaskResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "taskEvent",
@@ -29,9 +29,9 @@ const taskplaner = {
     },
     /**
      * Retrieves all tasks using a WebSocket message.
-     * @returns {Promise<any>} A promise that resolves with the response from the get tasks event.
+     * @returns {Promise<GetTasksResponse>} A promise that resolves with the response from the get tasks event.
      */
-    getTasks: async (): Promise<any> => {
+    getTasks: async (): Promise<GetTasksResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"taskEvent",
@@ -49,9 +49,9 @@ const taskplaner = {
     /**
      * Updates an existing task using a WebSocket message.
      * @param {string} task - The updated task information.
-     * @returns {Promise<any>} A promise that resolves with the response from the update task event.
+     * @returns {Promise<UpdateTasksResponse>} A promise that resolves with the response from the update task event.
      */
-    updateTask: async ( task: string): Promise<any> => {
+    updateTask: async ( task: string): Promise<UpdateTasksResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "taskEvent",
