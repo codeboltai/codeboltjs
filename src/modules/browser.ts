@@ -1,5 +1,5 @@
 import cbws from './websocket';
-import {GoToPageResponse,UrlResponse} from  '@codebolt/common'
+import {GoToPageResponse,UrlResponse,GetMarkdownResponse,HtmlReceived} from  '@codebolt/types'
 /**
  * A module for interacting with a browser through WebSockets.
  */
@@ -17,7 +17,7 @@ const cbbrowser = {
 
     /**
      * Retrieves the current URL of the browser's active page.
-     * @returns {Promise<any>} A promise that resolves with the URL.
+     * @returns {Promise<UrlResponse>} A promise that resolves with the URL.
      */
     getUrl: ():Promise<UrlResponse> => {
         return new Promise((resolve, reject) => {
@@ -37,7 +37,7 @@ const cbbrowser = {
     /**
      * Navigates to a specified URL.
      * @param {string} url - The URL to navigate to.
-     * @returns {Promise<any>} A promise that resolves when navigation is complete.
+     * @returns {Promise<GoToPageResponse>} A promise that resolves when navigation is complete.
      */
     goToPage: (url: string):Promise<GoToPageResponse> => {
         return new Promise((resolve, reject) => {
@@ -67,9 +67,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the HTML content of the current page.
-     * @returns {Promise<string>} A promise that resolves with the HTML content.
+     * @returns {Promise<HtmlReceived>} A promise that resolves with the HTML content.
      */
-    getHTML: () => {
+    getHTML: ():Promise<HtmlReceived> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "browserEvent",
@@ -86,9 +86,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the Markdown content of the current page.
-     * @returns {Promise<any>} A promise that resolves with the Markdown content.
+     * @returns {Promise<GetMarkdownResponse>} A promise that resolves with the Markdown content.
      */
-    getMarkdown: () => {
+    getMarkdown: ():Promise<GetMarkdownResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "browserEvent",

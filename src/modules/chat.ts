@@ -1,7 +1,7 @@
 // chat.ts
 import cbws from './websocket';
 import { EventEmitter } from 'events';
-import {ChatMessage} from  '@codebolt/common'
+import {ChatMessage} from  '@codebolt/types'
 
 
 

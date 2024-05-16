@@ -26,6 +26,24 @@ const tokenizer = {
                 }
             });
         });
+    },
+
+    getToken: async (key: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"tokenizerEvent",
+                "action": "getToken",
+                "message": {
+                    item: key
+                },
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getTokenResponse") {
+                    resolve(response);
+                }
+            });
+        });
     }
 }
 
