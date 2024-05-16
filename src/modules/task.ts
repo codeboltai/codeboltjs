@@ -1,5 +1,5 @@
 import cbws from './websocket';
-import {AddTaskResponse,GetTasksResponse,UpdateTasksResponse } from '@codebolt/types';
+// import {AddTaskResponse,GetTasksResponse,UpdateTasksResponse } from '@codebolt/types';
 /**
  * Manages task operations via WebSocket communication.
  */
@@ -9,7 +9,7 @@ const taskplaner = {
      * @param {string} task - The task to be added.
      * @returns {Promise<AddTaskResponse>} A promise that resolves with the response from the add task event.
      */
-    addTask: async (task: string): Promise<AddTaskResponse> => {
+    addTask: async (task: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "taskEvent",
@@ -31,7 +31,7 @@ const taskplaner = {
      * Retrieves all tasks using a WebSocket message.
      * @returns {Promise<GetTasksResponse>} A promise that resolves with the response from the get tasks event.
      */
-    getTasks: async (): Promise<GetTasksResponse> => {
+    getTasks: async (): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"taskEvent",
@@ -51,7 +51,7 @@ const taskplaner = {
      * @param {string} task - The updated task information.
      * @returns {Promise<UpdateTasksResponse>} A promise that resolves with the response from the update task event.
      */
-    updateTask: async ( task: string): Promise<UpdateTasksResponse> => {
+    updateTask: async ( task: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "taskEvent",
