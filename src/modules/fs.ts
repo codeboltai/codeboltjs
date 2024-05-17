@@ -159,8 +159,25 @@ const cbfs = {
             });
         });
     },
-    listFile:(folderPath?:string)=>{
-
+    /**
+     * @function listFile
+     * @description Lists all files.
+     * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
+     */
+    listFile: (filePath:string) => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "fsEvent",
+                "action": "fileList",
+                
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "fileListResponse") {
+                    resolve(response);
+                }
+            });
+        });
     },
   
 };
