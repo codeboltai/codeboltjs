@@ -9,11 +9,12 @@ import {ChatMessage} from  '@codebolt/types'
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
 class CustomEventEmitter extends EventEmitter {}
+let  eventEmitter= new CustomEventEmitter()
 /**
  * Chat module to interact with the WebSocket server.
  */
 const cbchat = {
-    eventEmitter: new CustomEventEmitter(),
+
 
     /**
      * Retrieves the chat history from the server.
@@ -42,10 +43,10 @@ const cbchat = {
         cbws.getWebsocket.on('message', (data: string) => {
             const response = JSON.parse(data);
             if (response.type === "messageResponse") {
-                cbchat.eventEmitter.emit("userMessage", response.response);
+                eventEmitter.emit("userMessage", response.response);
             } 
         });
-        return cbchat.eventEmitter;
+        return eventEmitter;
     },
 
     /**
@@ -96,12 +97,12 @@ const cbchat = {
             if(message.type==='stopProcessClicked')
 
             // Emit a custom event based on the message type
-            this.eventEmitter.emit("stopProcessClicked", message);
+            eventEmitter.emit("stopProcessClicked", message);
         });
 
         // Return an object that includes the event emitter and the stopProcess method
         return {
-            event: this.eventEmitter,
+            event: eventEmitter,
             stopProcess: () => {
                 // Implement the logic to stop the process here
                 console.log("Stopping process...");
