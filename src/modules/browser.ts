@@ -1,5 +1,5 @@
 import cbws from './websocket';
-import {GoToPageResponse,UrlResponse,GetMarkdownResponse,HtmlReceived} from  '@codebolt/types'
+import {GoToPageResponse,UrlResponse,GetMarkdownResponse,HtmlReceived,ExtractTextResponse,GetContentResponse} from  '@codebolt/types'
 /**
  * A module for interacting with a browser through WebSockets.
  */
@@ -105,6 +105,7 @@ const cbbrowser = {
 
     /**
      * Retrieves the PDF content of the current page.
+     * 
      */
     getPDF: () => {
         cbws.getWebsocket.send(JSON.stringify({
@@ -125,22 +126,43 @@ const cbbrowser = {
 
     /**
      * Retrieves the content of the current page.
+     *  @returns {Promise<GetContentResponse>} A promise that resolves with the content.
      */
-    getContent: () => {
-        cbws.getWebsocket.send(JSON.stringify({
-            "type": "browserEvent",
-            action: 'getContent'
-        }));
+    getContent: ():Promise<GetContentResponse> => {
+        
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "browserEvent",
+                action: 'getContent'
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "getContentResponse") {
+                    resolve(response);
+                }
+            });
+        });
     },
 
     /**
      * Extracts text from the current page.
+     *  @returns {Promise<ExtractTextResponse>} A promise that resolves with the extracted text.
+     * 
      */
-    extractText: () => {
-        cbws.getWebsocket.send(JSON.stringify({
-            "type": "browserEvent",
-            action: 'extractText'
-        }));
+    extractText: ():Promise<ExtractTextResponse> => {
+        
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "browserEvent",
+                action: 'extractText'
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "extractTextResponse") {
+                    resolve(response);
+                }
+            });
+        });
     },
 
     /**
