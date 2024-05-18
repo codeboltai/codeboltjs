@@ -9,10 +9,19 @@ const cbbrowser = {
      * Opens a new page in the browser.
      */
     newPage: () => {
-        cbws.getWebsocket.send(JSON.stringify({
-            "type": "browserEvent",
-            action: 'newPage'
-        }));
+       
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "browserEvent",
+                action: 'newPage'
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "newPageResponse") {
+                    resolve(response);
+                }
+            });
+        });
     },
 
     /**
