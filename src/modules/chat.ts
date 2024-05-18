@@ -15,7 +15,6 @@ let  eventEmitter= new CustomEventEmitter()
  */
 const cbchat = {
 
-
     /**
      * Retrieves the chat history from the server.
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
@@ -35,8 +34,8 @@ const cbchat = {
     },
 
     /**
-     * @method setupMessageListener
-     * @description Sets up a listener for incoming WebSocket messages.
+     * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
+     * @returns {EventEmitter} The event emitter used for emitting custom events.
      */
     userMessageListener: () => {
         if (!cbws.getWebsocket) return;
@@ -85,7 +84,7 @@ const cbchat = {
      * Notifies the server that a process has started and sets up an event listener for stopProcessClicked events.
      * @returns An object containing the event emitter and a stopProcess method.
      */
-    processStarted() {
+    processStarted: () => {
         // Send the process started message
         cbws.getWebsocket.send(JSON.stringify({
             "type": "processStarted"
@@ -113,6 +112,10 @@ const cbchat = {
             }
         };
     },
+    /**
+     * Stops the ongoing process.
+     * Sends a specific message to the server to stop the process.
+     */
     stopProcess: () => {
         // Implement the logic to stop the process here
         console.log("Stopping process...");
