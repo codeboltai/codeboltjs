@@ -16,7 +16,7 @@ const cbcodeutils = {
      * @param {string} filePath - The path of the file to retrieve the JS tree for.
      * @returns {Promise<GetJsTreeResponse>} A promise that resolves with the JS tree response.
      */
-    getJsTree: (filePath?: string): Promise<GetJsTreeResponse> => {
+    getJsTree: (filePath?: string): Promise<any> => {
         return new Promise( async (resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "settingEvent",
@@ -62,10 +62,10 @@ const cbcodeutils = {
                             trees.push(tree);
                         }
             
-                        return trees; // Return an array of abstract syntax trees (ASTs)
+                        resolve({ event: 'GetJsTreeResponse',payload:trees}); // Return an array of abstract syntax trees (ASTs)
                     } catch (error) {
                         console.error('An error occurred:', error);
-                        return null; // Return null in case of error
+                        return { event: 'GetJsTreeResponse',payload:null}; // Return null in case of error
                     }
                 }
             });
