@@ -33,6 +33,7 @@ const cbcodeutils = {
                         parser.setLanguage(JavaScript);
                         const trees = [];
                         const functionNodes = [];
+                        
                         const processDirectory = (directory:any) => {
                             console.log("isdir")
                             // Read all files in the directory
@@ -46,7 +47,8 @@ const cbcodeutils = {
                                 } else if (path.extname(file.name) === '.js') {
                                     const code = fs.readFileSync(path.join(directory, file.name), 'utf-8');
                                     console.log(code);
-                                    const tree = parser.parse(code);
+                                    let tree:any = parser.parse(code);
+                                    tree.rootNode.path = path.join(directory, file.name); // Set file path for t
                                     trees.push(tree);
                                 }
                             });
@@ -57,7 +59,8 @@ const cbcodeutils = {
                         } else if (path.extname(pathInput) === '.js') {
                             // Read a single JavaScript file
                             const code = fs.readFileSync(pathInput, 'utf-8');
-                            let tree = parser.parse(code);
+                            let tree:any = parser.parse(code);
+                            tree.rootNode.path = pathInput; // Set file path for t
                           
                             trees.push(tree);
                         }
