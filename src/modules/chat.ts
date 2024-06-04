@@ -63,7 +63,7 @@ const cbchat = {
     /**
      * Waits for a reply to a sent message.
      * @param {string} message - The message for which a reply is expected.
-     * @returns {Promise<string>} A promise that resolves with the reply.
+     * @returns {Promise<ChatMessage>} A promise that resolves with the reply.
      */
     waitforReply: (message: string): Promise<string> => {
         return new Promise((resolve, reject) => {
