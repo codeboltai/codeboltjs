@@ -152,6 +152,44 @@ const cbbrowser = {
             });
         });
     },
+    /**
+     * Retrieves the snapshot of the current page.
+     *  @returns {Promise<GetContentResponse>} A promise that resolves with the content.
+     */
+    getSnapShot: ():Promise<any> => {
+        
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "browserEvent",
+                action: 'getSnapShot'
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "getSnapShotResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+    /**
+     * Retrieves browser info like height width scrollx scrolly of the current page.
+     *  @returns {Promise<GetContentResponse>} A promise that resolves with the content.
+     */
+    getBrowserInfo: ():Promise<any> => {
+        
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "browserEvent",
+                action: 'getBrowserInfo'
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "getBrowserInfoResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
 
     /**
      * Extracts text from the current page.
