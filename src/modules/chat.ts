@@ -1,7 +1,7 @@
 // chat.ts
 import cbws from './websocket';
 import { EventEmitter } from 'events';
-import {ChatMessage} from  '@codebolt/types'
+import {ChatMessage,UserMessage} from  '@codebolt/types'
 
 
 
@@ -63,9 +63,9 @@ const cbchat = {
     /**
      * Waits for a reply to a sent message.
      * @param {string} message - The message for which a reply is expected.
-     * @returns {Promise<ChatMessage>} A promise that resolves with the reply.
+     * @returns {Promise<UserMessage>} A promise that resolves with the reply.
      */
-    waitforReply: (message: string): Promise<string> => {
+    waitforReply: (message: string): Promise<UserMessage> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "waitforReply",
