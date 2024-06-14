@@ -1,4 +1,6 @@
 import WebSocket from 'ws';
+import fs from 'fs';
+import yaml from 'js-yaml';
 
 /**
  * Class representing a WebSocket connection.
@@ -10,10 +12,22 @@ class cbws {
      * Constructs a new cbws instance and initializes the WebSocket connection.
      */
     constructor() {
-        this.websocket = new WebSocket("ws://localhost:12345/codebolt");
+        const uniqueConnectionId = this.getUniqueConnectionId();
+        console.log(uniqueConnectionId)
+        this.websocket = new WebSocket(`ws://localhost:12345/codebolt?id=${uniqueConnectionId}`);
         this.initializeWebSocket().catch(error => {
             console.error("WebSocket connection failed:", error);
         });
+    }
+    private getUniqueConnectionId(): string {
+        try {
+            let fileContents = fs.readFileSync('./codebotagent.yml', 'utf8');
+            let data = yaml.safeLoad(fileContents);
+            return data.uniqueConnectionId;
+        } catch (e) {
+            console.log(e);
+            return '';
+        }
     }
 
     /**
