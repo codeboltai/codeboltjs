@@ -22,10 +22,10 @@ class cbws {
     private getUniqueConnectionId(): string {
         try {
             let fileContents = fs.readFileSync('./codebotagent.yml', 'utf8');
-            let data = yaml.load(fileContents);
+            let data:any = yaml.load(fileContents);
             return data.uniqueConnectionId;
         } catch (e) {
-            console.log(e);
+            console.error('Unable to locate codebotagent.yml file.');
             return '';
         }
     }

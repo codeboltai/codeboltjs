@@ -98,11 +98,23 @@ const cbcrawler = {
     /**
      * Initiates a crawl process.
      */
-    crawl: () => {
-       cbws.getWebsocket.send(JSON.stringify({
-            "type": "crawlerEvent",
-            action: 'crawl'
-        }));
+    crawl: (query:string) => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "crawlerEvent",
+                "action": 'crawl',
+                "message":{
+                    query
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "crawlResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                } 
+            });
+        });
+  
     }
 };
 

@@ -37,12 +37,18 @@ const cbchat = {
      * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
      * @returns {EventEmitter} The event emitter used for emitting custom events.
      */
-    userMessageListener: () => {
+    onActionMessage: () => {
         if (!cbws.getWebsocket) return;
         cbws.getWebsocket.on('message', (data: string) => {
             const response = JSON.parse(data);
             if (response.type === "messageResponse") {
-                eventEmitter.emit("userMessage", response.response);
+                // Pass a callback function as an argument to the emit method
+                eventEmitter.emit("userMessage", response, (message: string) => {
+                    console.log("Callback function invoked with message:", message);
+                    cbws.getWebsocket.send(JSON.stringify({
+                        "type": "processStoped"
+                    }));
+                });
             } 
         });
         return eventEmitter;
