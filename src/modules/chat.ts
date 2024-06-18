@@ -79,7 +79,7 @@ const cbchat = {
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "messageResponse") {
+                if (response.type === "waitFormessageResponse") {
                     resolve(response); // Resolve the Promise with the response data
                 } 
             });
