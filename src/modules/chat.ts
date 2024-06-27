@@ -129,6 +129,25 @@ const cbchat = {
         cbws.getWebsocket.send(JSON.stringify({
             "type": "processStoped"
         }));
+    },
+
+    /**
+     * Sends a confirmation request to the server with two options: Yes or No.
+     * @returns {Promise<string>} A promise that resolves with the server's response.
+     */
+    sendConfirmationRequest: (confirmationMessage: string): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "confirmationRequest",
+                "message": confirmationMessage
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "confirmationResponse") {
+                    resolve(response.answer); // Resolve the Promise with the server's response
+                }
+            });
+        });
     }
 };
 
