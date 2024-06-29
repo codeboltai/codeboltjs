@@ -1,15 +1,15 @@
 // chat.ts
 import cbws from './websocket';
 import { EventEmitter } from 'events';
-import {ChatMessage,UserMessage} from  '@codebolt/types'
+import { ChatMessage, UserMessage } from '@codebolt/types'
 
 
 
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
-class CustomEventEmitter extends EventEmitter {}
-let  eventEmitter= new CustomEventEmitter()
+class CustomEventEmitter extends EventEmitter { }
+let eventEmitter = new CustomEventEmitter()
 /**
  * Chat module to interact with the WebSocket server.
  */
@@ -49,7 +49,7 @@ const cbchat = {
                         "type": "processStoped"
                     }));
                 });
-            } 
+            }
         });
         return eventEmitter;
     },
@@ -81,7 +81,7 @@ const cbchat = {
                 const response = JSON.parse(data);
                 if (response.type === "waitFormessageResponse") {
                     resolve(response); // Resolve the Promise with the response data
-                } 
+                }
             });
         });
     },
@@ -99,10 +99,10 @@ const cbchat = {
         cbws.getWebsocket.on('message', (data: string) => {
             const message = JSON.parse(data);
             console.log("Received message:", message);
-            if(message.type==='stopProcessClicked')
+            if (message.type === 'stopProcessClicked')
 
-            // Emit a custom event based on the message type
-            eventEmitter.emit("stopProcessClicked", message);
+                // Emit a custom event based on the message type
+                eventEmitter.emit("stopProcessClicked", message);
         });
 
         // Return an object that includes the event emitter and the stopProcess method
@@ -135,11 +135,13 @@ const cbchat = {
      * Sends a confirmation request to the server with two options: Yes or No.
      * @returns {Promise<string>} A promise that resolves with the server's response.
      */
-    sendConfirmationRequest: (confirmationMessage: string): Promise<string> => {
+    sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = []): Promise<string> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "confirmationRequest",
-                "message": confirmationMessage
+                "message": confirmationMessage,
+                buttons: buttons
+
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
