@@ -146,7 +146,7 @@ const cbchat = {
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "confirmationResponse") {
-                    resolve(response.answer); // Resolve the Promise with the server's response
+                    resolve(response); // Resolve the Promise with the server's response
                 }
             });
         });
