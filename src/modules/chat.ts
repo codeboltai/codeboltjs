@@ -150,7 +150,19 @@ const cbchat = {
                 }
             });
         });
-    }
+    },
+    /**
+ * Sends a notification event to the server.
+ * @param {string} notificationMessage - The message to be sent in the notification.
+ */
+    sendNotificationEvent: (notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview'): void => {
+        cbws.getWebsocket.send(JSON.stringify({
+            "type": "notificationEvent",
+            "message": notificationMessage,
+            "eventType":type
+        }));
+    },
+
 };
 
 export default cbchat;
