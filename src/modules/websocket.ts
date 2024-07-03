@@ -24,7 +24,7 @@ class cbws {
         try {
             let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
             let data:any = yaml.load(fileContents);
-            return data.uniqueConnectionId;
+            return data.unique_connectionid;
         } catch (e) {
             console.error('Unable to locate codeboltagent.yml file.');
             return '';
@@ -35,7 +35,7 @@ class cbws {
         try {
             let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
             let data:any = yaml.load(fileContents);
-            return data.initialMessage;
+            return data.initial_message;
         } catch (e) {
             console.error('Unable to locate codeboltagent.yml file.');
             return '';
