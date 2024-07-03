@@ -23,7 +23,7 @@ class cbws {
     private getUniqueConnectionId(): string {
         try {
             let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
-            let data:any = yaml.load(fileContents);
+            let data: any = yaml.load(fileContents);
             return data.unique_connectionid;
         } catch (e) {
             console.error('Unable to locate codeboltagent.yml file.');
@@ -34,7 +34,7 @@ class cbws {
     private getInitialMessage(): string {
         try {
             let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
-            let data:any = yaml.load(fileContents);
+            let data: any = yaml.load(fileContents);
             return data.initial_message;
         } catch (e) {
             console.error('Unable to locate codeboltagent.yml file.');
@@ -57,7 +57,10 @@ class cbws {
             this.websocket.on('open', () => {
                 console.log('WebSocket connected');
                 if (this.websocket) {
-                    this.websocket.send(initialMessage);
+                    this.websocket.send(JSON.stringify({
+                        "type": "sendMessage",
+                        "message": initialMessage
+                    }));
                     resolve(this.websocket);
                 }
             });
