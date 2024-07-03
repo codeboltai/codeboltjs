@@ -13,19 +13,31 @@ class cbws {
      */
     constructor() {
         const uniqueConnectionId = this.getUniqueConnectionId();
+        const initialMessage = this.getInitialMessage();
         console.log(uniqueConnectionId)
         this.websocket = new WebSocket(`ws://localhost:12345/codebolt?id=${uniqueConnectionId}`);
-        this.initializeWebSocket().catch(error => {
+        this.initializeWebSocket(initialMessage).catch(error => {
             console.error("WebSocket connection failed:", error);
         });
     }
     private getUniqueConnectionId(): string {
         try {
-            let fileContents = fs.readFileSync('./codebotagent.yml', 'utf8');
+            let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
             let data:any = yaml.load(fileContents);
             return data.uniqueConnectionId;
         } catch (e) {
-            console.error('Unable to locate codebotagent.yml file.');
+            console.error('Unable to locate codeboltagent.yml file.');
+            return '';
+        }
+    }
+
+    private getInitialMessage(): string {
+        try {
+            let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
+            let data:any = yaml.load(fileContents);
+            return data.initialMessage;
+        } catch (e) {
+            console.error('Unable to locate codeboltagent.yml file.');
             return '';
         }
     }
@@ -35,7 +47,7 @@ class cbws {
      * when the WebSocket connection is successfully opened.
      * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
      */
-    private async initializeWebSocket(): Promise<WebSocket> {
+    private async initializeWebSocket(initialMessage: string): Promise<WebSocket> {
         return new Promise((resolve, reject) => {
             this.websocket.on('error', (error: Error) => {
                 console.log('WebSocket error:', error);
@@ -45,6 +57,7 @@ class cbws {
             this.websocket.on('open', () => {
                 console.log('WebSocket connected');
                 if (this.websocket) {
+                    this.websocket.send(initialMessage);
                     resolve(this.websocket);
                 }
             });
