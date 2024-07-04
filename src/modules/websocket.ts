@@ -22,11 +22,11 @@ class cbws {
     }
     private getUniqueConnectionId(): string {
         try {
-            let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
+            let fileContents = fs.readFileSync('./codeboltagent.yaml', 'utf8');
             let data: any = yaml.load(fileContents);
             return data.unique_connectionid;
         } catch (e) {
-            console.error('Unable to locate codeboltagent.yml file.');
+            console.error('Unable to locate codeboltagent.yaml file.');
             return '';
         }
     }
