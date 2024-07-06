@@ -130,6 +130,18 @@ const cbchat = {
             "type": "processStoped"
         }));
     },
+      /**
+     * Stops the ongoing process.
+     * Sends a specific message to the server to stop the process.
+     */
+    processFinished: () => {
+        // Implement the logic to stop the process here
+        console.log("Process Finished ...");
+        // For example, you might want to send a specific message to the server to stop the process
+        cbws.getWebsocket.send(JSON.stringify({
+            "type": "processFinished"
+        }));
+    },
 
     /**
      * Sends a confirmation request to the server with two options: Yes or No.
