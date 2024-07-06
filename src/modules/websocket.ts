@@ -33,11 +33,11 @@ class cbws {
 
     private getInitialMessage(): string {
         try {
-            let fileContents = fs.readFileSync('./codeboltagent.yml', 'utf8');
+            let fileContents = fs.readFileSync('./codeboltagent.yaml', 'utf8');
             let data: any = yaml.load(fileContents);
             return data.initial_message;
         } catch (e) {
-            console.error('Unable to locate codeboltagent.yml file.');
+            console.error('Unable to locate codeboltagent.yaml file.');
             return '';
         }
     }
