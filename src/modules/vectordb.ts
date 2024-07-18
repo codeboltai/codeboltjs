@@ -83,7 +83,7 @@ const VectorDB = {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"vectordbEvent",
-                "action": "queryVectorItem",
+                "action": "queryVectorItems",
                 "message": {
                     items,
                     dbPath
