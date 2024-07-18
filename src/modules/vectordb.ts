@@ -73,6 +73,30 @@ const VectorDB = {
             });
         });
     },
+    /**
+     * Queries a vector item from the vector database based on the provided key.
+     *
+     * @param {string} key - The key of the vector to query the item from.
+     * @returns {Promise<QueryVectorItemResponse>} A promise that resolves with the queried vector item.
+     */
+    queryVectorItems: async (items: [],dbPath:string): Promise<QueryVectorItemResponse> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"vectordbEvent",
+                "action": "queryVectorItem",
+                "message": {
+                    items,
+                    dbPath
+                },
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "qeryVectorItemsResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
 };
 
 export default VectorDB;
