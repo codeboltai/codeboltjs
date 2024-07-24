@@ -1,5 +1,5 @@
 import cbws from './websocket';
-import {GetProjectPathResponse } from '@codebolt/types';
+import { GetProjectPathResponse } from '@codebolt/types';
 /**
  * A module for interacting with project settings and paths.
  */
@@ -29,6 +29,11 @@ const cbproject = {
                 }
             });
         });
-    }
+    },
+    runProject: () => {
+        cbws.getWebsocket.send(JSON.stringify({
+            "type": "runProject"
+        }));
+    },
 };
 export default cbproject
