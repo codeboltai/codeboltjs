@@ -56,13 +56,13 @@ class cbws {
 
             this.websocket.on('open', () => {
                 console.log('WebSocket connected');
-                if (this.websocket) {
-                    this.websocket.send(JSON.stringify({
-                        "type": "sendMessage",
-                        "message": initialMessage
-                    }));
-                    resolve(this.websocket);
-                }
+                // if (this.websocket) {
+                //     this.websocket.send(JSON.stringify({
+                //         "type": "sendMessage",
+                //         "message": initialMessage
+                //     }));
+                //     resolve(this.websocket);
+                // }
             });
 
             this.websocket.on('message', (data: WebSocket.Data) => {
