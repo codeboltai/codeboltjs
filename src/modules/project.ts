@@ -30,6 +30,21 @@ const cbproject = {
             });
         });
     },
+    getRepoMap: (message: any): Promise<GetProjectPathResponse> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "settingEvent",
+                "action": "getRepoMap",
+                message
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getRepoMapResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
     runProject: () => {
         cbws.getWebsocket.send(JSON.stringify({
             "type": "runProject"
