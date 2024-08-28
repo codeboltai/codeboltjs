@@ -22,6 +22,7 @@ import debug from './modules/debug'
 import tokenizer from './modules/tokenizer'
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
+import {chatSummary} from './modules/history'
 
 
 /**
@@ -89,6 +90,7 @@ class Codebolt  { // Extend EventEmitter
     vectordb = vectorDB;
     debug = debug;
     tokenizer = tokenizer;
+    chatSummary=chatSummary
 }
 
 export default new Codebolt();
