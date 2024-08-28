@@ -55,7 +55,7 @@ export const chatSummary = {
 }
 
 
-export default debug;
+export default chatSummary;
 
 
 
