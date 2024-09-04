@@ -68,10 +68,18 @@ const cbbrowser = {
      * Takes a screenshot of the current page.
      */
     screenshot: () => {
+        return new Promise((resolve, reject) => {
         cbws.getWebsocket.send(JSON.stringify({
             "type": "browserEvent",
             action: 'screenshot'
         }));
+        cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.event === "screenshotResponse") {
+                    resolve(response.payload);
+                }
+            });
+        });
     },
 
     /**
