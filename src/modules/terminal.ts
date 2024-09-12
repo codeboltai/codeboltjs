@@ -19,11 +19,12 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command: string): Promise<CommandOutput|CommandError> => {
+    executeCommand: async (command: string,executeInMain=false): Promise<CommandOutput|CommandError> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommand",
                 "message": command,
+                executeInMain
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
@@ -41,11 +42,12 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<CommandError>} A promise that resolves when an error occurs during command execution.
      */
-    executeCommandRunUntilError: async (command: string): Promise<CommandError> => {
+    executeCommandRunUntilError: async (command: string,executeInMain=false): Promise<CommandError> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommandRunUntilError",
                 "message": command,
+                executeInMain
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
@@ -84,11 +86,12 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {EventEmitter} A promise that streams the output data during command execution.
      */
-    executeCommandWithStream(command: string):EventEmitter {
+    executeCommandWithStream(command: string,executeInMain=false):EventEmitter {
          // Send the process started message
          cbws.getWebsocket.send(JSON.stringify({
             "type": "executeCommandWithStream",
-            "message": command,
+            "message": command
+            ,executeInMain
         }));
         // Register event listener for WebSocket messages
         cbws.getWebsocket.on('message', (data: string) => {
