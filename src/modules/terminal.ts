@@ -97,9 +97,9 @@ const cbterminal = {
         cbws.getWebsocket.on('message', (data: string) => {
             const response = JSON.parse(data);
             console.log("Received message:", response);
-            if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") 
-            // Emit a custom event based on the message type
-            this.eventEmitter.emit("serverEvents", response.response);
+            if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") {
+                this.eventEmitter.emit(response.type, response);
+            }
         });
 
         // Return an object that includes the event emitter and the stopProcess method
