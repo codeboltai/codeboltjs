@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../src/modules/websocket';
 import {GoToPageResponse,UrlResponse,GetMarkdownResponse,HtmlReceived,ExtractTextResponse,GetContentResponse} from  '@codebolt/types'
 /**
  * A module for interacting with a browser through WebSockets.
