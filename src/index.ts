@@ -5,7 +5,7 @@ import Chat from './modules/chat';
 
 class Codebolt  { // Extend EventEmitter
     private static instance: Codebolt | null = null;
-    private wsManager: cbws;
+    private wsManager: CbWS;
     chat: Chat;
 
     constructor() {
