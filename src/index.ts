@@ -58,28 +58,28 @@ class Codebolt  { // Extend EventEmitter
      * @description Waits for the WebSocket connection to open.
      * @returns {Promise<void>} A promise that resolves when the WebSocket connection is open.
      */
-    async waitForConnection() {
-        return new Promise<void>((resolve, reject) => {
-            if (!this.websocket) {
-                reject(new Error('WebSocket is not initialized'));
-                return;
-            }
+    // async waitForConnection() {
+    //     return new Promise<void>((resolve, reject) => {
+    //         if (!this.websocket) {
+    //             reject(new Error('WebSocket is not initialized'));
+    //             return;
+    //         }
 
-            if (this.websocket.readyState === WebSocket.OPEN) {
-                resolve();
-                return;
-            }
+    //         if (this.websocket.readyState === WebSocket.OPEN) {
+    //             resolve();
+    //             return;
+    //         }
 
-            this.websocket.addEventListener('open', () => {
-                resolve();
-            });
+    //         this.websocket.addEventListener('open', () => {
+    //             resolve();
+    //         });
 
-            this.websocket.addEventListener('error', (error) => {
-                reject(error);
-            });
+    //         this.websocket.addEventListener('error', (error) => {
+    //             reject(error);
+    //         });
 
-        });
-    }
+    //     });
+    // }
 
     async connect() {
         await this.wsManager.connect();
@@ -87,6 +87,7 @@ class Codebolt  { // Extend EventEmitter
 
     async disconnect() {
         await this.wsManager.disconnect();
+        this.wsManager = null;
     }
 
     websocket: WebSocket | null = null;
