@@ -1,28 +1,29 @@
 import cbws from './modules/websocket';
-import cbfs from './modules/fs';
-import cbllm from './modules/llm';
-import cbterminal from './modules/terminal';
-import cbbrowser from './modules/browser';
-import cbchat from './modules/chat';
-import cbcodeutils from './modules/codeutils';
-import cbdocutils from './modules/docutils';
-import cbcrawler from './modules/crawler';
-import cbsearch from './modules/search';
-import cbknowledge from './modules/knowledge';
-import cbrag from './modules/rag';
-import cbcodeparsers from './modules/codeparsers';
-import cboutputparsers from './modules/outputparsers';
-import cbproject from './modules/project';
-import git from './modules/git';
-import dbmemory from './modules/dbmemory';
-import cbstate from './modules/state';
-import task from './modules/task';
-import vectorDB from './modules/vectordb';
-import debug from './modules/debug'
-import tokenizer from './modules/tokenizer'
+// import cbfs from './modules/fs';
+// import cbllm from './modules/llm';
+// import cbterminal from './modules/terminal';
+// import cbbrowser from './modules/browser';
+// import cbchat from './modules/chat';
+// import cbcodeutils from './modules/codeutils';
+// import cbdocutils from './modules/docutils';
+// import cbcrawler from './modules/crawler';
+// import cbsearch from './modules/search';
+// import cbknowledge from './modules/knowledge';
+// import cbrag from './modules/rag';
+// import cbcodeparsers from './modules/codeparsers';
+// import cboutputparsers from './modules/outputparsers';
+// import cbproject from './modules/project';
+// import git from './modules/git';
+// import dbmemory from './modules/dbmemory';
+// import cbstate from './modules/state';
+// import task from './modules/task';
+// import vectorDB from './modules/vectordb';
+// import debug from './modules/debug'
+// import tokenizer from './modules/tokenizer'
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
-import {chatSummary} from './modules/history'
+import Chat from './modules/chat';
+// import {chatSummary} from './modules/history'
 
 
 /**
@@ -31,8 +32,8 @@ import {chatSummary} from './modules/history'
  */
 class Codebolt  { // Extend EventEmitter
     private static instance: Codebolt | null = null;
-    private wsManager: cbws;
-    private vectorDB: vectorDB;
+    private wsManager: cbws ;
+    private chat: Chat;
 
 
     /**
@@ -41,7 +42,7 @@ class Codebolt  { // Extend EventEmitter
      */
     constructor() {
         this.wsManager = new cbws();
-        this.vectordb = new vectorDB(this.wsManager);
+        this.chat = new Chat(this.wsManager);
         // this.websocket = cbws.getWebsocket;
         // ... initialize other modules ...
     }
@@ -87,32 +88,32 @@ class Codebolt  { // Extend EventEmitter
 
     async disconnect() {
         await this.wsManager.disconnect();
-        this.wsManager = null;
+       // this.wsManager = null;
     }
 
-    websocket: WebSocket | null = null;
-    fs = cbfs;
-    git = git;
-    llm = cbllm;
-    browser = cbbrowser;
-    chat = cbchat;
-    terminal = cbterminal;
-    codeutils = cbcodeutils;
-    docutils = cbdocutils;
-    crawler = cbcrawler;
-    search = cbsearch;
-    knowledge = cbknowledge;
-    rag = cbrag;
-    codeparsers = cbcodeparsers;
-    outputparsers = cboutputparsers;
-    project = cbproject;
-    dbmemory = dbmemory;
-    cbstate = cbstate;
-    taskplaner = task;
-    vectordb = vectorDB;
-    debug = debug;
-    tokenizer = tokenizer;
-    chatSummary=chatSummary
+    // websocket: WebSocket | null = null;
+    // fs = cbfs;
+    // git = git;
+    // llm = cbllm;
+    // browser = cbbrowser;
+    // chat = cbchat;
+    // terminal = cbterminal;
+    // codeutils = cbcodeutils;
+    // docutils = cbdocutils;
+    // crawler = cbcrawler;
+    // search = cbsearch;
+    // knowledge = cbknowledge;
+    // rag = cbrag;
+    // codeparsers = cbcodeparsers;
+    // outputparsers = cboutputparsers;
+    // project = cbproject;
+    // dbmemory = dbmemory;
+    // cbstate = cbstate;
+    // taskplaner = task;
+    // vectordb = vectorDB;
+    // debug = debug;
+    // tokenizer = tokenizer;
+    // chatSummary=chatSummary
 }
 
 export default Codebolt.getInstance();
