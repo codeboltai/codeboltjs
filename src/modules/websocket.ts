@@ -19,7 +19,7 @@ class cbws {
         const uniqueConnectionId = this.getUniqueConnectionId();
         const initialMessage = this.getInitialMessage();
         this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}`);
-        return this.initializeWebSocket(initialMessage);
+        return await this.initializeWebSocket(initialMessage);
     }
 
     async disconnect(): Promise<void> {
