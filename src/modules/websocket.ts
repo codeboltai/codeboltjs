@@ -18,7 +18,7 @@ class CbWS {
 
         const uniqueConnectionId = this.getUniqueConnectionId();
         const initialMessage = this.getInitialMessage();
-        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}`);
+        this.websocket = new WebSocket(`ws://localhost:12345/codebolt?id=${uniqueConnectionId}`);
         return await this.initializeWebSocket(initialMessage);
     }
 
@@ -91,4 +91,4 @@ class CbWS {
     }
 }
 
-export default cbws;
+export default CbWS;

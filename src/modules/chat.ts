@@ -1,15 +1,15 @@
-import cbws from './websocket';
+import CbWS from './websocket';
 import { EventEmitter } from 'events';
 import { ChatMessage, UserMessage } from '@codebolt/types';
 
 class CustomEventEmitter extends EventEmitter {}
 
 class Chat {
-    private wsManager: cbws;
+    private wsManager: CbWS;
     private ws: any;
     private eventEmitter: CustomEventEmitter;
 
-    constructor(wsManager: cbws) {
+    constructor(wsManager: CbWS) {
         this.wsManager = wsManager;
         this.ws = this.wsManager.getWebsocket() as any;
         this.eventEmitter = new CustomEventEmitter();
