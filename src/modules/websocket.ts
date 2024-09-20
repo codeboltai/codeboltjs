@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 /**
  * Class representing a WebSocket connection.
  */
-class cbws {
+class CbWS {
    private websocket: WebSocket | null = null;
 
     /**
