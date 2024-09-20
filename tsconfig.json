@@ -108,7 +108,7 @@
   },
   "include": [
     "src/**/*"
-, "bkp/browser.ts", "bkp/codeparsers.ts"  ],
+   ],
   "exclude": [
     "node_modules",
     "**/*.spec.ts"
