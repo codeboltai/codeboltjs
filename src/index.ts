@@ -30,16 +30,29 @@ import {chatSummary} from './modules/history'
  * @description This class provides a unified interface to interact with various modules.
  */
 class Codebolt  { // Extend EventEmitter
+    private static instance: Codebolt | null = null;
+    private wsManager: cbws;
+    private vectorDB: vectorDB;
+
 
     /**
      * @constructor
      * @description Initializes the websocket connection.
      */
     constructor() {
-
-        this.websocket = cbws.getWebsocket;
+        this.wsManager = new cbws();
+        this.vectordb = new vectorDB(this.wsManager);
+        // this.websocket = cbws.getWebsocket;
+        // ... initialize other modules ...
     }
     
+    public static getInstance(): Codebolt {
+        if (!Codebolt.instance) {
+            Codebolt.instance = new Codebolt();
+        }
+        return Codebolt.instance;
+    }
+
     /**
      * @method waitForConnection
      * @description Waits for the WebSocket connection to open.
@@ -68,6 +81,14 @@ class Codebolt  { // Extend EventEmitter
         });
     }
 
+    async connect() {
+        await this.wsManager.connect();
+    }
+
+    async disconnect() {
+        await this.wsManager.disconnect();
+    }
+
     websocket: WebSocket | null = null;
     fs = cbfs;
     git = git;
@@ -93,6 +114,6 @@ class Codebolt  { // Extend EventEmitter
     chatSummary=chatSummary
 }
 
-export default new Codebolt();
+export default Codebolt.getInstance();
 
 // module.exports = new Codebolt();
