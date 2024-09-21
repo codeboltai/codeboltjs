@@ -1,9 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const websocket_1 = __importDefault(require("./websocket"));
+import cbws from './websocket';
+import {CreateFileResponse,CreateFolderResponse,ReadFileResponse,UpdateFileResponse,DeleteFileResponse,DeleteFolderResponse} from  '@codebolt/types'
 /**
  * @module cbfs
  * @description This module provides functionality to interact with the filesystem.
@@ -17,10 +13,10 @@ const cbfs = {
      * @param {string} filePath - The path where the file should be created.
      * @returns {Promise<CreateFileResponse>} A promise that resolves with the server response.
      */
-    createFile: (fileName, source, filePath) => {
+    createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "createFile",
                 "message": {
                     fileName,
@@ -28,7 +24,7 @@ const cbfs = {
                     filePath
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "createFileResponse") {
                     resolve(response);
@@ -43,17 +39,17 @@ const cbfs = {
      * @param {string} folderPath - The path where the folder should be created.
      * @returns {Promise<CreateFolderResponse>} A promise that resolves with the server response.
      */
-    createFolder: (folderName, folderPath) => {
+    createFolder: (folderName: string, folderPath: string): Promise<CreateFolderResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "createFolder",
                 "message": {
                     folderName,
                     folderPath
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "createFolderResponse") {
                     resolve(response);
@@ -68,17 +64,17 @@ const cbfs = {
      * @param {string} filePath - The path of the file to read.
      * @returns {Promise<ReadFileResponse>} A promise that resolves with the server response.
      */
-    readFile: (filename, filePath) => {
+    readFile: (filename: string, filePath: string): Promise<ReadFileResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "readFile",
                 "message": {
                     filename,
                     filePath
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "readFileResponse") {
                     resolve(response);
@@ -94,10 +90,10 @@ const cbfs = {
      * @param {string} newContent - The new content to write into the file.
      * @returns {Promise<UpdateFileResponse>} A promise that resolves with the server response.
      */
-    updateFile: (filename, filePath, newContent) => {
+    updateFile: (filename: string, filePath: string, newContent: string): Promise<UpdateFileResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "updateFile",
                 "message": {
                     filename,
@@ -105,7 +101,7 @@ const cbfs = {
                     newContent
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "commandOutput") {
                     resolve(response);
@@ -120,17 +116,17 @@ const cbfs = {
      * @param {string} filePath - The path of the file to delete.
      * @returns {Promise<DeleteFileResponse>} A promise that resolves with the server response.
      */
-    deleteFile: (filename, filePath) => {
+    deleteFile: (filename: string, filePath: string): Promise<DeleteFileResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "deleteFile",
                 "message": {
                     filename,
                     filePath
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "deleteFileResponse") {
                     resolve(response);
@@ -145,17 +141,17 @@ const cbfs = {
      * @param {string} folderpath - The path of the folder to delete.
      * @returns {Promise<DeleteFolderResponse>} A promise that resolves with the server response.
      */
-    deleteFolder: (foldername, folderpath) => {
+    deleteFolder: (foldername: string, folderpath: string): Promise<DeleteFolderResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "fsEvent",
+            cbws.getWebsocket.send(JSON.stringify({
+                "type":"fsEvent",
                 "action": "deleteFolder",
                 "message": {
                     foldername,
                     folderpath
                 },
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "deleteFolderResponse") {
                     resolve(response);
@@ -168,17 +164,17 @@ const cbfs = {
      * @description Lists all files.
      * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
      */
-    listFile: (folderPath, isRecursive = false) => {
+    listFile: (folderPath:string,isRecursive=false) => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "fsEvent",
                 "action": "fileList",
-                message: {
+                message:{
                     folderPath,
                     isRecursive
                 }
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "fileListResponse") {
                     resolve(response);
@@ -186,5 +182,7 @@ const cbfs = {
             });
         });
     },
+  
 };
-exports.default = cbfs;
+
+export default cbfs;

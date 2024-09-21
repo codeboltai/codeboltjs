@@ -1,20 +1,18 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const websocket_1 = __importDefault(require("./websocket"));
+import cbws from './websocket';
+import {ApplicationState,AddToAgentStateResponse,GetAgentStateResponse } from '@codebolt/types';
+
 const cbstate = {
     /**
      * Retrieves the current application state from the server via WebSocket.
      * @returns {Promise<ApplicationState>} A promise that resolves with the application state.
      */
-    getApplicationState: async () => {
+    getApplicationState: async (): Promise<ApplicationState> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "getAppState",
+                
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getAppStateResponse") {
                     resolve(response); // Resolve the Promise with the response data
@@ -28,41 +26,44 @@ const cbstate = {
      * @param {string} value - The value associated with the key.
      * @returns {Promise<AddToAgentStateResponse>} A promise that resolves with the response to the addition request.
      */
-    addToAgentState: async (key, value) => {
-        return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+    addToAgentState: async (key: string, value: string): Promise<AddToAgentStateResponse> => {
+      return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentStateEvent",
-                "action": "addToAgentState",
-                payload: {
+                "action":"addToAgentState",
+                payload:{
                     key,
                     value
                 }
+                
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "addToAgentStateResponse") {
                     resolve(response); // Resolve the Promise with the response data
                 }
             });
-        });
+        });  
     },
     /**
      * Retrieves the current state of the agent from the server via WebSocket.
      * @returns {Promise<GetAgentStateResponse>} A promise that resolves with the agent's state.
      */
-    getAgentState: async () => {
-        return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+    getAgentState: async (): Promise<GetAgentStateResponse> => {
+       return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentStateEvent",
-                "action": "getAgentState",
+                "action":"getAgentState",
+                
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getAgentStateResponse") {
                     resolve(response); // Resolve the Promise with the response data
                 }
             });
-        });
+        });  
     }
 };
-exports.default = cbstate;
+
+export default cbstate;

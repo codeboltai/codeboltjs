@@ -1,9 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const websocket_1 = __importDefault(require("./websocket"));
+import cbws from './websocket';
+import {MemorySetResponse,MemoryGetResponse  } from '@codebolt/types';
+
 /**
  * A module for handling in-memory database operations via WebSocket.
  */
@@ -14,15 +11,15 @@ const dbmemory = {
      * @param {any} value - The value to be stored.
      * @returns {Promise<MemorySetResponse>} A promise that resolves with the response from the memory set event.
      */
-    addKnowledge: (key, value) => {
+    addKnowledge: (key: string, value: any): Promise<MemorySetResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "memoryEvent",
                 'action': 'set',
                 key,
                 value
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "memorySetResponse") {
                     resolve(response); // Resolve the Promise with the response data
@@ -35,14 +32,14 @@ const dbmemory = {
      * @param {string} key - The key of the value to retrieve.
      * @returns {Promise<MemoryGetResponse>} A promise that resolves with the response from the memory get event.
      */
-    getKnowledge: (key) => {
+    getKnowledge: (key: string): Promise<MemoryGetResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "memoryEvent",
                 'action': 'get',
                 key
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "memoryGetResponse") {
                     resolve(response); // Resolve the Promise with the response data
@@ -51,4 +48,5 @@ const dbmemory = {
         });
     }
 };
-exports.default = dbmemory;
+
+export default dbmemory;

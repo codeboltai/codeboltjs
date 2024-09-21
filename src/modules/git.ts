@@ -1,9 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const websocket_1 = __importDefault(require("./websocket"));
+import cbws from './websocket';
+
 /**
  * A service for interacting with Git operations via WebSocket messages.
  */
@@ -13,14 +9,14 @@ const gitService = {
      * @param {string} path - The file system path where the Git repository should be initialized.
      * @returns {Promise<any>} A promise that resolves with the response from the init event.
      */
-    init: async (path) => {
+    init: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Init",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "InitResponse") {
                     resolve(response);
@@ -34,15 +30,15 @@ const gitService = {
      * @param {string} path - The file system path where the repository should be cloned to.
      * @returns {Promise<any>} A promise that resolves with the response from the clone event.
      */
-    clone: async (url, path) => {
+    clone: async (url: string, path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Clone",
                 "url": url,
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "CloneResponse") {
                     resolve(response);
@@ -55,14 +51,14 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the pull event.
      */
-    pull: async (path) => {
+    pull: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Pull",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "PullResponse") {
                     resolve(response);
@@ -75,14 +71,14 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the push event.
      */
-    push: async (path) => {
+    push: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Push",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "PushResponse") {
                     resolve(response);
@@ -95,14 +91,14 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the status event.
      */
-    status: async (path) => {
+    status: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Status",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "StatusResponse") {
                     resolve(response);
@@ -115,14 +111,14 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the add event.
      */
-    add: async (path) => {
+    add: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Add",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "AddResponse") {
                     resolve(response);
@@ -135,14 +131,14 @@ const gitService = {
      * @param {string} message - The commit message to use for the commit.
      * @returns {Promise<any>} A promise that resolves with the response from the commit event.
      */
-    commit: async (message) => {
+    commit: async (message: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Commit",
                 "message": message
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "gitCommitResponse") {
                     resolve(response);
@@ -156,15 +152,15 @@ const gitService = {
      * @param {string} branch - The name of the branch or commit to check out.
      * @returns {Promise<any>} A promise that resolves with the response from the checkout event.
      */
-    checkout: async (path, branch) => {
+    checkout: async (path: string, branch: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Checkout",
                 "path": path,
                 "branch": branch
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "CheckoutResponse") {
                     resolve(response);
@@ -178,15 +174,15 @@ const gitService = {
      * @param {string} branch - The name of the new branch to create.
      * @returns {Promise<any>} A promise that resolves with the response from the branch event.
      */
-    branch: async (path, branch) => {
+    branch: async (path: string, branch: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Branch",
                 "path": path,
                 "branch": branch
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "BranchResponse") {
                     resolve(response);
@@ -199,14 +195,14 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the logs event.
      */
-    logs: async (path) => {
+    logs: async (path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Logs",
                 "path": path
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "LogsResponse") {
                     resolve(response);
@@ -220,15 +216,15 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the diff event.
      */
-    diff: async (commitHash, path) => {
+    diff: async (commitHash: string, path: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "gitEvent",
                 "action": "Diff",
                 "path": path,
                 "commitHash": commitHash
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "DiffResponse") {
                     resolve(response);
@@ -237,4 +233,5 @@ const gitService = {
         });
     }
 };
-exports.default = gitService;
+
+export default gitService;

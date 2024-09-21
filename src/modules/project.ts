@@ -1,9 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const websocket_1 = __importDefault(require("./websocket"));
+import cbws from './websocket';
+import { GetProjectPathResponse } from '@codebolt/types';
 /**
  * A module for interacting with project settings and paths.
  */
@@ -13,20 +9,20 @@ const cbproject = {
      * Currently, this method does not perform any operations.
      * @param {any} output - The output where project settings would be stored.
      */
-    getProjectSettings: (output) => {
+    getProjectSettings: (output: any) => {
         // Implementation for getting project settings will be added here
     },
     /**
      * Retrieves the path of the current project.
      * @returns {Promise<GetProjectPathResponse>} A promise that resolves with the project path response.
      */
-    getProjectPath: () => {
+    getProjectPath: (): Promise<GetProjectPathResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "settingEvent",
                 "action": "getProjectPath"
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getProjectPathResponse") {
                     resolve(response);
@@ -34,14 +30,14 @@ const cbproject = {
             });
         });
     },
-    getRepoMap: (message) => {
+    getRepoMap: (message: any): Promise<GetProjectPathResponse> => {
         return new Promise((resolve, reject) => {
-            websocket_1.default.getWebsocket.send(JSON.stringify({
+            cbws.getWebsocket.send(JSON.stringify({
                 "type": "settingEvent",
                 "action": "getRepoMap",
                 message
             }));
-            websocket_1.default.getWebsocket.on('message', (data) => {
+            cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "getRepoMapResponse") {
                     resolve(response);
@@ -50,9 +46,9 @@ const cbproject = {
         });
     },
     runProject: () => {
-        websocket_1.default.getWebsocket.send(JSON.stringify({
+        cbws.getWebsocket.send(JSON.stringify({
             "type": "runProject"
         }));
     },
 };
-exports.default = cbproject;
+export default cbproject
