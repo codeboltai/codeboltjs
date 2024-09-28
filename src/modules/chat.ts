@@ -148,12 +148,13 @@ const cbchat = {
      * Sends a confirmation request to the server with two options: Yes or No.
      * @returns {Promise<string>} A promise that resolves with the server's response.
      */
-    sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = []): Promise<string> => {
+    sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = [],withFeedback:boolean=false): Promise<string> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "confirmationRequest",
                 "message": confirmationMessage,
-                buttons: buttons
+                buttons: buttons,
+                withFeedback
 
             }));
             cbws.getWebsocket.on('message', (data: string) => {
