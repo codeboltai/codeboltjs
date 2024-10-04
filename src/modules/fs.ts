@@ -182,6 +182,57 @@ const cbfs = {
             });
         });
     },
+    /**
+     * @function listCodeDefinitionNames
+     * @description Lists all code definition names in a given path.
+     * @param {string} path - The path to search for code definitions.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of code definition names.
+     */
+    listCodeDefinitionNames: (path: string): Promise<{success: boolean, result: any}> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "fsEvent",
+                "action": "listCodeDefinitionNames",
+                "message": {
+                    path
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "listCodeDefinitionNamesResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+
+    /**
+     * @function searchFiles
+     * @description Searches files in a given path using a regex pattern.
+     * @param {string} path - The path to search within.
+     * @param {string} regex - The regex pattern to search for.
+     * @param {string} filePattern - The file pattern to match files.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     */
+    searchFiles: (path: string, regex: string, filePattern: string): Promise<{success: boolean, result: any}> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "fsEvent",
+                "action": "searchFiles",
+                "message": {
+                    path,
+                    regex,
+                    filePattern
+                }
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "searchFilesResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
   
 };
 
