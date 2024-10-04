@@ -64,13 +64,12 @@ const cbfs = {
      * @param {string} filePath - The path of the file to read.
      * @returns {Promise<ReadFileResponse>} A promise that resolves with the server response.
      */
-    readFile: (filename: string, filePath: string): Promise<ReadFileResponse> => {
+    readFile: (filePath: string): Promise<ReadFileResponse> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type":"fsEvent",
                 "action": "readFile",
                 "message": {
-                    filename,
                     filePath
                 },
             }));
@@ -228,6 +227,31 @@ const cbfs = {
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "searchFilesResponse") {
+                    resolve(response);
+                }
+            });
+        });
+    },
+    /**
+     * @function writeToFile
+     * @description Writes content to a file.
+     * @param {string} relPath - The relative path of the file to write to.
+     * @param {string} newContent - The new content to write into the file.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the write operation result.
+     */
+    writeToFile: (relPath:string, newContent:string) => {
+        return new Promise((resolve, reject) => {
+             cbws.getWebsocket.send(JSON.stringify({
+                "type": "fsEvent",
+                "action": "writeToFile",
+                "message": {
+                    relPath,
+                    newContent
+                }
+            }));
+             cbws.getWebsocket.on('message', (data:string) => {
+                const response = JSON.parse(data);
+                if (response.type === "writeToFileResponse") {
                     resolve(response);
                 }
             });
