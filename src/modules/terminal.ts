@@ -19,33 +19,22 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command: string,executeInMain=false): Promise<CommandOutput|CommandError> => {
+    executeCommand: async (command:string, returnEmptyStringOnSuccess = false) => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommand",
                 "message": command,
-                executeInMain
+                returnEmptyStringOnSuccess
             }));
             let result = "";
-            cbws.getWebsocket.on('message', (data: string) => {
+            cbws.getWebsocket.on('message', (data:string) => {
                 const response = JSON.parse(data);
-             
-                if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") {
-                    if (response.type === "commandOutput") {
-                        // Initialize result as an empty string                
-                        result += response.stdout + "/n"; // Append the output
-                    } else if (response.type === "commandError") {
-                        result = response.stderr + "/n";; // Set result to the error
-                        response.result = result;
-                        resolve(response); // Resolve with the result string
-                    } else if (response.type === "commandFinish") {
-                        response.result = result;
-                        resolve(response); // Resolve with the result string
-                    }
+                if (response.type === "commandError" || response.type === "commandFinish" ) {
+                   resolve(response)
                 }
             });
         });
-    },
+    },,
 
     /**
      * Executes a given command and keeps running until an error occurs.
