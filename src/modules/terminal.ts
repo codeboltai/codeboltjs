@@ -19,7 +19,7 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command:string, returnEmptyStringOnSuccess = false) => {
+    executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false) => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "executeCommand",
@@ -34,7 +34,7 @@ const cbterminal = {
                 }
             });
         });
-    },,
+    },
 
     /**
      * Executes a given command and keeps running until an error occurs.
