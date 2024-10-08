@@ -5,20 +5,28 @@ import yaml from 'js-yaml';
 /**
  * Class representing a WebSocket connection.
  */
-class cbws {
-    websocket: WebSocket;
+class CbWS {
+    public websocket: WebSocket | null = null;
 
     /**
      * Constructs a new cbws instance and initializes the WebSocket connection.
      */
-    constructor() {
+    async connect(): Promise<WebSocket> {
+        if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
+            return this.websocket;
+        }
+
         const uniqueConnectionId = this.getUniqueConnectionId();
         const initialMessage = this.getInitialMessage();
-        console.log(uniqueConnectionId)
-        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}`);
-        this.initializeWebSocket(initialMessage).catch(error => {
-            console.error("WebSocket connection failed:", error);
-        });
+        this.websocket = new WebSocket(`ws://localhost:12345/codebolt?id=${uniqueConnectionId}`);
+        return await this.initializeWebSocket(initialMessage);
+    }
+
+    async disconnect(): Promise<void> {
+        if (this.websocket) {
+            this.websocket.close();
+            this.websocket = null;
+        }
     }
     private getUniqueConnectionId(): string {
         try {
@@ -49,6 +57,10 @@ class cbws {
      */
     private async initializeWebSocket(initialMessage: string): Promise<WebSocket> {
         return new Promise((resolve, reject) => {
+            if (!this.websocket) {
+                reject(new Error('WebSocket is not initialized'));
+                return;
+            }
             this.websocket.on('error', (error: Error) => {
                 console.log('WebSocket error:', error);
                 reject(error);
@@ -56,13 +68,7 @@ class cbws {
 
             this.websocket.on('open', () => {
                 console.log('WebSocket connected');
-                // if (this.websocket) {
-                //     this.websocket.send(JSON.stringify({
-                //         "type": "sendMessage",
-                //         "message": initialMessage
-                //     }));
-                //     resolve(this.websocket);
-                // }
+                resolve(this.websocket!);
             });
 
             this.websocket.on('message', (data: WebSocket.Data) => {
@@ -77,13 +83,28 @@ class cbws {
      * @returns {WebSocket} The WebSocket instance.
      * @throws {Error} If the WebSocket is not open.
      */
-    get getWebsocket(): WebSocket {
-        if (!this.websocket.OPEN) {
+    getWebsocket(): WebSocket {
+        if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
             throw new Error('WebSocket is not open');
-        } else {
-            return this.websocket;
         }
+        return this.websocket;
+    }
+
+    send(data: any): void {
+        if (!this.websocket || this.websocket.readyState !== WebSocket.OPEN) {
+            console.error('WebSocket is not open. Unable to send data.');
+            return;
+        }
+        this.websocket.send(JSON.stringify(data));
+    }
+
+    on(callback: (data: string) => void): void {
+        if (!this.websocket) {
+            console.error('WebSocket is not initialized. Unable to set up message listener.');
+            return;
+        }
+        this.websocket.on('message', callback);
     }
 }
 
-export default new cbws();
+export default CbWS;

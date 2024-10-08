@@ -1,9 +1,23 @@
 import cbws from './websocket';
 import {LLMResponse } from '@codebolt/types';
+
+import CbWS from './websocket';
+
+class CustomEventEmitter extends EventEmitter { }
+import { EventEmitter } from 'events';
 /**
  * A module for interacting with language learning models (LLMs) via WebSocket.
  */
-const cbllm = {
+class CBLLM{
+    private wsManager: CbWS;
+    private ws: any;
+    private eventEmitter: CustomEventEmitter;
+
+    constructor(wsManager: CbWS) {
+        this.wsManager = wsManager;
+        // this.ws = this.wsManager.getWebsocket();
+        this.eventEmitter = new CustomEventEmitter();
+    }
     /**
      * Sends an inference request to the LLM and returns the model's response.
      * The model is selected based on the provided `llmrole`. If the specific model
@@ -14,16 +28,16 @@ const cbllm = {
      * @param {string} llmrole - The role of the LLM to determine which model to use.
      * @returns {Promise<LLMResponse>} A promise that resolves with the LLM's response.
      */
-    inference: async (message: string, llmrole: string): Promise<LLMResponse> => {
+    inference= async (message: string, llmrole: string): Promise<LLMResponse> => {
         return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+            this.wsManager.send(JSON.stringify({
                 "type": "inference",
                 "message": {
                     prompt: message,
                     llmrole
                 },
             }));
-            cbws.getWebsocket.on('message', (data: string) => {
+            this.wsManager.on((data: string) => {
                 const response = JSON.parse(data);
                 if (response.type === "llmResponse") {
                     resolve(response); // Resolve the Promise with the response data
@@ -33,4 +47,4 @@ const cbllm = {
     }
 };
 
-export default cbllm;
+export default CBLLM;
