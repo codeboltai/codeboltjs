@@ -1,8 +1,8 @@
 import cbws from './websocket';
 import * as fs from 'fs';
 import path from 'path';
-import  Parser  from 'tree-sitter';
-import  JavaScript  from 'tree-sitter-javascript';
+// import  Parser  from 'tree-sitter';
+// import  JavaScript  from 'tree-sitter-javascript';
 
 import { GetJsTreeResponse, MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '@codebolt/types';
 
@@ -16,77 +16,77 @@ const cbcodeutils = {
      * @param {string} filePath - The path of the file to retrieve the JS tree for.
      * @returns {Promise<GetJsTreeResponse>} A promise that resolves with the JS tree response.
      */
-    getJsTree: (filePath?: string): Promise<any> => {
-        return new Promise( async (resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
-                "type": "settingEvent",
-                "action": "getProjectPath"
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getProjectPathResponse") {
-                    // resolve(response);
-                    try {
-                        let pathInput= response.projectPath;
-                        let parser= new Parser();
-                        // Initialize the parser with the JavaScript language
-                        parser.setLanguage(JavaScript);
-                        const trees = [];
-                        const functionNodes = [];
+    getJsTree: (filePath?: string) => {
+        // return new Promise( async (resolve, reject) => {
+        //     cbws.getWebsocket.send(JSON.stringify({
+        //         "type": "settingEvent",
+        //         "action": "getProjectPath"
+        //     }));
+        //     cbws.getWebsocket.on('message', (data: string) => {
+        //         const response = JSON.parse(data);
+        //         if (response.type === "getProjectPathResponse") {
+        //             // resolve(response);
+        //             try {
+        //                 let pathInput= response.projectPath;
+        //                 let parser= new Parser();
+        //                 // Initialize the parser with the JavaScript language
+        //                 parser.setLanguage(JavaScript);
+        //                 const trees = [];
+        //                 const functionNodes = [];
                         
-                        const processDirectory = (directory:any) => {
-                            console.log("isdir")
-                            // Read all files in the directory
-                            const files = fs.readdirSync(directory, { withFileTypes: true });
+        //                 const processDirectory = (directory:any) => {
+        //                     console.log("isdir")
+        //                     // Read all files in the directory
+        //                     const files = fs.readdirSync(directory, { withFileTypes: true });
             
-                            files.forEach(file => {
-                                if (file.isDirectory()) {
-                                    if (file.name !== 'node_modules') { // Ignore node_modules directory
-                                        processDirectory(path.join(directory, file.name)); // Recursive call for subdirectories
-                                    }
-                                } else if (path.extname(file.name) === '.js') {
-                                    const code = fs.readFileSync(path.join(directory, file.name), 'utf-8');
-                                    console.log(code);
-                                    let tree:any = parser.parse(code);
-                                    tree.rootNode.path = path.join(directory, file.name); // Set file path for t
-                                    trees.push(tree);
-                                }
-                            });
-                        };
+        //                     files.forEach(file => {
+        //                         if (file.isDirectory()) {
+        //                             if (file.name !== 'node_modules') { // Ignore node_modules directory
+        //                                 processDirectory(path.join(directory, file.name)); // Recursive call for subdirectories
+        //                             }
+        //                         } else if (path.extname(file.name) === '.js') {
+        //                             const code = fs.readFileSync(path.join(directory, file.name), 'utf-8');
+        //                             console.log(code);
+        //                             let tree:any = parser.parse(code);
+        //                             tree.rootNode.path = path.join(directory, file.name); // Set file path for t
+        //                             trees.push(tree);
+        //                         }
+        //                     });
+        //                 };
             
-                        if (fs.lstatSync(pathInput).isDirectory()) {
-                            processDirectory(pathInput);
-                        } else if (path.extname(pathInput) === '.js') {
-                            // Read a single JavaScript file
-                            const code = fs.readFileSync(pathInput, 'utf-8');
-                            let tree:any = parser.parse(code);
-                            tree.rootNode.path = pathInput; // Set file path for t
+        //                 if (fs.lstatSync(pathInput).isDirectory()) {
+        //                     processDirectory(pathInput);
+        //                 } else if (path.extname(pathInput) === '.js') {
+        //                     // Read a single JavaScript file
+        //                     const code = fs.readFileSync(pathInput, 'utf-8');
+        //                     let tree:any = parser.parse(code);
+        //                     tree.rootNode.path = pathInput; // Set file path for t
                           
-                            trees.push(tree);
-                        }
+        //                     trees.push(tree);
+        //                 }
             
-                        resolve({ event: 'GetJsTreeResponse',payload:trees}); // Return an array of abstract syntax trees (ASTs)
-                    } catch (error) {
-                        console.error('An error occurred:', error);
-                        return { event: 'GetJsTreeResponse',payload:null}; // Return null in case of error
-                    }
-                }
-            });
+        //                 resolve({ event: 'GetJsTreeResponse',payload:trees}); // Return an array of abstract syntax trees (ASTs)
+        //             } catch (error) {
+        //                 console.error('An error occurred:', error);
+        //                 return { event: 'GetJsTreeResponse',payload:null}; // Return null in case of error
+        //             }
+        //         }
+        //     });
 
-            // cbws.getWebsocket.send(JSON.stringify({
-            //     "type": "codeEvent",
-            //     "action":"getJsTree",
-            //     payload:{
-            //         filePath
-            //     }
-            // }));
-            // cbws.getWebsocket.on('message', (data: string) => {
-            //     const response = JSON.parse(data);
-            //     if (response.type === "getJsTreeResponse") {
-            //         resolve(response); // Resolve the Promise with the response data
-            //     } 
-            // });
-        });
+        //     // cbws.getWebsocket.send(JSON.stringify({
+        //     //     "type": "codeEvent",
+        //     //     "action":"getJsTree",
+        //     //     payload:{
+        //     //         filePath
+        //     //     }
+        //     // }));
+        //     // cbws.getWebsocket.on('message', (data: string) => {
+        //     //     const response = JSON.parse(data);
+        //     //     if (response.type === "getJsTreeResponse") {
+        //     //         resolve(response); // Resolve the Promise with the response data
+        //     //     } 
+        //     // });
+        // });
     },
 
     /**
