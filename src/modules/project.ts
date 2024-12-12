@@ -50,5 +50,19 @@ const cbproject = {
             "type": "runProject"
         }));
     },
+    getEditorFileStatus:()=>{
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "settingEvent",
+                "action": "getEditorFileStatus",
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getEditorFileStatusResponse") {
+                    resolve(response);
+                }
+            });
+        }); 
+    }
 };
 export default cbproject
