@@ -6,7 +6,7 @@
   "author": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "webpack --config webpack.config.js",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "jest fs.test.js"
@@ -34,7 +34,7 @@
     "typedoc": "^0.25.13",
     "typedoc-plugin-markdown": "^4.0.1",
     "typescript": "^5.4.5",
-    "webpack": "^5.91.0",
+    "webpack": "^5.97.1",
     "webpack-cli": "^5.1.4"
   },
   "jest": {
