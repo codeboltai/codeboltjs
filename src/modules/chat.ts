@@ -14,7 +14,6 @@ let eventEmitter = new CustomEventEmitter()
  * Chat module to interact with the WebSocket server.
  */
 const cbchat = {
-
     /**
      * Retrieves the chat history from the server.
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
@@ -32,7 +31,6 @@ const cbchat = {
             })
         })
     },
-
     /**
      * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
      * @returns {EventEmitter} The event emitter used for emitting custom events.
@@ -53,7 +51,6 @@ const cbchat = {
         });
         return eventEmitter;
     },
-
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
@@ -66,7 +63,6 @@ const cbchat = {
             payload
         }));
     },
-
     /**
      * Waits for a reply to a sent message.
      * @param {string} message - The message for which a reply is expected.
@@ -86,7 +82,6 @@ const cbchat = {
             });
         });
     },
-
     /**
      * Notifies the server that a process has started and sets up an event listener for stopProcessClicked events.
      * @returns An object containing the event emitter and a stopProcess method.
@@ -143,7 +138,6 @@ const cbchat = {
             "type": "processFinished"
         }));
     },
-
     /**
      * Sends a confirmation request to the server with two options: Yes or No.
      * @returns {Promise<string>} A promise that resolves with the server's response.
@@ -153,6 +147,23 @@ const cbchat = {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "confirmationRequest",
                 "message": confirmationMessage,
+                buttons: buttons,
+                withFeedback
+
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "confirmationResponse" || response.type === "feedbackResponse" ) {
+                    resolve(response); // Resolve the Promise with the server's response
+                }
+            });
+        });
+    },
+    askQuestion: (question: string, buttons: string[] = [],withFeedback:boolean=false): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "confirmationRequest",
+                "message": question,
                 buttons: buttons,
                 withFeedback
 

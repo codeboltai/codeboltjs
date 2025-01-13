@@ -92,7 +92,7 @@ class Codebolt  { // Extend EventEmitter
     debug = debug;
     tokenizer = tokenizer;
     chatSummary=chatSummary;
-    codeboltMCP = codeboltMCP;
+    MCP = codeboltMCP;
 }
 
 export default new Codebolt();
