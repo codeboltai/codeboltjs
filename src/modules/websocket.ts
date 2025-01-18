@@ -15,7 +15,7 @@ class cbws {
         const uniqueConnectionId = this.getUniqueConnectionId();
         const initialMessage = this.getInitialMessage();
         console.log(uniqueConnectionId)
-        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}`);
+        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${process.env.Is_DEV ? '&dev=true' : ''}`);
         this.initializeWebSocket(initialMessage).catch(error => {
             console.error("WebSocket connection failed:", error);
         });
