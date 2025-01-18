@@ -1,12 +1,12 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "1.1.72",
+  "version": "1.1.73",
   "description": "",
   "keywords": [],
   "author": "",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "tsc",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "jest fs.test.js"
@@ -19,8 +19,10 @@
   "homepage": "https://codeboltai.github.io",
   "dependencies": {
     "@codebolt/types": "^1.0.10",
+    "bufferutil": "^4.0.9",
     "js-yaml": "^4.1.0",
     "typedoc-plugin-missing-exports": "^2.2.0",
+    "utf-8-validate": "^6.0.5",
     "ws": "^8.17.0"
   },
   "devDependencies": {
