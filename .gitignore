@@ -1,5 +1,5 @@
 build
 node_modules
-modules
-index.js
-index.d.ts
+# modules
+# index.js
+# index.d.ts
