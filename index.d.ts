@@ -150,7 +150,7 @@ declare class Codebolt {
         executeCommandWithStream(command: string, executeInMain?: boolean): EventEmitter<[never]>;
     };
     codeutils: {
-        getJsTree: (filePath?: string | undefined) => void;
+        getJsTree: (filePath?: string | undefined) => Promise<unknown>;
         getAllFilesAsMarkDown: () => Promise<string>;
         performMatch: (matcherDefinition: object, problemPatterns: any[], problems: any[]) => Promise<import("@codebolt/types").MatchProblemResponse>;
         getMatcherList: () => Promise<import("@codebolt/types").GetMatcherListTreeResponse>;

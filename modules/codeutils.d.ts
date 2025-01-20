@@ -8,7 +8,7 @@ declare const cbcodeutils: {
      * @param {string} filePath - The path of the file to retrieve the JS tree for.
      * @returns {Promise<GetJsTreeResponse>} A promise that resolves with the JS tree response.
      */
-    getJsTree: (filePath?: string) => void;
+    getJsTree: (filePath?: string) => Promise<unknown>;
     /**
      * Retrieves all files as Markdown.
      * @returns {Promise<string>} A promise that resolves with the Markdown content of all files.
