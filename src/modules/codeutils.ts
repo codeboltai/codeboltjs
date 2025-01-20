@@ -30,7 +30,7 @@ const cbcodeutils = {
                         let pathInput= response.projectPath;
                         let parser= new Parser();
                         // Initialize the parser with the JavaScript language
-                        parser.setLanguage(JavaScript as unknown as Parser.Language);
+                        parser.setLanguage(JavaScript);
                         const trees = [];
                         const functionNodes = [];
                         
