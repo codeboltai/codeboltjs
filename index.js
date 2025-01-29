@@ -28,6 +28,7 @@ const tokenizer_1 = __importDefault(require("./modules/tokenizer"));
 const ws_1 = __importDefault(require("ws"));
 const history_1 = require("./modules/history");
 const mcp_1 = __importDefault(require("./modules/mcp"));
+const agent_1 = __importDefault(require("./modules/agent"));
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -62,6 +63,7 @@ class Codebolt {
         this.tokenizer = tokenizer_1.default;
         this.chatSummary = history_1.chatSummary;
         this.MCP = mcp_1.default;
+        this.AGENT = agent_1.default;
         this.websocket = websocket_1.default.getWebsocket;
     }
     /**

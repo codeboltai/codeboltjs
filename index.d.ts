@@ -19,11 +19,7 @@ declare class Codebolt {
     waitForConnection(): Promise<void>;
     websocket: WebSocket | null;
     fs: {
-        createFile: (fileName: string, source: string, filePath: string) => Promise<import("@codebolt/types").CreateFileResponse>; /**
-         * @method waitForConnection
-         * @description Waits for the WebSocket connection to open.
-         * @returns {Promise<void>} A promise that resolves when the WebSocket connection is open.
-         */
+        createFile: (fileName: string, source: string, filePath: string) => Promise<import("@codebolt/types").CreateFileResponse>;
         createFolder: (folderName: string, folderPath: string) => Promise<import("@codebolt/types").CreateFolderResponse>;
         readFile: (filePath: string) => Promise<import("@codebolt/types").ReadFileResponse>;
         updateFile: (filename: string, filePath: string, newContent: string) => Promise<import("@codebolt/types").UpdateFileResponse>;
@@ -193,10 +189,6 @@ declare class Codebolt {
     project: {
         getProjectSettings: (output: any) => void;
         getProjectPath: () => Promise<import("@codebolt/types").GetProjectPathResponse>;
-        /**
-         * @constructor
-         * @description Initializes the websocket connection.
-         */
         getRepoMap: (message: any) => Promise<import("@codebolt/types").GetProjectPathResponse>;
         runProject: () => void;
         getEditorFileStatus: () => Promise<unknown>;
@@ -248,6 +240,10 @@ declare class Codebolt {
         getAllMCPTools: (mpcName: string) => Promise<any>;
         getMCPTool: (name: string) => Promise<any>;
         getEnabledMCPS: () => Promise<any>;
+    };
+    AGENT: {
+        getAgent: (task: string) => Promise<any>;
+        startAgent: (task: string) => Promise<any>;
     };
 }
 declare const _default: Codebolt;

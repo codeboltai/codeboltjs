@@ -24,6 +24,8 @@ import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import {chatSummary} from './modules/history'
 import codeboltMCP from './modules/mcp';
+import cbagent from './modules/agent';
+
 
 
 /**
@@ -93,6 +95,7 @@ class Codebolt  { // Extend EventEmitter
     tokenizer = tokenizer;
     chatSummary=chatSummary;
     MCP = codeboltMCP;
+    AGENT = cbagent;
 }
 
 export default new Codebolt();
