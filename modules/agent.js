@@ -30,16 +30,17 @@ const codeboltAgent = {
      * @param {string} task - The task for which the agent should be started.
      * @returns {Promise<void>} A promise that resolves when the agent has been successfully started.
      */
-    startAgent: (task) => {
+    startAgent: (agentId, task) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
                 "type": "agentEvent",
                 "action": "startAgent",
+                "agentId": agentId,
                 "task": task
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
-                if (response.type === "startAgentResponse" && response.task === task) {
+                if (response.type === "taskCompletionResponse") {
                     resolve(response); // Resolve the Promise when the agent has been successfully started
                 }
             });

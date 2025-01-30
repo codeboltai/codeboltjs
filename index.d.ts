@@ -243,7 +243,7 @@ declare class Codebolt {
     };
     AGENT: {
         getAgent: (task: string) => Promise<any>;
-        startAgent: (task: string) => Promise<any>;
+        startAgent: (agentId: string, task: string) => Promise<any>;
     };
 }
 declare const _default: Codebolt;

@@ -10,6 +10,6 @@ declare const codeboltAgent: {
      * @param {string} task - The task for which the agent should be started.
      * @returns {Promise<void>} A promise that resolves when the agent has been successfully started.
      */
-    startAgent: (task: string) => Promise<any>;
+    startAgent: (agentId: string, task: string) => Promise<any>;
 };
 export default codeboltAgent;
