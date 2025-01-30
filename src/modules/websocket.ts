@@ -15,8 +15,8 @@ class cbws {
         const uniqueConnectionId = this.getUniqueConnectionId();
         const initialMessage = this.getInitialMessage();
    
-        const agentIdParam = process.env.AGENT_ID ? `&agentId=${process.env.AGENT_ID}` : '';
-        const parentIdParam = process.env.PARENT_ID ? `&parentId=${process.env.PARENT_ID}` : '';
+        const agentIdParam = process.env.agentId ? `&agentId=${process.env.agentId}` : '';
+        const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
         this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
         this.initializeWebSocket(initialMessage).catch(error => {
             console.error("WebSocket connection failed:", error);
