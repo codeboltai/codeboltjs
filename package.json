@@ -5,6 +5,7 @@
   "keywords": [],
   "author": "",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "tsc",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
