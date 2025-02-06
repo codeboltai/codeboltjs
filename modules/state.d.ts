@@ -26,6 +26,6 @@ declare const cbstate: {
      * Updates the project state on the server via WebSocket.
      * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
      */
-    updateProjectState: () => Promise<any>;
+    updateProjectState: (key: string, value: any) => Promise<any>;
 };
 export default cbstate;

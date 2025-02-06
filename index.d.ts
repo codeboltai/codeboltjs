@@ -202,7 +202,7 @@ declare class Codebolt {
         addToAgentState: (key: string, value: string) => Promise<import("@codebolt/types").AddToAgentStateResponse>;
         getAgentState: () => Promise<import("@codebolt/types").GetAgentStateResponse>;
         getProjectState: () => Promise<any>;
-        updateProjectState: () => Promise<any>;
+        updateProjectState: (key: string, value: any) => Promise<any>;
     };
     taskplaner: {
         addTask: (task: string) => Promise<any>;

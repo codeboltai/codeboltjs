@@ -87,11 +87,15 @@ const cbstate = {
      * Updates the project state on the server via WebSocket.
      * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
      */
-    updateProjectState: async () => {
+    updateProjectState: async (key, value) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
                 "type": "projectStateEvent",
                 "action": "updateProjectState",
+                payload: {
+                    key,
+                    value
+                }
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
