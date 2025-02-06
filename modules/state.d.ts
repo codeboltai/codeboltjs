@@ -17,5 +17,15 @@ declare const cbstate: {
      * @returns {Promise<GetAgentStateResponse>} A promise that resolves with the agent's state.
      */
     getAgentState: () => Promise<GetAgentStateResponse>;
+    /**
+     * Retrieves the current project state from the server via WebSocket.
+     * @returns {Promise<GetProjectStateResponse>} A promise that resolves with the project's state.
+     */
+    getProjectState: () => Promise<any>;
+    /**
+     * Updates the project state on the server via WebSocket.
+     * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
+     */
+    updateProjectState: () => Promise<any>;
 };
 export default cbstate;

@@ -12,7 +12,8 @@ const cbstate = {
     getApplicationState: async () => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "getAppState",
+                "type": "projectStateEvent",
+                "action": "getAppState",
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
@@ -59,6 +60,42 @@ const cbstate = {
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
                 if (response.type === "getAgentStateResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                }
+            });
+        });
+    },
+    /**
+     * Retrieves the current project state from the server via WebSocket.
+     * @returns {Promise<GetProjectStateResponse>} A promise that resolves with the project's state.
+     */
+    getProjectState: async () => {
+        return new Promise((resolve, reject) => {
+            websocket_1.default.getWebsocket.send(JSON.stringify({
+                "type": "projectStateEvent",
+                "action": "getProjectState",
+            }));
+            websocket_1.default.getWebsocket.on('message', (data) => {
+                const response = JSON.parse(data);
+                if (response.type === "getProjectStateResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                }
+            });
+        });
+    },
+    /**
+     * Updates the project state on the server via WebSocket.
+     * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
+     */
+    updateProjectState: async () => {
+        return new Promise((resolve, reject) => {
+            websocket_1.default.getWebsocket.send(JSON.stringify({
+                "type": "projectStateEvent",
+                "action": "updateProjectState",
+            }));
+            websocket_1.default.getWebsocket.on('message', (data) => {
+                const response = JSON.parse(data);
+                if (response.type === "updateProjectStateResponse") {
                     resolve(response); // Resolve the Promise with the response data
                 }
             });
