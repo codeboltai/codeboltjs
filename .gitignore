@@ -3,3 +3,4 @@ node_modules
 # modules
 # index.js
 # index.d.ts
+.codeboltAgents

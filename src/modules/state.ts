@@ -9,7 +9,8 @@ const cbstate = {
     getApplicationState: async (): Promise<ApplicationState> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
-                "type": "getAppState",
+                "type": "projectStateEvent",
+                "action": "getAppState",
                 
             }));
             cbws.getWebsocket.on('message', (data: string) => {
@@ -63,7 +64,48 @@ const cbstate = {
                 }
             });
         });  
+    },
+
+
+    /**
+     * Retrieves the current project state from the server via WebSocket.
+     * @returns {Promise<GetProjectStateResponse>} A promise that resolves with the project's state.
+     */
+    getProjectState: async (): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "projectStateEvent",
+                "action": "getProjectState",
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "getProjectStateResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                }
+            });
+        });
+    },
+
+    /**
+     * Updates the project state on the server via WebSocket.
+     * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
+     */
+    updateProjectState: async (): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            cbws.getWebsocket.send(JSON.stringify({
+                "type": "projectStateEvent",
+                "action": "updateProjectState",
+            }));
+            cbws.getWebsocket.on('message', (data: string) => {
+                const response = JSON.parse(data);
+                if (response.type === "updateProjectStateResponse") {
+                    resolve(response); // Resolve the Promise with the response data
+                }
+            });
+        });
     }
+
+
 };
 
 export default cbstate;
