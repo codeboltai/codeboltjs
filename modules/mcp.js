@@ -19,9 +19,6 @@ const codeboltMCP = {
                     if (response.type === "executeToolResponse") {
                         resolve(response.data);
                     }
-                    else {
-                        reject(new Error("Unexpected response type"));
-                    }
                 }
                 catch (error) {
                     reject(new Error("Failed to parse response"));
@@ -44,9 +41,6 @@ const codeboltMCP = {
                     const response = JSON.parse(data);
                     if (response.type === "getMcpToolsResponse") {
                         resolve(response.data);
-                    }
-                    else {
-                        reject(new Error("Unexpected response type"));
                     }
                 }
                 catch (error) {
@@ -71,9 +65,6 @@ const codeboltMCP = {
                     if (response.type === "getAllMCPToolsResponse") {
                         resolve(response.data);
                     }
-                    else {
-                        reject(new Error("Unexpected response type"));
-                    }
                 }
                 catch (error) {
                     reject(new Error("Failed to parse response"));
@@ -97,9 +88,6 @@ const codeboltMCP = {
                     if (response.type === "getMCPToolResponse") {
                         resolve(response.data);
                     }
-                    else {
-                        reject(new Error("Unexpected response type"));
-                    }
                 }
                 catch (error) {
                     reject(new Error("Failed to parse response"));
@@ -121,9 +109,6 @@ const codeboltMCP = {
                     const response = JSON.parse(data);
                     if (response.type === "getEnabledMCPSResponse") {
                         resolve(response.data);
-                    }
-                    else {
-                        reject(new Error("Unexpected response type"));
                     }
                 }
                 catch (error) {
