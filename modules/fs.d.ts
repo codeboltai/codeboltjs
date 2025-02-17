@@ -59,7 +59,7 @@ declare const cbfs: {
      * @description Lists all files.
      * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
      */
-    listFile: (folderPath: string, isRecursive?: boolean) => Promise<unknown>;
+    listFile: (folderPath: string, isRecursive?: boolean) => Promise<any>;
     /**
      * @function listCodeDefinitionNames
      * @description Lists all code definition names in a given path.

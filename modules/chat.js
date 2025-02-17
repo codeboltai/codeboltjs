@@ -34,24 +34,64 @@ const cbchat = {
         });
     },
     /**
+     * Sets a global request handler for all incoming messages
+     * @param handler The async handler function
+     */
+    setRequestHandler: (handler) => {
+        const waitForConnection = () => {
+            const setupHandler = () => {
+                if (websocket_1.default.getWebsocket) {
+                    websocket_1.default.getWebsocket.on('message', async (data) => {
+                        try {
+                            const request = JSON.parse(data);
+                            await handler(request, (responseData) => {
+                                websocket_1.default.getWebsocket.send(JSON.stringify({
+                                    type: `processStoped`,
+                                    ...responseData
+                                }));
+                            });
+                        }
+                        catch (error) {
+                            console.error('Error handling request:', error);
+                        }
+                    });
+                }
+                else {
+                    setTimeout(setupHandler, 100);
+                }
+            };
+            setupHandler();
+        };
+        waitForConnection();
+    },
+    /**
      * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
      * @returns {EventEmitter} The event emitter used for emitting custom events.
      */
+    /**
+ * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
+ * @returns {EventEmitter} The event emitter used for emitting custom events.
+ */
     onActionMessage: () => {
-        if (!websocket_1.default.getWebsocket)
-            return;
-        websocket_1.default.getWebsocket.on('message', (data) => {
-            const response = JSON.parse(data);
-            if (response.type === "messageResponse") {
-                // Pass a callback function as an argument to the emit method
-                eventEmitter.emit("userMessage", response, (message) => {
-                    console.log("Callback function invoked with message:", message);
-                    websocket_1.default.getWebsocket.send(JSON.stringify({
-                        "type": "processStoped"
-                    }));
+        const waitForConnection = () => {
+            if (websocket_1.default.getWebsocket) {
+                websocket_1.default.getWebsocket.on('message', (data) => {
+                    const response = JSON.parse(data);
+                    if (response.type === "messageResponse") {
+                        eventEmitter.emit("userMessage", response, (message) => {
+                            console.log("Callback function invoked with message:", message);
+                            websocket_1.default.getWebsocket.send(JSON.stringify({
+                                "type": "processStoped"
+                            }));
+                        });
+                    }
                 });
             }
-        });
+            else {
+                setTimeout(waitForConnection, 100);
+            }
+        };
+        waitForConnection();
         return eventEmitter;
     },
     /**

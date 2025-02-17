@@ -64,6 +64,7 @@ class Codebolt {
         this.chatSummary = history_1.chatSummary;
         this.MCP = mcp_1.default;
         this.AGENT = agent_1.default;
+        websocket_1.default.initializeWebSocket();
         this.websocket = websocket_1.default.getWebsocket;
     }
     /**
@@ -91,4 +92,3 @@ class Codebolt {
     }
 }
 exports.default = new Codebolt();
-// module.exports = new Codebolt();

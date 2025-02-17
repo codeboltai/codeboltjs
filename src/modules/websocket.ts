@@ -6,22 +6,22 @@ import yaml from 'js-yaml';
  * Class representing a WebSocket connection.
  */
 class cbws {
-    websocket: WebSocket;
+    websocket!: WebSocket;
+
 
     /**
      * Constructs a new cbws instance and initializes the WebSocket connection.
      */
     constructor() {
-        const uniqueConnectionId = this.getUniqueConnectionId();
-        const initialMessage = this.getInitialMessage();
-   
-        const agentIdParam = process.env.agentId ? `&agentId=${process.env.agentId}` : '';
-        const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
-        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
-        this.initializeWebSocket(initialMessage).catch(error => {
-            console.error("WebSocket connection failed:", error);
-        });
+
+        // this.websocket=undefined;
+        // this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
+        // this.initializeWebSocket(initialMessage).catch(error => {
+        //     console.error("WebSocket connection failed:", error);
+        // });
     }
+
+
     private getUniqueConnectionId(): string {
         try {
             let fileContents = fs.readFileSync('./codeboltagent.yaml', 'utf8');
@@ -39,7 +39,7 @@ class cbws {
             let data: any = yaml.load(fileContents);
             return data.initial_message;
         } catch (e) {
-            console.error('Unable to locate codeboltagent.yaml file.');
+            // console.error('Unable to locate codeboltagent.yaml file.');
             return '';
         }
     }
@@ -49,7 +49,14 @@ class cbws {
      * when the WebSocket connection is successfully opened.
      * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
      */
-    private async initializeWebSocket(initialMessage: string): Promise<WebSocket> {
+    public async initializeWebSocket(): Promise<WebSocket> {
+        const uniqueConnectionId = this.getUniqueConnectionId();
+        const initialMessage = this.getInitialMessage();
+
+        const agentIdParam = process.env.agentId ? `&agentId=${process.env.agentId}` : '';
+        const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
+        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
+
         return new Promise((resolve, reject) => {
             this.websocket.on('error', (error: Error) => {
                 console.log('WebSocket error:', error);
@@ -80,7 +87,7 @@ class cbws {
      * @throws {Error} If the WebSocket is not open.
      */
     get getWebsocket(): WebSocket {
-        if (!this.websocket.OPEN) {
+        if (this.websocket && !this.websocket.OPEN) {
             throw new Error('WebSocket is not open');
         } else {
             return this.websocket;

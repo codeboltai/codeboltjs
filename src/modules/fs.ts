@@ -163,7 +163,7 @@ const cbfs = {
      * @description Lists all files.
      * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
      */
-    listFile: (folderPath:string,isRecursive=false) => {
+    listFile: (folderPath: string, isRecursive: boolean = false): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "fsEvent",

@@ -15,7 +15,7 @@ declare class cbws {
      * when the WebSocket connection is successfully opened.
      * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
      */
-    private initializeWebSocket;
+    initializeWebSocket(): Promise<WebSocket>;
     /**
      * Getter for the WebSocket instance. Throws an error if the WebSocket is not open.
      * @returns {WebSocket} The WebSocket instance.

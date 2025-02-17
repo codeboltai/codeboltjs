@@ -3,6 +3,7 @@ import cbws from './websocket';
 import { EventEmitter } from 'events';
 import { ChatMessage, UserMessage } from '@codebolt/types'
 
+type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
 
 
 /**
@@ -32,23 +33,63 @@ const cbchat = {
         })
     },
     /**
+     * Sets a global request handler for all incoming messages
+     * @param handler The async handler function
+     */
+    setRequestHandler: (handler: RequestHandler) => {
+        const waitForConnection = () => {
+            const setupHandler = () => {
+                if (cbws.getWebsocket) {
+                    cbws.getWebsocket.on('message', async (data: string) => {
+                        try {
+                            const request = JSON.parse(data);
+                            await handler(request, (responseData: any) => {
+                                cbws.getWebsocket.send(JSON.stringify({
+                                    type: `processStoped`,
+                                    ...responseData
+                                }));
+                            });
+                        } catch (error) {
+                            console.error('Error handling request:', error);
+                        }
+                    });
+                } else {
+                    setTimeout(setupHandler, 100);
+                }
+            };
+
+            setupHandler();
+        }
+        waitForConnection();
+    },
+    /**
      * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
      * @returns {EventEmitter} The event emitter used for emitting custom events.
      */
+    /**
+ * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
+ * @returns {EventEmitter} The event emitter used for emitting custom events.
+ */
     onActionMessage: () => {
-        if (!cbws.getWebsocket) return;
-        cbws.getWebsocket.on('message', (data: string) => {
-            const response = JSON.parse(data);
-            if (response.type === "messageResponse") {
-                // Pass a callback function as an argument to the emit method
-                eventEmitter.emit("userMessage", response, (message: string) => {
-                    console.log("Callback function invoked with message:", message);
-                    cbws.getWebsocket.send(JSON.stringify({
-                        "type": "processStoped"
-                    }));
+        const waitForConnection = () => {
+            if (cbws.getWebsocket) {
+                cbws.getWebsocket.on('message', (data: string) => {
+                    const response = JSON.parse(data);
+                    if (response.type === "messageResponse") {
+                        eventEmitter.emit("userMessage", response, (message: string) => {
+                            console.log("Callback function invoked with message:", message);
+                            cbws.getWebsocket.send(JSON.stringify({
+                                "type": "processStoped"
+                            }));
+                        });
+                    }
                 });
+            } else {
+                setTimeout(waitForConnection, 100);
             }
-        });
+        };
+
+        waitForConnection();
         return eventEmitter;
     },
     /**
@@ -142,7 +183,7 @@ const cbchat = {
      * Sends a confirmation request to the server with two options: Yes or No.
      * @returns {Promise<string>} A promise that resolves with the server's response.
      */
-    sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = [],withFeedback:boolean=false): Promise<string> => {
+    sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "confirmationRequest",
@@ -153,13 +194,13 @@ const cbchat = {
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "confirmationResponse" || response.type === "feedbackResponse" ) {
+                if (response.type === "confirmationResponse" || response.type === "feedbackResponse") {
                     resolve(response); // Resolve the Promise with the server's response
                 }
             });
         });
     },
-    askQuestion: (question: string, buttons: string[] = [],withFeedback:boolean=false): Promise<string> => {
+    askQuestion: (question: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "confirmationRequest",
@@ -170,7 +211,7 @@ const cbchat = {
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "confirmationResponse" || response.type === "feedbackResponse" ) {
+                if (response.type === "confirmationResponse" || response.type === "feedbackResponse") {
                     resolve(response); // Resolve the Promise with the server's response
                 }
             });

@@ -28,6 +28,7 @@ import cbagent from './modules/agent';
 
 
 
+
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -39,8 +40,9 @@ class Codebolt  { // Extend EventEmitter
      * @description Initializes the websocket connection.
      */
     constructor() {
-
+        cbws.initializeWebSocket()
         this.websocket = cbws.getWebsocket;
+         
     }
     
     /**
@@ -96,8 +98,10 @@ class Codebolt  { // Extend EventEmitter
     chatSummary=chatSummary;
     MCP = codeboltMCP;
     AGENT = cbagent;
+  
 }
 
 export default new Codebolt();
 
-// module.exports = new Codebolt();
+
+

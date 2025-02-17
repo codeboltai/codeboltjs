@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 /**
@@ -25,7 +24,7 @@ declare class Codebolt {
         updateFile: (filename: string, filePath: string, newContent: string) => Promise<import("@codebolt/types").UpdateFileResponse>;
         deleteFile: (filename: string, filePath: string) => Promise<import("@codebolt/types").DeleteFileResponse>;
         deleteFolder: (foldername: string, folderpath: string) => Promise<import("@codebolt/types").DeleteFolderResponse>;
-        listFile: (folderPath: string, isRecursive?: boolean) => Promise<unknown>;
+        listFile: (folderPath: string, isRecursive?: boolean) => Promise<any>;
         listCodeDefinitionNames: (path: string) => Promise<{
             success: boolean;
             result: any;
@@ -74,43 +73,44 @@ declare class Codebolt {
     };
     chat: {
         getChatHistory: () => Promise<import("@codebolt/types").ChatMessage[]>;
+        setRequestHandler: (handler: (request: any, response: (data: any) => void) => Promise<void> | void) => void;
         onActionMessage: () => {
             [EventEmitter.captureRejectionSymbol]?<K>(error: Error, event: string | symbol, ...args: any[]): void;
-            addListener<K_1>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            on<K_2>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            once<K_3>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            removeListener<K_4>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            off<K_5>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            removeAllListeners(eventName?: string | symbol | undefined): any;
-            setMaxListeners(n: number): any;
+            addListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            on<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            once<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            removeListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            off<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            removeAllListeners(eventName?: string | symbol | undefined): /*elided*/ any;
+            setMaxListeners(n: number): /*elided*/ any;
             getMaxListeners(): number;
-            listeners<K_6>(eventName: string | symbol): Function[];
-            rawListeners<K_7>(eventName: string | symbol): Function[];
-            emit<K_8>(eventName: string | symbol, ...args: any[]): boolean;
-            listenerCount<K_9>(eventName: string | symbol, listener?: Function | undefined): number;
-            prependListener<K_10>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            prependOnceListener<K_11>(eventName: string | symbol, listener: (...args: any[]) => void): any;
+            listeners<K>(eventName: string | symbol): Function[];
+            rawListeners<K>(eventName: string | symbol): Function[];
+            emit<K>(eventName: string | symbol, ...args: any[]): boolean;
+            listenerCount<K>(eventName: string | symbol, listener?: Function | undefined): number;
+            prependListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            prependOnceListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
             eventNames(): (string | symbol)[];
-        } | undefined;
+        };
         sendMessage: (message: string, payload: any) => void;
         waitforReply: (message: string) => Promise<import("@codebolt/types").UserMessage>;
         processStarted: () => {
             event: {
                 [EventEmitter.captureRejectionSymbol]?<K>(error: Error, event: string | symbol, ...args: any[]): void;
-                addListener<K_1>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                on<K_2>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                once<K_3>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                removeListener<K_4>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                off<K_5>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                removeAllListeners(eventName?: string | symbol | undefined): any;
-                setMaxListeners(n: number): any;
+                addListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                on<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                once<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                removeListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                off<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                removeAllListeners(eventName?: string | symbol | undefined): /*elided*/ any;
+                setMaxListeners(n: number): /*elided*/ any;
                 getMaxListeners(): number;
-                listeners<K_6>(eventName: string | symbol): Function[];
-                rawListeners<K_7>(eventName: string | symbol): Function[];
-                emit<K_8>(eventName: string | symbol, ...args: any[]): boolean;
-                listenerCount<K_9>(eventName: string | symbol, listener?: Function | undefined): number;
-                prependListener<K_10>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-                prependOnceListener<K_11>(eventName: string | symbol, listener: (...args: any[]) => void): any;
+                listeners<K>(eventName: string | symbol): Function[];
+                rawListeners<K>(eventName: string | symbol): Function[];
+                emit<K>(eventName: string | symbol, ...args: any[]): boolean;
+                listenerCount<K>(eventName: string | symbol, listener?: Function | undefined): number;
+                prependListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+                prependOnceListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
                 eventNames(): (string | symbol)[];
             };
             stopProcess: () => void;
@@ -124,29 +124,29 @@ declare class Codebolt {
     terminal: {
         eventEmitter: {
             [EventEmitter.captureRejectionSymbol]?<K>(error: Error, event: string | symbol, ...args: any[]): void;
-            addListener<K_1>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            on<K_2>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            once<K_3>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            removeListener<K_4>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            off<K_5>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            removeAllListeners(eventName?: string | symbol | undefined): any;
-            setMaxListeners(n: number): any;
+            addListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            on<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            once<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            removeListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            off<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            removeAllListeners(eventName?: string | symbol | undefined): /*elided*/ any;
+            setMaxListeners(n: number): /*elided*/ any;
             getMaxListeners(): number;
-            listeners<K_6>(eventName: string | symbol): Function[];
-            rawListeners<K_7>(eventName: string | symbol): Function[];
-            emit<K_8>(eventName: string | symbol, ...args: any[]): boolean;
-            listenerCount<K_9>(eventName: string | symbol, listener?: Function | undefined): number;
-            prependListener<K_10>(eventName: string | symbol, listener: (...args: any[]) => void): any;
-            prependOnceListener<K_11>(eventName: string | symbol, listener: (...args: any[]) => void): any;
+            listeners<K>(eventName: string | symbol): Function[];
+            rawListeners<K>(eventName: string | symbol): Function[];
+            emit<K>(eventName: string | symbol, ...args: any[]): boolean;
+            listenerCount<K>(eventName: string | symbol, listener?: Function | undefined): number;
+            prependListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
+            prependOnceListener<K>(eventName: string | symbol, listener: (...args: any[]) => void): /*elided*/ any;
             eventNames(): (string | symbol)[];
         };
         executeCommand: (command: string, returnEmptyStringOnSuccess?: boolean) => Promise<unknown>;
         executeCommandRunUntilError: (command: string, executeInMain?: boolean) => Promise<import("@codebolt/types").CommandError>;
         sendManualInterrupt(): Promise<import("@codebolt/types").TerminalInterruptResponse>;
-        executeCommandWithStream(command: string, executeInMain?: boolean): EventEmitter<[never]>;
+        executeCommandWithStream(command: string, executeInMain?: boolean): EventEmitter;
     };
     codeutils: {
-        getJsTree: (filePath?: string | undefined) => Promise<unknown>;
+        getJsTree: (filePath?: string) => Promise<unknown>;
         getAllFilesAsMarkDown: () => Promise<string>;
         performMatch: (matcherDefinition: object, problemPatterns: any[], problems: any[]) => Promise<import("@codebolt/types").MatchProblemResponse>;
         getMatcherList: () => Promise<import("@codebolt/types").GetMatcherListTreeResponse>;
@@ -237,15 +237,17 @@ declare class Codebolt {
         }[]>;
     };
     MCP: {
-        executeTool: (toolName: string, params: any, mcpServer?: string | undefined) => Promise<any>;
+        executeTool: (toolName: string, params: any, mcpServer?: string) => Promise<any>;
         getMcpTools: (tools: string[]) => Promise<any>;
         getAllMCPTools: (mpcName: string) => Promise<any>;
         getMCPTool: (name: string) => Promise<any>;
         getEnabledMCPS: () => Promise<any>;
     };
     AGENT: {
-        getAgent: (task: string) => Promise<any>;
+        findAgent: (task: string, maxResult?: number, agents?: never[], agentLocaltion?: import("./modules/agent").AgentLocation) => Promise<any>;
         startAgent: (agentId: string, task: string) => Promise<any>;
+        getAgentsList: (type?: import("./modules/agent").Agents) => Promise<any>;
+        getAgentsDetail: (agentList?: never[]) => Promise<any>;
     };
 }
 declare const _default: Codebolt;

@@ -1,6 +1,6 @@
-/// <reference types="node" />
 import { EventEmitter } from 'events';
 import { ChatMessage, UserMessage } from '@codebolt/types';
+type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
@@ -16,10 +16,19 @@ declare const cbchat: {
      */
     getChatHistory: () => Promise<ChatMessage[]>;
     /**
+     * Sets a global request handler for all incoming messages
+     * @param handler The async handler function
+     */
+    setRequestHandler: (handler: RequestHandler) => void;
+    /**
      * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
      * @returns {EventEmitter} The event emitter used for emitting custom events.
      */
-    onActionMessage: () => CustomEventEmitter | undefined;
+    /**
+ * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
+ * @returns {EventEmitter} The event emitter used for emitting custom events.
+ */
+    onActionMessage: () => CustomEventEmitter;
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
@@ -59,6 +68,6 @@ declare const cbchat: {
  * Sends a notification event to the server.
  * @param {string} notificationMessage - The message to be sent in the notification.
  */
-    sendNotificationEvent: (notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview') => void;
+    sendNotificationEvent: (notificationMessage: string, type: "debug" | "git" | "planner" | "browser" | "editor" | "terminal" | "preview") => void;
 };
 export default cbchat;
