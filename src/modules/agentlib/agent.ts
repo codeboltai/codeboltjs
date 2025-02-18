@@ -32,7 +32,7 @@ class Agent {
     private userMessage: Message[];
 
 
-    constructor(tools:any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: Agent[] = []) {
+    constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: Agent[] = []) {
         this.tools = tools;
         this.userMessage = [];
         this.apiConversationHistory = [];
@@ -42,10 +42,10 @@ class Agent {
 
     }
 
-    async run(task: TaskInstruction, successCondition: () => boolean = () => true): Promise<{ success: boolean; error: string | null }> {
+    async run(task: TaskInstruction, successCondition: () => boolean = () => true): Promise<{ success: boolean; error: string | null, message: string | null }> {
 
 
-        let mentaionedMCPSTool:any[] = await task.userMessage.getMentionedMcpsTools();
+        let mentaionedMCPSTool: any[] = await task.userMessage.getMentionedMcpsTools();
         this.tools = [
             ...this.tools,
             ...mentaionedMCPSTool
@@ -56,7 +56,6 @@ class Agent {
         let userMessages = await task.toPrompt();
         this.apiConversationHistory.push({ role: "user", content: userMessages });
         let runcomplete = 0;
-
         while (!completed && (runcomplete <= this.maxRun || this.maxRun === 0)) {
             try {
                 runcomplete++;
@@ -95,14 +94,28 @@ class Agent {
                                 if (toolName.includes("attempt_completion")) {
                                     taskCompletedBlock = tool;
                                 } else {
-                                    console.log("calling tool with params", toolName, toolInput);
-                                    const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                    console.log("tool result", result);
-                                    toolResults.push(this.getToolResult(toolUseId, result));
 
-                                    if (didUserReject) {
-                                        userRejectedToolUse = true;
+                                    let [serverName, nameOfTool] = toolName.replace('--', ':').split(':');
+                                    if (serverName == 'subagent') {
+                                        console.log("calling agent with params", nameOfTool, toolInput);
+                                        const [didUserReject, result] = await this.startSubAgent(toolName, toolInput);
+                                        console.log("tool result", result);
+                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        if (didUserReject) {
+                                            userRejectedToolUse = true;
+                                        }
                                     }
+                                    else {
+                                        console.log("calling tool with params", toolName, toolInput);
+                                        const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                        console.log("tool result", result);
+                                        toolResults.push(this.getToolResult(toolUseId, result));
+
+                                        if (didUserReject) {
+                                            userRejectedToolUse = true;
+                                        }
+                                    }
+
                                 }
                             } else {
                                 toolResults.push(this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."));
@@ -140,14 +153,20 @@ class Agent {
                         }
                     }
                 } catch (error) {
-                    return { success: false, error: error instanceof Error ? error.message : String(error) };
+                    return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
                 }
             } catch (error) {
-                return { success: false, error: error instanceof Error ? error.message : String(error) };
+                return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
             }
         }
 
-        return { success: completed, error: null };
+        return {
+            success: completed,
+            error: null,
+            message: this.apiConversationHistory
+                .filter(msg => msg.role === 'assistant')
+                .pop()?.content as string || ''
+        };
     }
 
     private async attemptLlmRequest(apiConversationHistory: Message[], tools: Record<string, any>): Promise<any> {
@@ -177,6 +196,9 @@ class Agent {
 
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         return mcp.executeTool(toolName, toolInput);
+    }
+    private async startSubAgent(agentName: string, params: any): Promise<[boolean, any]> {
+        return mcp.executeTool(agentName, params);
     }
 
     private getToolDetail(tool: any): ToolDetails {

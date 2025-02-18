@@ -244,7 +244,7 @@ declare class Codebolt {
         getEnabledMCPS: () => Promise<any>;
     };
     AGENT: {
-        findAgent: (task: string, maxResult?: number, agents?: never[], agentLocaltion?: import("./modules/agent").AgentLocation) => Promise<any>;
+        findAgent: (task: string, maxResult: number | undefined, agents: never[] | undefined, agentLocaltion: import("./modules/agent").AgentLocation | undefined, getFrom: import("./modules/agent").FilterUsing.USE_VECTOR_DB) => Promise<any>;
         startAgent: (agentId: string, task: string) => Promise<any>;
         getAgentsList: (type?: import("./modules/agent").Agents) => Promise<any>;
         getAgentsDetail: (agentList?: never[]) => Promise<any>;

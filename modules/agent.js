@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Agents = exports.AgentLocation = void 0;
+exports.FilterUsing = exports.Agents = exports.AgentLocation = void 0;
 const websocket_1 = __importDefault(require("./websocket"));
 var AgentLocation;
 (function (AgentLocation) {
@@ -17,25 +17,32 @@ var Agents;
     Agents["ALL"] = "all";
     Agents["DOWNLOADED"] = "downloaded";
 })(Agents || (exports.Agents = Agents = {}));
+var FilterUsing;
+(function (FilterUsing) {
+    FilterUsing["USE_AI"] = "use_ai";
+    FilterUsing["USE_VECTOR_DB"] = "use_vector_db";
+    FilterUsing["USE_BOTH"] = "use_both";
+})(FilterUsing || (exports.FilterUsing = FilterUsing = {}));
 const codeboltAgent = {
     /**
      * Retrieves an agent based on the specified task.
      * @param {string} task - The task for which an agent is needed.
      * @returns {Promise<AgentResponse>} A promise that resolves with the agent details.
      */
-    findAgent: (task, maxResult = 1, agents = [], agentLocaltion = AgentLocation.ALL) => {
+    findAgent: (task, maxResult = 1, agents = [], agentLocaltion = AgentLocation.ALL, getFrom) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
                 "type": "agentEvent",
-                "action": "getAgentByTask",
+                "action": "findAgent",
                 "task": task,
-                "agents": agents,
+                "agents": agents, // for filter in vector db
                 "maxResult": maxResult,
-                "location": agentLocaltion
+                "location": agentLocaltion,
+                "getFrom": getFrom
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
-                if (response.type === "getAgentByTaskResponse") {
+                if (response.type === "findAgentByTaskResponse") {
                     resolve(response); // Resolve the Promise with the agent details
                 }
             });

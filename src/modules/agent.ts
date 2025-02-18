@@ -10,10 +10,15 @@ export enum AgentLocation {
 
 
 export enum Agents {
-
     LOCAL = 'local',
     ALL = 'all',
     DOWNLOADED = 'downloaded',
+}
+
+export enum FilterUsing {
+    USE_AI = 'use_ai',
+    USE_VECTOR_DB = 'use_vector_db',
+    USE_BOTH = 'use_both',
 }
 
 
@@ -24,19 +29,20 @@ const codeboltAgent = {
      * @param {string} task - The task for which an agent is needed.
      * @returns {Promise<AgentResponse>} A promise that resolves with the agent details.
      */
-    findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL): Promise<any> => {
+    findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentEvent",
-                "action": "getAgentByTask",
+                "action": "findAgent",
                 "task": task,
-                "agents": agents,
+                "agents": agents,// for filter in vector db
                 "maxResult": maxResult,
-                "location": agentLocaltion
+                "location": agentLocaltion,
+                "getFrom": getFrom
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
-                if (response.type === "getAgentByTaskResponse") {
+                if (response.type === "findAgentByTaskResponse") {
                     resolve(response); // Resolve the Promise with the agent details
                 }
             });
@@ -65,19 +71,17 @@ const codeboltAgent = {
         });
     },
 
-
-
     /**
      * Lists all available agents.
      * @returns {Promise<any>} A promise that resolves with the list of agents.
      */
-    getAgentsList: ( type: Agents = Agents.DOWNLOADED): Promise<any> => {
+    getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentEvent",
                 "action": "listAgents",
                 "agentType": type,
-        
+
             }));
             cbws.getWebsocket.on('message', (data: string) => {
                 const response = JSON.parse(data);
@@ -91,7 +95,7 @@ const codeboltAgent = {
      * Lists all available agents.
      * @returns {Promise<any>} A promise that resolves with the list of agents.
      */
-    getAgentsDetail: (agentList=[]): Promise<any> => {
+    getAgentsDetail: (agentList = []): Promise<any> => {
         return new Promise((resolve, reject) => {
             cbws.getWebsocket.send(JSON.stringify({
                 "type": "agentEvent",

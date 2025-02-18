@@ -62,6 +62,7 @@ class Agent {
                                 else {
                                     console.log("calling tool with params", toolName, toolInput);
                                     const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                    console.log("tool result", result);
                                     toolResults.push(this.getToolResult(toolUseId, result));
                                     if (didUserReject) {
                                         userRejectedToolUse = true;

@@ -8,13 +8,18 @@ export declare enum Agents {
     ALL = "all",
     DOWNLOADED = "downloaded"
 }
+export declare enum FilterUsing {
+    USE_AI = "use_ai",
+    USE_VECTOR_DB = "use_vector_db",
+    USE_BOTH = "use_both"
+}
 declare const codeboltAgent: {
     /**
      * Retrieves an agent based on the specified task.
      * @param {string} task - The task for which an agent is needed.
      * @returns {Promise<AgentResponse>} A promise that resolves with the agent details.
      */
-    findAgent: (task: string, maxResult?: number, agents?: never[], agentLocaltion?: AgentLocation) => Promise<any>;
+    findAgent: (task: string, maxResult: number | undefined, agents: never[] | undefined, agentLocaltion: AgentLocation | undefined, getFrom: FilterUsing.USE_VECTOR_DB) => Promise<any>;
     /**
      * Starts an agent for the specified task.
      * @param {string} task - The task for which the agent should be started.
