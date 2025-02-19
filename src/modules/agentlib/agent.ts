@@ -1,6 +1,7 @@
 import chatlib from "./../chat"
 import mcp from "./../mcp"
 import llm from "./../llm"
+import codeboltAgent from "./../agent"
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
 
@@ -25,20 +26,28 @@ interface ToolDetails {
 
 class Agent {
     private tools: any[];
-    private subAgents: Agent[];
+    private subAgents: any[];
     private apiConversationHistory: Message[];
     private maxRun: number;
     private systemPrompt: SystemPrompt;
     private userMessage: Message[];
 
 
-    constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: Agent[] = []) {
+    constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: any[] = []) {
         this.tools = tools;
         this.userMessage = [];
         this.apiConversationHistory = [];
         this.maxRun = maxRun;
         this.systemPrompt = systemPrompt;
         this.subAgents = subAgents;
+        this.subAgents = subAgents.map(subagent => {
+            subagent.function.name = `subagent--${subagent.function.name}`;
+            return subagent;
+        });
+        this.tools = this.tools.concat(subAgents.map(subagent => ({
+            ...subagent
+        })));
+
 
     }
 
@@ -95,11 +104,17 @@ class Agent {
                                     taskCompletedBlock = tool;
                                 } else {
 
-                                    let [serverName, nameOfTool] = toolName.replace('--', ':').split(':');
+                                    let [serverName] = toolName.replace('--', ':').split(':');
+
+
                                     if (serverName == 'subagent') {
-                                        console.log("calling agent with params", nameOfTool, toolInput);
-                                        const [didUserReject, result] = await this.startSubAgent(toolName, toolInput);
-                                        console.log("tool result", result);
+                                        console.log("calling agent with params", toolName, toolInput);
+
+                                        const agentResponse = await codeboltAgent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
+                                        console.log("got sub agent resonse  result", agentResponse);
+                                        const [didUserReject, result] = [false,"tool result is successful"];
+                                       console.log("got sub agent resonse  result", didUserReject, result); 
+                                      
                                         toolResults.push(this.getToolResult(toolUseId, result));
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
@@ -153,9 +168,11 @@ class Agent {
                         }
                     }
                 } catch (error) {
+                    console.error("Error in agent tool call:", error);
                     return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
                 }
             } catch (error) {
+                console.error("Error in agent tool call:", error);
                 return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
             }
         }
@@ -198,7 +215,7 @@ class Agent {
         return mcp.executeTool(toolName, toolInput);
     }
     private async startSubAgent(agentName: string, params: any): Promise<[boolean, any]> {
-        return mcp.executeTool(agentName, params);
+        return codeboltAgent.startAgent(agentName, params.task);
     }
 
     private getToolDetail(tool: any): ToolDetails {

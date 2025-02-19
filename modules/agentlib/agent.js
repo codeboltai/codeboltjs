@@ -7,6 +7,7 @@ exports.Agent = void 0;
 const chat_1 = __importDefault(require("./../chat"));
 const mcp_1 = __importDefault(require("./../mcp"));
 const llm_1 = __importDefault(require("./../llm"));
+const agent_1 = __importDefault(require("./../agent"));
 class Agent {
     constructor(tools = [], systemPrompt, maxRun = 0, subAgents = []) {
         this.tools = tools;
@@ -15,6 +16,13 @@ class Agent {
         this.maxRun = maxRun;
         this.systemPrompt = systemPrompt;
         this.subAgents = subAgents;
+        this.subAgents = subAgents.map(subagent => {
+            subagent.function.name = `subagent--${subagent.function.name}`;
+            return subagent;
+        });
+        this.tools = this.tools.concat(subAgents.map(subagent => ({
+            ...subagent
+        })));
     }
     async run(task, successCondition = () => true) {
         var _a, _b;
@@ -60,11 +68,13 @@ class Agent {
                                     taskCompletedBlock = tool;
                                 }
                                 else {
-                                    let [serverName, nameOfTool] = toolName.replace('--', ':').split(':');
+                                    let [serverName] = toolName.replace('--', ':').split(':');
                                     if (serverName == 'subagent') {
-                                        console.log("calling agent with params", nameOfTool, toolInput);
-                                        const [didUserReject, result] = await this.startSubAgent(toolName, toolInput);
-                                        console.log("tool result", result);
+                                        console.log("calling agent with params", toolName, toolInput);
+                                        const agentResponse = await agent_1.default.startAgent(toolName.replace("subagent--", ''), toolInput.task);
+                                        console.log("got sub agent resonse  result", agentResponse);
+                                        const [didUserReject, result] = [false, "tool result is successful"];
+                                        console.log("got sub agent resonse  result", didUserReject, result);
                                         toolResults.push(this.getToolResult(toolUseId, result));
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
@@ -110,10 +120,12 @@ class Agent {
                     }
                 }
                 catch (error) {
+                    console.error("Error in agent tool call:", error);
                     return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
                 }
             }
             catch (error) {
+                console.error("Error in agent tool call:", error);
                 return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
             }
         }
@@ -151,7 +163,7 @@ class Agent {
         return mcp_1.default.executeTool(toolName, toolInput);
     }
     async startSubAgent(agentName, params) {
-        return mcp_1.default.executeTool(agentName, params);
+        return agent_1.default.startAgent(agentName, params.task);
     }
     getToolDetail(tool) {
         return {

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { EventEmitter } from 'events';
 import { ChatMessage, UserMessage } from '@codebolt/types';
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
@@ -68,6 +69,6 @@ declare const cbchat: {
  * Sends a notification event to the server.
  * @param {string} notificationMessage - The message to be sent in the notification.
  */
-    sendNotificationEvent: (notificationMessage: string, type: "debug" | "git" | "planner" | "browser" | "editor" | "terminal" | "preview") => void;
+    sendNotificationEvent: (notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview') => void;
 };
 export default cbchat;

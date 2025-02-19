@@ -1,3 +1,6 @@
+/// <reference types="node" />
+/// <reference types="node" />
+/// <reference types="node" />
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { ClientCapabilities, CreateMessageRequestSchema, Root } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
