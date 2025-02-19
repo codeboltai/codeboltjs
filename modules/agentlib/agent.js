@@ -17,7 +17,7 @@ class Agent {
         this.subAgents = subAgents;
     }
     async run(task, successCondition = () => true) {
-        var _a;
+        var _a, _b;
         let mentaionedMCPSTool = await task.userMessage.getMentionedMcpsTools();
         this.tools = [
             ...this.tools,
@@ -60,12 +60,24 @@ class Agent {
                                     taskCompletedBlock = tool;
                                 }
                                 else {
-                                    console.log("calling tool with params", toolName, toolInput);
-                                    const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                    console.log("tool result", result);
-                                    toolResults.push(this.getToolResult(toolUseId, result));
-                                    if (didUserReject) {
-                                        userRejectedToolUse = true;
+                                    let [serverName, nameOfTool] = toolName.replace('--', ':').split(':');
+                                    if (serverName == 'subagent') {
+                                        console.log("calling agent with params", nameOfTool, toolInput);
+                                        const [didUserReject, result] = await this.startSubAgent(toolName, toolInput);
+                                        console.log("tool result", result);
+                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        if (didUserReject) {
+                                            userRejectedToolUse = true;
+                                        }
+                                    }
+                                    else {
+                                        console.log("calling tool with params", toolName, toolInput);
+                                        const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                        console.log("tool result", result);
+                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        if (didUserReject) {
+                                            userRejectedToolUse = true;
+                                        }
                                     }
                                 }
                             }
@@ -98,14 +110,20 @@ class Agent {
                     }
                 }
                 catch (error) {
-                    return { success: false, error: error instanceof Error ? error.message : String(error) };
+                    return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
                 }
             }
             catch (error) {
-                return { success: false, error: error instanceof Error ? error.message : String(error) };
+                return { success: false, error: error instanceof Error ? error.message : String(error), message: null };
             }
         }
-        return { success: completed, error: null };
+        return {
+            success: completed,
+            error: null,
+            message: ((_b = this.apiConversationHistory
+                .filter(msg => msg.role === 'assistant')
+                .pop()) === null || _b === void 0 ? void 0 : _b.content) || ''
+        };
     }
     async attemptLlmRequest(apiConversationHistory, tools) {
         try {
@@ -131,6 +149,9 @@ class Agent {
     }
     async executeTool(toolName, toolInput) {
         return mcp_1.default.executeTool(toolName, toolInput);
+    }
+    async startSubAgent(agentName, params) {
+        return mcp_1.default.executeTool(agentName, params);
     }
     getToolDetail(tool) {
         return {

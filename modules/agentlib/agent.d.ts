@@ -11,9 +11,11 @@ declare class Agent {
     run(task: TaskInstruction, successCondition?: () => boolean): Promise<{
         success: boolean;
         error: string | null;
+        message: string | null;
     }>;
     private attemptLlmRequest;
     private executeTool;
+    private startSubAgent;
     private getToolDetail;
     private getToolResult;
     private attemptApiRequest;
