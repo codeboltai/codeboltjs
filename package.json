@@ -6,7 +6,6 @@
   "author": "",
   "main": "index.js",
   "types": "index.d.ts",
-
   "scripts": {
     "build": "tsc",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
@@ -26,6 +25,7 @@
     "file-type": "^19.6.0",
     "fuse.js": "^7.0.0",
     "js-yaml": "^4.1.0",
+    "load-esm": "^1.0.1",
     "mcp-proxy": "^2.4.0",
     "strict-event-emitter-types": "^2.0.0",
     "timers": "^0.1.1",
@@ -67,5 +67,4 @@
       "default": "./utils.js"
     }
   }
-
 }
