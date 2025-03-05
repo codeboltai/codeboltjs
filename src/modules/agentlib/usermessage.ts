@@ -30,7 +30,7 @@ class UserMessage {
         this.message = message;
         this.promptOverride = promptOverride;
         this.userMessages = [];
-        this.mentaionedMCPS = message.mentionedMCPs;
+        this.mentaionedMCPS = message.mentionedMCPs || [];
     }
 
     getFiles(): void {

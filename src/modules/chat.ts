@@ -79,7 +79,8 @@ const cbchat = {
                         eventEmitter.emit("userMessage", response, (message: string) => {
                             console.log("Callback function invoked with message:", message);
                             cbws.getWebsocket.send(JSON.stringify({
-                                "type": "processStoped"
+                                "type": "processStoped",
+                                "message": message
                             }));
                         });
                     }
