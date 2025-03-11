@@ -23,7 +23,7 @@ import tokenizer from './modules/tokenizer'
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import {chatSummary} from './modules/history'
-import codeboltMCP from './modules/mcp';
+import codeboltTools from './modules/tools';
 import cbagent from './modules/agent';
 
 
@@ -96,8 +96,8 @@ class Codebolt  { // Extend EventEmitter
     debug = debug;
     tokenizer = tokenizer;
     chatSummary=chatSummary;
-    MCP = codeboltMCP;
-    AGENT = cbagent;
+    tools = codeboltTools;
+    agent = cbagent;
   
 }
 

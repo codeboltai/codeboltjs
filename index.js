@@ -27,7 +27,7 @@ const debug_1 = __importDefault(require("./modules/debug"));
 const tokenizer_1 = __importDefault(require("./modules/tokenizer"));
 const ws_1 = __importDefault(require("ws"));
 const history_1 = require("./modules/history");
-const mcp_1 = __importDefault(require("./modules/mcp"));
+const tools_1 = __importDefault(require("./modules/tools"));
 const agent_1 = __importDefault(require("./modules/agent"));
 /**
  * @class Codebolt
@@ -62,8 +62,8 @@ class Codebolt {
         this.debug = debug_1.default;
         this.tokenizer = tokenizer_1.default;
         this.chatSummary = history_1.chatSummary;
-        this.MCP = mcp_1.default;
-        this.AGENT = agent_1.default;
+        this.tools = tools_1.default;
+        this.agent = agent_1.default;
         websocket_1.default.initializeWebSocket();
         this.websocket = websocket_1.default.getWebsocket;
     }

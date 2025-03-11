@@ -4,5 +4,6 @@ declare const codeboltMCP: {
     getAllMCPTools: (mpcName: string) => Promise<any>;
     getMCPTool: (name: string) => Promise<any>;
     getEnabledMCPS: () => Promise<any>;
+    configureMCPTool: (name: string, config: any) => Promise<any>;
 };
 export default codeboltMCP;

@@ -1,19 +1,19 @@
 "use strict";
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _FastMCPSession_capabilities, _FastMCPSession_clientCapabilities, _FastMCPSession_loggingLevel, _FastMCPSession_prompts, _FastMCPSession_resources, _FastMCPSession_resourceTemplates, _FastMCPSession_roots, _FastMCPSession_server, _FastMCPSession_auth, _FastMCPSession_pingInterval, _ToolBox_options, _ToolBox_prompts, _ToolBox_resources, _ToolBox_resourcesTemplates, _ToolBox_sessions, _ToolBox_sseServer, _ToolBox_tools, _ToolBox_authenticate;
+var _FastMCPSession_capabilities, _FastMCPSession_clientCapabilities, _FastMCPSession_loggingLevel, _FastMCPSession_prompts, _FastMCPSession_resources, _FastMCPSession_resourceTemplates, _FastMCPSession_roots, _FastMCPSession_server, _FastMCPSession_pingInterval, _ToolBox_options, _ToolBox_prompts, _ToolBox_resources, _ToolBox_resourcesTemplates, _ToolBox_sessions, _ToolBox_sseServer, _ToolBox_tools;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ToolBox = exports.FastMCPSession = exports.UserError = exports.UnexpectedStateError = exports.imageContent = void 0;
 const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
@@ -26,7 +26,6 @@ const promises_2 = require("fs/promises");
 const events_1 = require("events");
 const fuse_js_1 = __importDefault(require("fuse.js"));
 const uri_templates_1 = __importDefault(require("uri-templates"));
-const undici_1 = require("undici");
 const load_esm_1 = require("load-esm");
 /**
  * Generates an image content object from a URL, file path, or buffer.
@@ -35,7 +34,7 @@ const imageContent = async (input) => {
     var _a;
     let rawData;
     if ("url" in input) {
-        const response = await (0, undici_1.fetch)(input.url);
+        const response = await fetch(input.url);
         if (!response.ok) {
             throw new Error(`Failed to fetch image from URL: ${response.statusText}`);
         }
@@ -134,7 +133,7 @@ const FastMCPSessionEventEmitterBase = events_1.EventEmitter;
 class FastMCPSessionEventEmitter extends FastMCPSessionEventEmitterBase {
 }
 class FastMCPSession extends FastMCPSessionEventEmitter {
-    constructor({ auth, name, version, tools, resources, resourcesTemplates, prompts, }) {
+    constructor({ name, version, tools, resources, resourcesTemplates, prompts, }) {
         super();
         _FastMCPSession_capabilities.set(this, {});
         _FastMCPSession_clientCapabilities.set(this, void 0);
@@ -144,9 +143,7 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
         _FastMCPSession_resourceTemplates.set(this, []);
         _FastMCPSession_roots.set(this, []);
         _FastMCPSession_server.set(this, void 0);
-        _FastMCPSession_auth.set(this, void 0);
         _FastMCPSession_pingInterval.set(this, null);
-        __classPrivateFieldSet(this, _FastMCPSession_auth, auth, "f");
         if (tools.length) {
             __classPrivateFieldGet(this, _FastMCPSession_capabilities, "f").tools = {};
         }
@@ -262,7 +259,6 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
         let attempt = 0;
         while (attempt++ < 10) {
             const capabilities = await __classPrivateFieldGet(this, _FastMCPSession_server, "f").getClientCapabilities();
-            console.log("capabilities", capabilities);
             if (capabilities) {
                 __classPrivateFieldSet(this, _FastMCPSession_clientCapabilities, capabilities, "f");
                 break;
@@ -270,7 +266,7 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
             await (0, promises_1.setTimeout)(100);
         }
         if (!__classPrivateFieldGet(this, _FastMCPSession_clientCapabilities, "f")) {
-            console.warn('[warning] toolBox could not infer client capabilities');
+            throw new UnexpectedStateError("Server did not connect");
         }
         if ((_a = __classPrivateFieldGet(this, _FastMCPSession_clientCapabilities, "f")) === null || _a === void 0 ? void 0 : _a.roots) {
             const roots = await __classPrivateFieldGet(this, _FastMCPSession_server, "f").listRoots();
@@ -294,12 +290,7 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
         if (__classPrivateFieldGet(this, _FastMCPSession_pingInterval, "f")) {
             clearInterval(__classPrivateFieldGet(this, _FastMCPSession_pingInterval, "f"));
         }
-        try {
-            await __classPrivateFieldGet(this, _FastMCPSession_server, "f").close();
-        }
-        catch (error) {
-            console.error("[MCP Error]", "could not close server", error);
-        }
+        await __classPrivateFieldGet(this, _FastMCPSession_server, "f").close();
     }
     setupErrorHandling() {
         __classPrivateFieldGet(this, _FastMCPSession_server, "f").onerror = (error) => {
@@ -450,7 +441,6 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
                 const maybeStringResult = await tool.execute(args, {
                     reportProgress,
                     log,
-                    session: __classPrivateFieldGet(this, _FastMCPSession_auth, "f"),
                 });
                 if (typeof maybeStringResult === "string") {
                     result = ContentResultZodSchema.parse({
@@ -615,7 +605,7 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
     }
 }
 exports.FastMCPSession = FastMCPSession;
-_FastMCPSession_capabilities = new WeakMap(), _FastMCPSession_clientCapabilities = new WeakMap(), _FastMCPSession_loggingLevel = new WeakMap(), _FastMCPSession_prompts = new WeakMap(), _FastMCPSession_resources = new WeakMap(), _FastMCPSession_resourceTemplates = new WeakMap(), _FastMCPSession_roots = new WeakMap(), _FastMCPSession_server = new WeakMap(), _FastMCPSession_auth = new WeakMap(), _FastMCPSession_pingInterval = new WeakMap();
+_FastMCPSession_capabilities = new WeakMap(), _FastMCPSession_clientCapabilities = new WeakMap(), _FastMCPSession_loggingLevel = new WeakMap(), _FastMCPSession_prompts = new WeakMap(), _FastMCPSession_resources = new WeakMap(), _FastMCPSession_resourceTemplates = new WeakMap(), _FastMCPSession_roots = new WeakMap(), _FastMCPSession_server = new WeakMap(), _FastMCPSession_pingInterval = new WeakMap();
 const FastMCPEventEmitterBase = events_1.EventEmitter;
 class FastMCPEventEmitter extends FastMCPEventEmitterBase {
 }
@@ -630,9 +620,7 @@ class ToolBox extends FastMCPEventEmitter {
         _ToolBox_sessions.set(this, []);
         _ToolBox_sseServer.set(this, null);
         _ToolBox_tools.set(this, []);
-        _ToolBox_authenticate.set(this, void 0);
         __classPrivateFieldSet(this, _ToolBox_options, options, "f");
-        __classPrivateFieldSet(this, _ToolBox_authenticate, options.authenticate, "f");
     }
     get sessions() {
         return __classPrivateFieldGet(this, _ToolBox_sessions, "f");
@@ -660,42 +648,6 @@ class ToolBox extends FastMCPEventEmitter {
      */
     addPrompt(prompt) {
         __classPrivateFieldGet(this, _ToolBox_prompts, "f").push(prompt);
-    }
-    /**
-     * Starts the server.
-     */
-    async start(options = {
-        transportType: "stdio",
-    }) {
-        if (options.transportType === "stdio") {
-            const transport = new stdio_js_1.StdioServerTransport();
-            const session = new FastMCPSession({
-                name: __classPrivateFieldGet(this, _ToolBox_options, "f").name,
-                version: __classPrivateFieldGet(this, _ToolBox_options, "f").version,
-                tools: __classPrivateFieldGet(this, _ToolBox_tools, "f"),
-                resources: __classPrivateFieldGet(this, _ToolBox_resources, "f"),
-                resourcesTemplates: __classPrivateFieldGet(this, _ToolBox_resourcesTemplates, "f"),
-                prompts: __classPrivateFieldGet(this, _ToolBox_prompts, "f"),
-            });
-            await session.connect(transport);
-            __classPrivateFieldGet(this, _ToolBox_sessions, "f").push(session);
-            this.emit("connect", {
-                session,
-            });
-        }
-        else if (options.transportType === "sse") {
-        }
-        else {
-            throw new Error("Invalid transport type");
-        }
-    }
-    /**
-     * Stops the server.
-     */
-    async stop() {
-        if (__classPrivateFieldGet(this, _ToolBox_sseServer, "f")) {
-            __classPrivateFieldGet(this, _ToolBox_sseServer, "f").close();
-        }
     }
     /**
      * Starts the server.
@@ -756,6 +708,14 @@ class ToolBox extends FastMCPEventEmitter {
             throw new Error("Invalid transport type");
         }
     }
+    /**
+     * Stops the server.
+     */
+    async stop() {
+        if (__classPrivateFieldGet(this, _ToolBox_sseServer, "f")) {
+            __classPrivateFieldGet(this, _ToolBox_sseServer, "f").close();
+        }
+    }
 }
 exports.ToolBox = ToolBox;
-_ToolBox_options = new WeakMap(), _ToolBox_prompts = new WeakMap(), _ToolBox_resources = new WeakMap(), _ToolBox_resourcesTemplates = new WeakMap(), _ToolBox_sessions = new WeakMap(), _ToolBox_sseServer = new WeakMap(), _ToolBox_tools = new WeakMap(), _ToolBox_authenticate = new WeakMap();
+_ToolBox_options = new WeakMap(), _ToolBox_prompts = new WeakMap(), _ToolBox_resources = new WeakMap(), _ToolBox_resourcesTemplates = new WeakMap(), _ToolBox_sessions = new WeakMap(), _ToolBox_sseServer = new WeakMap(), _ToolBox_tools = new WeakMap();

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Agent = void 0;
 const chat_1 = __importDefault(require("./../chat"));
-const mcp_1 = __importDefault(require("./../mcp"));
+const tools_1 = __importDefault(require("./../tools"));
 const llm_1 = __importDefault(require("./../llm"));
 const agent_1 = __importDefault(require("./../agent"));
 class Agent {
@@ -160,7 +160,9 @@ class Agent {
         }
     }
     async executeTool(toolName, toolInput) {
-        return mcp_1.default.executeTool(toolName, toolInput);
+        //codebolttools--readfile
+        const [toolboxName, actualToolName] = toolName.split('--');
+        return tools_1.default.executeTool(toolboxName, actualToolName, toolInput);
     }
     async startSubAgent(agentName, params) {
         return agent_1.default.startAgent(agentName, params.task);

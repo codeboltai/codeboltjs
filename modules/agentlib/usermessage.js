@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserMessage = void 0;
 const fs_1 = __importDefault(require("./../fs"));
 const project_1 = __importDefault(require("./../project"));
-const mcp_1 = __importDefault(require("./../mcp"));
+const tools_1 = __importDefault(require("./../tools"));
 class UserMessage {
     constructor(message, promptOverride = false) {
         this.getEnvironmentDetail = async (cwd) => {
@@ -21,7 +21,7 @@ class UserMessage {
         this.message = message;
         this.promptOverride = promptOverride;
         this.userMessages = [];
-        this.mentaionedMCPS = message.mentionedMCPs || [];
+        this.mentionedMCPs = message.mentionedMCPs || [];
     }
     getFiles() {
         // Implementation to be added
@@ -58,8 +58,8 @@ class UserMessage {
         return this.message.mentionedMCPs || [];
     }
     async getMentionedMcpsTools() {
-        if (this.mentaionedMCPS.length > 0) {
-            let tools = await mcp_1.default.getMcpTools(this.mentaionedMCPS);
+        if (this.mentionedMCPs.length > 0) {
+            let tools = await tools_1.default.listToolsFromToolBoxes(this.mentionedMCPs);
             return tools;
         }
         else {

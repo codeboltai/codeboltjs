@@ -22,24 +22,23 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 import { setTimeout as delay } from "timers/promises";
 import { readFile } from "fs/promises";
-import { fileTypeFromBuffer } from "file-type";
+// import { fileTypeFromBuffer } from "file-type";
+// type FileTypeModule =  typeof import('file-type');
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import Fuse from "fuse.js";
-import { startSSEServer } from "mcp-proxy";
+// import { startSSEServer } from "mcp-proxy";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import parseURITemplate from "uri-templates";
-import http from "http";
-import { fetch } from "undici";
 import { loadEsm } from "load-esm";
 
 export type SSEServer = {
   close: () => Promise<void>;
 };
 
-type FastMCPEvents<T extends FastMCPSessionAuth> = {
-  connect: (event: { session: FastMCPSession<T> }) => void;
-  disconnect: (event: { session: FastMCPSession<T> }) => void;
+type FastMCPEvents = {
+  connect: (event: { session: FastMCPSession }) => void;
+  disconnect: (event: { session: FastMCPSession }) => void;
 };
 
 type FastMCPSessionEvents = {
@@ -72,7 +71,6 @@ export const imageContent = async (
       "Invalid input: Provide a valid 'url', 'path', or 'buffer'",
     );
   }
-
   const { fileTypeFromBuffer } = await loadEsm('file-type');
   const mimeType = await fileTypeFromBuffer(rawData);
   console.log(mimeType);
@@ -110,7 +108,7 @@ export class UnexpectedStateError extends FastMCPError {
 /**
  * An error that is meant to be surfaced to the user.
  */
-export class UserError extends UnexpectedStateError {}
+export class UserError extends UnexpectedStateError { }
 
 type ToolParameters = z.ZodTypeAny;
 
@@ -132,8 +130,7 @@ type Progress = {
   total?: number;
 };
 
-type Context<T extends FastMCPSessionAuth> = {
-  session: T | undefined;
+type Context = {
   reportProgress: (progress: Progress) => Promise<void>;
   log: {
     debug: (message: string, data?: SerializableValue) => void;
@@ -221,23 +218,23 @@ const CompletionZodSchema = z.object({
   hasMore: z.optional(z.boolean()),
 }) satisfies z.ZodType<Completion>;
 
-type Tool<T extends FastMCPSessionAuth, Params extends ToolParameters = ToolParameters> = {
+type Tool<Params extends ToolParameters = ToolParameters> = {
   name: string;
   description?: string;
   parameters?: Params;
   execute: (
     args: z.infer<Params>,
-    context: Context<T>,
+    context: Context,
   ) => Promise<string | ContentResult | TextContent | ImageContent>;
 };
 
 type ResourceResult =
   | {
-      text: string;
-    }
+    text: string;
+  }
   | {
-      blob: string;
-    };
+    blob: string;
+  };
 
 type InputResourceTemplateArgument = Readonly<{
   name: string;
@@ -307,8 +304,8 @@ type PromptArgumentsToObject<T extends { name: string; required?: boolean }[]> =
       T[number],
       { name: K }
     >["required"] extends true
-      ? string
-      : string | undefined;
+    ? string
+    : string | undefined;
   };
 
 type InputPrompt<
@@ -340,10 +337,9 @@ type Prompt<
   name: string;
 };
 
-type ServerOptions<T extends FastMCPSessionAuth> = {
+type ServerOptions = {
   name: string;
   version: `${number}.${number}.${number}`;
-  authenticate?: Authenticate<T>;
 };
 
 type LoggingLevel =
@@ -357,10 +353,10 @@ type LoggingLevel =
   | "emergency";
 
 const FastMCPSessionEventEmitterBase: {
-  new (): StrictEventEmitter<EventEmitter, FastMCPSessionEvents>;
+  new(): StrictEventEmitter<EventEmitter, FastMCPSessionEvents>;
 } = EventEmitter;
 
-class FastMCPSessionEventEmitter extends FastMCPSessionEventEmitterBase {}
+class FastMCPSessionEventEmitter extends FastMCPSessionEventEmitterBase { }
 
 type SamplingResponse = {
   model: string;
@@ -369,9 +365,7 @@ type SamplingResponse = {
   content: TextContent | ImageContent;
 };
 
-type FastMCPSessionAuth = Record<string, unknown> | undefined;
-
-export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> extends FastMCPSessionEventEmitter {
+export class FastMCPSession extends FastMCPSessionEventEmitter {
   #capabilities: ServerCapabilities = {};
   #clientCapabilities?: ClientCapabilities;
   #loggingLevel: LoggingLevel = "info";
@@ -380,10 +374,8 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
   #resourceTemplates: ResourceTemplate[] = [];
   #roots: Root[] = [];
   #server: Server;
-  #auth: T | undefined;
 
   constructor({
-    auth,
     name,
     version,
     tools,
@@ -391,17 +383,14 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
     resourcesTemplates,
     prompts,
   }: {
-    auth?: T;
     name: string;
     version: string;
-    tools: Tool<T>[];
+    tools: Tool[];
     resources: Resource[];
     resourcesTemplates: InputResourceTemplate[];
     prompts: Prompt[];
   }) {
     super();
-
-    this.#auth = auth;
 
     if (tools.length) {
       this.#capabilities.tools = {};
@@ -555,7 +544,6 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
 
     while (attempt++ < 10) {
       const capabilities = await this.#server.getClientCapabilities();
-      console.log("capabilities", capabilities);
 
       if (capabilities) {
         this.#clientCapabilities = capabilities;
@@ -567,7 +555,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
     }
 
     if (!this.#clientCapabilities) {
-      console.warn('[warning] toolBox could not infer client capabilities')
+      throw new UnexpectedStateError("Server did not connect");
     }
 
     if (this.#clientCapabilities?.roots) {
@@ -596,11 +584,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
       clearInterval(this.#pingInterval);
     }
 
-    try {
-      await this.#server.close();
-    } catch (error) {
-      console.error("[MCP Error]", "could not close server", error);
-    }
+    await this.#server.close();
   }
 
   private setupErrorHandling() {
@@ -709,7 +693,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
     });
   }
 
-  private setupToolHandlers(tools: Tool<T>[]) {
+  private setupToolHandlers(tools: Tool[]) {
     this.#server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: tools.map((tool) => {
@@ -806,7 +790,6 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
         const maybeStringResult = await tool.execute(args, {
           reportProgress,
           log,
-          session: this.#auth,
         });
 
         if (typeof maybeStringResult === "string") {
@@ -1020,39 +1003,35 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
 }
 
 const FastMCPEventEmitterBase: {
-  new (): StrictEventEmitter<EventEmitter, FastMCPEvents<FastMCPSessionAuth>>;
+  new(): StrictEventEmitter<EventEmitter, FastMCPEvents>;
 } = EventEmitter;
 
-class FastMCPEventEmitter extends FastMCPEventEmitterBase {}
+class FastMCPEventEmitter extends FastMCPEventEmitterBase { }
 
-type Authenticate<T> = (request: http.IncomingMessage) => Promise<T>;
-
-export class ToolBox<T extends Record<string, unknown> | undefined = undefined> extends FastMCPEventEmitter {
-  #options: ServerOptions<T>;
+export class ToolBox extends FastMCPEventEmitter {
+  #options: ServerOptions;
   #prompts: InputPrompt[] = [];
   #resources: Resource[] = [];
   #resourcesTemplates: InputResourceTemplate[] = [];
-  #sessions: FastMCPSession<T>[] = [];
+  #sessions: FastMCPSession[] = [];
   #sseServer: SSEServer | null = null;
-  #tools: Tool<T>[] = [];
-  #authenticate: Authenticate<T> | undefined;
+  #tools: Tool[] = [];
 
-  constructor(public options: ServerOptions<T>) {
+  constructor(public options: ServerOptions) {
     super();
 
     this.#options = options;
-    this.#authenticate = options.authenticate;
   }
 
-  public get sessions(): FastMCPSession<T>[] {
+  public get sessions(): FastMCPSession[] {
     return this.#sessions;
   }
 
   /**
    * Adds a tool to the server.
    */
-  public addTool<Params extends ToolParameters>(tool: Tool<T, Params>) {
-    this.#tools.push(tool as unknown as Tool<T>);
+  public addTool<Params extends ToolParameters>(tool: Tool<Params>) {
+    this.#tools.push(tool as unknown as Tool);
   }
 
   /**
@@ -1078,55 +1057,6 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
     prompt: InputPrompt<Args>,
   ) {
     this.#prompts.push(prompt);
-  }
-
-  /**
-   * Starts the server.
-   */
-  public async start(
-    options:
-      | { transportType: "stdio" }
-      | {
-          transportType: "sse";
-          sse: { endpoint: `/${string}`; port: number };
-        } = {
-      transportType: "stdio",
-    },
-  ) {
-    if (options.transportType === "stdio") {
-      const transport = new StdioServerTransport();
-
-      const session = new FastMCPSession<T>({
-        name: this.#options.name,
-        version: this.#options.version,
-        tools: this.#tools,
-        resources: this.#resources,
-        resourcesTemplates: this.#resourcesTemplates,
-        prompts: this.#prompts,
-      });
-
-      await session.connect(transport);
-
-      this.#sessions.push(session);
-
-      this.emit("connect", {
-        session,
-      });
-
-    } else if (options.transportType === "sse") {
-    
-    } else {
-      throw new Error("Invalid transport type");
-    }
-  }
-
-  /**
-   * Stops the server.
-   */
-  public async stop() {
-    if (this.#sseServer) {
-      this.#sseServer.close();
-    }
   }
 
   /**
@@ -1200,7 +1130,36 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
     }
   }
 
- 
+  /**
+   * Stops the server.
+   */
+  public async stop() {
+    if (this.#sseServer) {
+      this.#sseServer.close();
+    }
+  }
 
+  // public async activate() {
+
+  //   const transport = new StdioServerTransport();
+
+  //   const session = new FastMCPSession({
+  //     name: this.#options.name,
+  //     version: this.#options.version,
+  //     tools: this.#tools,
+  //     resources: this.#resources,
+  //     resourcesTemplates: this.#resourcesTemplates,
+  //     prompts: this.#prompts,
+  //   });
+
+  //   await session.connect(transport);
+
+  //   this.#sessions.push(session);
+
+  //   this.emit("connect", {
+  //     session,
+  //   });
+
+  //   console.info(`server is running on stdio`);
+  // }
 }
-

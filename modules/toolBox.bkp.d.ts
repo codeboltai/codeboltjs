@@ -1,23 +1,21 @@
 /// <reference types="node" />
 /// <reference types="node" />
 /// <reference types="node" />
-/// <reference types="node" />
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { ClientCapabilities, CreateMessageRequestSchema, Root } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { StrictEventEmitter } from "strict-event-emitter-types";
 import { EventEmitter } from "events";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import http from "http";
 export type SSEServer = {
     close: () => Promise<void>;
 };
-type FastMCPEvents<T extends FastMCPSessionAuth> = {
+type FastMCPEvents = {
     connect: (event: {
-        session: FastMCPSession<T>;
+        session: FastMCPSession;
     }) => void;
     disconnect: (event: {
-        session: FastMCPSession<T>;
+        session: FastMCPSession;
     }) => void;
 };
 type FastMCPSessionEvents = {
@@ -67,8 +65,7 @@ type Progress = {
      */
     total?: number;
 };
-type Context<T extends FastMCPSessionAuth> = {
-    session: T | undefined;
+type Context = {
     reportProgress: (progress: Progress) => Promise<void>;
     log: {
         debug: (message: string, data?: SerializableValue) => void;
@@ -96,11 +93,11 @@ type Completion = {
     total?: number;
     hasMore?: boolean;
 };
-type Tool<T extends FastMCPSessionAuth, Params extends ToolParameters = ToolParameters> = {
+type Tool<Params extends ToolParameters = ToolParameters> = {
     name: string;
     description?: string;
     parameters?: Params;
-    execute: (args: z.infer<Params>, context: Context<T>) => Promise<string | ContentResult | TextContent | ImageContent>;
+    execute: (args: z.infer<Params>, context: Context) => Promise<string | ContentResult | TextContent | ImageContent>;
 };
 type ResourceResult = {
     text: string;
@@ -174,10 +171,9 @@ type Prompt<Arguments extends PromptArgument[] = PromptArgument[], Args = Prompt
     load: (args: Args) => Promise<string>;
     name: string;
 };
-type ServerOptions<T extends FastMCPSessionAuth> = {
+type ServerOptions = {
     name: string;
     version: `${number}.${number}.${number}`;
-    authenticate?: Authenticate<T>;
 };
 type LoggingLevel = "debug" | "info" | "notice" | "warning" | "error" | "critical" | "alert" | "emergency";
 declare const FastMCPSessionEventEmitterBase: {
@@ -191,14 +187,12 @@ type SamplingResponse = {
     role: "user" | "assistant";
     content: TextContent | ImageContent;
 };
-type FastMCPSessionAuth = Record<string, unknown> | undefined;
-export declare class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> extends FastMCPSessionEventEmitter {
+export declare class FastMCPSession extends FastMCPSessionEventEmitter {
     #private;
-    constructor({ auth, name, version, tools, resources, resourcesTemplates, prompts, }: {
-        auth?: T;
+    constructor({ name, version, tools, resources, resourcesTemplates, prompts, }: {
         name: string;
         version: string;
-        tools: Tool<T>[];
+        tools: Tool[];
         resources: Resource[];
         resourcesTemplates: InputResourceTemplate[];
         prompts: Prompt[];
@@ -223,20 +217,19 @@ export declare class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessio
     private setupPromptHandlers;
 }
 declare const FastMCPEventEmitterBase: {
-    new (): StrictEventEmitter<EventEmitter, FastMCPEvents<FastMCPSessionAuth>>;
+    new (): StrictEventEmitter<EventEmitter, FastMCPEvents>;
 };
 declare class FastMCPEventEmitter extends FastMCPEventEmitterBase {
 }
-type Authenticate<T> = (request: http.IncomingMessage) => Promise<T>;
-export declare class ToolBox<T extends Record<string, unknown> | undefined = undefined> extends FastMCPEventEmitter {
+export declare class ToolBox extends FastMCPEventEmitter {
     #private;
-    options: ServerOptions<T>;
-    constructor(options: ServerOptions<T>);
-    get sessions(): FastMCPSession<T>[];
+    options: ServerOptions;
+    constructor(options: ServerOptions);
+    get sessions(): FastMCPSession[];
     /**
      * Adds a tool to the server.
      */
-    addTool<Params extends ToolParameters>(tool: Tool<T, Params>): void;
+    addTool<Params extends ToolParameters>(tool: Tool<Params>): void;
     /**
      * Adds a resource to the server.
      */
@@ -252,7 +245,7 @@ export declare class ToolBox<T extends Record<string, unknown> | undefined = und
     /**
      * Starts the server.
      */
-    start(options?: {
+    activate(options?: {
         transportType: "stdio";
     } | {
         transportType: "sse";
@@ -265,17 +258,5 @@ export declare class ToolBox<T extends Record<string, unknown> | undefined = und
      * Stops the server.
      */
     stop(): Promise<void>;
-    /**
-     * Starts the server.
-     */
-    activate(options?: {
-        transportType: "stdio";
-    } | {
-        transportType: "sse";
-        sse: {
-            endpoint: `/${string}`;
-            port: number;
-        };
-    }): Promise<void>;
 }
 export {};

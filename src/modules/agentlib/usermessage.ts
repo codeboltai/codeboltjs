@@ -1,6 +1,6 @@
 import cbfs from "./../fs";
 import project from "./../project";
-import mcp from "./../mcp";
+import mcp from "./../tools";
 import { escape } from "querystring";
 
 
@@ -24,13 +24,13 @@ class UserMessage {
     message: Message;
     promptOverride: boolean;
     userMessages: UserMessageContent[];
-    mentaionedMCPS: string[];
+    mentionedMCPs: string[];
 
     constructor(message: Message, promptOverride: boolean = false) {
         this.message = message;
         this.promptOverride = promptOverride;
         this.userMessages = [];
-        this.mentaionedMCPS = message.mentionedMCPs || [];
+        this.mentionedMCPs = message.mentionedMCPs || [];
     }
 
     getFiles(): void {
@@ -74,8 +74,8 @@ class UserMessage {
         return this.message.mentionedMCPs || [];
     }
     async getMentionedMcpsTools() {
-        if (this.mentaionedMCPS.length > 0) {
-            let tools = await mcp.getMcpTools(this.mentaionedMCPS)
+        if (this.mentionedMCPs.length > 0) {
+            let tools = await mcp.listToolsFromToolBoxes(this.mentionedMCPs)
             return tools
         }
         else {

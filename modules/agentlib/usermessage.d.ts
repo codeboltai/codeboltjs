@@ -11,7 +11,7 @@ declare class UserMessage {
     message: Message;
     promptOverride: boolean;
     userMessages: UserMessageContent[];
-    mentaionedMCPS: string[];
+    mentionedMCPs: string[];
     constructor(message: Message, promptOverride?: boolean);
     getFiles(): void;
     toPrompt(bAttachFiles?: boolean, bAttachImages?: boolean, bAttachEnvironment?: boolean): Promise<UserMessageContent[]>;

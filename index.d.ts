@@ -237,14 +237,21 @@ declare class Codebolt {
             content: string;
         }[]>;
     };
-    MCP: {
-        executeTool: (toolName: string, params: any, mcpServer?: string | undefined) => Promise<any>;
-        getMcpTools: (tools: string[]) => Promise<any>;
-        getAllMCPTools: (mpcName: string) => Promise<any>;
-        getMCPTool: (name: string) => Promise<any>;
-        getEnabledMCPS: () => Promise<any>;
+    tools: {
+        getEnabledToolBoxes: () => Promise<any>;
+        getLocalToolBoxes: () => Promise<any>;
+        getMentionedToolBoxes: (userMessage: import("./utils").UserMessage) => Promise<any>;
+        getAvailableToolBoxes: () => Promise<any>;
+        searchAvailableToolBoxes: (query: string) => Promise<any>;
+        listToolsFromToolBoxes: (toolBoxes: string[]) => Promise<any>;
+        configureToolBox: (name: string, config: any) => Promise<any>;
+        getTools: (tools: {
+            toolbox: string;
+            toolName: string;
+        }[]) => Promise<any[]>;
+        executeTool: (toolbox: string, toolName: string, params: any) => Promise<any>;
     };
-    AGENT: {
+    agent: {
         findAgent: (task: string, maxResult: number | undefined, agents: never[] | undefined, agentLocaltion: import("./modules/agent").AgentLocation | undefined, getFrom: import("./modules/agent").FilterUsing.USE_VECTOR_DB) => Promise<any>;
         startAgent: (agentId: string, task: string) => Promise<any>;
         getAgentsList: (type?: import("./modules/agent").Agents) => Promise<any>;

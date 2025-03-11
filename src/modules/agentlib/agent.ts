@@ -1,5 +1,5 @@
 import chatlib from "./../chat"
-import mcp from "./../mcp"
+import tools from "./../tools"
 import llm from "./../llm"
 import codeboltAgent from "./../agent"
 import { SystemPrompt } from "./systemprompt";
@@ -112,9 +112,9 @@ class Agent {
 
                                         const agentResponse = await codeboltAgent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
                                         console.log("got sub agent resonse  result", agentResponse);
-                                        const [didUserReject, result] = [false,"tool result is successful"];
-                                       console.log("got sub agent resonse  result", didUserReject, result); 
-                                      
+                                        const [didUserReject, result] = [false, "tool result is successful"];
+                                        console.log("got sub agent resonse  result", didUserReject, result);
+
                                         toolResults.push(this.getToolResult(toolUseId, result));
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
@@ -212,7 +212,9 @@ class Agent {
     }
 
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
-        return mcp.executeTool(toolName, toolInput);
+        //codebolttools--readfile
+        const [toolboxName, actualToolName] = toolName.split('--');
+        return tools.executeTool(toolboxName, actualToolName, toolInput);
     }
     private async startSubAgent(agentName: string, params: any): Promise<[boolean, any]> {
         return codeboltAgent.startAgent(agentName, params.task);

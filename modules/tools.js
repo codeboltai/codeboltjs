@@ -5,18 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const websocket_1 = __importDefault(require("./websocket"));
 const codeboltMCP = {
-    executeTool: (toolName, params, mcpServer) => {
+    getEnabledToolBoxes: () => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "executeTool",
-                "toolName": toolName,
-                "params": params
+                "type": "codebolttools",
+                "action": "getEnabledToolBoxes"
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "executeToolResponse") {
+                    if (response.type === "getEnabledToolBoxesResponse") {
                         resolve(response.data);
                     }
                 }
@@ -29,17 +27,16 @@ const codeboltMCP = {
             });
         });
     },
-    getMcpTools: (tools) => {
+    getLocalToolBoxes: () => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "getMcpTools",
-                "tools": tools
+                "type": "codebolttools",
+                "action": "getLocalToolBoxes"
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "getMcpToolsResponse") {
+                    if (response.type === "getLocalToolBoxesResponse") {
                         resolve(response.data);
                     }
                 }
@@ -52,17 +49,21 @@ const codeboltMCP = {
             });
         });
     },
-    getAllMCPTools: (mpcName) => {
+    getMentionedToolBoxes: (userMessage) => {
+        return new Promise((resolve, reject) => {
+            resolve(userMessage.mentionedMCPs);
+        });
+    },
+    getAvailableToolBoxes: () => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "getAllMCPTools",
-                "mpcName": mpcName
+                "type": "codebolttools",
+                "action": "getAvailableToolBoxes"
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "getAllMCPToolsResponse") {
+                    if (response.type === "getAvailableToolBoxesResponse") {
                         resolve(response.data);
                     }
                 }
@@ -75,17 +76,17 @@ const codeboltMCP = {
             });
         });
     },
-    getMCPTool: (name) => {
+    searchAvailableToolBoxes: (query) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "getMCPTool",
-                "mcpName": name
+                "type": "codebolttools",
+                "action": "searchAvailableToolBoxes",
+                "query": query
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "getMCPToolResponse") {
+                    if (response.type === "searchAvailableToolBoxesResponse") {
                         resolve(response.data);
                     }
                 }
@@ -98,16 +99,17 @@ const codeboltMCP = {
             });
         });
     },
-    getEnabledMCPS: () => {
+    listToolsFromToolBoxes: (toolBoxes) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "getEnabledMCPS"
+                "type": "codebolttools",
+                "action": "listToolsFromToolBoxes",
+                "toolBoxes": toolBoxes
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "getEnabledMCPSResponse") {
+                    if (response.type === "listToolsFromToolBoxesResponse") {
                         resolve(response.data);
                     }
                 }
@@ -120,18 +122,65 @@ const codeboltMCP = {
             });
         });
     },
-    configureMCPTool: (name, config) => {
+    configureToolBox: (name, config) => {
         return new Promise((resolve, reject) => {
             websocket_1.default.getWebsocket.send(JSON.stringify({
-                "type": "mcpEvent",
-                "action": "configureMCPTool",
+                "type": "codebolttools",
+                "action": "configureToolBox",
                 "mcpName": name,
                 "config": config
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 try {
                     const response = JSON.parse(data);
-                    if (response.type === "configureMCPToolResponse") {
+                    if (response.type === "configureToolBoxResponse") {
+                        resolve(response.data);
+                    }
+                }
+                catch (error) {
+                    reject(new Error("Failed to parse response"));
+                }
+            });
+            websocket_1.default.getWebsocket.on('error', (error) => {
+                reject(error);
+            });
+        });
+    },
+    getTools: (tools) => {
+        return new Promise((resolve, reject) => {
+            websocket_1.default.getWebsocket.send(JSON.stringify({
+                "type": "codebolttools",
+                "action": "getTools",
+                "toolboxes": tools
+            }));
+            websocket_1.default.getWebsocket.on('message', (data) => {
+                try {
+                    const response = JSON.parse(data);
+                    if (response.type === "getToolsResponse") {
+                        resolve(response.data);
+                    }
+                }
+                catch (error) {
+                    reject(new Error("Failed to parse response"));
+                }
+            });
+            websocket_1.default.getWebsocket.on('error', (error) => {
+                reject(error);
+            });
+        });
+    },
+    executeTool: (toolbox, toolName, params) => {
+        return new Promise((resolve, reject) => {
+            websocket_1.default.getWebsocket.send(JSON.stringify({
+                "type": "codebolttools",
+                "action": "executeTool",
+                "toolName": `${toolbox}--${toolName}`,
+                "params": params
+            }));
+            websocket_1.default.getWebsocket.on('message', (data) => {
+                try {
+                    const response = JSON.parse(data);
+                    if (response.type === "executeToolResponse") {
                         resolve(response.data);
                     }
                 }
