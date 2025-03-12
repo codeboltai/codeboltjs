@@ -16,6 +16,7 @@ interface ToolResult {
     role: 'tool';
     tool_call_id: string;
     content: any;
+    userMessage?: any;
 }
 
 interface ToolDetails {
@@ -31,6 +32,7 @@ class Agent {
     private maxRun: number;
     private systemPrompt: SystemPrompt;
     private userMessage: Message[];
+    private nextUserMessage:any;
 
 
     constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: any[] = []) {
@@ -47,6 +49,7 @@ class Agent {
         this.tools = this.tools.concat(subAgents.map(subagent => ({
             ...subagent
         })));
+       
 
 
     }
@@ -114,18 +117,42 @@ class Agent {
                                         console.log("got sub agent resonse  result", agentResponse);
                                         const [didUserReject, result] = [false, "tool result is successful"];
                                         console.log("got sub agent resonse  result", didUserReject, result);
+                                        let toolResult = this.getToolResult(toolUseId, result)
+                                        toolResults.push({
+                                            role: "tool",
+                                            tool_call_id: toolResult.tool_call_id,
+                                            content: toolResult.content,
 
-                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        });
+                                        if (toolResult.userMessage) {
+                                            this.nextUserMessage = {
+                                                role: "user",
+                                                content: toolResult.userMessage
+                                            }
+                                        }
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
                                         }
+
                                     }
                                     else {
                                         console.log("calling tool with params", toolName, toolInput);
                                         const [didUserReject, result] = await this.executeTool(toolName, toolInput);
                                         console.log("tool result", result);
-                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        // toolResults.push(this.getToolResult(toolUseId, result));
+                                        let toolResult = this.getToolResult(toolUseId, result)
+                                        toolResults.push({
+                                            role: "tool",
+                                            tool_call_id: toolResult.tool_call_id,
+                                            content: toolResult.content,
 
+                                        });
+                                        if (toolResult.userMessage) {
+                                            this.nextUserMessage = {
+                                                role: "user",
+                                                content: toolResult.userMessage
+                                            }
+                                        }
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
                                         }
@@ -133,7 +160,21 @@ class Agent {
 
                                 }
                             } else {
-                                toolResults.push(this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."));
+                                let toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.")
+
+                                toolResults.push({
+                                    role: "tool",
+                                    tool_call_id: toolResult.tool_call_id,
+                                    content: toolResult.content,
+
+                                });
+                                if (toolResult.userMessage) {
+                                    this.nextUserMessage = {
+                                        role: "user",
+                                        content: toolResult.userMessage
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -148,10 +189,26 @@ class Agent {
                             completed = true;
                             result = "The user is satisfied with the result.";
                         }
-                        toolResults.push(this.getToolResult(taskCompletedBlock.id, result));
+                        let toolResult = this.getToolResult(taskCompletedBlock.id, result)
+                        toolResults.push({
+                            role: "tool",
+                            tool_call_id: toolResult.tool_call_id,
+                            content: toolResult.content,
+
+                        });
+                        if (toolResult.userMessage) {
+                            this.nextUserMessage = {
+                                role: "user",
+                                content: toolResult.userMessage
+                            }
+                        }
+
                     }
 
                     this.apiConversationHistory.push(...toolResults);
+                    if (this.nextUserMessage) {
+                        this.apiConversationHistory.push(this.nextUserMessage);
+                    }
                     let nextUserMessage: Message[] = toolResults;
 
                     if (toolResults.length === 0) {
@@ -228,11 +285,24 @@ class Agent {
         };
     }
 
-    private getToolResult(tool_call_id: string, content: any): ToolResult {
+    private getToolResult(tool_call_id: string, content: string): ToolResult {
+        let userMessage=undefined
+        try {
+            let parsed = JSON.parse(content);
+
+            if (parsed.payload && parsed.payload.content) {
+                content = `The browser action has been executed. The  screenshot have been captured for your analysis. The tool response is provided in the next user message`
+                // this.apiConversationHistory.push()
+                userMessage = parsed.payload.content
+            }
+        } catch (error) {
+
+        }
         return {
             role: "tool",
             tool_call_id,
             content,
+            userMessage
         };
     }
 

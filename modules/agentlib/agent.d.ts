@@ -7,6 +7,7 @@ declare class Agent {
     private maxRun;
     private systemPrompt;
     private userMessage;
+    private nextUserMessage;
     constructor(tools: any, systemPrompt: SystemPrompt, maxRun?: number, subAgents?: any[]);
     run(task: TaskInstruction, successCondition?: () => boolean): Promise<{
         success: boolean;

@@ -75,7 +75,18 @@ class Agent {
                                         console.log("got sub agent resonse  result", agentResponse);
                                         const [didUserReject, result] = [false, "tool result is successful"];
                                         console.log("got sub agent resonse  result", didUserReject, result);
-                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        let toolResult = this.getToolResult(toolUseId, result);
+                                        toolResults.push({
+                                            role: "tool",
+                                            tool_call_id: toolResult.tool_call_id,
+                                            content: toolResult.content,
+                                        });
+                                        if (toolResult.userMessage) {
+                                            this.nextUserMessage = {
+                                                role: "user",
+                                                content: toolResult.userMessage
+                                            };
+                                        }
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
                                         }
@@ -84,7 +95,19 @@ class Agent {
                                         console.log("calling tool with params", toolName, toolInput);
                                         const [didUserReject, result] = await this.executeTool(toolName, toolInput);
                                         console.log("tool result", result);
-                                        toolResults.push(this.getToolResult(toolUseId, result));
+                                        // toolResults.push(this.getToolResult(toolUseId, result));
+                                        let toolResult = this.getToolResult(toolUseId, result);
+                                        toolResults.push({
+                                            role: "tool",
+                                            tool_call_id: toolResult.tool_call_id,
+                                            content: toolResult.content,
+                                        });
+                                        if (toolResult.userMessage) {
+                                            this.nextUserMessage = {
+                                                role: "user",
+                                                content: toolResult.userMessage
+                                            };
+                                        }
                                         if (didUserReject) {
                                             userRejectedToolUse = true;
                                         }
@@ -92,7 +115,18 @@ class Agent {
                                 }
                             }
                             else {
-                                toolResults.push(this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."));
+                                let toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.");
+                                toolResults.push({
+                                    role: "tool",
+                                    tool_call_id: toolResult.tool_call_id,
+                                    content: toolResult.content,
+                                });
+                                if (toolResult.userMessage) {
+                                    this.nextUserMessage = {
+                                        role: "user",
+                                        content: toolResult.userMessage
+                                    };
+                                }
                             }
                         }
                     }
@@ -102,9 +136,23 @@ class Agent {
                             completed = true;
                             result = "The user is satisfied with the result.";
                         }
-                        toolResults.push(this.getToolResult(taskCompletedBlock.id, result));
+                        let toolResult = this.getToolResult(taskCompletedBlock.id, result);
+                        toolResults.push({
+                            role: "tool",
+                            tool_call_id: toolResult.tool_call_id,
+                            content: toolResult.content,
+                        });
+                        if (toolResult.userMessage) {
+                            this.nextUserMessage = {
+                                role: "user",
+                                content: toolResult.userMessage
+                            };
+                        }
                     }
                     this.apiConversationHistory.push(...toolResults);
+                    if (this.nextUserMessage) {
+                        this.apiConversationHistory.push(this.nextUserMessage);
+                    }
                     let nextUserMessage = toolResults;
                     if (toolResults.length === 0) {
                         nextUserMessage = [{
@@ -175,10 +223,22 @@ class Agent {
         };
     }
     getToolResult(tool_call_id, content) {
+        let userMessage = undefined;
+        try {
+            let parsed = JSON.parse(content);
+            if (parsed.payload && parsed.payload.content) {
+                content = `The browser action has been executed. The  screenshot have been captured for your analysis. The tool response is provided in the next user message`;
+                // this.apiConversationHistory.push()
+                userMessage = parsed.payload.content;
+            }
+        }
+        catch (error) {
+        }
         return {
             role: "tool",
             tool_call_id,
             content,
+            userMessage
         };
     }
     // Placeholder for error fallback method
