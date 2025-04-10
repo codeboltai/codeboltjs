@@ -1,13 +1,21 @@
 import cbfs from "./../fs";
 import project from "./../project";
 import mcp from "./../tools";
-import { escape } from "querystring";
-
-
+interface agent {
+  
+        description: string;
+        title: string;
+        id: number;
+        agent_id: string;
+        unique_id: string;
+        longDescription: string;
+    
+}
 interface Message {
     userMessage: string;
     mentionedFiles?: string[];
     mentionedMCPs: string[];
+    mentionedAgents: agent[];
 }
 
 export interface UserMessageContent {
@@ -70,8 +78,13 @@ class UserMessage {
         return this.userMessages;
     }
 
-    getMentionedMcps(): string[] {
-        return this.message.mentionedMCPs || [];
+    getMentionedAgents() {
+        //TODO : get config in tool format if neede
+        return this.message.mentionedAgents || [];
+    }
+
+    getMentionedMcps() {
+      return this.message.mentionedMCPs || [];
     }
     async getMentionedMcpsTools() {
         if (this.mentionedMCPs.length > 0) {

@@ -54,6 +54,10 @@ class UserMessage {
         }
         return this.userMessages;
     }
+    getMentionedAgents() {
+        //TODO : get config in tool format if neede
+        return this.message.mentionedAgents || [];
+    }
     getMentionedMcps() {
         return this.message.mentionedMCPs || [];
     }

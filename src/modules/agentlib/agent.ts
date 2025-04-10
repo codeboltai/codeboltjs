@@ -27,7 +27,7 @@ interface ToolDetails {
 
 class Agent {
     private tools: any[];
-    private subAgents: any[];
+    // private subAgents: any[];
     private apiConversationHistory: Message[];
     private maxRun: number;
     private systemPrompt: SystemPrompt;
@@ -35,22 +35,12 @@ class Agent {
     private nextUserMessage:any;
 
 
-    constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0, subAgents: any[] = []) {
+    constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0) {
         this.tools = tools;
         this.userMessage = [];
         this.apiConversationHistory = [];
         this.maxRun = maxRun;
         this.systemPrompt = systemPrompt;
-        this.subAgents = subAgents;
-        this.subAgents = subAgents.map(subagent => {
-            subagent.function.name = `subagent--${subagent.function.name}`;
-            return subagent;
-        });
-        this.tools = this.tools.concat(subAgents.map(subagent => ({
-            ...subagent
-        })));
-       
-
 
     }
 
@@ -58,10 +48,36 @@ class Agent {
 
 
         let mentaionedMCPSTool: any[] = await task.userMessage.getMentionedMcpsTools();
+
         this.tools = [
             ...this.tools,
-            ...mentaionedMCPSTool
+            ...mentaionedMCPSTool,
+    
         ]
+        let mentionedAgents = await task.userMessage.getMentionedAgents();
+
+        // Transform agents into tool format
+        const agentTools = mentionedAgents.map(agent => {
+            return {
+                type: "function",
+                function: {
+                    name: `subagent--${agent.unique_id}`,
+                    description: agent.longDescription || agent.description,
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            task: {
+                                type: "string",
+                                description: "The task to be executed by the tool."
+                            }
+                        },
+                        required: ["task"]
+                    }
+                }
+            };
+        });
+        
+        this.tools = this.tools.concat(agentTools);
 
 
         let completed = false;

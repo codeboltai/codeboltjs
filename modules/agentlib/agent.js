@@ -9,28 +9,42 @@ const tools_1 = __importDefault(require("./../tools"));
 const llm_1 = __importDefault(require("./../llm"));
 const agent_1 = __importDefault(require("./../agent"));
 class Agent {
-    constructor(tools = [], systemPrompt, maxRun = 0, subAgents = []) {
+    constructor(tools = [], systemPrompt, maxRun = 0) {
         this.tools = tools;
         this.userMessage = [];
         this.apiConversationHistory = [];
         this.maxRun = maxRun;
         this.systemPrompt = systemPrompt;
-        this.subAgents = subAgents;
-        this.subAgents = subAgents.map(subagent => {
-            subagent.function.name = `subagent--${subagent.function.name}`;
-            return subagent;
-        });
-        this.tools = this.tools.concat(subAgents.map(subagent => ({
-            ...subagent
-        })));
     }
     async run(task, successCondition = () => true) {
         var _a, _b;
         let mentaionedMCPSTool = await task.userMessage.getMentionedMcpsTools();
         this.tools = [
             ...this.tools,
-            ...mentaionedMCPSTool
+            ...mentaionedMCPSTool,
         ];
+        let mentionedAgents = await task.userMessage.getMentionedAgents();
+        // Transform agents into tool format
+        const agentTools = mentionedAgents.map(agent => {
+            return {
+                type: "function",
+                function: {
+                    name: `subagent--${agent.unique_id}`,
+                    description: agent.longDescription || agent.description,
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            task: {
+                                type: "string",
+                                description: "The task to be executed by the tool."
+                            }
+                        },
+                        required: ["task"]
+                    }
+                }
+            };
+        });
+        this.tools = this.tools.concat(agentTools);
         let completed = false;
         let userMessages = await task.toPrompt();
         this.apiConversationHistory.push({ role: "user", content: userMessages });
