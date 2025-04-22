@@ -68,7 +68,6 @@ const cbcodeutils = {
                                 }
                                 else if (path_1.default.extname(file.name) === '.js') {
                                     const code = fs.readFileSync(path_1.default.join(directory, file.name), 'utf-8');
-                                    console.log(code);
                                     let tree = parser.parse(code);
                                     tree.rootNode.path = path_1.default.join(directory, file.name); // Set file path for t
                                     trees.push(tree);

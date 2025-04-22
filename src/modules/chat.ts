@@ -77,7 +77,6 @@ const cbchat = {
                     const response = JSON.parse(data);
                     if (response.type === "messageResponse") {
                         eventEmitter.emit("userMessage", response, (message: string) => {
-                            console.log("Callback function invoked with message:", message);
                             cbws.getWebsocket.send(JSON.stringify({
                                 "type": "processStoped",
                                 "message": message
@@ -98,7 +97,6 @@ const cbchat = {
      * @param {string} message - The message to be sent.
      */
     sendMessage: (message: string, payload: any) => {
-        console.log(message);
         cbws.getWebsocket.send(JSON.stringify({
             "type": "sendMessage",
             "message": message,
@@ -136,7 +134,6 @@ const cbchat = {
         // Register event listener for WebSocket messages
         cbws.getWebsocket.on('message', (data: string) => {
             const message = JSON.parse(data);
-            console.log("Received message:", message);
             if (message.type === 'stopProcessClicked')
 
                 // Emit a custom event based on the message type
@@ -148,7 +145,6 @@ const cbchat = {
             event: eventEmitter,
             stopProcess: () => {
                 // Implement the logic to stop the process here
-                console.log("Stopping process...");
                 // For example, you might want to send a specific message to the server to stop the process
                 cbws.getWebsocket.send(JSON.stringify({
                     "type": "processStoped"
@@ -162,7 +158,6 @@ const cbchat = {
      */
     stopProcess: () => {
         // Implement the logic to stop the process here
-        console.log("Stopping process...");
         // For example, you might want to send a specific message to the server to stop the process
         cbws.getWebsocket.send(JSON.stringify({
             "type": "processStoped"
@@ -174,7 +169,6 @@ const cbchat = {
    */
     processFinished: () => {
         // Implement the logic to stop the process here
-        console.log("Process Finished ...");
         // For example, you might want to send a specific message to the server to stop the process
         cbws.getWebsocket.send(JSON.stringify({
             "type": "processFinished"

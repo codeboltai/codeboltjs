@@ -55,11 +55,9 @@ class cbws {
         this.websocket = new ws_1.default(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
         return new Promise((resolve, reject) => {
             this.websocket.on('error', (error) => {
-                console.log('WebSocket error:', error);
                 reject(error);
             });
             this.websocket.on('open', () => {
-                console.log('WebSocket connected');
                 // if (this.websocket) {
                 //     this.websocket.send(JSON.stringify({
                 //         "type": "sendMessage",
@@ -70,7 +68,6 @@ class cbws {
             });
             this.websocket.on('message', (data) => {
                 // Handle incoming WebSocket messages here.
-                // console.log('WebSocket message received:', data);
             });
         });
     }

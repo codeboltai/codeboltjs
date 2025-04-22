@@ -7,7 +7,6 @@ const cbsearch = {
      * @param {string} [engine="bing"] - The search engine to use for initializing the module.
      */
     init: (engine: string = "bing"): void => {
-        console.log("Initializing Search Module with engine: " + engine);
     },
     /**
      * Performs a search operation for the given query.
@@ -15,7 +14,6 @@ const cbsearch = {
      * @returns {Promise<string>} A promise that resolves with the search results.
      */
     search: async (query: string): Promise<string> => {
-        console.log("Searching for " + query);
         return new Promise((resolve, reject) => {
             resolve("Search Results for " + query);
         });
@@ -26,7 +24,6 @@ const cbsearch = {
      * @returns {Promise<string>} A promise that resolves with the first link of the search results.
      */
     get_first_link: async (query: string): Promise<string> => {
-        console.log("Getting first link for " + query);
         return new Promise((resolve, reject) => {
             resolve("First Link for " + query);
         });

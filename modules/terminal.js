@@ -96,7 +96,6 @@ const cbterminal = {
         // Register event listener for WebSocket messages
         websocket_1.default.getWebsocket.on('message', (data) => {
             const response = JSON.parse(data);
-            console.log("Received message:", response);
             if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") {
                 this.eventEmitter.emit(response.type, response);
             }

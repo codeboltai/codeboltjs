@@ -9,7 +9,6 @@ const cbcodeparsers = {
      * @param file The file to parse for classes.
      */
     getClassesInFile: (file) => {
-        console.log('Code parsers initialized');
     },
     /**
      * Retrieves the functions in a given class within a file.
@@ -17,7 +16,6 @@ const cbcodeparsers = {
      * @param className The name of the class to parse for functions.
      */
     getFunctionsinClass: (file, className) => {
-        console.log('Code parsers initialized');
     },
     /**
      * Generates an Abstract Syntax Tree (AST) for a given file.

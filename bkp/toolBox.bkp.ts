@@ -73,7 +73,6 @@ export const imageContent = async (
   }
   const { fileTypeFromBuffer } = await loadEsm('file-type');
   const mimeType = await fileTypeFromBuffer(rawData);
-  console.log(mimeType);
 
   const base64Data = rawData.toString("base64");
 
@@ -1074,7 +1073,6 @@ export class ToolBox extends FastMCPEventEmitter {
   ) {
     if (options.transportType === "stdio") {
       const transport = new StdioServerTransport();
-      // console.log("tools", this.#tools);
 
       const session = new FastMCPSession({
         name: this.#options.name,
@@ -1084,7 +1082,6 @@ export class ToolBox extends FastMCPEventEmitter {
         resourcesTemplates: this.#resourcesTemplates,
         prompts: this.#prompts,
       });
-      // console.log("session", session);
       await session.connect(transport);
 
       this.#sessions.push(session);
