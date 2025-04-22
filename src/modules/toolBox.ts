@@ -33,15 +33,24 @@ import http from "http";
 import { fetch } from "undici";
 import { loadEsm } from "load-esm";
 
+/**
+ * Type definition for SSE Server that can be closed.
+ */
 export type SSEServer = {
   close: () => Promise<void>;
 };
 
+/**
+ * Event types for the FastMCP event emitter.
+ */
 type FastMCPEvents<T extends FastMCPSessionAuth> = {
   connect: (event: { session: FastMCPSession<T> }) => void;
   disconnect: (event: { session: FastMCPSession<T> }) => void;
 };
 
+/**
+ * Event types for FastMCPSession event emitter.
+ */
 type FastMCPSessionEvents = {
   rootsChanged: (event: { roots: Root[] }) => void;
   error: (event: { error: Error }) => void;
@@ -49,6 +58,9 @@ type FastMCPSessionEvents = {
 
 /**
  * Generates an image content object from a URL, file path, or buffer.
+ * 
+ * @param input - The input source for the image (URL, file path, or buffer)
+ * @returns Promise with the image content object
  */
 export const imageContent = async (
   input: { url: string } | { path: string } | { buffer: Buffer },
@@ -86,6 +98,9 @@ export const imageContent = async (
   } as const;
 };
 
+/**
+ * Base class for FastMCP errors.
+ */
 abstract class FastMCPError extends Error {
   public constructor(message?: string) {
     super(message);
@@ -93,13 +108,29 @@ abstract class FastMCPError extends Error {
   }
 }
 
+/**
+ * Type for extra data in errors.
+ */
 type Extra = unknown;
 
+/**
+ * Type for a record of extra data.
+ */
 type Extras = Record<string, Extra>;
 
+/**
+ * Error class for unexpected state conditions.
+ */
 export class UnexpectedStateError extends FastMCPError {
+  /** Additional context for the error */
   public extras?: Extras;
 
+  /**
+   * Creates a new UnexpectedStateError.
+   * 
+   * @param message - Error message
+   * @param extras - Additional context for the error
+   */
   public constructor(message: string, extras?: Extras) {
     super(message);
     this.name = new.target.name;
@@ -108,19 +139,31 @@ export class UnexpectedStateError extends FastMCPError {
 }
 
 /**
- * An error that is meant to be surfaced to the user.
+ * Error that is meant to be surfaced to the user.
  */
 export class UserError extends UnexpectedStateError {}
 
+/**
+ * Type for tool parameters schema.
+ */
 type ToolParameters = z.ZodTypeAny;
 
+/**
+ * Type for literal values.
+ */
 type Literal = boolean | null | number | string | undefined;
 
+/**
+ * Type for serializable values that can be passed around.
+ */
 type SerializableValue =
   | Literal
   | SerializableValue[]
   | { [key: string]: SerializableValue };
 
+/**
+ * Type for reporting progress of operations.
+ */
 type Progress = {
   /**
    * The progress thus far. This should increase every time progress is made, even if the total is unknown.
@@ -132,9 +175,15 @@ type Progress = {
   total?: number;
 };
 
+/**
+ * Context object passed to tool execution functions.
+ */
 type Context<T extends FastMCPSessionAuth> = {
+  /** The session authentication context */
   session: T | undefined;
+  /** Function to report progress of operations */
   reportProgress: (progress: Progress) => Promise<void>;
+  /** Logging functions */
   log: {
     debug: (message: string, data?: SerializableValue) => void;
     error: (message: string, data?: SerializableValue) => void;
@@ -143,8 +192,13 @@ type Context<T extends FastMCPSessionAuth> = {
   };
 };
 
+/**
+ * Type for text content in messages.
+ */
 type TextContent = {
+  /** Always "text" for text content */
   type: "text";
+  /** The text content */
   text: string;
 };
 
@@ -158,9 +212,15 @@ const TextContentZodSchema = z
   })
   .strict() satisfies z.ZodType<TextContent>;
 
+/**
+ * Type for image content in messages.
+ */
 type ImageContent = {
+  /** Always "image" for image content */
   type: "image";
+  /** Base64-encoded image data */
   data: string;
+  /** The MIME type of the image */
   mimeType: string;
 };
 
@@ -178,6 +238,9 @@ const ImageContentZodSchema = z
   })
   .strict() satisfies z.ZodType<ImageContent>;
 
+/**
+ * Union type for content in messages.
+ */
 type Content = TextContent | ImageContent;
 
 const ContentZodSchema = z.discriminatedUnion("type", [
@@ -185,8 +248,13 @@ const ContentZodSchema = z.discriminatedUnion("type", [
   ImageContentZodSchema,
 ]) satisfies z.ZodType<Content>;
 
+/**
+ * Type for content results from tool executions.
+ */
 type ContentResult = {
+  /** Array of content blocks */
   content: Content[];
+  /** Whether this result represents an error */
   isError?: boolean;
 };
 
@@ -197,13 +265,20 @@ const ContentResultZodSchema = z
   })
   .strict() satisfies z.ZodType<ContentResult>;
 
+/**
+ * Type for completion results.
+ */
 type Completion = {
+  /** Array of completion values */
   values: string[];
+  /** The total number of completions available */
   total?: number;
+  /** Whether there are more completions available */
   hasMore?: boolean;
 };
 
 /**
+ * Schema for completion results.
  * https://github.com/modelcontextprotocol/typescript-sdk/blob/3164da64d085ec4e022ae881329eee7b72f208d4/src/types.ts#L983-L1003
  */
 const CompletionZodSchema = z.object({
@@ -221,16 +296,26 @@ const CompletionZodSchema = z.object({
   hasMore: z.optional(z.boolean()),
 }) satisfies z.ZodType<Completion>;
 
+/**
+ * Type for a tool that can be executed.
+ */
 type Tool<T extends FastMCPSessionAuth, Params extends ToolParameters = ToolParameters> = {
+  /** Name of the tool */
   name: string;
+  /** Optional description of the tool's functionality */
   description?: string;
+  /** Optional parameters schema for the tool */
   parameters?: Params;
+  /** Function to execute the tool */
   execute: (
     args: z.infer<Params>,
     context: Context<T>,
   ) => Promise<string | ContentResult | TextContent | ImageContent>;
 };
 
+/**
+ * Type for resource results.
+ */
 type ResourceResult =
   | {
       text: string;
@@ -239,68 +324,119 @@ type ResourceResult =
       blob: string;
     };
 
+/**
+ * Type for input resource template arguments.
+ */
 type InputResourceTemplateArgument = Readonly<{
   name: string;
   description?: string;
   complete?: ArgumentValueCompleter;
 }>;
 
+/**
+ * Type for resource template arguments.
+ */
 type ResourceTemplateArgument = Readonly<{
   name: string;
   description?: string;
   complete?: ArgumentValueCompleter;
 }>;
 
+/**
+ * Type for resource templates.
+ */
 type ResourceTemplate<
   Arguments extends ResourceTemplateArgument[] = ResourceTemplateArgument[],
 > = {
+  /** URI template for the resource */
   uriTemplate: string;
+  /** Name of the resource template */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Optional MIME type */
   mimeType?: string;
+  /** Arguments for the template */
   arguments: Arguments;
+  /** Optional completion function */
   complete?: (name: string, value: string) => Promise<Completion>;
+  /** Function to load the resource */
   load: (
     args: ResourceTemplateArgumentsToObject<Arguments>,
   ) => Promise<ResourceResult>;
 };
 
+/**
+ * Type transformation from argument array to object.
+ */
 type ResourceTemplateArgumentsToObject<T extends { name: string }[]> = {
   [K in T[number]["name"]]: string;
 };
 
+/**
+ * Type for input resource templates.
+ */
 type InputResourceTemplate<
   Arguments extends ResourceTemplateArgument[] = ResourceTemplateArgument[],
 > = {
+  /** URI template for the resource */
   uriTemplate: string;
+  /** Name of the template */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Optional MIME type */
   mimeType?: string;
+  /** Arguments for the template */
   arguments: Arguments;
+  /** Function to load the resource */
   load: (
     args: ResourceTemplateArgumentsToObject<Arguments>,
   ) => Promise<ResourceResult>;
 };
 
+/**
+ * Type for a resource.
+ */
 type Resource = {
+  /** URI of the resource */
   uri: string;
+  /** Name of the resource */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Optional MIME type */
   mimeType?: string;
+  /** Function to load the resource */
   load: () => Promise<ResourceResult | ResourceResult[]>;
+  /** Optional completion function */
   complete?: (name: string, value: string) => Promise<Completion>;
 };
 
+/**
+ * Type for argument value completion.
+ */
 type ArgumentValueCompleter = (value: string) => Promise<Completion>;
 
+/**
+ * Type for input prompt arguments.
+ */
 type InputPromptArgument = Readonly<{
+  /** Name of the argument */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Whether the argument is required */
   required?: boolean;
+  /** Optional completion function */
   complete?: ArgumentValueCompleter;
+  /** Optional enum of possible values */
   enum?: string[];
 }>;
 
+/**
+ * Type transformation from prompt arguments to object.
+ */
 type PromptArgumentsToObject<T extends { name: string; required?: boolean }[]> =
   {
     [K in T[number]["name"]]: Extract<
@@ -311,41 +447,73 @@ type PromptArgumentsToObject<T extends { name: string; required?: boolean }[]> =
       : string | undefined;
   };
 
+/**
+ * Type for input prompts.
+ */
 type InputPrompt<
   Arguments extends InputPromptArgument[] = InputPromptArgument[],
   Args = PromptArgumentsToObject<Arguments>,
 > = {
+  /** Name of the prompt */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Optional arguments */
   arguments?: InputPromptArgument[];
+  /** Function to load the prompt */
   load: (args: Args) => Promise<string>;
 };
 
+/**
+ * Type for prompt arguments.
+ */
 type PromptArgument = Readonly<{
+  /** Name of the argument */
   name: string;
+  /** Optional description */
   description?: string;
+  /** Whether the argument is required */
   required?: boolean;
+  /** Optional completion function */
   complete?: ArgumentValueCompleter;
+  /** Optional enum of possible values */
   enum?: string[];
 }>;
 
+/**
+ * Type for prompts.
+ */
 type Prompt<
   Arguments extends PromptArgument[] = PromptArgument[],
   Args = PromptArgumentsToObject<Arguments>,
 > = {
+  /** Optional arguments */
   arguments?: PromptArgument[];
+  /** Optional completion function */
   complete?: (name: string, value: string) => Promise<Completion>;
+  /** Optional description */
   description?: string;
+  /** Function to load the prompt */
   load: (args: Args) => Promise<string>;
+  /** Name of the prompt */
   name: string;
 };
 
+/**
+ * Type for server options.
+ */
 type ServerOptions<T extends FastMCPSessionAuth> = {
+  /** Name of the server */
   name: string;
+  /** Version of the server */
   version: `${number}.${number}.${number}`;
+  /** Optional authentication function */
   authenticate?: Authenticate<T>;
 };
 
+/**
+ * Type for logging levels.
+ */
 type LoggingLevel =
   | "debug"
   | "info"
@@ -362,15 +530,29 @@ const FastMCPSessionEventEmitterBase: {
 
 class FastMCPSessionEventEmitter extends FastMCPSessionEventEmitterBase {}
 
+/**
+ * Type for sampling responses.
+ */
 type SamplingResponse = {
+  /** The model used */
   model: string;
+  /** Optional reason for stopping */
   stopReason?: "endTurn" | "stopSequence" | "maxTokens" | string;
+  /** Role of the message */
   role: "user" | "assistant";
+  /** Content of the message */
   content: TextContent | ImageContent;
 };
 
+/**
+ * Type for session authentication.
+ */
 type FastMCPSessionAuth = Record<string, unknown> | undefined;
 
+/**
+ * Class representing a FastMCP session.
+ * Manages communication between the client and server.
+ */
 export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> extends FastMCPSessionEventEmitter {
   #capabilities: ServerCapabilities = {};
   #clientCapabilities?: ClientCapabilities;
@@ -382,6 +564,11 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
   #server: Server;
   #auth: T | undefined;
 
+  /**
+   * Creates a new FastMCPSession.
+   * 
+   * @param options - Configuration options for the session
+   */
   constructor({
     auth,
     name,
@@ -1027,6 +1214,10 @@ class FastMCPEventEmitter extends FastMCPEventEmitterBase {}
 
 type Authenticate<T> = (request: http.IncomingMessage) => Promise<T>;
 
+/**
+ * Class representing a toolbox for FastMCP.
+ * Manages tools, resources, and prompts for a Model Context Protocol server.
+ */
 export class ToolBox<T extends Record<string, unknown> | undefined = undefined> extends FastMCPEventEmitter {
   #options: ServerOptions<T>;
   #prompts: InputPrompt[] = [];
@@ -1037,6 +1228,11 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
   #tools: Tool<T>[] = [];
   #authenticate: Authenticate<T> | undefined;
 
+  /**
+   * Creates a new ToolBox instance.
+   * 
+   * @param options - Configuration options for the toolbox
+   */
   constructor(public options: ServerOptions<T>) {
     super();
 
@@ -1044,12 +1240,17 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
     this.#authenticate = options.authenticate;
   }
 
+  /**
+   * Gets all active sessions.
+   */
   public get sessions(): FastMCPSession<T>[] {
     return this.#sessions;
   }
 
   /**
    * Adds a tool to the server.
+   * 
+   * @param tool - The tool to add
    */
   public addTool<Params extends ToolParameters>(tool: Tool<T, Params>) {
     this.#tools.push(tool as unknown as Tool<T>);
@@ -1057,6 +1258,8 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
 
   /**
    * Adds a resource to the server.
+   * 
+   * @param resource - The resource to add
    */
   public addResource(resource: Resource) {
     this.#resources.push(resource);
@@ -1064,6 +1267,8 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
 
   /**
    * Adds a resource template to the server.
+   * 
+   * @param resource - The resource template to add
    */
   public addResourceTemplate<
     const Args extends InputResourceTemplateArgument[],
@@ -1073,6 +1278,8 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
 
   /**
    * Adds a prompt to the server.
+   * 
+   * @param prompt - The prompt to add
    */
   public addPrompt<const Args extends InputPromptArgument[]>(
     prompt: InputPrompt<Args>,
@@ -1082,6 +1289,8 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
 
   /**
    * Starts the server.
+   * 
+   * @param options - Options for the server transport
    */
   public async start(
     options:
@@ -1130,7 +1339,9 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
   }
 
   /**
-   * Starts the server.
+   * Activates the server.
+   * 
+   * @param options - Options for the server transport
    */
   public async activate(
     options:
@@ -1144,7 +1355,6 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
   ) {
     if (options.transportType === "stdio") {
       const transport = new StdioServerTransport();
-      // console.log("tools", this.#tools);
 
       const session = new FastMCPSession({
         name: this.#options.name,
@@ -1154,7 +1364,7 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
         resourcesTemplates: this.#resourcesTemplates,
         prompts: this.#prompts,
       });
-      // console.log("session", session);
+
       await session.connect(transport);
 
       this.#sessions.push(session);
@@ -1165,42 +1375,10 @@ export class ToolBox<T extends Record<string, unknown> | undefined = undefined> 
 
       console.info(`server is running on stdio`);
     } else if (options.transportType === "sse") {
-      // this.#sseServer = await startSSEServer<FastMCPSession>({
-      //   endpoint: options.sse.endpoint as `/${string}`,
-      //   port: options.sse.port,
-      //   createServer: async () => {
-      //     return new FastMCPSession({
-      //       name: this.#options.name,
-      //       version: this.#options.version,
-      //       tools: this.#tools,
-      //       resources: this.#resources,
-      //       resourcesTemplates: this.#resourcesTemplates,
-      //       prompts: this.#prompts,
-      //     });
-      //   },
-      //   onClose: (session) => {
-      //     this.emit("disconnect", {
-      //       session,
-      //     });
-      //   },
-      //   onConnect: async (session) => {
-      //     this.#sessions.push(session);
-
-      //     this.emit("connect", {
-      //       session,
-      //     });
-      //   },
-      // });
-
-      // console.error(
-      //   `server is running on SSE at http://localhost:${options.sse.port}${options.sse.endpoint}`,
-      // );
+      // Implementation for SSE transport
     } else {
       throw new Error("Invalid transport type");
     }
   }
-
- 
-
 }
 
