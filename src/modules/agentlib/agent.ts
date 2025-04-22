@@ -5,36 +5,71 @@ import codeboltAgent from "./../agent"
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
 
+/**
+ * Represents a message in the conversation with roles and content.
+ */
 interface Message {
+    /** The role of the message sender: user, assistant, tool, or system */
     role: 'user' | 'assistant' | 'tool' | 'system';
+    /** The content of the message, can be an array of content blocks or a string */
     content: any[] | string;
+    /** Optional ID for tool calls */
     tool_call_id?: string;
+    /** Additional properties that might be present */
     [key: string]: any;
 }
 
+/**
+ * Represents the result from a tool execution.
+ */
 interface ToolResult {
+    /** Always 'tool' for tool execution results */
     role: 'tool';
+    /** ID that links this result to the original tool call */
     tool_call_id: string;
+    /** The content returned by the tool */
     content: any;
+    /** Optional user message to be added after tool execution */
     userMessage?: any;
 }
 
+/**
+ * Details about a tool to be executed.
+ */
 interface ToolDetails {
+    /** The name of the tool to execute */
     toolName: string;
+    /** Input parameters for the tool */
     toolInput: any;
+    /** Unique ID for this tool use instance */
     toolUseId: string;
 }
 
+/**
+ * Agent class that manages conversations with LLMs and tool executions.
+ * Handles the conversation flow, tool calls, and task completions.
+ */
 class Agent {
+    /** Available tools for the agent to use */
     private tools: any[];
-    // private subAgents: any[];
+    /** Full conversation history for API calls */
     private apiConversationHistory: Message[];
+    /** Maximum number of conversation turns (0 means unlimited) */
     private maxRun: number;
+    /** System prompt that provides instructions to the model */
     private systemPrompt: SystemPrompt;
+    /** Messages from the user */
     private userMessage: Message[];
+    /** The next user message to be added to the conversation */
     private nextUserMessage:any;
 
-
+    /**
+     * Creates a new Agent instance.
+     * 
+     * @param tools - The tools available to the agent
+     * @param systemPrompt - The system prompt providing instructions to the LLM
+     * @param maxRun - Maximum number of conversation turns (0 means unlimited)
+     */
     constructor(tools: any = [], systemPrompt: SystemPrompt, maxRun: number = 0) {
         this.tools = tools;
         this.userMessage = [];
@@ -44,6 +79,13 @@ class Agent {
 
     }
 
+    /**
+     * Runs the agent on a specific task until completion or max runs reached.
+     * 
+     * @param task - The task instruction to be executed
+     * @param successCondition - Optional function to determine if the task is successful
+     * @returns Promise with success status, error (if any), and the last assistant message
+     */
     async run(task: TaskInstruction, successCondition: () => boolean = () => true): Promise<{ success: boolean; error: string | null, message: string | null }> {
 
 
@@ -259,6 +301,13 @@ class Agent {
         };
     }
 
+    /**
+     * Attempts to make a request to the LLM with conversation history and tools.
+     * 
+     * @param apiConversationHistory - The current conversation history
+     * @param tools - The tools available to the LLM
+     * @returns Promise with the LLM response
+     */
     private async attemptLlmRequest(apiConversationHistory: Message[], tools: Record<string, any>): Promise<any> {
 
 
@@ -284,15 +333,36 @@ class Agent {
         }
     }
 
+    /**
+     * Executes a tool with given name and input.
+     * 
+     * @param toolName - The name of the tool to execute
+     * @param toolInput - The input parameters for the tool
+     * @returns Promise with tuple [userRejected, result]
+     */
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         //codebolttools--readfile
         const [toolboxName, actualToolName] = toolName.split('--');
         return tools.executeTool(toolboxName, actualToolName, toolInput);
     }
+
+    /**
+     * Starts a sub-agent to handle a specific task.
+     * 
+     * @param agentName - The name of the sub-agent to start
+     * @param params - Parameters for the sub-agent
+     * @returns Promise with tuple [userRejected, result]
+     */
     private async startSubAgent(agentName: string, params: any): Promise<[boolean, any]> {
         return codeboltAgent.startAgent(agentName, params.task);
     }
 
+    /**
+     * Extracts tool details from a tool call object.
+     * 
+     * @param tool - The tool call object from the LLM response
+     * @returns ToolDetails object with name, input, and ID
+     */
     private getToolDetail(tool: any): ToolDetails {
         return {
             toolName: tool.function.name,
@@ -301,6 +371,13 @@ class Agent {
         };
     }
 
+    /**
+     * Creates a tool result object from the tool execution response.
+     * 
+     * @param tool_call_id - The ID of the tool call
+     * @param content - The content returned by the tool
+     * @returns ToolResult object
+     */
     private getToolResult(tool_call_id: string, content: string): ToolResult {
         let userMessage=undefined
         try {
@@ -322,7 +399,11 @@ class Agent {
         };
     }
 
-    // Placeholder for error fallback method
+    /**
+     * Fallback method for API requests in case of failures.
+     * 
+     * @throws Error API request fallback not implemented
+     */
     private attemptApiRequest(): any {
         throw new Error("API request fallback not implemented");
     }
