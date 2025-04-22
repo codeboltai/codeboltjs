@@ -63,7 +63,7 @@ const codeboltAgent = {
             }));
             websocket_1.default.getWebsocket.on('message', (data) => {
                 const response = JSON.parse(data);
-                if (response.type === "taskCompletionResponse") {
+                if (response.type === "taskCompletionResponse" && response.agentId === agentId) {
                     resolve(response); // Resolve the Promise when the agent has been successfully started
                 }
             });

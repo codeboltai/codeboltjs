@@ -8,7 +8,18 @@ const chat_1 = __importDefault(require("./../chat"));
 const tools_1 = __importDefault(require("./../tools"));
 const llm_1 = __importDefault(require("./../llm"));
 const agent_1 = __importDefault(require("./../agent"));
+/**
+ * Agent class that manages conversations with LLMs and tool executions.
+ * Handles the conversation flow, tool calls, and task completions.
+ */
 class Agent {
+    /**
+     * Creates a new Agent instance.
+     *
+     * @param tools - The tools available to the agent
+     * @param systemPrompt - The system prompt providing instructions to the LLM
+     * @param maxRun - Maximum number of conversation turns (0 means unlimited)
+     */
     constructor(tools = [], systemPrompt, maxRun = 0) {
         this.tools = tools;
         this.userMessage = [];
@@ -16,6 +27,13 @@ class Agent {
         this.maxRun = maxRun;
         this.systemPrompt = systemPrompt;
     }
+    /**
+     * Runs the agent on a specific task until completion or max runs reached.
+     *
+     * @param task - The task instruction to be executed
+     * @param successCondition - Optional function to determine if the task is successful
+     * @returns Promise with success status, error (if any), and the last assistant message
+     */
     async run(task, successCondition = () => true) {
         var _a, _b;
         let mentaionedMCPSTool = await task.userMessage.getMentionedMcpsTools();
@@ -199,6 +217,13 @@ class Agent {
                 .pop()) === null || _b === void 0 ? void 0 : _b.content) || ''
         };
     }
+    /**
+     * Attempts to make a request to the LLM with conversation history and tools.
+     *
+     * @param apiConversationHistory - The current conversation history
+     * @param tools - The tools available to the LLM
+     * @returns Promise with the LLM response
+     */
     async attemptLlmRequest(apiConversationHistory, tools) {
         try {
             let systemPrompt = await this.systemPrompt.toPromptText();
@@ -221,14 +246,34 @@ class Agent {
             return this.attemptApiRequest();
         }
     }
+    /**
+     * Executes a tool with given name and input.
+     *
+     * @param toolName - The name of the tool to execute
+     * @param toolInput - The input parameters for the tool
+     * @returns Promise with tuple [userRejected, result]
+     */
     async executeTool(toolName, toolInput) {
         //codebolttools--readfile
         const [toolboxName, actualToolName] = toolName.split('--');
         return tools_1.default.executeTool(toolboxName, actualToolName, toolInput);
     }
+    /**
+     * Starts a sub-agent to handle a specific task.
+     *
+     * @param agentName - The name of the sub-agent to start
+     * @param params - Parameters for the sub-agent
+     * @returns Promise with tuple [userRejected, result]
+     */
     async startSubAgent(agentName, params) {
         return agent_1.default.startAgent(agentName, params.task);
     }
+    /**
+     * Extracts tool details from a tool call object.
+     *
+     * @param tool - The tool call object from the LLM response
+     * @returns ToolDetails object with name, input, and ID
+     */
     getToolDetail(tool) {
         return {
             toolName: tool.function.name,
@@ -236,6 +281,13 @@ class Agent {
             toolUseId: tool.id
         };
     }
+    /**
+     * Creates a tool result object from the tool execution response.
+     *
+     * @param tool_call_id - The ID of the tool call
+     * @param content - The content returned by the tool
+     * @returns ToolResult object
+     */
     getToolResult(tool_call_id, content) {
         let userMessage = undefined;
         try {
@@ -255,7 +307,11 @@ class Agent {
             userMessage
         };
     }
-    // Placeholder for error fallback method
+    /**
+     * Fallback method for API requests in case of failures.
+     *
+     * @throws Error API request fallback not implemented
+     */
     attemptApiRequest() {
         throw new Error("API request fallback not implemented");
     }

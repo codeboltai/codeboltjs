@@ -30,6 +30,9 @@ const undici_1 = require("undici");
 const load_esm_1 = require("load-esm");
 /**
  * Generates an image content object from a URL, file path, or buffer.
+ *
+ * @param input - The input source for the image (URL, file path, or buffer)
+ * @returns Promise with the image content object
  */
 const imageContent = async (input) => {
     var _a;
@@ -52,7 +55,6 @@ const imageContent = async (input) => {
     }
     const { fileTypeFromBuffer } = await (0, load_esm_1.loadEsm)('file-type');
     const mimeType = await fileTypeFromBuffer(rawData);
-    console.log(mimeType);
     const base64Data = rawData.toString("base64");
     return {
         type: "image",
@@ -61,13 +63,25 @@ const imageContent = async (input) => {
     };
 };
 exports.imageContent = imageContent;
+/**
+ * Base class for FastMCP errors.
+ */
 class FastMCPError extends Error {
     constructor(message) {
         super(message);
         this.name = new.target.name;
     }
 }
+/**
+ * Error class for unexpected state conditions.
+ */
 class UnexpectedStateError extends FastMCPError {
+    /**
+     * Creates a new UnexpectedStateError.
+     *
+     * @param message - Error message
+     * @param extras - Additional context for the error
+     */
     constructor(message, extras) {
         super(message);
         this.name = new.target.name;
@@ -76,7 +90,7 @@ class UnexpectedStateError extends FastMCPError {
 }
 exports.UnexpectedStateError = UnexpectedStateError;
 /**
- * An error that is meant to be surfaced to the user.
+ * Error that is meant to be surfaced to the user.
  */
 class UserError extends UnexpectedStateError {
 }
@@ -114,6 +128,7 @@ const ContentResultZodSchema = zod_1.z
 })
     .strict();
 /**
+ * Schema for completion results.
  * https://github.com/modelcontextprotocol/typescript-sdk/blob/3164da64d085ec4e022ae881329eee7b72f208d4/src/types.ts#L983-L1003
  */
 const CompletionZodSchema = zod_1.z.object({
@@ -133,7 +148,16 @@ const CompletionZodSchema = zod_1.z.object({
 const FastMCPSessionEventEmitterBase = events_1.EventEmitter;
 class FastMCPSessionEventEmitter extends FastMCPSessionEventEmitterBase {
 }
+/**
+ * Class representing a FastMCP session.
+ * Manages communication between the client and server.
+ */
 class FastMCPSession extends FastMCPSessionEventEmitter {
+    /**
+     * Creates a new FastMCPSession.
+     *
+     * @param options - Configuration options for the session
+     */
     constructor({ auth, name, version, tools, resources, resourcesTemplates, prompts, }) {
         super();
         _FastMCPSession_capabilities.set(this, {});
@@ -262,7 +286,6 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
         let attempt = 0;
         while (attempt++ < 10) {
             const capabilities = await __classPrivateFieldGet(this, _FastMCPSession_server, "f").getClientCapabilities();
-            console.log("capabilities", capabilities);
             if (capabilities) {
                 __classPrivateFieldSet(this, _FastMCPSession_clientCapabilities, capabilities, "f");
                 break;
@@ -270,7 +293,7 @@ class FastMCPSession extends FastMCPSessionEventEmitter {
             await (0, promises_1.setTimeout)(100);
         }
         if (!__classPrivateFieldGet(this, _FastMCPSession_clientCapabilities, "f")) {
-            console.warn('[warning] toolBox could not infer client capabilities');
+            // console.warn('[warning] toolBox could not infer client capabilities')
         }
         if ((_a = __classPrivateFieldGet(this, _FastMCPSession_clientCapabilities, "f")) === null || _a === void 0 ? void 0 : _a.roots) {
             const roots = await __classPrivateFieldGet(this, _FastMCPSession_server, "f").listRoots();
@@ -619,7 +642,16 @@ _FastMCPSession_capabilities = new WeakMap(), _FastMCPSession_clientCapabilities
 const FastMCPEventEmitterBase = events_1.EventEmitter;
 class FastMCPEventEmitter extends FastMCPEventEmitterBase {
 }
+/**
+ * Class representing a toolbox for FastMCP.
+ * Manages tools, resources, and prompts for a Model Context Protocol server.
+ */
 class ToolBox extends FastMCPEventEmitter {
+    /**
+     * Creates a new ToolBox instance.
+     *
+     * @param options - Configuration options for the toolbox
+     */
     constructor(options) {
         super();
         this.options = options;
@@ -634,35 +666,48 @@ class ToolBox extends FastMCPEventEmitter {
         __classPrivateFieldSet(this, _ToolBox_options, options, "f");
         __classPrivateFieldSet(this, _ToolBox_authenticate, options.authenticate, "f");
     }
+    /**
+     * Gets all active sessions.
+     */
     get sessions() {
         return __classPrivateFieldGet(this, _ToolBox_sessions, "f");
     }
     /**
      * Adds a tool to the server.
+     *
+     * @param tool - The tool to add
      */
     addTool(tool) {
         __classPrivateFieldGet(this, _ToolBox_tools, "f").push(tool);
     }
     /**
      * Adds a resource to the server.
+     *
+     * @param resource - The resource to add
      */
     addResource(resource) {
         __classPrivateFieldGet(this, _ToolBox_resources, "f").push(resource);
     }
     /**
      * Adds a resource template to the server.
+     *
+     * @param resource - The resource template to add
      */
     addResourceTemplate(resource) {
         __classPrivateFieldGet(this, _ToolBox_resourcesTemplates, "f").push(resource);
     }
     /**
      * Adds a prompt to the server.
+     *
+     * @param prompt - The prompt to add
      */
     addPrompt(prompt) {
         __classPrivateFieldGet(this, _ToolBox_prompts, "f").push(prompt);
     }
     /**
      * Starts the server.
+     *
+     * @param options - Options for the server transport
      */
     async start(options = {
         transportType: "stdio",
@@ -698,14 +743,15 @@ class ToolBox extends FastMCPEventEmitter {
         }
     }
     /**
-     * Starts the server.
+     * Activates the server.
+     *
+     * @param options - Options for the server transport
      */
     async activate(options = {
         transportType: "stdio",
     }) {
         if (options.transportType === "stdio") {
             const transport = new stdio_js_1.StdioServerTransport();
-            // console.log("tools", this.#tools);
             const session = new FastMCPSession({
                 name: __classPrivateFieldGet(this, _ToolBox_options, "f").name,
                 version: __classPrivateFieldGet(this, _ToolBox_options, "f").version,
@@ -714,7 +760,6 @@ class ToolBox extends FastMCPEventEmitter {
                 resourcesTemplates: __classPrivateFieldGet(this, _ToolBox_resourcesTemplates, "f"),
                 prompts: __classPrivateFieldGet(this, _ToolBox_prompts, "f"),
             });
-            // console.log("session", session);
             await session.connect(transport);
             __classPrivateFieldGet(this, _ToolBox_sessions, "f").push(session);
             this.emit("connect", {
@@ -723,34 +768,7 @@ class ToolBox extends FastMCPEventEmitter {
             console.info(`server is running on stdio`);
         }
         else if (options.transportType === "sse") {
-            // this.#sseServer = await startSSEServer<FastMCPSession>({
-            //   endpoint: options.sse.endpoint as `/${string}`,
-            //   port: options.sse.port,
-            //   createServer: async () => {
-            //     return new FastMCPSession({
-            //       name: this.#options.name,
-            //       version: this.#options.version,
-            //       tools: this.#tools,
-            //       resources: this.#resources,
-            //       resourcesTemplates: this.#resourcesTemplates,
-            //       prompts: this.#prompts,
-            //     });
-            //   },
-            //   onClose: (session) => {
-            //     this.emit("disconnect", {
-            //       session,
-            //     });
-            //   },
-            //   onConnect: async (session) => {
-            //     this.#sessions.push(session);
-            //     this.emit("connect", {
-            //       session,
-            //     });
-            //   },
-            // });
-            // console.error(
-            //   `server is running on SSE at http://localhost:${options.sse.port}${options.sse.endpoint}`,
-            // );
+            // Implementation for SSE transport
         }
         else {
             throw new Error("Invalid transport type");

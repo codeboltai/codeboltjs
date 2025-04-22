@@ -87,7 +87,7 @@ export const imageContent = async (
 
   const { fileTypeFromBuffer } = await loadEsm('file-type');
   const mimeType = await fileTypeFromBuffer(rawData);
-  console.log(mimeType);
+
 
   const base64Data = rawData.toString("base64");
 
@@ -742,7 +742,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
 
     while (attempt++ < 10) {
       const capabilities = await this.#server.getClientCapabilities();
-      console.log("capabilities", capabilities);
+     
 
       if (capabilities) {
         this.#clientCapabilities = capabilities;
@@ -754,7 +754,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
     }
 
     if (!this.#clientCapabilities) {
-      console.warn('[warning] toolBox could not infer client capabilities')
+      // console.warn('[warning] toolBox could not infer client capabilities')
     }
 
     if (this.#clientCapabilities?.roots) {
