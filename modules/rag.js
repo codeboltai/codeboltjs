@@ -8,7 +8,6 @@ const cbrag = {
      * Initializes the CodeBolt File System Module.
      */
     init: () => {
-        console.log("Initializing CodeBolt File System Module");
     },
     /**
      * Adds a file to the CodeBolt File System.

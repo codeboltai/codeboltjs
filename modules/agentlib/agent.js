@@ -102,11 +102,8 @@ class Agent {
                                 else {
                                     let [serverName] = toolName.replace('--', ':').split(':');
                                     if (serverName == 'subagent') {
-                                        console.log("calling agent with params", toolName, toolInput);
                                         const agentResponse = await agent_1.default.startAgent(toolName.replace("subagent--", ''), toolInput.task);
-                                        console.log("got sub agent resonse  result", agentResponse);
                                         const [didUserReject, result] = [false, "tool result is successful"];
-                                        console.log("got sub agent resonse  result", didUserReject, result);
                                         let toolResult = this.getToolResult(toolUseId, result);
                                         toolResults.push({
                                             role: "tool",
@@ -124,9 +121,7 @@ class Agent {
                                         }
                                     }
                                     else {
-                                        console.log("calling tool with params", toolName, toolInput);
                                         const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                        console.log("tool result", result);
                                         // toolResults.push(this.getToolResult(toolUseId, result));
                                         let toolResult = this.getToolResult(toolUseId, result);
                                         toolResults.push({
@@ -242,7 +237,6 @@ class Agent {
             return completion;
         }
         catch (error) {
-            console.log(error);
             return this.attemptApiRequest();
         }
     }
