@@ -76,6 +76,7 @@ class UserMessage {
      */
     constructor(message: Message, promptOverride: boolean = false) {
         this.message = message;
+        
         this.promptOverride = promptOverride;
         this.userMessages = [];
         this.mentionedMCPs = message.mentionedMCPs || [];
@@ -108,7 +109,7 @@ class UserMessage {
             } else {
                 let finalPrompt = `
                     The user has sent the following query:
-                    ${this.message.userMessage}.
+                   <user_query> ${this.message.userMessage} </user_query>.
                 `;
                 if (this.message.mentionedFiles?.length) {
                     finalPrompt += `The Attached files are:`;
@@ -155,8 +156,11 @@ class UserMessage {
      * @returns Promise with an array of MCP tools
      */
     async getMentionedMcpsTools() {
+        console.log("mentionedMCPs", this.mentionedMCPs);
         if (this.mentionedMCPs.length > 0) {
+            console.log("mentionedMCPs", this.mentionedMCPs);
             let tools = await mcp.listToolsFromToolBoxes(this.mentionedMCPs)
+            console.log("tools", tools);
             return tools
         }
         else {

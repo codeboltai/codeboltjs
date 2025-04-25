@@ -63,7 +63,7 @@ class UserMessage {
             else {
                 let finalPrompt = `
                     The user has sent the following query:
-                    ${this.message.userMessage}.
+                   <user_query> ${this.message.userMessage} </user_query>.
                 `;
                 if ((_a = this.message.mentionedFiles) === null || _a === void 0 ? void 0 : _a.length) {
                     finalPrompt += `The Attached files are:`;
@@ -105,8 +105,11 @@ class UserMessage {
      * @returns Promise with an array of MCP tools
      */
     async getMentionedMcpsTools() {
+        console.log("mentionedMCPs", this.mentionedMCPs);
         if (this.mentionedMCPs.length > 0) {
+            console.log("mentionedMCPs", this.mentionedMCPs);
             let tools = await tools_1.default.listToolsFromToolBoxes(this.mentionedMCPs);
+            console.log("tools", tools);
             return tools;
         }
         else {
