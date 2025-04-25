@@ -728,7 +728,7 @@ export class FastMCPSession<T extends FastMCPSessionAuth = FastMCPSessionAuth> e
   public async requestSampling(
     message: z.infer<typeof CreateMessageRequestSchema>["params"],
   ): Promise<SamplingResponse> {
-    return this.#server.createMessage(message);
+    return this.#server.createMessage(message) as unknown as SamplingResponse;
   }
 
   public async connect(transport: Transport) {

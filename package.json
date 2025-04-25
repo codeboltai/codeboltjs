@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "keywords": [],
   "author": "",
@@ -29,10 +29,6 @@
     "mcp-proxy": "^2.4.0",
     "strict-event-emitter-types": "^2.0.0",
     "timers": "^0.1.1",
-    "tree-sitter": "^0.21.1",
-    "tree-sitter-javascript": "^0.23.1",
-    "tree-sitter-typescript": "^0.23.2",
-    "typedoc-plugin-missing-exports": "^2.2.0",
     "undici": "^7.4.0",
     "uri-templates": "^0.2.0",
     "ws": "^8.17.0",

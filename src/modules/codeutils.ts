@@ -1,9 +1,9 @@
 import cbws from './websocket';
 import * as fs from 'fs';
 import path from 'path';
-import Parser from 'tree-sitter';
-import JavaScript from 'tree-sitter-javascript';
-import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
+// import Parser from 'tree-sitter';
+// import JavaScript from 'tree-sitter-javascript';
+// import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
 
 import { GetJsTreeResponse, MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '@codebolt/types';
 
@@ -27,47 +27,47 @@ const cbcodeutils = {
                 const response = JSON.parse(data);
                 if (response.type === "getProjectPathResponse") {
                     // resolve(response);
-                    try {
-                        let pathInput = filePath || response.projectPath;
-                        let parser = new Parser();
-                        // Initialize the parser with the JavaScript language
-                        parser.setLanguage(JavaScript);
-                        const trees = [];
-                        const functionNodes = [];
-                        const processDirectory = (directory: any) => {
-                            // Read all files in the directory
-                            const files = fs.readdirSync(directory, { withFileTypes: true });
+                    // try {
+                    //     let pathInput = filePath || response.projectPath;
+                    //     let parser = new Parser();
+                    //     // Initialize the parser with the JavaScript language
+                    //     parser.setLanguage(JavaScript);
+                    //     const trees = [];
+                    //     const functionNodes = [];
+                    //     const processDirectory = (directory: any) => {
+                    //         // Read all files in the directory
+                    //         const files = fs.readdirSync(directory, { withFileTypes: true });
 
-                            files.forEach(file => {
-                                if (file.isDirectory()) {
-                                    if (file.name !== 'node_modules') { // Ignore node_modules directory
-                                        processDirectory(path.join(directory, file.name)); // Recursive call for subdirectories
-                                    }
-                                } else if (path.extname(file.name) === '.js') {
-                                    const code = fs.readFileSync(path.join(directory, file.name), 'utf-8');
-                                    let tree: any = parser.parse(code);
-                                    tree.rootNode.path = path.join(directory, file.name); // Set file path for t
-                                    trees.push(tree);
-                                }
-                            });
-                        };
+                    //         files.forEach(file => {
+                    //             if (file.isDirectory()) {
+                    //                 if (file.name !== 'node_modules') { // Ignore node_modules directory
+                    //                     processDirectory(path.join(directory, file.name)); // Recursive call for subdirectories
+                    //                 }
+                    //             } else if (path.extname(file.name) === '.js') {
+                    //                 const code = fs.readFileSync(path.join(directory, file.name), 'utf-8');
+                    //                 let tree: any = parser.parse(code);
+                    //                 tree.rootNode.path = path.join(directory, file.name); // Set file path for t
+                    //                 trees.push(tree);
+                    //             }
+                    //         });
+                    //     };
 
-                        if (fs.lstatSync(pathInput).isDirectory()) {
-                            processDirectory(pathInput);
-                        } else if (path.extname(pathInput) === '.js') {
-                            // Read a single JavaScript file
-                            const code = fs.readFileSync(pathInput, 'utf-8');
-                            let tree: any = parser.parse(code);
-                            tree.rootNode.path = pathInput; // Set file path for t
+                    //     if (fs.lstatSync(pathInput).isDirectory()) {
+                    //         processDirectory(pathInput);
+                    //     } else if (path.extname(pathInput) === '.js') {
+                    //         // Read a single JavaScript file
+                    //         const code = fs.readFileSync(pathInput, 'utf-8');
+                    //         let tree: any = parser.parse(code);
+                    //         tree.rootNode.path = pathInput; // Set file path for t
 
-                            trees.push(tree);
-                        }
+                    //         trees.push(tree);
+                    //     }
 
-                        resolve({ event: 'GetJsTreeResponse', payload: trees }); // Return an array of abstract syntax trees (ASTs)
-                    } catch (error) {
-                        console.error('An error occurred:', error);
-                        return { event: 'GetJsTreeResponse', payload: null }; // Return null in case of error
-                    }
+                    //     resolve({ event: 'GetJsTreeResponse', payload: trees }); // Return an array of abstract syntax trees (ASTs)
+                    // } catch (error) {
+                    //     console.error('An error occurred:', error);
+                    //     return { event: 'GetJsTreeResponse', payload: null }; // Return null in case of error
+                    // }
                 }
             });
 
