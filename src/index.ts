@@ -25,7 +25,7 @@ import { EventEmitter } from 'events';
 import {chatSummary} from './modules/history'
 import codeboltTools from './modules/tools';
 import cbagent from './modules/agent';
-
+import cbutils from './utils/editFile';
 
 
 
@@ -98,6 +98,7 @@ class Codebolt  { // Extend EventEmitter
     chatSummary=chatSummary;
     tools = codeboltTools;
     agent = cbagent;
+    utils = cbutils;
   
 }
 

@@ -61,7 +61,7 @@ class Agent {
     /** Messages from the user */
     private userMessage: Message[];
     /** The next user message to be added to the conversation */
-    private nextUserMessage:any;
+    private nextUserMessage: any;
 
     /**
      * Creates a new Agent instance.
@@ -94,7 +94,7 @@ class Agent {
         this.tools = [
             ...this.tools,
             ...mentaionedMCPSTool,
-    
+
         ]
         let mentionedAgents = await task.userMessage.getMentionedAgents();
 
@@ -118,7 +118,7 @@ class Agent {
                 }
             };
         });
-        
+
         this.tools = this.tools.concat(agentTools);
 
 
@@ -158,75 +158,86 @@ class Agent {
 
                     if (contentBlock.message?.tool_calls) {
                         for (const tool of contentBlock.message.tool_calls) {
-                            const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
+                            try {
+                                const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
 
-                            if (!userRejectedToolUse) {
-                                if (toolName.includes("attempt_completion")) {
-                                    taskCompletedBlock = tool;
-                                } else {
+                                if (!userRejectedToolUse) {
+                                    if (toolName.includes("attempt_completion")) {
+                                        taskCompletedBlock = tool;
+                                    } else {
 
-                                    let [serverName] = toolName.replace('--', ':').split(':');
+                                        let [serverName] = toolName.replace('--', ':').split(':');
 
 
-                                    if (serverName == 'subagent') {
+                                        if (serverName == 'subagent') {
 
-                                        const agentResponse = await codeboltAgent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
-                                        const [didUserReject, result] = [false, "tool result is successful"];
-                                        let toolResult = this.getToolResult(toolUseId, result)
-                                        toolResults.push({
-                                            role: "tool",
-                                            tool_call_id: toolResult.tool_call_id,
-                                            content: toolResult.content,
+                                            const agentResponse = await codeboltAgent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
+                                            const [didUserReject, result] = [false, "tool result is successful"];
+                                            let toolResult = this.getToolResult(toolUseId, result)
+                                            toolResults.push({
+                                                role: "tool",
+                                                tool_call_id: toolResult.tool_call_id,
+                                                content: toolResult.content,
 
-                                        });
-                                        if (toolResult.userMessage) {
-                                            this.nextUserMessage = {
-                                                role: "user",
-                                                content: toolResult.userMessage
+                                            });
+                                            if (toolResult.userMessage) {
+                                                this.nextUserMessage = {
+                                                    role: "user",
+                                                    content: toolResult.userMessage
+                                                }
                                             }
+                                            if (didUserReject) {
+                                                userRejectedToolUse = true;
+                                            }
+
                                         }
-                                        if (didUserReject) {
-                                            userRejectedToolUse = true;
+                                        else {
+                                            const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                            // toolResults.push(this.getToolResult(toolUseId, result));
+                                            let toolResult = this.getToolResult(toolUseId, result)
+                                            toolResults.push({
+                                                role: "tool",
+                                                tool_call_id: toolResult.tool_call_id,
+                                                content: toolResult.content,
+
+                                            });
+                                            if (toolResult.userMessage) {
+                                                this.nextUserMessage = {
+                                                    role: "user",
+                                                    content: toolResult.userMessage
+                                                }
+                                            }
+                                            if (didUserReject) {
+                                                userRejectedToolUse = true;
+                                            }
                                         }
 
                                     }
-                                    else {
-                                        const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                        // toolResults.push(this.getToolResult(toolUseId, result));
-                                        let toolResult = this.getToolResult(toolUseId, result)
-                                        toolResults.push({
-                                            role: "tool",
-                                            tool_call_id: toolResult.tool_call_id,
-                                            content: toolResult.content,
+                                } else {
+                                    let toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.")
 
-                                        });
-                                        if (toolResult.userMessage) {
-                                            this.nextUserMessage = {
-                                                role: "user",
-                                                content: toolResult.userMessage
-                                            }
-                                        }
-                                        if (didUserReject) {
-                                            userRejectedToolUse = true;
+                                    toolResults.push({
+                                        role: "tool",
+                                        tool_call_id: toolResult.tool_call_id,
+                                        content: toolResult.content,
+
+                                    });
+                                    if (toolResult.userMessage) {
+                                        this.nextUserMessage = {
+                                            role: "user",
+                                            content: toolResult.userMessage
                                         }
                                     }
 
                                 }
-                            } else {
-                                let toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.")
-
+                            } catch (error) {
+                              
                                 toolResults.push({
                                     role: "tool",
-                                    tool_call_id: toolResult.tool_call_id,
-                                    content: toolResult.content,
+                                    tool_call_id: tool.id,
+                                    content: String(error),
 
                                 });
-                                if (toolResult.userMessage) {
-                                    this.nextUserMessage = {
-                                        role: "user",
-                                        content: toolResult.userMessage
-                                    }
-                                }
 
                             }
                         }
@@ -373,7 +384,7 @@ class Agent {
      * @returns ToolResult object
      */
     private getToolResult(tool_call_id: string, content: string): ToolResult {
-        let userMessage=undefined
+        let userMessage = undefined
         try {
             let parsed = JSON.parse(content);
 
