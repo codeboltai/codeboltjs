@@ -144,7 +144,14 @@ class Codebolt  {
     }
 }
 
-export default new Codebolt();
+const codebolt = new Codebolt();
+
+// For ES6 modules (import)
+export default codebolt;
+
+// For CommonJS compatibility (require)
+module.exports = codebolt;
+module.exports.default = codebolt;
 
 
 
