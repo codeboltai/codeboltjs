@@ -100,6 +100,47 @@ class Codebolt  { // Extend EventEmitter
     agent = cbagent;
     utils = cbutils;
   
+    /**
+     * Sets up a listener for incoming user messages with a direct handler function.
+     * @param {Function} handler - The handler function to call when a user message is received.
+     * @returns {void}
+     */
+    onUserMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
+        const waitForConnection = () => {
+            if (cbws.getWebsocket) {
+                cbws.getWebsocket.on('message', async (data: string) => {
+                    const response = JSON.parse(data);
+                    if (response.type === "messageResponse") {
+                        try {
+                            const result = await handler(response);
+                            // Send processStoped with optional message
+                            const message: any = {
+                                "type": "processStoped"
+                            };
+                            
+                            // If handler returned data, include it as message
+                            if (result !== undefined && result !== null) {
+                                message.message = result;
+                            }
+                            
+                            cbws.getWebsocket.send(JSON.stringify(message));
+                        } catch (error) {
+                            console.error('Error in user message handler:', error);
+                            // Send processStoped even if there's an error
+                            cbws.getWebsocket.send(JSON.stringify({
+                                "type": "processStoped",
+                                "error": error instanceof Error ? error.message : "Unknown error occurred"
+                            }));
+                        }
+                    }
+                });
+            } else {
+                setTimeout(waitForConnection, 100);
+            }
+        };
+
+        waitForConnection();
+    }
 }
 
 export default new Codebolt();

@@ -1,16 +1,8 @@
 // chat.ts
 import cbws from './websocket';
-import { EventEmitter } from 'events';
 import { ChatMessage, UserMessage } from '@codebolt/types'
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
-
-
-/**
- * CustomEventEmitter class that extends the Node.js EventEmitter class.
- */
-class CustomEventEmitter extends EventEmitter { }
-let eventEmitter = new CustomEventEmitter()
 /**
  * Chat module to interact with the WebSocket server.
  */
@@ -62,36 +54,7 @@ const cbchat = {
         }
         waitForConnection();
     },
-    /**
-     * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
-     * @returns {EventEmitter} The event emitter used for emitting custom events.
-     */
-    /**
- * Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received.
- * @returns {EventEmitter} The event emitter used for emitting custom events.
- */
-    onActionMessage: () => {
-        const waitForConnection = () => {
-            if (cbws.getWebsocket) {
-                cbws.getWebsocket.on('message', (data: string) => {
-                    const response = JSON.parse(data);
-                    if (response.type === "messageResponse") {
-                        eventEmitter.emit("userMessage", response, (message: string) => {
-                            cbws.getWebsocket.send(JSON.stringify({
-                                "type": "processStoped",
-                                "message": message
-                            }));
-                        });
-                    }
-                });
-            } else {
-                setTimeout(waitForConnection, 100);
-            }
-        };
 
-        waitForConnection();
-        return eventEmitter;
-    },
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
@@ -123,26 +86,28 @@ const cbchat = {
         });
     },
     /**
-     * Notifies the server that a process has started and sets up an event listener for stopProcessClicked events.
-     * @returns An object containing the event emitter and a stopProcess method.
+     * Notifies the server that a process has started and sets up a listener for stopProcessClicked events.
+     * @param {Function} onStopClicked - Callback function to handle stop process events.
+     * @returns An object containing a stopProcess method.
      */
-    processStarted: () => {
+    processStarted: (onStopClicked?: (message: any) => void) => {
         // Send the process started message
         cbws.getWebsocket.send(JSON.stringify({
             "type": "processStarted"
         }));
-        // Register event listener for WebSocket messages
-        cbws.getWebsocket.on('message', (data: string) => {
-            const message = JSON.parse(data);
-            if (message.type === 'stopProcessClicked')
+        
+        // Register event listener for WebSocket messages if callback provided
+        if (onStopClicked) {
+            cbws.getWebsocket.on('message', (data: string) => {
+                const message = JSON.parse(data);
+                if (message.type === 'stopProcessClicked') {
+                    onStopClicked(message);
+                }
+            });
+        }
 
-                // Emit a custom event based on the message type
-                eventEmitter.emit("stopProcessClicked", message);
-        });
-
-        // Return an object that includes the event emitter and the stopProcess method
+        // Return an object that includes the stopProcess method
         return {
-            event: eventEmitter,
             stopProcess: () => {
                 // Implement the logic to stop the process here
                 // For example, you might want to send a specific message to the server to stop the process
