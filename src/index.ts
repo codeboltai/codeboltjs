@@ -101,11 +101,11 @@ class Codebolt  {
     utils = cbutils;
   
     /**
-     * Sets up a listener for incoming user messages with a direct handler function.
-     * @param {Function} handler - The handler function to call when a user message is received.
+     * Sets up a listener for incoming messages with a direct handler function.
+     * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
-    onUserMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
+    onMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
         const waitForConnection = () => {
             if (cbws.messageManager) {
                 const handleUserMessage = async (response: any) => {
