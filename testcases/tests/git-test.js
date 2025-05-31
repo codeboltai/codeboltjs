@@ -11,8 +11,8 @@ async function testGitOperations() {
         await codebolt.waitForConnection();
         
         console.log('\n1. Testing git init...');
-        // const initResult = await codebolt.git.init();
-        // console.log('✅ Git init result:', initResult);
+        const initResult = await codebolt.git.init();
+        console.log('✅ Git init result:', initResult);
         
         console.log('\n2. Testing git status...');
         const statusResult = await codebolt.git.status();

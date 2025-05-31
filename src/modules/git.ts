@@ -16,7 +16,7 @@ const gitService = {
                 "action": "Init",
                 "path": path
             },
-            "InitResponse"
+            "gitInitResponse"
         );
     },
     /**
@@ -78,7 +78,7 @@ const gitService = {
                 "action": "Status",
                 "path": path
             },
-            "StatusResponse"
+            "gitStatusResponse"
         );
     },
     /**
@@ -157,7 +157,7 @@ const gitService = {
                 "action": "Logs",
                 "path": path
             },
-            "LogsResponse"
+            "gitLogsResponse"
         );
     },
     /**

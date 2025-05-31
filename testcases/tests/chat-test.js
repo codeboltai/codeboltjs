@@ -1,4 +1,4 @@
-const codebolt = require('@codebolt/codeboltjs').default;
+const codebolt = require('@codebolt/codeboltjs');
 
 async function testChatOperations() {
     console.log('💬 Testing Chat Operations');
