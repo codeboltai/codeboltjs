@@ -58,7 +58,8 @@ class cbws {
         const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
         const parentAgentInstanceIdParam = process.env.parentAgentInstanceId ? `&parentAgentInstanceId=${process.env.parentAgentInstanceId}` : '';
         const agentTask = process.env.agentTask ? `&agentTask=${process.env.agentTask}` : '';
-        this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${process.env.Is_Dev ? '&dev=true' : ''}`);
+        const socketPort = process.env.SOCKET_PORT || '12345';
+        this.websocket = new WebSocket(`ws://localhost:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${process.env.Is_Dev ? '&dev=true' : ''}`);
 
         return new Promise((resolve, reject) => {
             this.websocket.on('error', (error: Error) => {
