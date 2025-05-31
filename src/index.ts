@@ -33,7 +33,7 @@ import cbutils from './modules/utils';
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
  */
-class Codebolt  { // Extend EventEmitter
+class Codebolt  {
 
     /**
      * @constructor
