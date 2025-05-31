@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import fs from 'fs';
 import yaml from 'js-yaml';
+import messageManager, { MessageManager } from './messageManager';
 
 /**
  * Class representing a WebSocket connection.
@@ -65,17 +66,14 @@ class cbws {
             });
 
             this.websocket.on('open', () => {
-                // if (this.websocket) {
-                //     this.websocket.send(JSON.stringify({
-                //         "type": "sendMessage",
-                //         "message": initialMessage
-                //     }));
-                //     resolve(this.websocket);
-                // }
+                // Initialize the message manager with this websocket
+                messageManager.initialize(this.websocket);
+                resolve(this.websocket);
             });
 
-            this.websocket.on('message', (data: WebSocket.Data) => {
-                // Handle incoming WebSocket messages here.
+            this.websocket.on('close', () => {
+                // Clean up pending requests when connection closes
+                messageManager.cleanup();
             });
         });
     }
@@ -91,6 +89,13 @@ class cbws {
         } else {
             return this.websocket;
         }
+    }
+
+    /**
+     * Get the message manager instance
+     */
+    get messageManager(): MessageManager {
+        return messageManager;
     }
 }
 

@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import {GoToPageResponse,UrlResponse,GetMarkdownResponse,HtmlReceived,ExtractTextResponse,GetContentResponse} from  '@codebolt/types'
 /**
  * A module for interacting with a browser through WebSockets.
@@ -10,18 +10,13 @@ const cbbrowser = {
      */
     newPage: () => {
        
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'newPage'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "newPageResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "newPageResponse"
+        );
     },
 
     /**
@@ -29,18 +24,13 @@ const cbbrowser = {
      * @returns {Promise<UrlResponse>} A promise that resolves with the URL.
      */
     getUrl: ():Promise<UrlResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getUrl'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "getUrlResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getUrlResponse"
+        );
     },
 
     /**
@@ -49,37 +39,27 @@ const cbbrowser = {
      * @returns {Promise<GoToPageResponse>} A promise that resolves when navigation is complete.
      */
     goToPage: (url: string):Promise<GoToPageResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'goToPage',
                 url
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "goToPageResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "goToPageResponse"
+        );
     },
 
     /**
      * Takes a screenshot of the current page.
      */
     screenshot: () => {
-        return new Promise((resolve, reject) => {
-        cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
             "type": "browserEvent",
             action: 'screenshot'
-        }));
-        cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "screenshotResponse") {
-                    resolve(response.payload);
-                }
-            });
-        });
+        },
+            "screenshotResponse"
+        );
     },
 
     /**
@@ -87,18 +67,13 @@ const cbbrowser = {
      * @returns {Promise<HtmlReceived>} A promise that resolves with the HTML content.
      */
     getHTML: ():Promise<HtmlReceived> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getHTML'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "htmlReceived") {
-                    resolve(response.htmlResponse);
-                }
-            });
-        });
+            },
+            "htmlReceived"
+        );
     },
 
     /**
@@ -106,18 +81,13 @@ const cbbrowser = {
      * @returns {Promise<GetMarkdownResponse>} A promise that resolves with the Markdown content.
      */
     getMarkdown: ():Promise<GetMarkdownResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getMarkdown'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "getMarkdownResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getMarkdownResponse"
+        );
     },
 
     /**
@@ -125,20 +95,20 @@ const cbbrowser = {
      * 
      */
     getPDF: () => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "browserEvent",
             action: 'getPDF'
-        }));
+        });
     },
 
     /**
      * Converts the PDF content of the current page to text.
      */
     pdfToText: () => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "browserEvent",
             action: 'pdfToText'
-        }));
+        });
     },
 
     /**
@@ -147,18 +117,13 @@ const cbbrowser = {
      */
     getContent: ():Promise<GetContentResponse> => {
         
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getContent'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "getContentResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getContentResponse"
+        );
     },
     /**
      * Retrieves the snapshot of the current page.
@@ -166,18 +131,13 @@ const cbbrowser = {
      */
     getSnapShot: ():Promise<any> => {
         
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getSnapShot'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "getSnapShotResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getSnapShotResponse"
+        );
     },
     /**
      * Retrieves browser info like height width scrollx scrolly of the current page.
@@ -185,18 +145,13 @@ const cbbrowser = {
      */
     getBrowserInfo: ():Promise<any> => {
         
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'getBrowserInfo'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "getBrowserInfoResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getBrowserInfoResponse"
+        );
     },
 
     /**
@@ -206,28 +161,23 @@ const cbbrowser = {
      */
     extractText: ():Promise<ExtractTextResponse> => {
         
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'extractText'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "extractTextResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "extractTextResponse"
+        );
     },
 
     /**
      * Closes the current page.
      */
     close: () => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "browserEvent",
             action: 'close'
-        }));
+        });
     },
 
     /**
@@ -237,20 +187,15 @@ const cbbrowser = {
      * @returns {Promise<any>} A promise that resolves when the scroll action is complete.
      */
     scroll: (direction: string, pixels: string) => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'scroll',
                 direction,
                 pixels
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "scrollResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "scrollResponse"
+        );
     },
 
     /**
@@ -260,20 +205,15 @@ const cbbrowser = {
      * @returns {Promise<any>} A promise that resolves when the typing action is complete.
      */
     type: (elementid: string, text: string) => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'type',
                 text,
                 elementid
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "typeResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "typeResponse"
+        );
     },
 
     /**
@@ -282,19 +222,14 @@ const cbbrowser = {
      * @returns {Promise<any>} A promise that resolves when the click action is complete.
      */
     click: (elementid: string) => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'click',
                 elementid
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "clickResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "clickResponse"
+        );
     },
 
     /**
@@ -302,18 +237,13 @@ const cbbrowser = {
      * @returns {Promise<any>} A promise that resolves when the Enter action is complete.
      */
     enter: () => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'enter'
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "EnterResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "EnterResponse"
+        );
     },
 
     /**
@@ -323,20 +253,15 @@ const cbbrowser = {
      * @returns {Promise<any>} A promise that resolves with the search results.
      */
     search: (elementid: string, query: string) => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "browserEvent",
                 action: 'search',
                 elementid,
                 query
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.event === "searchResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "searchResponse"
+        );
     }
 }
 

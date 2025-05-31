@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import { AddVectorItemResponse,GetVectorResponse,QueryVectorItemResponse } from '@codebolt/types';
 const VectorDB = {
     /**
@@ -8,21 +8,16 @@ const VectorDB = {
      * @returns {Promise<GetVectorResponse>} A promise that resolves with the retrieved vector.
      */
     getVector: async (key: string): Promise<GetVectorResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"vectordbEvent",
                 "action": "getVector",
                 "message": {
                     item: key
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getVectorResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getVectorResponse"
+        );
     },
 
     /**
@@ -33,21 +28,16 @@ const VectorDB = {
      * @returns {Promise<AddVectorItemResponse>} A promise that resolves when the item is successfully added.
      */
     addVectorItem: async ( item: any): Promise<AddVectorItemResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"vectordbEvent",
                 "action": "addVectorItem",
                 "message": {
                     item: item
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "addVectorItemResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "addVectorItemResponse"
+        );
     },
 
     /**
@@ -57,21 +47,16 @@ const VectorDB = {
      * @returns {Promise<QueryVectorItemResponse>} A promise that resolves with the queried vector item.
      */
     queryVectorItem: async (key: string): Promise<QueryVectorItemResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"vectordbEvent",
                 "action": "queryVectorItem",
                 "message": {
                     item: key
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "qeryVectorItemResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "qeryVectorItemResponse"
+        );
     },
     /**
      * Queries a vector item from the vector database based on the provided key.
@@ -80,22 +65,17 @@ const VectorDB = {
      * @returns {Promise<QueryVectorItemResponse>} A promise that resolves with the queried vector item.
      */
     queryVectorItems: async (items: [],dbPath:string): Promise<QueryVectorItemResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"vectordbEvent",
                 "action": "queryVectorItems",
                 "message": {
                     items,
                     dbPath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "qeryVectorItemsResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "qeryVectorItemsResponse"
+        );
     },
 };
 

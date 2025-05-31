@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import { GetProjectPathResponse } from '@codebolt/types';
 /**
  * A module for interacting with project settings and paths.
@@ -17,52 +17,37 @@ const cbproject = {
      * @returns {Promise<GetProjectPathResponse>} A promise that resolves with the project path response.
      */
     getProjectPath: (): Promise<GetProjectPathResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "settingEvent",
                 "action": "getProjectPath"
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getProjectPathResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getProjectPathResponse"
+        );
     },
     getRepoMap: (message: any): Promise<GetProjectPathResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "settingEvent",
                 "action": "getRepoMap",
                 message
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getRepoMapResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getRepoMapResponse"
+        );
     },
     runProject: () => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "runProject"
-        }));
+        });
     },
     getEditorFileStatus:()=>{
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "settingEvent",
                 "action": "getEditorFileStatus",
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getEditorFileStatusResponse") {
-                    resolve(response);
-                }
-            });
-        }); 
+            },
+            "getEditorFileStatusResponse"
+        ); 
     }
 };
 export default cbproject

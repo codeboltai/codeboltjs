@@ -1,10 +1,12 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
 import {CommandError,CommandFinish,CommandOutput,TerminalInterruptResponse,TerminalInterrupted } from '@codebolt/types';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
-class CustomEventEmitter extends EventEmitter {}
+class CustomEventEmitter extends EventEmitter {
+    cleanup?: () => void;
+}
 /**
  * A module for executing commands in a terminal-like environment via WebSocket.
  */
@@ -20,20 +22,14 @@ const cbterminal = {
      * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
     executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false) => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "executeCommand",
                 "message": command,
                 returnEmptyStringOnSuccess
-            }));
-            let result = "";
-            cbws.getWebsocket.on('message', (data:string) => {
-                const response = JSON.parse(data);
-                if (response.type === "commandError" || response.type === "commandFinish" ) {
-                   resolve(response)
-                }
-            });
-        });
+            },
+            "commandError|commandFinish"
+        );
     },
 
     /**
@@ -44,19 +40,14 @@ const cbterminal = {
      * @returns {Promise<CommandError>} A promise that resolves when an error occurs during command execution.
      */
     executeCommandRunUntilError: async (command: string,executeInMain=false): Promise<CommandError> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "executeCommandRunUntilError",
                 "message": command,
                 executeInMain
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if ( response.type === "commandError") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "commandError"
+        );
     },
 
   
@@ -66,18 +57,12 @@ const cbterminal = {
      * @returns {Promise<TerminalInterruptResponse>} 
      */
     sendManualInterrupt(): Promise<TerminalInterruptResponse>  {
-       
-        return new Promise((resolve, reject) => {
-           cbws.getWebsocket.send(JSON.stringify({
-            "type": "sendInterruptToTerminal"
-        }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "terminalInterrupted") {
-                    resolve(response);
-                }
-            });
-        });
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": "sendInterruptToTerminal"
+            },
+            "terminalInterrupted"
+        );
     },
 
     /**
@@ -87,27 +72,44 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {EventEmitter} A promise that streams the output data during command execution.
      */
-    executeCommandWithStream(command: string,executeInMain=false):EventEmitter {
+    executeCommandWithStream(command: string,executeInMain=false): CustomEventEmitter {
          // Send the process started message
-         cbws.getWebsocket.send(JSON.stringify({
+         cbws.messageManager.send({
             "type": "executeCommandWithStream",
-            "message": command
-            ,executeInMain
-        }));
-        // Register event listener for WebSocket messages
-        cbws.getWebsocket.on('message', (data: string) => {
-            const response = JSON.parse(data);
+            "message": command,
+            executeInMain
+        });
+        
+        // Listen for streaming messages through the message manager
+        const handleStreamMessage = (response: any) => {
             if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") {
                 this.eventEmitter.emit(response.type, response);
             }
-        });
+        };
 
-        // Return an object that includes the event emitter and the stopProcess method
-        return this.eventEmitter
-    
+        cbws.messageManager.on('message', handleStreamMessage);
+
+        // Create a new event emitter instance for this stream
+        const streamEmitter = new CustomEventEmitter();
+        
+        // Forward events from the main emitter to the stream emitter
+        const forwardEvent = (eventType: string) => {
+            this.eventEmitter.on(eventType, (data) => {
+                streamEmitter.emit(eventType, data);
+            });
+        };
+        
+        forwardEvent('commandOutput');
+        forwardEvent('commandError');
+        forwardEvent('commandFinish');
+        
+        // Add a cleanup method to remove the listener
+        streamEmitter.cleanup = () => {
+            cbws.messageManager.removeListener('message', handleStreamMessage);
+        };
+
+        return streamEmitter;
     }
-   
-
- 
 };
+
 export default cbterminal;

@@ -1,5 +1,5 @@
 import { GetAgentStateResponse } from '@codebolt/types';
-import cbws from './websocket';
+import cbws from '../core/websocket';
 
 
 export enum AgentLocation {
@@ -30,8 +30,8 @@ const codeboltAgent = {
      * @returns {Promise<AgentResponse>} A promise that resolves with the agent details.
      */
     findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentEvent",
                 "action": "findAgent",
                 "task": task,
@@ -39,14 +39,9 @@ const codeboltAgent = {
                 "maxResult": maxResult,
                 "location": agentLocaltion,
                 "getFrom": getFrom
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "findAgentByTaskResponse") {
-                    resolve(response); // Resolve the Promise with the agent details
-                }
-            });
-        });
+            },
+            "findAgentByTaskResponse"
+        );
     },
 
     /**
@@ -55,20 +50,15 @@ const codeboltAgent = {
      * @returns {Promise<void>} A promise that resolves when the agent has been successfully started.
      */
     startAgent: (agentId: string, task: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentEvent",
                 "action": "startAgent",
                 "agentId": agentId,
                 "task": task
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "taskCompletionResponse" && response.agentId === agentId) {
-                    resolve(response); // Resolve the Promise when the agent has been successfully started
-                }
-            });
-        });
+            },
+            "taskCompletionResponse"
+        );
     },
 
     /**
@@ -76,39 +66,29 @@ const codeboltAgent = {
      * @returns {Promise<any>} A promise that resolves with the list of agents.
      */
     getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentEvent",
                 "action": "listAgents",
                 "agentType": type,
 
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "listAgentsResponse") {
-                    resolve(response); // Resolve the Promise with the list of agents
-                }
-            });
-        });
+            },
+            "listAgentsResponse"
+        );
     },
     /**
      * Lists all available agents.
      * @returns {Promise<any>} A promise that resolves with the list of agents.
      */
     getAgentsDetail: (agentList = []): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentEvent",
                 "action": "agentsDetail",
                 "agentList": agentList
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "listAgentsResponse") {
-                    resolve(response); // Resolve the Promise with the list of agents
-                }
-            });
-        });
+            },
+            "listAgentsResponse"
+        );
     }
 }
 

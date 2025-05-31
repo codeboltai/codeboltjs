@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import {CreateFileResponse,CreateFolderResponse,ReadFileResponse,UpdateFileResponse,DeleteFileResponse,DeleteFolderResponse} from  '@codebolt/types'
 /**
  * @module cbfs
@@ -14,8 +14,8 @@ const cbfs = {
      * @returns {Promise<CreateFileResponse>} A promise that resolves with the server response.
      */
     createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "createFile",
                 "message": {
@@ -23,14 +23,9 @@ const cbfs = {
                     source,
                     filePath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "createFileResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "createFileResponse"
+        );
     },
     /**
      * @function createFolder
@@ -40,22 +35,17 @@ const cbfs = {
      * @returns {Promise<CreateFolderResponse>} A promise that resolves with the server response.
      */
     createFolder: (folderName: string, folderPath: string): Promise<CreateFolderResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "createFolder",
                 "message": {
                     folderName,
                     folderPath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "createFolderResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "createFolderResponse"
+        );
     },
     /**
      * @function readFile
@@ -65,21 +55,16 @@ const cbfs = {
      * @returns {Promise<ReadFileResponse>} A promise that resolves with the server response.
      */
     readFile: (filePath: string): Promise<ReadFileResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "readFile",
                 "message": {
                     filePath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "readFileResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "readFileResponse"
+        );
     },
     /**
      * @function updateFile
@@ -90,8 +75,8 @@ const cbfs = {
      * @returns {Promise<UpdateFileResponse>} A promise that resolves with the server response.
      */
     updateFile: (filename: string, filePath: string, newContent: string): Promise<UpdateFileResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "updateFile",
                 "message": {
@@ -99,14 +84,9 @@ const cbfs = {
                     filePath,
                     newContent
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "commandOutput") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "commandOutput"
+        );
     },
     /**
      * @function deleteFile
@@ -116,22 +96,17 @@ const cbfs = {
      * @returns {Promise<DeleteFileResponse>} A promise that resolves with the server response.
      */
     deleteFile: (filename: string, filePath: string): Promise<DeleteFileResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "deleteFile",
                 "message": {
                     filename,
                     filePath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "deleteFileResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "deleteFileResponse"
+        );
     },
     /**
      * @function deleteFolder
@@ -141,22 +116,17 @@ const cbfs = {
      * @returns {Promise<DeleteFolderResponse>} A promise that resolves with the server response.
      */
     deleteFolder: (foldername: string, folderpath: string): Promise<DeleteFolderResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"fsEvent",
                 "action": "deleteFolder",
                 "message": {
                     foldername,
                     folderpath
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "deleteFolderResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "deleteFolderResponse"
+        );
     },
     /**
      * @function listFile
@@ -164,22 +134,17 @@ const cbfs = {
      * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
      */
     listFile: (folderPath: string, isRecursive: boolean = false): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "fsEvent",
                 "action": "fileList",
                 message:{
                     folderPath,
                     isRecursive
                 }
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "fileListResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "fileListResponse"
+        );
     },
     /**
      * @function listCodeDefinitionNames
@@ -188,21 +153,16 @@ const cbfs = {
      * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of code definition names.
      */
     listCodeDefinitionNames: (path: string): Promise<{success: boolean, result: any}> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "fsEvent",
                 "action": "listCodeDefinitionNames",
                 "message": {
                     path
                 }
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "listCodeDefinitionNamesResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "listCodeDefinitionNamesResponse"
+        );
     },
 
     /**
@@ -214,8 +174,8 @@ const cbfs = {
      * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
      */
     searchFiles: (path: string, regex: string, filePattern: string): Promise<{success: boolean, result: any}> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "fsEvent",
                 "action": "searchFiles",
                 "message": {
@@ -223,14 +183,9 @@ const cbfs = {
                     regex,
                     filePattern
                 }
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "searchFilesResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "searchFilesResponse"
+        );
     },
     /**
      * @function writeToFile
@@ -240,22 +195,17 @@ const cbfs = {
      * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the write operation result.
      */
     writeToFile: (relPath:string, newContent:string) => {
-        return new Promise((resolve, reject) => {
-             cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "fsEvent",
                 "action": "writeToFile",
                 "message": {
                     relPath,
                     newContent
                 }
-            }));
-             cbws.getWebsocket.on('message', (data:string) => {
-                const response = JSON.parse(data);
-                if (response.type === "writeToFileResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "writeToFileResponse"
+        );
     },
   
 };

@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 
 /**
  * A service for interacting with Git operations via WebSocket messages.
@@ -10,19 +10,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the init event.
      */
     init: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Init",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "InitResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "InitResponse"
+        );
     },
     /**
      * Clones a Git repository from the given URL to the specified path.
@@ -31,20 +26,15 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the clone event.
      */
     clone: async (url: string, path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Clone",
                 "url": url,
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "CloneResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "CloneResponse"
+        );
     },
     /**
      * Pulls the latest changes from the remote repository to the local repository at the given path.
@@ -52,19 +42,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the pull event.
      */
     pull: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Pull",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "PullResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "PullResponse"
+        );
     },
     /**
      * Pushes local repository changes to the remote repository at the given path.
@@ -72,19 +57,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the push event.
      */
     push: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Push",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "PushResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "PushResponse"
+        );
     },
     /**
      * Retrieves the status of the local repository at the given path.
@@ -92,19 +72,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the status event.
      */
     status: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Status",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "StatusResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "StatusResponse"
+        );
     },
     /**
      * Adds changes in the local repository to the staging area at the given path.
@@ -112,19 +87,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the add event.
      */
     add: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Add",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "AddResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "AddResponse"
+        );
     },
     /**
      * Commits the staged changes in the local repository with the given commit message.
@@ -132,19 +102,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the commit event.
      */
     commit: async (message: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Commit",
                 "message": message
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "gitCommitResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "gitCommitResponse"
+        );
     },
     /**
      * Checks out a branch or commit in the local repository at the given path.
@@ -153,20 +118,15 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the checkout event.
      */
     checkout: async (path: string, branch: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Checkout",
                 "path": path,
                 "branch": branch
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "CheckoutResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "CheckoutResponse"
+        );
     },
     /**
      * Creates a new branch in the local repository at the given path.
@@ -175,20 +135,15 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the branch event.
      */
     branch: async (path: string, branch: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Branch",
                 "path": path,
                 "branch": branch
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "BranchResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "BranchResponse"
+        );
     },
     /**
      * Retrieves the commit logs for the local repository at the given path.
@@ -196,19 +151,14 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the logs event.
      */
     logs: async (path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Logs",
                 "path": path
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "LogsResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "LogsResponse"
+        );
     },
     /**
      * Retrieves the diff of changes for a specific commit in the local repository.
@@ -217,20 +167,15 @@ const gitService = {
      * @returns {Promise<any>} A promise that resolves with the response from the diff event.
      */
     diff: async (commitHash: string, path: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "gitEvent",
                 "action": "Diff",
                 "path": path,
                 "commitHash": commitHash
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "DiffResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "DiffResponse"
+        );
     }
 };
 

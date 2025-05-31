@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 
 /**
  * Enum representing different types of log messages.
@@ -26,21 +26,13 @@ export const chatSummary = {
         role: string;
         content: string;
     }[]> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "chatSummaryEvent",
                 "action": "summarizeAll",
-
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getSummarizeAllResponse") {
-                    resolve(response.payload); // Resolve the Promise with the response data
-                }
-            })
-        })
-
-
+            },
+            "getSummarizeAllResponse"
+        );
     },
     
     /**
@@ -57,21 +49,15 @@ export const chatSummary = {
         role: string;
         content: string;
     }[]> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "chatSummaryEvent",
                 "action": "summarize",
                 messages,
                 depth
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getSummarizeResponse") {
-                    resolve(response.payload); // Resolve the Promise with the response data
-                }
-            })
-        })
-
+            },
+            "getSummarizeResponse"
+        );
     }
 }
 

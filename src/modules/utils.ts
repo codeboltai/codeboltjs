@@ -1,12 +1,12 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 
 
 const cbutils = {
 
 
  editFileAndApplyDiff:(filePath: string, diff: string,diffIdentifier:string,prompt:string,applyModel?:string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        cbws.getWebsocket.send(JSON.stringify({
+    return cbws.messageManager.sendAndWaitForResponse(
+            {
             "type": "fsEvent",
             "action": "editFileAndApplyDiff",
             message:{
@@ -16,14 +16,9 @@ const cbutils = {
                 prompt,
                 applyModel
             }
-        }));
-        cbws.getWebsocket.on('message', (data: string) => {
-            const response = JSON.parse(data);
-            if (response.type === "editFileAndApplyDiffResponse") {
-                resolve(response);
-            }
-        });
-    });
+        },
+            "editFileAndApplyDiffResponse"
+        );
  } 
 }
 

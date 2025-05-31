@@ -1,4 +1,4 @@
-import cbws from './modules/websocket';
+import cbws from './core/websocket';
 import cbfs from './modules/fs';
 import cbllm from './modules/llm';
 import cbterminal from './modules/terminal';
@@ -107,9 +107,8 @@ class Codebolt  {
      */
     onUserMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
         const waitForConnection = () => {
-            if (cbws.getWebsocket) {
-                cbws.getWebsocket.on('message', async (data: string) => {
-                    const response = JSON.parse(data);
+            if (cbws.messageManager) {
+                const handleUserMessage = async (response: any) => {
                     if (response.type === "messageResponse") {
                         try {
                             const result = await handler(response);
@@ -123,17 +122,19 @@ class Codebolt  {
                                 message.message = result;
                             }
                             
-                            cbws.getWebsocket.send(JSON.stringify(message));
+                            cbws.messageManager.send(message);
                         } catch (error) {
                             console.error('Error in user message handler:', error);
                             // Send processStoped even if there's an error
-                            cbws.getWebsocket.send(JSON.stringify({
+                            cbws.messageManager.send({
                                 "type": "processStoped",
                                 "error": error instanceof Error ? error.message : "Unknown error occurred"
-                            }));
+                            });
                         }
                     }
-                });
+                };
+
+                cbws.messageManager.on('message', handleUserMessage);
             } else {
                 setTimeout(waitForConnection, 100);
             }

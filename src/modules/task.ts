@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 // import {AddTaskResponse,GetTasksResponse,UpdateTasksResponse } from '@codebolt/types';
 /**
  * Manages task operations via WebSocket communication.
@@ -10,40 +10,30 @@ const taskplaner = {
      * @returns {Promise<AddTaskResponse>} A promise that resolves with the response from the add task event.
      */
     addTask: async (task: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "taskEvent",
                 "action":"addTask",
                 message:{
                     "task": task
                 }
                
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "addTaskResponse") {
-                    resolve(response); // Resolve the promise with the response data from adding the task
-                }
-            });
-        });
+            },
+            "addTaskResponse"
+        );
     },
     /**
      * Retrieves all tasks using a WebSocket message.
      * @returns {Promise<GetTasksResponse>} A promise that resolves with the response from the get tasks event.
      */
     getTasks: async (): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"taskEvent",
                 "action": "getTasks"
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getTasksResponse") {
-                    resolve(response); // Resolve the promise with the response data from retrieving tasks
-                }
-            });
-        });
+            },
+            "getTasksResponse"
+        );
     },
     
     /**
@@ -52,21 +42,16 @@ const taskplaner = {
      * @returns {Promise<UpdateTasksResponse>} A promise that resolves with the response from the update task event.
      */
     updateTask: async ( task: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "taskEvent",
                 "action": "updateTask",
                 message: {
                     "task": task
                 }
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "updateTaskResponse") {
-                    resolve(response); // Resolve the promise with the response data from updating the task
-                }
-            });
-        });
+            },
+            "updateTaskResponse"
+        );
     }
 };
 

@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import {ApplicationState,AddToAgentStateResponse,GetAgentStateResponse } from '@codebolt/types';
 
 const cbstate = {
@@ -7,19 +7,14 @@ const cbstate = {
      * @returns {Promise<ApplicationState>} A promise that resolves with the application state.
      */
     getApplicationState: async (): Promise<ApplicationState> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "projectStateEvent",
                 "action": "getAppState",
                 
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getAppStateResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "getAppStateResponse"
+        );
     },
     /**
      * Adds a key-value pair to the agent's state on the server via WebSocket.
@@ -28,8 +23,8 @@ const cbstate = {
      * @returns {Promise<AddToAgentStateResponse>} A promise that resolves with the response to the addition request.
      */
     addToAgentState: async (key: string, value: string): Promise<AddToAgentStateResponse> => {
-      return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+      return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentStateEvent",
                 "action":"addToAgentState",
                 payload:{
@@ -37,33 +32,23 @@ const cbstate = {
                     value
                 }
                 
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "addToAgentStateResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });  
+            },
+            "addToAgentStateResponse"
+        );  
     },
     /**
      * Retrieves the current state of the agent from the server via WebSocket.
      * @returns {Promise<GetAgentStateResponse>} A promise that resolves with the agent's state.
      */
     getAgentState: async (): Promise<GetAgentStateResponse> => {
-       return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+       return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "agentStateEvent",
                 "action":"getAgentState",
                 
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getAgentStateResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });  
+            },
+            "getAgentStateResponse"
+        );  
     },
 
 
@@ -72,18 +57,13 @@ const cbstate = {
      * @returns {Promise<GetProjectStateResponse>} A promise that resolves with the project's state.
      */
     getProjectState: async (): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "projectStateEvent",
                 "action": "getProjectState",
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getProjectStateResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "getProjectStateResponse"
+        );
     },
 
     /**
@@ -91,22 +71,17 @@ const cbstate = {
      * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
      */
     updateProjectState: async (key:string,value:any): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "projectStateEvent",
                 "action": "updateProjectState",
                 payload:{
                     key,
                     value
                 }
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "updateProjectStateResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "updateProjectStateResponse"
+        );
     }
 
 

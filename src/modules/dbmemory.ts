@@ -1,4 +1,4 @@
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import {MemorySetResponse,MemoryGetResponse  } from '@codebolt/types';
 
 /**
@@ -12,20 +12,15 @@ const dbmemory = {
      * @returns {Promise<MemorySetResponse>} A promise that resolves with the response from the memory set event.
      */
     addKnowledge: (key: string, value: any): Promise<MemorySetResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "memoryEvent",
                 'action': 'set',
                 key,
                 value
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "memorySetResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "memorySetResponse"
+        );
     },
     /**
      * Retrieves a value from the in-memory database by key.
@@ -33,19 +28,14 @@ const dbmemory = {
      * @returns {Promise<MemoryGetResponse>} A promise that resolves with the response from the memory get event.
      */
     getKnowledge: (key: string): Promise<MemoryGetResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "memoryEvent",
                 'action': 'get',
                 key
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "memoryGetResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "memoryGetResponse"
+        );
     }
 };
 

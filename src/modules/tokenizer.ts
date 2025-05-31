@@ -1,5 +1,5 @@
 import { AddTokenResponse, GetTokenResponse } from '@codebolt/types';
-import cbws from './websocket';
+import cbws from '../core/websocket';
 
 /**
  * Tokenizer module for handling token-related operations.
@@ -12,21 +12,16 @@ const tokenizer = {
      * @returns {Promise<AddTokenResponse>} A promise that resolves with the response from the add token event.
      */
     addToken: async (key: string): Promise<AddTokenResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"tokenizerEvent",
                 "action": "addToken",
                 "message": {
                     item: key
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "addTokenResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "addTokenResponse"
+        );
     },
 
     /**
@@ -35,21 +30,16 @@ const tokenizer = {
      * @returns {Promise<GetTokenResponse>} A promise that resolves with the response from the get token event.
      */
     getToken: async (key: string): Promise<GetTokenResponse> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type":"tokenizerEvent",
                 "action": "getToken",
                 "message": {
                     item: key
                 },
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getTokenResponse") {
-                    resolve(response);
-                }
-            });
-        });
+            },
+            "getTokenResponse"
+        );
     }
 }
 

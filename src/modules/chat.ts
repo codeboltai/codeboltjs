@@ -1,5 +1,5 @@
 // chat.ts
-import cbws from './websocket';
+import cbws from '../core/websocket';
 import { ChatMessage, UserMessage } from '@codebolt/types'
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
@@ -12,17 +12,12 @@ const cbchat = {
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
      */
     getChatHistory: (): Promise<ChatMessage[]> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "getChatHistory"
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "getChatHistoryResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            })
-        })
+            },
+            "getChatHistoryResponse"
+        );
     },
     /**
      * Sets a global request handler for all incoming messages
@@ -31,15 +26,14 @@ const cbchat = {
     setRequestHandler: (handler: RequestHandler) => {
         const waitForConnection = () => {
             const setupHandler = () => {
-                if (cbws.getWebsocket) {
-                    cbws.getWebsocket.on('message', async (data: string) => {
+                if (cbws.messageManager) {
+                    cbws.messageManager.on('message', async (request: any) => {
                         try {
-                            const request = JSON.parse(data);
                             await handler(request, (responseData: any) => {
-                                cbws.getWebsocket.send(JSON.stringify({
+                                cbws.messageManager.send({
                                     type: `processStoped`,
                                     ...responseData
-                                }));
+                                });
                             });
                         } catch (error) {
                             console.error('Error handling request:', error);
@@ -60,11 +54,11 @@ const cbchat = {
      * @param {string} message - The message to be sent.
      */
     sendMessage: (message: string, payload: any) => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "sendMessage",
             "message": message,
             payload
-        }));
+        });
     },
     /**
      * Waits for a reply to a sent message.
@@ -72,18 +66,13 @@ const cbchat = {
      * @returns {Promise<UserMessage>} A promise that resolves with the reply.
      */
     waitforReply: (message: string): Promise<UserMessage> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "waitforReply",
                 "message": message
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "waitFormessageResponse") {
-                    resolve(response); // Resolve the Promise with the response data
-                }
-            });
-        });
+            },
+            "waitFormessageResponse"
+        );
     },
     /**
      * Notifies the server that a process has started and sets up a listener for stopProcessClicked events.
@@ -92,28 +81,39 @@ const cbchat = {
      */
     processStarted: (onStopClicked?: (message: any) => void) => {
         // Send the process started message
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "processStarted"
-        }));
+        });
         
         // Register event listener for WebSocket messages if callback provided
         if (onStopClicked) {
-            cbws.getWebsocket.on('message', (data: string) => {
-                const message = JSON.parse(data);
+            const handleStopMessage = (message: any) => {
                 if (message.type === 'stopProcessClicked') {
                     onStopClicked(message);
                 }
-            });
+            };
+            
+            cbws.messageManager.on('message', handleStopMessage);
+            
+            // Return an object that includes the stopProcess method and cleanup
+            return {
+                stopProcess: () => {
+                    cbws.messageManager.send({
+                        "type": "processStoped"
+                    });
+                },
+                cleanup: () => {
+                    cbws.messageManager.removeListener('message', handleStopMessage);
+                }
+            };
         }
 
         // Return an object that includes the stopProcess method
         return {
             stopProcess: () => {
-                // Implement the logic to stop the process here
-                // For example, you might want to send a specific message to the server to stop the process
-                cbws.getWebsocket.send(JSON.stringify({
+                cbws.messageManager.send({
                     "type": "processStoped"
-                }));
+                });
             }
         };
     },
@@ -122,71 +122,55 @@ const cbchat = {
      * Sends a specific message to the server to stop the process.
      */
     stopProcess: () => {
-        // Implement the logic to stop the process here
-        // For example, you might want to send a specific message to the server to stop the process
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "processStoped"
-        }));
+        });
     },
     /**
    * Stops the ongoing process.
    * Sends a specific message to the server to stop the process.
    */
     processFinished: () => {
-        // Implement the logic to stop the process here
-        // For example, you might want to send a specific message to the server to stop the process
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "processFinished"
-        }));
+        });
     },
     /**
      * Sends a confirmation request to the server with two options: Yes or No.
      * @returns {Promise<string>} A promise that resolves with the server's response.
      */
     sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "confirmationRequest",
                 "message": confirmationMessage,
                 buttons: buttons,
                 withFeedback
-
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "confirmationResponse" || response.type === "feedbackResponse") {
-                    resolve(response); // Resolve the Promise with the server's response
-                }
-            });
-        });
+            },
+            "confirmationResponse|feedbackResponse"
+        );
     },
     askQuestion: (question: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            cbws.getWebsocket.send(JSON.stringify({
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
                 "type": "confirmationRequest",
                 "message": question,
                 buttons: buttons,
                 withFeedback
-
-            }));
-            cbws.getWebsocket.on('message', (data: string) => {
-                const response = JSON.parse(data);
-                if (response.type === "confirmationResponse" || response.type === "feedbackResponse") {
-                    resolve(response); // Resolve the Promise with the server's response
-                }
-            });
-        });
+            },
+            "confirmationResponse|feedbackResponse"
+        );
     },
     /**
  * Sends a notification event to the server.
  * @param {string} notificationMessage - The message to be sent in the notification.
  */
     sendNotificationEvent: (notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview'): void => {
-        cbws.getWebsocket.send(JSON.stringify({
+        cbws.messageManager.send({
             "type": "notificationEvent",
             "message": notificationMessage,
             "eventType": type
-        }));
+        });
     },
 
 };
