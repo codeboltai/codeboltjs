@@ -28,7 +28,7 @@ async function testGitOperations() {
         console.log('✅ Git status after file creation:', statusAfterFileResult);
         
         console.log('\n5. Testing git add...');
-        const addResult = await codebolt.git.add();
+        const addResult = await codebolt.git.addAll();
         console.log('✅ Git add result:', addResult);
         
         console.log('\n6. Testing git status after add...');
@@ -57,7 +57,7 @@ async function testGitOperations() {
         console.log('✅ Test file created in branch');
         
         console.log('\n12. Testing git add and commit in new branch...');
-        await codebolt.git.add();
+        await codebolt.git.addAll();
         const branchCommitResult = await codebolt.git.commit('Add test file in test branch');
         console.log('✅ Branch commit result:', branchCommitResult);
         

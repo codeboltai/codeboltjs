@@ -19,34 +19,17 @@ const gitService = {
             "gitInitResponse"
         );
     },
-    /**
-     * Clones a Git repository from the given URL to the specified path.
-     * @param {string} url - The URL of the Git repository to clone.
-     * @param {string} path - The file system path where the repository should be cloned to.
-     * @returns {Promise<any>} A promise that resolves with the response from the clone event.
-     */
-    clone: async (url: string, path: string): Promise<any> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                "type": "gitEvent",
-                "action": "Clone",
-                "url": url,
-                "path": path
-            },
-            "CloneResponse"
-        );
-    },
+   
     /**
      * Pulls the latest changes from the remote repository to the local repository at the given path.
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the pull event.
      */
-    pull: async (path: string): Promise<any> => {
+    pull: async (): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
-                "action": "Pull",
-                "path": path
+                "action": "Pull"
             },
             "PullResponse"
         );
@@ -56,12 +39,12 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the push event.
      */
-    push: async (path: string): Promise<any> => {
+    push: async (): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
                 "action": "Push",
-                "path": path
+               
             },
             "PushResponse"
         );
@@ -71,12 +54,11 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the status event.
      */
-    status: async (path: string): Promise<any> => {
+    status: async (): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
                 "action": "Status",
-                "path": path
             },
             "gitStatusResponse"
         );
@@ -86,12 +68,11 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the add event.
      */
-    add: async (path: string): Promise<any> => {
+    addAll: async (): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
                 "action": "Add",
-                "path": path
             },
             "AddResponse"
         );
@@ -117,15 +98,14 @@ const gitService = {
      * @param {string} branch - The name of the branch or commit to check out.
      * @returns {Promise<any>} A promise that resolves with the response from the checkout event.
      */
-    checkout: async (path: string, branch: string): Promise<any> => {
+    checkout: async ( branch: string): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
                 "action": "Checkout",
-                "path": path,
                 "branch": branch
             },
-            "CheckoutResponse"
+            "gitCheckoutResponse"
         );
     },
     /**
@@ -134,15 +114,14 @@ const gitService = {
      * @param {string} branch - The name of the new branch to create.
      * @returns {Promise<any>} A promise that resolves with the response from the branch event.
      */
-    branch: async (path: string, branch: string): Promise<any> => {
+    branch: async (branch: string): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
-                "action": "Branch",
-                "path": path,
-                "branch": branch
+                "action": "gitBranch",
+                "branch": branch,
             },
-            "BranchResponse"
+            "gitBranchResponse"
         );
     },
     /**
@@ -154,7 +133,7 @@ const gitService = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
-                "action": "Logs",
+                "action": "gitLogs",
                 "path": path
             },
             "gitLogsResponse"
@@ -166,12 +145,11 @@ const gitService = {
      * @param {string} path - The file system path of the local Git repository.
      * @returns {Promise<any>} A promise that resolves with the response from the diff event.
      */
-    diff: async (commitHash: string, path: string): Promise<any> => {
+    diff: async (commitHash: string): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "gitEvent",
                 "action": "Diff",
-                "path": path,
                 "commitHash": commitHash
             },
             "DiffResponse"
