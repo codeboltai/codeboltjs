@@ -25,7 +25,7 @@ import { EventEmitter } from 'events';
 import {chatSummary} from './modules/history'
 import codeboltTools from './modules/tools';
 import cbagent from './modules/agent';
-import cbutils from './utils/editFile';
+import cbutils from './modules/utils';
 
 
 

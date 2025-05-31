@@ -1,4 +1,4 @@
-import cbws from '../modules/websocket';
+import cbws from './websocket';
 
 
 const cbutils = {

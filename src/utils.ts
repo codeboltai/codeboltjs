@@ -1,4 +1,4 @@
-export { ToolBox } from './modules/toolBox';
+export { ToolBox } from './utils/toolBox';
 export { TaskInstruction } from './agentlib/taskInstruction';
 export { UserMessage } from './agentlib/usermessage';
 export { SystemPrompt } from './agentlib/systemprompt';
