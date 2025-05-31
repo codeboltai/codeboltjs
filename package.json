@@ -4,13 +4,22 @@
   "description": "",
   "keywords": [],
   "author": "",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
+    "build:webpack": "webpack",
+    "build:all": "npm run build && npm run build:webpack",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
-    "test": "jest fs.test.js"
+    "test": "jest fs.test.js",
+    "clean": "rm -rf dist build",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
@@ -57,12 +66,12 @@
   },
   "exports": {
     ".": {
-      "types": "./index.d.ts",
-      "default": "./index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./utils": {
-      "types": "./utils.d.ts",
-      "default": "./utils.js"
+      "types": "./dist/utils.d.ts",
+      "default": "./dist/utils.js"
     }
   }
 }

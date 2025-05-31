@@ -1,7 +1,7 @@
-import chatlib from "./../chat"
-import tools from "./../tools"
-import llm from "./../llm"
-import codeboltAgent from "./../agent"
+import chatlib from "../modules/chat"
+import tools from "../modules/tools"
+import llm from "../modules/llm"
+import codeboltAgent from "../modules/agent"
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
 
