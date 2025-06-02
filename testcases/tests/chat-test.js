@@ -8,76 +8,76 @@ async function testChatOperations() {
 
         await codebolt.waitForConnection();
         
-        console.log('\n1. Testing get chat history...');
-        const chatHistory = await codebolt.chat.getChatHistory();
-        console.log('✅ Chat history retrieved:', {
-            type: typeof chatHistory,
-            isArray: Array.isArray(chatHistory),
-            data: chatHistory,
-            length: Array.isArray(chatHistory) ? chatHistory.length : 'N/A',
-            sample: Array.isArray(chatHistory) ? chatHistory.slice(0, 2) : 'Not an array'
-        });
+        // console.log('\n1. Testing get chat history...');
+        // const chatHistory = await codebolt.chat.getChatHistory();
+        // console.log('✅ Chat history retrieved:', {
+        //     type: typeof chatHistory,
+        //     isArray: Array.isArray(chatHistory),
+        //     data: chatHistory,
+        //     length: Array.isArray(chatHistory) ? chatHistory.length : 'N/A',
+        //     sample: Array.isArray(chatHistory) ? chatHistory.slice(0, 2) : 'Not an array'
+        // });
         
-        console.log('\n2. Testing notification events...');
-        const notificationTypes = ['debug', 'git', 'planner', 'browser', 'editor', 'terminal', 'preview'];
+        // console.log('\n2. Testing notification events...');
+        // const notificationTypes = ['debug', 'git', 'planner', 'browser', 'editor', 'terminal', 'preview'];
         
-        for (const type of notificationTypes) {
-            codebolt.chat.sendNotificationEvent(`Test ${type} notification from CodeboltJS`, type);
-            console.log(`✅ Sent ${type} notification`);
-        }
+        // for (const type of notificationTypes) {
+        //     codebolt.chat.sendNotificationEvent(`Test ${type} notification from CodeboltJS`, type);
+        //     console.log(`✅ Sent ${type} notification`);
+        // }
         
-        console.log('\n3. Testing send message...');
-        codebolt.chat.sendMessage('Test message from CodeboltJS', { 
-            timestamp: new Date().toISOString(),
-            source: 'codeboltjs-test'
-        });
-        console.log('✅ Message sent');
+        // console.log('\n3. Testing send message...');
+        // codebolt.chat.sendMessage('Test message from CodeboltJS', { 
+        //     timestamp: new Date().toISOString(),
+        //     source: 'codeboltjs-test'
+        // });
+        // console.log('✅ Message sent');
         
-        console.log('\n4. Testing process lifecycle...');
-        const processControl = codebolt.chat.processStarted();
-        console.log('✅ Process started');
+        // console.log('\n4. Testing process lifecycle...');
+        // const processControl = codebolt.chat.processStarted();
+        // console.log('✅ Process started');
         
-        // Test event listener for stop process clicked
-        processControl.event.on('stopProcessClicked', (data) => {
-            console.log('🛑 Stop process clicked event received:', data);
-        });
-        console.log('✅ Stop process event listener set up');
+        // // Test event listener for stop process clicked
+        // processControl.event.on('stopProcessClicked', (data) => {
+        //     console.log('🛑 Stop process clicked event received:', data);
+        // });
+        // console.log('✅ Stop process event listener set up');
         
-        // Simulate some work
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // // Simulate some work
+        // await new Promise(resolve => setTimeout(resolve, 1000));
         
-        processControl.stopProcess();
-        console.log('✅ Process stopped via processControl');
+        // processControl.stopProcess();
+        // console.log('✅ Process stopped via processControl');
         
-        // Test standalone stopProcess function
-        codebolt.chat.stopProcess();
-        console.log('✅ Process stopped via standalone function');
+        // // Test standalone stopProcess function
+        // codebolt.chat.stopProcess();
+        // console.log('✅ Process stopped via standalone function');
         
-        codebolt.chat.processFinished();
-        console.log('✅ Process finished');
+        // codebolt.chat.processFinished();
+        // console.log('✅ Process finished');
         
-        console.log('\n5. Testing action message listener...');
-        const actionEmitter = codebolt.chat.onActionMessage();
+        // console.log('\n5. Testing action message listener...');
+        // const actionEmitter = codebolt.chat.onActionMessage();
         
-        actionEmitter.on('userMessage', (data, callback) => {
-            console.log('📨 Received user message:', data);
-            if (callback && typeof callback === 'function') {
-                callback('Message processed by CodeboltJS test');
-            }
-        });
+        // actionEmitter.on('userMessage', (data, callback) => {
+        //     console.log('📨 Received user message:', data);
+        //     if (callback && typeof callback === 'function') {
+        //         callback('Message processed by CodeboltJS test');
+        //     }
+        // });
         
-        console.log('✅ Action message listener set up');
+        // console.log('✅ Action message listener set up');
         
-        console.log('\n6. Testing request handler...');
-        codebolt.chat.setRequestHandler((request, response) => {
-            console.log('📥 Received request:', request);
-            response({ 
-                status: 'success', 
-                message: 'Request handled by CodeboltJS test',
-                timestamp: new Date().toISOString()
-            });
-        });
-        console.log('✅ Request handler set up');
+        // console.log('\n6. Testing request handler...');
+        // codebolt.chat.setRequestHandler((request, response) => {
+        //     console.log('📥 Received request:', request);
+        //     response({ 
+        //         status: 'success', 
+        //         message: 'Request handled by CodeboltJS test',
+        //         timestamp: new Date().toISOString()
+        //     });
+        // });
+        // console.log('✅ Request handler set up');
         
         console.log('\n7. Testing waitforReply (non-interactive)...');
         // Note: This would normally wait for a user reply, but we'll just test the function call

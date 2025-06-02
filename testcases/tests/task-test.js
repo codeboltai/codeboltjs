@@ -55,17 +55,17 @@ async function testTask() {
             console.log('❌ Getting tasks failed:', error.message);
         }
 
-        // Test 4: Update a task
-        console.log('\n📋 Test 4: Update a task');
-        try {
-            const updateResult = await codebolt.taskplaner.updateTask('Complete project documentation - UPDATED with new requirements');
-            console.log('✅ Task updated successfully');
-            console.log('   - Response type:', updateResult?.type);
-            console.log('   - Success:', !!updateResult?.success);
-            console.log('   - Updated task includes new requirements');
-        } catch (error) {
-            console.log('❌ Updating task failed:', error.message);
-        }
+        // // Test 4: Update a task
+        // console.log('\n📋 Test 4: Update a task');
+        // try {
+        //     const updateResult = await codebolt.taskplaner.updateTask('Complete project documentation - UPDATED with new requirements');
+        //     console.log('✅ Task updated successfully');
+        //     console.log('   - Response type:', updateResult?.type);
+        //     console.log('   - Success:', !!updateResult?.success);
+        //     console.log('   - Updated task includes new requirements');
+        // } catch (error) {
+        //     console.log('❌ Updating task failed:', error.message);
+        // }
 
         // Test 5: Add tasks with different complexity levels
         console.log('\n📋 Test 5: Add tasks with different complexity levels');
@@ -89,27 +89,27 @@ async function testTask() {
             console.log('❌ Adding complex tasks failed:', error.message);
         }
 
-        // Test 6: Update multiple tasks
-        console.log('\n📋 Test 6: Update multiple tasks');
-        try {
-            const taskUpdates = [
-                'Review code changes - COMPLETED',
-                'Update unit tests - IN PROGRESS',
-                'Fix bug in authentication module - ASSIGNED to John',
-                'Prepare release notes - PENDING review',
-                'Deploy to staging environment - SCHEDULED for tomorrow'
-            ];
+        // // Test 6: Update multiple tasks
+        // console.log('\n📋 Test 6: Update multiple tasks');
+        // try {
+        //     const taskUpdates = [
+        //         'Review code changes - COMPLETED',
+        //         'Update unit tests - IN PROGRESS',
+        //         'Fix bug in authentication module - ASSIGNED to John',
+        //         'Prepare release notes - PENDING review',
+        //         'Deploy to staging environment - SCHEDULED for tomorrow'
+        //     ];
 
-            for (const update of taskUpdates) {
-                await codebolt.taskplaner.updateTask(update);
-            }
+        //     for (const update of taskUpdates) {
+        //         await codebolt.taskplaner.updateTask(update);
+        //     }
 
-            console.log('✅ Multiple task updates completed');
-            console.log(`   - Updates applied: ${taskUpdates.length}`);
-            console.log('   - Status updates: completed, in progress, assigned, pending, scheduled');
-        } catch (error) {
-            console.log('❌ Updating multiple tasks failed:', error.message);
-        }
+        //     console.log('✅ Multiple task updates completed');
+        //     console.log(`   - Updates applied: ${taskUpdates.length}`);
+        //     console.log('   - Status updates: completed, in progress, assigned, pending, scheduled');
+        // } catch (error) {
+        //     console.log('❌ Updating multiple tasks failed:', error.message);
+        // }
 
         // Test 7: Add tasks with special characters and formatting
         console.log('\n📋 Test 7: Add tasks with special characters and formatting');

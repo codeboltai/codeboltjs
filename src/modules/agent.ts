@@ -87,7 +87,7 @@ const codeboltAgent = {
                 "action": "agentsDetail",
                 "agentList": agentList
             },
-            "listAgentsResponse"
+            "agentsDetailResponse"
         );
     }
 }

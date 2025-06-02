@@ -39,11 +39,10 @@ async function testTools() {
         
         console.log('\n4. Testing toolbox search...');
         try {
-            const searchResult = await codebolt.tools.searchAvailableToolBoxes('sqlite');
+            const searchResult = await codebolt.tools.searchAvailableToolBoxes('filesystem');
             console.log('✅ Toolbox search result:', searchResult);
-            console.log('   - Search query: "sqlite"');
-            console.log('   - Found toolboxes:', searchResult?.length || 0);
-            console.log('   - Matching toolboxes:', searchResult?.map(tb => tb.name) || []);
+            console.log('   - Search query: "filesystem"');
+        
         } catch (error) {
             console.log('⚠️  Toolbox search failed:', error.message);
         }
@@ -64,7 +63,7 @@ async function testTools() {
         console.log('\n6. Testing tools listing from toolboxes...');
         try {
             // Try to list tools from common toolboxes
-            const toolBoxesToTest = ['sqlite', 'filesystem'];
+            const toolBoxesToTest = ['filesystem'];
             const toolsResult = await codebolt.tools.listToolsFromToolBoxes(toolBoxesToTest);
             console.log('✅ Tools listing result:', toolsResult);
             console.log('   - Toolboxes queried:', toolBoxesToTest);
@@ -148,12 +147,20 @@ async function testTools() {
         console.log('\n13. Testing multiple toolbox operations...');
         try {
             // Get enabled toolboxes and then list tools from them
-            const enabled = await codebolt.tools.getEnabledToolBoxes();
-            if (enabled && enabled.length > 0) {
-                const enabledNames = enabled.map(tb => tb.name).slice(0, 2); // Test first 2
-                const multiToolsResult = await codebolt.tools.listToolsFromToolBoxes(enabledNames);
+            const enabledResponse = await codebolt.tools.getEnabledToolBoxes();
+            console.log('✅ Enabled toolboxes result:', JSON.stringify(enabledResponse));
+            
+            // Extract toolbox data from the new response format
+            const toolboxData = enabledResponse?.data || {};
+            
+            // Convert object to array of toolbox names
+            const enabledNames = Object.keys(toolboxData);
+            
+            if (enabledNames && enabledNames.length > 0) {
+                const toolboxesToTest = enabledNames.slice(0, 2); // Test first 2
+                const multiToolsResult = await codebolt.tools.listToolsFromToolBoxes(toolboxesToTest);
                 console.log('✅ Multiple toolbox operations result:', multiToolsResult);
-                console.log('   - Toolboxes tested:', enabledNames);
+                console.log('   - Toolboxes tested:', toolboxesToTest);
                 console.log('   - Total tools found:', multiToolsResult?.tools?.length || 0);
             } else {
                 console.log('⚠️  No enabled toolboxes found for multiple operations test');

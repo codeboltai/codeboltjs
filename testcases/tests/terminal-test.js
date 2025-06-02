@@ -6,7 +6,6 @@ async function testTerminalOperations() {
     
     try {
     
-        await codebolt.activate();
         await codebolt.waitForConnection();
         
         console.log('\n1. Testing basic echo command...');

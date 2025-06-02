@@ -59,7 +59,7 @@ const cbterminal = {
     sendManualInterrupt(): Promise<TerminalInterruptResponse>  {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "sendInterruptToTerminal"
+                "type": "sendInterruptToTerminal",
             },
             "terminalInterrupted"
         );
