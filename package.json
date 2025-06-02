@@ -12,7 +12,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node script/copy-wasm.js",
     "build:webpack": "webpack",
     "build:all": "npm run build && npm run build:webpack",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
@@ -28,6 +28,7 @@
   "license": "MIT",
   "homepage": "https://codeboltai.github.io",
   "dependencies": {
+    "@codebolt/globby": "^1.0.1",
     "@codebolt/types": "^1.0.10",
     "@modelcontextprotocol/sdk": "^1.4.1",
     "execa": "^9.5.2",
@@ -40,6 +41,7 @@
     "timers": "^0.1.1",
     "undici": "^7.4.0",
     "uri-templates": "^0.2.0",
+    "web-tree-sitter": "^0.24.1",
     "ws": "^8.17.0",
     "yargs": "^17.7.2",
     "zod": "^3.24.1",

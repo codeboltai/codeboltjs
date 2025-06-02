@@ -4,7 +4,7 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "example": "node example.js", 
+        "example": "node example.js",
         "test": "node test.js",
         "test:fs": "node tests/fs-test.js",
         "test:git": "node tests/git-test.js",
@@ -43,6 +43,7 @@
     "license": "ISC",
     "description": "Test project for CodeboltJS SDK",
     "dependencies": {
-        "@codebolt/codeboltjs": "file:../../codeboltjs"
+        "@codebolt/codeboltjs": "file:../../codeboltjs",
+        "@codebolt/globby": "^1.0.1"
     }
 }

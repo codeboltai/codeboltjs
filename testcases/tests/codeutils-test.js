@@ -39,15 +39,15 @@ async function testCodeUtils() {
             console.log('⚠️  Get all files as Markdown failed:', error.message);
         }
         
-        // console.log('\n4. Testing matcher list retrieval...');
-        // try {
-        //     const matcherListResult = await codebolt.codeutils.getMatcherList();
-        //     console.log('✅ Matcher list result:', matcherListResult);
-        //     console.log('   - Type:', matcherListResult?.type);
-        //     console.log('   - Matchers count:', matcherListResult?.matchers?.length || 0);
-        // } catch (error) {
-        //     console.log('⚠️  Matcher list retrieval failed:', error.message);
-        // }
+        console.log('\n4. Testing matcher list retrieval...');
+        try {
+            const matcherListResult = await codebolt.codeutils.getMatcherList();
+            console.log('✅ Matcher list result:', matcherListResult);
+            console.log('   - Type:', matcherListResult?.type);
+            console.log('   - Matchers count:', matcherListResult?.matchers?.length || 0);
+        } catch (error) {
+            console.log('⚠️  Matcher list retrieval failed:', error.message);
+        }
         
         console.log('\n5. Testing match detail retrieval...');
         try {
