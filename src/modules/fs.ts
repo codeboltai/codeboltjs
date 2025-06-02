@@ -85,7 +85,7 @@ const cbfs = {
                     newContent
                 },
             },
-            "commandOutput"
+            "updateFileResponse"
         );
     },
     /**
@@ -205,6 +205,89 @@ const cbfs = {
                 }
             },
             "writeToFileResponse"
+        );
+    },
+    
+    /**
+     * @function listFiles
+     * @description Lists all files in a directory.
+     * @param {string} path - The path to list files from.
+     * @param {boolean} isRecursive - Whether to list files recursively.
+     * @param {boolean} askForPermission - Whether to ask for permission before listing.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of files.
+     */
+   
+    
+    /**
+     * @function grepSearch
+     * @description Performs a grep search in files.
+     * @param {string} path - The path to search within.
+     * @param {string} query - The query to search for.
+     * @param {string} includePattern - Pattern of files to include.
+     * @param {string} excludePattern - Pattern of files to exclude.
+     * @param {boolean} caseSensitive - Whether the search is case sensitive.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     */
+    grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<{success: boolean, result: any}> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": "fsEvent",
+                "action": "grep_search",
+                "message": {
+                    path,
+                    query,
+                    includePattern,
+                    excludePattern,
+                    caseSensitive
+                }
+            },
+            "grepSearchResponse"
+        );
+    },
+    
+    /**
+     * @function fileSearch
+     * @description Performs a fuzzy search for files.
+     * @param {string} query - The query to search for.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     */
+    fileSearch: (query: string): Promise<{success: boolean, result: any}> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": "fsEvent",
+                "action": "file_search",
+                "message": {
+                    query
+                }
+            },
+            "fileSearchResponse"
+        );
+    },
+    
+    /**
+     * @function editFileWithDiff
+     * @description Edits a file by applying a diff.
+     * @param {string} targetFile - The target file to edit.
+     * @param {string} codeEdit - The code edit to apply.
+     * @param {string} diffIdentifier - The diff identifier.
+     * @param {string} prompt - The prompt for the edit.
+     * @param {string} applyModel - The model to apply the edit with.
+     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the edit result.
+     */
+    editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<{success: boolean, result: any}> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": "fsEvent",
+                "action": "edit_file_with_diff",
+                "message": {
+                    target_file: targetFile,
+                    code_edit: codeEdit,
+                    diffIdentifier,
+                    prompt,
+                    applyModel
+                }
+            },
+            "editFileAndApplyDiffResponse"
         );
     },
   
