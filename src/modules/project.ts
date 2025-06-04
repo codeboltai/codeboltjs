@@ -5,12 +5,17 @@ import { GetProjectPathResponse } from '@codebolt/types';
  */
 const cbproject = {
     /**
-     * Placeholder for a method to get project settings.
-     * Currently, this method does not perform any operations.
-     * @param {any} output - The output where project settings would be stored.
+     * Retrieves the project settings from the server.
+     * @returns {Promise<any>} A promise that resolves with the project settings response.
      */
-    getProjectSettings: (output: any) => {
-        // Implementation for getting project settings will be added here
+    getProjectSettings: (): Promise<any> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": "settingEvent",
+                "action": "getProjectSettings"
+            },
+            "getProjectSettingsResponse"
+        );
     },
     /**
      * Retrieves the path of the current project.
