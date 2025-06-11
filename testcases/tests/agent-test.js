@@ -7,18 +7,18 @@ async function testAgent() {
     try {
         await codebolt.waitForConnection();
         
-        // console.log('\n1. Testing agent list retrieval...');
-        // try {
-        //     const agentsListResult = await codebolt.agent.getAgentsList('downloaded');
-        //     console.log('✅ Agents list result:', agentsListResult);
-        //     console.log('   - Type:', agentsListResult?.type);
-        //     console.log('   - Agents count:', agentsListResult?.agents?.length || 0);
-        //     if (agentsListResult?.agents?.length > 0) {
-        //         console.log('   - First agent:', agentsListResult.agents[0]);
-        //     }
-        // } catch (error) {
-        //     console.log('⚠️  Agent list retrieval failed:', error.message);
-        // }
+        console.log('\n1. Testing agent list retrieval...');
+        try {
+            const agentsListResult = await codebolt.agent.getAgentsList('downloaded');
+            console.log('✅ Agents list result:', agentsListResult);
+            console.log('   - Type:', agentsListResult?.type);
+            console.log('   - Agents count:', agentsListResult?.agents?.length || 0);
+            if (agentsListResult?.agents?.length > 0) {
+                console.log('   - First agent:', agentsListResult.agents[0]);
+            }
+        } catch (error) {
+            console.log('⚠️  Agent list retrieval failed:', error.message);
+        }
         
         // console.log('\n2. Testing all agents list...');
         // try {
@@ -69,25 +69,25 @@ async function testAgent() {
             console.log('⚠️ getAgentsDetail failed:', error.message);
         }
         
-        // console.log('\n5. Testing agent finding by task...');
-        // const testTask = 'Run project';
-        // try {
-        //     const findAgentResult = await codebolt.agent.findAgent(
-        //         testTask,
-        //         3, // maxResult
-        //         [], // agents filter
-        //         'all', // agentLocation
-        //         'use_both' // getFrom
-        //     );
-        //     console.log('✅ Find agent result:', findAgentResult);
-        //     console.log('   - Task:', testTask);
-        //     console.log('   - Found agents count:', findAgentResult?.agents?.length || 0);
-        //     if (findAgentResult?.agents?.length > 0) {
-        //         console.log('   - Best match:', findAgentResult.agents[0]);
-        //     }
-        // } catch (error) {
-        //     console.log('⚠️  Agent finding failed:', error.message);
-        // }
+        console.log('\n5. Testing agent finding by task...');
+        const testTask = 'create node js app';
+        try {
+            const findAgentResult = await codebolt.agent.findAgent(
+                testTask,
+                3, // maxResult
+                [], // agents filter
+                'remote_only', // agentLocation
+                'use_both' // getFrom
+            );
+            console.log('✅ Find agent result:', findAgentResult);
+            console.log('   - Task:', testTask);
+            console.log('   - Found agents count:', findAgentResult?.agents?.length || 0);
+            if (findAgentResult?.agents?.length > 0) {
+                console.log('   - Best match:', findAgentResult.agents[0]);
+            }
+        } catch (error) {
+            console.log('⚠️  Agent finding failed:', error.message);
+        }
         
         // console.log('\n6. Testing agent finding with different parameters...');
         // const analysisTask = 'Analyze data and provide insights';
