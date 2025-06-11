@@ -5,7 +5,7 @@ async function testOutputParsers() {
     console.log('=========================');
     
     try {
-        await codebolt.activate();
+   
         await codebolt.waitForConnection();
         
         console.log('\n1. Testing JSON parsing with valid JSON...');
