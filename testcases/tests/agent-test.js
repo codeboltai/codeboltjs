@@ -89,112 +89,112 @@ async function testAgent() {
             console.log('⚠️  Agent finding failed:', error.message);
         }
         
-        // console.log('\n6. Testing agent finding with different parameters...');
-        // const analysisTask = 'Analyze data and provide insights';
-        // try {
-        //     const findAnalysisAgentResult = await codebolt.agent.findAgent(
-        //         analysisTask,
-        //         1, // maxResult
-        //         [], // agents filter
-        //         'local_only', // agentLocation
-        //         'use_ai' // getFrom
-        //     );
-        //     console.log('✅ Find analysis agent result:', findAnalysisAgentResult);
-        //     console.log('   - Task:', analysisTask);
-        //     console.log('   - Location filter:', 'local_only');
-        //     console.log('   - Found agents count:', findAnalysisAgentResult?.agents?.length || 0);
-        // } catch (error) {
-        //     console.log('⚠️  Analysis agent finding failed:', error.message);
-        // }
+        console.log('\n6. Testing agent finding with different parameters...');
+        const analysisTask = 'Analyze data and provide insights';
+        try {
+            const findAnalysisAgentResult = await codebolt.agent.findAgent(
+                analysisTask,
+                1, // maxResult
+                [], // agents filter
+                'local_only', // agentLocation
+                'use_ai' // getFrom
+            );
+            console.log('✅ Find analysis agent result:', findAnalysisAgentResult);
+            console.log('   - Task:', analysisTask);
+            console.log('   - Location filter:', 'local_only');
+            console.log('   - Found agents count:', findAnalysisAgentResult?.agents?.length || 0);
+        } catch (error) {
+            console.log('⚠️  Analysis agent finding failed:', error.message);
+        }
         
-        // console.log('\n7. Testing agent starting...');
-        // try {
-        //     // First find an agent
-        //     const findResult = await codebolt.agent.findAgent('Documentation Agent', 1);
-        //     if (findResult?.agents && findResult.agents.length > 0) {
-        //         const agentId = findResult.agents[0].function?.name || findResult.agents[0].id || findResult.agents[0].name;
-        //         const startTask = 'Create a simple hello world function';
+        console.log('\n7. Testing agent starting...');
+        try {
+            // First find an agent
+            const findResult = await codebolt.agent.findAgent('Documentation Agent', 1);
+            if (findResult?.agents && findResult.agents.length > 0) {
+                const agentId = findResult.agents[0].function?.name || findResult.agents[0].id || findResult.agents[0].name;
+                const startTask = 'Create a simple hello world function';
                 
-        //         const startAgentResult = await codebolt.agent.startAgent(agentId, startTask);
-        //         console.log('✅ Start agent result:', startAgentResult);
-        //         console.log('   - Agent ID:', agentId);
-        //         console.log('   - Task:', startTask);
-        //         console.log('   - Status:', startAgentResult?.status);
-        //         console.log('   - Response type:', startAgentResult?.type);
-        //     } else {
-        //         console.log('⚠️  No agents found to start');
-        //     }
-        // } catch (error) {
-        //     console.log('⚠️  Agent starting failed:', error.message);
-        // }
+                const startAgentResult = await codebolt.agent.startAgent(agentId, startTask);
+                console.log('✅ Start agent result:', startAgentResult);
+                console.log('   - Agent ID:', agentId);
+                console.log('   - Task:', startTask);
+                console.log('   - Status:', startAgentResult?.status);
+                console.log('   - Response type:', startAgentResult?.type);
+            } else {
+                console.log('⚠️  No agents found to start');
+            }
+        } catch (error) {
+            console.log('⚠️  Agent starting failed:', error.message);
+        }
         
-        // console.log('\n8. Testing agent finding with specific agent filter...');
-        // try {
-        //     // Get some agent names first
-        //     const agentsList = await codebolt.agent.getAgentsList('downloaded');
-        //     if (agentsList?.agents && agentsList.agents.length > 0) {
-        //         const agentNames = agentsList.agents.slice(0, 2).map(agent => agent.function?.name || agent.name || agent.id);
+        console.log('\n8. Testing agent finding with specific agent filter...');
+        try {
+            // Get some agent names first
+            const agentsList = await codebolt.agent.getAgentsList('downloaded');
+            if (agentsList?.agents && agentsList.agents.length > 0) {
+                const agentNames = agentsList.agents.slice(0, 2).map(agent => agent.function?.name || agent.name || agent.id);
                 
-        //         const filteredFindResult = await codebolt.agent.findAgent(
-        //             'Code generation task',
-        //             2,
-        //             agentNames, // filter by specific agents
-        //             'all',
-        //             'use_both'
-        //         );
-        //         console.log('✅ Filtered find result:', filteredFindResult);
-        //         console.log('   - Filter agents:', agentNames);
-        //         console.log('   - Found agents count:', filteredFindResult?.agents?.length || 0);
-        //     } else {
-        //         console.log('⚠️  No agents available for filtering');
-        //     }
-        // } catch (error) {
-        //     console.log('⚠️  Filtered agent finding failed:', error.message);
-        // }
+                const filteredFindResult = await codebolt.agent.findAgent(
+                    'Code generation task',
+                    2,
+                    agentNames, // filter by specific agents
+                    'all',
+                    'use_both'
+                );
+                console.log('✅ Filtered find result:', filteredFindResult);
+                console.log('   - Filter agents:', agentNames);
+                console.log('   - Found agents count:', filteredFindResult?.agents?.length || 0);
+            } else {
+                console.log('⚠️  No agents available for filtering');
+            }
+        } catch (error) {
+            console.log('⚠️  Filtered agent finding failed:', error.message);
+        }
         
-        // console.log('\n9. Testing agent finding with remote only location...');
-        // try {
-        //     const remoteAgentResult = await codebolt.agent.findAgent(
-        //         'Complex data processing task',
-        //         5,
-        //         [],
-        //         'remote_only',
-        //         'use_vector_db'
-        //     );
-        //     console.log('✅ Remote agent result:', remoteAgentResult);
-        //     console.log('   - Location filter:', 'remote_only');
-        //     console.log('   - Found agents count:', remoteAgentResult?.agents?.length || 0);
-        // } catch (error) {
-        //     console.log('⚠️  Remote agent finding failed:', error.message);
-        // }
+        console.log('\n9. Testing agent finding with remote only location...');
+        try {
+            const remoteAgentResult = await codebolt.agent.findAgent(
+                'Complex data processing task',
+                5,
+                [],
+                'remote_only',
+                'use_vector_db'
+            );
+            console.log('✅ Remote agent result:', remoteAgentResult);
+            console.log('   - Location filter:', 'remote_only');
+            console.log('   - Found agents count:', remoteAgentResult?.agents?.length || 0);
+        } catch (error) {
+            console.log('⚠️  Remote agent finding failed:', error.message);
+        }
         
-        // console.log('\n10. Testing comprehensive agent workflow...');
-        // try {
-        //     const workflowTask = 'Build a React component for user authentication';
+        console.log('\n10. Testing comprehensive agent workflow...');
+        try {
+            const workflowTask = 'Build a React component for user authentication';
             
-        //     // Step 1: Find suitable agents
-        //     const foundAgents = await codebolt.agent.findAgent(workflowTask, 3);
-        //     console.log('   - Found agents for workflow:', foundAgents?.agents?.length || 0);
+            // Step 1: Find suitable agents
+            const foundAgents = await codebolt.agent.findAgent(workflowTask, 3);
+            console.log('   - Found agents for workflow:', foundAgents?.agents?.length || 0);
             
-        //     if (foundAgents?.agents && foundAgents.agents.length > 0) {
-        //         // Step 2: Get detailed information about the best agent
-        //         const bestAgent = foundAgents.agents[0];
-        //         const agentId = bestAgent.function?.name || bestAgent.id || bestAgent.name;
-        //         const agentDetails = await codebolt.agent.getAgentsDetail([agentId]);
-        //         console.log('   - Agent details retrieved:', agentDetails?.agents?.length || 0);
+            if (foundAgents?.agents && foundAgents.agents.length > 0) {
+                // Step 2: Get detailed information about the best agent
+                const bestAgent = foundAgents.agents[0];
+                const agentId = bestAgent.function?.name || bestAgent.id || bestAgent.name;
+                const agentDetails = await codebolt.agent.getAgentsDetail([agentId]);
+                console.log('   - Agent details retrieved:', agentDetails?.agents?.length || 0);
                 
-        //         // Step 3: Start the agent with the task
-        //         const workflowResult = await codebolt.agent.startAgent(agentId, workflowTask);
-        //         console.log('✅ Workflow completion:', workflowResult?.type);
-        //     } else {
-        //         console.log('⚠️  No suitable agents found for workflow');
-        //     }
-        // } catch (error) {
-        //     console.log('⚠️  Agent workflow failed:', error.message);
-        // }
+                // Step 3: Start the agent with the task
+                const workflowResult = await codebolt.agent.startAgent(agentId, workflowTask);
+                console.log('✅ Workflow completion:', workflowResult?.type);
+            } else {
+                console.log('⚠️  No suitable agents found for workflow');
+            }
+        } catch (error) {
+            console.log('⚠️  Agent workflow failed:', error.message);
+        }
         
-        // console.log('\n🎉 All agent tests completed successfully!');
-        // console.log('Note: Some tests may show warnings if no agents are available or configured');
+        console.log('\n🎉 All agent tests completed successfully!');
+        console.log('Note: Some tests may show warnings if no agents are available or configured');
         
     } catch (error) {
         console.error('❌ Agent test error:', error.message);
