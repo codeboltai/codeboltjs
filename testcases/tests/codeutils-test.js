@@ -10,19 +10,17 @@ async function testCodeUtils() {
         
         console.log('\n1. Testing JavaScript tree generation for current directory...');
         try {
-            eerr
-            // const jsTreeResult = await codebolt.codeutils.getJsTree();
-            // console.log('✅ JS tree result:', jsTreeResult);
-            // console.log('   - Event type:', jsTreeResult?.event);
-            // console.log('   - Payload available:', !!jsTreeResult?.payload);
+            const jsTreeResult = await codebolt.codeutils.getJsTree();
+            console.log('✅ JS tree result:', jsTreeResult);
+            console.log('   - Event type:', jsTreeResult?.event);
+            console.log('   - Payload available:', !!jsTreeResult?.payload);
         } catch (error) {
             console.log('⚠️  JS tree generation failed:', error.message);
         }
         
         console.log('\n2. Testing JavaScript tree generation for specific file...');
         try {
-            fdf
-            // const specificFileResult = await codebolt.codeutils.getJsTree('./tests/terminal-test.js');
+            const specificFileResult = await codebolt.codeutils.getJsTree('./tests/terminal-test.js');
             console.log('✅ Specific file JS tree result:', specificFileResult);
             console.log('   - Event type:', specificFileResult?.event);
         } catch (error) {
@@ -67,7 +65,7 @@ async function testCodeUtils() {
                 language: 'javascript'
             };
             const problemPatterns = [
-                { pattern: 'console\\.log', severity: 'warning' },
+                { pattern: 'logger\\.info', severity: 'warning' },
                 { pattern: 'var\\s+', severity: 'error' }
             ];
             const problems = [
