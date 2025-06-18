@@ -60,7 +60,7 @@ const cbcodeutils = {
             // Get parser for this file type
             const { parser, query } = languageParsers[ext] || {};
             if (!parser || !query) {
-                throw new Error(`Unsupported file type: ${ext}`);
+                throw new Error(`Unsupported language: ${ext}`);
             }
             
             // Read file content
@@ -125,12 +125,12 @@ const cbcodeutils = {
 
     /**
      * Performs a matching operation based on the provided matcher definition and problem patterns.
-     * @param {object} matcherDefinition - The definition of the matcher.
-     * @param {Array} problemPatterns - The patterns to match against.
-     * @param {Array} problems - The list of problems.
+     * @param {object} matcherDefinition - The definition of the matcher (name, pattern, language, etc.).
+     * @param {Array} problemPatterns - The patterns to match against (regex patterns with severity levels).
+     * @param {Array} problems - Optional list of pre-existing problems to include.
      * @returns {Promise<MatchProblemResponse>} A promise that resolves with the matching problem response.
      */
-    performMatch: (matcherDefinition: object, problemPatterns: any[], problems: any[]): Promise<MatchProblemResponse> => {
+    performMatch: (matcherDefinition: object, problemPatterns: any[], problems: any[] = []): Promise<MatchProblemResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codeEvent",
@@ -138,6 +138,7 @@ const cbcodeutils = {
                 payload: {
                     matcherDefinition,
                     problemPatterns,
+                    problems
                 }
             },
             "matchProblemResponse"
@@ -160,7 +161,7 @@ const cbcodeutils = {
 
     /**
      * Retrieves details of a match.
-     * @param {string} matcher - The matcher to retrieve details for.
+     * @param {string} matcher - The matcher to retrieve details for (by name or identifier).
      * @returns {Promise<getMatchDetail>} A promise that resolves with the match detail response.
      */
     matchDetail: (matcher: string): Promise<getMatchDetail> => {
@@ -169,7 +170,7 @@ const cbcodeutils = {
                 "type": "codeEvent",
                 "action": "getMatchDetail",
                 payload: {
-                    match: matcher
+                    matcher: matcher
                 }
             },
             "getMatchDetailResponse"

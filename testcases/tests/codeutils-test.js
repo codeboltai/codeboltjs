@@ -10,19 +10,17 @@ async function testCodeUtils() {
         
         console.log('\n1. Testing JavaScript tree generation for current directory...');
         try {
-            eerr
-            // const jsTreeResult = await codebolt.codeutils.getJsTree();
-            // console.log('✅ JS tree result:', jsTreeResult);
-            // console.log('   - Event type:', jsTreeResult?.event);
-            // console.log('   - Payload available:', !!jsTreeResult?.payload);
+            const jsTreeResult = await codebolt.codeutils.getJsTree();
+            console.log('✅ JS tree result:', jsTreeResult);
+            console.log('   - Event type:', jsTreeResult?.event);
+            console.log('   - Payload available:', !!jsTreeResult?.payload);
         } catch (error) {
             console.log('⚠️  JS tree generation failed:', error.message);
         }
         
         console.log('\n2. Testing JavaScript tree generation for specific file...');
         try {
-            fdf
-            // const specificFileResult = await codebolt.codeutils.getJsTree('./tests/terminal-test.js');
+            const specificFileResult = await codebolt.codeutils.getJsTree('./tests/terminal-test.js');
             console.log('✅ Specific file JS tree result:', specificFileResult);
             console.log('   - Event type:', specificFileResult?.event);
         } catch (error) {
@@ -51,34 +49,41 @@ async function testCodeUtils() {
         
         console.log('\n5. Testing match detail retrieval...');
         try {
-            const matchDetailResult = await codebolt.codeutils.matchDetail('test-matcher');
-            console.log('✅ Match detail result:', matchDetailResult);
+            const matchDetailResult = await codebolt.codeutils.matchDetail('xmllint');
+            console.log('✅ Match detail result:', matchDetailResult.payload);
             console.log('   - Type:', matchDetailResult?.type);
             console.log('   - Details available:', !!matchDetailResult?.details);
         } catch (error) {
             console.log('⚠️  Match detail retrieval failed:', error.message);
         }
-        
         console.log('\n6. Testing perform match operation...');
         try {
             const matcherDefinition = {
-                name: 'test-matcher',
-                pattern: 'function.*\\(',
-                language: 'javascript'
+                owner: "eslint-compact",
+                pattern: [{
+                    regexp: "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
+                    file: 1,
+                    line: 2,
+                    column: 3,
+                    severity: 4,
+                    message: 5,
+                    code: 6
+                }]
             };
-            const problemPatterns = [
-                { pattern: 'console\\.log', severity: 'warning' },
-                { pattern: 'var\\s+', severity: 'error' }
+    
+            const testProblems = [
+                { line: "src/file1.js: line 10, col 5, Error - Unexpected console statement (no-console)", source: "test" },
+                { line: "src/file2.js: line 25, col 8, Warning - 'var' used instead of 'let' or 'const' (no-var)", source: "test" },
+                { line: "This should not match", source: "test" }, // Invalid line
+                {}, // Empty object
+                { line: "src/file3.js: line 5, col 15, Info - Missing JSDoc comment (require-jsdoc)", source: "test" }
             ];
-            const problems = [
-                { line: 1, message: 'Use const instead of var' },
-                { line: 5, message: 'Remove console.log' }
-            ];
+    
             
             const performMatchResult = await codebolt.codeutils.performMatch(
                 matcherDefinition, 
-                problemPatterns, 
-                problems
+                matcherDefinition.pattern, 
+                testProblems
             );
             console.log('✅ Perform match result:', performMatchResult);
             console.log('   - Type:', performMatchResult?.type);

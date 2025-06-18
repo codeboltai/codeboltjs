@@ -6,7 +6,6 @@ async function testBrowserOperations() {
     
     try {
 
-        await codebolt.activate();
         await codebolt.waitForConnection();
         
         console.log('\n1. Testing new page creation...');
@@ -74,25 +73,25 @@ async function testBrowserOperations() {
         
         // Note: Interactive tests like click and type require specific element IDs
         // which may not be available on example.com, so they are commented out
-        /*
-        console.log('\n13. Testing click (requires element ID)...');
-        const clickResult = await codebolt.browser.click('some-element-id');
-        console.log('✅ Clicked:', clickResult);
         
-        console.log('\n14. Testing type (requires element ID)...');
-        const typeResult = await codebolt.browser.type('some-input-id', 'Test text');
-        console.log('✅ Typed:', typeResult);
+        // console.log('\n13. Testing click (requires element ID)...');
+        // const clickResult = await codebolt.browser.click('some-element-id');
+        // console.log('✅ Clicked:', clickResult);
         
-        console.log('\n15. Testing search (requires element ID)...');
-        const searchResult = await codebolt.browser.search('search-input-id', 'test query');
-        console.log('✅ Searched:', searchResult);
-        */
+        // console.log('\n14. Testing type (requires element ID)...');
+        // const typeResult = await codebolt.browser.type('some-input-id', 'Test text');
+        // console.log('✅ Typed:', typeResult);
         
-        console.log('\n16. Testing enter key...');
-        const enterResult = await codebolt.browser.enter();
-        console.log('✅ Enter key pressed:', enterResult);
+        // console.log('\n15. Testing search (requires element ID)...');
+        // const searchResult = await codebolt.browser.search('search-input-id', 'test query');
+        // console.log('✅ Searched:', searchResult);
         
-        console.log('\n17. Closing browser...');
+        
+        // console.log('\n16. Testing enter key...');
+        // const enterResult = await codebolt.browser.enter();
+        // console.log('✅ Enter key pressed:', enterResult);
+        
+        console.log('\n16. Closing browser...');
         codebolt.browser.close();
         console.log('✅ Browser closed');
         
