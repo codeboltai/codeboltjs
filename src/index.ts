@@ -40,6 +40,7 @@ class Codebolt  {
      * @description Initializes the websocket connection.
      */
     constructor() {
+        console.log("Codebolt Agent initialized");
         cbws.initializeWebSocket()
         this.websocket = cbws.getWebsocket;
          
@@ -109,6 +110,7 @@ class Codebolt  {
         const waitForConnection = () => {
             if (cbws.messageManager) {
                 const handleUserMessage = async (response: any) => {
+                    console.log("Message received By Agent Library Starting Custom Agent Handler Logic", response);
                     if (response.type === "messageResponse") {
                         try {
                             const result = await handler(response);
