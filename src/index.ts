@@ -5,7 +5,6 @@ import cbterminal from './modules/terminal';
 import cbbrowser from './modules/browser';
 import cbchat from './modules/chat';
 import cbcodeutils from './modules/codeutils';
-import cbdocutils from './modules/docutils';
 import cbcrawler from './modules/crawler';
 import cbsearch from './modules/search';
 import cbknowledge from './modules/knowledge';
@@ -82,7 +81,6 @@ class Codebolt  {
     chat = cbchat;
     terminal = cbterminal;
     codeutils = cbcodeutils;
-    docutils = cbdocutils;
     crawler = cbcrawler;
     search = cbsearch;
     knowledge = cbknowledge;
