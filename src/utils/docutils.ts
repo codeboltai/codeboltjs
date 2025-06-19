@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import pdfParse from 'pdf-parse';
 
-const cbdocutils = {
+const docutils = {
     /**
      * Converts a PDF document to text.
      * @param pdf_path - The file path to the PDF document to be converted.
@@ -41,4 +41,4 @@ const cbdocutils = {
     }
 };
 
-export default cbdocutils;
+export default docutils; 
