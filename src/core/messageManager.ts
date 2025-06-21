@@ -88,6 +88,7 @@ export class MessageManager extends EventEmitter {
 
             // Parse multiple message types separated by pipe
             const messageTypes = expectedResponseType.split('|').map(type => type.trim());
+            console.log("Message types: ", messageTypes);
 
             // Store the pending request
             this.pendingRequests.set(requestId, {

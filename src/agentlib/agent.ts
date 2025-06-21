@@ -192,9 +192,12 @@ class Agent {
 
                                         }
                                         else {
+                                            console.log("Executing tool: ", toolName, toolInput);
                                             const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                            console.log("Tool result: ", result);
                                             // toolResults.push(this.getToolResult(toolUseId, result));
                                             let toolResult = this.getToolResult(toolUseId, result)
+                                         
                                             toolResults.push({
                                                 role: "tool",
                                                 tool_call_id: toolResult.tool_call_id,
@@ -347,8 +350,12 @@ class Agent {
      */
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         //codebolttools--readfile
+        console.log("Executing tool: ", toolName, toolInput);
         const [toolboxName, actualToolName] = toolName.split('--');
-        return tools.executeTool(toolboxName, actualToolName, toolInput);
+        console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
+        const {data} = await tools.executeTool(toolboxName, actualToolName, toolInput);
+        console.log("Tool result: ", data);
+        return data;
     }
 
     /**
@@ -388,6 +395,7 @@ class Agent {
         try {
             let parsed = JSON.parse(content);
 
+            console.log("Parsed Content: ", parsed);
             if (parsed.payload && parsed.payload.content) {
                 content = `The browser action has been executed. The  screenshot have been captured for your analysis. The tool response is provided in the next user message`
                 // this.apiConversationHistory.push()

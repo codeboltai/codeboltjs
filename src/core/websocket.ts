@@ -8,6 +8,7 @@ import messageManager, { MessageManager } from './messageManager';
  */
 class cbws {
     websocket!: WebSocket;
+    private initialized: boolean = false;
 
     /**
      * Constructs a new cbws instance and initializes the WebSocket connection.
@@ -72,24 +73,39 @@ class cbws {
         this.websocket = new WebSocket(wsUrl);
 
         return new Promise((resolve, reject) => {
+            // Set a timeout for the connection
+            const connectionTimeout = setTimeout(() => {
+                console.error('[WebSocket] Connection timeout after 10 seconds');
+                if (this.websocket) {
+                    this.websocket.terminate();
+                }
+                reject(new Error('WebSocket connection timeout after 10 seconds'));
+            }, 10000);
+
             this.websocket.on('error', (error: Error) => {
                 console.error('[WebSocket] Connection error:', error);
+                clearTimeout(connectionTimeout);
                 reject(error);
             });
 
             this.websocket.on('open', () => {
                 console.log('[WebSocket] Connection opened successfully');
+                clearTimeout(connectionTimeout);
                 // Initialize the message manager with this websocket
                 console.log('[WebSocket] Initializing message manager');
                 messageManager.initialize(this.websocket);
+                this.initialized = true;
+                console.log('[WebSocket] WebSocket fully initialized and ready');
                 resolve(this.websocket);
             });
 
             this.websocket.on('close', (code: number, reason: Buffer) => {
                 console.log(`[WebSocket] Connection closed with code: ${code}, reason: ${reason.toString()}`);
+                clearTimeout(connectionTimeout);
                 // Clean up pending requests when connection closes
                 console.log('[WebSocket] Cleaning up message manager');
                 messageManager.cleanup();
+                this.initialized = false;
             });
 
             this.websocket.on('message', (data: WebSocket.Data) => {
@@ -112,23 +128,73 @@ class cbws {
      * @throws {Error} If the WebSocket is not open.
      */
     get getWebsocket(): WebSocket {
-        if (this.websocket && this.websocket.readyState !== WebSocket.OPEN) {
+        if (!this.websocket) {
+            console.error('[WebSocket] WebSocket is not initialized');
+            throw new Error('WebSocket is not initialized');
+        }
+
+        if (this.websocket.readyState !== WebSocket.OPEN) {
             console.error('[WebSocket] Attempted to access WebSocket but it is not open. Ready state:', this.websocket.readyState);
             throw new Error('WebSocket is not open');
-        } else {
-            console.log('[WebSocket] WebSocket access - ready state:', this.websocket?.readyState);
+        }
+
+        console.log('[WebSocket] WebSocket access - ready state:', this.websocket.readyState);
+        return this.websocket;
+    }
+
+    /**
+     * Waits for the WebSocket to be ready and returns it.
+     * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance when it's ready.
+     */
+    public async waitForWebSocket(): Promise<WebSocket> {
+        if (!this.websocket) {
+            console.error('[WebSocket] WebSocket is not initialized');
+            throw new Error('WebSocket is not initialized');
+        }
+
+        if (this.websocket.readyState === WebSocket.OPEN) {
+            console.log('[WebSocket] WebSocket is already open');
             return this.websocket;
         }
+
+        console.log('[WebSocket] Waiting for WebSocket to connect...');
+        return new Promise<WebSocket>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                console.error('[WebSocket] Connection timeout after 5 seconds');
+                reject(new Error('WebSocket connection timeout'));
+            }, 5000);
+
+            this.websocket!.once('open', () => {
+                console.log('[WebSocket] WebSocket connection established while waiting');
+                clearTimeout(timeout);
+                resolve(this.websocket);
+            });
+
+            this.websocket!.once('error', (error) => {
+                console.error('[WebSocket] WebSocket error while waiting:', error);
+                clearTimeout(timeout);
+                reject(error);
+            });
+        });
     }
 
     /**
      * Get the message manager instance
      */
     get messageManager(): MessageManager {
-        console.log('[WebSocket] Accessing message manager');
+        if (!this.initialized) {
+            console.log('[WebSocket] Accessing message manager (not yet initialized)');
+        }
         return messageManager;
+    }
+
+    /**
+     * Check if the WebSocket is initialized and ready
+     */
+    get isInitialized(): boolean {
+        return this.initialized && this.websocket && this.websocket.readyState === WebSocket.OPEN;
     }
 }
 
-console.log('[WebSocket] Creating cbws singleton instance');
+// console.log('[WebSocket] Creating cbws singleton instance');
 export default new cbws();

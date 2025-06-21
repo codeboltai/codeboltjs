@@ -33,6 +33,9 @@ import cbutils from './modules/utils';
  * @description This class provides a unified interface to interact with various modules.
  */
 class Codebolt  {
+    websocket: WebSocket | null = null;
+    private isReady: boolean = false;
+    private readyPromise: Promise<void>;
 
     /**
      * @constructor
@@ -40,40 +43,44 @@ class Codebolt  {
      */
     constructor() {
         console.log("Codebolt Agent initialized");
-        cbws.initializeWebSocket()
-        this.websocket = cbws.getWebsocket;
-         
+        this.readyPromise = this.initializeConnection();
     }
-    
+
     /**
-     * @method waitForConnection
-     * @description Waits for the WebSocket connection to open.
-     * @returns {Promise<void>} A promise that resolves when the WebSocket connection is open.
+     * @method initializeConnection
+     * @description Initializes the WebSocket connection asynchronously.
+     * @private
      */
-    async waitForConnection() {
-        return new Promise<void>((resolve, reject) => {
-            if (!this.websocket) {
-                reject(new Error('WebSocket is not initialized'));
-                return;
-            }
-
-            if (this.websocket.readyState === WebSocket.OPEN) {
-                resolve();
-                return;
-            }
-
-            this.websocket.addEventListener('open', () => {
-                resolve();
-            });
-
-            this.websocket.addEventListener('error', (error) => {
-                reject(error);
-            });
-
-        });
+    private async initializeConnection(): Promise<void> {
+        try {
+            await cbws.initializeWebSocket();
+            this.websocket = cbws.getWebsocket;
+            this.isReady = true;
+            console.log("Codebolt WebSocket connection established");
+        } catch (error) {
+            console.error('Failed to initialize WebSocket connection:', error);
+            throw error;
+        }
     }
 
-    websocket: WebSocket | null = null;
+    /**
+     * @method waitForReady
+     * @description Waits for the Codebolt instance to be fully initialized.
+     * @returns {Promise<void>} A promise that resolves when the instance is ready.
+     */
+    async waitForReady(): Promise<void> {
+        return this.readyPromise;
+    }
+
+    /**
+     * @method isReady
+     * @description Checks if the Codebolt instance is ready for use.
+     * @returns {boolean} True if the instance is ready, false otherwise.
+     */
+    get ready(): boolean {
+        return this.isReady;
+    }
+
     fs = cbfs;
     git = git;
     llm = cbllm;
@@ -105,42 +112,39 @@ class Codebolt  {
      * @returns {void}
      */
     onMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
-        const waitForConnection = () => {
-            if (cbws.messageManager) {
-                const handleUserMessage = async (response: any) => {
-                    console.log("Message received By Agent Library Starting Custom Agent Handler Logic", response);
-                    if (response.type === "messageResponse") {
-                        try {
-                            const result = await handler(response);
-                            // Send processStoped with optional message
-                            const message: any = {
-                                "type": "processStoped"
-                            };
-                            
-                            // If handler returned data, include it as message
-                            if (result !== undefined && result !== null) {
-                                message.message = result;
-                            }
-                            
-                            cbws.messageManager.send(message);
-                        } catch (error) {
-                            console.error('Error in user message handler:', error);
-                            // Send processStoped even if there's an error
-                            cbws.messageManager.send({
-                                "type": "processStoped",
-                                "error": error instanceof Error ? error.message : "Unknown error occurred"
-                            });
+        // Wait for the WebSocket to be ready before setting up the handler
+        this.waitForReady().then(() => {
+            const handleUserMessage = async (response: any) => {
+                console.log("Message received By Agent Library Starting Custom Agent Handler Logic");
+                if (response.type === "messageResponse") {
+                    try {
+                        const result = await handler(response);
+                        // Send processStoped with optional message
+                        const message: any = {
+                            "type": "processStoped"
+                        };
+                        
+                        // If handler returned data, include it as message
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
                         }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in user message handler:', error);
+                        // Send processStoped even if there's an error
+                        cbws.messageManager.send({
+                            "type": "processStoped",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
                     }
-                };
+                }
+            };
 
-                cbws.messageManager.on('message', handleUserMessage);
-            } else {
-                setTimeout(waitForConnection, 100);
-            }
-        };
-
-        waitForConnection();
+            cbws.messageManager.on('message', handleUserMessage);
+        }).catch(error => {
+            console.error('Failed to set up message handler:', error);
+        });
     }
 }
 
