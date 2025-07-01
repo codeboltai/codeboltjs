@@ -159,9 +159,9 @@ class UserMessage {
         console.log("mentionedMCPs", this.mentionedMCPs);
         if (this.mentionedMCPs.length > 0) {
             console.log("mentionedMCPs", this.mentionedMCPs);
-            let tools = await mcp.listToolsFromToolBoxes(this.mentionedMCPs)
-            console.log("tools", tools);
-            return tools
+            let {data} = await mcp.listToolsFromToolBoxes(this.mentionedMCPs)
+            console.log("tools", data);
+            return data
         }
         else {
             return []

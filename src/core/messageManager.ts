@@ -69,11 +69,14 @@ export class MessageManager extends EventEmitter {
 
     /**
      * Send a message and wait for a specific response type
+     * @param message The message to send
+     * @param expectedResponseType The type of response to wait for
+     * @param timeout Optional timeout in milliseconds. If not provided or set to 0, will wait indefinitely
      */
     sendAndWaitForResponse<T = any>(
         message: any,
         expectedResponseType: string,
-        timeout: number = 30000
+        timeout: number = 0
     ): Promise<T> {
         return new Promise((resolve, reject) => {
             if (!this.websocket) {
@@ -98,24 +101,27 @@ export class MessageManager extends EventEmitter {
                 requestId
             });
 
-            // Set timeout
-            const timeoutId = setTimeout(() => {
-                if (this.pendingRequests.has(requestId)) {
-                    this.pendingRequests.delete(requestId);
-                    reject(new Error(`Request timeout after ${timeout}ms for message types: ${expectedResponseType}`));
-                }
-            }, timeout);
+            // Set timeout only if a positive timeout value is provided
+            let timeoutId: ReturnType<typeof setTimeout> | undefined;
+            if (timeout > 0) {
+                timeoutId = setTimeout(() => {
+                    if (this.pendingRequests.has(requestId)) {
+                        this.pendingRequests.delete(requestId);
+                        reject(new Error(`Request timeout after ${timeout}ms for message types: ${expectedResponseType}`));
+                    }
+                }, timeout);
 
-            // Override resolve to clear timeout
-            const originalResolve = resolve;
-            const wrappedResolve = (value: T) => {
-                clearTimeout(timeoutId);
-                originalResolve(value);
-            };
+                // Override resolve to clear timeout
+                const originalResolve = resolve;
+                const wrappedResolve = (value: T) => {
+                    clearTimeout(timeoutId);
+                    originalResolve(value);
+                };
 
-            // Update the stored request with wrapped resolve
-            const request = this.pendingRequests.get(requestId)!;
-            request.resolve = wrappedResolve;
+                // Update the stored request with wrapped resolve
+                const request = this.pendingRequests.get(requestId)!;
+                request.resolve = wrappedResolve;
+            }
 
             // Send the message
             this.websocket.send(JSON.stringify(messageWithId));
