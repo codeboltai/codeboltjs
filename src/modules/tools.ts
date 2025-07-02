@@ -111,7 +111,7 @@ const codeboltMCP = {
      * @param tools - Array of toolbox and tool name pairs
      * @returns Promise with detailed information about the tools
      */
-    getTools: (tools: { toolbox: string, toolName: string }[]): Promise<any[]> => {
+    getTools: (tools: { toolbox: string, toolName: string }[]): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",

@@ -29,7 +29,7 @@ interface Message {
     /** Optional list of files mentioned in the message */
     mentionedFiles?: string[];
     /** List of MCP (Model Context Protocol) tools mentioned */
-    mentionedMCPs: string[];
+    mentionedMCPs: { toolbox: string, toolName: string }[];
     /** List of agents mentioned in the message */
     mentionedAgents: agent[];
 }
@@ -66,7 +66,7 @@ class UserMessage {
     /** Array of content blocks for the user message */
     userMessages: UserMessageContent[];
     /** List of MCP tools mentioned in the message */
-    mentionedMCPs: string[];
+    mentionedMCPs: { toolbox: string, toolName: string }[];
 
     /**
      * Creates a new UserMessage instance.
@@ -159,9 +159,9 @@ class UserMessage {
         console.log("mentionedMCPs", this.mentionedMCPs);
         if (this.mentionedMCPs.length > 0) {
             console.log("mentionedMCPs", this.mentionedMCPs);
-            let {data} = await mcp.listToolsFromToolBoxes(this.mentionedMCPs)
+            const {data} = await mcp.getTools(this.mentionedMCPs);
             console.log("tools", data);
-            return data
+            return data;
         }
         else {
             return []
