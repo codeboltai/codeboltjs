@@ -156,11 +156,8 @@ class UserMessage {
      * @returns Promise with an array of MCP tools
      */
     async getMentionedMcpsTools() {
-        console.log("mentionedMCPs", this.mentionedMCPs);
         if (this.mentionedMCPs.length > 0) {
-            console.log("mentionedMCPs", this.mentionedMCPs);
             const {data} = await mcp.getTools(this.mentionedMCPs);
-            console.log("tools", data);
             return data;
         }
         else {
