@@ -26,7 +26,8 @@ import codeboltTools from './modules/tools';
 import cbagent from './modules/agent';
 import cbutils from './modules/utils';
 
-
+// Export types for clean imports
+export type { Message, ToolCall, Tool, LLMInferenceParams } from './modules/llm';
 
 /**
  * @class Codebolt
