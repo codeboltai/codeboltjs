@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import {ApplicationState,AddToAgentStateResponse,GetAgentStateResponse } from '@codebolt/types';
+import { ApplicationState, AddToAgentStateResponse, GetAgentStateResponse } from '../types/cliWebSocketInterfaces';
 
 const cbstate = {
     /**

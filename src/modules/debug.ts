@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import {DebugAddLogResponse,OpenDebugBrowserResponse } from '@codebolt/types';
+import { DebugAddLogResponse, OpenDebugBrowserResponse } from '../types/cliWebSocketInterfaces';
 export enum logType{
     info="info",
     error="error",

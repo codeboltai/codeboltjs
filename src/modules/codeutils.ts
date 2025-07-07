@@ -5,7 +5,7 @@ import path from 'path';
 // import JavaScript from 'tree-sitter-javascript';
 // import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
 
-import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '@codebolt/types';
+import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '../types/cliWebSocketInterfaces';
 import { loadRequiredLanguageParsers } from '../utils/parse-source-code/languageParser';
 
 // Define our own interface for the JS tree response

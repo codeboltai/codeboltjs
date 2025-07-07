@@ -1,4 +1,4 @@
-import { AddTokenResponse, GetTokenResponse } from '@codebolt/types';
+import { AddTokenResponse, GetTokenResponse } from '../types/cliWebSocketInterfaces';
 import cbws from '../core/websocket';
 
 /**

@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-// import {AddTaskResponse,GetTasksResponse,UpdateTasksResponse } from '@codebolt/types';
+import { AddTaskResponse, GetTasksResponse, UpdateTasksResponse } from '../types/cliWebSocketInterfaces';
 /**
  * Manages task operations via WebSocket communication.
  */

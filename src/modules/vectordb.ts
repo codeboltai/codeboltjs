@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { AddVectorItemResponse,GetVectorResponse,QueryVectorItemResponse } from '@codebolt/types';
+import { AddVectorItemResponse, GetVectorResponse, QueryVectorItemResponse } from '../types/cliWebSocketInterfaces';
 const VectorDB = {
     /**
      * Retrieves a vector from the vector database based on the provided key.

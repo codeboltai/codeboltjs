@@ -1,4 +1,4 @@
-import { GetAgentStateResponse } from '@codebolt/types';
+import { GetAgentStateResponse } from '../types/cliWebSocketInterfaces';
 import cbws from '../core/websocket';
 
 

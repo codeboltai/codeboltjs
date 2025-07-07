@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import {MemorySetResponse,MemoryGetResponse  } from '@codebolt/types';
+import { MemorySetResponse, MemoryGetResponse } from '../types/cliWebSocketInterfaces';
 
 /**
  * A module for handling in-memory database operations via WebSocket.

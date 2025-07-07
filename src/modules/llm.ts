@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { LLMResponse } from '@codebolt/types';
+import { LLMResponse } from '../types/cliWebSocketInterfaces';
 import type { Message, ToolCall, Tool, LLMInferenceParams } from '../index';
 
 // Re-export types for backward compatibility

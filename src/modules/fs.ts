@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import {CreateFileResponse,CreateFolderResponse,ReadFileResponse,UpdateFileResponse,DeleteFileResponse,DeleteFolderResponse} from  '@codebolt/types'
+import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '../types/cliWebSocketInterfaces';
 /**
  * @module cbfs
  * @description This module provides functionality to interact with the filesystem.

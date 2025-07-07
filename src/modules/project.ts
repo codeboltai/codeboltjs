@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { GetProjectPathResponse } from '@codebolt/types';
+import { GetProjectPathResponse } from '../types/cliWebSocketInterfaces';
 /**
  * A module for interacting with project settings and paths.
  */

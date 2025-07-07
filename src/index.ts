@@ -25,7 +25,7 @@ import {chatSummary} from './modules/history'
 import codeboltTools from './modules/tools';
 import cbagent from './modules/agent';
 import cbutils from './modules/utils';
-import type { LLMResponse } from '@codebolt/types';
+import type { LLMResponse } from './types/cliWebSocketInterfaces';
 
 /**
  * Represents a message in the conversation with roles and content.

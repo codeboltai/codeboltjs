@@ -1,4 +1,5 @@
 import cbws from '../core/websocket';
+import { GetSummarizeAllResponse, GetSummarizeResponse } from '../types/cliWebSocketInterfaces';
 
 /**
  * Enum representing different types of log messages.
@@ -22,10 +23,7 @@ export const chatSummary = {
      * 
      * @returns Promise with an array of message objects containing role and content
      */
-    summarizeAll: (): Promise<{
-        role: string;
-        content: string;
-    }[]> => {
+    summarizeAll: (): Promise<GetSummarizeAllResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "chatSummaryEvent",
@@ -45,10 +43,7 @@ export const chatSummary = {
     summarize: (messages: {
         role: string;
         content: string;
-    }[], depth: number): Promise<{
-        role: string;
-        content: string;
-    }[]> => {
+    }[], depth: number): Promise<GetSummarizeResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "chatSummaryEvent",

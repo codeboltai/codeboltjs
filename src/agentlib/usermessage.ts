@@ -124,8 +124,10 @@ class UserMessage {
 
         if (bAttachEnvironment) {
             let { projectPath } = await project.getProjectPath();
-            const environmentDetail = await this.getEnvironmentDetail(projectPath);
-            this.userMessages.push({ type: "text", text: environmentDetail });
+            if (projectPath) {
+                const environmentDetail = await this.getEnvironmentDetail(projectPath);
+                this.userMessages.push({ type: "text", text: environmentDetail });
+            }
         }
 
         return this.userMessages;
