@@ -1,5 +1,5 @@
 import chatlib from "../modules/chat"
-import tools from "../modules/tools"
+import tools from "../modules/mcp"
 import llm from "../modules/llm"
 import codeboltAgent from "../modules/agent"
 import { SystemPrompt } from "./systemprompt";

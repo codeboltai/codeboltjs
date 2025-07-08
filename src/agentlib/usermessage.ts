@@ -1,6 +1,6 @@
 import cbfs from "../modules/fs";
 import project from "../modules/project";
-import mcp from "../modules/tools";
+import mcp from "../modules/mcp";
 
 /**
  * Interface representing an agent that can be referenced in user messages.

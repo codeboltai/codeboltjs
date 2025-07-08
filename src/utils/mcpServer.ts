@@ -1218,7 +1218,7 @@ type Authenticate<T> = (request: http.IncomingMessage) => Promise<T>;
  * Class representing a toolbox for FastMCP.
  * Manages tools, resources, and prompts for a Model Context Protocol server.
  */
-export class ToolBox<T extends Record<string, unknown> | undefined = undefined> extends FastMCPEventEmitter {
+export class MCPServer<T extends Record<string, unknown> | undefined = undefined> extends FastMCPEventEmitter {
   #options: ServerOptions<T>;
   #prompts: InputPrompt[] = [];
   #resources: Resource[] = [];

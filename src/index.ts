@@ -22,7 +22,7 @@ import tokenizer from './modules/tokenizer'
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import {chatSummary} from './modules/history'
-import codeboltTools from './modules/tools';
+import codeboltTools from './modules/mcp';
 import cbagent from './modules/agent';
 import cbutils from './modules/utils';
 import type { LLMResponse } from './types/cliWebSocketInterfaces';
@@ -171,7 +171,7 @@ class Codebolt  {
     debug = debug;
     tokenizer = tokenizer;
     chatSummary=chatSummary;
-    tools = codeboltTools;
+    mcp = codeboltTools;
     agent = cbagent;
     utils = cbutils;
   
