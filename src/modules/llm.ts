@@ -48,7 +48,8 @@ const cbllm = {
                     messages: message.messages,
                     tools: message.tools,
                     tool_choice: message.tool_choice,
-                    llmrole: message.llmrole
+                    llmrole: message.llmrole,
+                    full:true
                 },
             },
             "llmResponse"

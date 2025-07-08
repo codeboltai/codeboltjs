@@ -1,4 +1,4 @@
-import { GetAgentStateResponse } from '../types/cliWebSocketInterfaces';
+import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/cliWebSocketInterfaces';
 import cbws from '../core/websocket';
 
 
@@ -27,9 +27,9 @@ const codeboltAgent = {
     /**
      * Retrieves an agent based on the specified task.
      * @param {string} task - The task for which an agent is needed.
-     * @returns {Promise<AgentResponse>} A promise that resolves with the agent details.
+     * @returns {Promise<FindAgentByTaskResponse>} A promise that resolves with the agent details.
      */
-    findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<any> => {
+    findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<FindAgentByTaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "agentEvent",
@@ -47,9 +47,9 @@ const codeboltAgent = {
     /**
      * Starts an agent for the specified task.
      * @param {string} task - The task for which the agent should be started.
-     * @returns {Promise<void>} A promise that resolves when the agent has been successfully started.
+     * @returns {Promise<TaskCompletionResponse>} A promise that resolves when the agent has been successfully started.
      */
-    startAgent: (agentId: string, task: string): Promise<any> => {
+    startAgent: (agentId: string, task: string): Promise<TaskCompletionResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "agentEvent",
@@ -63,9 +63,9 @@ const codeboltAgent = {
 
     /**
      * Lists all available agents.
-     * @returns {Promise<any>} A promise that resolves with the list of agents.
+     * @returns {Promise<ListAgentsResponse>} A promise that resolves with the list of agents.
      */
-    getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<any> => {
+    getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<ListAgentsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "agentEvent",
@@ -78,9 +78,9 @@ const codeboltAgent = {
     },
     /**
      * Lists all available agents.
-     * @returns {Promise<any>} A promise that resolves with the list of agents.
+     * @returns {Promise<AgentsDetailResponse>} A promise that resolves with the list of agents.
      */
-    getAgentsDetail: (agentList = []): Promise<any> => {
+    getAgentsDetail: (agentList = []): Promise<AgentsDetailResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "agentEvent",
@@ -91,7 +91,6 @@ const codeboltAgent = {
         );
     }
 }
-
 
 export default codeboltAgent;
 
