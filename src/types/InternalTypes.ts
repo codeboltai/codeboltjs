@@ -152,10 +152,10 @@ export interface JSTreeResponse {
 }
 
 export interface LanguageParser {
-  name: string;
-  extensions: string[];
-  parser: any;
-  grammar: any;
+  [key: string]: {
+    parser: any;
+    query: any;
+  };
 }
 
 // ================================
@@ -573,3 +573,82 @@ export interface CircuitBreaker {
   forceOpen(): void;
   forceClose(): void;
 }
+
+// ================================
+// Agent Library Internal Types
+// ================================
+
+/**
+ * Interface for tools that can be used within tasks.
+ */
+export interface Tools {
+  [key: string]: {
+    /** Description of what the tool does */
+    description: string;
+    /** How to use the tool correctly */
+    usage: string;
+    /** Optional example demonstrating tool usage */
+    example?: string;
+  };
+}
+
+/**
+ * Interface for task data structure as loaded from YAML.
+ */
+export interface TaskData {
+  [key: string]: {
+    /** Description of what the task should accomplish */
+    description: string;
+    /** Expected output format or content */
+    expected_output: string;
+  };
+}
+
+/**
+ * Interface for user message structure in tasks.
+ */
+export interface UserMessages {
+  /** The type of user message */
+  type: string;
+  /** The text content of the message */
+  text: string;
+}
+
+/**
+ * Interface for system prompt data loaded from YAML.
+ */
+export interface PromptData {
+  [key: string]: {
+    prompt: string;
+  };
+}
+
+/**
+ * Interface for user message structure in agent lib.
+ */
+export interface Message {
+  /** The actual text content of the user message */
+  userMessage: string;
+  /** Optional list of files mentioned in the message */
+  mentionedFiles?: string[];
+  /** List of MCP (Model Context Protocol) tools mentioned */
+  mentionedMCPs: { toolbox: string, toolName: string }[];
+  /** List of agents mentioned in the message */
+  mentionedAgents: any[];
+}
+
+/**
+ * Interface for file listing result.
+ */
+export interface FileListResult {
+  /** Whether the listing operation was successful */
+  success: boolean;
+  /** The result of the listing operation as a string */
+  result: string;
+}
+
+// ================================
+// Parser Internal Types
+// ================================
+
+// LanguageParser interface already defined above at line 154

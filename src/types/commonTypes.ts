@@ -377,9 +377,18 @@ export interface CodeMatcher {
 // ================================
 
 export interface MCPTool {
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
+  /** Name of the MCP */
+  name?: string;
+  /** Toolbox name */
+  toolbox?: string;
+  /** Tool name */
+  toolName?: string;
+  /** Available tools */
+  tools?: any[];
+  /** Description */
+  description?: string;
+  /** Parameters */
+  parameters?: Record<string, any>;
 }
 
 export interface MCPServer {
@@ -387,6 +396,65 @@ export interface MCPServer {
   enabled: boolean;
   tools: MCPTool[];
   configuration?: Record<string, any>;
+}
+
+// ================================
+// Agent Types
+// ================================
+
+/**
+ * Interface for Agent structure
+ */
+export interface Agent {
+  /** Agent name */
+  name?: string;
+  /** Agent ID */
+  id?: string | number;
+  /** Agent description */
+  description?: string;
+  /** Agent title */
+  title?: string;
+  /** Agent identifier string */
+  agent_id?: string;
+  /** Unique identifier for the agent */
+  unique_id?: string;
+  /** Detailed description of the agent and its capabilities */
+  longDescription?: string;
+}
+
+// ================================
+// User Message Types
+// ================================
+
+/**
+ * Interface for initial user message structure
+ */
+export interface InitialUserMessage {
+  /** The message text */
+  messageText?: string;
+  /** The actual text content of the user message */
+  userMessage?: string;
+  /** List of mentioned files */
+  mentionedFiles?: string[];
+  /** List of mentioned MCPs */
+  mentionedMCPs?: MCPTool[];
+  /** List of mentioned agents */
+  mentionedAgents?: Agent[];
+}
+
+// ================================
+// AST and Code Parsing Types
+// ================================
+
+/**
+ * Type definition for an AST node.
+ */
+export interface ASTNode {
+  type: string;
+  text: string;
+  startPosition: { row: number; column: number };
+  endPosition: { row: number; column: number };
+  children: ASTNode[];
 }
 
 // ================================

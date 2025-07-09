@@ -1,12 +1,7 @@
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
-
-interface PromptData {
-    [key: string]: {
-        prompt: string;
-    };
-}
+import type { PromptData } from "../types/InternalTypes";
 
 /**
  * SystemPrompt class for loading and managing system prompts from YAML files

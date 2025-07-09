@@ -83,6 +83,115 @@ export interface LLMInferenceParams {
 }
 
 // ================================
+// OpenAI Compatible Types
+// ================================
+
+/**
+ * OpenAI-compatible message format for conversations
+ */
+export interface OpenAIMessage {
+  /** Role of the message sender */
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  /** Content of the message */
+  content: string | Array<{ type: string; text: string }>;
+  /** Tool call ID for tool messages */
+  tool_call_id?: string;
+  /** Tool calls for assistant messages */
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
+}
+
+/**
+ * OpenAI-compatible tool format
+ */
+export interface OpenAITool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      properties: Record<string, {
+        type: string;
+        description: string;
+      }>;
+      required?: string[];
+      additionalProperties?: boolean;
+    };
+    strict?: boolean;
+  };
+}
+
+/**
+ * Conversation history entry for agent interactions
+ */
+export interface ConversationEntry {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string | Array<{ type: string; text: string }>;
+  tool_call_id?: string;
+  tool_calls?: any[];
+}
+
+/**
+ * Result from a tool execution
+ */
+export interface ToolResult {
+  /** Always 'tool' for tool execution results */
+  role: 'tool';
+  /** ID that links this result to the original tool call */
+  tool_call_id: string;
+  /** The content returned by the tool */
+  content: any;
+  /** Optional user message to be added after tool execution */
+  userMessage?: any;
+}
+
+/**
+ * Details about a tool to be executed
+ */
+export interface ToolDetails {
+  /** The name of the tool to execute */
+  toolName: string;
+  /** Input parameters for the tool */
+  toolInput: any;
+  /** Unique ID for this tool use instance */
+  toolUseId: string;
+}
+
+/**
+ * Content block within a user message
+ */
+export interface UserMessageContent {
+  /** Type of content (e.g., "text", "image") */
+  type: string;
+  /** The text content */
+  text: string;
+}
+
+/**
+ * Interface for codebolt API functionality
+ */
+export interface CodeboltAPI {
+  mcp: {
+    listMcpFromServers: (servers: string[]) => Promise<{ data: OpenAITool[] }>;
+    getTools: (mcps: any[]) => Promise<{ data: OpenAITool[] }>;
+  };
+  fs: {
+    readFile: (filepath: string) => Promise<string>;
+    listFile: (path: string, recursive: boolean) => Promise<{ success: boolean; result: string }>;
+  };
+  project: {
+    getProjectPath: () => Promise<{ projectPath: string }>;
+  };
+}
+
+// ================================
 // File System API Types
 // ================================
 

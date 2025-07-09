@@ -1,12 +1,6 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
-
-export interface PendingRequest {
-    resolve: (value: any) => void;
-    reject: (reason?: any) => void;
-    messageTypes: string[];
-    requestId?: string;
-}
+import type { PendingRequest } from '../types/commonTypes';
 
 /**
  * Centralized message manager for handling WebSocket communications

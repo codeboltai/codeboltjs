@@ -2,128 +2,23 @@ import { UserMessage } from "./usermessage";
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
 import { UserMessage as CLIUserMessage } from "../types/socketMessageTypes";
+import type { 
+  OpenAIMessage, 
+  OpenAITool, 
+  ConversationEntry, 
+  UserMessageContent, 
+  CodeboltAPI 
+} from "../types/libFunctionTypes";
+import type { 
+  MCPTool, 
+  Agent, 
+  InitialUserMessage 
+} from "../types/commonTypes";
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
 
-/**
- * Interface for MCP (Model Context Protocol) tool structure
- */
-interface MCPTool {
-    /** Name of the MCP */
-    name?: string;
-    /** Toolbox name */
-    toolbox?: string;
-    /** Tool name */
-    toolName?: string;
-    /** Available tools */
-    tools?: any[];
-}
-
-/**
- * Interface for Agent structure
- */
-interface Agent {
-    /** Agent name */
-    name?: string;
-    /** Agent ID */
-    id?: string | number;
-    /** Agent description */
-    description?: string;
-    /** Agent title */
-    title?: string;
-    /** Agent identifier string */
-    agent_id?: string;
-    /** Unique identifier for the agent */
-    unique_id?: string;
-    /** Detailed description of the agent and its capabilities */
-    longDescription?: string;
-}
-
-/**
- * Interface for initial user message structure
- */
-interface InitialUserMessage {
-    /** The message text */
-    messageText?: string;
-    /** The actual text content of the user message */
-    userMessage?: string;
-    /** List of mentioned files */
-    mentionedFiles?: string[];
-    /** List of mentioned MCPs */
-    mentionedMCPs?: MCPTool[];
-    /** List of mentioned agents */
-    mentionedAgents?: Agent[];
-}
-
-/**
- * Interface for OpenAI message format
- */
-interface OpenAIMessage {
-    /** Role of the message sender */
-    role: 'system' | 'user' | 'assistant' | 'tool';
-    /** Content of the message */
-    content: string | Array<{ type: string; text: string }>;
-    /** Tool call ID for tool messages */
-    tool_call_id?: string;
-    /** Tool calls for assistant messages */
-    tool_calls?: Array<{
-        id: string;
-        type: 'function';
-        function: {
-            name: string;
-            arguments: string;
-        };
-    }>;
-}
-
-/**
- * Interface for OpenAI tool format
- */
-interface OpenAITool {
-    type: 'function';
-    function: {
-        name: string;
-        description: string;
-        parameters: {
-            type: 'object';
-            properties: Record<string, {
-                type: string;
-                description: string;
-            }>;
-            required?: string[];
-            additionalProperties?: boolean;
-        };
-        strict?: boolean;
-    };
-}
-
-/**
- * Interface for conversation history entry
- */
-interface ConversationEntry {
-    role: 'system' | 'user' | 'assistant' | 'tool';
-    content: string | Array<{ type: string; text: string }>;
-    tool_call_id?: string;
-    tool_calls?: any[];
-}
-
-/**
- * Interface for codebolt API (minimal definition for what we need)
- */
-interface CodeboltAPI {
-    mcp: {
-        listMcpFromServers: (servers: string[]) => Promise<{ data: OpenAITool[] }>;
-        getTools: (mcps: MCPTool[]) => Promise<{ data: OpenAITool[] }>;
-    };
-    fs: {
-        readFile: (filepath: string) => Promise<string>;
-        listFile: (path: string, recursive: boolean) => Promise<{ success: boolean; result: string }>;
-    };
-    project: {
-        getProjectPath: () => Promise<{ projectPath: string }>;
-    };
-}
+// All interfaces moved to appropriate type files
 
 /**
  * PromptBuilder class for constructing prompts using a fluent interface.

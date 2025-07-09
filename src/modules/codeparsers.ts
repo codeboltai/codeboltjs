@@ -1,18 +1,8 @@
 import { parseFile } from "../utils/parse-source-code";
 import { loadRequiredLanguageParsers } from "../utils/parse-source-code/languageParser";
+import type { ASTNode } from "../types/commonTypes";
 import * as fs from 'fs/promises';
 import * as path from 'path';
-
-/**
- * Type definition for an AST node.
- */
-export interface ASTNode {
-    type: string;
-    text: string;
-    startPosition: { row: number; column: number };
-    endPosition: { row: number; column: number };
-    children: ASTNode[];
-}
 
 /**
  * A collection of code parser functions.

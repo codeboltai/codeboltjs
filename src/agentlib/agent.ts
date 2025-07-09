@@ -4,46 +4,9 @@ import llm from "../modules/llm"
 import codeboltAgent from "../modules/agent"
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
+import type { Message, ToolResult, ToolDetails } from "../types/libFunctionTypes";
 
-/**
- * Represents a message in the conversation with roles and content.
- */
-interface Message {
-    /** The role of the message sender: user, assistant, tool, or system */
-    role: 'user' | 'assistant' | 'tool' | 'system';
-    /** The content of the message, can be an array of content blocks or a string */
-    content: any[] | string;
-    /** Optional ID for tool calls */
-    tool_call_id?: string;
-    /** Additional properties that might be present */
-    [key: string]: any;
-}
-
-/**
- * Represents the result from a tool execution.
- */
-interface ToolResult {
-    /** Always 'tool' for tool execution results */
-    role: 'tool';
-    /** ID that links this result to the original tool call */
-    tool_call_id: string;
-    /** The content returned by the tool */
-    content: any;
-    /** Optional user message to be added after tool execution */
-    userMessage?: any;
-}
-
-/**
- * Details about a tool to be executed.
- */
-interface ToolDetails {
-    /** The name of the tool to execute */
-    toolName: string;
-    /** Input parameters for the tool */
-    toolInput: any;
-    /** Unique ID for this tool use instance */
-    toolUseId: string;
-}
+// All interfaces moved to libFunctionTypes.ts
 
 /**
  * Agent class that manages conversations with LLMs and tool executions.

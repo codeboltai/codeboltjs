@@ -1,4 +1,6 @@
-import { UserMessage, UserMessageContent } from "./usermessage";
+import { UserMessage } from "./usermessage";
+import type { UserMessageContent } from "../types/libFunctionTypes";
+import type { Tools, TaskData, UserMessages } from "../types/InternalTypes";
 
 /**
  * Encapsulates task instructions and their related metadata.
@@ -7,45 +9,6 @@ import { UserMessage, UserMessageContent } from "./usermessage";
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
-
-/**
- * Interface for tools that can be used within tasks.
- * Each tool has a description and usage example.
- */
-interface Tools {
-    [key: string]: {
-        /** Description of what the tool does */
-        description: string;
-        /** How to use the tool correctly */
-        usage: string;
-        /** Optional example demonstrating tool usage */
-        example?: string;
-    };
-}
-
-/**
- * Interface for task data structure as loaded from YAML.
- * Contains task descriptions and expected outputs.
- */
-interface TaskData {
-    [key: string]: {
-        /** Description of what the task should accomplish */
-        description: string;
-        /** Expected output format or content */
-        expected_output: string;
-    };
-}
-
-/**
- * Interface for user message structure.
- * Contains message type and text content.
- */
-interface UserMessages {
-    /** The type of user message */
-    type: string;
-    /** The text content of the message */
-    text: string;
-}
 
 /**
  * Class representing a task instruction.

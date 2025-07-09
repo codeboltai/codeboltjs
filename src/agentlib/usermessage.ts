@@ -1,58 +1,11 @@
 import cbfs from "../modules/fs";
 import project from "../modules/project";
 import mcp from "../modules/mcp";
+import type { UserMessageContent } from "../types/libFunctionTypes";
+import type { Agent } from "../types/commonTypes";
+import type { Message, FileListResult } from "../types/InternalTypes";
 
-/**
- * Interface representing an agent that can be referenced in user messages.
- */
-interface agent {
-    /** Short description of the agent */
-    description: string;
-    /** Title/name of the agent */
-    title: string;
-    /** Numeric ID of the agent */
-    id: number;
-    /** Agent identifier string */
-    agent_id: string;
-    /** Unique identifier for the agent */
-    unique_id: string;
-    /** Detailed description of the agent and its capabilities */
-    longDescription: string;
-}
-
-/**
- * Interface for the user message structure.
- */
-interface Message {
-    /** The actual text content of the user message */
-    userMessage: string;
-    /** Optional list of files mentioned in the message */
-    mentionedFiles?: string[];
-    /** List of MCP (Model Context Protocol) tools mentioned */
-    mentionedMCPs: { toolbox: string, toolName: string }[];
-    /** List of agents mentioned in the message */
-    mentionedAgents: agent[];
-}
-
-/**
- * Interface for a single content block within a user message.
- */
-export interface UserMessageContent {
-    /** Type of content (e.g., "text", "image") */
-    type: string;
-    /** The text content */
-    text: string;
-}
-
-/**
- * Interface for file listing result.
- */
-interface FileListResult {
-    /** Whether the listing operation was successful */
-    success: boolean;
-    /** The result of the listing operation as a string */
-    result: string;
-}
+// All interfaces moved to appropriate type files
 
 /**
  * Class that processes and manages user messages.
@@ -138,7 +91,7 @@ class UserMessage {
      * 
      * @returns Array of agent objects
      */
-    getMentionedAgents() {
+    getMentionedAgents(): Agent[] {
         //TODO : get config in tool format if neede
         return this.message.mentionedAgents || [];
     }

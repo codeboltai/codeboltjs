@@ -14,13 +14,7 @@ import {
 	phpQuery,
 	swiftQuery,
 } from "./queries"
-
-export interface LanguageParser {
-	[key: string]: {
-		parser: Parser
-		query: Parser.Query
-	}
-}
+import type { LanguageParser } from "../../types/InternalTypes";
 
 async function loadLanguage(langName: string) {
 	return await Parser.Language.load(path.join(__dirname, `tree-sitter-${langName}.wasm`))
