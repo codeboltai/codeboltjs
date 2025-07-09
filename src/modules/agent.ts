@@ -1,4 +1,4 @@
-import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/cliWebSocketInterfaces';
+import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
 
 

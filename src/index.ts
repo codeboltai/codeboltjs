@@ -25,78 +25,22 @@ import {chatSummary} from './modules/history'
 import codeboltTools from './modules/mcp';
 import cbagent from './modules/agent';
 import cbutils from './modules/utils';
-import type { ChatMessageFromUser, LLMResponse, UserMessage } from './types/cliWebSocketInterfaces';
+import type { ChatMessageFromUser, LLMResponse, UserMessage } from './types/socketMessageTypes';
 import { userInfo } from 'os';
 
-/**
- * Represents a message in the conversation with roles and content.
- */
-export interface Message {
-    /** The role of the message sender: user, assistant, tool, or system */
-    role: 'user' | 'assistant' | 'tool' | 'system';
-    /** The content of the message, can be an array of content blocks or a string */
-    content: any[] | string;
-    /** Optional ID for tool calls */
-    tool_call_id?: string;
-    /** Optional tool calls for assistant messages */
-    tool_calls?: ToolCall[];
-    /** Additional properties that might be present */
-    [key: string]: any;
-}
-
-/**
- * Represents a tool call in OpenAI format
- */
-export interface ToolCall {
-    /** Unique identifier for this tool call */
-    id: string;
-    /** The type of tool call */
-    type: 'function';
-    /** Function call details */
-    function: {
-        /** Name of the function to call */
-        name: string;
-        /** Arguments for the function call as JSON string */
-        arguments: string;
-    };
-}
-
-/**
- * Represents a tool definition in OpenAI format
- */
-export interface Tool {
-    /** The type of tool */
-    type: 'function';
-    /** Function definition */
-    function: {
-        /** Name of the function */
-        name: string;
-        /** Description of what the function does */
-        description?: string;
-        /** JSON schema for the function parameters */
-        parameters?: any;
-    };
-}
-
-/**
- * LLM inference request parameters
- */
-export interface LLMInferenceParams {
-    /** Array of messages in the conversation */
-    messages: Message[];
-    /** Available tools for the model to use */
-    tools?: Tool[];
-    /** How the model should use tools */
-    tool_choice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string } };
-    /** The LLM role to determine which model to use */
-    llmrole: string;
-    /** Maximum number of tokens to generate */
-    max_tokens?: number;
-    /** Temperature for response generation */
-    temperature?: number;
-    /** Whether to stream the response */
-    stream?: boolean;
-}
+// Re-export public API types for user convenience
+export type { 
+    Message, 
+    ToolCall, 
+    Tool, 
+    LLMInferenceParams,
+    APIResponse,
+    CodeboltConfig,
+    ProgressCallback,
+    ErrorCallback,
+    SuccessCallback,
+    CompletionCallback
+} from './types/libFunctionTypes';
 
 /**
  * @class Codebolt

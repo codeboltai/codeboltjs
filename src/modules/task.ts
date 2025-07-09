@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { AddTaskResponse, GetTasksResponse, UpdateTasksResponse } from '../types/cliWebSocketInterfaces';
+import { AddTaskResponse, GetTasksResponse, UpdateTasksResponse } from '../types/socketMessageTypes';
 /**
  * Manages task operations via WebSocket communication.
  */

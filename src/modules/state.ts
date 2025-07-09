@@ -1,5 +1,6 @@
 import cbws from '../core/websocket';
-import { ApplicationState, AddToAgentStateResponse, GetAgentStateResponse } from '../types/cliWebSocketInterfaces';
+import { AddToAgentStateResponse, GetAgentStateResponse } from '../types/socketMessageTypes';
+import { ApplicationState } from '../types/commonTypes';
 
 const cbstate = {
     /**
