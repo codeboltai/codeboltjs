@@ -163,18 +163,19 @@ class PromptBuilder {
      */
     constructor(userMessage: InitialUserMessage | CLIUserMessage, codebolt?: CodeboltAPI) {
         // Handle both InitialUserMessage and CLIUserMessage types
-        if ('content' in userMessage) {
-            // This is a CLIUserMessage
-            this.message = userMessage.content || userMessage.text || "";
-            this.mentionedFiles = [];
-            this.mentionedMCPs = [];
-            this.mentionedAgents = [];
+        if ('message' in userMessage && typeof userMessage.message === 'object') {
+            // This is a CLIUserMessage with nested message structure
+            this.message = userMessage.message.userMessage || userMessage.data?.text || "";
+            this.mentionedFiles = userMessage.message.mentionedFiles || [];
+            // Convert string array to MCPTool array for CLIUserMessage
+            this.mentionedMCPs = (userMessage.message.mentionedMCPs || []).map((name: string) => ({ name }));
+            this.mentionedAgents = userMessage.message.mentionedAgents || [];
         } else {
             // This is an InitialUserMessage
-            this.message = userMessage.messageText || userMessage.userMessage || "";
-            this.mentionedFiles = userMessage.mentionedFiles || [];
-            this.mentionedMCPs = userMessage.mentionedMCPs || [];
-            this.mentionedAgents = userMessage.mentionedAgents || [];
+            this.message = (userMessage as InitialUserMessage).messageText || (userMessage as InitialUserMessage).userMessage || "";
+            this.mentionedFiles = (userMessage as InitialUserMessage).mentionedFiles || [];
+            this.mentionedMCPs = (userMessage as InitialUserMessage).mentionedMCPs || [];
+            this.mentionedAgents = (userMessage as InitialUserMessage).mentionedAgents || [];
         }
         
         this.promptParts = [this.message];

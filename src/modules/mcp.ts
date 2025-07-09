@@ -9,7 +9,7 @@ import {
     ConfigureToolBoxResponse,
     GetToolsResponse,
     ExecuteToolResponse
-} from '../types/cliWebSocketInterfaces';
+} from '../types/socketMessageTypes';
 
 /**
  * Object containing methods for interacting with Codebolt MCP (Model Context Protocol) tools.

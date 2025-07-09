@@ -10,7 +10,7 @@ import {
     GitBranchResponse, 
     GitLogsResponse, 
     GitDiffResponse 
-} from '../types/cliWebSocketInterfaces';
+} from '../types/socketMessageTypes';
 
 /**
  * A service for interacting with Git operations via WebSocket messages.

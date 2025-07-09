@@ -1203,6 +1203,53 @@ export type CLIWebSocketResponse =
   | ErrorResponse;
 
 // ================================
+// Service Response Type Mapping
+// ================================
+
+export interface ServiceResponseTypeMap {
+  filesystem: ReadFileResponse | CreateFileResponse | WriteToFileResponse | DeleteFileResponse | ListDirectoryResponse;
+  fsService: FsReadFileResponse | FsWriteToFileResponse | FsListFilesResponse | FsListCodeDefinitionsResponse 
+            | FsSearchFilesResponse | FsGrepSearchResponse | FsFileSearchResponse | FsCreateFileResponse 
+            | FsCreateFolderResponse | FsUpdateFileResponse | FsDeleteFileResponse | FsDeleteFolderResponse 
+            | FsEditFileAndApplyDiffResponse | FsExecuteToolResponse;
+  browser: BrowserActionResponseData | BrowserScreenshotResponse | BrowserNavigationResponse;
+  terminal: TerminalExecuteResponse;
+  git: GitInitResponse | GitCommitResponse | GitStatusResponse | GitLogsResponse | GitPushResponse | GitPullResponse | GitDiffResponse;
+  memory: MemorySetResponse | MemoryGetResponse | MemoryDeleteResponse;
+  tasks: AddTaskResponse | GetTasksResponse | UpdateTasksResponse;
+  vectordb: AddVectorItemResponse | GetVectorResponse | QueryVectorItemResponse;
+  debug: DebugAddLogResponse | OpenDebugBrowserResponse;
+  codeutils: GetAllFilesMarkdownResponse | MatchProblemResponse | GetJsTreeResponse;
+  agents: FindAgentByTaskResponse | ListAgentsResponse | AgentsDetailResponse;
+  state: GetAppStateResponse | UpdateProjectStateResponse | GetAgentStateResponse | AddToAgentStateResponse;
+  chat: GetChatHistoryResponse | ChatSummaryResponse | GetSummarizeAllResponse | GetSummarizeResponse;
+  crawler: CrawlerResponse;
+  mcp: ExecuteToolResponse | GetToolsResponse | ConfigureToolBoxResponse | GetEnabledToolBoxesResponse 
+       | GetAvailableToolBoxesResponse | GetLocalToolBoxesResponse | SearchAvailableToolBoxesResponse
+       | ListToolsFromToolBoxesResponse | GetMcpToolsResponse | GetMcpListResponse 
+       | GetAllMCPToolsResponse | GetEnabledMCPSResponse | ConfigureMCPToolResponse;
+  project: GetProjectPathResponse | GetProjectSettingsResponse | GetRepoMapResponse | GetProjectStateResponse;
+  notification: NotificationSendResponse;
+  problemMatcher: ProblemMatcherResponse | GetMatcherListResponse | GetMatchDetailResponse;
+  jsTreeParser: JsTreeParseResponse;
+}
+
+// ================================
+// Helper Types
+// ================================
+
+export type SuccessResponse<T = any> = CLIWebSocketResponse & { success: true; data?: T };
+export type FailureResponse = CLIWebSocketResponse & { success: false; error: string };
+
+export type WebSocketMessageHandler<T extends CLIWebSocketResponse = CLIWebSocketResponse> = (
+  response: T
+) => void | Promise<void>;
+
+export type ServiceWebSocketHandler<K extends keyof ServiceResponseTypeMap> = WebSocketMessageHandler<
+  ServiceResponseTypeMap[K]
+>;
+
+// ================================
 // Type Guards
 // ================================
 
