@@ -1,4 +1,4 @@
-import { AddTokenResponse, GetTokenResponse } from '../types/cliWebSocketInterfaces';
+import { AddTokenResponse, GetTokenResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
 
 /**

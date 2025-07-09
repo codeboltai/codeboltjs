@@ -1,6 +1,6 @@
 import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
-import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '../types/cliWebSocketInterfaces';
+import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '../types/socketMessageTypes';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */

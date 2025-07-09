@@ -1,6 +1,6 @@
 import cbws from '../core/websocket';
-import { LLMResponse } from '../types/cliWebSocketInterfaces';
-import type { Message, ToolCall, Tool, LLMInferenceParams } from '../index';
+import { LLMResponse } from '../types/socketMessageTypes';
+import type { Message, ToolCall, Tool, LLMInferenceParams } from '../types/libFunctionTypes';
 
 // Re-export types for backward compatibility
 export type { Message, ToolCall, Tool, LLMInferenceParams };

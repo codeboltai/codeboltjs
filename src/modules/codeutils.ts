@@ -5,28 +5,12 @@ import path from 'path';
 // import JavaScript from 'tree-sitter-javascript';
 // import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
 
-import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '../types/cliWebSocketInterfaces';
+import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '../types/socketMessageTypes';
 import { loadRequiredLanguageParsers } from '../utils/parse-source-code/languageParser';
 
-// Define our own interface for the JS tree response
-export interface JSTreeStructureItem {
-    type: string;
-    name: string;
-    startLine: number;
-    endLine: number;
-    startColumn: number;
-    endColumn: number;
-    nodeType: string;
-}
-
-export interface JSTreeResponse {
-    event: string;
-    payload?: {
-        filePath: string;
-        structure: JSTreeStructureItem[];
-    };
-    error?: string;
-}
+// Import and re-export types from InternalTypes for consistency
+import type { JSTreeStructureItem, JSTreeResponse } from '../types/InternalTypes';
+export type { JSTreeStructureItem, JSTreeResponse };
 
 /**
  * A utility module for working with code.

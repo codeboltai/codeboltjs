@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '../types/cliWebSocketInterfaces';
+import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '../types/socketMessageTypes';
 /**
  * A module for interacting with a browser through WebSockets.
  */

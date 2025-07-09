@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { FsEditFileAndApplyDiffResponse } from '../types/cliWebSocketInterfaces';
+import { FsEditFileAndApplyDiffResponse } from '../types/socketMessageTypes';
 
 
 const cbutils = {

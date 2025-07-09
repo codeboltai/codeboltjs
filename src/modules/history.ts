@@ -1,8 +1,10 @@
 import cbws from '../core/websocket';
-import { GetSummarizeAllResponse, GetSummarizeResponse } from '../types/cliWebSocketInterfaces';
+import { GetSummarizeAllResponse, GetSummarizeResponse } from '../types/socketMessageTypes';
+import { LogType } from '../types/commonTypes';
 
 /**
  * Enum representing different types of log messages.
+ * @deprecated Use LogType from commonTypes instead
  */
 export enum logType {
     /** Informational messages */
@@ -12,6 +14,9 @@ export enum logType {
     /** Warning messages */
     warning = "warning"
 }
+
+// Re-export the new LogType for consistency
+export { LogType };
 
 /**
  * Object with methods for summarizing chat history.

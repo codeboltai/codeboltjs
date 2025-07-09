@@ -1,7 +1,7 @@
 import { UserMessage } from "./usermessage";
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
-import { UserMessage as CLIUserMessage } from "../types/cliWebSocketInterfaces";
+import { UserMessage as CLIUserMessage } from "../types/socketMessageTypes";
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
