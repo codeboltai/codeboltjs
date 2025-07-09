@@ -335,17 +335,82 @@ export interface ChatMessage extends BaseWebSocketResponse {
   metadata?: Record<string, any>;
 }
 
-export interface UserMessage extends BaseWebSocketResponse {
-  id: string;
-  content: string;
-  sender: 'user';
+export interface UserMessage {
+  type: "messageResponse";
+  message: {
+    type: "messageResponse";
+    userMessage: string;
+    currentFile: string;
+    selectedAgent: {
+      id: string;
+      name: string;
+      lastMessage: Record<string, any>;
+    };
+    mentionedFiles: string[];
+    mentionedFullPaths: string[];
+    mentionedFolders: string[];
+    mentionedMultiFile: string[];
+    mentionedMCPs: string[];
+    uploadedImages: string[];
+    actions: any[];
+    mentionedAgents: any[];
+    mentionedDocs: any[];
+    links: any[];
+    universalAgentLastMessage: string;
+    selection: any | null;
+    controlFiles: any[];
+    feedbackMessage: string;
+    terminalMessage: string;
+    messageId: string;
+    threadId: string;
+    templateType: string;
+    processId: string;
+    shadowGitHash: string;
+  };
+  sender: {
+    senderType: string;
+    senderInfo: Record<string, any>;
+  };
+  templateType: string;
+  data: {
+    text: string;
+    [key: string]: any;
+  };
+  messageId: string;
   timestamp: string;
-  type: string;
-  text?: string;
-  images?: any[];
-  messageId?: string;
-  threadId?: string;
 }
+
+
+export interface ChatMessageFromUser {
+    type: "messageResponse";
+    userMessage: string;
+    currentFile: string;
+    selectedAgent: {
+      id: string;
+      name: string;
+      lastMessage: Record<string, any>;
+    };
+    mentionedFiles: string[];
+    mentionedFullPaths: string[];
+    mentionedFolders: string[];
+    mentionedMultiFile: string[];
+    mentionedMCPs: string[];
+    uploadedImages: string[];
+    actions: any[];
+    mentionedAgents: any[];
+    mentionedDocs: any[];
+    links: any[];
+    universalAgentLastMessage: string;
+    selection: any | null;
+    controlFiles: any[];
+    feedbackMessage: string;
+    terminalMessage: string;
+    messageId: string;
+    threadId: string;
+    templateType: string;
+    processId: string;
+    shadowGitHash: string;
+  }
 
 // ================================
 // LLM Types (for llm.ts)
@@ -418,7 +483,7 @@ export interface getMatchDetail extends BaseWebSocketResponse {
 
 export interface GetProjectPathResponse extends BaseWebSocketResponse {
   type: 'getProjectPathResponse';
-  path?: string;
+  projectPath?: string;
   projectName?: string;
 }
 

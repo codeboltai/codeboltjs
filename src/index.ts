@@ -25,7 +25,8 @@ import {chatSummary} from './modules/history'
 import codeboltTools from './modules/mcp';
 import cbagent from './modules/agent';
 import cbutils from './modules/utils';
-import type { LLMResponse } from './types/cliWebSocketInterfaces';
+import type { ChatMessageFromUser, LLMResponse, UserMessage } from './types/cliWebSocketInterfaces';
+import { userInfo } from 'os';
 
 /**
  * Represents a message in the conversation with roles and content.
@@ -180,14 +181,14 @@ class Codebolt  {
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
-    onMessage(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
+    onMessage(handler: (userMessage: ChatMessageFromUser) => void | Promise<void> | any | Promise<any>) {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
-            const handleUserMessage = async (response: any) => {
+            const handleUserMessage = async (response: UserMessage) => {
                 console.log("Message received By Agent Library Starting Custom Agent Handler Logic");
                 if (response.type === "messageResponse") {
                     try {
-                        const result = await handler(response);
+                        const result = await handler(response.message);
                         // Send processStoped with optional message
                         const message: any = {
                             "type": "processStoped"
