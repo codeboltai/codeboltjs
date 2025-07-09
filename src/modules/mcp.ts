@@ -21,7 +21,7 @@ const codeboltMCP = {
      * 
      * @returns Promise with the enabled toolboxes data
      */
-    getEnabledToolBoxes: (): Promise<GetEnabledToolBoxesResponse> => {
+    getEnabledMCPServers: (): Promise<GetEnabledToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",
@@ -36,7 +36,7 @@ const codeboltMCP = {
      * 
      * @returns Promise with the local toolboxes data
      */
-    getLocalToolBoxes: (): Promise<GetLocalToolBoxesResponse> => {
+    getLocalMCPServers: (): Promise<GetLocalToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",
@@ -52,7 +52,7 @@ const codeboltMCP = {
      * @param userMessage - The user message to extract mentions from
      * @returns Promise with the mentioned toolboxes
      */
-    getMentionedToolBoxes: (userMessage: UserMessage): Promise<GetAvailableToolBoxesResponse> => {
+    getMentionedMCPServers: (userMessage: UserMessage): Promise<GetAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",
@@ -68,7 +68,7 @@ const codeboltMCP = {
      * @param query - The search query string
      * @returns Promise with matching toolboxes data
      */
-    searchAvailableToolBoxes: (query: string): Promise<SearchAvailableToolBoxesResponse> => {
+    searchAvailableMCPServers: (query: string): Promise<SearchAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",
@@ -85,7 +85,7 @@ const codeboltMCP = {
      * @param toolBoxes - Array of toolbox names to list tools from
      * @returns Promise with tools from the specified toolboxes
      */
-    listToolsFromToolBoxes: (toolBoxes: string[]): Promise<ListToolsFromToolBoxesResponse> => {
+    listMcpFromServers: (toolBoxes: string[]): Promise<ListToolsFromToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",
@@ -103,7 +103,7 @@ const codeboltMCP = {
      * @param config - Configuration object for the toolbox
      * @returns Promise with the configuration result
      */
-    configureToolBox: (name: string, config: any): Promise<ConfigureToolBoxResponse> => {
+    configureMCPServer: (name: string, config: any): Promise<ConfigureToolBoxResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",

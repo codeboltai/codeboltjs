@@ -25,36 +25,18 @@ const cbllm = {
      *   - stream: Whether to stream the response
      * @returns A promise that resolves with the LLM's response
      */
-    inference: async (message: {
-        /** Array of messages in the conversation */
-        messages: Message[];
-        /** Available tools for the model to use */
-        tools?: Tool[];
-        /** How the model should use tools */
-        tool_choice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string } };
-        /** The LLM role to determine which model to use */
-        llmrole: string;
-        /** Maximum number of tokens to generate */
-        max_tokens?: number;
-        /** Temperature for response generation */
-        temperature?: number;
-        /** Whether to stream the response */
-        stream?: boolean;
-    }): Promise<LLMResponse> => {
+    inference: async (message: string, llmrole: string): Promise<LLMResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "inference",
                 "message": {
-                    messages: message.messages,
-                    tools: message.tools,
-                    tool_choice: message.tool_choice,
-                    llmrole: message.llmrole,
-                    full:true
+                    prompt: message,
+                    llmrole
                 },
             },
             "llmResponse"
         );
-    },
+    }
 
     /**
      * Legacy method for backward compatibility - converts simple string prompt to message format.
@@ -64,19 +46,19 @@ const cbllm = {
      * @param {string} llmrole - The role of the LLM to determine which model to use.
      * @returns {Promise<LLMResponse>} A promise that resolves with the LLM's response.
      */
-    legacyInference: async (message: string, llmrole: string): Promise<LLMResponse> => {
-        const messages: Message[] = [
-            {
-                role: 'user',
-                content: message
-            }
-        ];
+    // legacyInference: async (message: string, llmrole: string): Promise<LLMResponse> => {
+    //     const messages: Message[] = [
+    //         {
+    //             role: 'user',
+    //             content: message
+    //         }
+    //     ];
         
-        return cbllm.inference({
-            messages,
-            llmrole
-        });
-    }
+    //     return cbllm.inference({
+    //         messages,
+          
+    //     },  llmrole);
+    // }
 };
 
 export default cbllm;

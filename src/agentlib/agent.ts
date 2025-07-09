@@ -89,11 +89,11 @@ class Agent {
     async run(task: TaskInstruction, successCondition: () => boolean = () => true): Promise<{ success: boolean; error: string | null, message: string | null }> {
 
 
-        let mentaionedMCPSTool: any[] = await task.userMessage.getMentionedMcpsTools();
+        let mentaionedMCPSTool: any[]|undefined = await task.userMessage.getMentionedMcpsTools();
 
         this.tools = [
             ...this.tools,
-            ...mentaionedMCPSTool,
+            ...(mentaionedMCPSTool || []),
 
         ]
         let mentionedAgents = await task.userMessage.getMentionedAgents();
@@ -355,7 +355,7 @@ class Agent {
         console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
         const {data} = await tools.executeTool(toolboxName, actualToolName, toolInput);
         console.log("Tool result: ", data);
-        return data;
+        return [false, data];
     }
 
     /**
@@ -366,7 +366,7 @@ class Agent {
      * @returns Promise with tuple [userRejected, result]
      */
     private async startSubAgent(agentName: string, params: any): Promise<[boolean, any]> {
-        return codeboltAgent.startAgent(agentName, params.task);
+        return [false, await codeboltAgent.startAgent(agentName, params.task)];
     }
 
     /**
