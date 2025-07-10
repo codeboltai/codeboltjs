@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "description": "",
   "keywords": [],
   "author": "",
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeboltai/codeboltjs"
+    "url": "git+https://github.com/codeboltai/codeboltjs.git"
   },
   "license": "MIT",
   "homepage": "https://codeboltai.github.io",
