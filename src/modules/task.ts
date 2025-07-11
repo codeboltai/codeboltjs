@@ -9,7 +9,7 @@ const taskplaner = {
      * @param {string} task - The task to be added.
      * @returns {Promise<AddTaskResponse>} A promise that resolves with the response from the add task event.
      */
-    addTask: async (task: string): Promise<any> => {
+    addTask: async (task: string): Promise<AddTaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "taskEvent",
@@ -26,7 +26,7 @@ const taskplaner = {
      * Retrieves all tasks using a WebSocket message.
      * @returns {Promise<GetTasksResponse>} A promise that resolves with the response from the get tasks event.
      */
-    getTasks: async (): Promise<any> => {
+    getTasks: async (): Promise<GetTasksResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type":"taskEvent",
@@ -41,7 +41,7 @@ const taskplaner = {
      * @param {string} task - The updated task information.
      * @returns {Promise<UpdateTasksResponse>} A promise that resolves with the response from the update task event.
      */
-    updateTask: async ( task: string): Promise<any> => {
+    updateTask: async (task: string): Promise<UpdateTasksResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "taskEvent",

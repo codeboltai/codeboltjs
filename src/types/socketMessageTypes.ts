@@ -572,6 +572,7 @@ export interface MemoryClearResponse extends BaseWebSocketResponse {
 export interface AddTaskResponse extends BaseWebSocketResponse {
   type: 'addTaskResponse';
   task?: import('./commonTypes').Task;
+  data?: any;
 }
 
 export interface GetTasksResponse extends BaseWebSocketResponse {
