@@ -817,6 +817,7 @@ export interface GetProjectPathResponse extends BaseWebSocketResponse {
 export interface GetProjectSettingsResponse extends BaseWebSocketResponse {
   type: 'getProjectSettingsResponse';
   projectSettings?: Record<string, any>;
+  data?: Record<string, any>;
 }
 
 export interface GetRepoMapResponse extends BaseWebSocketResponse {
@@ -827,6 +828,7 @@ export interface GetRepoMapResponse extends BaseWebSocketResponse {
 export interface GetProjectStateResponse extends BaseWebSocketResponse {
   type: 'getProjectStateResponse';
   projectState?: Record<string, any>;
+  data?: Record<string, any>;
 }
 
 // ================================
