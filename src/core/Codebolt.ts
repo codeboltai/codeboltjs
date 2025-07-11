@@ -118,12 +118,14 @@ class Codebolt {
                     try {
                         // Extract user-facing message from internal socket message
                         const userMessage: UserMessage = {
+                            type: response.type,
                             userMessage: response.message.userMessage,
                             currentFile: response.message.currentFile,
                             mentionedFiles: response.message.mentionedFiles || [],
                             mentionedFullPaths: response.message.mentionedFullPaths || [],
                             mentionedFolders: response.message.mentionedFolders || [],
                             uploadedImages: response.message.uploadedImages || [],
+                            mentionedMCPs: response.message.mentionedMCPs || [],
                             selectedAgent: {
                                 id: response.message.selectedAgent?.id || '',
                                 name: response.message.selectedAgent?.name || ''

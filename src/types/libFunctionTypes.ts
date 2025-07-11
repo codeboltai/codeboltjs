@@ -179,6 +179,7 @@ export interface UserMessageContent {
  * This is a simplified, user-friendly version of the internal message format
  */
 export interface UserMessage {
+  type: string;
   /** The user's message content */
   userMessage: string;
   /** Current file being worked on */
@@ -187,6 +188,8 @@ export interface UserMessage {
   mentionedFiles: string[];
   /** Full file paths mentioned */
   mentionedFullPaths: string[];
+  /** MCPs mentioned */
+  mentionedMCPs: string[];
   /** Folders mentioned */
   mentionedFolders: string[];
   /** Images uploaded with the message */

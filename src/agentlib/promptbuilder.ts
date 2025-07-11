@@ -49,6 +49,13 @@ class PromptBuilder {
     private fileContents: Map<string, string> = new Map();
     /** Codebolt API instance */
     private codebolt?: CodeboltAPI;
+    
+    // Flags for what needs to be loaded during build
+    private shouldLoadMCPTools: boolean = false;
+    private mcpAdditionalServers: string[] = ["codebolt"];
+    private shouldLoadAgentTools: boolean = false;
+    private shouldLoadEnvironmentDetails: boolean = false;
+    private shouldLoadAll: boolean = false;
 
     /**
      * Creates a new PromptBuilder instance.
@@ -60,7 +67,7 @@ class PromptBuilder {
         // Handle both InitialUserMessage and CLIUserMessage types
         if ('message' in userMessage && typeof userMessage.message === 'object') {
             // This is a CLIUserMessage with nested message structure
-            this.message = userMessage.message.userMessage || userMessage.data?.text || "";
+            this.message = userMessage.message.userMessage || userMessage.data?.text.trim() || "";
             this.mentionedFiles = userMessage.message.mentionedFiles || [];
             // Convert string array to MCPTool array for CLIUserMessage
             this.mentionedMCPs = (userMessage.message.mentionedMCPs || []).map((name: string) => ({ name }));
@@ -89,21 +96,63 @@ class PromptBuilder {
     }
 
     /**
-     * Automatically loads and adds MCP tools from the mentioned MCPs in the user message.
-     * Also loads default codebolt tools.
+     * Marks MCP tools to be loaded during build from the mentioned MCPs and additional servers.
      * 
      * @param additionalServers - Additional MCP servers to load tools from
      * @returns The PromptBuilder instance for chaining
      */
-    async addMCPTools(additionalServers: string[] = ["codebolt"]): Promise<this> {
+    addMCPTools(additionalServers: string[] = ["codebolt"]): this {
+        this.shouldLoadMCPTools = true;
+        this.mcpAdditionalServers = additionalServers;
+        return this;
+    }
+
+    /**
+     * Marks mentioned agents to be converted to OpenAI tool format during build.
+     * 
+     * @returns The PromptBuilder instance for chaining
+     */
+    addAgentTools(): this {
+        this.shouldLoadAgentTools = true;
+        return this;
+    }
+
+    /**
+     * Marks environment details to be loaded during build.
+     * 
+     * @returns The PromptBuilder instance for chaining
+     */
+    addEnvironmentDetails(): this {
+        this.shouldLoadEnvironmentDetails = true;
+        return this;
+    }
+
+    /**
+     * Convenience method to mark all tools and environment details to be loaded during build.
+     * Equivalent to calling addMCPTools(), addAgentTools(), and addEnvironmentDetails().
+     * 
+     * @param additionalServers - Additional MCP servers to load tools from
+     * @returns The PromptBuilder instance for chaining
+     */
+    addAllAutomatic(additionalServers: string[] = ["codebolt"]): this {
+        this.shouldLoadAll = true;
+        this.mcpAdditionalServers = additionalServers;
+        return this;
+    }
+
+    /**
+     * Loads MCP tools from the codebolt API.
+     * Internal method called during build.
+     */
+    private async loadMCPTools(): Promise<void> {
         if (!this.codebolt) {
             console.warn("Codebolt API not available. Cannot load MCP tools automatically.");
-            return this;
+            return;
         }
 
         try {
             // Get default tools from specified servers
-            const { data: defaultTools } = await this.codebolt.mcp.listMcpFromServers(additionalServers);
+            const { data: defaultTools } = await this.codebolt.mcp.listMcpFromServers(this.mcpAdditionalServers);
             this.tools = [...this.tools, ...defaultTools];
 
             // Get tools from mentioned MCPs
@@ -114,16 +163,13 @@ class PromptBuilder {
         } catch (error) {
             console.error(`Error loading MCP tools: ${error}`);
         }
-
-        return this;
     }
 
     /**
-     * Automatically converts mentioned agents to OpenAI tool format and adds them.
-     * 
-     * @returns The PromptBuilder instance for chaining
+     * Converts mentioned agents to OpenAI tool format.
+     * Internal method called during build.
      */
-    addAgentTools(): this {
+    private loadAgentTools(): void {
         if (this.mentionedAgents && this.mentionedAgents.length > 0) {
             const agentTools: OpenAITool[] = this.mentionedAgents.map(agent => ({
                 type: "function" as const,
@@ -145,18 +191,16 @@ class PromptBuilder {
             
             this.tools = [...this.tools, ...agentTools];
         }
-        return this;
     }
 
     /**
-     * Automatically loads file contents for mentioned files and adds environment details.
-     * 
-     * @returns The PromptBuilder instance for chaining
+     * Loads file contents and environment details from the codebolt API.
+     * Internal method called during build.
      */
-    async addEnvironmentDetails(): Promise<this> {
+    private async loadEnvironmentDetails(): Promise<void> {
         if (!this.codebolt) {
             console.warn("Codebolt API not available. Cannot load environment details automatically.");
-            return this;
+            return;
         }
 
         try {
@@ -184,22 +228,6 @@ class PromptBuilder {
         } catch (error) {
             console.error(`Error loading environment details: ${error}`);
         }
-
-        return this;
-    }
-
-    /**
-     * Convenience method to automatically add all tools and environment details.
-     * Equivalent to calling addMCPTools(), addAgentTools(), and addEnvironmentDetails().
-     * 
-     * @param additionalServers - Additional MCP servers to load tools from
-     * @returns The PromptBuilder instance for chaining
-     */
-    async addAllAutomatic(additionalServers: string[] = ["codebolt"]): Promise<this> {
-        await this.addMCPTools(additionalServers);
-        this.addAgentTools();
-        await this.addEnvironmentDetails();
-        return this;
     }
 
     /**
@@ -219,7 +247,7 @@ class PromptBuilder {
             if (exampleFilePath) {
                 try {
                     const example = fs.readFileSync(path.resolve(exampleFilePath), 'utf8');
-                    this.systemPromptText += `\n\n<example_agent>\n\n${example}\n</example_agent>`;
+                    this.systemPromptText += `\n\n<example_agent>\n\`\`\`\n${example}\n\`\`\`\n</example_agent>`;
                 } catch (error) {
                     console.error(`Error loading example file: ${error}`);
                 }
@@ -508,13 +536,34 @@ class PromptBuilder {
     }
 
     /**
-     * Builds and returns the final prompt string.
-     * Joins all prompt parts with double newlines.
+     * Builds and returns the OpenAI message format with tools.
+     * This method performs all async operations that were marked during setup.
      * 
-     * @returns The complete prompt string
+     * @returns Object with messages, tools, and other LLM parameters
      */
-    build(): string {
-        return this.promptParts.join("\n\n");
+    async build() {
+        // Perform all async operations based on what was requested
+        if (this.shouldLoadAll) {
+            await this.loadMCPTools();
+            this.loadAgentTools();
+            await this.loadEnvironmentDetails();
+        } else {
+            if (this.shouldLoadMCPTools) {
+                await this.loadMCPTools();
+            }
+            if (this.shouldLoadAgentTools) {
+                this.loadAgentTools();
+            }
+            if (this.shouldLoadEnvironmentDetails) {
+                await this.loadEnvironmentDetails();
+            }
+        }
+
+        return {
+            messages: this.buildOpenAIMessages(),
+            tools: this.getTools(),
+            tool_choice: "auto" as const,
+        };
     }
 
     /**
@@ -541,15 +590,41 @@ class PromptBuilder {
         this.tools = [];
         this.environmentDetails = "";
         this.fileContents.clear();
+        
+        // Reset async loading flags
+        this.shouldLoadMCPTools = false;
+        this.shouldLoadAgentTools = false;
+        this.shouldLoadEnvironmentDetails = false;
+        this.shouldLoadAll = false;
+        this.mcpAdditionalServers = ["codebolt"];
+        
         return this;
     }
 
     /**
      * Creates an LLM inference parameters object in the format expected by the sample code.
+     * This method performs all async operations that were marked during setup.
      * 
      * @returns Object with messages, tools, and other LLM parameters
      */
-    buildInferenceParams() {
+    async buildInferenceParams() {
+        // Perform all async operations based on what was requested
+        if (this.shouldLoadAll) {
+            await this.loadMCPTools();
+            this.loadAgentTools();
+            await this.loadEnvironmentDetails();
+        } else {
+            if (this.shouldLoadMCPTools) {
+                await this.loadMCPTools();
+            }
+            if (this.shouldLoadAgentTools) {
+                this.loadAgentTools();
+            }
+            if (this.shouldLoadEnvironmentDetails) {
+                await this.loadEnvironmentDetails();
+            }
+        }
+
         return {
             full: true,
             messages: this.buildOpenAIMessages(),
@@ -569,3 +644,7 @@ export {
     ConversationEntry,
     CodeboltAPI
 };
+
+// Re-export the new classes
+export { LLMOutputHandler } from './llmoutputhandler';
+export { FollowUpQuestionBuilder } from './followupquestionbuilder';
