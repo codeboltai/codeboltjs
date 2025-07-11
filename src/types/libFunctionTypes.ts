@@ -175,6 +175,36 @@ export interface UserMessageContent {
 }
 
 /**
+ * User message received from the Codebolt platform
+ * This is a simplified, user-friendly version of the internal message format
+ */
+export interface UserMessage {
+  /** The user's message content */
+  userMessage: string;
+  /** Current file being worked on */
+  currentFile: string;
+  /** Files mentioned in the message */
+  mentionedFiles: string[];
+  /** Full file paths mentioned */
+  mentionedFullPaths: string[];
+  /** Folders mentioned */
+  mentionedFolders: string[];
+  /** Images uploaded with the message */
+  uploadedImages: string[];
+  /** Selected agent information */
+  selectedAgent: {
+    id: string;
+    name: string;
+  };
+  /** Unique message identifier */
+  messageId: string;
+  /** Thread identifier */
+  threadId: string;
+  /** Any text selection in the editor */
+  selection?: any;
+}
+
+/**
  * Interface for codebolt API functionality
  */
 export interface CodeboltAPI {
@@ -372,7 +402,7 @@ export interface VectorQueryOptions {
 // ================================
 
 export interface AgentMessageHandler {
-  (userMessage: any): void | Promise<void> | any | Promise<any>;
+  (userMessage: UserMessage): void | Promise<void> | any | Promise<any>;
 }
 
 export interface AgentConfiguration {

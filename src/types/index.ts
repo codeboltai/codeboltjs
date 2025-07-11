@@ -1,10 +1,21 @@
-import Codebolt from './core/Codebolt';
+/**
+ * Codebolt Types - Essential type exports for the codeboltjs library
+ * 
+ * This file provides easy access to all user-facing types exported by the library.
+ * Users can import types from here for better organization.
+ * 
+ * Usage:
+ * ```typescript
+ * import type { Message, ToolCall, APIResponse } from 'codeboltjs/types';
+ * // or
+ * import type { LLMChatOptions, BrowserScreenshotOptions } from 'codeboltjs/types';
+ * ```
+ */
 
 // ================================
-// Public API Types - Essential for Library Users
+// Core Library Function Types
 // ================================
 
-// Core Library Function Types - PRIMARY TYPES USERS NEED
 export type { 
     // Core Message and Tool Types
     Message, 
@@ -98,10 +109,10 @@ export type {
     FilterOptions,
     AsyncOperationOptions,
     APIEventMap
-} from './types/libFunctionTypes';
+} from './libFunctionTypes';
 
 // ================================
-// Common Types - Useful for Users Working with API Responses
+// Common Types - API Response Types
 // ================================
 
 export type {
@@ -151,28 +162,4 @@ export type {
     DeepRequired,
     Optional,
     Required
-} from './types/commonTypes';
-
-// ================================
-// Main Library Instance
-// ================================
-
-const codebolt = new Codebolt();
-
-// ================================
-// Export the Main Instance and Class
-// ================================
-
-// For ES6 modules (import)
-export default codebolt;
-
-// Export the class itself for advanced users who want to create custom instances
-export { Codebolt };
-
-// For CommonJS compatibility (require)
-module.exports = codebolt;
-module.exports.default = codebolt;
-module.exports.Codebolt = Codebolt;
-
-
-
+} from './commonTypes'; 
