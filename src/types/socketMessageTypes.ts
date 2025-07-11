@@ -572,6 +572,7 @@ export interface MemoryClearResponse extends BaseWebSocketResponse {
 export interface AddTaskResponse extends BaseWebSocketResponse {
   type: 'addTaskResponse';
   task?: import('./commonTypes').Task;
+  data?: any;
 }
 
 export interface GetTasksResponse extends BaseWebSocketResponse {
@@ -817,6 +818,7 @@ export interface GetProjectPathResponse extends BaseWebSocketResponse {
 export interface GetProjectSettingsResponse extends BaseWebSocketResponse {
   type: 'getProjectSettingsResponse';
   projectSettings?: Record<string, any>;
+  data?: Record<string, any>;
 }
 
 export interface GetRepoMapResponse extends BaseWebSocketResponse {
@@ -827,6 +829,7 @@ export interface GetRepoMapResponse extends BaseWebSocketResponse {
 export interface GetProjectStateResponse extends BaseWebSocketResponse {
   type: 'getProjectStateResponse';
   projectState?: Record<string, any>;
+  data?: Record<string, any>;
 }
 
 // ================================

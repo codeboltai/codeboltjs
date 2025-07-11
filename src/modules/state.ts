@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { AddToAgentStateResponse, GetAgentStateResponse } from '../types/socketMessageTypes';
+import { AddToAgentStateResponse, GetAgentStateResponse, GetProjectStateResponse, UpdateProjectStateResponse } from '../types/socketMessageTypes';
 import { ApplicationState } from '../types/commonTypes';
 
 const cbstate = {
@@ -57,7 +57,7 @@ const cbstate = {
      * Retrieves the current project state from the server via WebSocket.
      * @returns {Promise<GetProjectStateResponse>} A promise that resolves with the project's state.
      */
-    getProjectState: async (): Promise<any> => {
+    getProjectState: async (): Promise<GetProjectStateResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "projectStateEvent",
@@ -69,9 +69,11 @@ const cbstate = {
 
     /**
      * Updates the project state on the server via WebSocket.
+     * @param {string} key - The key to update in the project state.
+     * @param {any} value - The value to set for the key.
      * @returns {Promise<UpdateProjectStateResponse>} A promise that resolves with the response to the update request.
      */
-    updateProjectState: async (key:string,value:any): Promise<any> => {
+    updateProjectState: async (key:string,value:any): Promise<UpdateProjectStateResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "projectStateEvent",

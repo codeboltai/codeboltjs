@@ -1,14 +1,14 @@
 import cbws from '../core/websocket';
-import { GetProjectPathResponse } from '../types/socketMessageTypes';
+import { GetProjectPathResponse, GetProjectSettingsResponse } from '../types/socketMessageTypes';
 /**
  * A module for interacting with project settings and paths.
  */
 const cbproject = {
     /**
      * Retrieves the project settings from the server.
-     * @returns {Promise<any>} A promise that resolves with the project settings response.
+     * @returns {Promise<GetProjectSettingsResponse>} A promise that resolves with the project settings response.
      */
-    getProjectSettings: (): Promise<any> => {
+    getProjectSettings: (): Promise<GetProjectSettingsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "settingEvent",
