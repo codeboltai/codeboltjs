@@ -1,12 +1,13 @@
 import chatlib from "../modules/chat";
 import tools from "../modules/mcp";
 import codeboltAgent from "../modules/agent";
-import type { 
-    OpenAIMessage, 
-    OpenAITool, 
-    ToolResult, 
-    ToolDetails, 
-    CodeboltAPI 
+import type {
+    OpenAIMessage,
+    OpenAITool,
+    ToolResult,
+    ToolDetails,
+    CodeboltAPI,
+    Message
 } from "../types/libFunctionTypes";
 import type { LLMResponse } from "../types/socketMessageTypes";
 
@@ -16,9 +17,7 @@ import type { LLMResponse } from "../types/socketMessageTypes";
  */
 class LLMOutputHandler {
     /** The LLM response to process */
-    private llmResponse: Promise<{ completion: any }>;
-    /** The resolved LLM response */
-    private resolvedResponse: { completion: any } | null = null;
+    private llmResponse: { completion: any };
     /** Whether the task has been completed */
     private completed: boolean = false;
     /** Tool results from execution */
@@ -33,12 +32,26 @@ class LLMOutputHandler {
     /**
      * Creates a new LLMOutputHandler instance.
      * 
-     * @param llmResponse - Promise that resolves to the LLM response
+     * @param llmResponse - The LLM response object
      * @param codebolt - Optional codebolt API instance
      */
-    constructor(llmResponse: Promise<{ completion: any }>, codebolt?: CodeboltAPI) {
+    constructor(llmResponse: any, codebolt?: CodeboltAPI) {
         this.llmResponse = llmResponse;
         this.codebolt = codebolt;
+       
+        // Check if any message has tool_calls, if none do, mark as completed
+        let hasToolCalls = false;
+        this.llmResponse.completion.choices.forEach((message: any) => {
+            if (message.message?.tool_calls && message.message.tool_calls.length > 0) {
+                hasToolCalls = true;
+            }
+        });
+        
+        // If no messages have tool_calls, mark as completed
+        if (!hasToolCalls) {
+            this.sendMessageToUser();
+            this.completed = true;
+        }
     }
 
     /**
@@ -69,32 +82,20 @@ class LLMOutputHandler {
     }
 
     /**
-     * Resolves the LLM response if not already resolved.
-     * 
-     * @returns Promise that resolves when the response is available
-     */
-    private async ensureResponseResolved(): Promise<void> {
-        if (!this.resolvedResponse) {
-            this.resolvedResponse = await this.llmResponse;
-        }
-    }
-
-    /**
      * Sends the assistant's message to the user interface.
      * 
      * @returns Promise that resolves when the message is sent
      */
     async sendMessageToUser(): Promise<void> {
-        await this.ensureResponseResolved();
-        
-        if (!this.resolvedResponse) {
+       
+        if (!this.llmResponse) {
             throw new Error("LLM response not available");
         }
 
         // Handle the response structure - it might have choices or direct content
         let messageContent = '';
-        const completion = this.resolvedResponse.completion;
-        
+        const completion = this.llmResponse.completion;
+
         if (completion && completion.choices && completion.choices.length > 0) {
             // OpenAI-style response with choices
             const choice = completion.choices[0];
@@ -107,7 +108,7 @@ class LLMOutputHandler {
         }
 
         if (messageContent) {
-            await chatlib.sendMessage(messageContent, {});
+            this.codebolt?.chat?.sendMessage(messageContent, {});
         }
     }
 
@@ -117,112 +118,152 @@ class LLMOutputHandler {
      * @returns Promise that resolves when all tools are executed
      */
     async runTools(): Promise<ToolResult[]> {
-        await this.ensureResponseResolved();
-        
-        if (!this.resolvedResponse || this.toolsExecuted) {
-            return this.toolResults;
-        }
+        try {
+            let toolResults: ToolResult[] = [];
+            let taskCompletedBlock: any;
+            let userRejectedToolUse = false;
+            console.log("Calling run tool: ", JSON.stringify (this.llmResponse.completion));
+            const contentBlock = this.llmResponse.completion.choices[0];
 
-        this.toolResults = [];
-        this.toolsExecuted = true;
-        let taskCompletedBlock: any = null;
-        let userRejectedToolUse = false;
+            if (contentBlock.message?.tool_calls) {
+                for (const tool of contentBlock.message.tool_calls) {
+                    try {
+                        const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
 
-        // Check if response has tool calls
-        const toolCalls = this.getToolCallsFromResponse();
-        
-        if (toolCalls && toolCalls.length > 0) {
-            for (const tool of toolCalls) {
-                try {
-                    const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
+                        if (!userRejectedToolUse) {
+                            if (toolName.includes("attempt_completion")) {
+                                taskCompletedBlock = tool;
+                            } else {
 
-                    if (!userRejectedToolUse) {
-                        if (toolName.includes("attempt_completion")) {
-                            taskCompletedBlock = tool;
+                                let [serverName] = toolName.replace('--', ':').split(':');
+
+
+                                if (serverName == 'subagent') {
+
+                                    const agentResponse = await codeboltAgent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
+                                    const [didUserReject, result] = [false, "tool result is successful"];
+                                    let toolResult = this.getToolResult(toolUseId, result)
+                                    this.toolResults.push({
+                                        role: "tool",
+                                        tool_call_id: toolResult.tool_call_id,
+                                        content: toolResult.content,
+
+                                    });
+                                    if (toolResult.userMessage) {
+                                        this.nextUserMessage = {
+                                            role: "user",
+                                            content: toolResult.userMessage
+                                        }
+                                    }
+                                    if (didUserReject) {
+                                        userRejectedToolUse = true;
+                                    }
+
+                                }
+                                else {
+                                    console.log("Executing tool: ", toolName, toolInput);
+                                    const [didUserReject, result] = await this.executeTool(toolName, toolInput);
+                                    console.log("Tool result: ", result);
+                                    // toolResults.push(this.getToolResult(toolUseId, result));
+                                    let toolResult = this.getToolResult(toolUseId, result);
+
+                                    console.log("tool result after parsing",toolResult);
+                                 
+                                    this.toolResults.push({
+                                        role: "tool",
+                                        tool_call_id: toolResult.tool_call_id,
+                                        content: toolResult.content,
+
+                                    });
+                                    if (toolResult.userMessage) {
+                                        this.nextUserMessage = {
+                                            role: "user",
+                                            content: toolResult.userMessage
+                                        }
+                                    }
+                                    if (didUserReject) {
+                                        userRejectedToolUse = true;
+                                    }
+                                }
+
+                            }
                         } else {
-                            const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                            
-                            const toolResult = this.getToolResult(toolUseId, result);
+                            let toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.")
+
                             this.toolResults.push({
                                 role: "tool",
                                 tool_call_id: toolResult.tool_call_id,
                                 content: toolResult.content,
-                            });
 
+                            });
                             if (toolResult.userMessage) {
                                 this.nextUserMessage = {
                                     role: "user",
                                     content: toolResult.userMessage
-                                };
+                                }
                             }
 
-                            if (didUserReject) {
-                                userRejectedToolUse = true;
-                            }
                         }
-                    } else {
-                        const toolResult = this.getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.");
+                    } catch (error) {
+                      
                         this.toolResults.push({
                             role: "tool",
-                            tool_call_id: toolResult.tool_call_id,
-                            content: toolResult.content,
+                            tool_call_id: tool.id,
+                            content: String(error),
+
                         });
 
-                        if (toolResult.userMessage) {
-                            this.nextUserMessage = {
-                                role: "user",
-                                content: toolResult.userMessage
-                            };
-                        }
                     }
-                } catch (error) {
-                    this.toolResults.push({
-                        role: "tool",
-                        tool_call_id: tool.id,
-                        content: String(error),
-                    });
                 }
             }
-        }
 
-        // Handle completion tool call
-        if (taskCompletedBlock) {
-            const [_, result] = await this.executeTool(
-                taskCompletedBlock.function.name,
-                JSON.parse(taskCompletedBlock.function.arguments || "{}")
-            );
+            if (taskCompletedBlock) {
+                let [_, result] = await this.executeTool(
+                    taskCompletedBlock.function.name,
+                    JSON.parse(taskCompletedBlock.function.arguments || "{}")
+                );
 
-            if (result === "") {
-                this.completed = true;
+                if (result === "") {
+                    this.completed = true;
+                    result = "The user is satisfied with the result.";
+                }
+                let toolResult = this.getToolResult(taskCompletedBlock.id, result)
+                this.toolResults.push({
+                    role: "tool",
+                    tool_call_id: toolResult.tool_call_id,
+                    content: toolResult.content,
+
+                });
+                if (toolResult.userMessage) {
+                    this.nextUserMessage = {
+                        role: "user",
+                        content: toolResult.userMessage
+                    }
+                }
+
             }
 
-            const toolResult = this.getToolResult(taskCompletedBlock.id, result || "The user is satisfied with the result.");
-            this.toolResults.push({
-                role: "tool",
-                tool_call_id: toolResult.tool_call_id,
-                content: toolResult.content,
-            });
+            // this.apiConversationHistory.push(...toolResults);
+            // if (this.nextUserMessage) {
+            //     this.apiConversationHistory.push(this.nextUserMessage);
+            // }
+            let nextUserMessage: Message[] = this.toolResults;
 
-            if (toolResult.userMessage) {
-                this.nextUserMessage = {
+            if (this.toolResults.length === 0) {
+                nextUserMessage = [{
                     role: "user",
-                    content: toolResult.userMessage
-                };
+                    content: [{
+                        type: "text",
+                        text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
+                    }]
+                }];
+
+               
             }
+            return this.toolResults
+        } catch (error) {
+           return this.toolResults
         }
-
-        // If no tools were executed, add a default message
-        if (this.toolResults.length === 0) {
-            this.nextUserMessage = {
-                role: "user",
-                content: [{
-                    type: "text",
-                    text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
-                }]
-            };
-        }
-
-        return this.toolResults;
     }
 
     /**
@@ -231,10 +272,10 @@ class LLMOutputHandler {
      * @returns Array of tool calls or null if none found
      */
     private getToolCallsFromResponse(): any[] | null {
-        if (!this.resolvedResponse) return null;
+        if (!this.llmResponse) return null;
 
         // Check OpenAI-style response structure
-        const completion = this.resolvedResponse.completion;
+        const completion = this.llmResponse.completion;
         if (completion && completion.choices && completion.choices.length > 0) {
             const choice = completion.choices[0];
             if (choice.message && (choice.message as any).tool_calls) {
@@ -273,22 +314,20 @@ class LLMOutputHandler {
      */
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         console.log("Executing tool: ", toolName, toolInput);
-        
-        // Handle subagent tools
-        if (toolName.startsWith('subagent--')) {
-            const agentId = toolName.replace("subagent--", '');
-            const agentResponse = await codeboltAgent.startAgent(agentId, toolInput.task);
-            return [false, "tool result is successful"];
-        }
-
-        // Handle regular MCP tools
         const [toolboxName, actualToolName] = toolName.split('--');
         console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
+        const response = await this.codebolt?.mcp.executeTool(toolboxName, actualToolName, toolInput);
+        console.log("Tool result form inner function: ", response);
         
-        const { data } = await tools.executeTool(toolboxName, actualToolName, toolInput);
-        console.log("Tool result: ", data);
+        // Handle the response structure
+        if (!response || !response.data) {
+            return [false, "Tool execution failed: No response data"];
+        }
         
-        return [false, data];
+       
+        
+        // Otherwise, assume success and return the data
+        return  response.data;
     }
 
     /**
@@ -300,11 +339,11 @@ class LLMOutputHandler {
      */
     private getToolResult(tool_call_id: string, content: string): ToolResult {
         let userMessage = undefined;
-        
+
         try {
             const parsed = JSON.parse(content);
             console.log("Parsed Content: ", parsed);
-            
+
             if (parsed.payload && parsed.payload.content) {
                 content = `The browser action has been executed. The screenshot have been captured for your analysis. The tool response is provided in the next user message`;
                 userMessage = parsed.payload.content;
@@ -327,7 +366,7 @@ class LLMOutputHandler {
      * @returns True if the response contains tool calls
      */
     hasToolCalls(): boolean {
-        if (!this.resolvedResponse) return false;
+        if (!this.llmResponse) return false;
         const toolCalls = this.getToolCallsFromResponse();
         return toolCalls !== null && toolCalls.length > 0;
     }
@@ -337,12 +376,10 @@ class LLMOutputHandler {
      * 
      * @returns The assistant's message content or null
      */
-    async getAssistantMessage(): Promise<string | null> {
-        await this.ensureResponseResolved();
-        
-        if (!this.resolvedResponse) return null;
+    getAssistantMessage(): string | null {
+        if (!this.llmResponse) return null;
 
-        const completion = this.resolvedResponse.completion;
+        const completion = this.llmResponse.completion;
         if (completion && completion.choices && completion.choices.length > 0) {
             const choice = completion.choices[0];
             if (choice.message && choice.message.content) {
@@ -363,7 +400,6 @@ class LLMOutputHandler {
         this.toolResults = [];
         this.nextUserMessage = null;
         this.toolsExecuted = false;
-        this.resolvedResponse = null;
     }
 }
 

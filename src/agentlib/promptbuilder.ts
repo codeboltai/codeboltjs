@@ -2,17 +2,18 @@ import { UserMessage } from "./usermessage";
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
 import { UserMessage as CLIUserMessage } from "../types/socketMessageTypes";
-import type { 
-  OpenAIMessage, 
-  OpenAITool, 
-  ConversationEntry, 
-  UserMessageContent, 
-  CodeboltAPI 
+import type {
+    OpenAIMessage,
+    OpenAITool,
+    ConversationEntry,
+    UserMessageContent,
+    CodeboltAPI,
+    ToolResult
 } from "../types/libFunctionTypes";
-import type { 
-  MCPTool, 
-  Agent, 
-  InitialUserMessage 
+import type {
+    MCPTool,
+    Agent,
+    InitialUserMessage
 } from "../types/commonTypes";
 import yaml from 'js-yaml';
 import fs from 'fs';
@@ -24,7 +25,7 @@ import path from 'path';
  * PromptBuilder class for constructing prompts using a fluent interface.
  * Allows chaining methods to build complex prompts from user messages.
  */
-class PromptBuilder {
+class InitialPromptBuilder {
     /** The main message text */
     private message: string;
     /** List of mentioned files */
@@ -49,7 +50,7 @@ class PromptBuilder {
     private fileContents: Map<string, string> = new Map();
     /** Codebolt API instance */
     private codebolt?: CodeboltAPI;
-    
+
     // Flags for what needs to be loaded during build
     private shouldLoadMCPTools: boolean = false;
     private mcpAdditionalServers: string[] = ["codebolt"];
@@ -79,7 +80,7 @@ class PromptBuilder {
             this.mentionedMCPs = (userMessage as InitialUserMessage).mentionedMCPs || [];
             this.mentionedAgents = (userMessage as InitialUserMessage).mentionedAgents || [];
         }
-        
+
         this.promptParts = [this.message];
         this.codebolt = codebolt;
     }
@@ -188,7 +189,7 @@ class PromptBuilder {
                     }
                 }
             }));
-            
+
             this.tools = [...this.tools, ...agentTools];
         }
     }
@@ -242,7 +243,7 @@ class PromptBuilder {
         try {
             const systemPrompt = new SystemPrompt(filepath, key);
             this.systemPromptText = systemPrompt.toPromptText();
-            
+
             // Add example file if provided
             if (exampleFilePath) {
                 try {
@@ -270,7 +271,7 @@ class PromptBuilder {
             const fileContents = fs.readFileSync(path.resolve(filepath), 'utf8');
             const data = yaml.load(fileContents) as any;
             const task = data[refsection];
-            
+
             if (task) {
                 this.taskInstructionText = `Task Description: ${task.description}\nExpected Output: ${task.expected_output}`;
             }
@@ -307,16 +308,16 @@ class PromptBuilder {
                 const name = mcp.name || mcp.toolbox || "Unknown";
                 const toolName = mcp.toolName || "";
                 const tools = mcp.tools ? JSON.stringify(mcp.tools) : "[]";
-                
+
                 let mcpInfo = `MCP: ${name}`;
                 if (toolName) {
                     mcpInfo += `, Tool: ${toolName}`;
                 }
                 mcpInfo += `, Tools: ${tools}`;
-                
+
                 return mcpInfo;
             }).join("\n");
-            
+
             this.promptParts.push(`[MCP Tools]\n${mcpTools}`);
         }
         return this;
@@ -333,14 +334,14 @@ class PromptBuilder {
             const agentList = this.mentionedAgents.map(agent => {
                 const identifier = agent.name || agent.title || agent.id || agent.agent_id || "Unknown";
                 let agentInfo = `Agent: ${identifier}`;
-                
+
                 if (agent.description) {
                     agentInfo += ` - ${agent.description}`;
                 }
-                
+
                 return agentInfo;
             }).join("\n");
-            
+
             this.promptParts.push(`[Agents]\n${agentList}`);
         }
         return this;
@@ -370,7 +371,7 @@ class PromptBuilder {
     }
 
     /**
-     * Builds the user message content with files and environment details.
+     * Builds the user message content with files (without environment details).
      * 
      * @returns Array of content blocks
      */
@@ -379,7 +380,7 @@ class PromptBuilder {
                     The user has sent the following query:
                    <user_query> ${this.message} </user_query>.
                 `;
-        
+
         // Attach files if mentioned
         if (this.mentionedFiles && this.mentionedFiles.length > 0) {
             finalPrompt += `The Attached files are:`;
@@ -389,14 +390,16 @@ class PromptBuilder {
             }
         }
 
-        // Add environment details
-        if (this.environmentDetails) {
-            finalPrompt += this.environmentDetails;
-        }
+
 
         const content: Array<{ type: string; text: string }> = [
             { type: "text", text: finalPrompt }
         ];
+        // Add environment details
+        if (this.environmentDetails) {
+            content.push(
+                { type: "text", text: this.environmentDetails })
+        }
 
         // Add task instruction if available
         if (this.taskInstructionText) {
@@ -472,15 +475,15 @@ class PromptBuilder {
         toolCalls?: any[]
     ): this {
         const message: ConversationEntry = { role, content };
-        
+
         if (toolCallId) {
             message.tool_call_id = toolCallId;
         }
-        
+
         if (toolCalls) {
             message.tool_calls = toolCalls;
         }
-        
+
         this.conversationHistory.push(message);
         return this;
     }
@@ -492,6 +495,187 @@ class PromptBuilder {
      */
     getConversationHistory(): ConversationEntry[] {
         return [...this.conversationHistory];
+    }
+
+    /**
+     * Adds an LLM response to the conversation history.
+     * This method processes the LLM response and adds the assistant's message to the conversation.
+     * It handles both resolved responses and promises that resolve to responses.
+     * 
+     * @param llmResponse - The LLM response (can be a promise or resolved response)
+     * @returns The PromptBuilder instance for chaining
+     * 
+     * @example
+     * ```typescript
+     * // Example of using addLLMResponse in an agent workflow loop
+     * import { PromptBuilder } from './promptbuilder';
+     * import llm from '../modules/llm';
+     * 
+     * async function agentWorkflowWithLLMResponse(userMessage: any, codebolt: CodeboltAPI) {
+     *     // Step 1: Build initial prompt
+     *     const promptBuilder = new PromptBuilder(userMessage, codebolt);
+     *     let currentPrompt = await promptBuilder
+     *         .addMCPTools()
+     *         .addAgentTools()
+     *         .addEnvironmentDetails()
+     *         .buildInferenceParams();
+     * 
+     *     let completed = false;
+     *     let maxTurns = 20;
+     *     let turn = 0;
+     * 
+     *     // Step 2: Main conversation loop (similar to agent.ts while loop)
+     *     while (!completed && turn < maxTurns) {
+     *         // Get LLM response
+     *         const llmResponse = llm.inference(currentPrompt);
+     *         
+     *         // Add LLM response to conversation history
+     *         await promptBuilder.addLLMResponse(llmResponse);
+     *         
+     *         // Process the response using LLMOutputHandler
+     *         const outputHandler = new LLMOutputHandler(llmResponse, codebolt);
+     *         await outputHandler.sendMessageToUser();
+     *         
+     *         // Check if task is completed
+     *         if (outputHandler.isCompleted()) {
+     *             completed = true;
+     *             break;
+     *         }
+     *         
+     *         // Execute tools and get results
+     *         const toolResults = await outputHandler.runTools();
+     *         
+     *         // Add tool results to conversation
+     *         if (toolResults.length > 0) {
+     *             promptBuilder.addToolResults(toolResults);
+     *         } else {
+     *             // Add default continuation message when no tools executed
+     *             promptBuilder.addDefaultContinuationMessage();
+     *         }
+     *         
+     *         // Build next prompt for the loop
+     *         currentPrompt = await promptBuilder.buildInferenceParams();
+     *         turn++;
+     *     }
+     * }
+     * ```
+     */
+    async addLLMResponse(llmResponse: Promise<{ completion: any }> | { completion: any }): Promise<this> {
+        try {
+            // Resolve the response if it's a promise
+            const resolvedResponse = await Promise.resolve(llmResponse);
+
+            if (!resolvedResponse || !resolvedResponse.completion) {
+                console.warn("Invalid LLM response provided");
+                return this;
+            }
+
+            const completion = resolvedResponse.completion;
+            let assistantMessage: ConversationEntry | null = null;
+
+            // Handle different response formats
+            if (completion.choices && completion.choices.length > 0) {
+                // OpenAI-style response with choices
+                const choice = completion.choices[0];
+                if (choice.message) {
+                    assistantMessage = {
+                        role: "assistant",
+                        content: choice.message.content || "",
+                        tool_calls: choice.message.tool_calls || undefined
+                    };
+                }
+            } else if (completion.content) {
+                // Direct content response
+                assistantMessage = {
+                    role: "assistant",
+                    content: completion.content
+                };
+            } else if (completion.message) {
+                // Message format response
+                assistantMessage = {
+                    role: "assistant",
+                    content: completion.message.content || "",
+                    tool_calls: completion.message.tool_calls || undefined
+                };
+            }
+
+            // Add the assistant message to conversation history
+            if (assistantMessage) {
+                this.conversationHistory.push(assistantMessage);
+            } else {
+                // Fallback for cases where no valid message is found
+                this.conversationHistory.push({
+                    role: "assistant",
+                    content: "I apologize, but I was unable to provide a proper response."
+                });
+            }
+
+        } catch (error) {
+            console.error("Error adding LLM response to conversation:", error);
+            // Add error message to conversation history
+            this.conversationHistory.push({
+                role: "assistant",
+                content: "An error occurred while processing my response."
+            });
+        }
+
+        return this;
+    }
+
+    /**
+     * Adds tool results to the conversation history.
+     * This method is typically used after executing tools from an LLM response.
+     * 
+     * @param toolResults - Array of tool results to add to the conversation
+     * @returns The PromptBuilder instance for chaining
+     */
+    addToolResults(toolResults: ToolResult[]): this {
+        if (toolResults && toolResults.length > 0) {
+            // Add each tool result as a separate message
+            toolResults.forEach(toolResult => {
+                this.conversationHistory.push({
+                    role: "tool",
+                    content: toolResult.content,
+                    tool_call_id: toolResult.tool_call_id
+                });
+            });
+        }
+        return this;
+    }
+
+    /**
+     * Adds a user message to the conversation history.
+     * Useful for adding follow-up questions or additional context during the conversation.
+     * 
+     * @param message - The user message to add
+     * @returns The PromptBuilder instance for chaining
+     */
+    addUserMessage(message: string | Array<{ type: string; text: string }>): this {
+        const userMessage: ConversationEntry = {
+            role: "user",
+            content: message
+        };
+
+        this.conversationHistory.push(userMessage);
+        return this;
+    }
+
+    /**
+     * Adds a default continuation message when no tools were executed.
+     * This is used in the agent workflow to prompt the LLM to either complete the task
+     * or ask for more information.
+     * 
+     * @returns The PromptBuilder instance for chaining
+     */
+    addDefaultContinuationMessage(): this {
+        const defaultMessage = "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)";
+
+        this.addUserMessage([{
+            type: "text",
+            text: defaultMessage
+        }]);
+
+        return this;
     }
 
     /**
@@ -562,6 +746,7 @@ class PromptBuilder {
         return {
             messages: this.buildOpenAIMessages(),
             tools: this.getTools(),
+            full: true,
             tool_choice: "auto" as const,
         };
     }
@@ -590,14 +775,14 @@ class PromptBuilder {
         this.tools = [];
         this.environmentDetails = "";
         this.fileContents.clear();
-        
+
         // Reset async loading flags
         this.shouldLoadMCPTools = false;
         this.shouldLoadAgentTools = false;
         this.shouldLoadEnvironmentDetails = false;
         this.shouldLoadAll = false;
         this.mcpAdditionalServers = ["codebolt"];
-        
+
         return this;
     }
 
@@ -632,19 +817,103 @@ class PromptBuilder {
             tool_choice: "auto" as const,
         };
     }
+    /**
+     * Creates a minimal LLM inference parameters object with only the user message.
+     * This is useful for simple completions or when no tools/context are needed.
+     * 
+     * @returns Object with messages (user only), no tools, and default tool_choice
+     */
+    //TODO: implement this
+    buildDefaultInferenceParams() {
+        return {
+            full: false,
+            messages: [this.message],
+            tools: [],
+            tool_choice: "auto" as const,
+        };
+    }
+
+    /**
+     * Checks if the last LLM response indicates task completion.
+     * This method examines the conversation history for completion signals.
+     * 
+     * @returns Boolean indicating if the task appears to be completed
+     */
+    isTaskCompleted(): boolean {
+        if (this.conversationHistory.length === 0) {
+            return false;
+        }
+
+        // Get the last assistant message
+        const lastAssistantMessage = this.conversationHistory
+            .slice()
+            .reverse()
+            .find(msg => msg.role === 'assistant');
+
+        if (!lastAssistantMessage) {
+            return false;
+        }
+
+        // Check if the message has tool calls with completion tools
+        if (lastAssistantMessage.tool_calls) {
+            const hasCompletionTool = lastAssistantMessage.tool_calls.some(toolCall =>
+                toolCall.function && toolCall.function.name.includes('attempt_completion')
+            );
+
+            if (hasCompletionTool) {
+                return true;
+            }
+        }
+
+        // Check for completion keywords in the message content
+        const content = typeof lastAssistantMessage.content === 'string'
+            ? lastAssistantMessage.content
+            : '';
+
+        const completionKeywords = [
+            'task completed',
+            'task is completed',
+            'successfully completed',
+            'finished the task',
+            'task has been completed'
+        ];
+
+        return completionKeywords.some(keyword =>
+            content.toLowerCase().includes(keyword.toLowerCase())
+        );
+    }
+
+    /**
+     * Gets the current conversation length (number of messages).
+     * Useful for determining when to summarize the conversation.
+     * 
+     * @returns Number of messages in the conversation history
+     */
+    getConversationLength(): number {
+        return this.conversationHistory.length;
+    }
+
+    /**
+     * Checks if the conversation should be summarized based on length.
+     * 
+     * @param maxLength - Maximum conversation length before summarization (default: 50)
+     * @returns Boolean indicating if summarization is needed
+     */
+    shouldSummarizeConversation(maxLength: number = 50): boolean {
+        return this.getConversationLength() > maxLength;
+    }
 }
 
-export { 
-    PromptBuilder, 
-    MCPTool, 
-    Agent, 
-    InitialUserMessage, 
-    OpenAIMessage, 
-    OpenAITool, 
+
+
+export {
+    InitialPromptBuilder,
+    MCPTool,
+    Agent,
+    InitialUserMessage,
+    OpenAIMessage,
+    OpenAITool,
     ConversationEntry,
     CodeboltAPI
 };
 
-// Re-export the new classes
-export { LLMOutputHandler } from './llmoutputhandler';
-export { FollowUpQuestionBuilder } from './followupquestionbuilder';

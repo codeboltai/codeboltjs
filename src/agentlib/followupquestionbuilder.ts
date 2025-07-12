@@ -11,13 +11,16 @@ import type {
  * Builds follow-up prompts for continuing conversations with tool results.
  * Manages conversation history and summarization when conversations get too long.
  */
-class FollowUpQuestionBuilder {
+class FollowUpPromptBuilder {
     /** Previous conversation messages */
     private previousConversation: OpenAIMessage[] = [];
     /** Tool results to add to the conversation */
     private toolResults: ToolResult[] = [];
     /** Available tools for the conversation */
     private tools: OpenAITool[] = [];
+    /** The last LLM response, if available */
+    private llmResponse?: OpenAIMessage;
+    
     /** Maximum conversation length before summarization */
     private maxConversationLength: number = 50;
     /** Whether to force summarization */
@@ -40,9 +43,72 @@ class FollowUpQuestionBuilder {
      * @param previousPrompt - The previous prompt object containing messages and tools
      * @returns The FollowUpQuestionBuilder instance for chaining
      */
-    addPreviousConversation(previousPrompt: { messages: OpenAIMessage[]; tools: OpenAITool[]; tool_choice?: string }): this {
+    addPreviousConversation(previousPrompt: { messages: OpenAIMessage[]; tools: OpenAITool[]; tool_choice?: string },llmResponse: { completion: any }): this {
         this.previousConversation = [...previousPrompt.messages];
+        
         this.tools = [...previousPrompt.tools];
+        try {
+            // Resolve the response if it's a promise
+            const resolvedResponse = llmResponse
+            
+            if (!resolvedResponse || !resolvedResponse.completion) {
+                console.warn("Invalid LLM response provided");
+                return this;
+            }
+
+            const completion = resolvedResponse.completion;
+            let assistantMessage: ConversationEntry | null = null;
+
+            // Handle different response formats
+            if (completion.choices && completion.choices.length > 0) {
+                // OpenAI-style response with choices
+                const choice = completion.choices[0];
+                if (choice.message) {
+                    assistantMessage = {
+                        role: "assistant",
+                        content: choice.message.content || "",
+                        tool_calls: choice.message.tool_calls || undefined
+                    };
+                }
+            } else if (completion.content) {
+                // Direct content response
+                assistantMessage = {
+                    role: "assistant",
+                    content: completion.content
+                };
+            } else if (completion.message) {
+                // Message format response
+                assistantMessage = {
+                    role: "assistant",
+                    content: completion.message.content || "",
+                    tool_calls: completion.message.tool_calls || undefined
+                };
+            }
+
+            // Add the assistant message to conversation history
+            if (assistantMessage) {
+                this.previousConversation.push(assistantMessage);
+            } else {
+                // Fallback for cases where no valid message is found
+                this.previousConversation.push({
+                    role: "assistant",
+                    content: "I apologize, but I was unable to provide a proper response."
+                });
+            }
+
+        } catch (error) {
+            console.error("Error adding LLM response to conversation:", error);
+            // Add error message to conversation history
+            this.previousConversation.push({
+                role: "assistant",
+                content: "An error occurred while processing my response."
+            });
+        }
+
+        return this;
+    }
+     addLLMResponseToConverstaion(llmResponse: { completion: any }): this {
+       
         return this;
     }
 
@@ -53,129 +119,30 @@ class FollowUpQuestionBuilder {
      * @returns The FollowUpQuestionBuilder instance for chaining
      */
     addToolResult(toolResults: ToolResult[]): this {
-        this.toolResults = [...toolResults];
+          toolResults.forEach(toolResult=>{
+            this.previousConversation.push(toolResult)
+          })
+          if(!toolResults.length){
+            this.previousConversation.push({
+                role: "user",
+                content: [{
+                    type: "text",
+                    text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
+                }]
+            })
+          }
         return this;
     }
 
     /**
-     * Adds a single tool result to the conversation.
-     * 
-     * @param toolResult - A single tool execution result
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addSingleToolResult(toolResult: ToolResult): this {
-        this.toolResults.push(toolResult);
-        return this;
-    }
-
-    /**
-     * Adds multiple tool results to the conversation.
-     * 
-     * @param toolResults - Array of tool execution results to add
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addMultipleToolResults(toolResults: ToolResult[]): this {
-        this.toolResults.push(...toolResults);
-        return this;
-    }
-
-    /**
-     * Sets the maximum conversation length before summarization is triggered.
+     * Checks if the conversation is too long and sets up summarization with custom max length.
      * 
      * @param maxLength - Maximum number of messages before summarization
      * @returns The FollowUpQuestionBuilder instance for chaining
      */
-    setMaxConversationLength(maxLength: number): this {
+    checkAndSummarizeConversationIfLong(maxLength: number): this {
         this.maxConversationLength = maxLength;
-        return this;
-    }
-
-    /**
-     * Forces summarization regardless of conversation length.
-     * 
-     * @param force - Whether to force summarization
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    forceSummarize(force: boolean = true): this {
-        this.forceSummarization = force;
-        return this;
-    }
-
-    /**
-     * Checks if the conversation is too long and summarizes if needed.
-     * 
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    checkAndSummarizeConversationIfLong(): this {
-        // This method sets up the summarization to happen during build()
-        // The actual summarization is async and happens in build()
-        return this;
-    }
-
-    /**
-     * Adds a custom message to the conversation.
-     * 
-     * @param role - The role of the message sender
-     * @param content - The content of the message
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addMessage(role: 'user' | 'assistant' | 'system', content: string | Array<{ type: string; text: string }>): this {
-        this.previousConversation.push({
-            role,
-            content
-        });
-        return this;
-    }
-
-    /**
-     * Adds a user message to the conversation.
-     * 
-     * @param content - The content of the user message
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addUserMessage(content: string): this {
-        return this.addMessage('user', content);
-    }
-
-    /**
-     * Adds an assistant message to the conversation.
-     * 
-     * @param content - The content of the assistant message
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addAssistantMessage(content: string): this {
-        return this.addMessage('assistant', content);
-    }
-
-    /**
-     * Adds a system message to the conversation.
-     * 
-     * @param content - The content of the system message
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addSystemMessage(content: string): this {
-        return this.addMessage('system', content);
-    }
-
-    /**
-     * Adds tools to the conversation.
-     * 
-     * @param tools - Array of tools to add
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    addTools(tools: OpenAITool[]): this {
-        this.tools.push(...tools);
-        return this;
-    }
-
-    /**
-     * Replaces the current tools with new ones.
-     * 
-     * @param tools - Array of tools to replace with
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    setTools(tools: OpenAITool[]): this {
-        this.tools = [...tools];
+        this.forceSummarization = this.previousConversation.length > maxLength;
         return this;
     }
 
@@ -242,111 +209,16 @@ class FollowUpQuestionBuilder {
      * 
      * @returns Promise that resolves to the conversation prompt object
      */
-    async build(): Promise<{ messages: OpenAIMessage[]; tools: OpenAITool[]; tool_choice: "auto" }> {
+    async build(): Promise<{ messages: OpenAIMessage[]; tools: OpenAITool[]; tool_choice: "auto",full:boolean }> {
         // Perform summarization if needed
-        let messages = await this.performSummarization();
-
-        // Add tool results to the conversation
-        if (this.toolResults.length > 0) {
-            // Convert tool results to OpenAI message format
-            const toolMessages: OpenAIMessage[] = this.toolResults.map(result => ({
-                role: result.role,
-                content: result.content,
-                tool_call_id: result.tool_call_id
-            }));
-
-            messages = [...messages, ...toolMessages];
-        }
-
+        let messages = this.previousConversation;
         return {
             messages,
             tools: this.tools,
+            full:true,
             tool_choice: "auto"
         };
     }
-
-    /**
-     * Builds the follow-up conversation prompt for LLM inference.
-     * 
-     * @returns Promise that resolves to the inference parameters
-     */
-    async buildInferenceParams(): Promise<{ full: boolean; messages: OpenAIMessage[]; tools: OpenAITool[]; tool_choice: "auto" }> {
-        const result = await this.build();
-        
-        return {
-            full: true,
-            messages: result.messages,
-            tools: result.tools,
-            tool_choice: result.tool_choice
-        };
-    }
-
-    /**
-     * Gets the current conversation length.
-     * 
-     * @returns The number of messages in the conversation
-     */
-    getConversationLength(): number {
-        return this.previousConversation.length;
-    }
-
-    /**
-     * Checks if the conversation needs summarization.
-     * 
-     * @returns True if the conversation should be summarized
-     */
-    shouldSummarize(): boolean {
-        return this.forceSummarization || this.previousConversation.length > this.maxConversationLength;
-    }
-
-    /**
-     * Gets the current conversation messages.
-     * 
-     * @returns Array of conversation messages
-     */
-    getConversationMessages(): OpenAIMessage[] {
-        return [...this.previousConversation];
-    }
-
-    /**
-     * Gets the current tools.
-     * 
-     * @returns Array of tools
-     */
-    getTools(): OpenAITool[] {
-        return [...this.tools];
-    }
-
-    /**
-     * Gets the current tool results.
-     * 
-     * @returns Array of tool results
-     */
-    getToolResults(): ToolResult[] {
-        return [...this.toolResults];
-    }
-
-    /**
-     * Clears all conversation data.
-     * 
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    clear(): this {
-        this.previousConversation = [];
-        this.toolResults = [];
-        this.tools = [];
-        this.forceSummarization = false;
-        return this;
-    }
-
-    /**
-     * Resets the builder to initial state.
-     * 
-     * @returns The FollowUpQuestionBuilder instance for chaining
-     */
-    reset(): this {
-        return this.clear();
-    }
 }
 
-export { FollowUpQuestionBuilder };
+export { FollowUpPromptBuilder };

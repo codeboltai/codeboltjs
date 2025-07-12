@@ -214,6 +214,7 @@ export interface CodeboltAPI {
   mcp: {
     listMcpFromServers: (servers: string[]) => Promise<{ data: OpenAITool[] }>;
     getTools: (mcps: any[]) => Promise<{ data: OpenAITool[] }>;
+    executeTool: (toolboxName: string, actualToolName: string, toolInput: any) => Promise<{ data: any }>;
   };
   fs: {
     readFile: (filepath: string) => Promise<string>;
@@ -221,6 +222,9 @@ export interface CodeboltAPI {
   };
   project: {
     getProjectPath: () => Promise<{ projectPath: string }>;
+  };
+  chat: {
+    sendMessage: (message: string, metadata: any) => Promise<void>;
   };
 }
 

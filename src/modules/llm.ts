@@ -34,11 +34,14 @@ const cbllm = {
         max_tokens?: number;
         temperature?: number;
         stream?: boolean;
-    }): Promise<{ completion: any }> => {
+    }, llmrole?: string): Promise<{ completion: any }> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "inference",
-                "message": params,
+                "message": {
+                    prompt: params,
+                    llmrole
+                },
             },
             "llmResponse"
         );
