@@ -205,6 +205,7 @@ export interface UserMessage {
   threadId: string;
   /** Any text selection in the editor */
   selection?: any;
+  remixPrompt?:string
 }
 
 /**

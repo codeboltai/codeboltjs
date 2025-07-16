@@ -223,7 +223,7 @@ class Agent {
                         toolResults.push({
                             role: "tool",
                             tool_call_id: toolResult.tool_call_id,
-                            content: toolResult.content,
+                            content: toolResult.content?.trim() ? toolResult.content : "Tool executed successfully.",
 
                         });
                         if (toolResult.userMessage) {
@@ -285,6 +285,8 @@ class Agent {
 
         try {
             let systemPrompt = await this.systemPrompt.toPromptText();
+                       
+            //TODO: append remix prompt from user
             const aiMessages: Message[] = [
                 { role: "system", content: systemPrompt },
                 ...apiConversationHistory,
@@ -370,7 +372,7 @@ class Agent {
         return {
             role: "tool",
             tool_call_id,
-            content,
+            content: content === "" ? "tool call success" : (Array.isArray(content) ? content[1] : content),
             userMessage
         };
     }

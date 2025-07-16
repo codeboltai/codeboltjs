@@ -713,9 +713,12 @@ class InitialPromptBuilder {
      * @returns The PromptBuilder instance for chaining
      */
     addContext(context: string): this {
-        if (context.trim()) {
-            this.promptParts.push(`[Context]\n${context}`);
-        }
+        const userMessage: ConversationEntry = {
+            role: "user",
+            content: context
+        };
+
+        this.conversationHistory.push(userMessage);
         return this;
     }
 
@@ -747,6 +750,7 @@ class InitialPromptBuilder {
             messages: this.buildOpenAIMessages(),
             tools: this.getTools(),
             full: true,
+            max_tokens:8192,
             tool_choice: "auto" as const,
         };
     }

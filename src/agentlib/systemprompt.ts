@@ -35,11 +35,12 @@ class SystemPrompt {
                 throw new Error('Invalid YAML structure');
             }
 
-            if (!data[this.key]?.prompt) {
+            if ( !data[this.key]) {
                 throw new Error(`Prompt not found for key: ${this.key}`);
             }
 
-            return data[this.key].prompt;
+            const promptData = data[this.key];
+            return typeof promptData === 'string' ? promptData : promptData.prompt;
         } catch (error) {
             console.error(`SystemPrompt Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             throw error; // Re-throw to allow caller handling

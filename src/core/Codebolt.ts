@@ -132,7 +132,8 @@ class Codebolt {
                             },
                             messageId: response.message.messageId,
                             threadId: response.message.threadId,
-                            selection: response.message.selection
+                            selection: response.message.selection,
+                            remixPrompt:response.message.remixPrompt
                         };
 
                         const result = await handler(userMessage);

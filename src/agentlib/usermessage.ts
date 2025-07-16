@@ -54,7 +54,8 @@ class UserMessage {
     async toPrompt(
         bAttachFiles: boolean = true,
         bAttachImages: boolean = true,
-        bAttachEnvironment: boolean = true
+        bAttachEnvironment: boolean = true,
+        supportRemix:boolean=true
     ): Promise<UserMessageContent[]> {
         if (bAttachFiles) {
             if (this.promptOverride) {
@@ -81,6 +82,11 @@ class UserMessage {
                 const environmentDetail = await this.getEnvironmentDetail(projectPath);
                 this.userMessages.push({ type: "text", text: environmentDetail });
             }
+        }
+
+        if(supportRemix){
+            if(this.message.remixPrompt)
+            this.userMessages.push({type:"text",text:this.message.remixPrompt})
         }
 
         return this.userMessages;
@@ -135,6 +141,8 @@ class UserMessage {
             }`;
         return `<environment_details>\n${details.trim()}\n</environment_details>`;
     }
+
+
 }
 
 export { UserMessage };

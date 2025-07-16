@@ -36,20 +36,42 @@ class LLMOutputHandler {
      * @param codebolt - Optional codebolt API instance
      */
     constructor(llmResponse: any, codebolt?: CodeboltAPI) {
+        // Validate llmResponse structure
+        if (!llmResponse) {
+            throw new Error("LLM response is null or undefined");
+        }
+        
+        if (!llmResponse.completion) {
+            throw new Error("LLM response completion is missing");
+        }
+        
+        if (!llmResponse.completion.choices || !Array.isArray(llmResponse.completion.choices)) {
+            throw new Error("LLM response choices array is missing or invalid");
+        }
+        
         this.llmResponse = llmResponse;
         this.codebolt = codebolt;
        
         // Check if any message has tool_calls, if none do, mark as completed
         let hasToolCalls = false;
-        this.llmResponse.completion.choices.forEach((message: any) => {
-            if (message.message?.tool_calls && message.message.tool_calls.length > 0) {
-                hasToolCalls = true;
-            }
-        });
+        try {
+            this.llmResponse.completion.choices.forEach((message: any) => {
+                if (message.message?.tool_calls && message.message.tool_calls.length > 0) {
+                    hasToolCalls = true;
+                }
+            });
+        } catch (error) {
+            console.error("Error checking for tool calls:", error);
+            hasToolCalls = false;
+        }
         
         // If no messages have tool_calls, mark as completed
         if (!hasToolCalls) {
-            this.sendMessageToUser();
+            try {
+                this.sendMessageToUser();
+            } catch (error) {
+                console.error("Error sending message to user:", error);
+            }
             this.completed = true;
         }
     }
@@ -119,11 +141,32 @@ class LLMOutputHandler {
      */
     async runTools(): Promise<ToolResult[]> {
         try {
+            // Validate llmResponse structure
+            if (!this.llmResponse || !this.llmResponse.completion) {
+                throw new Error("Invalid LLM response structure");
+            }
+            
+            if (!this.llmResponse.completion.choices || !Array.isArray(this.llmResponse.completion.choices)) {
+                throw new Error("LLM response choices array is missing or invalid");
+            }
+            
+            if (this.llmResponse.completion.choices.length === 0) {
+                console.warn("No choices found in LLM response");
+                return this.toolResults;
+            }
+            
             let toolResults: ToolResult[] = [];
             let taskCompletedBlock: any;
             let userRejectedToolUse = false;
             console.log("Calling run tool: ", JSON.stringify (this.llmResponse.completion));
+            
             const contentBlock = this.llmResponse.completion.choices[0];
+            
+            // Validate contentBlock structure
+            if (!contentBlock || !contentBlock.message) {
+                console.warn("Invalid content block structure");
+                return this.toolResults;
+            }
 
             if (contentBlock.message?.tool_calls) {
                 for (const tool of contentBlock.message.tool_calls) {
@@ -208,7 +251,7 @@ class LLMOutputHandler {
                       
                         this.toolResults.push({
                             role: "tool",
-                            tool_call_id: tool.id,
+                            tool_call_id: tool?.id || "unknown",
                             content: String(error),
 
                         });
@@ -218,16 +261,40 @@ class LLMOutputHandler {
             }
 
             if (taskCompletedBlock) {
+                let taskArgs = {};
+                try {
+                    // Validate taskCompletedBlock structure
+                    if (!taskCompletedBlock.function) {
+                        throw new Error("Task completed block function is missing");
+                    }
+                    
+                    if (!taskCompletedBlock.function.name) {
+                        throw new Error("Task completed block function name is missing");
+                    }
+                    
+                    // Parse arguments safely
+                    const argumentsString = taskCompletedBlock.function.arguments || "{}";
+                    if (typeof argumentsString !== 'string') {
+                        throw new Error("Task completed block arguments must be a string");
+                    }
+                    
+                    taskArgs = JSON.parse(argumentsString);
+                } catch (parseError) {
+                    const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parsing error';
+                    console.error("Failed to parse taskCompletedBlock arguments:", errorMessage);
+                    taskArgs = {};
+                }
+                
                 let [_, result] = await this.executeTool(
                     taskCompletedBlock.function.name,
-                    JSON.parse(taskCompletedBlock.function.arguments || "{}")
+                    taskArgs
                 );
 
                 if (result === "") {
                     this.completed = true;
                     result = "The user is satisfied with the result.";
                 }
-                let toolResult = this.getToolResult(taskCompletedBlock.id, result)
+                let toolResult = this.getToolResult(taskCompletedBlock?.id || "unknown", result)
                 this.toolResults.push({
                     role: "tool",
                     tool_call_id: toolResult.tool_call_id,
@@ -262,7 +329,17 @@ class LLMOutputHandler {
             }
             return this.toolResults
         } catch (error) {
-           return this.toolResults
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            console.error(`Error in runTools: ${errorMessage}`, error);
+            
+            // Add error information to tool results for debugging
+            this.toolResults.push({
+                role: "tool",
+                tool_call_id: "error",
+                content: `Error executing tools: ${errorMessage}`
+            });
+            
+            return this.toolResults;
         }
     }
 
@@ -298,11 +375,46 @@ class LLMOutputHandler {
      * @returns ToolDetails object with name, input, and ID
      */
     private getToolDetail(tool: any): ToolDetails {
-        return {
-            toolName: tool.function.name,
-            toolInput: JSON.parse(tool.function.arguments || "{}"),
-            toolUseId: tool.id
-        };
+        try {
+            // Validate tool object
+            if (!tool) {
+                throw new Error("Tool object is null or undefined");
+            }
+
+            // Validate tool.function
+            if (!tool.function) {
+                throw new Error("Tool function is null or undefined");
+            }
+
+            // Validate tool.function.name
+            if (!tool.function.name || typeof tool.function.name !== 'string') {
+                throw new Error("Tool function name is missing or invalid");
+            }
+
+            // Validate tool.id
+            if (!tool.id || typeof tool.id !== 'string') {
+                throw new Error("Tool ID is missing or invalid");
+            }
+
+            // Parse tool arguments safely
+            let toolInput: any = {};
+            if (tool.function.arguments) {
+                try {
+                    toolInput = JSON.parse(tool.function.arguments);
+                } catch (parseError) {
+                    throw new Error(`Failed to parse tool arguments: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+                }
+            }
+
+            return {
+                toolName: tool.function.name,
+                toolInput: toolInput,
+                toolUseId: tool.id
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            throw new Error(`Failed to extract tool details: ${errorMessage}`);
+        }
     }
 
     /**
@@ -341,15 +453,25 @@ class LLMOutputHandler {
         let userMessage = undefined;
 
         try {
-            const parsed = JSON.parse(content);
-            console.log("Parsed Content: ", parsed);
+            // Validate content before parsing
+            if (typeof content !== 'string') {
+                throw new Error("Content must be a string");
+            }
+            
+            // Only attempt to parse if content looks like JSON
+            if (content.trim().startsWith('{') || content.trim().startsWith('[')) {
+                const parsed = JSON.parse(content);
+                console.log("Parsed Content: ", parsed);
 
-            if (parsed.payload && parsed.payload.content) {
-                content = `The browser action has been executed. The screenshot have been captured for your analysis. The tool response is provided in the next user message`;
-                userMessage = parsed.payload.content;
+                if (parsed && typeof parsed === 'object' && parsed.payload && parsed.payload.content) {
+                    content = `The browser action has been executed. The screenshot have been captured for your analysis. The tool response is provided in the next user message`;
+                    userMessage = parsed.payload.content;
+                }
             }
         } catch (error) {
-            // Content is not JSON, use as-is
+            const errorMessage = error instanceof Error ? error.message : 'Unknown JSON parsing error';
+            console.warn(`Failed to parse tool result content as JSON: ${errorMessage}. Using content as-is.`);
+            // Content is not valid JSON, use as-is
         }
 
         return {

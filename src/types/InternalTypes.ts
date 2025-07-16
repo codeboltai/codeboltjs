@@ -635,6 +635,7 @@ export interface Message {
   mentionedMCPs: { toolbox: string, toolName: string }[];
   /** List of agents mentioned in the message */
   mentionedAgents: any[];
+  remixPrompt?:string
 }
 
 /**
