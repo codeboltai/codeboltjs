@@ -206,6 +206,7 @@ export interface UserMessage {
   /** Any text selection in the editor */
   selection?: any;
   remixPrompt?:string
+  mentionedAgents?:[]
 }
 
 /**
@@ -451,27 +452,98 @@ export interface MemoryGetOptions {
 export interface TaskCreateOptions {
   /** Task title */
   title: string;
+  /** Agent ID for task organization */
+  agentId?: string;
   /** Task description */
   description?: string;
+  /** Task phase */
+  phase?: string;
+  /** Task category */
+  category?: string;
   /** Task priority */
   priority?: 'low' | 'medium' | 'high';
-  /** Due date */
-  dueDate?: Date | string;
   /** Associated tags */
   tags?: string[];
 }
 
 export interface TaskUpdateOptions {
   /** Task ID */
-  id: string;
+  taskId: string;
+  /** New title */
+  title?: string;
+  /** New description */
+  description?: string;
+  /** New phase */
+  phase?: string;
+  /** New category */
+  category?: string;
+  /** Completion status */
+  completed?: boolean;
+  /** New priority */
+  priority?: 'low' | 'medium' | 'high';
+  /** New tags */
+  tags?: string[];
+  /** New agent ID */
+  agentId?: string;
+}
+
+export interface AddSubTaskOptions {
+  /** Parent task ID */
+  taskId: string;
+  /** Subtask title */
+  title: string;
+  /** Subtask description */
+  description?: string;
+  /** Subtask requirements */
+  requirements?: string[];
+}
+
+export interface UpdateSubTaskOptions {
+  /** Parent task ID */
+  taskId: string;
+  /** Subtask ID */
+  subtaskId: string;
   /** New title */
   title?: string;
   /** New description */
   description?: string;
   /** Completion status */
   completed?: boolean;
-  /** New priority */
+  /** New requirements */
+  requirements?: string[];
+}
+
+export interface TaskFilterOptions {
+  /** Filter by agent ID */
+  agentId?: string;
+  /** Filter by category */
+  category?: string;
+  /** Filter by phase */
+  phase?: string;
+  /** Filter by priority */
   priority?: 'low' | 'medium' | 'high';
+  /** Filter by completion status */
+  completed?: boolean;
+}
+
+export interface TaskMarkdownImportOptions {
+  /** Markdown content to import */
+  markdown: string;
+  /** Agent ID for imported tasks */
+  agentId?: string;
+  /** Phase for imported tasks */
+  phase?: string;
+  /** Category for imported tasks */
+  category?: string;
+}
+
+export interface TaskMarkdownExportOptions {
+  /** Filter by phase */
+  phase?: string;
+  /** Filter by agent ID */
+  agentId?: string;
+  /** Filter by category */
+  category?: string;
 }
 
 // ================================

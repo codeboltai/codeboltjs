@@ -424,23 +424,15 @@ class LLMOutputHandler {
      * @param toolInput - The input parameters for the tool
      * @returns Promise with tuple [userRejected, result]
      */
-    private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
-        console.log("Executing tool: ", toolName, toolInput);
+    private async executeTool(toolName: string, toolInput: any): Promise<any> {
+        //codebolttools--readfile
         const [toolboxName, actualToolName] = toolName.split('--');
         console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
-        const response = await this.codebolt?.mcp.executeTool(toolboxName, actualToolName, toolInput);
-        console.log("Tool result form inner function: ", response);
-        
-        // Handle the response structure
-        if (!response || !response.data) {
-            return [false, "Tool execution failed: No response data"];
-        }
-        
-       
-        
-        // Otherwise, assume success and return the data
-        return  response.data;
+        const data = await this.codebolt?.mcp.executeTool(toolboxName, actualToolName, toolInput);
+        console.log("Tool result: ", data);
+        return data;
     }
+
 
     /**
      * Creates a tool result object from the tool execution response.

@@ -7,7 +7,22 @@ async function testTaskMCPTools() {
     try {
         // 1. task_create
         try {
-            const result = await codebolt.tools.executeTool('codebolt.task', 'task_create', { task: 'Test MCP Task' });
+            const result = await codebolt.tools.executeTool('codebolt.task', 'task_create', { 
+                /** Task title */
+           title: "test",
+           /** Agent ID for task organization */
+           agentId:"test",
+           /** Task description */
+           description:'test',
+           /** Task phase */
+           phase: 'test',
+           /** Task category */
+           category: 'test',
+           /** Task priority */
+           priority: 'high',
+           /** Associated tags */
+           tags: []
+              });
             console.log('✅ task_create:', result?.success, result?.message);
         } catch (e) { console.log('⚠️  task_create failed:', e.message); }
         // 2. task_list

@@ -110,11 +110,36 @@ export interface AgentDetail {
 // Task Types
 // ================================
 
+export interface SubTask {
+    id: string;
+    title: string;
+    description?: string;
+    completed: boolean;
+    requirements?: string[];
+}
+
 export interface Task {
-  id?: string;
-  title?: string;
+    id: string;
+    title: string;
   description?: string;
-  completed?: boolean;
+    phase?: string;
+    category?: string;
+    agentId: string;
+    subtasks: SubTask[];
+    completed: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+    priority?: 'low' | 'medium' | 'high';
+    tags?: string[];
+}
+
+export interface TaskResponse {
+    success: boolean;
+    data?: Task | Task[] | SubTask | string[] | string;
+    message?: string;
+    error?: string;
+    agentId?: string;
+    count?: number;
 }
 
 // ================================

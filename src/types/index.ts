@@ -76,6 +76,11 @@ export type {
     // Task Types
     TaskCreateOptions,
     TaskUpdateOptions,
+    AddSubTaskOptions,
+    UpdateSubTaskOptions,
+    TaskFilterOptions,
+    TaskMarkdownImportOptions,
+    TaskMarkdownExportOptions,
 
     // Code Analysis Types
     CodeAnalysisOptions,
@@ -129,6 +134,8 @@ export type {
 
     // Task Types (for task management)
     Task,
+    SubTask,
+    TaskResponse,
 
     // Vector Database Types (for vector operations)
     VectorItem,
