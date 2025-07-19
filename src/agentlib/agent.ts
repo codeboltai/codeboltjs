@@ -198,7 +198,7 @@ class Agent {
                                 toolResults.push({
                                     role: "tool",
                                     tool_call_id: tool.id,
-                                    content: String(error),
+                                    content:`please provide valid json string for tool.function.arguments String(error)`,
 
                                 });
 
