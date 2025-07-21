@@ -69,35 +69,13 @@ export type EditTodoTaskResponseNotification = {
 };
 
 
-// Union types for backward compatibility
+// Union types for convenience
 export type TodoTaskNotification =
-    | TodoAddTaskRequestNotification
-    | TodoAddSimpleTaskRequestNotification
-    | TodoGetTasksRequestNotification
-    | TodoGetTasksByAgentRequestNotification
-    | TodoGetTasksByCategoryRequestNotification
-    | TodoUpdateTaskRequestNotification
-    | TodoCompleteTaskRequestNotification
-    | TodoDeleteTaskRequestNotification
-    | TodoAddSubTaskRequestNotification
-    | TodoUpdateSubTaskRequestNotification
-    | TodoCompleteSubTaskRequestNotification
-    | TodoDeleteSubTaskRequestNotification
-    | TodoCreateTasksFromMarkdownRequestNotification
-    | TodoExportTasksToMarkdownRequestNotification;
+    | AddTodoRequestNotification
+    | GetTodoRequestNotification
+    | EditTodoTaskRequestNotification;
 
 export type TaskResponseNotification =
-    | TodoAddTaskResponseNotification
-    | TodoAddSimpleTaskResponseNotification
-    | TodoGetTasksResponseNotification
-    | TodoGetTasksByAgentResponseNotification
-    | TodoGetTasksByCategoryResponseNotification
-    | TodoUpdateTaskResponseNotification
-    | TodoCompleteTaskResponseNotification
-    | TodoDeleteTaskResponseNotification
-    | TodoAddSubTaskResponseNotification
-    | TodoUpdateSubTaskResponseNotification
-    | TodoCompleteSubTaskResponseNotification
-    | TodoDeleteSubTaskResponseNotification
-    | TodoCreateTasksFromMarkdownResponseNotification
-    | TodoExportTasksToMarkdownResponseNotification; 
+    | AddTodoResponseNotification
+    | GetTodoTasksResponseNotification
+    | EditTodoTaskResponseNotification; 

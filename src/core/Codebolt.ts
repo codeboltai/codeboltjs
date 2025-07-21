@@ -24,6 +24,7 @@ import { chatSummary } from '../modules/history';
 import codeboltTools from '../modules/mcp';
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
+import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 import type { UserMessage } from '../types/libFunctionTypes';
 
 /**
@@ -103,6 +104,7 @@ class Codebolt {
     mcp = codeboltTools;
     agent = cbagent;
     utils = cbutils;
+    notify = notificationFunctions;
 
     /**
      * Sets up a listener for incoming messages with a direct handler function.
