@@ -66,8 +66,9 @@ class cbws {
         const parentAgentInstanceIdParam = process.env.parentAgentInstanceId ? `&parentAgentInstanceId=${process.env.parentAgentInstanceId}` : '';
         const agentTask = process.env.agentTask ? `&agentTask=${process.env.agentTask}` : '';
         const socketPort = process.env.SOCKET_PORT || '12345';
+        const serverUrl = process.env.CODEBOLT_SERVER_URL || 'localhost';
         
-        const wsUrl = `ws://localhost:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${process.env.Is_Dev ? '&dev=true' : ''}`;
+        const wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${process.env.Is_Dev ? '&dev=true' : ''}`;
         console.log('[WebSocket] Connecting to:', wsUrl);
         
         this.websocket = new WebSocket(wsUrl);
