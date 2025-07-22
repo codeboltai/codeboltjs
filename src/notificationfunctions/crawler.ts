@@ -12,23 +12,14 @@ import {
     CrawlerStartResponseNotification
 } from '../types/notifications/crawler';
 
+import { CrawlerNotifications } from '../types/notificationFunctions/crawler';
+
 import {
     sendNotification,
     generateToolUseId,
-    validateRequiredFields,
-    createErrorResponse,
-    createSuccessResponse
+    validateRequiredFields
 } from './utils';
 
-/**
- * Interface for crawler notification functions
- */
-export interface CrawlerNotifications {
-    CrawlerSearchRequestNotify(url: string, searchQuery?: string, maxDepth?: number, maxPages?: number, includeSubdomains?: boolean, followRedirects?: boolean, toolUseId?: string): void;
-    CrawlerSearchResponseNotify(content: string | any, isError?: boolean, toolUseId?: string, data?: CrawlerSearchResponseNotification['data']): void;
-    CrawlerStartRequestNotify(startUrl: string, options?: any, toolUseId?: string): void;
-    CrawlerStartResponseNotify(content: string | any, isError?: boolean, toolUseId?: string, data?: CrawlerStartResponseNotification['data']): void;
-}
 
 /**
  * Sends a request to perform a crawler search

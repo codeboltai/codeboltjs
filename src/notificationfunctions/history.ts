@@ -12,21 +12,14 @@ import {
     SummarizeCurrentMessageResultNotification
 } from '../types/notifications/history';
 
+import { HistoryNotifications } from '../types/notificationFunctions/history';
+
 import {
     sendNotification,
     generateToolUseId,
     validateRequiredFields
 } from './utils';
 
-/**
- * Interface for history notification functions
- */
-export interface HistoryNotifications {
-    summarizePreviousConversation(data?: SummarizePreviousConversationRequestNotification['data'], toolUseId?: string): void;
-    sendSummarizePreviousResult(content: string | any, isError?: boolean, toolUseId?: string): void;
-    summarizeCurrentMessage(data: SummarizeCurentMessageRequestNotification['data'], toolUseId?: string): void;
-    sendSummarizeCurrentResult(content: string | any, isError?: boolean, toolUseId?: string): void;
-}
 
 // ===== SUMMARIZE PREVIOUS CONVERSATION FUNCTIONS =====
 
