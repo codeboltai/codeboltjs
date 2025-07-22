@@ -628,6 +628,37 @@ export function sendMoveFileResponse(
     sendNotification(notification, 'fs.sendMoveFileResponse');
 }
 /**
+ * Wrapper functions to match interface signatures
+ */
+function FileDeleteRequestNotify(fileName: string, filePath: string, toolUseId?: string): void {
+    deleteFile({ fileName, filePath }, toolUseId);
+}
+
+function FolderDeleteRequestNotify(folderName: string, folderPath: string, toolUseId?: string): void {
+    deleteFolder({ folderName, folderPath }, toolUseId);
+}
+
+function ListDirectoryRequestNotify(dirPath: string, toolUseId?: string): void {
+    listDirectory({ dirPath }, toolUseId);
+}
+
+function WriteToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void {
+    writeToFile({ filePath, text }, toolUseId);
+}
+
+function AppendToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void {
+    appendToFile({ filePath, text }, toolUseId);
+}
+
+function CopyFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void {
+    copyFile({ sourceFile, destinationFile }, toolUseId);
+}
+
+function MoveFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void {
+    moveFile({ sourceFile, destinationFile }, toolUseId);
+}
+
+/**
  * File system notification functions object
  */
 export const fsNotifications: FsNotifications = {
@@ -639,19 +670,19 @@ export const fsNotifications: FsNotifications = {
     FileReadResponseNotify,
     FileEditRequestNotify,
     FileEditResponseNotify,
-    FileDeleteRequestNotify: deleteFile,
+    FileDeleteRequestNotify,
     FileDeleteResponseNotify: sendFileDeleteResponse,
-    FolderDeleteRequestNotify: deleteFolder,
+    FolderDeleteRequestNotify,
     FolderDeleteResponseNotify: sendFolderDeleteResponse,
-    ListDirectoryRequestNotify: listDirectory,
+    ListDirectoryRequestNotify,
     ListDirectoryResponseNotify: sendListDirectoryResponse,
-    WriteToFileRequestNotify: writeToFile,
+    WriteToFileRequestNotify,
     WriteToFileResponseNotify: sendWriteToFileResponse,
-    AppendToFileRequestNotify: appendToFile,
+    AppendToFileRequestNotify,
     AppendToFileResponseNotify: sendAppendToFileResponse,
-    CopyFileRequestNotify: copyFile,
+    CopyFileRequestNotify,
     CopyFileResponseNotify: sendCopyFileResponse,
-    MoveFileRequestNotify: moveFile,
+    MoveFileRequestNotify,
     MoveFileResponseNotify: sendMoveFileResponse
 };
 
