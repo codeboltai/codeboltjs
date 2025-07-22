@@ -30,39 +30,13 @@ import {
     MoveFileResponseNotification
 } from '../types/notifications/fs';
 
+import { FsNotifications } from '../types/notificationFunctions/fs';
+
 import {
     sendNotification,
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-
-/**
- * Interface for file system notification functions
- */
-export interface FsNotifications {
-    FileCreateRequestNotify(fileName: string, source: string, filePath: string, toolUseId?: string): void;
-    FileCreateResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    FolderCreateRequestNotify(folderName: string, folderPath: string, toolUseId?: string): void;
-    FolderCreateResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    FileReadRequestNotify(filePath: string, startLine?: string, endLine?: string, toolUseId?: string): void;
-    FileReadResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    FileEditRequestNotify(fileName: string, filePath: string, newContent: string, toolUseId?: string): void;
-    FileEditResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    FileDeleteRequestNotify(fileName: string, filePath: string, toolUseId?: string): void;
-    FileDeleteResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    FolderDeleteRequestNotify(folderName: string, folderPath: string, toolUseId?: string): void;
-    FolderDeleteResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    ListDirectoryRequestNotify(dirPath: string, toolUseId?: string): void;
-    ListDirectoryResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    WriteToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void;
-    WriteToFileResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    AppendToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void;
-    AppendToFileResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    CopyFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void;
-    CopyFileResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-    MoveFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void;
-    MoveFileResponseNotify(content: string | any, isError?: boolean, toolUseId?: string): void;
-}
 
 /**
  * Sends a request to create a file
@@ -278,12 +252,12 @@ export function FileEditResponseNotify(
  * Sends a request to delete a file
  * Requirements: 7.6
  */
-export function deleteFile(
-    data: FileDeleteRequestNotification['data'],
+export function FileDeleteRequestNotify(
+    fileName: string,
+    filePath: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['fileName', 'filePath'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.deleteFile')) {
+    if (!validateRequiredFields({ fileName, filePath }, ['fileName', 'filePath'], 'fs.FileDeleteRequestNotify')) {
         return;
     }
 
@@ -292,25 +266,25 @@ export function deleteFile(
         type: "fsnotify",
         action: "deleteFileRequest",
         data: {
-            fileName: data.fileName,
-            filePath: data.filePath
+            fileName: fileName,
+            filePath: filePath
         }
     };
 
-    sendNotification(notification, 'fs.deleteFile');
+    sendNotification(notification, 'fs.FileDeleteRequestNotify');
 }
 
 /**
  * Sends a response to a file delete request
  * Requirements: 7.6
  */
-export function sendFileDeleteResponse(
+export function FileDeleteResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendFileDeleteResponse');
+        console.error('[NotificationFunctions] Content is required for fs.FileDeleteResponseNotify');
         return;
     }
 
@@ -322,19 +296,19 @@ export function sendFileDeleteResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendFileDeleteResponse');
+    sendNotification(notification, 'fs.FileDeleteResponseNotify');
 }
 
 /**
  * Sends a request to delete a folder
  * Requirements: 7.6
  */
-export function deleteFolder(
-    data: FolderDeleteRequestNotification['data'],
+export function FolderDeleteRequestNotify(
+    folderName: string,
+    folderPath: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['folderName', 'folderPath'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.deleteFolder')) {
+    if (!validateRequiredFields({ folderName, folderPath }, ['folderName', 'folderPath'], 'fs.FolderDeleteRequestNotify')) {
         return;
     }
 
@@ -343,25 +317,25 @@ export function deleteFolder(
         type: "fsnotify",
         action: "deleteFolderRequest",
         data: {
-            folderName: data.folderName,
-            folderPath: data.folderPath
+            folderName: folderName,
+            folderPath: folderPath
         }
     };
 
-    sendNotification(notification, 'fs.deleteFolder');
+    sendNotification(notification, 'fs.FolderDeleteRequestNotify');
 }
 
 /**
  * Sends a response to a folder delete request
  * Requirements: 7.6
  */
-export function sendFolderDeleteResponse(
+export function FolderDeleteResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendFolderDeleteResponse');
+        console.error('[NotificationFunctions] Content is required for fs.FolderDeleteResponseNotify');
         return;
     }
 
@@ -373,18 +347,17 @@ export function sendFolderDeleteResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendFolderDeleteResponse');
+    sendNotification(notification, 'fs.FolderDeleteResponseNotify');
 }/**
  * 
 Sends a request to list directory contents
  * Requirements: 7.7
  */
-export function listDirectory(
-    data: ListDirectoryRequestNotification['data'],
+export function ListDirectoryRequestNotify(
+    dirPath: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['dirPath'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.listDirectory')) {
+    if (!validateRequiredFields({ dirPath }, ['dirPath'], 'fs.ListDirectoryRequestNotify')) {
         return;
     }
 
@@ -393,24 +366,24 @@ export function listDirectory(
         type: "fsnotify",
         action: "listDirectoryRequest",
         data: {
-            dirPath: data.dirPath
+            dirPath: dirPath
         }
     };
 
-    sendNotification(notification, 'fs.listDirectory');
+    sendNotification(notification, 'fs.ListDirectoryRequestNotify');
 }
 
 /**
  * Sends a response to a directory listing request
  * Requirements: 7.7
  */
-export function sendListDirectoryResponse(
+export function ListDirectoryResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendListDirectoryResponse');
+        console.error('[NotificationFunctions] Content is required for fs.ListDirectoryResponseNotify');
         return;
     }
 
@@ -422,19 +395,19 @@ export function sendListDirectoryResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendListDirectoryResponse');
+    sendNotification(notification, 'fs.ListDirectoryResponseNotify');
 }
 
 /**
  * Sends a request to write to a file
  * Requirements: 7.8
  */
-export function writeToFile(
-    data: WriteToFileRequestNotification['data'],
+export function WriteToFileRequestNotify(
+    filePath: string,
+    text: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['filePath', 'text'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.writeToFile')) {
+    if (!validateRequiredFields({ filePath, text }, ['filePath', 'text'], 'fs.WriteToFileRequestNotify')) {
         return;
     }
 
@@ -443,25 +416,25 @@ export function writeToFile(
         type: "fsnotify",
         action: "writeToFileRequest",
         data: {
-            filePath: data.filePath,
-            text: data.text
+            filePath: filePath,
+            text: text
         }
     };
 
-    sendNotification(notification, 'fs.writeToFile');
+    sendNotification(notification, 'fs.WriteToFileRequestNotify');
 }
 
 /**
  * Sends a response to a write to file request
  * Requirements: 7.8
  */
-export function sendWriteToFileResponse(
+export function WriteToFileResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendWriteToFileResponse');
+        console.error('[NotificationFunctions] Content is required for fs.WriteToFileResponseNotify');
         return;
     }
 
@@ -473,19 +446,19 @@ export function sendWriteToFileResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendWriteToFileResponse');
+    sendNotification(notification, 'fs.WriteToFileResponseNotify');
 }
 
 /**
  * Sends a request to append to a file
  * Requirements: 7.9
  */
-export function appendToFile(
-    data: AppendToFileRequestNotification['data'],
+export function AppendToFileRequestNotify(
+    filePath: string,
+    text: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['filePath', 'text'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.appendToFile')) {
+    if (!validateRequiredFields({ filePath, text }, ['filePath', 'text'], 'fs.AppendToFileRequestNotify')) {
         return;
     }
 
@@ -494,25 +467,25 @@ export function appendToFile(
         type: "fsnotify",
         action: "appendToFileRequest",
         data: {
-            filePath: data.filePath,
-            text: data.text
+            filePath: filePath,
+            text: text
         }
     };
 
-    sendNotification(notification, 'fs.appendToFile');
+    sendNotification(notification, 'fs.AppendToFileRequestNotify');
 }
 
 /**
  * Sends a response to an append to file request
  * Requirements: 7.9
  */
-export function sendAppendToFileResponse(
+export function AppendToFileResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendAppendToFileResponse');
+        console.error('[NotificationFunctions] Content is required for fs.AppendToFileResponseNotify');
         return;
     }
 
@@ -524,18 +497,18 @@ export function sendAppendToFileResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendAppendToFileResponse');
+    sendNotification(notification, 'fs.AppendToFileResponseNotify');
 }/**
 
  * Sends a request to copy a file
  * Requirements: 7.10
  */
-export function copyFile(
-    data: CopyFileRequestNotification['data'],
+export function CopyFileRequestNotify(
+    sourceFile: string,
+    destinationFile: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['sourceFile', 'destinationFile'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.copyFile')) {
+    if (!validateRequiredFields({ sourceFile, destinationFile }, ['sourceFile', 'destinationFile'], 'fs.CopyFileRequestNotify')) {
         return;
     }
 
@@ -544,25 +517,25 @@ export function copyFile(
         type: "fsnotify",
         action: "copyFileRequest",
         data: {
-            sourceFile: data.sourceFile,
-            destinationFile: data.destinationFile
+            sourceFile: sourceFile,
+            destinationFile: destinationFile
         }
     };
 
-    sendNotification(notification, 'fs.copyFile');
+    sendNotification(notification, 'fs.CopyFileRequestNotify');
 }
 
 /**
  * Sends a response to a file copy request
  * Requirements: 7.10
  */
-export function sendCopyFileResponse(
+export function CopyFileResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendCopyFileResponse');
+        console.error('[NotificationFunctions] Content is required for fs.CopyFileResponseNotify');
         return;
     }
 
@@ -574,19 +547,19 @@ export function sendCopyFileResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendCopyFileResponse');
+    sendNotification(notification, 'fs.CopyFileResponseNotify');
 }
 
 /**
  * Sends a request to move a file
  * Requirements: 7.11
  */
-export function moveFile(
-    data: MoveFileRequestNotification['data'],
+export function MoveFileRequestNotify(
+    sourceFile: string,
+    destinationFile: string,
     toolUseId?: string
 ): void {
-    const requiredFields = ['sourceFile', 'destinationFile'];
-    if (!validateRequiredFields(data, requiredFields, 'fs.moveFile')) {
+    if (!validateRequiredFields({ sourceFile, destinationFile }, ['sourceFile', 'destinationFile'], 'fs.MoveFileRequestNotify')) {
         return;
     }
 
@@ -595,25 +568,25 @@ export function moveFile(
         type: "fsnotify",
         action: "moveFileRequest",
         data: {
-            sourceFile: data.sourceFile,
-            destinationFile: data.destinationFile
+            sourceFile: sourceFile,
+            destinationFile: destinationFile
         }
     };
 
-    sendNotification(notification, 'fs.moveFile');
+    sendNotification(notification, 'fs.MoveFileRequestNotify');
 }
 
 /**
  * Sends a response to a file move request
  * Requirements: 7.11
  */
-export function sendMoveFileResponse(
+export function MoveFileResponseNotify(
     content: string | any,
     isError: boolean = false,
     toolUseId?: string
 ): void {
     if (content === null || content === undefined) {
-        console.error('[NotificationFunctions] Content is required for fs.sendMoveFileResponse');
+        console.error('[NotificationFunctions] Content is required for fs.MoveFileResponseNotify');
         return;
     }
 
@@ -625,7 +598,7 @@ export function sendMoveFileResponse(
         isError: isError
     };
 
-    sendNotification(notification, 'fs.sendMoveFileResponse');
+    sendNotification(notification, 'fs.MoveFileResponseNotify');
 }
 /**
  * Wrapper functions to match interface signatures
@@ -671,6 +644,7 @@ export const fsNotifications: FsNotifications = {
     FileEditRequestNotify,
     FileEditResponseNotify,
     FileDeleteRequestNotify,
+<<<<<<< HEAD
     FileDeleteResponseNotify: sendFileDeleteResponse,
     FolderDeleteRequestNotify,
     FolderDeleteResponseNotify: sendFolderDeleteResponse,
@@ -684,6 +658,21 @@ export const fsNotifications: FsNotifications = {
     CopyFileResponseNotify: sendCopyFileResponse,
     MoveFileRequestNotify,
     MoveFileResponseNotify: sendMoveFileResponse
+=======
+    FileDeleteResponseNotify,
+    FolderDeleteRequestNotify,
+    FolderDeleteResponseNotify,
+    ListDirectoryRequestNotify,
+    ListDirectoryResponseNotify,
+    WriteToFileRequestNotify,
+    WriteToFileResponseNotify,
+    AppendToFileRequestNotify,
+    AppendToFileResponseNotify,
+    CopyFileRequestNotify,
+    CopyFileResponseNotify,
+    MoveFileRequestNotify,
+    MoveFileResponseNotify
+>>>>>>> b6b32fd58ca6cf1f6ca3acb164030c8c615960f4
 };
 
 /**

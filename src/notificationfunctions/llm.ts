@@ -12,21 +12,14 @@ import {
     LLMGetTokenCountResponseNotification
 } from '../types/notifications/llm';
 
+import { LlmNotifications } from '../types/notificationFunctions/llm';
+
 import {
     sendNotification,
     generateToolUseId,
     validateRequiredFields
 } from './utils';
 
-/**
- * Interface for LLM notification functions
- */
-export interface LlmNotifications {
-    sendInferenceRequest(data: LLMRequestNotification['data'], toolUseId?: string): void;
-    sendInferenceResponse(content: string | any, isError?: boolean, toolUseId?: string): void;
-    getTokenCount(data: LLMGetTokenCountRequestNotification['data'], toolUseId?: string): void;
-    sendTokenCountResponse(content: string | any, isError?: boolean, toolUseId?: string, data?: LLMGetTokenCountResponseNotification['data']): void;
-}
 
 // ===== LLM INFERENCE FUNCTIONS =====
 

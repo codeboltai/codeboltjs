@@ -47,21 +47,38 @@ export * from './terminal';
 export * from './todo';
 
 // Import notification objects
-import { agentNotifications, type AgentNotifications } from './agent';
-import { browserNotifications, type BrowserNotifications } from './browser';
-import { chatNotifications, type ChatNotifications } from './chat';
-import { codeutilsNotifications, type CodeutilsNotifications } from './codeutils';
-import { crawlerNotifications, type CrawlerNotifications } from './crawler';
-import { dbmemoryNotifications, type DbmemoryNotifications } from './dbmemory';
-import { fsNotifications, type FsNotifications } from './fs';
-import { gitNotifications, type GitNotifications } from './git';
-import { historyNotifications, type HistoryNotifications } from './history';
-import { llmNotifications, type LlmNotifications } from './llm';
-import { mcpNotifications, type McpNotifications } from './mcp';
-import { searchNotifications, type SearchNotifications } from './search';
-import { systemNotifications, type SystemNotifications } from './system';
-import { terminalNotifications, type TerminalNotifications } from './terminal';
-import { todoNotifications, type TodoNotifications } from './todo';
+import { agentNotifications } from './agent';
+import { browserNotifications } from './browser';
+import { chatNotifications } from './chat';
+import { codeutilsNotifications } from './codeutils';
+import { crawlerNotifications } from './crawler';
+import { dbmemoryNotifications } from './dbmemory';
+import { fsNotifications } from './fs';
+import { gitNotifications } from './git';
+import { historyNotifications } from './history';
+import { llmNotifications } from './llm';
+import { mcpNotifications } from './mcp';
+import { searchNotifications } from './search';
+import { systemNotifications } from './system';
+import { terminalNotifications } from './terminal';
+import { todoNotifications } from './todo';
+
+// Import notification interfaces
+import { type AgentNotifications } from '../types/notificationFunctions/agent';
+import { type BrowserNotifications } from '../types/notificationFunctions/browser';
+import { type ChatNotifications } from '../types/notificationFunctions/chat';
+import { type CodeutilsNotifications } from '../types/notificationFunctions/codeutils';
+import { type CrawlerNotifications } from '../types/notificationFunctions/crawler';
+import { type DbmemoryNotifications } from '../types/notificationFunctions/dbmemory';
+import { type FsNotifications } from '../types/notificationFunctions/fs';
+import { type GitNotifications } from '../types/notificationFunctions/git';
+import { type HistoryNotifications } from '../types/notificationFunctions/history';
+import { type LlmNotifications } from '../types/notificationFunctions/llm';
+import { type McpNotifications } from '../types/notificationFunctions/mcp';
+import { type SearchNotifications } from '../types/notificationFunctions/search';
+import { type SystemNotifications } from '../types/notificationFunctions/system';
+import { type TerminalNotifications } from '../types/notificationFunctions/terminal';
+import { type TodoNotifications } from '../types/notificationFunctions/todo';
 
 // Main notification functions interface
 export interface NotificationFunctions {

@@ -35,6 +35,7 @@ class Codebolt {
     websocket: WebSocket | null = null;
     private isReady: boolean = false;
     private readyPromise: Promise<void>;
+    private readyHandlers: Array<() => void | Promise<void>> = [];
 
     /**
      * @constructor
@@ -56,6 +57,15 @@ class Codebolt {
             this.websocket = cbws.getWebsocket;
             this.isReady = true;
             console.log("Codebolt WebSocket connection established");
+            
+            // Execute all registered ready handlers
+            for (const handler of this.readyHandlers) {
+                try {
+                    await handler();
+                } catch (error) {
+                    console.error('Error executing ready handler:', error);
+                }
+            }
         } catch (error) {
             console.error('Failed to initialize WebSocket connection:', error);
             throw error;
@@ -105,6 +115,31 @@ class Codebolt {
     agent = cbagent;
     utils = cbutils;
     notify = notificationFunctions;
+
+    /**
+     * Sets up a handler function to be executed when the WebSocket connection is established.
+     * If the connection is already established, the handler will be executed immediately.
+     * @param {Function} handler - The handler function to call when the connection is ready.
+     * @returns {void}
+     */
+    onReady(handler: () => void | Promise<void>) {
+        if (this.isReady) {
+            // If already ready, execute the handler immediately
+            try {
+                const result = handler();
+                if (result instanceof Promise) {
+                    result.catch(error => {
+                        console.error('Error in ready handler:', error);
+                    });
+                }
+            } catch (error) {
+                console.error('Error in ready handler:', error);
+            }
+        } else {
+            // If not ready yet, add to the list of handlers to execute when ready
+            this.readyHandlers.push(handler);
+        }
+    }
 
     /**
      * Sets up a listener for incoming messages with a direct handler function.

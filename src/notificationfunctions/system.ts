@@ -10,18 +10,13 @@ import {
     agentCompletionNotification
 } from '../types/notifications/system';
 
+import { SystemNotifications } from '../types/notificationFunctions/system';
+
 import {
     sendNotification,
     generateToolUseId
 } from './utils';
 
-/**
- * Interface for system notification functions
- */
-export interface SystemNotifications {
-    AgentInitNotify(onStopClicked?: boolean, toolUseId?: string): void;
-    AgentCompletionNotify(resultString: string, sessionId?: string, duration?: string, toolUseId?: string): void;
-}
 
 // ===== AGENT INIT FUNCTIONS =====
 

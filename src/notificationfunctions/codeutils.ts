@@ -12,21 +12,14 @@ import {
     GlobSearchResponseNotification
 } from '../types/notifications/codeutils';
 
+import { CodeutilsNotifications } from '../types/notificationFunctions/codeutils';
+
 import {
     sendNotification,
     generateToolUseId,
     validateRequiredFields
 } from './utils';
 
-/**
- * Interface for code utils notification functions
- */
-export interface CodeutilsNotifications {
-    GrepSearchRequestNotify(pattern: string, filePath?: string, recursive?: boolean, ignoreCase?: boolean, maxResults?: number, toolUseId?: string): void;
-    GrepSearchResponseNotify(content: string | any, isError?: boolean, toolUseId?: string, data?: GrepSearchResponseNotification['data']): void;
-    GlobSearchRequestNotify(pattern: string, basePath?: string, maxDepth?: number, includeDirectories?: boolean, toolUseId?: string): void;
-    GlobSearchResponseNotify(content: string | any, isError?: boolean, toolUseId?: string, data?: GlobSearchResponseNotification['data']): void;
-}
 
 /**
  * Sends a grep search request
