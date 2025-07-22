@@ -601,37 +601,6 @@ export function MoveFileResponseNotify(
     sendNotification(notification, 'fs.MoveFileResponseNotify');
 }
 /**
- * Wrapper functions to match interface signatures
- */
-function FileDeleteRequestNotify(fileName: string, filePath: string, toolUseId?: string): void {
-    deleteFile({ fileName, filePath }, toolUseId);
-}
-
-function FolderDeleteRequestNotify(folderName: string, folderPath: string, toolUseId?: string): void {
-    deleteFolder({ folderName, folderPath }, toolUseId);
-}
-
-function ListDirectoryRequestNotify(dirPath: string, toolUseId?: string): void {
-    listDirectory({ dirPath }, toolUseId);
-}
-
-function WriteToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void {
-    writeToFile({ filePath, text }, toolUseId);
-}
-
-function AppendToFileRequestNotify(filePath: string, text: string, toolUseId?: string): void {
-    appendToFile({ filePath, text }, toolUseId);
-}
-
-function CopyFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void {
-    copyFile({ sourceFile, destinationFile }, toolUseId);
-}
-
-function MoveFileRequestNotify(sourceFile: string, destinationFile: string, toolUseId?: string): void {
-    moveFile({ sourceFile, destinationFile }, toolUseId);
-}
-
-/**
  * File system notification functions object
  */
 export const fsNotifications: FsNotifications = {
@@ -644,21 +613,6 @@ export const fsNotifications: FsNotifications = {
     FileEditRequestNotify,
     FileEditResponseNotify,
     FileDeleteRequestNotify,
-<<<<<<< HEAD
-    FileDeleteResponseNotify: sendFileDeleteResponse,
-    FolderDeleteRequestNotify,
-    FolderDeleteResponseNotify: sendFolderDeleteResponse,
-    ListDirectoryRequestNotify,
-    ListDirectoryResponseNotify: sendListDirectoryResponse,
-    WriteToFileRequestNotify,
-    WriteToFileResponseNotify: sendWriteToFileResponse,
-    AppendToFileRequestNotify,
-    AppendToFileResponseNotify: sendAppendToFileResponse,
-    CopyFileRequestNotify,
-    CopyFileResponseNotify: sendCopyFileResponse,
-    MoveFileRequestNotify,
-    MoveFileResponseNotify: sendMoveFileResponse
-=======
     FileDeleteResponseNotify,
     FolderDeleteRequestNotify,
     FolderDeleteResponseNotify,
@@ -672,7 +626,6 @@ export const fsNotifications: FsNotifications = {
     CopyFileResponseNotify,
     MoveFileRequestNotify,
     MoveFileResponseNotify
->>>>>>> b6b32fd58ca6cf1f6ca3acb164030c8c615960f4
 };
 
 /**
