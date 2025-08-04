@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
+import { v4 as uuidv4 } from 'uuid';
 import type { PendingRequest } from '../types/commonTypes';
 
 /**
@@ -8,7 +9,6 @@ import type { PendingRequest } from '../types/commonTypes';
 export class MessageManager extends EventEmitter {
     public pendingRequests: Map<string, PendingRequest> = new Map();
     public websocket: WebSocket | null = null;
-    public requestCounter = 0;
 
     /**
      * Initialize the message manager with a WebSocket instance
@@ -78,7 +78,7 @@ export class MessageManager extends EventEmitter {
                 return;
             }
 
-            const requestId = `req_${++this.requestCounter}_${Date.now()}`;
+            const requestId = uuidv4();
             
             // Add requestId to the message if it doesn't have one
             const messageWithId = { ...message, requestId };
