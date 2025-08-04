@@ -126,6 +126,8 @@ export class MessageManager extends EventEmitter {
      * Send a message without waiting for response
      */
     send(message: any): void {
+        const requestId = uuidv4();
+        message.requestId = requestId;
         if (!this.websocket) {
             throw new Error('WebSocket is not initialized');
         }
