@@ -1,6 +1,7 @@
 import cbws from '../core/websocket';
 import { LLMResponse } from '../types/socketMessageTypes';
 import type { Message, ToolCall, Tool, LLMInferenceParams } from '../types/libFunctionTypes';
+import { EventType, LLMResponseType } from '@codebolt/types';
 
 // Re-export types for backward compatibility
 export type { Message, ToolCall, Tool, LLMInferenceParams };
@@ -37,13 +38,13 @@ const cbllm = {
     }, llmrole?: string): Promise<{ completion: any }> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "inference",
+                "type": EventType.LLM_EVENT,
                 "message": {
                     prompt: params,
                     llmrole
                 },
             },
-            "llmResponse"
+            LLMResponseType.LLM_RESPONSE
         );
     },
 
@@ -58,13 +59,13 @@ const cbllm = {
     legacyInference: async (message: string, llmrole: string): Promise<LLMResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "inference",
+                "type": EventType.LLM_EVENT,
                 "message": {
                     prompt: message,
                     llmrole
                 },
             },
-            "llmResponse"
+            LLMResponseType.LLM_RESPONSE
         );
     }
 

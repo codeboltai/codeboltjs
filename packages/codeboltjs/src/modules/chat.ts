@@ -1,6 +1,7 @@
 // chat.ts
 import cbws from '../core/websocket';
 import { ChatMessage, UserMessage } from '../types/socketMessageTypes';
+import { ChatEventType, ChatResponseType } from '@codebolt/types';
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
 /**
@@ -14,9 +15,9 @@ const cbchat = {
     getChatHistory: (): Promise<ChatMessage[]> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "getChatHistory"
+                "type": ChatEventType.GET_CHAT_HISTORY
             },
-            "getChatHistoryResponse"
+            ChatResponseType.GET_CHAT_HISTORY_RESPONSE
         );
     },
     /**
@@ -31,7 +32,7 @@ const cbchat = {
                         try {
                             await handler(request, (responseData: any) => {
                                 cbws.messageManager.send({
-                                    type: `processStoped`,
+                                    type: ChatEventType.PROCESS_STOPPED,
                                     ...responseData
                                 });
                             });
@@ -55,7 +56,7 @@ const cbchat = {
      */
     sendMessage: (message: string, payload: any) => {
         cbws.messageManager.send({
-            "type": "sendMessage",
+            "type": ChatEventType.SEND_MESSAGE,
             "message": message,
             payload
         });
@@ -68,10 +69,10 @@ const cbchat = {
     waitforReply: (message: string): Promise<UserMessage> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "waitforReply",
+                "type": ChatEventType.WAIT_FOR_REPLY,
                 "message": message
             },
-            "waitFormessageResponse"
+            ChatResponseType.WAIT_FOR_MESSAGE_RESPONSE
         );
     },
     /**
@@ -82,13 +83,13 @@ const cbchat = {
     processStarted: (onStopClicked?: (message: any) => void) => {
         // Send the process started message
         cbws.messageManager.send({
-            "type": "processStarted"
+            "type": ChatEventType.PROCESS_STARTED
         });
         
         // Register event listener for WebSocket messages if callback provided
         if (onStopClicked) {
             const handleStopMessage = (message: any) => {
-                if (message.type === 'stopProcessClicked') {
+                if (message.type === ChatEventType.STOP_PROCESS_CLICKED) {
                     onStopClicked(message);
                 }
             };
@@ -99,7 +100,7 @@ const cbchat = {
             return {
                 stopProcess: () => {
                     cbws.messageManager.send({
-                        "type": "processStoped"
+                        "type": ChatEventType.PROCESS_STOPPED
                     });
                 },
                 cleanup: () => {
@@ -112,7 +113,7 @@ const cbchat = {
         return {
             stopProcess: () => {
                 cbws.messageManager.send({
-                    "type": "processStoped"
+                    "type": ChatEventType.PROCESS_STOPPED
                 });
             }
         };
@@ -123,7 +124,7 @@ const cbchat = {
      */
     stopProcess: () => {
         cbws.messageManager.send({
-            "type": "processStoped"
+            "type": ChatEventType.PROCESS_STOPPED
         });
     },
     /**
@@ -132,7 +133,7 @@ const cbchat = {
    */
     processFinished: () => {
         cbws.messageManager.send({
-            "type": "processFinished"
+            "type": ChatEventType.PROCESS_FINISHED
         });
     },
     /**
@@ -142,23 +143,23 @@ const cbchat = {
     sendConfirmationRequest: (confirmationMessage: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "confirmationRequest",
+                "type": ChatEventType.CONFIRMATION_REQUEST,
                 "message": confirmationMessage,
                 buttons: buttons,
                 withFeedback
             },
-            "confirmationResponse|feedbackResponse"
+            ChatResponseType.CONFIRMATION_OR_FEEDBACK_RESPONSE
         );
     },
     askQuestion: (question: string, buttons: string[] = [], withFeedback: boolean = false): Promise<string> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "confirmationRequest",
+                "type": ChatEventType.CONFIRMATION_REQUEST,
                 "message": question,
                 buttons: buttons,
                 withFeedback
             },
-            "confirmationResponse|feedbackResponse"
+            ChatResponseType.CONFIRMATION_OR_FEEDBACK_RESPONSE
         );
     },
     /**
@@ -167,7 +168,7 @@ const cbchat = {
  */
     sendNotificationEvent: (notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview'): void => {
         cbws.messageManager.send({
-            "type": "notificationEvent",
+            "type": ChatEventType.NOTIFICATION_EVENT,
             "message": notificationMessage,
             "eventType": type
         });

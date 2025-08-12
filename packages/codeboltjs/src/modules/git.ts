@@ -12,6 +12,9 @@ import {
     GitDiffResponse 
 } from '../types/socketMessageTypes';
 
+
+import { EventType , GitAction, GitResponseType} from '@codebolt/types';
+
 /**
  * A service for interacting with Git operations via WebSocket messages.
  */
@@ -24,13 +27,13 @@ const gitService = {
     init: async (path: string): Promise<GitInitResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Init",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.INIT,
                 "path": path
             },
-            "gitInitResponse"
+            GitResponseType.GIT_INIT_RESPONSE
         );
-    },
+    },  
    
     /**
      * Pulls the latest changes from the remote repository to the local repository at the given path.
@@ -40,10 +43,10 @@ const gitService = {
     pull: async (): Promise<GitPullResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Pull"
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.PULL
             },
-            "PullResponse"
+            GitResponseType.PULL_RESPONSE
         );
     },
     /**
@@ -54,11 +57,11 @@ const gitService = {
     push: async (): Promise<GitPushResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Push",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.PUSH,
                
             },
-            "PushResponse"
+            GitResponseType.PUSH_RESPONSE
         );
     },
     /**
@@ -69,10 +72,10 @@ const gitService = {
     status: async (): Promise<GitStatusResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Status",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.STATUS,
             },
-            "gitStatusResponse"
+            GitResponseType.GIT_STATUS_RESPONSE
         );
     },
     /**
@@ -83,10 +86,10 @@ const gitService = {
     addAll: async (): Promise<AddResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Add",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.ADD,
             },
-            "AddResponse"
+            GitResponseType.ADD_RESPONSE
         );
     },
     /**
@@ -97,11 +100,11 @@ const gitService = {
     commit: async (message: string): Promise<GitCommitResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Commit",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.COMMIT,
                 "message": message
             },
-            "gitCommitResponse"
+            GitResponseType.GIT_COMMIT_RESPONSE
         );
     },
     /**
@@ -113,11 +116,11 @@ const gitService = {
     checkout: async ( branch: string): Promise<GitCheckoutResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Checkout",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.CHECKOUT,
                 "branch": branch
             },
-            "gitCheckoutResponse"
+            GitResponseType.GIT_CHECKOUT_RESPONSE
         );
     },
     /**
@@ -129,11 +132,11 @@ const gitService = {
     branch: async (branch: string): Promise<GitBranchResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "gitBranch",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.GIT_BRANCH,
                 "branch": branch,
             },
-            "gitBranchResponse"
+            GitResponseType.GIT_BRANCH_RESPONSE
         );
     },
     /**
@@ -144,11 +147,11 @@ const gitService = {
     logs: async (path: string): Promise<GitLogsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "gitLogs",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.GIT_LOGS,
                 "path": path
             },
-            "gitLogsResponse"
+            GitResponseType.GIT_LOGS_RESPONSE
         );
     },
     /**
@@ -160,11 +163,11 @@ const gitService = {
     diff: async (commitHash: string): Promise<GitDiffResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "gitEvent",
-                "action": "Diff",
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.DIFF,
                 "commitHash": commitHash
             },
-            "DiffResponse"
+            GitResponseType.DIFF_RESPONSE
         );
     }
 };

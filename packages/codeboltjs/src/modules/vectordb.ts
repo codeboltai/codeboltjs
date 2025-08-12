@@ -1,3 +1,4 @@
+import { EventType, VectorDBAction, VectorDBResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
 import { AddVectorItemResponse, GetVectorResponse, QueryVectorItemResponse } from '../types/socketMessageTypes';
 const VectorDB = {
@@ -10,13 +11,13 @@ const VectorDB = {
     getVector: async (key: string): Promise<GetVectorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"vectordbEvent",
-                "action": "getVector",
+                "type": EventType.VECTOR_DB_EVENT,
+                "action": VectorDBAction.GET_VECTOR,
                 "message": {
                     item: key
                 },
             },
-            "getVectorResponse"
+            VectorDBResponseType.GET_VECTOR_RESPONSE
         );
     },
 
@@ -30,13 +31,13 @@ const VectorDB = {
     addVectorItem: async ( item: any): Promise<AddVectorItemResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"vectordbEvent",
-                "action": "addVectorItem",
+                "type": EventType.VECTOR_DB_EVENT,
+                "action": VectorDBAction.ADD_VECTOR_ITEM,
                 "message": {
                     item: item
                 },
             },
-            "addVectorItemResponse"
+            VectorDBResponseType.ADD_VECTOR_ITEM_RESPONSE
         );
     },
 
@@ -49,13 +50,13 @@ const VectorDB = {
     queryVectorItem: async (key: string): Promise<QueryVectorItemResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"vectordbEvent",
-                "action": "queryVectorItem",
+                "type": EventType.VECTOR_DB_EVENT,
+                "action": VectorDBAction.QUERY_VECTOR_ITEM,
                 "message": {
                     item: key
                 },
             },
-            "qeryVectorItemResponse"
+            VectorDBResponseType.QUERY_VECTOR_ITEM_RESPONSE
         );
     },
     /**
@@ -67,14 +68,14 @@ const VectorDB = {
     queryVectorItems: async (items: [],dbPath:string): Promise<QueryVectorItemResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"vectordbEvent",
-                "action": "queryVectorItems",
+                "type": EventType.VECTOR_DB_EVENT,
+                "action": VectorDBAction.QUERY_VECTOR_ITEMS,
                 "message": {
                     items,
                     dbPath
                 },
             },
-            "qeryVectorItemsResponse"
+            VectorDBResponseType.QUERY_VECTOR_ITEMS_RESPONSE
         );
     },
 };

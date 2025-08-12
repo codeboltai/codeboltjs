@@ -1,6 +1,6 @@
 import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
-import { AgentLocation, Agents, FilterUsing, AgentEventType, AgentAction, AgentResponseType } from '@codebolt/types';
+import { AgentLocation, Agents, FilterUsing, EventType, AgentAction, AgentResponseType } from '@codebolt/types';
 
 
 
@@ -13,7 +13,7 @@ const codeboltAgent = {
     findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<FindAgentByTaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": AgentEventType.AGENT_EVENT,
+                "type": EventType.AGENT_EVENT,  
                 "action": AgentAction.FIND_AGENT,
                 "task": task,
                 "agents": agents,// for filter in vector db
@@ -33,7 +33,7 @@ const codeboltAgent = {
     startAgent: (agentId: string, task: string): Promise<TaskCompletionResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": AgentEventType.AGENT_EVENT,
+                "type": EventType.AGENT_EVENT,
                 "action": AgentAction.START_AGENT,
                 "agentId": agentId,
                 "task": task
@@ -49,7 +49,7 @@ const codeboltAgent = {
     getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<ListAgentsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": AgentEventType.AGENT_EVENT,
+                "type": EventType.AGENT_EVENT,
                 "action": AgentAction.LIST_AGENTS,
                 "agentType": type,
 
@@ -64,7 +64,7 @@ const codeboltAgent = {
     getAgentsDetail: (agentList = []): Promise<AgentsDetailResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": AgentEventType.AGENT_EVENT,
+                "type": EventType.AGENT_EVENT,
                 "action": AgentAction.AGENTS_DETAIL,
                 "agentList": agentList
             },

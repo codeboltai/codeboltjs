@@ -1,6 +1,6 @@
 import { AddTokenResponse, GetTokenResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
-
+import { EventType, TokenizerAction, TokenizerResponseType } from '@codebolt/types';
 /**
  * Tokenizer module for handling token-related operations.
  */
@@ -14,13 +14,13 @@ const tokenizer = {
     addToken: async (key: string): Promise<AddTokenResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"tokenizerEvent",
-                "action": "addToken",
+                "type": EventType.TOKENIZER_EVENT,
+                "action": TokenizerAction.ADD_TOKEN,
                 "message": {
                     item: key
                 },
             },
-            "addTokenResponse"
+            TokenizerResponseType.ADD_TOKEN_RESPONSE
         );
     },
 
@@ -32,13 +32,13 @@ const tokenizer = {
     getToken: async (key: string): Promise<GetTokenResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"tokenizerEvent",
-                "action": "getToken",
+                "type": EventType.TOKENIZER_EVENT,
+                "action": TokenizerAction.GET_TOKEN,
                 "message": {
                     item: key
                 },
             },
-            "getTokenResponse"
+            TokenizerResponseType.GET_TOKEN_RESPONSE
         );
     }
 }

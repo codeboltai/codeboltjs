@@ -1,5 +1,7 @@
 import cbws from '../core/websocket';
 import { GetProjectPathResponse, GetProjectSettingsResponse } from '../types/socketMessageTypes';
+
+import { EventType, ProjectAction, ProjectResponseType } from '@codebolt/types';
 /**
  * A module for interacting with project settings and paths.
  */
@@ -11,10 +13,10 @@ const cbproject = {
     getProjectSettings: (): Promise<GetProjectSettingsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "settingEvent",
-                "action": "getProjectSettings"
+                "type": EventType.PROJECT_EVENT,
+                "action": ProjectAction.GET_PROJECT_SETTINGS
             },
-            "getProjectSettingsResponse"
+            ProjectResponseType.GET_PROJECT_SETTINGS_RESPONSE
         );
     },
     /**
@@ -24,34 +26,35 @@ const cbproject = {
     getProjectPath: (): Promise<GetProjectPathResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "settingEvent",
-                "action": "getProjectPath"
+                "type": EventType.PROJECT_EVENT,
+                "action": ProjectAction.GET_PROJECT_PATH
             },
-            "getProjectPathResponse"
+            ProjectResponseType.GET_PROJECT_PATH_RESPONSE
         );
     },
     getRepoMap: (message: any): Promise<GetProjectPathResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "settingEvent",
-                "action": "getRepoMap",
+                "type": EventType.PROJECT_EVENT,
+                "action": ProjectAction.GET_REPO_MAP,
                 message
             },
-            "getRepoMapResponse"
+            ProjectResponseType.GET_REPO_MAP_RESPONSE
         );
     },
     runProject: () => {
         cbws.messageManager.send({
-            "type": "runProject"
+            "type": EventType.PROJECT_EVENT,
+            "action": ProjectAction.RUN_PROJECT
         });
     },
     getEditorFileStatus:()=>{
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "settingEvent",
-                "action": "getEditorFileStatus",
+                "type": EventType.PROJECT_EVENT,
+                "action": ProjectAction.GET_EDITOR_FILE_STATUS,
             },
-            "getEditorFileStatusResponse"
+            ProjectResponseType.GET_EDITOR_FILE_STATUS_RESPONSE
         ); 
     }
 };

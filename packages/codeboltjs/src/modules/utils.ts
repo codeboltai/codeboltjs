@@ -1,3 +1,4 @@
+import { EventType, FSAction, FSResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
 import { FsEditFileAndApplyDiffResponse } from '../types/socketMessageTypes';
 
@@ -16,9 +17,9 @@ const cbutils = {
     editFileAndApplyDiff: (filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<FsEditFileAndApplyDiffResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "editFileAndApplyDiff",
-                message: {
+                "type": EventType.FS_EVENT,
+                "action": FSAction.EDIT_FILE_AND_APPLY_DIFF,
+                message: {  
                     filePath,
                     diff,
                     diffIdentifier,
@@ -26,7 +27,7 @@ const cbutils = {
                     applyModel
                 }
             },
-            "editFileAndApplyDiffResponse"
+            FSResponseType.EDIT_FILE_AND_APPLY_DIFF_RESPONSE
         );
     }
 }
