@@ -1,25 +1,6 @@
 import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
-
-
-export enum AgentLocation {
-    ALL = 'all',
-    LOCAL_ONLY = 'local_only',
-    REMOTE_ONLY = 'remote_only',
-}
-
-
-export enum Agents {
-    LOCAL = 'local',
-    ALL = 'all',
-    DOWNLOADED = 'downloaded',
-}
-
-export enum FilterUsing {
-    USE_AI = 'use_ai',
-    USE_VECTOR_DB = 'use_vector_db',
-    USE_BOTH = 'use_both',
-}
+import { AgentLocation, Agents, FilterUsing, AgentEventType, AgentAction, AgentResponseType } from '@codebolt/types';
 
 
 
@@ -32,15 +13,15 @@ const codeboltAgent = {
     findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<FindAgentByTaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentEvent",
-                "action": "findAgent",
+                "type": AgentEventType.AGENT_EVENT,
+                "action": AgentAction.FIND_AGENT,
                 "task": task,
                 "agents": agents,// for filter in vector db
                 "maxResult": maxResult,
                 "location": agentLocaltion,
                 "getFrom": getFrom
             },
-            "findAgentByTaskResponse"
+            AgentResponseType.FIND_AGENT_BY_TASK_RESPONSE
         );
     },
 
@@ -52,12 +33,12 @@ const codeboltAgent = {
     startAgent: (agentId: string, task: string): Promise<TaskCompletionResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentEvent",
-                "action": "startAgent",
+                "type": AgentEventType.AGENT_EVENT,
+                "action": AgentAction.START_AGENT,
                 "agentId": agentId,
                 "task": task
             },
-            "taskCompletionResponse"
+            AgentResponseType.TASK_COMPLETION_RESPONSE
         );
     },
 
@@ -68,12 +49,12 @@ const codeboltAgent = {
     getAgentsList: (type: Agents = Agents.DOWNLOADED): Promise<ListAgentsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentEvent",
-                "action": "listAgents",
+                "type": AgentEventType.AGENT_EVENT,
+                "action": AgentAction.LIST_AGENTS,
                 "agentType": type,
 
             },
-            "listAgentsResponse"
+            AgentResponseType.LIST_AGENTS_RESPONSE
         );
     },
     /**
@@ -83,11 +64,11 @@ const codeboltAgent = {
     getAgentsDetail: (agentList = []): Promise<AgentsDetailResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentEvent",
-                "action": "agentsDetail",
+                "type": AgentEventType.AGENT_EVENT,
+                "action": AgentAction.AGENTS_DETAIL,
                 "agentList": agentList
             },
-            "agentsDetailResponse"
+            AgentResponseType.AGENTS_DETAIL_RESPONSE
         );
     }
 }
