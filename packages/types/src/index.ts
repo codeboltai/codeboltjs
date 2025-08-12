@@ -31,5 +31,4 @@
 // Note: Use modular imports to avoid naming conflicts
 // Example: import { agentLocationSchema } from '@codebolt/types/agent-to-app-ws-schema'; 
 
-import * as messageEnums from "./codeboltjstypes/message.enum";
-
+export * from "./codeboltjstypes/message.enum";

@@ -1,25 +1,6 @@
 import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '../types/socketMessageTypes';
 import cbws from '../core/websocket';
-
-
-export enum AgentLocation {
-    ALL = 'all',
-    LOCAL_ONLY = 'local_only',
-    REMOTE_ONLY = 'remote_only',
-}
-
-
-export enum Agents {
-    LOCAL = 'local',
-    ALL = 'all',
-    DOWNLOADED = 'downloaded',
-}
-
-export enum FilterUsing {
-    USE_AI = 'use_ai',
-    USE_VECTOR_DB = 'use_vector_db',
-    USE_BOTH = 'use_both',
-}
+import { AgentLocation, Agents, FilterUsing, AgentEventType, AgentAction, AgentResponseType } from '@codebolt/types';
 
 
 
