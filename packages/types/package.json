@@ -1,0 +1,86 @@
+{
+  "name": "@codebolt/types",
+  "version": "1.0.15",
+  "description": "A comprehensive TypeScript type definitions package for the CodeBolt ecosystem, providing type safety and schema validation for WebSocket communication between agents and applications.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./agent-to-app-ws-schema": {
+      "types": "./dist/agent-to-app-ws-schema.d.ts",
+      "default": "./dist/agent-to-app-ws-schema.js"
+    },
+    "./agent-to-app-ws-types": {
+      "types": "./dist/agent-to-app-ws-types.d.ts",
+      "default": "./dist/agent-to-app-ws-types.js"
+    },
+    "./app-to-agent-ws-schema": {
+      "types": "./dist/app-to-agent-ws-schema.d.ts",
+      "default": "./dist/app-to-agent-ws-schema.js"
+    },
+    "./app-to-agent-ws-types": {
+      "types": "./dist/app-to-agent-ws-types.d.ts",
+      "default": "./dist/app-to-agent-ws-types.js"
+    },
+    "./ui-to-app-ws-schema": {
+      "types": "./dist/ui-to-app-ws-schema.d.ts",
+      "default": "./dist/ui-to-app-ws-schema.js"
+    },
+    "./ui-to-app-ws-types": {
+      "types": "./dist/ui-to-app-ws-types.d.ts",
+      "default": "./dist/ui-to-app-ws-types.js"
+    },
+    "./app-to-ui-ws-schema": {
+      "types": "./dist/app-to-ui-ws-schema.d.ts",
+      "default": "./dist/app-to-ui-ws-schema.js"
+    },
+    "./app-to-ui-ws-types": {
+      "types": "./dist/app-to-ui-ws-types.d.ts",
+      "default": "./dist/app-to-ui-ws-types.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "test": "echo \"Types package - no tests needed, type checking handles validation\" && exit 0",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "codebolt",
+    "types",
+    "typescript",
+    "websocket",
+    "schema",
+    "validation",
+    "zod"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeboltai/codeboltjs.git",
+    "directory": "packages/types"
+  },
+  "bugs": {
+    "url": "https://github.com/codeboltai/codeboltjs/issues"
+  },
+  "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/packages/types#readme",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}

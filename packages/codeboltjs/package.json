@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "2.1.0",
+  "version": "2.2.1",
   "description": "",
   "keywords": [],
   "author": "",
@@ -19,7 +19,6 @@
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "echo \"Integration tests require WebSocket server - skipping for release\" && exit 0",
     "clean": "rm -rf dist build",
-    "prepublishOnly": "npm run clean && npm run build",
     "lint": "tsc --noEmit"
   },
   "repository": {
@@ -37,7 +36,7 @@
     "@codebolt/mcp": "workspace:*",
     "@codebolt/utils": "workspace:*",
     "@codebolt/globby": "^1.0.1",
-    "@codebolt/types": "^1.0.10",
+    "@codebolt/types": "workspace:*",
     "@types/uuid": "^10.0.0",
     "buffer": "^6.0.3",
     "execa": "^9.5.2",
@@ -60,9 +59,9 @@
     "jest": "^29.7.0",
     "jest-serial-runner": "^1.2.1",
     "ts-loader": "^9.5.1",
-    "typedoc": "^0.25.13",
+    "typedoc": "^0.28.10",
     "typedoc-plugin-markdown": "^3.15.0",
-    "typedoc-plugin-missing-exports": "^2.2.0",
+    "typedoc-plugin-missing-exports": "^4.1.0",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"

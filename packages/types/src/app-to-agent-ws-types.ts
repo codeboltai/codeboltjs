@@ -1,0 +1,161 @@
+/**
+ * APP TO TO-AGENT-WS Types
+ * TypeScript types exported from their original source files
+ */
+
+// Re-export types from their original source files
+export type {
+  // Browser service responses
+  BrowserActionResponseData,
+  NewPageResponse,
+  ScrollResponse,
+  TypeResponse,
+  ClickResponse,
+  EnterResponse,
+  SearchResponse,
+  GetUrlResponse,
+  GoToPageResponse,
+  ScreenshotResponse,
+  HtmlReceived,
+  GetMarkdownResponse,
+  GetContentResponse,
+  GetSnapShotResponse,
+  GetBrowserInfoResponse,
+  ExtractTextResponse,
+  BrowserServiceResponse,
+
+  // Chat service responses
+  ChatHistoryResponse,
+  WaitForReplyResponse,
+  ConfirmationResponse,
+  FeedbackResponse,
+  GetSummarizeAllResponse,
+  GetSummarizeResponse,
+  ChatHistoryServiceResponse,
+  // Terminal service responses
+  CommandOutputResponse,
+  CommandErrorResponse,
+  CommandFinishResponse,
+  TerminalInterruptResponse,
+  TerminalServiceResponse,
+  // Project service responses
+  GetProjectSettingsResponse,
+  GetProjectPathResponse,
+  GetRepoMapResponse,
+  GetEditorFileStatusResponse,
+  ProjectServiceResponse,
+  // Task service responses
+  TaskResponse,
+  AddTaskResponse,
+  GetTasksResponse,
+  UpdateTasksResponse,
+  DeleteTaskResponse,
+  AddSubTaskResponse,
+  UpdateSubTaskResponse,
+  GetTasksByAgentResponse,
+  TaskServiceResponse,
+  // LLM service responses
+  LLMResponse,
+  LLMServiceResponse,
+  // State service responses
+  GetAppStateResponse,
+  AddToAgentStateResponse,
+  GetAgentStateResponse,
+  GetProjectStateResponse,
+  UpdateProjectStateResponse,
+  StateServiceResponse,
+  // VectorDB service responses
+  GetVectorResponse,
+  AddVectorItemResponse,
+  QueryVectorItemResponse,
+  QueryVectorItemsResponse,
+  VectorDBServiceResponse,
+  // Utils service responses
+  EditFileAndApplyDiffResponse,
+  UtilsServiceResponse,
+  // Tokenizer service responses
+  AddTokenResponse,
+  GetTokenResponse,
+  TokenizerServiceResponse,
+  // MCP service responses
+  GetEnabledToolBoxesResponse,
+  GetLocalToolBoxesResponse,
+  GetAvailableToolBoxesResponse,
+  SearchAvailableToolBoxesResponse,
+  ListToolsFromToolBoxesResponse,
+  ConfigureToolBoxResponse,
+  GetToolsResponse,
+  ExecuteToolResponse,
+  MCPServiceResponse,
+  // Debug service responses
+  DebugAddLogResponse,
+  OpenDebugBrowserResponse,
+  GetDebugLogsResponse,
+  DebugServiceResponse,
+  // DB Memory service responses
+  MemorySetResponse,
+  MemoryGetResponse,
+  DBMemoryServiceResponse,
+  // Code Utils service responses
+  GetJsTreeResponse,
+  GetAllFilesAsMarkdownResponse,
+  MatchProblemResponse,
+  GetMatcherListTreeResponse,
+  GetMatchDetailResponse,
+  CodeUtilsServiceResponse,
+  // Crawler service responses
+  CrawlerServiceResponse,
+  // FS service responses
+  CreateFileSuccessResponse,
+  CreateFileErrorResponse,
+  CreateFolderSuccessResponse,
+  CreateFolderErrorResponse,
+  ReadFileSuccessResponse,
+  ReadFileSuccessResultResponse,
+  UpdateFileSuccessResponse,
+  UpdateFileErrorResponse,
+  DeleteFileSuccessResponse,
+  DeleteFileErrorResponse,
+  DeleteFolderSuccessResponse,
+  DeleteFolderErrorResponse,
+  FileListSuccessResponse,
+  FileListErrorResponse,
+  SearchFilesSuccessResponse,
+  SearchFilesErrorResponse,
+  WriteToFileSuccessResponse,
+  WriteToFileErrorResponse,
+  GrepSearchSuccessResponse,
+  GrepSearchErrorResponse,
+  ListCodeDefinitionNamesSuccessResponse,
+  ListCodeDefinitionNamesErrorResponse,
+  FileSearchSuccessResponse,
+  FileSearchErrorResponse,
+  EditFileAndApplyDiffSuccessResponse,
+  EditFileAndApplyDiffErrorResponse,
+  FsServiceResponse,
+  // Git service responses
+  GitInitResponse,
+  GitPullResponse,
+  GitPushResponse,
+  GitStatusResponse,
+  GitAddResponse,
+  GitCommitResponse,
+  GitCheckoutResponse,
+  GitBranchResponse,
+  GitLogsResponse,
+  GitDiffResponse,
+  GitServiceResponse,
+  // Agent service responses
+  FindAgentByTaskResponse,
+  ListAgentsResponse,
+  AgentsDetailResponse,
+  TaskCompletionResponse,
+  AgentServiceResponse,
+  // Index service responses
+  GetChatHistoryResponse,
+  ErrorResponse,
+  IndexServiceResponse,
+  // Additional missing types
+  CrawlResponse
+} from './wstypes/app-to-agent-ws/indexResponses';
+
