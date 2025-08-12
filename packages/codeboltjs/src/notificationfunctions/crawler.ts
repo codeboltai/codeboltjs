@@ -19,6 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { CrawlerNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 /**
@@ -59,8 +60,8 @@ export function CrawlerSearchRequestNotify(
     // Create the notification
     const notification: CrawlerSearchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "crawlernotify",
-        action: "crawlerSearchRequest",
+        type: NotificationEventType.CRAWLER_NOTIFY,
+        action: CrawlerNotificationAction.CRAWLER_SEARCH_REQUEST,
         data: {
             url: url,
             searchQuery: searchQuery,
@@ -100,8 +101,8 @@ export function CrawlerSearchResponseNotify(
     // Create the notification
     const notification: CrawlerSearchResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "crawlernotify",
-        action: "crawlerSearchResult",
+        type: NotificationEventType.CRAWLER_NOTIFY,
+        action: CrawlerNotificationAction.CRAWLER_SEARCH_RESULT,
         content: content,
         isError: isError,
         data: data
@@ -141,8 +142,8 @@ export function CrawlerStartRequestNotify(
     // Create the notification
     const notification: CrawlerStartRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "crawlernotify",
-        action: "crawlerStartRequest",
+        type: NotificationEventType.CRAWLER_NOTIFY,
+        action: CrawlerNotificationAction.CRAWLER_START_REQUEST,
         data: {
             startUrl: startUrl,
             options: options
@@ -178,8 +179,8 @@ export function CrawlerStartResponseNotify(
     // Create the notification
     const notification: CrawlerStartResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "crawlernotify",
-        action: "crawlerStartResult",
+        type: NotificationEventType.CRAWLER_NOTIFY,
+        action: CrawlerNotificationAction.CRAWLER_START_RESULT,
         content: content,
         isError: isError,
         data: data

@@ -21,6 +21,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { SearchNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== SEARCH INIT FUNCTIONS =====
@@ -36,8 +37,8 @@ export function SearchInitRequestNotify(
 ): void {
     const notification: SearchInitRequest = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "searchnotify",
-        action: "searchInitRequest",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.SEARCH_INIT_REQUEST,
         data: {
             engine: engine
         }
@@ -64,8 +65,8 @@ export function SearchInitResultNotify(
 
     const notification: SearchInitResult = {
         toolUseId,
-        type: "searchnotify",
-        action: "searchInitResult",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.SEARCH_INIT_RESULT,
         content,
         isError
     };
@@ -91,8 +92,8 @@ export function SearchRequestNotify(
 
     const notification: SearchRequest = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "searchnotify",
-        action: "searchRequest",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.SEARCH_REQUEST,
         data: {
             query: query
         }
@@ -119,8 +120,8 @@ export function SearchResultNotify(
 
     const notification: SearchResult = {
         toolUseId,
-        type: "searchnotify",
-        action: "searchResult",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.SEARCH_RESULT,
         content,
         isError
     };
@@ -146,8 +147,8 @@ export function GetFirstLinkRequestNotify(
 
     const notification: GetFirstLinkRequest = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "searchnotify",
-        action: "getFirstLinkRequest",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.GET_FIRST_LINK_REQUEST,
         data: {
             query: query
         }
@@ -174,8 +175,8 @@ export function GetFirstLinkResultNotify(
 
     const notification: GetFirstLinkResult = {
         toolUseId,
-        type: "searchnotify",
-        action: "getFirstLinkResult",
+        type: NotificationEventType.SEARCH_NOTIFY,
+        action: SearchNotificationAction.GET_FIRST_LINK_RESULT,
         content,
         isError
     };

@@ -20,6 +20,8 @@ import {
     validateRequiredFields
 } from './utils';
 
+import { HistoryNotificationAction, NotificationEventType } from '@codebolt/types'; 
+
 
 // ===== SUMMARIZE PREVIOUS CONVERSATION FUNCTIONS =====
 
@@ -34,8 +36,8 @@ export function summarizePreviousConversation(
 ): void {
     const notification: SummarizePreviousConversationRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "historynotify",
-        action: "summarizeAllRequest",
+        type: NotificationEventType.HISTORY_NOTIFY,
+        action: HistoryNotificationAction.SUMMARIZE_ALL_REQUEST,
         data
     };
 
@@ -60,8 +62,8 @@ export function sendSummarizePreviousResult(
 
     const notification: SummarizePreviousConversationResultNotification = {
         toolUseId,
-        type: "historynotify",
-        action: "summarizeAllResult",
+        type: NotificationEventType.HISTORY_NOTIFY,
+        action: HistoryNotificationAction.SUMMARIZE_ALL_RESULT,
         content,
         isError
     };
@@ -87,8 +89,8 @@ export function summarizeCurrentMessage(
 
     const notification: SummarizeCurentMessageRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "historynotify",
-        action: "summarizeRequest",
+        type: NotificationEventType.HISTORY_NOTIFY,
+        action: HistoryNotificationAction.SUMMARIZE_REQUEST,
         data
     };
 
@@ -113,8 +115,8 @@ export function sendSummarizeCurrentResult(
 
     const notification: SummarizeCurrentMessageResultNotification = {
         toolUseId,
-        type: "historynotify",
-        action: "summarizeResult",
+        type: NotificationEventType.HISTORY_NOTIFY,
+        action: HistoryNotificationAction.SUMMARIZE_RESULT,
         content,
         isError
     };

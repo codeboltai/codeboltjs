@@ -17,6 +17,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { TerminalNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== COMMAND EXECUTION FUNCTIONS =====
@@ -41,8 +42,8 @@ export function CommandExecutionRequestNotify(
 
     const notification: CommandExecutionRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "terminalnotify",
-        action: "executeCommandRequest",
+        type: NotificationEventType.TERMINAL_NOTIFY,
+        action: TerminalNotificationAction.EXECUTE_COMMAND_REQUEST,
         data: {
             command: command,
             returnEmptyStringOnSuccess: returnEmptyStringOnSuccess,
@@ -71,8 +72,8 @@ export function CommandExecutionResponseNotify(
 
     const notification: CommandExecutionResponseNotification = {
         toolUseId,
-        type: "terminalnotify",
-        action: "executeCommandResult",
+        type: NotificationEventType.TERMINAL_NOTIFY,
+        action: TerminalNotificationAction.EXECUTE_COMMAND_RESULT,
         content,
         isError
     };

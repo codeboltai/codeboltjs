@@ -23,6 +23,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { McpNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== GET ENABLED MCP SERVERS FUNCTIONS =====
@@ -36,8 +37,8 @@ export function GetEnabledMCPServersRequestNotify(
 ): void {
     const notification: GetEnabledMCPServersRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "mcpnotify",
-        action: "getEnabledMCPServersRequest",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.GET_ENABLED_MCP_SERVERS_REQUEST,
         data: {}
     };
 
@@ -62,8 +63,8 @@ export function GetEnabledMCPServersResultNotify(
 
     const notification: GetEnabledMCPServersResultNotification = {
         toolUseId,
-        type: "mcpnotify",
-        action: "getEnabledMCPServersResult",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.GET_ENABLED_MCP_SERVERS_RESULT,
         content,
         isError
     };
@@ -89,8 +90,8 @@ export function ListToolsFromMCPServersRequestNotify(
 
     const notification: ListToolsFromMCPServersRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "mcpnotify",
-        action: "listToolsFromMCPServersRequest",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.LIST_TOOLS_FROM_MCP_SERVERS_REQUEST,
         data: {
             toolboxes: toolboxes
         }
@@ -117,8 +118,8 @@ export function ListToolsFromMCPServersResultNotify(
 
     const notification: ListToolsFromMCPServersResultNotification = {
         toolUseId,
-        type: "mcpnotify",
-        action: "listToolsFromMCPServersResult",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.LIST_TOOLS_FROM_MCP_SERVERS_RESULT,
         content,
         isError
     };
@@ -144,8 +145,8 @@ export function GetToolsRequestNotify(
 
     const notification: GetToolsRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "mcpnotify",
-        action: "getToolsRequest",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.GET_TOOLS_REQUEST,
         data: {
             tools: tools
         }
@@ -172,8 +173,8 @@ export function GetToolsResultNotify(
 
     const notification: GetToolsResultNotification = {
         toolUseId,
-        type: "mcpnotify",
-        action: "getToolsResult",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.GET_TOOLS_RESULT,
         content,
         isError
     };
@@ -203,8 +204,8 @@ export function ExecuteToolRequestNotify(
 
     const notification: ExecuteToolRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "mcpnotify",
-        action: "executeToolRequest",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.EXECUTE_TOOL_REQUEST,
         data: {
             toolbox: toolbox,
             toolName: toolName,
@@ -233,8 +234,8 @@ export function ExecuteToolResultNotify(
 
     const notification: ExecuteToolResultNotification = {
         toolUseId,
-        type: "mcpnotify",
-        action: "executeToolResult",
+        type: NotificationEventType.MCP_NOTIFY,
+        action: McpNotificationAction.EXECUTE_TOOL_RESULT,
         content,
         isError
     };

@@ -37,6 +37,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { FsNotificationAction, NotificationEventType } from '@codebolt/types';
 
 /**
  * Sends a request to create a file
@@ -54,8 +55,8 @@ export function FileCreateRequestNotify(
 
     const notification: FileCreateRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "createFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.CREATE_FILE_REQUEST,
         data: {
             fileName: fileName,
             source: source,
@@ -82,8 +83,8 @@ export function FileCreateResponseNotify(
 
     const notification: FileCreateResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "createFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.CREATE_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -106,8 +107,8 @@ export function FolderCreateRequestNotify(
 
     const notification: FolderCreateRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "createFolderRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.CREATE_FOLDER_REQUEST,
         data: {
             folderName: folderName,
             folderPath: folderPath
@@ -133,8 +134,8 @@ export function FolderCreateResponseNotify(
 
     const notification: FolderCreateResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "createFolderResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.CREATE_FOLDER_RESULT,
         content: content,
         isError: isError
     };
@@ -158,8 +159,8 @@ export function FileReadRequestNotify(
 
     const notification: FileReadRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "readFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.READ_FILE_REQUEST,
         data: {
             filePath: filePath,
             startLine: startLine,
@@ -186,8 +187,8 @@ export function FileReadResponseNotify(
 
     const notification: FileReadResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "readFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.READ_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -211,8 +212,8 @@ export function FileEditRequestNotify(
 
     const notification: FileEditRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "updateFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.UPDATE_FILE_REQUEST,
         data: {
             fileName: fileName,
             filePath: filePath,
@@ -239,8 +240,8 @@ export function FileEditResponseNotify(
 
     const notification: FileEditResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "updateFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.UPDATE_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -263,8 +264,8 @@ export function FileDeleteRequestNotify(
 
     const notification: FileDeleteRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "deleteFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.DELETE_FILE_REQUEST,
         data: {
             fileName: fileName,
             filePath: filePath
@@ -290,8 +291,8 @@ export function FileDeleteResponseNotify(
 
     const notification: FileDeleteResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "deleteFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.DELETE_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -314,8 +315,8 @@ export function FolderDeleteRequestNotify(
 
     const notification: FolderDeleteRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "deleteFolderRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.DELETE_FOLDER_REQUEST,
         data: {
             folderName: folderName,
             folderPath: folderPath
@@ -341,8 +342,8 @@ export function FolderDeleteResponseNotify(
 
     const notification: FolderDeleteResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "deleteFolderResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.DELETE_FOLDER_RESULT,
         content: content,
         isError: isError
     };
@@ -363,8 +364,8 @@ export function ListDirectoryRequestNotify(
 
     const notification: ListDirectoryRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "listDirectoryRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.LIST_DIRECTORY_REQUEST,
         data: {
             dirPath: dirPath
         }
@@ -389,8 +390,8 @@ export function ListDirectoryResponseNotify(
 
     const notification: ListDirectoryResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "listDirectoryResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.LIST_DIRECTORY_RESULT,
         content: content,
         isError: isError
     };
@@ -413,8 +414,8 @@ export function WriteToFileRequestNotify(
 
     const notification: WriteToFileRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "writeToFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.WRITE_TO_FILE_REQUEST,
         data: {
             filePath: filePath,
             text: text
@@ -440,8 +441,8 @@ export function WriteToFileResponseNotify(
 
     const notification: WriteToFileResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "writeToFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.WRITE_TO_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -464,8 +465,8 @@ export function AppendToFileRequestNotify(
 
     const notification: AppendToFileRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "appendToFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.APPEND_TO_FILE_REQUEST,
         data: {
             filePath: filePath,
             text: text
@@ -491,8 +492,8 @@ export function AppendToFileResponseNotify(
 
     const notification: AppendToFileResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "appendToFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.APPEND_TO_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -514,8 +515,8 @@ export function CopyFileRequestNotify(
 
     const notification: CopyFileRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "copyFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.COPY_FILE_REQUEST,
         data: {
             sourceFile: sourceFile,
             destinationFile: destinationFile
@@ -541,8 +542,8 @@ export function CopyFileResponseNotify(
 
     const notification: CopyFileResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "copyFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.COPY_FILE_RESULT,
         content: content,
         isError: isError
     };
@@ -565,8 +566,8 @@ export function MoveFileRequestNotify(
 
     const notification: MoveFileRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "moveFileRequest",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.MOVE_FILE_REQUEST,
         data: {
             sourceFile: sourceFile,
             destinationFile: destinationFile
@@ -592,8 +593,8 @@ export function MoveFileResponseNotify(
 
     const notification: MoveFileResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "fsnotify",
-        action: "moveFileResult",
+        type: NotificationEventType.FS_NOTIFY,
+        action: FsNotificationAction.MOVE_FILE_RESULT,
         content: content,
         isError: isError
     };

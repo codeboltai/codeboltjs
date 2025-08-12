@@ -32,3 +32,4 @@
 // Example: import { agentLocationSchema } from '@codebolt/types/agent-to-app-ws-schema'; 
 
 export * from "./codeboltjstypes/message.enum";
+export * from "./codeboltjstypes/notification.enum";

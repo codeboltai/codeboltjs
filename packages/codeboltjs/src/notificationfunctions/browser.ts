@@ -19,7 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-
+import { BrowserNotificationAction, NotificationEventType } from '@codebolt/types';
 
 /**
  * Sends a web fetch request notification
@@ -49,8 +49,8 @@ export function WebFetchRequestNotify(
     // Create the notification
     const notification: WebFetchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "browsernotify",
-        action: "webFetchRequest",
+        type: NotificationEventType.BROWSER_NOTIFY,
+        action: BrowserNotificationAction.WEB_FETCH_REQUEST,
         data: {
             url: url,
             method: method,
@@ -89,8 +89,8 @@ export function WebFetchResponseNotify(
     // Create the notification
     const notification: WebFetchResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "browsernotify",
-        action: "webFetchResult",
+        type: NotificationEventType.BROWSER_NOTIFY,
+        action: BrowserNotificationAction.WEB_FETCH_RESULT,
         content: content,
         isError: isError,
         data: data
@@ -126,8 +126,8 @@ export function WebSearchRequestNotify(
     // Create the notification
     const notification: WebSearchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "browsernotify",
-        action: "webSearchRequest",
+        type: NotificationEventType.BROWSER_NOTIFY,
+        action: BrowserNotificationAction.WEB_SEARCH_REQUEST,
         data: {
             query: query,
             maxResults: maxResults,
@@ -165,8 +165,8 @@ export function WebSearchResponseNotify(
     // Create the notification
     const notification: WebSearchResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "browsernotify",
-        action: "webSearchResult",
+        type: NotificationEventType.BROWSER_NOTIFY,
+        action: BrowserNotificationAction.WEB_SEARCH_RESULT,
         content: content,
         isError: isError,
         data: data
