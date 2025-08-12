@@ -6,7 +6,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 .DS_Store
-
+.kiro
 # Build outputs
 dist/
 build/

@@ -1,3 +1,4 @@
+```ts
 // NOTE: Agent functionality has been moved to @codebolt/agent-utils package
 // Install with: npm install @codebolt/agent-utils
 // import { InitialPromptBuilder as PromptBuilder, LLMOutputHandler, FollowUpPromptBuilder as FollowUpQuestionBuilder } from '@codebolt/agent-utils';
@@ -349,3 +350,4 @@ export {
     runWorkflowWithPromptBuilder,
     runUpdatedAgentWorkflow 
 }; 
+```
