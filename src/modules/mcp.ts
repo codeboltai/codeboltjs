@@ -1,4 +1,5 @@
-import { UserMessage } from '../utils';
+// UserMessage type removed - using any for compatibility
+// To use UserMessage functionality, install @codebolt/agent-utils
 import cbws from '../core/websocket';
 import { 
     GetEnabledToolBoxesResponse,
@@ -52,7 +53,7 @@ const codeboltMCP = {
      * @param userMessage - The user message to extract mentions from
      * @returns Promise with the mentioned toolboxes
      */
-    getMentionedMCPServers: (userMessage: UserMessage): Promise<GetAvailableToolBoxesResponse> => {
+    getMentionedMCPServers: (userMessage: any): Promise<GetAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": "codebolttools",

@@ -1,4 +1,6 @@
-import { PromptBuilder, LLMOutputHandler, FollowUpQuestionBuilder } from '../src/agentlib/promptbuilder';
+// NOTE: Agent functionality has been moved to @codebolt/agent-utils package
+// Install with: npm install @codebolt/agent-utils
+// import { InitialPromptBuilder as PromptBuilder, LLMOutputHandler, FollowUpPromptBuilder as FollowUpQuestionBuilder } from '@codebolt/agent-utils';
 import llm from '../src/modules/llm';
 import type { CodeboltAPI } from '../src/types/libFunctionTypes';
 
