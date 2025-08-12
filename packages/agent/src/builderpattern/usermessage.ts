@@ -1,8 +1,8 @@
 import codeboltjs from "@codebolt/codeboltjs";
 const { fs: cbfs, project, mcp } = codeboltjs;
-import type { UserMessageContent } from "./types/libFunctionTypes";
-import type { Agent } from "./types/commonTypes";
-import type { Message, FileListResult } from "./types/InternalTypes";
+import type { UserMessageContent } from "../types/libFunctionTypes";
+import type { Agent } from "../types/commonTypes";
+import type { Message, FileListResult } from "../types/InternalTypes";
 
 // All interfaces moved to appropriate type files
 

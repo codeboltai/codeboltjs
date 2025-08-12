@@ -33,9 +33,6 @@
   },
   "dependencies": {
     "@codebolt/codeparser": "workspace:*",
-    "@codebolt/mcp": "workspace:*",
-    "@codebolt/utils": "workspace:*",
-    "@codebolt/globby": "^1.0.1",
     "@codebolt/types": "workspace:*",
     "@types/uuid": "^10.0.0",
     "buffer": "^6.0.3",

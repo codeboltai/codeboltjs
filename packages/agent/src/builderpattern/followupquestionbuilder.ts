@@ -6,7 +6,7 @@ import type {
     ToolResult, 
     ConversationEntry,
     CodeboltAPI 
-} from "./types/libFunctionTypes";
+} from "../types/libFunctionTypes";
 
 /**
  * Builds follow-up prompts for continuing conversations with tool results.

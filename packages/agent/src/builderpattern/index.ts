@@ -25,14 +25,14 @@ export type {
   UserMessageContent,
   CodeboltAPI,
   ToolCall
-} from './types/libFunctionTypes';
+} from '../types/libFunctionTypes';
 
 export type {
   MCPTool,
   Agent as AgentType,
   InitialUserMessage
-} from './types/commonTypes';
+} from '../types/commonTypes';
 
 export type {
   UserMessage as CLIUserMessage
-} from './types/socketMessageTypes';
+} from '../types/socketMessageTypes';

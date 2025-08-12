@@ -2,7 +2,7 @@ import codeboltjs from "@codebolt/codeboltjs"
 const { chat, mcp, llm, agent: codeboltAgent } = codeboltjs
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
-import type { Message, ToolResult, ToolDetails } from "./types/libFunctionTypes";
+import type { Message, ToolResult, ToolDetails } from "../types/libFunctionTypes";
 
 // All interfaces moved to libFunctionTypes.ts
 
