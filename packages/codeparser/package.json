@@ -32,8 +32,9 @@
     "build": "tsc && node scripts/copy-wasm.js",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
-    "test": "jest",
-    "dev": "tsc --watch"
+    "test": "jest --passWithNoTests",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

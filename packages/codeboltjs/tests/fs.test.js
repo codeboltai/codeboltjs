@@ -1,4 +1,4 @@
-const codebolt = require("../src");
+const codebolt = require("../dist");
 const fs = require('fs');
 
 const testCases = [
