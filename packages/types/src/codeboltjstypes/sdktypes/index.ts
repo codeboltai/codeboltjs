@@ -29,7 +29,7 @@ export interface UserMessage {
   currentFile: string;
   mentionedFiles: string[];
   mentionedFullPaths: string[];
-  mentionedMCPs: string[];
+  mentionedMCPs: { toolbox: string, toolName: string }[];
   mentionedFolders: string[];
   uploadedImages: string[];
   selectedAgent: {
@@ -1641,6 +1641,381 @@ export type CodeboltInstance = CodeboltSDK;
  */
 export interface CodeboltConstructor {
   new(): CodeboltSDK;
+}
+
+// ================================
+// ComposableAgent Types
+// ================================
+
+/**
+ * CodeBolt message format for ComposableAgent
+ */
+export interface CodeBoltMessage {
+  /** The actual text content of the user message */
+  userMessage: string;
+  /** Optional list of files mentioned in the message */
+  mentionedFiles?: string[];
+  /** List of MCP (Model Context Protocol) tools mentioned */
+  mentionedMCPs: { toolbox: string, toolName: string }[];
+  /** List of agents mentioned in the message */
+  mentionedAgents: any[];
+  /** Remix prompt for enhanced instructions */
+  remixPrompt?: string;
+}
+
+/**
+ * Model provider configuration
+ */
+export interface ModelProvider {
+  /** Model identifier (e.g., 'gpt-4o-mini', 'claude-3-sonnet') */
+  model: string;
+  /** Provider name (e.g., 'openai', 'anthropic') */
+  provider: string;
+  /** Provider-specific configuration */
+  config?: Record<string, any>;
+}
+
+/**
+ * Tool configuration for ComposableAgent
+ */
+export interface ToolConfig<TInput = any, TOutput = any> {
+  /** Unique identifier for the tool */
+  id: string;
+  /** Human-readable description of what the tool does */
+  description: string;
+  /** Zod schema for input validation */
+  inputSchema: any; // z.ZodType<TInput>
+  /** Zod schema for output validation */
+  outputSchema: any; // z.ZodType<TOutput>
+  /** Tool execution function */
+  execute: (params: { context: TInput; agent?: any }) => Promise<TOutput>;
+}
+
+/**
+ * Tool interface for ComposableAgent
+ */
+export interface Tool<TInput = any, TOutput = any> extends ToolConfig<TInput, TOutput> {
+  /** Validates input against the schema */
+  validateInput: (input: unknown) => TInput;
+  /** Validates output against the schema */
+  validateOutput: (output: unknown) => TOutput;
+}
+
+/**
+ * Storage provider interface
+ */
+export interface StorageProvider {
+  /** Get value by key */
+  get(key: string): Promise<any>;
+  /** Set value by key */
+  set(key: string, value: any): Promise<void>;
+  /** Delete value by key */
+  delete(key: string): Promise<void>;
+  /** List all keys */
+  keys(): Promise<string[]>;
+  /** Clear all data */
+  clear(): Promise<void>;
+}
+
+/**
+ * LibSQL store configuration
+ */
+export interface LibSQLStoreConfig {
+  /** Database URL or file path */
+  url: string;
+  /** Optional authentication token */
+  authToken?: string;
+  /** Table name for storage */
+  tableName?: string;
+}
+
+/**
+ * Memory configuration
+ */
+export interface MemoryConfig {
+  /** Storage provider for persistence */
+  storage: StorageProvider;
+  /** Maximum number of messages to keep in memory */
+  maxMessages?: number;
+  /** Whether to auto-save conversation history */
+  autoSave?: boolean;
+}
+
+/**
+ * Memory interface
+ */
+export interface Memory {
+  /** Save messages to storage */
+  saveMessages(messages: Message[], key?: string): Promise<void>;
+  /** Load messages from storage */
+  loadMessages(key?: string): Promise<Message[]>;
+  /** Add a message to conversation */
+  addMessage(message: Message, messages: Message[], save?: boolean): Promise<Message[]>;
+  /** Clear conversation history */
+  clearMessages(key?: string): Promise<void>;
+  /** Get storage provider */
+  getStorage(): StorageProvider;
+  /** Set conversation key */
+  setConversationKey(key: string): void;
+  /** List all conversations */
+  listConversations(): Promise<string[]>;
+}
+
+/**
+ * Agent processing configuration
+ */
+export interface AgentProcessingConfig {
+  /** Whether to process mentioned MCPs and make them available as tools */
+  processMentionedMCPs?: boolean;
+  /** Whether to use remix prompt to enhance system instructions */
+  processRemixPrompt?: boolean;
+  /** Whether to process mentioned files and include their content */
+  processMentionedFiles?: boolean;
+  /** Whether to process mentioned agents and make them available as sub-agents */
+  processMentionedAgents?: boolean;
+  /** Custom file content processor */
+  fileContentProcessor?: (filePath: string) => Promise<string>;
+  /** Custom MCP tool processor */
+  mcpToolProcessor?: (toolbox: string, toolName: string) => Promise<Tool | null>;
+}
+
+/**
+ * ComposableAgent configuration
+ */
+export interface ComposableAgentConfig {
+  /** Agent name/identifier */
+  name: string;
+  /** System instructions for the agent */
+  instructions: string;
+  /** Model provider configuration */
+  model: ModelProvider;
+  /** Available tools for the agent */
+  tools?: Record<string, Tool>;
+  /** Memory instance */
+  memory?: Memory;
+  /** Maximum conversation turns */
+  maxTurns?: number;
+  /** Processing configuration for CodeBolt features */
+  processing?: AgentProcessingConfig;
+  /** Custom metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Message content types
+ */
+export interface MessageContent {
+  /** Content type */
+  type: 'text' | 'image' | 'file';
+  /** Text content */
+  text?: string;
+  /** Image URL or data */
+  image_url?: string;
+  /** File path or data */
+  file?: string;
+}
+
+/**
+ * Execution result
+ */
+export interface ExecutionResult {
+  /** Whether execution was successful */
+  success: boolean;
+  /** Final assistant message */
+  message?: string;
+  /** Error message if failed */
+  error?: string;
+  /** Full conversation history */
+  conversation: Message[];
+  /** Execution metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Stream chunk for streaming responses
+ */
+export interface StreamChunk {
+  /** Chunk type */
+  type: 'text' | 'tool_call' | 'tool_result' | 'error';
+  /** Chunk content */
+  content: string;
+  /** Associated tool call if applicable */
+  tool_call?: ToolCall;
+  /** Chunk metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Stream callback type
+ */
+export type StreamCallback = (chunk: StreamChunk) => void | Promise<void>;
+
+/**
+ * ComposableAgent interface
+ */
+export interface ComposableAgent {
+  /** Agent configuration */
+  readonly config: ComposableAgentConfig;
+  /** Execute a task with the agent using string message */
+  execute(message: string, options?: { stream?: boolean; callback?: StreamCallback }): Promise<ExecutionResult>;
+  /** Execute a task with the agent using CodeBolt Message format */
+  executeMessage(message: CodeBoltMessage, options?: { stream?: boolean; callback?: StreamCallback }): Promise<ExecutionResult>;
+  /** Run the agent using globally saved user context */
+  run(options?: { stream?: boolean; callback?: StreamCallback }): Promise<ExecutionResult>;
+  /** Add a message to the conversation */
+  addMessage(message: Message): void;
+  /** Get conversation history */
+  getConversation(): Message[];
+  /** Clear conversation history */
+  clearConversation(): void;
+  /** Save conversation to memory */
+  saveConversation(): Promise<void>;
+  /** Load conversation from memory */
+  loadConversation(): Promise<void>;
+}
+
+/**
+ * Document configuration
+ */
+export interface DocumentConfig {
+  /** Document content */
+  content: string;
+  /** Document type/format */
+  type?: 'text' | 'markdown' | 'json' | 'xml';
+  /** Document metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Processed document
+ */
+export interface ProcessedDocument {
+  /** Original content */
+  content: string;
+  /** Processed/chunked content */
+  chunks?: string[];
+  /** Document metadata */
+  metadata: Record<string, any>;
+  /** Document embeddings if processed */
+  embeddings?: number[][];
+}
+
+// ================================
+// Workflow Types
+// ================================
+
+/**
+ * Workflow context
+ */
+export interface WorkflowContext {
+  /** Shared data between workflow steps */
+  data: Record<string, any>;
+  /** Execution history */
+  history: WorkflowStepResult[];
+  /** Current step index */
+  currentStep: number;
+  /** Workflow metadata */
+  metadata: Record<string, any>;
+}
+
+/**
+ * Workflow step result
+ */
+export interface WorkflowStepResult {
+  /** Step ID */
+  stepId: string;
+  /** Whether step succeeded */
+  success: boolean;
+  /** Step output data */
+  output?: any;
+  /** Error message if failed */
+  error?: string;
+  /** Step execution time */
+  executionTime: number;
+  /** Step metadata */
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Workflow step configuration
+ */
+export interface WorkflowStep {
+  /** Unique step identifier */
+  id: string;
+  /** Human-readable step name */
+  name: string;
+  /** Step description */
+  description?: string;
+  /** Input schema validation */
+  inputSchema?: any; // z.ZodType
+  /** Output schema validation */
+  outputSchema?: any; // z.ZodType
+  /** Step execution function */
+  execute: (context: WorkflowContext) => Promise<WorkflowStepResult>;
+  /** Condition to determine if step should run */
+  condition?: (context: WorkflowContext) => boolean | Promise<boolean>;
+  /** Steps that must complete before this step */
+  dependencies?: string[];
+  /** Whether step can run in parallel */
+  parallel?: boolean;
+  /** Retry configuration */
+  retry?: {
+    maxAttempts: number;
+    delay: number;
+    backoff?: 'linear' | 'exponential';
+  };
+}
+
+/**
+ * Workflow configuration
+ */
+export interface WorkflowConfig {
+  /** Workflow name */
+  name: string;
+  /** Workflow description */
+  description?: string;
+  /** Workflow steps */
+  steps: WorkflowStep[];
+  /** Initial context data */
+  initialData?: Record<string, any>;
+  /** Workflow timeout in milliseconds */
+  timeout?: number;
+  /** Whether to continue on step failure */
+  continueOnError?: boolean;
+  /** Maximum parallel steps */
+  maxParallelSteps?: number;
+}
+
+/**
+ * Workflow result
+ */
+export interface WorkflowResult {
+  /** Whether workflow completed successfully */
+  success: boolean;
+  /** Final context data */
+  data: Record<string, any>;
+  /** All step results */
+  stepResults: WorkflowStepResult[];
+  /** Total execution time */
+  executionTime: number;
+  /** Error message if failed */
+  error?: string;
+  /** Workflow metadata */
+  metadata: Record<string, any>;
+}
+
+/**
+ * Agent step configuration for workflows
+ */
+export interface AgentStepConfig {
+  /** Agent instance to execute */
+  agent: ComposableAgent;
+  /** Message template (can use context variables) */
+  messageTemplate: string;
+  /** Input mapping from context */
+  inputMapping?: Record<string, string>;
+  /** Output mapping to context */
+  outputMapping?: Record<string, string>;
 }
 
 // ================================

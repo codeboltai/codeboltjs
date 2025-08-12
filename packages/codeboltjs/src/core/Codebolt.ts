@@ -26,6 +26,8 @@ import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 import type { UserMessage } from '../types/libFunctionTypes';
+import { userMessageManager } from '../modules/user-message-manager';
+import { userMessageUtilities } from '../modules/user-message-utilities';
 
 /**
  * @class Codebolt
@@ -115,6 +117,11 @@ class Codebolt {
     agent = cbagent;
     utils = cbutils;
     notify = notificationFunctions;
+    
+    /**
+     * User message utilities for accessing current user message and context
+     */
+    userMessage = userMessageUtilities;
 
     /**
      * Sets up a handler function to be executed when the WebSocket connection is established.
@@ -173,6 +180,9 @@ class Codebolt {
                             remixPrompt:response.message.remixPrompt,
                             mentionedAgents:response.message.mentionedAgents
                         };
+
+                        // Automatically save the user message globally
+                        userMessageManager.saveMessage(userMessage);
 
                         const result = await handler(userMessage);
                         // Send processStoped with optional message
