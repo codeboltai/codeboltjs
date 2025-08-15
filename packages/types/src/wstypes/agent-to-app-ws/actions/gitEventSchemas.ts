@@ -68,6 +68,13 @@ export const gitDiffEventSchema = gitEventBaseSchema.extend({
   commitHash: z.string(),
 });
 
+// Git Clone Event Schema (added)
+export const gitCloneEventSchema = gitEventBaseSchema.extend({
+  action: z.literal('Clone'),
+  url: z.string(),
+  path: z.string().optional().default('./')
+});
+
 // Union of all git event schemas
 export const gitEventSchema = z.union([
   gitInitEventSchema,
@@ -80,6 +87,7 @@ export const gitEventSchema = z.union([
   gitBranchEventSchema,
   gitLogsEventSchema,
   gitDiffEventSchema,
+  gitCloneEventSchema,
 ]);
 
 // Inferred TypeScript types for events
@@ -94,5 +102,6 @@ export type GitCheckoutEvent = z.infer<typeof gitCheckoutEventSchema>;
 export type GitBranchEvent = z.infer<typeof gitBranchEventSchema>;
 export type GitLogsEvent = z.infer<typeof gitLogsEventSchema>;
 export type GitDiffEvent = z.infer<typeof gitDiffEventSchema>;
+export type GitCloneEvent = z.infer<typeof gitCloneEventSchema>;
 export type GitEvent = z.infer<typeof gitEventSchema>;
 

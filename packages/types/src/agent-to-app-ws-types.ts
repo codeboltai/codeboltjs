@@ -437,3 +437,6 @@ export {
   type TodoNotification
 } from './wstypes/agent-to-app-ws/notification/todoNotificationSchemas';
 
+// Notification union type (all notifications)
+export type { NotificationMessage } from './wstypes/agent-to-app-ws/notification';
+
