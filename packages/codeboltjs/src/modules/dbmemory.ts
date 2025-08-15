@@ -1,3 +1,4 @@
+import { EventType, MemoryAction, MemoryResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
 import { MemorySetResponse, MemoryGetResponse } from '../types/socketMessageTypes';
 
@@ -14,12 +15,12 @@ const dbmemory = {
     addKnowledge: (key: string, value: any): Promise<MemorySetResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "memoryEvent",
-                'action': 'set',
+                "type": EventType.MEMORY_EVENT,
+                'action': MemoryAction.SET_MEMORY,
                 key,
                 value
             },
-            "memorySetResponse"
+            MemoryResponseType.SET_MEMORY_RESPONSE
         );
     },
     /**
@@ -30,11 +31,11 @@ const dbmemory = {
     getKnowledge: (key: string): Promise<MemoryGetResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "memoryEvent",
-                'action': 'get',
+                "type": EventType.MEMORY_EVENT,
+                'action': MemoryAction.GET_MEMORY,
                 key
             },
-            "memoryGetResponse"
+            MemoryResponseType.GET_MEMORY_RESPONSE
         );
     }
 };

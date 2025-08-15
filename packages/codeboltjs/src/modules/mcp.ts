@@ -11,7 +11,7 @@ import {
     GetToolsResponse,
     ExecuteToolResponse
 } from '../types/socketMessageTypes';
-
+import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types';
 /**
  * Object containing methods for interacting with Codebolt MCP (Model Context Protocol) tools.
  * Provides functionality to discover, list, and execute tools.
@@ -25,10 +25,10 @@ const codeboltMCP = {
     getEnabledMCPServers: (): Promise<GetEnabledToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "getEnabledToolBoxes"
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetEnabledToolBoxes
             },
-            "getEnabledToolBoxesResponse"
+            CodeboltToolsResponse.GetEnabledToolBoxesResponse
         );
     },
 
@@ -40,10 +40,10 @@ const codeboltMCP = {
     getLocalMCPServers: (): Promise<GetLocalToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "getLocalToolBoxes"
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetLocalToolBoxes
             },
-            "getLocalToolBoxesResponse"
+            CodeboltToolsResponse.GetLocalToolBoxesResponse
         );
     },
 
@@ -56,10 +56,10 @@ const codeboltMCP = {
     getMentionedMCPServers: (userMessage: any): Promise<GetAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "getAvailableToolBoxes"
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetAvailableToolBoxes
             },
-            "getAvailableToolBoxesResponse"
+            CodeboltToolsResponse.GetAvailableToolBoxesResponse
         );
     },
 
@@ -72,11 +72,11 @@ const codeboltMCP = {
     searchAvailableMCPServers: (query: string): Promise<SearchAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "searchAvailableToolBoxes",
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.SearchAvailableToolBoxes,
                 "query": query
             },
-            "searchAvailableToolBoxesResponse"
+            CodeboltToolsResponse.SearchAvailableToolBoxesResponse
         );
     },
 
@@ -89,11 +89,11 @@ const codeboltMCP = {
     listMcpFromServers: (toolBoxes: string[]): Promise<ListToolsFromToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "listToolsFromToolBoxes",
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.ListToolsFromToolBoxes,
                 "toolBoxes": toolBoxes
             },
-            "listToolsFromToolBoxesResponse"
+            CodeboltToolsResponse.ListToolsFromToolBoxesResponse
         );
     },
 
@@ -107,12 +107,12 @@ const codeboltMCP = {
     configureMCPServer: (name: string, config: any): Promise<ConfigureToolBoxResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "configureToolBox",
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.ConfigureToolBox,
                 "mcpName": name,
                 "config": config
             },
-            "configureToolBoxResponse"
+            CodeboltToolsResponse.ConfigureToolBoxResponse
         );
     },
 
@@ -125,11 +125,11 @@ const codeboltMCP = {
     getTools: (tools: { toolbox: string, toolName: string }[]): Promise<GetToolsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "getTools",
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetTools,
                 "toolboxes": tools
             },
-            "getToolsResponse"
+            CodeboltToolsResponse.GetToolsResponse
         );
     },
 
@@ -144,12 +144,12 @@ const codeboltMCP = {
     executeTool: (toolbox: string, toolName: string, params: any): Promise<ExecuteToolResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codebolttools",
-                "action": "executeTool",
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.ExecuteTool,
                 "toolName": `${toolbox}--${toolName}`,
                 "params": params
             },
-            "executeToolResponse"
+            CodeboltToolsResponse.ExecuteToolResponse
         );
     }
 };

@@ -1,5 +1,21 @@
-export enum AgentEventType {
+export enum EventType {
     AGENT_EVENT = "agentEvent",
+    BROWSER_EVENT = "browserEvent",
+    CHAT_EVENT = "chatEvent",
+    CODE_EVENT = "codeEvent",
+    FS_EVENT = "fsEvent",
+    GIT_EVENT = "gitEvent",
+    LLM_EVENT = "inference",
+    STATE_EVENT = "stateEvent",
+    CODEBOLT_TOOLS_EVENT = "codebolttools",
+    TASK_EVENT = "taskEvent",
+    TERMINAL_EVENT = "terminalEvent",
+    VECTOR_DB_EVENT = "vectorDbEvent",
+    TOKENIZER_EVENT = "tokenizerEvent",
+    PROJECT_EVENT = "projectEvent",
+    CHAT_SUMMARY_EVENT = "chatSummaryEvent",
+    MEMORY_EVENT = "memoryEvent",
+    
 }
 
 export enum AgentAction {
@@ -34,10 +50,6 @@ export enum FilterUsing {
     USE_BOTH = "use_both",
 }
 
-
-export enum BrowserEventType {
-    BROWSER_EVENT = "browserEvent",
-}
 
 export enum BrowserAction {
     NEW_PAGE = "newPage",
@@ -109,9 +121,6 @@ export enum NotificationType {
     PREVIEW = "preview",
 }
 
-export enum CodeboltMessageType {
-    CodeboltTools = "codebolttools",
-}
 
 export enum CodeboltToolsAction {
     GetEnabledToolBoxes = "getEnabledToolBoxes",
@@ -135,9 +144,6 @@ export enum CodeboltToolsResponse {
     ExecuteToolResponse = "executeToolResponse",
 }
 
-export enum CodeEventType {
-    CODE_EVENT = "codeEvent",
-}
 
 export enum CodeAction {
     GET_ALL_FILES_MARKDOWN = "getAllFilesMarkdown",
@@ -154,9 +160,6 @@ export enum CodeResponseType {
     GET_JS_TREE_RESPONSE = "getJsTreeResponse",
 }
 
-export enum FSEventType {
-    FS_EVENT = "fsEvent",
-}
 
 export enum FSAction {
     CREATE_FILE = "createFile",
@@ -172,6 +175,7 @@ export enum FSAction {
     GREP_SEARCH = "grep_search",
     FILE_SEARCH = "file_search",
     EDIT_FILE_WITH_DIFF = "edit_file_with_diff",
+    EDIT_FILE_AND_APPLY_DIFF = "edit_file_and_apply_diff",
 }
 
 export enum FSResponseType {
@@ -191,9 +195,7 @@ export enum FSResponseType {
 }
 
 
-export enum GitEventType {
-    GIT_EVENT = "gitEvent",
-}
+
 
 export enum GitAction {
     INIT = "Init",
@@ -221,13 +223,7 @@ export enum GitResponseType {
     DIFF_RESPONSE = "DiffResponse",
 }
 
-export enum LLMEventType {
-    INFERENCE = "inference",
-}
 
-export enum LLMResponseType {
-    LLM_RESPONSE = "llmResponse",
-}
 
 export enum LLMRole {
     USER = "user",
@@ -262,10 +258,6 @@ export enum StateResponseType {
     GET_AGENT_STATE_RESPONSE = "getAgentStateResponse",
     GET_PROJECT_STATE_RESPONSE = "getProjectStateResponse",
     UPDATE_PROJECT_STATE_RESPONSE = "updateProjectStateResponse",
-}
-
-export enum TaskEventType {
-    TASK_EVENT = "taskEvent",
 }
 
 export enum TaskAction {
@@ -327,10 +319,6 @@ export enum TerminalResponseType {
     COMMAND_ERROR_OR_FINISH = "commandError|commandFinish",
 }
 
-export enum VectorDBEventType {
-    VECTORDB_EVENT = "vectordbEvent",
-}
-
 export enum VectorDBAction {
     GET_VECTOR = "getVector",
     ADD_VECTOR_ITEM = "addVectorItem",
@@ -345,7 +333,54 @@ export enum VectorDBResponseType {
     QUERY_VECTOR_ITEMS_RESPONSE = "qeryVectorItemsResponse",
 }
 
+export enum TokenizerAction {
+    ADD_TOKEN = "addToken",
+    GET_TOKEN = "getToken",
+}
+    
+export enum TokenizerResponseType {
+    ADD_TOKEN_RESPONSE = "addTokenResponse",
+    GET_TOKEN_RESPONSE = "getTokenResponse",
+}
 
+export enum ProjectAction {
+    GET_PROJECT_SETTINGS = "getProjectSettings",
+    GET_PROJECT_PATH = "getProjectPath",
+    GET_EDITOR_FILE_STATUS = "getEditorFileStatus",
+    GET_REPO_MAP = "getRepoMap",
+    RUN_PROJECT = "runProject",
+}
 
+export enum ProjectResponseType {
+    GET_PROJECT_SETTINGS_RESPONSE = "getProjectSettingsResponse",
+    GET_PROJECT_PATH_RESPONSE = "getProjectPathResponse",
+    GET_EDITOR_FILE_STATUS_RESPONSE = "getEditorFileStatusResponse",
+    GET_REPO_MAP_RESPONSE = "getRepoMapResponse",
+    RUN_PROJECT_RESPONSE = "runProjectResponse",
+}
+
+export enum ChatSummaryAction {
+    SUMMARIZE_ALL = "summarizeAll",
+    SUMMARIZE_PART = "summarize",
+}
+
+export enum ChatSummaryResponseType {
+    SUMMARIZE_ALL_RESPONSE = "summarizeAllResponse",
+    SUMMARIZE_PART_RESPONSE = "summarizePartResponse",
+}
+
+export enum MemoryAction {
+    GET_MEMORY = "get",
+    SET_MEMORY = "set",
+}
+
+export enum MemoryResponseType {
+    GET_MEMORY_RESPONSE = "getMemoryResponse",
+    SET_MEMORY_RESPONSE = "setMemoryResponse",
+}
+
+export enum LLMResponseType {   
+    LLM_RESPONSE = "llmResponse",
+}
 
 

@@ -20,6 +20,7 @@ import {
     validateRequiredFields
 } from './utils';
 
+import { CodeUtilsNotificationAction, NotificationEventType } from '@codebolt/types';
 
 /**
  * Sends a grep search request
@@ -49,8 +50,8 @@ export function GrepSearchRequestNotify(
     // Create the notification
     const notification: GrepSearchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "codeutilsnotify",
-        action: "grepSearchRequest",
+        type: NotificationEventType.CODEUTILS_NOTIFY,
+        action: CodeUtilsNotificationAction.GREP_SEARCH_REQUEST,
         data: {
             pattern: pattern,
             filePath: filePath,
@@ -89,8 +90,8 @@ export function GrepSearchResponseNotify(
     // Create the notification
     const notification: GrepSearchResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "codeutilsnotify",
-        action: "grepSearchResult",
+        type: NotificationEventType.CODEUTILS_NOTIFY,
+        action: CodeUtilsNotificationAction.GREP_SEARCH_RESULT,
         content: content,
         isError: isError,
         data: data
@@ -126,8 +127,8 @@ export function GlobSearchRequestNotify(
     // Create the notification
     const notification: GlobSearchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "codeutilsnotify",
-        action: "globSearchRequest",
+        type: NotificationEventType.CODEUTILS_NOTIFY,
+        action: CodeUtilsNotificationAction.GLOB_SEARCH_REQUEST,
         data: {
             pattern: pattern,
             basePath: basePath,
@@ -165,8 +166,8 @@ export function GlobSearchResponseNotify(
     // Create the notification
     const notification: GlobSearchResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "codeutilsnotify",
-        action: "globSearchResult",
+        type: NotificationEventType.CODEUTILS_NOTIFY,
+        action: CodeUtilsNotificationAction.GLOB_SEARCH_RESULT,
         content: content,
         isError: isError,
         data: data

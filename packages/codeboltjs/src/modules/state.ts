@@ -1,6 +1,9 @@
 import cbws from '../core/websocket';
 import { AddToAgentStateResponse, GetAgentStateResponse, GetProjectStateResponse, UpdateProjectStateResponse } from '../types/socketMessageTypes';
 import { ApplicationState } from '../types/commonTypes';
+import { StateEventType, StateAction, StateResponseType } from '@codebolt/types';
+
+
 
 const cbstate = {
     /**
@@ -10,11 +13,10 @@ const cbstate = {
     getApplicationState: async (): Promise<ApplicationState> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "projectStateEvent",
-                "action": "getAppState",
-                
+                "type": StateEventType.PROJECT_STATE_EVENT,
+                "action": StateAction.GET_APP_STATE,
             },
-            "getAppStateResponse"
+            StateResponseType.GET_APP_STATE_RESPONSE
         );
     },
     /**
@@ -26,15 +28,15 @@ const cbstate = {
     addToAgentState: async (key: string, value: string): Promise<AddToAgentStateResponse> => {
       return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentStateEvent",
-                "action":"addToAgentState",
+                "type": StateEventType.AGENT_STATE_EVENT,
+                "action":StateAction.ADD_TO_AGENT_STATE,
                 payload:{
                     key,
                     value
                 }
                 
             },
-            "addToAgentStateResponse"
+            StateResponseType.ADD_TO_AGENT_STATE_RESPONSE
         );  
     },
     /**
@@ -44,11 +46,11 @@ const cbstate = {
     getAgentState: async (): Promise<GetAgentStateResponse> => {
        return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "agentStateEvent",
-                "action":"getAgentState",
+                "type": StateEventType.AGENT_STATE_EVENT,
+                "action":StateAction.GET_AGENT_STATE,
                 
             },
-            "getAgentStateResponse"
+            StateResponseType.GET_AGENT_STATE_RESPONSE
         );  
     },
 
@@ -60,10 +62,10 @@ const cbstate = {
     getProjectState: async (): Promise<GetProjectStateResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "projectStateEvent",
-                "action": "getProjectState",
+                "type": StateEventType.PROJECT_STATE_EVENT,
+                "action": StateAction.GET_PROJECT_STATE,
             },
-            "getProjectStateResponse"
+            StateResponseType.GET_PROJECT_STATE_RESPONSE
         );
     },
 
@@ -76,14 +78,14 @@ const cbstate = {
     updateProjectState: async (key:string,value:any): Promise<UpdateProjectStateResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "projectStateEvent",
-                "action": "updateProjectState",
+                "type": StateEventType.PROJECT_STATE_EVENT,
+                "action": StateAction.UPDATE_PROJECT_STATE,
                 payload:{
                     key,
                     value
                 }
             },
-            "updateProjectStateResponse"
+            StateResponseType.UPDATE_PROJECT_STATE_RESPONSE
         );
     }
 

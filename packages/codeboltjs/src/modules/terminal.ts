@@ -1,6 +1,8 @@
 import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
 import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '../types/socketMessageTypes';
+
+import { TerminalEventType, TerminalResponseType } from '@codebolt/types';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
@@ -24,11 +26,11 @@ const cbterminal = {
     executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "executeCommand",
+                "type": TerminalEventType.EXECUTE_COMMAND,
                 "message": command,
                 returnEmptyStringOnSuccess
             },
-            "commandError|commandFinish"
+            TerminalResponseType.COMMAND_ERROR_OR_FINISH
         );
     },
 
@@ -42,11 +44,11 @@ const cbterminal = {
     executeCommandRunUntilError: async (command: string,executeInMain=false): Promise<CommandError> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "executeCommandRunUntilError",
+                "type": TerminalEventType.EXECUTE_COMMAND_RUN_UNTIL_ERROR,
                 "message": command,
                 executeInMain
             },
-            "commandError"
+            TerminalResponseType.COMMAND_ERROR
         );
     },
 
@@ -59,9 +61,9 @@ const cbterminal = {
     sendManualInterrupt(): Promise<TerminalInterruptResponse>  {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "sendInterruptToTerminal",
+                "type": TerminalEventType.SEND_INTERRUPT_TO_TERMINAL,
             },
-            "terminalInterrupted"
+            TerminalResponseType.TERMINAL_INTERRUPTED
         );
     },
 
@@ -75,14 +77,14 @@ const cbterminal = {
     executeCommandWithStream(command: string,executeInMain=false): CustomEventEmitter {
          // Send the process started message
          cbws.messageManager.send({
-            "type": "executeCommandWithStream",
+            "type": TerminalEventType.EXECUTE_COMMAND_WITH_STREAM,
             "message": command,
             executeInMain
         });
         
         // Listen for streaming messages through the message manager
         const handleStreamMessage = (response: any) => {
-            if (response.type === "commandOutput" || response.type === "commandError" || response.type === "commandFinish") {
+            if (response.type === TerminalResponseType.COMMAND_OUTPUT || response.type === TerminalResponseType.COMMAND_ERROR || response.type === TerminalResponseType.COMMAND_FINISH) {
                 this.eventEmitter.emit(response.type, response);
             }
         };
@@ -99,9 +101,9 @@ const cbterminal = {
             });
         };
         
-        forwardEvent('commandOutput');
-        forwardEvent('commandError');
-        forwardEvent('commandFinish');
+        forwardEvent(TerminalResponseType.COMMAND_OUTPUT);
+        forwardEvent(TerminalResponseType.COMMAND_ERROR);
+        forwardEvent(TerminalResponseType.COMMAND_FINISH);
         
         // Add a cleanup method to remove the listener
         streamEmitter.cleanup = () => {

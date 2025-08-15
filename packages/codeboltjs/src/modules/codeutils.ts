@@ -12,6 +12,8 @@ import { loadRequiredLanguageParsers } from '@codebolt/codeparser';
 import type { JSTreeStructureItem, JSTreeResponse } from '../types/InternalTypes';
 export type { JSTreeStructureItem, JSTreeResponse };
 
+import { CodeAction, CodeResponseType, EventType } from '@codebolt/types';
+
 /**
  * A utility module for working with code.
  */
@@ -78,7 +80,7 @@ const cbcodeutils = {
             
             // Return response with the appropriate structure
             return {
-                event: 'getJsTreeResponse',
+                event: CodeResponseType.GET_JS_TREE_RESPONSE,
                 payload: {
                     filePath: absolutePath,
                     structure
@@ -87,7 +89,7 @@ const cbcodeutils = {
         } catch (error) {
             // Return error response
             return {
-                event: 'getJsTreeResponse',
+                event: CodeResponseType.GET_JS_TREE_RESPONSE,
                 error: error instanceof Error ? error.message : String(error)
             };
         }
@@ -100,10 +102,10 @@ const cbcodeutils = {
     getAllFilesAsMarkDown: (): Promise<string> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codeEvent",
-                "action": "getAllFilesMarkdown"
+                "type": EventType.CODE_EVENT,
+                "action": CodeAction.GET_ALL_FILES_MARKDOWN
             },
-            "getAllFilesMarkdownResponse"
+            CodeResponseType.GET_ALL_FILES_MARKDOWN_RESPONSE
         );
     },
 
@@ -117,15 +119,15 @@ const cbcodeutils = {
     performMatch: (matcherDefinition: object, problemPatterns: any[], problems: any[] = []): Promise<MatchProblemResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codeEvent",
-                "action": "performMatch",
+                "type": EventType.CODE_EVENT,
+                "action": CodeAction.PERFORM_MATCH,
                 payload: {
                     matcherDefinition,
                     problemPatterns,
                     problems
                 }
             },
-            "matchProblemResponse"
+            CodeResponseType.MATCH_PROBLEM_RESPONSE
         );
     },
 
@@ -136,10 +138,10 @@ const cbcodeutils = {
     getMatcherList: (): Promise<GetMatcherListTreeResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codeEvent",
-                "action": "getMatcherList",
+                "type": EventType.CODE_EVENT,
+                "action": CodeAction.GET_MATCHER_LIST,
             },
-            "getMatcherListTreeResponse"
+            CodeResponseType.GET_MATCHER_LIST_TREE_RESPONSE
         );
     },
 
@@ -151,13 +153,13 @@ const cbcodeutils = {
     matchDetail: (matcher: string): Promise<getMatchDetail> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "codeEvent",
-                "action": "getMatchDetail",
+                "type": EventType.CODE_EVENT,
+                "action": CodeAction.GET_MATCH_DETAIL,
                 payload: {
                     matcher: matcher
                 }
             },
-            "getMatchDetailResponse"
+            CodeResponseType.GET_MATCH_DETAIL_RESPONSE
         );
     }
 };

@@ -1,5 +1,7 @@
 import cbws from '../core/websocket';
 import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '../types/socketMessageTypes';
+import { EventType, BrowserAction, BrowserResponseType } from '@codebolt/types';
+
 /**
  * A module for interacting with a browser through WebSockets.
  */
@@ -12,10 +14,10 @@ const cbbrowser = {
        
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'newPage'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.NEW_PAGE
             },
-            "newPageResponse"
+            BrowserResponseType.NEW_PAGE_RESPONSE
         );
     },
 
@@ -26,10 +28,10 @@ const cbbrowser = {
     getUrl: (): Promise<UrlResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getUrl'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_URL
             },
-            "getUrlResponse"
+            BrowserResponseType.GET_URL_RESPONSE
         );
     },
 
@@ -41,11 +43,11 @@ const cbbrowser = {
     goToPage: (url: string): Promise<GoToPageResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'goToPage',
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GO_TO_PAGE,
                 url
             },
-            "goToPageResponse"
+            BrowserResponseType.GO_TO_PAGE_RESPONSE
         );
     },
 
@@ -55,10 +57,10 @@ const cbbrowser = {
     screenshot: (): Promise<BrowserScreenshotResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-            "type": "browserEvent",
-            action: 'screenshot'
+            "type": EventType.BROWSER_EVENT,
+            action: BrowserAction.SCREENSHOT
         },
-            "screenshotResponse"
+            BrowserResponseType.SCREENSHOT_RESPONSE
         );
     },
 
@@ -69,10 +71,10 @@ const cbbrowser = {
     getHTML: (): Promise<HtmlReceived> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getHTML'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_HTML
             },
-            "htmlReceived"
+            BrowserResponseType.HTML_RECEIVED
         );
     },
 
@@ -83,10 +85,10 @@ const cbbrowser = {
     getMarkdown: (): Promise<GetMarkdownResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getMarkdown'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_MARKDOWN
             },
-            "getMarkdownResponse"
+            BrowserResponseType.GET_MARKDOWN_RESPONSE
         );
     },
 
@@ -96,8 +98,8 @@ const cbbrowser = {
      */
     getPDF: (): void => {
         cbws.messageManager.send({
-            "type": "browserEvent",
-            action: 'getPDF'
+            "type": EventType.BROWSER_EVENT,
+            action: BrowserAction.GET_PDF
         });
     },
 
@@ -106,8 +108,8 @@ const cbbrowser = {
      */
     pdfToText: (): void => {
         cbws.messageManager.send({
-            "type": "browserEvent",
-            action: 'pdfToText'
+            "type": EventType.BROWSER_EVENT,
+            action: BrowserAction.PDF_TO_TEXT
         });
     },
 
@@ -119,10 +121,10 @@ const cbbrowser = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getContent'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_CONTENT
             },
-            "getContentResponse"
+            BrowserResponseType.GET_CONTENT_RESPONSE
         );
     },
     /**
@@ -133,10 +135,10 @@ const cbbrowser = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getSnapShot'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_SNAPSHOT
             },
-            "getSnapShotResponse"
+            BrowserResponseType.GET_SNAPSHOT_RESPONSE
         );
     },
     /**
@@ -147,10 +149,10 @@ const cbbrowser = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'getBrowserInfo'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.GET_BROWSER_INFO
             },
-            "getBrowserInfoResponse"
+            BrowserResponseType.GET_BROWSER_INFO_RESPONSE
         );
     },
 
@@ -163,10 +165,10 @@ const cbbrowser = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'extractText'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.EXTRACT_TEXT
             },
-            "extractTextResponse"
+            BrowserResponseType.EXTRACT_TEXT_RESPONSE
         );
     },
 
@@ -175,8 +177,8 @@ const cbbrowser = {
      */
     close: (): void => {
         cbws.messageManager.send({
-            "type": "browserEvent",
-            action: 'close'
+            "type": EventType.BROWSER_EVENT,
+            action: BrowserAction.CLOSE
         });
     },
 
@@ -189,12 +191,12 @@ const cbbrowser = {
     scroll: (direction: string, pixels: string): Promise<BrowserActionResponseData> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'scroll',
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.SCROLL,
                 direction,
                 pixels
             },
-            "scrollResponse"
+            BrowserResponseType.SCROLL_RESPONSE
         );
     },
 
@@ -207,12 +209,12 @@ const cbbrowser = {
     type: (elementid: string, text: string): Promise<BrowserActionResponseData> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'type',
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.TYPE,
                 text,
                 elementid
             },
-            "typeResponse"
+            BrowserResponseType.TYPE_RESPONSE
         );
     },
 
@@ -224,11 +226,11 @@ const cbbrowser = {
     click: (elementid: string): Promise<BrowserActionResponseData> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'click',
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.CLICK,
                 elementid
             },
-            "clickResponse"
+            BrowserResponseType.CLICK_RESPONSE
         );
     },
 
@@ -239,10 +241,10 @@ const cbbrowser = {
     enter: (): Promise<BrowserActionResponseData> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'enter'
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.ENTER
             },
-            "EnterResponse"
+            BrowserResponseType.ENTER_RESPONSE
         );
     },
 
@@ -255,12 +257,12 @@ const cbbrowser = {
     search: (elementid: string, query: string): Promise<BrowserActionResponseData> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "browserEvent",
-                action: 'search',
+                "type": EventType.BROWSER_EVENT,
+                action: BrowserAction.SEARCH,
                 elementid,
                 query
             },
-            "searchResponse"
+            BrowserResponseType.SEARCH_RESPONSE
         );
     }
 }

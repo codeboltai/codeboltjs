@@ -18,6 +18,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { AgentNotificationAction, NotificationEventType } from '@codebolt/types';
 
 /**
  * Sends a request to start a subagent task
@@ -47,8 +48,8 @@ export function StartSubagentTaskRequestNotify(
     // Create the notification
     const notification: StartSubagentTaskRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "agentnotify",
-        action: "startSubagentTaskRequest",
+        type: NotificationEventType.AGENT_NOTIFY,
+        action: AgentNotificationAction.START_SUBAGENT_TASK_REQUEST,
         data: {
             parentAgentId: parentAgentId,
             subagentId: subagentId,
@@ -85,8 +86,8 @@ export function StartSubagentTaskResponseNotify(
     // Create the notification
     const notification: StartSubagentTaskResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "agentnotify",
-        action: "startSubagentTaskResult",
+        type: NotificationEventType.AGENT_NOTIFY,
+        action: AgentNotificationAction.START_SUBAGENT_TASK_RESULT,
         content: content,
         isError: isError
     };
@@ -123,8 +124,8 @@ export function SubagentTaskCompletedNotify(
     // Create the notification
     const notification: SubagentTaskCompletedNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "agentnotify",
-        action: "subagentTaskCompleted",
+        type: NotificationEventType.AGENT_NOTIFY,
+        action: AgentNotificationAction.SUBAGENT_TASK_COMPLETED,
         data: {
             parentAgentId: parentAgentId,
             subagentId: subagentId,

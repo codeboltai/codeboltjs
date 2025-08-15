@@ -19,6 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { LlmNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== LLM INFERENCE FUNCTIONS =====
@@ -34,8 +35,8 @@ export function sendInferenceRequest(
 ): void {
     const notification: LLMRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "llmnotify",
-        action: "inferenceRequest",
+        type: NotificationEventType.LLM_NOTIFY,
+        action: LlmNotificationAction.INFERENCE_REQUEST,
         data
     };
 
@@ -60,8 +61,8 @@ export function sendInferenceResponse(
 
     const notification: LLMResponseNotification = {
         toolUseId,
-        type: "llmnotify",
-        action: "inferenceResult",
+        type: NotificationEventType.LLM_NOTIFY,
+        action: LlmNotificationAction.INFERENCE_RESULT,
         content,
         isError
     };
@@ -87,8 +88,8 @@ export function getTokenCount(
 
     const notification: LLMGetTokenCountRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "llmnotify",
-        action: "getTokenCountRequest",
+        type: NotificationEventType.LLM_NOTIFY,
+        action: LlmNotificationAction.GET_TOKEN_COUNT_REQUEST,
         data
     };
 
@@ -115,8 +116,8 @@ export function sendTokenCountResponse(
 
     const notification: LLMGetTokenCountResponseNotification = {
         toolUseId,
-        type: "llmnotify",
-        action: "getTokenCountResult",
+        type: NotificationEventType.LLM_NOTIFY,
+        action: LlmNotificationAction.GET_TOKEN_COUNT_RESULT,
         content,
         isError,
         ...(data && { data })

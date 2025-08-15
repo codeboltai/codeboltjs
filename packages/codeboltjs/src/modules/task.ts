@@ -11,6 +11,7 @@ import type {
     TaskMarkdownImportOptions,
     TaskMarkdownExportOptions
 } from '../types';
+import { EventType, TaskAction, TaskResponseType } from '@codebolt/types';
 
 /**
  * Enhanced task planner with agent-based organization and comprehensive task management.
@@ -26,8 +27,8 @@ const taskplaner = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "addTask",
+                type: EventType.TASK_EVENT,
+                action:TaskAction.ADD_TASK,
                 agentId: agentId,
                 message: {
                     title: title,
@@ -38,7 +39,7 @@ const taskplaner = {
                     tags: tags
                 }
             },
-            "addTaskResponse"
+            TaskResponseType.ADD_TASK_RESPONSE
         );
     },
 
@@ -51,14 +52,14 @@ const taskplaner = {
     addSimpleTask: async (task: string, agentId: string = 'default-agent'): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "addTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.ADD_TASK,
                 agentId: agentId,
                 message: {
                     task: task
                 }
             },
-            "addTaskResponse"
+            TaskResponseType.ADD_TASK_RESPONSE
         );
     },
 
@@ -70,11 +71,11 @@ const taskplaner = {
     getTasks: async (filters: TaskFilterOptions = {}): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "getTasks",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.GET_TASKS,
                 message: filters
             },
-            "getTasksResponse"
+            TaskResponseType.GET_TASKS_RESPONSE
         );
     },
     
@@ -86,13 +87,13 @@ const taskplaner = {
     getTasksByAgent: async (agentId: string): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "getTasksByAgent",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.GET_TASKS_BY_AGENT,
                 message: {
                     agentId: agentId
                 }
             },
-            "getTasksByAgentResponse"
+            TaskResponseType.GET_TASKS_BY_AGENT_RESPONSE
         );
     },
 
@@ -104,13 +105,13 @@ const taskplaner = {
     getTasksByCategory: async (category: string): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "getTasksByCategory",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.GET_TASKS_BY_CATEGORY,
                 message: {
                     category: category
                 }
             },
-            "getTasksByCategoryResponse"
+            TaskResponseType.GET_TASKS_BY_CATEGORY_RESPONSE
         );
     },
 
@@ -121,10 +122,10 @@ const taskplaner = {
     getAllAgents: async (): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "getAllAgents"
+                type: EventType.TASK_EVENT,
+                action: TaskAction.GET_ALL_AGENTS
             },
-            "getAllAgentsResponse"
+            TaskResponseType.GET_ALL_AGENTS_RESPONSE
         );
     },
 
@@ -138,14 +139,14 @@ const taskplaner = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "updateTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.UPDATE_TASK,
                 message: {
                     taskId: taskId,
                     ...updates
                 }
             },
-            "updateTasksResponse"
+            TaskResponseType.UPDATE_TASKS_RESPONSE
         );
     },
 
@@ -158,14 +159,14 @@ const taskplaner = {
     updateSimpleTask: async (taskId: string, task: string): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "updateTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.UPDATE_TASK,
                 message: {
                     taskId: taskId,
                     task: task
                 }
             },
-            "updateTasksResponse"
+            TaskResponseType.UPDATE_TASKS_RESPONSE
         );
     },
 
@@ -177,13 +178,13 @@ const taskplaner = {
     deleteTask: async (taskId: string): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "deleteTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.DELETE_TASK,
                 message: {
                     taskId: taskId
                 }
             },
-            "deleteTaskResponse"
+            TaskResponseType.DELETE_TASK_RESPONSE
         );
     },
 
@@ -195,11 +196,11 @@ const taskplaner = {
     addSubTask: async (params: AddSubTaskOptions): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "addSubTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.ADD_SUB_TASK,
                 message: params
             },
-            "addSubTaskResponse"
+            TaskResponseType.ADD_SUB_TASK_RESPONSE
         );
     },
 
@@ -211,11 +212,11 @@ const taskplaner = {
     updateSubTask: async (params: UpdateSubTaskOptions): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "updateSubTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.UPDATE_SUB_TASK,
                 message: params
             },
-            "updateSubTaskResponse"
+            TaskResponseType.UPDATE_SUB_TASK_RESPONSE
         );
     },
 
@@ -228,14 +229,14 @@ const taskplaner = {
     deleteSubTask: async (taskId: string, subtaskId: string): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "deleteSubTask",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.DELETE_SUB_TASK,
                 message: {
                     taskId: taskId,
                     subtaskId: subtaskId
                 }
             },
-            "deleteSubTaskResponse"
+            TaskResponseType.DELETE_SUB_TASK_RESPONSE
         );
     },
 
@@ -249,8 +250,8 @@ const taskplaner = {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "createTasksFromMarkdown",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.CREATE_TASKS_FROM_MARKDOWN,
                 agentId: agentId,
                 message: {
                     markdown: markdown,
@@ -258,7 +259,7 @@ const taskplaner = {
                     category: category
                 }
             },
-            "createTasksFromMarkdownResponse"
+            TaskResponseType.CREATE_TASKS_FROM_MARKDOWN_RESPONSE
         );
     },
 
@@ -270,11 +271,11 @@ const taskplaner = {
     exportTasksToMarkdown: async (params: TaskMarkdownExportOptions = {}): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                type: "taskEvent",
-                action: "exportTasksToMarkdown",
+                type: EventType.TASK_EVENT,
+                action: TaskAction.EXPORT_TASKS_TO_MARKDOWN,
                 message: params
             },
-            "exportTasksToMarkdownResponse"
+            TaskResponseType.EXPORT_TASKS_TO_MARKDOWN_RESPONSE
         );
     },
 

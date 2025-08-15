@@ -1,9 +1,14 @@
 import cbws from '../core/websocket';
 import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '../types/socketMessageTypes';
+
+import { FSAction, FSResponseType, EventType } from '@codebolt/types';
+
 /**
  * @module cbfs
  * @description This module provides functionality to interact with the filesystem.
  */
+
+
 const cbfs = {
     /**
      * @function createFile
@@ -16,15 +21,15 @@ const cbfs = {
     createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "createFile",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.CREATE_FILE,
                 "message": {
                     fileName,
                     source,
                     filePath
                 },
             },
-            "createFileResponse"
+            FSResponseType.CREATE_FILE_RESPONSE
         );
     },
     /**
@@ -37,14 +42,14 @@ const cbfs = {
     createFolder: (folderName: string, folderPath: string): Promise<CreateFolderResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "createFolder",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.CREATE_FOLDER,
                 "message": {
                     folderName,
                     folderPath
                 },
             },
-            "createFolderResponse"
+            FSResponseType.CREATE_FOLDER_RESPONSE
         );
     },
     /**
@@ -57,13 +62,13 @@ const cbfs = {
     readFile: (filePath: string): Promise<ReadFileResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "readFile",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.READ_FILE,
                 "message": {
                     filePath
                 },
             },
-            "readFileResponse"
+            FSResponseType.READ_FILE_RESPONSE
         );
     },
     /**
@@ -77,15 +82,15 @@ const cbfs = {
     updateFile: (filename: string, filePath: string, newContent: string): Promise<UpdateFileResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "updateFile",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.UPDATE_FILE,
                 "message": {
                     filename,
                     filePath,
                     newContent
                 },
             },
-            "updateFileResponse"
+            FSResponseType.UPDATE_FILE_RESPONSE
         );
     },
     /**
@@ -98,14 +103,14 @@ const cbfs = {
     deleteFile: (filename: string, filePath: string): Promise<DeleteFileResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "deleteFile",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.DELETE_FILE,
                 "message": {
                     filename,
                     filePath
                 },
             },
-            "deleteFileResponse"
+            FSResponseType.DELETE_FILE_RESPONSE
         );
     },
     /**
@@ -118,14 +123,14 @@ const cbfs = {
     deleteFolder: (foldername: string, folderpath: string): Promise<DeleteFolderResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type":"fsEvent",
-                "action": "deleteFolder",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.DELETE_FOLDER,
                 "message": {
                     foldername,
                     folderpath
                 },
             },
-            "deleteFolderResponse"
+            FSResponseType.DELETE_FOLDER_RESPONSE
         );
     },
     /**
@@ -136,14 +141,14 @@ const cbfs = {
     listFile: (folderPath: string, isRecursive: boolean = false): Promise<any> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "fileList",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.FILE_LIST,
                 message:{
                     folderPath,
                     isRecursive
                 }
             },
-            "fileListResponse"
+            FSResponseType.FILE_LIST_RESPONSE
         );
     },
     /**
@@ -155,13 +160,13 @@ const cbfs = {
     listCodeDefinitionNames: (path: string): Promise<{success: boolean, result: any}> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "listCodeDefinitionNames",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.LIST_CODE_DEFINITION_NAMES,
                 "message": {
                     path
                 }
             },
-            "listCodeDefinitionNamesResponse"
+            FSResponseType.LIST_CODE_DEFINITION_NAMES_RESPONSE
         );
     },
 
@@ -176,15 +181,15 @@ const cbfs = {
     searchFiles: (path: string, regex: string, filePattern: string): Promise<{success: boolean, result: any}> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "searchFiles",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.SEARCH_FILES,
                 "message": {
                     path,
                     regex,
                     filePattern
                 }
             },
-            "searchFilesResponse"
+            FSResponseType.SEARCH_FILES_RESPONSE
         );
     },
     /**
@@ -197,14 +202,14 @@ const cbfs = {
     writeToFile: (relPath:string, newContent:string) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "writeToFile",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.WRITE_TO_FILE,
                 "message": {
                     relPath,
                     newContent
                 }
             },
-            "writeToFileResponse"
+            FSResponseType.WRITE_TO_FILE_RESPONSE
         );
     },
     
@@ -231,8 +236,8 @@ const cbfs = {
     grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<{success: boolean, result: any}> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "grep_search",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.GREP_SEARCH,
                 "message": {
                     path,
                     query,
@@ -241,7 +246,7 @@ const cbfs = {
                     caseSensitive
                 }
             },
-            "grepSearchResponse"
+            FSResponseType.GREP_SEARCH_RESPONSE
         );
     },
     
@@ -254,13 +259,13 @@ const cbfs = {
     fileSearch: (query: string): Promise<{success: boolean, result: any}> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "file_search",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.FILE_SEARCH,
                 "message": {
                     query
                 }
             },
-            "fileSearchResponse"
+            FSResponseType.FILE_SEARCH_RESPONSE
         );
     },
     
@@ -277,8 +282,8 @@ const cbfs = {
     editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<{success: boolean, result: any}> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "fsEvent",
-                "action": "edit_file_with_diff",
+                "type": EventType.FS_EVENT,
+                "action": FSAction.EDIT_FILE_WITH_DIFF,
                 "message": {
                     target_file: targetFile,
                     code_edit: codeEdit,
@@ -287,7 +292,7 @@ const cbfs = {
                     applyModel
                 }
             },
-            "editFileAndApplyDiffResponse"
+            FSResponseType.EDIT_FILE_AND_APPLY_DIFF_RESPONSE
         );
     },
   

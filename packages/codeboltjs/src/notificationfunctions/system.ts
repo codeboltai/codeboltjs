@@ -16,6 +16,9 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
+import { SystemNotificationAction, NotificationEventType } from '@codebolt/types';
+
+
 
 
 // ===== AGENT INIT FUNCTIONS =====
@@ -31,8 +34,8 @@ export function AgentInitNotify(
 ): void {
     const notification: agentInitNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "processStartedRequest",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: SystemNotificationAction.PROCESS_STARTED_REQUEST,
         data: {
             onStopClicked: onStopClicked
         }
@@ -58,8 +61,8 @@ export function AgentCompletionNotify(
 ): void {
     const notification: agentCompletionNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "processStoppedRequest",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: SystemNotificationAction.PROCESS_STOPPED_REQUEST,
         data: {
             sessionId: sessionId,
             duration: duration || "0ms",

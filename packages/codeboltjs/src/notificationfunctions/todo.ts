@@ -20,6 +20,7 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
+import { TaskNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== ADD TODO FUNCTIONS =====
@@ -47,8 +48,8 @@ export function AddTodoRequestNotify(
 ): void {
     const notification: AddTodoRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "tasknotify",
-        action: "addTaskRequest",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.ADD_TASK_REQUEST,
         data: {
             title: title,
             agentId: agentId,
@@ -81,8 +82,8 @@ export function AddTodoResponseNotify(
 
     const notification: AddTodoResponseNotification = {
         toolUseId,
-        type: "tasknotify",
-        action: "addTaskResult",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.ADD_TASK_RESULT,
         content,
         isError
     };
@@ -103,8 +104,8 @@ export function GetTodoRequestNotify(
 ): void {
     const notification: GetTodoRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "tasknotify",
-        action: "getTasksRequest",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.GET_TASKS_REQUEST,
         data: {
             filters: filters
         }
@@ -131,8 +132,8 @@ export function GetTodoResponseNotify(
 
     const notification: GetTodoTasksResponseNotification = {
         toolUseId,
-        type: "tasknotify",
-        action: "getTasksResult",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.GET_TASKS_RESULT,
         content,
         isError
     };
@@ -167,8 +168,8 @@ export function EditTodoTaskRequestNotify(
 ): void {
     const notification: EditTodoTaskRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "tasknotify",
-        action: "updateTaskRequest",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.UPDATE_TASK_REQUEST,
         data: {
             taskId: taskId,
             title: title,
@@ -202,8 +203,8 @@ export function EditTodoTaskResponseNotify(
 
     const notification: EditTodoTaskResponseNotification = {
         toolUseId,
-        type: "tasknotify",
-        action: "updateTaskResult",
+        type: NotificationEventType.TASK_NOTIFY,
+        action: TaskNotificationAction.UPDATE_TASK_RESULT,
         content,
         isError
     };

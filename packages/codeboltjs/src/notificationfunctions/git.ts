@@ -38,6 +38,7 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
+import { GitNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 // ===== GIT INIT FUNCTIONS =====
@@ -53,8 +54,8 @@ export function GitInitRequestNotify(
 ): void {
     const notification: GitInitRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "initRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.INIT_REQUEST,
         data: {
             path: path
         }
@@ -81,8 +82,8 @@ export function GitInitResponseNotify(
 
     const notification: GitInitResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "initResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.INIT_RESULT,
         content,
         isError
     };
@@ -103,8 +104,8 @@ export function GitPullRequestNotify(
 ): void {
     const notification: GitPullRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "pullRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.PULL_REQUEST,
         data: {
             path: path
         }
@@ -131,8 +132,8 @@ export function GitPullResponseNotify(
 
     const notification: GitPullResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "pullResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.PULL_RESULT,
         content,
         isError
     };
@@ -153,8 +154,8 @@ export function GitPushRequestNotify(
 ): void {
     const notification: GitPushRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "pushRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.PUSH_REQUEST,
         data: {
             path: path
         }
@@ -181,8 +182,8 @@ export function GitPushResponseNotify(
 
     const notification: GitPushResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "pushResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.PUSH_RESULT,
         content,
         isError
     };
@@ -203,8 +204,8 @@ export function GitStatusRequestNotify(
 ): void {
     const notification: GitStatusRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "statusRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.STATUS_REQUEST,
         data: {
             path: path
         }
@@ -231,8 +232,8 @@ export function GitStatusResponseNotify(
 
     const notification: GitStatusResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "statusResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.STATUS_RESULT,
         content,
         isError
     };
@@ -255,8 +256,8 @@ export function GitAddRequestNotify(
 ): void {
     const notification: GitAddRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "addRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.ADD_REQUEST,
         data: {
             path: path,
             files: files
@@ -284,8 +285,8 @@ export function GitAddResponseNotify(
 
     const notification: GitAddResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "addResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.ADD_RESULT,
         content,
         isError
     };
@@ -308,8 +309,8 @@ export function GitCommitRequestNotify(
 ): void {
     const notification: GitCommitRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "commitRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.COMMIT_REQUEST,
         data: {
             path: path,
             message: message
@@ -337,8 +338,8 @@ export function GitCommitResponseNotify(
 
     const notification: GitCommitResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "commitResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.COMMIT_RESULT,
         content,
         isError
     };
@@ -361,8 +362,8 @@ export function GitCheckoutRequestNotify(
 ): void {
     const notification: GitCheckoutRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "checkoutRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.CHECKOUT_REQUEST,
         data: {
             path: path,
             branchName: branchName
@@ -390,8 +391,8 @@ export function GitCheckoutResponseNotify(
 
     const notification: GitCheckoutResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "checkoutResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.CHECKOUT_RESULT,
         content,
         isError
     };
@@ -414,8 +415,8 @@ export function GitBranchRequestNotify(
 ): void {
     const notification: GitBranchRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "branchRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.BRANCH_REQUEST,
         data: {
             path: path,
             branchName: branchName
@@ -443,8 +444,8 @@ export function GitBranchResponseNotify(
 
     const notification: GitBranchResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "branchResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.BRANCH_RESULT,
         content,
         isError
     };
@@ -465,8 +466,8 @@ export function GitLogsRequestNotify(
 ): void {
     const notification: GitLogsRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "logsRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.LOGS_REQUEST,
         data: {
             path: path
         }
@@ -493,8 +494,8 @@ export function GitLogsResponseNotify(
 
     const notification: GitLogsResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "logsResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.LOGS_RESULT,
         content,
         isError
     };
@@ -515,8 +516,8 @@ export function GitDiffRequestNotify(
 ): void {
     const notification: GitDiffRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "diffRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.DIFF_REQUEST,
         data: {
             path: path
         }
@@ -543,8 +544,8 @@ export function GitDiffResponseNotify(
 
     const notification: GitDiffResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "diffResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.DIFF_RESULT,
         content,
         isError
     };
@@ -569,8 +570,8 @@ export function GitRemoteAddRequestNotify(
 ): void {
     const notification: GitRemoteAddRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "remoteAddRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.REMOTE_ADD_REQUEST,
         data: {
             path: path,
             remoteName: remoteName,
@@ -599,8 +600,8 @@ export function GitRemoteAddResponseNotify(
 
     const notification: GitRemoteAddResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "remoteAddResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.REMOTE_ADD_RESULT,
         content,
         isError
     };
@@ -623,8 +624,8 @@ export function GitCloneRequestNotify(
 ): void {
     const notification: GitCloneRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "gitnotify",
-        action: "cloneRequest",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.CLONE_REQUEST,
         data: {
             repoUrl: repoUrl,
             targetPath: targetPath
@@ -652,8 +653,8 @@ export function GitCloneResponseNotify(
 
     const notification: GitCloneResponseNotification = {
         toolUseId,
-        type: "gitnotify",
-        action: "cloneResult",
+        type: NotificationEventType.GIT_NOTIFY,
+        action: GitNotificationAction.CLONE_RESULT,
         content,
         isError
     };

@@ -1,6 +1,7 @@
 import cbws from '../core/websocket';
 import { GetSummarizeAllResponse, GetSummarizeResponse } from '../types/socketMessageTypes';
 import { LogType } from '../types/commonTypes';
+import { ChatSummaryAction, EventType , ChatSummaryResponseType} from '@codebolt/types';
 
 /**
  * Enum representing different types of log messages.
@@ -31,10 +32,10 @@ export const chatSummary = {
     summarizeAll: (): Promise<GetSummarizeAllResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "chatSummaryEvent",
-                "action": "summarizeAll",
+                "type": EventType.CHAT_SUMMARY_EVENT,
+                "action": ChatSummaryAction.SUMMARIZE_ALL,
             },
-            "getSummarizeAllResponse"
+            ChatSummaryResponseType.SUMMARIZE_ALL_RESPONSE
         );
     },
     
@@ -51,12 +52,12 @@ export const chatSummary = {
     }[], depth: number): Promise<GetSummarizeResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": "chatSummaryEvent",
-                "action": "summarize",
+                "type": EventType.CHAT_SUMMARY_EVENT,
+                "action": ChatSummaryAction.SUMMARIZE_PART,
                 messages,
                 depth
             },
-            "getSummarizeResponse"
+            ChatSummaryResponseType.SUMMARIZE_PART_RESPONSE
         );
     }
 }

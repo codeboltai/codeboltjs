@@ -19,6 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
+import { DbMemoryNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 /**
@@ -49,8 +50,8 @@ export function AddMemoryRequestNotify(
     // Create the notification
     const notification: AddMemoryRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "dbmemorynotify",
-        action: "addKnowledgeRequest",
+        type: NotificationEventType.DBMEMORY_NOTIFY,
+        action: DbMemoryNotificationAction.ADD_KNOWLEDGE_REQUEST,
         data: {
             key: key,
             value: value
@@ -84,8 +85,8 @@ export function AddMemoryResultNotify(
     // Create the notification
     const notification: AddMemoryResultNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "dbmemorynotify",
-        action: "addKnowledgeResult",
+        type: NotificationEventType.DBMEMORY_NOTIFY,
+        action: DbMemoryNotificationAction.ADD_KNOWLEDGE_RESULT,
         content: content,
         isError: isError
     };
@@ -114,8 +115,8 @@ export function GetMemoryRequestNotify(
     // Create the notification
     const notification: GetMemoryRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "dbmemorynotify",
-        action: "getKnowledgeRequest",
+        type: NotificationEventType.DBMEMORY_NOTIFY,
+        action: DbMemoryNotificationAction.GET_KNOWLEDGE_REQUEST,
         data: {
             key: key
         }
@@ -148,8 +149,8 @@ export function GetMemoryResultNotify(
     // Create the notification
     const notification: GetMemoryResultNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "dbmemorynotify",
-        action: "getKnowledgeResult",
+        type: NotificationEventType.DBMEMORY_NOTIFY,
+        action: DbMemoryNotificationAction.GET_KNOWLEDGE_RESULT,
         content: content,
         isError: isError
     };

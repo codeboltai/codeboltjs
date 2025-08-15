@@ -21,6 +21,7 @@ import {
     createErrorResponse,
     createSuccessResponse
 } from './utils';
+import { ChatNotificationAction, NotificationEventType } from '@codebolt/types';
 
 
 /**
@@ -45,8 +46,8 @@ export function UserMessageRequestNotify(
     // Create the notification
     const notification: UserMessageRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "sendMessageRequest",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: ChatNotificationAction.SEND_MESSAGE_REQUEST,
         data: {
             message: message,
             payload: payload
@@ -82,8 +83,8 @@ export function AgentTextResponseNotify(
     // Create the notification
     const notification: AgentTextResponseNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "agentTextResponse",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: ChatNotificationAction.AGENT_TEXT_RESPONSE,
         content: content,
         isError: isError,
         data: data
@@ -108,8 +109,8 @@ export function GetChatHistoryRequestNotify(
     // Create the notification
     const notification: GetChatHistoryRequestNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "getChatHistoryRequest",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: ChatNotificationAction.GET_CHAT_HISTORY_REQUEST,
         data: data || {}
     };
 
@@ -140,8 +141,8 @@ export function GetChatHistoryResultNotify(
     // Create the notification
     const notification: GetChatHistoryResultNotification = {
         toolUseId: toolUseId || generateToolUseId(),
-        type: "chatnotify",
-        action: "getChatHistoryResult",
+        type: NotificationEventType.CHAT_NOTIFY,
+        action: ChatNotificationAction.GET_CHAT_HISTORY_RESULT,
         content: content,
         isError: isError
     };
