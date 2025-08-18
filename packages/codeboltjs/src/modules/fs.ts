@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '@codebolt/types/sdk';
+import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse, FileListResponse, GrepSearchResponse, EditFileAndApplyDiffResponse, FileSearchResponse, SearchFilesResponse, ListCodeDefinitionsResponse } from '@codebolt/types/sdk';
 
 import { FSAction, FSResponseType, EventType } from '@codebolt/types/enum';
 
@@ -138,7 +138,7 @@ const cbfs = {
      * @description Lists all files.
      * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
      */
-    listFile: (folderPath: string, isRecursive: boolean = false): Promise<any> => {
+    listFile: (folderPath: string, isRecursive: boolean = false): Promise<FileListResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -155,9 +155,9 @@ const cbfs = {
      * @function listCodeDefinitionNames
      * @description Lists all code definition names in a given path.
      * @param {string} path - The path to search for code definitions.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of code definition names.
+     * @returns {Promise<ListCodeDefinitionsResponse>} A promise that resolves with the list of code definition names.
      */
-    listCodeDefinitionNames: (path: string): Promise<{success: boolean, result: any}> => {
+    listCodeDefinitionNames: (path: string): Promise<ListCodeDefinitionsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -176,9 +176,9 @@ const cbfs = {
      * @param {string} path - The path to search within.
      * @param {string} regex - The regex pattern to search for.
      * @param {string} filePattern - The file pattern to match files.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<SearchFilesResponse>} A promise that resolves with the search results.
      */
-    searchFiles: (path: string, regex: string, filePattern: string): Promise<{success: boolean, result: any}> => {
+    searchFiles: (path: string, regex: string, filePattern: string): Promise<SearchFilesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -197,7 +197,7 @@ const cbfs = {
      * @description Writes content to a file.
      * @param {string} relPath - The relative path of the file to write to.
      * @param {string} newContent - The new content to write into the file.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the write operation result.
+     * @returns {Promise<WriteToFileResponse>} A promise that resolves with the write operation result.
      */
     writeToFile: (relPath:string, newContent:string) => {
         return cbws.messageManager.sendAndWaitForResponse(
@@ -231,9 +231,9 @@ const cbfs = {
      * @param {string} includePattern - Pattern of files to include.
      * @param {string} excludePattern - Pattern of files to exclude.
      * @param {boolean} caseSensitive - Whether the search is case sensitive.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<GrepSearchResponse>} A promise that resolves with the search results.
      */
-    grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<{success: boolean, result: any}> => {
+    grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<GrepSearchResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -254,9 +254,9 @@ const cbfs = {
      * @function fileSearch
      * @description Performs a fuzzy search for files.
      * @param {string} query - The query to search for.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<FileSearchResponse>} A promise that resolves with the search results.
      */
-    fileSearch: (query: string): Promise<{success: boolean, result: any}> => {
+    fileSearch: (query: string): Promise<FileSearchResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -277,9 +277,9 @@ const cbfs = {
      * @param {string} diffIdentifier - The diff identifier.
      * @param {string} prompt - The prompt for the edit.
      * @param {string} applyModel - The model to apply the edit with.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the edit result.
+     * @returns {Promise<EditFileAndApplyDiffResponse>} A promise that resolves with the edit result.
      */
-    editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<{success: boolean, result: any}> => {
+    editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<EditFileAndApplyDiffResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,

@@ -1,7 +1,7 @@
 import { UserMessage } from "./usermessage";
 import { SystemPrompt } from "./systemprompt";
 import { TaskInstruction } from "./taskInstruction";
-import { UserMessage as CLIUserMessage } from "./types/socketMessageTypes";
+import { UserMessage as CLIUserMessage } from "../types/socketMessageTypes";
 import type {
     OpenAIMessage,
     OpenAITool,
@@ -9,12 +9,12 @@ import type {
     UserMessageContent,
     CodeboltAPI,
     ToolResult
-} from "./types/libFunctionTypes";
+} from "../types/libFunctionTypes";
 import type {
     MCPTool,
     Agent,
     InitialUserMessage
-} from "./types/commonTypes";
+} from "../types/commonTypes";
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';

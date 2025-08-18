@@ -1,6 +1,6 @@
 import { UserMessage } from "./usermessage";
-import type { UserMessageContent } from "./types/libFunctionTypes";
-import type { Tools, TaskData, UserMessages } from "./types/InternalTypes";
+import type { UserMessageContent } from "../types/libFunctionTypes";
+import type { Tools, TaskData, UserMessages } from "../types/InternalTypes";
 
 /**
  * Encapsulates task instructions and their related metadata.
