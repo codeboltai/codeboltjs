@@ -5,7 +5,7 @@ import path from 'path';
 // import JavaScript from 'tree-sitter-javascript';
 // import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
 
-import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '../types/socketMessageTypes';
+import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '@codebolt/types/sdk';
 import { loadRequiredLanguageParsers } from '@codebolt/codeparser';
 
 // Import and re-export types from InternalTypes for consistency

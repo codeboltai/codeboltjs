@@ -1,6 +1,6 @@
 import { EventType, FSAction, FSResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
-import { FsEditFileAndApplyDiffResponse } from '../types/socketMessageTypes';
+import { FsEditFileAndApplyDiffResponse } from '@codebolt/types/sdk';
 
 
 const cbutils = {

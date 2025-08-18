@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '../types/socketMessageTypes';
+import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '@codebolt/types/sdk';
 
 import { FSAction, FSResponseType, EventType } from '@codebolt/types';
 

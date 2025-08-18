@@ -1,6 +1,6 @@
 import { EventType, MemoryAction, MemoryResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
-import { MemorySetResponse, MemoryGetResponse } from '../types/socketMessageTypes';
+import { MemorySetResponse, MemoryGetResponse } from '@codebolt/types/sdk';
 
 /**
  * A module for handling in-memory database operations via WebSocket.

@@ -1,6 +1,6 @@
 import { EventType, VectorDBAction, VectorDBResponseType } from '@codebolt/types';
 import cbws from '../core/websocket';
-import { AddVectorItemResponse, GetVectorResponse, QueryVectorItemResponse } from '../types/socketMessageTypes';
+import { AddVectorItemResponse, GetVectorResponse, QueryVectorItemResponse } from '@codebolt/types/sdk';
 const VectorDB = {
     /**
      * Retrieves a vector from the vector database based on the provided key.

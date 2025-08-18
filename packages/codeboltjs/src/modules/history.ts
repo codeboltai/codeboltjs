@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { GetSummarizeAllResponse, GetSummarizeResponse } from '../types/socketMessageTypes';
+import { GetSummarizeAllResponse, GetSummarizeResponse } from '@codebolt/types/sdk';
 import { LogType } from '../types/commonTypes';
 import { ChatSummaryAction, EventType , ChatSummaryResponseType} from '@codebolt/types';
 

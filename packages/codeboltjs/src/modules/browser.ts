@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '../types/socketMessageTypes';
+import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '@codebolt/types/sdk';
 import { EventType, BrowserAction, BrowserResponseType } from '@codebolt/types';
 
 /**

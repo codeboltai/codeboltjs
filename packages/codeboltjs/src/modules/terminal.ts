@@ -1,6 +1,6 @@
 import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
-import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '../types/socketMessageTypes';
+import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '@codebolt/types/sdk';
 
 import { TerminalEventType, TerminalResponseType } from '@codebolt/types';
 /**

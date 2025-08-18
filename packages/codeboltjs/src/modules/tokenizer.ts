@@ -1,4 +1,4 @@
-import { AddTokenResponse, GetTokenResponse } from '../types/socketMessageTypes';
+import { AddTokenResponse, GetTokenResponse } from '@codebolt/types/sdk';
 import cbws from '../core/websocket';
 import { EventType, TokenizerAction, TokenizerResponseType } from '@codebolt/types';
 /**

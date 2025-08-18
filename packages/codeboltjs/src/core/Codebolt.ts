@@ -25,7 +25,7 @@ import codeboltTools from '../modules/mcp';
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
-import type { UserMessage } from '../types/libFunctionTypes';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
 
@@ -153,7 +153,7 @@ class Codebolt {
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
-    onMessage(handler: (userMessage: UserMessage) => void | Promise<void> | any | Promise<any>) {
+    onMessage(handler: (userMessage: FlatUserMessage) => void | Promise<void> | any | Promise<any>) {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
@@ -161,8 +161,7 @@ class Codebolt {
                 if (response.type === "messageResponse") {
                     try {
                         // Extract user-facing message from internal socket message
-                        const userMessage: UserMessage = {
-                            type: response.type,
+                        const userMessage: FlatUserMessage = {
                             userMessage: response.message.userMessage,
                             currentFile: response.message.currentFile,
                             mentionedFiles: response.message.mentionedFiles || [],
@@ -178,7 +177,7 @@ class Codebolt {
                             threadId: response.message.threadId,
                             selection: response.message.selection,
                             remixPrompt:response.message.remixPrompt,
-                            mentionedAgents:response.message.mentionedAgents
+                            mentionedAgents: response.message.mentionedAgents || []
                         };
 
                         // Automatically save the user message globally

@@ -3,7 +3,7 @@
  * @description Automatically manages the current user message for agent integration
  */
 
-import type { UserMessage, AgentProcessingConfig } from '@codebolt/types/codeboltjstypes/sdktypes';
+import type { FlatUserMessage, AgentProcessingConfig } from '@codebolt/types/sdk';
 
 /**
  * User processing configuration (alias for AgentProcessingConfig)
@@ -15,7 +15,7 @@ export type UserProcessingConfig = AgentProcessingConfig;
  */
 interface UserMessageState {
   /** Current user message */
-  currentMessage?: UserMessage;
+  currentMessage?: FlatUserMessage;
   /** User configuration for processing */
   userConfig?: UserProcessingConfig;
   /** Session data */
@@ -36,7 +36,7 @@ class UserMessageManager {
    * @param message - User message from onMessage
    * @param config - Optional processing configuration
    */
-  saveMessage(message: UserMessage, config?: UserProcessingConfig): void {
+  saveMessage(message: FlatUserMessage, config?: UserProcessingConfig): void {
     this.state.currentMessage = message;
     this.state.timestamp = new Date().toISOString();
     
@@ -58,7 +58,7 @@ class UserMessageManager {
    * 
    * @returns Current user message or undefined
    */
-  getMessage(): UserMessage | undefined {
+  getMessage(): FlatUserMessage | undefined {
     return this.state.currentMessage;
   }
 
@@ -76,7 +76,7 @@ class UserMessageManager {
    * 
    * @returns Array of mentioned MCP tools
    */
-  getMentionedMCPs(): { toolbox: string, toolName: string }[] {
+  getMentionedMCPs(): string[] {
     return this.state.currentMessage?.mentionedMCPs || [];
   }
 
@@ -170,7 +170,11 @@ class UserMessageManager {
    * @returns Whether the processing type is enabled
    */
   isProcessingEnabled(type: keyof UserProcessingConfig): boolean {
-    return this.state.userConfig?.[type] ?? false;
+    const value = this.state.userConfig?.[type];
+    if (typeof value === 'function') {
+      return true; // If a function is provided, consider it enabled
+    }
+    return Boolean(value);
   }
 
   /**
@@ -250,7 +254,7 @@ const userMessageManager = new UserMessageManager();
 export { userMessageManager };
 
 // Export utility functions for public API
-export function getCurrentUserMessage(): UserMessage | undefined {
+export function getCurrentUserMessage(): FlatUserMessage | undefined {
   return userMessageManager.getMessage();
 }
 
@@ -262,7 +266,7 @@ export function getUserProcessingConfig(): UserProcessingConfig {
   return userMessageManager.getConfig();
 }
 
-export function getMentionedMCPs(): { toolbox: string, toolName: string }[] {
+export function getMentionedMCPs(): string[] {
   return userMessageManager.getMentionedMCPs();
 }
 

@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { GetProjectPathResponse, GetProjectSettingsResponse } from '../types/socketMessageTypes';
+import { GetProjectPathResponse, GetProjectSettingsResponse } from '@codebolt/types/sdk';
 
 import { EventType, ProjectAction, ProjectResponseType } from '@codebolt/types';
 /**

@@ -10,7 +10,7 @@ import {
     ConfigureToolBoxResponse,
     GetToolsResponse,
     ExecuteToolResponse
-} from '../types/socketMessageTypes';
+} from '@codebolt/types/sdk';
 import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types';
 /**
  * Object containing methods for interacting with Codebolt MCP (Model Context Protocol) tools.

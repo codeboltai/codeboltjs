@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { AddToAgentStateResponse, GetAgentStateResponse, GetProjectStateResponse, UpdateProjectStateResponse } from '../types/socketMessageTypes';
+import { AddToAgentStateResponse, GetAgentStateResponse, GetProjectStateResponse, UpdateProjectStateResponse } from '@codebolt/types/sdk';
 import { ApplicationState } from '../types/commonTypes';
 import { StateEventType, StateAction, StateResponseType } from '@codebolt/types';
 

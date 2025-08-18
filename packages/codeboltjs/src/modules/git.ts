@@ -10,7 +10,7 @@ import {
     GitBranchResponse, 
     GitLogsResponse, 
     GitDiffResponse 
-} from '../types/socketMessageTypes';
+} from '@codebolt/types/sdk';
 
 
 import { EventType , GitAction, GitResponseType} from '@codebolt/types';

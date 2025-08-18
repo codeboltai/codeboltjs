@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { DebugAddLogResponse, OpenDebugBrowserResponse } from '../types/socketMessageTypes';
+import { DebugAddLogResponse, OpenDebugBrowserResponse } from '@codebolt/types/sdk';
 
 
 
