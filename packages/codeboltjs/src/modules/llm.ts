@@ -1,10 +1,7 @@
 import cbws from '../core/websocket';
 import { LLMResponse } from '@codebolt/types/sdk';
-import type { Message, ToolCall, Tool, LLMInferenceParams } from '../types/libFunctionTypes';
+import type { Message, ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '@codebolt/types/sdk';
 import { EventType, LLMResponseType } from '@codebolt/types/enum';
-
-// Re-export types for backward compatibility
-export type { Message, ToolCall, Tool, LLMInferenceParams };
 
 /**
  * A module for interacting with language learning models (LLMs) via WebSocket.
@@ -28,14 +25,14 @@ const cbllm = {
      */
     inference: async (params: { 
         messages: Message[]; 
-        tools?: any[]; 
+        tools?: Tool[]; 
         tool_choice?: string; 
         full?: boolean;
         llmrole?: string;
         max_tokens?: number;
         temperature?: number;
         stream?: boolean;
-    }, llmrole?: string): Promise<{ completion: any }> => {
+    }, llmrole?: string): Promise<{ completion: LLMCompletion }> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.LLM_EVENT,

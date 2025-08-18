@@ -23,6 +23,11 @@ export interface APIResponse<T = any> {
   metadata?: Record<string, any>;
 }
 
+// Tool parameter type
+export interface ToolParameters {
+  [key: string]: unknown;
+}
+
 export interface UserMessage {
   type: string;
   userMessage: string;
@@ -38,9 +43,13 @@ export interface UserMessage {
   };
   messageId: string;
   threadId: string;
-  selection?: any;
+  selection?: {
+    start: number;
+    end: number;
+    text: string;
+  };
   remixPrompt?: string;
-  mentionedAgents?: any[];
+  mentionedAgents?: string[];
 }
 
 export interface Message {
@@ -913,6 +922,14 @@ export interface CodeUtilsModule {
 // MCP Module Types
 // ================================
 
+// MCP configuration type
+export interface MCPConfiguration {
+  serverName: string;
+  enabled?: boolean;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export interface MCPModule {
   /**
    * Lists available MCP tools from servers
@@ -924,7 +941,7 @@ export interface MCPModule {
    * Gets tools from MCPs
    * @param mcps - List of MCP configurations
    */
-  getTools(mcps: any[]): Promise<APIResponse<Tool[]>>;
+  getTools(mcps: MCPConfiguration[]): Promise<APIResponse<Tool[]>>;
 
   /**
    * Executes an MCP tool
@@ -932,7 +949,7 @@ export interface MCPModule {
    * @param actualToolName - The actual tool name
    * @param toolInput - The tool input parameters
    */
-  executeTool(toolboxName: string, actualToolName: string, toolInput: any): Promise<APIResponse>;
+  executeTool(toolboxName: string, actualToolName: string, toolInput: ToolParameters): Promise<APIResponse>;
 
   /**
    * Configures an MCP server
@@ -940,7 +957,7 @@ export interface MCPModule {
    */
   configure(options: {
     serverName: string;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
     enabled?: boolean;
   }): Promise<APIResponse>;
 }

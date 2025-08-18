@@ -44,8 +44,8 @@ export type {
     TerminalExecuteOptions,
 
     // Git API Types
-    GitCommitOptions,
-    GitLogOptions,
+    // GitCommitOptions,
+    // GitLogOptions,
 
     // LLM API Types
     LLMChatOptions,

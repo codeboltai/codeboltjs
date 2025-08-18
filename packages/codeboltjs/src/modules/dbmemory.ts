@@ -1,6 +1,10 @@
 import { EventType, MemoryAction, MemoryResponseType } from '@codebolt/types/enum';
 import cbws from '../core/websocket';
-import { MemorySetResponse, MemoryGetResponse } from '@codebolt/types/sdk';
+import { 
+    MemorySetResponse, 
+    MemoryGetResponse,
+    MemoryValue
+} from '@codebolt/types/sdk';
 
 /**
  * A module for handling in-memory database operations via WebSocket.
@@ -9,10 +13,10 @@ const dbmemory = {
     /**
      * Adds a key-value pair to the in-memory database.
      * @param {string} key - The key under which to store the value.
-     * @param {any} value - The value to be stored.
+     * @param {MemoryValue} value - The value to be stored.
      * @returns {Promise<MemorySetResponse>} A promise that resolves with the response from the memory set event.
      */
-    addKnowledge: (key: string, value: any): Promise<MemorySetResponse> => {
+    addKnowledge: (key: string, value: MemoryValue): Promise<MemorySetResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.MEMORY_EVENT,

@@ -1,4 +1,4 @@
-// UserMessage type removed - using any for compatibility
+
 // To use UserMessage functionality, install @codebolt/agent-utils
 import cbws from '../core/websocket';
 import { 
@@ -9,7 +9,10 @@ import {
     ListToolsFromToolBoxesResponse,
     ConfigureToolBoxResponse,
     GetToolsResponse,
-    ExecuteToolResponse
+    ExecuteToolResponse,
+    MCPUserMessage,
+    MCPConfiguration,
+    ToolParameters
 } from '@codebolt/types/sdk';
 import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types/enum';
 /**
@@ -53,7 +56,7 @@ const codeboltMCP = {
      * @param userMessage - The user message to extract mentions from
      * @returns Promise with the mentioned toolboxes
      */
-    getMentionedMCPServers: (userMessage: any): Promise<GetAvailableToolBoxesResponse> => {
+    getMentionedMCPServers: (userMessage: MCPUserMessage): Promise<GetAvailableToolBoxesResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.CODEBOLT_TOOLS_EVENT,
@@ -104,7 +107,7 @@ const codeboltMCP = {
      * @param config - Configuration object for the toolbox
      * @returns Promise with the configuration result
      */
-    configureMCPServer: (name: string, config: any): Promise<ConfigureToolBoxResponse> => {
+    configureMCPServer: (name: string, config: MCPConfiguration): Promise<ConfigureToolBoxResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.CODEBOLT_TOOLS_EVENT,
@@ -141,7 +144,7 @@ const codeboltMCP = {
      * @param params - Parameters to pass to the tool
      * @returns Promise with the execution result
      */
-    executeTool: (toolbox: string, toolName: string, params: any): Promise<ExecuteToolResponse> => {
+    executeTool: (toolbox: string, toolName: string, params: ToolParameters): Promise<ExecuteToolResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.CODEBOLT_TOOLS_EVENT,

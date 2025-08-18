@@ -10,31 +10,111 @@ export interface BaseMCPSDKResponse {
   error?: string;
 }
 
+// User message type for MCP operations
+export interface MCPUserMessage {
+  type: string;
+  userMessage: string;
+  currentFile: string;
+  mentionedFiles: string[];
+  mentionedFullPaths: string[];
+  mentionedMCPs: string[];
+  mentionedFolders: string[];
+  uploadedImages: string[];
+  selectedAgent: {
+    id: string;
+    name: string;
+  };
+  messageId: string;
+  threadId: string;
+  selection?: {
+    start: number;
+    end: number;
+    text: string;
+  };
+  remixPrompt?: string;
+  mentionedAgents?: string[];
+}
+
+// MCP configuration type
+export interface MCPConfiguration {
+  serverName: string;
+  enabled?: boolean;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+// Tool parameter type
+export interface ToolParameters {
+  [key: string]: unknown;
+}
+
 // MCP toolbox responses
 export interface GetEnabledToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    name: string;
+    enabled: boolean;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface GetLocalToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    name: string;
+    enabled: boolean;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface GetAvailableToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    name: string;
+    enabled: boolean;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface SearchAvailableToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: Record<string, any>;
+  data?: Record<string, {
+    name: string;
+    description?: string;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface ListToolsFromToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    toolbox: string;
+    tools: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
   error?: string;
 }
 
 export interface ConfigureToolBoxResponse extends BaseMCPSDKResponse {
-  configuration?: Record<string, any>;
-  data?: any;
+  configuration?: MCPConfiguration;
+  data?: {
+    success: boolean;
+    message?: string;
+  };
   error?: string;
 }
 
@@ -43,38 +123,72 @@ export interface GetToolsResponse extends BaseMCPSDKResponse {
   tools?: Array<{
     name: string;
     description: string;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
   }>;
   serverName?: string;
-  data?: any[];
+  data?: Array<{
+    toolbox: string;
+    toolName: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  }>;
 }
 
 export interface ExecuteToolResponse extends BaseMCPSDKResponse {
   toolName?: string;
   serverName?: string;
-  params?: any;
-  data?: [boolean, any] | { error?: string };
-  result?: any;
+  params?: ToolParameters;
+  data?: [boolean, unknown] | { error?: string };
+  result?: unknown;
   status?: 'pending' | 'executing' | 'success' | 'error' | 'rejected';
 }
 
 export interface GetMcpToolsResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    name: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  }>;
 }
 
 export interface GetMcpListResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    name: string;
+    enabled: boolean;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface GetAllMCPToolsResponse extends BaseMCPSDKResponse {
-  data?: any[];
+  data?: Array<{
+    toolbox: string;
+    toolName: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  }>;
 }
 
 export interface GetEnabledMCPSResponse extends BaseMCPSDKResponse {
-  data?: any;
+  data?: Array<{
+    name: string;
+    enabled: boolean;
+    tools?: Array<{
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    }>;
+  }>;
 }
 
 export interface ConfigureMCPToolResponse extends BaseMCPSDKResponse {
-  data?: any;
+  data?: {
+    success: boolean;
+    message?: string;
+    configuration?: MCPConfiguration;
+  };
   error?: string;
 }
