@@ -1,16 +1,14 @@
 /**
  * @codebolt/types - Main Entry Point
  * 
- * This package provides TypeScript types for WebSocket communication.
+ * This package provides TypeScript types organized by usage:
  * 
- * For SDK types, use: import { ... } from '@codebolt/types/sdk'
+ * - For SDK types: import { ... } from '@codebolt/types/sdk'
+ * - For WebSocket enums: import { ... } from '@codebolt/types/enum'
+ * - For WebSocket schemas: import { ... } from '@codebolt/types/agent-to-app-ws-types'
+ * 
+ * Use the specific subpath imports to access the types you need.
  */
 
-// Export WebSocket message types (for internal communication)
-export * from './codeboltjstypes/message.enum';
-export * from './codeboltjstypes/notification.enum';
-
-// Note: agent-to-app-ws-types and app-to-agent-ws-types are kept separate 
-// to avoid naming conflicts. Import them directly if needed:
-// import { ... } from '@codebolt/types/agent-to-app-ws-types';
-// import { ... } from '@codebolt/types/app-to-agent-ws-types';
+// This file is intentionally blank.
+// Use subpath imports for specific type categories.

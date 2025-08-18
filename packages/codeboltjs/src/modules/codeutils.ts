@@ -12,7 +12,7 @@ import { loadRequiredLanguageParsers } from '@codebolt/codeparser';
 import type { JSTreeStructureItem, JSTreeResponse } from '../types/InternalTypes';
 export type { JSTreeStructureItem, JSTreeResponse };
 
-import { CodeAction, CodeResponseType, EventType } from '@codebolt/types';
+import { CodeAction, CodeResponseType, EventType } from '@codebolt/types/enum';
 
 /**
  * A utility module for working with code.

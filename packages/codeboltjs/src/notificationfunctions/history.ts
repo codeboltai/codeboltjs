@@ -20,7 +20,7 @@ import {
     validateRequiredFields
 } from './utils';
 
-import { HistoryNotificationAction, NotificationEventType } from '@codebolt/types'; 
+import { HistoryNotificationAction, NotificationEventType } from '@codebolt/types/enum'; 
 
 
 // ===== SUMMARIZE PREVIOUS CONVERSATION FUNCTIONS =====

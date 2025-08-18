@@ -21,7 +21,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { SearchNotificationAction, NotificationEventType } from '@codebolt/types';
+import { SearchNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== SEARCH INIT FUNCTIONS =====

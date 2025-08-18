@@ -1,6 +1,6 @@
 import { GetAgentStateResponse, FindAgentByTaskResponse, ListAgentsResponse, AgentsDetailResponse, TaskCompletionResponse } from '@codebolt/types/sdk';
 import cbws from '../core/websocket';
-import { AgentLocation, Agents, FilterUsing, EventType, AgentAction, AgentResponseType } from '@codebolt/types';
+import { AgentLocation, Agents, FilterUsing, EventType, AgentAction, AgentResponseType } from '@codebolt/types/enum';
 
 
 

@@ -13,7 +13,7 @@ import {
 } from '@codebolt/types/sdk';
 
 
-import { EventType , GitAction, GitResponseType} from '@codebolt/types';
+import { EventType , GitAction, GitResponseType} from '@codebolt/types/enum';
 
 /**
  * A service for interacting with Git operations via WebSocket messages.

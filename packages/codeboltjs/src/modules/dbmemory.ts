@@ -1,4 +1,4 @@
-import { EventType, MemoryAction, MemoryResponseType } from '@codebolt/types';
+import { EventType, MemoryAction, MemoryResponseType } from '@codebolt/types/enum';
 import cbws from '../core/websocket';
 import { MemorySetResponse, MemoryGetResponse } from '@codebolt/types/sdk';
 

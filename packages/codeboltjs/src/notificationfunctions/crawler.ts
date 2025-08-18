@@ -19,7 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { CrawlerNotificationAction, NotificationEventType } from '@codebolt/types';
+import { CrawlerNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 /**

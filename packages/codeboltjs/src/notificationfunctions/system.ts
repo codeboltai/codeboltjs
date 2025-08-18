@@ -16,7 +16,7 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
-import { SystemNotificationAction, NotificationEventType } from '@codebolt/types';
+import { SystemNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 

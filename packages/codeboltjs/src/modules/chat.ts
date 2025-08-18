@@ -1,7 +1,7 @@
 // chat.ts
 import cbws from '../core/websocket';
 import { ChatMessage, UserMessage } from '@codebolt/types/sdk';
-import { ChatEventType, ChatResponseType } from '@codebolt/types';
+import { ChatEventType, ChatResponseType } from '@codebolt/types/enum';
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
 /**

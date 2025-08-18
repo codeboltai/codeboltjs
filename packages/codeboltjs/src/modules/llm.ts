@@ -1,7 +1,7 @@
 import cbws from '../core/websocket';
 import { LLMResponse } from '@codebolt/types/sdk';
 import type { Message, ToolCall, Tool, LLMInferenceParams } from '../types/libFunctionTypes';
-import { EventType, LLMResponseType } from '@codebolt/types';
+import { EventType, LLMResponseType } from '@codebolt/types/enum';
 
 // Re-export types for backward compatibility
 export type { Message, ToolCall, Tool, LLMInferenceParams };

@@ -11,7 +11,7 @@ import type {
     TaskMarkdownImportOptions,
     TaskMarkdownExportOptions
 } from '../types';
-import { EventType, TaskAction, TaskResponseType } from '@codebolt/types';
+import { EventType, TaskAction, TaskResponseType } from '@codebolt/types/enum';
 
 /**
  * Enhanced task planner with agent-based organization and comprehensive task management.

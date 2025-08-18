@@ -19,7 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { DbMemoryNotificationAction, NotificationEventType } from '@codebolt/types';
+import { DbMemoryNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 /**

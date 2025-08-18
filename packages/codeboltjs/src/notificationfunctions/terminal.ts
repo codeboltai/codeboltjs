@@ -17,7 +17,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { TerminalNotificationAction, NotificationEventType } from '@codebolt/types';
+import { TerminalNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== COMMAND EXECUTION FUNCTIONS =====

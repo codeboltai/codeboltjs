@@ -23,7 +23,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { McpNotificationAction, NotificationEventType } from '@codebolt/types';
+import { McpNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== GET ENABLED MCP SERVERS FUNCTIONS =====

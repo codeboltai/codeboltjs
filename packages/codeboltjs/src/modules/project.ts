@@ -1,7 +1,7 @@
 import cbws from '../core/websocket';
 import { GetProjectPathResponse, GetProjectSettingsResponse } from '@codebolt/types/sdk';
 
-import { EventType, ProjectAction, ProjectResponseType } from '@codebolt/types';
+import { EventType, ProjectAction, ProjectResponseType } from '@codebolt/types/enum';
 /**
  * A module for interacting with project settings and paths.
  */

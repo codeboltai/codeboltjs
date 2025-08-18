@@ -38,7 +38,7 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
-import { GitNotificationAction, NotificationEventType } from '@codebolt/types';
+import { GitNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== GIT INIT FUNCTIONS =====

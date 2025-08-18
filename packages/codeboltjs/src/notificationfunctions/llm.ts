@@ -19,7 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { LlmNotificationAction, NotificationEventType } from '@codebolt/types';
+import { LlmNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== LLM INFERENCE FUNCTIONS =====

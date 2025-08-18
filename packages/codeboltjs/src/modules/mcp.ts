@@ -11,7 +11,7 @@ import {
     GetToolsResponse,
     ExecuteToolResponse
 } from '@codebolt/types/sdk';
-import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types';
+import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types/enum';
 /**
  * Object containing methods for interacting with Codebolt MCP (Model Context Protocol) tools.
  * Provides functionality to discover, list, and execute tools.

@@ -19,7 +19,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { BrowserNotificationAction, NotificationEventType } from '@codebolt/types';
+import { BrowserNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 /**
  * Sends a web fetch request notification

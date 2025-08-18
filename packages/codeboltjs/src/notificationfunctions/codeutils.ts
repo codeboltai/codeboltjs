@@ -20,7 +20,7 @@ import {
     validateRequiredFields
 } from './utils';
 
-import { CodeUtilsNotificationAction, NotificationEventType } from '@codebolt/types';
+import { CodeUtilsNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 /**
  * Sends a grep search request

@@ -37,7 +37,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { FsNotificationAction, NotificationEventType } from '@codebolt/types';
+import { FsNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 /**
  * Sends a request to create a file

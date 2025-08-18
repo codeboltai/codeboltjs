@@ -1,4 +1,4 @@
-import { EventType, VectorDBAction, VectorDBResponseType } from '@codebolt/types';
+import { EventType, VectorDBAction, VectorDBResponseType } from '@codebolt/types/enum';
 import cbws from '../core/websocket';
 import { AddVectorItemResponse, GetVectorResponse, QueryVectorItemResponse } from '@codebolt/types/sdk';
 const VectorDB = {

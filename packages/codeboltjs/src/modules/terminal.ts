@@ -2,7 +2,7 @@ import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
 import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '@codebolt/types/sdk';
 
-import { TerminalEventType, TerminalResponseType } from '@codebolt/types';
+import { TerminalEventType, TerminalResponseType } from '@codebolt/types/enum';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */

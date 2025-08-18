@@ -1,7 +1,7 @@
 import cbws from '../core/websocket';
 import { GetSummarizeAllResponse, GetSummarizeResponse } from '@codebolt/types/sdk';
 import { LogType } from '../types/commonTypes';
-import { ChatSummaryAction, EventType , ChatSummaryResponseType} from '@codebolt/types';
+import { ChatSummaryAction, EventType , ChatSummaryResponseType} from '@codebolt/types/enum';
 
 /**
  * Enum representing different types of log messages.

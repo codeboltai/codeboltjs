@@ -1,4 +1,4 @@
-import { EventType, FSAction, FSResponseType } from '@codebolt/types';
+import { EventType, FSAction, FSResponseType } from '@codebolt/types/enum';
 import cbws from '../core/websocket';
 import { FsEditFileAndApplyDiffResponse } from '@codebolt/types/sdk';
 

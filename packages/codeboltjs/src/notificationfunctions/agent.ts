@@ -18,7 +18,7 @@ import {
     generateToolUseId,
     validateRequiredFields
 } from './utils';
-import { AgentNotificationAction, NotificationEventType } from '@codebolt/types';
+import { AgentNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 /**
  * Sends a request to start a subagent task

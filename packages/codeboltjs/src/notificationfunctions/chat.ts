@@ -21,7 +21,7 @@ import {
     createErrorResponse,
     createSuccessResponse
 } from './utils';
-import { ChatNotificationAction, NotificationEventType } from '@codebolt/types';
+import { ChatNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 /**

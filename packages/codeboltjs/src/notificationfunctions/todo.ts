@@ -20,7 +20,7 @@ import {
     sendNotification,
     generateToolUseId
 } from './utils';
-import { TaskNotificationAction, NotificationEventType } from '@codebolt/types';
+import { TaskNotificationAction, NotificationEventType } from '@codebolt/types/enum';
 
 
 // ===== ADD TODO FUNCTIONS =====
