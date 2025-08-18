@@ -19,7 +19,7 @@
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "echo \"Integration tests require WebSocket server - skipping for release\" && exit 0",
     "clean": "rm -rf dist build",
-    "lint": "tsc --noEmit"
+    "lint": "eslint src/**/*.ts && tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -48,6 +48,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@codebolt/eslint-config": "workspace:*",
     "@types/events": "^3.0.3",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",

@@ -90,10 +90,8 @@
   },
   "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/packages/types#readme",
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "eslint": "^8.0.0"
+    "@codebolt/eslint-config": "workspace:*",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "zod": "^3.24.1"

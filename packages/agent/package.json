@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "test": "echo \"No tests yet, but build passes\" && exit 0",
-    "lint": "tsc --noEmit"
+    "lint": "eslint src/**/*.ts && tsc --noEmit"
   },
   "keywords": [
     "ai",
@@ -39,6 +39,7 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@codebolt/eslint-config": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",
     "@types/uri-templates": "^0.1.34",
