@@ -7,8 +7,8 @@ import type {
     ToolDetails,
     CodeboltAPI,
     Message
-} from "./types/libFunctionTypes";
-import type { LLMResponse } from "./types/socketMessageTypes";
+} from "../types/libFunctionTypes";
+import type { LLMResponse } from "../types/socketMessageTypes";
 
 /**
  * Handles LLM output processing, tool execution, and completion detection.
