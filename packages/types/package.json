@@ -47,7 +47,11 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "test": "echo \"Types package - no tests needed, type checking handles validation\" && exit 0",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "check-no-any": "node scripts/check-no-any.js && npm run type-check && npm run lint",
+    "prepublishOnly": "npm run check-no-any && npm run build"
   },
   "keywords": [
     "codebolt",
@@ -78,7 +82,10 @@
   },
   "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/packages/types#readme",
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
+    "eslint": "^8.0.0"
   },
   "dependencies": {
     "zod": "^3.24.1"

@@ -1,0 +1,1197 @@
+asyncapi: 3.0.0
+info:
+  title: CodeBolt Agent-to-App WebSocket API
+  version: 1.0.0
+  description: |
+    This specification defines the WebSocket communication protocol between CodeBolt agents and the application.
+    
+    The API supports bidirectional communication with two main patterns:
+    1. **Actions/Events**: Commands sent from agents to the app for executing operations
+    2. **Notifications**: Status updates and responses sent from agents to the app
+    
+    ## Message Categories
+    
+    ### Action Events (Agent → App)
+    - **File System**: Create, read, update, delete files and folders
+    - **Git Operations**: Version control operations like commit, push, pull
+    - **Browser Automation**: Web navigation, screenshots, content extraction
+    - **Terminal**: Command execution and shell operations
+    - **LLM**: Language model inference and token counting
+    - **Task Management**: Todo tasks, subtasks, and project planning
+    - **Vector Database**: Knowledge storage and retrieval
+    - **Memory**: Agent state and context management
+    - **MCP Tools**: External tool integration and execution
+    - **Search**: Code search and web search operations
+    - **Chat**: Message handling and conversation management
+    
+    ### Notifications (Agent → App)
+    - Request notifications for each action type
+    - Response notifications with results or errors
+    - Status updates and process completion events
+    
+  contact:
+    name: CodeBolt Team
+    url: https://github.com/CodeBoltJS/codeboltjs
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  development:
+    host: localhost:8080
+    protocol: ws
+    description: Development WebSocket server
+  production:
+    host: api.codebolt.com
+    protocol: wss
+    description: Production WebSocket server
+
+defaultContentType: application/json
+
+channels:
+  agent-to-app:
+    address: /agent-to-app
+    messages:
+      # Action Events
+      fsEvent:
+        $ref: '#/components/messages/FsEvent'
+      gitEvent:
+        $ref: '#/components/messages/GitEvent'
+      browserEvent:
+        $ref: '#/components/messages/BrowserEvent'
+      terminalEvent:
+        $ref: '#/components/messages/TerminalEvent'
+      llmEvent:
+        $ref: '#/components/messages/LlmEvent'
+      taskEvent:
+        $ref: '#/components/messages/TaskEvent'
+      vectordbEvent:
+        $ref: '#/components/messages/VectordbEvent'
+      memoryEvent:
+        $ref: '#/components/messages/MemoryEvent'
+      debugEvent:
+        $ref: '#/components/messages/DebugEvent'
+      crawlerEvent:
+        $ref: '#/components/messages/CrawlerEvent'
+      projectEvent:
+        $ref: '#/components/messages/ProjectEvent'
+      chatEvent:
+        $ref: '#/components/messages/ChatEvent'
+      stateEvent:
+        $ref: '#/components/messages/StateEvent'
+      mcpEvent:
+        $ref: '#/components/messages/McpEvent'
+      agentEvent:
+        $ref: '#/components/messages/AgentEvent'
+      tokenizerEvent:
+        $ref: '#/components/messages/TokenizerEvent'
+      historyEvent:
+        $ref: '#/components/messages/HistoryEvent'
+      utilsEvent:
+        $ref: '#/components/messages/UtilsEvent'
+      codeUtilsEvent:
+        $ref: '#/components/messages/CodeUtilsEvent'
+      # Notifications
+      agentNotification:
+        $ref: '#/components/messages/AgentNotification'
+      browserNotification:
+        $ref: '#/components/messages/BrowserNotification'
+      chatNotification:
+        $ref: '#/components/messages/ChatNotification'
+      codeUtilsNotification:
+        $ref: '#/components/messages/CodeUtilsNotification'
+      crawlerNotification:
+        $ref: '#/components/messages/CrawlerNotification'
+      dbMemoryNotification:
+        $ref: '#/components/messages/DbMemoryNotification'
+      fsNotification:
+        $ref: '#/components/messages/FsNotification'
+      gitNotification:
+        $ref: '#/components/messages/GitNotification'
+      historyNotification:
+        $ref: '#/components/messages/HistoryNotification'
+      llmNotification:
+        $ref: '#/components/messages/LlmNotification'
+      mcpNotification:
+        $ref: '#/components/messages/McpNotification'
+      searchNotification:
+        $ref: '#/components/messages/SearchNotification'
+      systemNotification:
+        $ref: '#/components/messages/SystemNotification'
+      terminalNotification:
+        $ref: '#/components/messages/TerminalNotification'
+      todoNotification:
+        $ref: '#/components/messages/TodoNotification'
+    description: |
+      WebSocket channel for agent-to-app communication. Agents send action events and notifications to the application.
+
+  app-to-agent:
+    address: /app-to-agent
+    messages:
+      serviceResponse:
+        $ref: '#/components/messages/ServiceResponse'
+    description: |
+      WebSocket channel for app-to-agent communication. The application sends responses back to agents.
+
+operations:
+  sendAgentToApp:
+    action: send
+    channel:
+      $ref: '#/channels/agent-to-app'
+    summary: Send messages from agent to application
+    description: Agents send action events and notifications to the application through this operation
+    
+  receiveAppToAgent:
+    action: receive
+    channel:
+      $ref: '#/channels/app-to-agent'
+    summary: Receive responses from application
+    description: Agents receive service responses from the application
+
+components:
+  messages:
+    # Action Event Messages
+    FsEvent:
+      name: FileSystemEvent
+      title: File System Event
+      summary: File system operations like create, read, update, delete
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/FsEventPayload'
+      examples:
+        - name: CreateFileEvent
+          summary: Create a new file
+          payload:
+            type: fsEvent
+            action: createFile
+            requestId: req-123
+            message:
+              fileName: example.txt
+              source: "Hello World"
+              filePath: /path/to/example.txt
+
+    GitEvent:
+      name: GitEvent
+      title: Git Operation Event
+      summary: Git version control operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/GitEventPayload'
+      examples:
+        - name: GitCommitEvent
+          summary: Commit changes to git
+          payload:
+            type: gitEvent
+            action: gitCommit
+            requestId: req-456
+            message:
+              commitMessage: "Add new feature"
+
+    BrowserEvent:
+      name: BrowserEvent
+      title: Browser Automation Event
+      summary: Web browser automation and navigation
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BrowserEventPayload'
+      examples:
+        - name: GoToPageEvent
+          summary: Navigate to a web page
+          payload:
+            type: browserEvent
+            action: goToPage
+            requestId: req-789
+            message:
+              url: "https://example.com"
+
+    TerminalEvent:
+      name: TerminalEvent
+      title: Terminal Command Event
+      summary: Execute shell commands and terminal operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TerminalEventPayload'
+      examples:
+        - name: ExecuteCommandEvent
+          summary: Execute a shell command
+          payload:
+            type: terminalEvent
+            action: executeCommand
+            requestId: req-101
+            message:
+              command: "npm install"
+              workingDirectory: "/project"
+
+    LlmEvent:
+      name: LlmEvent
+      title: Language Model Event
+      summary: LLM inference and token operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LlmEventPayload'
+      examples:
+        - name: InferenceEvent
+          summary: Request LLM inference
+          payload:
+            type: llmEvent
+            action: inference
+            requestId: req-202
+            message:
+              messages:
+                - role: user
+                  content: "Explain async programming"
+              model: "gpt-4"
+
+    TaskEvent:
+      name: TaskEvent
+      title: Task Management Event
+      summary: Todo tasks and project management
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TaskEventPayload'
+
+    VectordbEvent:
+      name: VectordbEvent
+      title: Vector Database Event
+      summary: Knowledge storage and vector search operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/VectordbEventPayload'
+
+    MemoryEvent:
+      name: MemoryEvent
+      title: Memory Event
+      summary: Agent memory and state management
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/MemoryEventPayload'
+
+    DebugEvent:
+      name: DebugEvent
+      title: Debug Event
+      summary: Debugging and logging operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DebugEventPayload'
+
+    CrawlerEvent:
+      name: CrawlerEvent
+      title: Web Crawler Event
+      summary: Web crawling and content extraction
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CrawlerEventPayload'
+
+    ProjectEvent:
+      name: ProjectEvent
+      title: Project Event
+      summary: Project settings and repository operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ProjectEventPayload'
+
+    ChatEvent:
+      name: ChatEvent
+      title: Chat Event
+      summary: Chat message handling and conversation management
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ChatEventPayload'
+
+    StateEvent:
+      name: StateEvent
+      title: State Event
+      summary: Application and agent state management
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/StateEventPayload'
+
+    McpEvent:
+      name: McpEvent
+      title: MCP Tool Event
+      summary: Model Context Protocol tool integration
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/McpEventPayload'
+
+    AgentEvent:
+      name: AgentEvent
+      title: Agent Management Event
+      summary: Agent discovery and management operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/AgentEventPayload'
+
+    TokenizerEvent:
+      name: TokenizerEvent
+      title: Tokenizer Event
+      summary: Token management and counting operations
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TokenizerEventPayload'
+
+    HistoryEvent:
+      name: HistoryEvent
+      title: History Event
+      summary: Conversation history and summarization
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/HistoryEventPayload'
+
+    UtilsEvent:
+      name: UtilsEvent
+      title: Utils Event
+      summary: Utility operations and file manipulation
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UtilsEventPayload'
+
+    CodeUtilsEvent:
+      name: CodeUtilsEvent
+      title: Code Utils Event
+      summary: Code analysis and pattern matching
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CodeUtilsEventPayload'
+
+    # Notification Messages
+    AgentNotification:
+      name: AgentNotification
+      title: Agent Notification
+      summary: Agent status and subagent task notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/AgentNotificationPayload'
+
+    BrowserNotification:
+      name: BrowserNotification
+      title: Browser Notification
+      summary: Web fetch and search operation notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BrowserNotificationPayload'
+
+    ChatNotification:
+      name: ChatNotification
+      title: Chat Notification
+      summary: Chat message and response notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ChatNotificationPayload'
+
+    CodeUtilsNotification:
+      name: CodeUtilsNotification
+      title: Code Utils Notification
+      summary: Code search and pattern matching notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CodeUtilsNotificationPayload'
+
+    CrawlerNotification:
+      name: CrawlerNotification
+      title: Crawler Notification
+      summary: Web crawling status and result notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CrawlerNotificationPayload'
+
+    DbMemoryNotification:
+      name: DbMemoryNotification
+      title: Database Memory Notification
+      summary: Knowledge storage and retrieval notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DbMemoryNotificationPayload'
+
+    FsNotification:
+      name: FsNotification
+      title: File System Notification
+      summary: File system operation status and results
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/FsNotificationPayload'
+      examples:
+        - name: FileCreateRequest
+          summary: Request to create a file
+          payload:
+            toolUseId: tool-123
+            type: fsnotify
+            action: createFileRequest
+            requestId: req-123
+            data:
+              fileName: example.txt
+              source: "Hello World"
+              filePath: /path/to/example.txt
+        - name: FileCreateResponse
+          summary: Response after creating a file
+          payload:
+            toolUseId: tool-123
+            type: fsnotify
+            action: createFileResult
+            requestId: req-123
+            content: "File created successfully"
+            isError: false
+
+    GitNotification:
+      name: GitNotification
+      title: Git Notification
+      summary: Git operation status and results
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/GitNotificationPayload'
+
+    HistoryNotification:
+      name: HistoryNotification
+      title: History Notification
+      summary: Conversation summarization notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/HistoryNotificationPayload'
+
+    LlmNotification:
+      name: LlmNotification
+      title: LLM Notification
+      summary: Language model inference and token count notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/LlmNotificationPayload'
+
+    McpNotification:
+      name: McpNotification
+      title: MCP Notification
+      summary: MCP tool operation notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/McpNotificationPayload'
+
+    SearchNotification:
+      name: SearchNotification
+      title: Search Notification
+      summary: Search operation and codebase search notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SearchNotificationPayload'
+
+    SystemNotification:
+      name: SystemNotification
+      title: System Notification
+      summary: System status and agent lifecycle notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SystemNotificationPayload'
+
+    TerminalNotification:
+      name: TerminalNotification
+      title: Terminal Notification
+      summary: Command execution status and output notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TerminalNotificationPayload'
+
+    TodoNotification:
+      name: TodoNotification
+      title: Todo Notification
+      summary: Task management operation notifications
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TodoNotificationPayload'
+
+    # App-to-Agent Response
+    ServiceResponse:
+      name: ServiceResponse
+      title: Service Response
+      summary: Application responses to agent requests
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ServiceResponsePayload'
+
+  schemas:
+    # Base Schemas
+    BaseEventPayload:
+      type: object
+      required:
+        - type
+        - action
+        - requestId
+        - message
+      properties:
+        type:
+          type: string
+          description: Event type identifier
+        action:
+          type: string
+          description: Specific action being requested
+        requestId:
+          type: string
+          description: Unique identifier for the request
+        message:
+          type: object
+          description: Action-specific message payload
+
+    BaseNotificationPayload:
+      type: object
+      required:
+        - toolUseId
+        - type
+        - action
+      properties:
+        toolUseId:
+          type: string
+          description: Unique identifier for the tool use
+        type:
+          type: string
+          description: Notification type identifier
+        action:
+          type: string
+          description: Specific notification action
+        requestId:
+          type: string
+          description: Optional request identifier
+        agentId:
+          type: string
+          description: Optional agent identifier
+        threadId:
+          type: string
+          description: Optional thread identifier
+        agentInstanceId:
+          type: string
+          description: Optional agent instance identifier
+        parentAgentInstanceId:
+          type: string
+          description: Optional parent agent instance identifier
+        parentId:
+          type: string
+          description: Optional parent identifier
+        data:
+          type: object
+          description: Request data (for request notifications)
+        content:
+          description: Response content (for response notifications)
+          oneOf:
+            - type: string
+            - type: object
+        isError:
+          type: boolean
+          description: Error flag (for response notifications)
+
+    # Action Event Payloads
+    FsEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [fsEvent]
+            action:
+              enum: 
+                - createFile
+                - createFolder
+                - readFile
+                - updateFile
+                - deleteFile
+                - deleteFolder
+                - fileList
+                - listCodeDefinitionNames
+                - searchFiles
+                - writeToFile
+                - grepSearch
+                - fileSearch
+                - editFileWithDiff
+
+    GitEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [gitEvent]
+            action:
+              enum:
+                - gitInit
+                - gitPull
+                - gitPush
+                - gitStatus
+                - gitAdd
+                - gitCommit
+                - gitCheckout
+                - gitBranch
+                - gitLogs
+                - gitDiff
+
+    BrowserEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [browserEvent]
+            action:
+              enum:
+                - newPage
+                - getUrl
+                - goToPage
+                - screenshot
+                - getHTML
+                - getMarkdown
+                - getPDF
+                - pdfToText
+                - getContent
+                - getSnapShot
+                - getBrowserInfo
+                - extractText
+                - close
+                - scroll
+                - type
+                - click
+                - enter
+                - search
+
+    TerminalEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [terminalEvent]
+            action:
+              enum:
+                - executeCommand
+                - executeCommandRunUntilError
+                - executeCommandWithStream
+                - sendInterruptToTerminal
+
+    LlmEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [llmEvent]
+            action:
+              enum:
+                - inference
+                - legacyInference
+
+    TaskEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [taskEvent]
+            action:
+              enum:
+                - addTask
+                - addSimpleTask
+                - getTasks
+                - getTasksByAgent
+                - getTasksByCategory
+                - getAllAgents
+                - updateTask
+                - deleteTask
+                - addSubTask
+                - updateSubTask
+                - deleteSubTask
+                - createTasksFromMarkdown
+                - exportTasksToMarkdown
+
+    VectordbEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [vectordbEvent]
+            action:
+              enum:
+                - getVector
+                - addVectorItem
+                - queryVectorItem
+                - queryVectorItems
+
+    MemoryEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [memoryEvent]
+            action:
+              enum:
+                - memorySet
+                - memoryGet
+
+    DebugEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [debugEvent]
+            action:
+              enum:
+                - addLog
+                - openDebugBrowser
+
+    CrawlerEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [crawlerEvent]
+            action:
+              enum:
+                - startCrawler
+                - crawlerScreenshot
+                - crawlerGoToPage
+                - crawlerScroll
+                - crawlerClick
+
+    ProjectEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [projectEvent]
+            action:
+              enum:
+                - getProjectSettings
+                - getProjectPath
+                - getRepoMap
+                - getEditorFileStatus
+                - runProject
+
+    ChatEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [chatEvent]
+            action:
+              enum:
+                - getChatHistory
+                - processStoped
+                - processStarted
+                - processFinished
+                - sendMessage
+                - waitforReply
+                - confirmationRequest
+                - notificationEvent
+
+    StateEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [stateEvent]
+            action:
+              enum:
+                - getApplicationState
+                - addToAgentState
+                - getAgentState
+                - getProjectState
+                - updateProjectState
+
+    McpEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [mcpEvent]
+            action:
+              enum:
+                - getEnabledToolBoxes
+                - getLocalToolBoxes
+                - getAvailableToolBoxes
+                - searchAvailableToolBoxes
+                - listToolsFromToolBoxes
+                - configureToolBox
+                - getTools
+                - executeTool
+
+    AgentEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [agentEvent]
+            action:
+              enum:
+                - findAgent
+                - startAgent
+                - listAgents
+                - getAgentsDetail
+
+    TokenizerEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [tokenizerEvent]
+            action:
+              enum:
+                - addToken
+                - getToken
+
+    HistoryEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [historyEvent]
+            action:
+              enum:
+                - summarizeAll
+                - summarize
+
+    UtilsEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [utilsEvent]
+            action:
+              enum:
+                - editFileAndApplyDiff
+
+    CodeUtilsEventPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEventPayload'
+        - type: object
+          properties:
+            type:
+              enum: [codeUtilsEvent]
+            action:
+              enum:
+                - getAllFilesMarkdown
+                - performMatch
+                - getMatcherList
+                - getMatchDetail
+
+    # Notification Payloads
+    AgentNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [agentnotify]
+            action:
+              enum:
+                - startSubagentTaskRequest
+                - startSubagentTaskResult
+                - subagentTaskCompleted
+
+    BrowserNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [browsernotify]
+            action:
+              enum:
+                - webFetchRequest
+                - webFetchResult
+                - webSearchRequest
+                - webSearchResult
+
+    ChatNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [chatnotify]
+            action:
+              enum:
+                - sendMessageRequest
+                - agentTextResponse
+                - getChatHistoryRequest
+                - getChatHistoryResult
+
+    CodeUtilsNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [codeutilsnotify]
+            action:
+              enum:
+                - grepSearchRequest
+                - grepSearchResult
+                - globSearchRequest
+                - globSearchResult
+
+    CrawlerNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [crawlernotify]
+            action:
+              enum:
+                - crawlerSearchRequest
+                - crawlerSearchResult
+                - crawlerStartRequest
+                - crawlerStartResult
+
+    DbMemoryNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [dbmemorynotify]
+            action:
+              enum:
+                - addKnowledgeRequest
+                - addKnowledgeResult
+                - getKnowledgeRequest
+                - getKnowledgeResult
+
+    FsNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [fsnotify]
+            action:
+              enum:
+                - createFileRequest
+                - createFileResult
+                - createFolderRequest
+                - createFolderResult
+                - readFileRequest
+                - readFileResult
+                - updateFileRequest
+                - updateFileResult
+                - deleteFileRequest
+                - deleteFileResult
+                - deleteFolderRequest
+                - deleteFolderResult
+                - listDirectoryRequest
+                - listDirectoryResult
+                - writeToFileRequest
+                - writeToFileResult
+                - appendToFileRequest
+                - appendToFileResult
+                - copyFileRequest
+                - copyFileResult
+                - moveFileRequest
+                - moveFileResult
+
+    GitNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [gitnotify]
+            action:
+              enum:
+                - initRequest
+                - initResult
+                - pullRequest
+                - pullResult
+                - pushRequest
+                - pushResult
+                - statusRequest
+                - statusResult
+                - addRequest
+                - addResult
+                - commitRequest
+                - commitResult
+                - checkoutRequest
+                - checkoutResult
+                - branchRequest
+                - branchResult
+                - logsRequest
+                - logsResult
+                - diffRequest
+                - diffResult
+                - remoteAddRequest
+                - remoteAddResult
+                - cloneRequest
+                - cloneResult
+
+    HistoryNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [historynotify]
+            action:
+              enum:
+                - summarizeAllRequest
+                - summarizeAllResult
+                - summarizeRequest
+                - summarizeResult
+
+    LlmNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [llmnotify]
+            action:
+              enum:
+                - inferenceRequest
+                - inferenceResult
+                - getTokenCountRequest
+                - getTokenCountResult
+
+    McpNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [mcpnotify]
+            action:
+              enum:
+                - getEnabledMCPServersRequest
+                - getEnabledMCPServersResult
+                - listToolsFromMCPServersRequest
+                - listToolsFromMCPServersResult
+                - getToolsRequest
+                - getToolsResult
+                - executeToolRequest
+                - executeToolResult
+
+    SearchNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [searchnotify]
+            action:
+              enum:
+                - searchInitRequest
+                - searchInitResult
+                - searchRequest
+                - searchResult
+                - getFirstLinkRequest
+                - getFirstLinkResult
+                - codebaseSearchRequest
+                - codebaseSearchResult
+
+    SystemNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [chatnotify]
+            action:
+              enum:
+                - agentInitialization
+                - agentCompletion
+
+    TerminalNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [terminalnotify]
+            action:
+              enum:
+                - executeCommandRequest
+                - executeCommandResult
+
+    TodoNotificationPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseNotificationPayload'
+        - type: object
+          properties:
+            type:
+              enum: [tasknotify]
+            action:
+              enum:
+                - addTaskRequest
+                - addTaskResult
+                - getTasksRequest
+                - getTasksResult
+                - updateTaskRequest
+                - updateTaskResult
+
+    # App-to-Agent Response Payload
+    ServiceResponsePayload:
+      type: object
+      required:
+        - requestId
+        - success
+      properties:
+        requestId:
+          type: string
+          description: Request identifier this response corresponds to
+        success:
+          type: boolean
+          description: Whether the operation was successful
+        data:
+          description: Response data
+          oneOf:
+            - type: string
+            - type: object
+            - type: array
+        error:
+          type: string
+          description: Error message if operation failed
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+
+  parameters:
+    AgentId:
+      description: Unique identifier for the agent
+      schema:
+        type: string
+    
+    RequestId:
+      description: Unique identifier for the request
+      schema:
+        type: string
+        
+    ToolUseId:
+      description: Unique identifier for tool usage
+      schema:
+        type: string
+
+tags:
+  - name: FileSystem
+    description: File and folder operations
+  - name: Git
+    description: Version control operations
+  - name: Browser
+    description: Web automation and navigation
+  - name: Terminal
+    description: Shell command execution
+  - name: LLM
+    description: Language model operations
+  - name: Tasks
+    description: Task and project management
+  - name: Memory
+    description: Agent state and knowledge management
+  - name: Tools
+    description: External tool integration
+  - name: Search
+    description: Code and web search operations
+  - name: Chat
+    description: Conversation and messaging

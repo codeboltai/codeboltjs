@@ -38,7 +38,8 @@
   },
   "dependencies": {
     "pdf-parse": "^1.1.1",
-    "@types/pdf-parse": "^1.1.5"
+    "@types/pdf-parse": "^1.1.5",
+    "@codebolt/codeboltjs": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

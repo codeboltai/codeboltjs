@@ -173,6 +173,31 @@ npm run build
 npm run type-check
 ```
 
+### Linting and Type Safety
+
+This package enforces strict type safety and prohibits the use of `any` types:
+
+```bash
+# Check for any 'any' type usage
+npm run check-no-any
+
+# Run ESLint
+npm run lint
+
+# Fix ESLint issues automatically
+npm run lint:fix
+```
+
+#### No-Any Type Policy
+
+This package maintains strict type safety by:
+- Enabling `noImplicitAny` in TypeScript configuration
+- Using ESLint rules to prevent explicit `any` usage
+- Custom script to detect and report `any` type usage
+- Pre-publish checks to ensure type safety
+
+All types should be properly defined rather than using `any` for better type safety and developer experience.
+
 ## Integration with CodeBolt SDK
 
 This package is designed to work seamlessly with:
