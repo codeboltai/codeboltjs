@@ -1,28 +1,34 @@
-module.exports = {
-  parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
-  extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
-  parserOptions: {
-    ecmaVersion: 2020,
-    sourceType: "module"
+const js = require("@eslint/js");
+const tseslint = require("typescript-eslint");
+
+module.exports = tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: true,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-return": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+    files: ["**/*.ts", "**/*.tsx"],
   },
-  rules: {
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unsafe-assignment": "warn",
-    "@typescript-eslint/no-unsafe-member-access": "warn",
-    "@typescript-eslint/no-unsafe-call": "warn",
-    "@typescript-eslint/no-unsafe-return": "warn",
-    "@typescript-eslint/no-unused-vars": "warn"
-  },
-  ignorePatterns: [
-    "dist/**/*",
-    "node_modules/**/*",
-    "*.js",
-    "bkp/**/*",
-    "testcases/**/*",
-    "tests/**/*"
-  ]
-};
+  {
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.turbo/**",
+      "**/bkp/**",
+      "**/testcases/**",
+      "**/tests/**",
+    ],
+  }
+);
