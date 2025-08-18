@@ -286,6 +286,371 @@ export interface GrepSearchOptions {
 }
 
 // ================================
+// File System Response Types
+// ================================
+
+/**
+ * Base response interface for all FS operations
+ */
+export interface BaseFSResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data */
+  data?: any;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Create file response types
+ */
+export interface CreateFileSuccessResponse extends BaseFSResponse {
+  type: 'createFileResponse';
+  success: true;
+}
+
+export interface CreateFileErrorResponse extends BaseFSResponse {
+  type: 'createFileResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Create folder response types
+ */
+export interface CreateFolderSuccessResponse extends BaseFSResponse {
+  type: 'createFolderResponse';
+  success: true;
+}
+
+export interface CreateFolderErrorResponse extends BaseFSResponse {
+  type: 'createFolderResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Read file response types
+ */
+export interface ReadFileSuccessResponse extends BaseFSResponse {
+  type: 'readFileResponse';
+  success: true;
+  /** File content */
+  content?: string;
+}
+
+export interface ReadFileErrorResponse extends BaseFSResponse {
+  type: 'readFileResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Update file response types
+ */
+export interface UpdateFileSuccessResponse extends BaseFSResponse {
+  type: 'updateFileResponse';
+  success: true;
+}
+
+export interface UpdateFileErrorResponse extends BaseFSResponse {
+  type: 'updateFileResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Delete file response types
+ */
+export interface DeleteFileSuccessResponse extends BaseFSResponse {
+  type: 'deleteFileResponse';
+  success: true;
+}
+
+export interface DeleteFileErrorResponse extends BaseFSResponse {
+  type: 'deleteFileResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Delete folder response types
+ */
+export interface DeleteFolderSuccessResponse extends BaseFSResponse {
+  type: 'deleteFolderResponse';
+  success: true;
+}
+
+export interface DeleteFolderErrorResponse extends BaseFSResponse {
+  type: 'deleteFolderResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * File list response types
+ */
+export interface FileListSuccessResponse extends BaseFSResponse {
+  type: 'fileListResponse';
+  success: true;
+  /** Array of file information */
+  files?: Array<{
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    size?: number;
+    modified?: string;
+    created?: string;
+  }>;
+}
+
+export interface FileListErrorResponse extends BaseFSResponse {
+  type: 'fileListResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Search files response types
+ */
+export interface SearchFilesSuccessResponse extends BaseFSResponse {
+  type: 'searchFilesResponse';
+  success: true;
+  /** Search results */
+  files?: Array<{
+    path: string;
+    matches: Array<{
+      line: number;
+      content: string;
+      lineNumber: number;
+    }>;
+  }>;
+}
+
+export interface SearchFilesErrorResponse extends BaseFSResponse {
+  type: 'searchFilesResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Write to file response types
+ */
+export interface WriteToFileSuccessResponse extends BaseFSResponse {
+  type: 'writeToFileResponse';
+  success: true;
+}
+
+export interface WriteToFileErrorResponse extends BaseFSResponse {
+  type: 'writeToFileResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Grep search response types
+ */
+export interface GrepSearchSuccessResponse extends BaseFSResponse {
+  type: 'grepSearchResponse';
+  success: true;
+  /** Search results */
+  results?: Array<{
+    file: string;
+    line: number;
+    content: string;
+    match: string;
+  }>;
+}
+
+export interface GrepSearchErrorResponse extends BaseFSResponse {
+  type: 'grepSearchResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * File search response types
+ */
+export interface FileSearchSuccessResponse extends BaseFSResponse {
+  type: 'fileSearchResponse';
+  success: true;
+  /** Array of matching file paths */
+  files?: string[];
+}
+
+export interface FileSearchErrorResponse extends BaseFSResponse {
+  type: 'fileSearchResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * List code definition names response types
+ */
+export interface ListCodeDefinitionNamesSuccessResponse extends BaseFSResponse {
+  type: 'listCodeDefinitionNamesResponse';
+  success: true;
+  /** Array of code definition names */
+  definitions?: string[];
+}
+
+export interface ListCodeDefinitionNamesErrorResponse extends BaseFSResponse {
+  type: 'listCodeDefinitionNamesResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Edit file with diff response types
+ */
+export interface EditFileAndApplyDiffSuccessResponse extends BaseFSResponse {
+  type: 'editFileAndApplyDiffResponse';
+  success: true;
+  /** Diff result information */
+  data?: {
+    status: 'success' | 'error' | 'review_started' | 'rejected';
+    file: string;
+    message: string;
+  };
+}
+
+export interface EditFileAndApplyDiffErrorResponse extends BaseFSResponse {
+  type: 'editFileAndApplyDiffResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all FS responses
+ */
+export type FSResponse = 
+  | CreateFileSuccessResponse | CreateFileErrorResponse
+  | CreateFolderSuccessResponse | CreateFolderErrorResponse
+  | ReadFileSuccessResponse | ReadFileErrorResponse
+  | UpdateFileSuccessResponse | UpdateFileErrorResponse
+  | DeleteFileSuccessResponse | DeleteFileErrorResponse
+  | DeleteFolderSuccessResponse | DeleteFolderErrorResponse
+  | FileListSuccessResponse | FileListErrorResponse
+  | SearchFilesSuccessResponse | SearchFilesErrorResponse
+  | WriteToFileSuccessResponse | WriteToFileErrorResponse
+  | GrepSearchSuccessResponse | GrepSearchErrorResponse
+  | FileSearchSuccessResponse | FileSearchErrorResponse
+  | ListCodeDefinitionNamesSuccessResponse | ListCodeDefinitionNamesErrorResponse
+  | EditFileAndApplyDiffSuccessResponse | EditFileAndApplyDiffErrorResponse;
+
+/**
+ * File system operation parameters
+ */
+export interface CreateFileParams {
+  /** File name to create */
+  fileName: string;
+  /** Source content for the file */
+  source: string;
+  /** Path where to create the file */
+  filePath: string;
+}
+
+export interface CreateFolderParams {
+  /** Folder name to create */
+  folderName: string;
+  /** Path where to create the folder */
+  folderPath: string;
+}
+
+export interface ReadFileParams {
+  /** Path of the file to read */
+  filePath: string;
+}
+
+export interface UpdateFileParams {
+  /** Name of the file to update */
+  filename: string;
+  /** Path of the file to update */
+  filePath: string;
+  /** New content for the file */
+  newContent: string;
+}
+
+export interface DeleteFileParams {
+  /** Name of the file to delete */
+  filename: string;
+  /** Path of the file to delete */
+  filePath: string;
+}
+
+export interface DeleteFolderParams {
+  /** Name of the folder to delete */
+  foldername: string;
+  /** Path of the folder to delete */
+  folderpath: string;
+}
+
+export interface ListFileParams {
+  /** Path to list files from */
+  folderPath: string;
+  /** Whether to list files recursively */
+  isRecursive?: boolean;
+}
+
+export interface ListCodeDefinitionNamesParams {
+  /** Path to search for code definitions */
+  path: string;
+}
+
+export interface SearchFilesParams {
+  /** Path to search within */
+  path: string;
+  /** Regex pattern to search for */
+  regex: string;
+  /** File pattern to match files */
+  filePattern: string;
+}
+
+export interface WriteToFileParams {
+  /** Relative path of the file to write to */
+  relPath: string;
+  /** New content to write into the file */
+  newContent: string;
+}
+
+export interface GrepSearchParams {
+  /** Path to search within */
+  path: string;
+  /** Query to search for */
+  query: string;
+  /** Pattern of files to include */
+  includePattern?: string;
+  /** Pattern of files to exclude */
+  excludePattern?: string;
+  /** Whether the search is case sensitive */
+  caseSensitive?: boolean;
+}
+
+export interface FileSearchParams {
+  /** Query to search for */
+  query: string;
+}
+
+export interface EditFileWithDiffParams {
+  /** Target file to edit */
+  target_file: string;
+  /** Code edit to apply */
+  code_edit: string;
+  /** Diff identifier */
+  diffIdentifier: string;
+  /** Prompt for the edit */
+  prompt: string;
+  /** Model to apply the edit with */
+  applyModel?: string;
+}
+
+// ================================
 // Browser API Types
 // ================================
 
@@ -810,6 +1175,8 @@ export interface CodeboltConfig {
   };
 }
 
+
+
 // ================================
 // Callback Types
 // ================================
@@ -818,3 +1185,38 @@ export type ProgressCallback = (progress: number, message?: string) => void;
 export type ErrorCallback = (error: Error) => void;
 export type SuccessCallback<T = any> = (result: T) => void;
 export type CompletionCallback<T = any> = (error: Error | null, result?: T) => void;
+
+// ================================
+// Summary Section
+// ================================
+
+/**
+ * This file contains comprehensive TypeScript types for the codeboltjs library API.
+ * 
+ * Key sections include:
+ * - Message Types for Library API
+ * - File System API Types and Response Types
+ * - Browser API Types
+ * - Terminal API Types
+ * - Git API Types
+ * - LLM API Types
+ * - Vector Database API Types
+ * - Agent API Types
+ * - Memory API Types
+ * - Task API Types
+ * - Code Utils API Types
+ * - Debug API Types
+ * - Project API Types
+ * - Crawler API Types
+ * - MCP Tools API Types
+ * - State Management API Types
+ * - Chat API Types
+ * - Notification API Types
+ * - Utility Types for API
+ * - Event Types for API
+ * - Configuration Types for Library
+ * - Callback Types
+ * 
+ * All types are designed to be user-friendly and provide comprehensive
+ * type safety for the codeboltjs library functions.
+ */

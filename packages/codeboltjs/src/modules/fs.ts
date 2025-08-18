@@ -1,7 +1,20 @@
 import cbws from '../core/websocket';
-import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse } from '../types/socketMessageTypes';
-
 import { FSAction, FSResponseType, EventType } from '@codebolt/types';
+import { 
+  CreateFileSuccessResponse, CreateFileErrorResponse,
+  CreateFolderSuccessResponse, CreateFolderErrorResponse,
+  ReadFileSuccessResponse, ReadFileErrorResponse,
+  UpdateFileSuccessResponse, UpdateFileErrorResponse,
+  DeleteFileSuccessResponse, DeleteFileErrorResponse,
+  DeleteFolderSuccessResponse, DeleteFolderErrorResponse,
+  FileListSuccessResponse, FileListErrorResponse,
+  ListCodeDefinitionNamesSuccessResponse, ListCodeDefinitionNamesErrorResponse,
+  SearchFilesSuccessResponse, SearchFilesErrorResponse,
+  WriteToFileSuccessResponse, WriteToFileErrorResponse,
+  GrepSearchSuccessResponse, GrepSearchErrorResponse,
+  FileSearchSuccessResponse, FileSearchErrorResponse,
+  EditFileAndApplyDiffSuccessResponse, EditFileAndApplyDiffErrorResponse
+} from '../types/libFunctionTypes';
 
 /**
  * @module cbfs
@@ -16,9 +29,9 @@ const cbfs = {
      * @param {string} fileName - The name of the file to create.
      * @param {string} source - The source content to write into the file.
      * @param {string} filePath - The path where the file should be created.
-     * @returns {Promise<CreateFileResponse>} A promise that resolves with the server response.
+     * @returns {Promise<CreateFileSuccessResponse | CreateFileErrorResponse>} A promise that resolves with the server response.
      */
-    createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileResponse> => {
+    createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileSuccessResponse | CreateFileErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -37,9 +50,9 @@ const cbfs = {
      * @description Creates a new folder.
      * @param {string} folderName - The name of the folder to create.
      * @param {string} folderPath - The path where the folder should be created.
-     * @returns {Promise<CreateFolderResponse>} A promise that resolves with the server response.
+     * @returns {Promise<CreateFolderSuccessResponse | CreateFolderErrorResponse>} A promise that resolves with the server response.
      */
-    createFolder: (folderName: string, folderPath: string): Promise<CreateFolderResponse> => {
+    createFolder: (folderName: string, folderPath: string): Promise<CreateFolderSuccessResponse | CreateFolderErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -55,11 +68,10 @@ const cbfs = {
     /**
      * @function readFile
      * @description Reads the content of a file.
-     * @param {string} filename - The name of the file to read.
      * @param {string} filePath - The path of the file to read.
-     * @returns {Promise<ReadFileResponse>} A promise that resolves with the server response.
+     * @returns {Promise<ReadFileSuccessResponse | ReadFileErrorResponse>} A promise that resolves with the server response.
      */
-    readFile: (filePath: string): Promise<ReadFileResponse> => {
+    readFile: (filePath: string): Promise<ReadFileSuccessResponse | ReadFileErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -77,9 +89,9 @@ const cbfs = {
      * @param {string} filename - The name of the file to update.
      * @param {string} filePath - The path of the file to update.
      * @param {string} newContent - The new content to write into the file.
-     * @returns {Promise<UpdateFileResponse>} A promise that resolves with the server response.
+     * @returns {Promise<UpdateFileSuccessResponse | UpdateFileErrorResponse>} A promise that resolves with the server response.
      */
-    updateFile: (filename: string, filePath: string, newContent: string): Promise<UpdateFileResponse> => {
+    updateFile: (filename: string, filePath: string, newContent: string): Promise<UpdateFileSuccessResponse | UpdateFileErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -98,9 +110,9 @@ const cbfs = {
      * @description Deletes a file.
      * @param {string} filename - The name of the file to delete.
      * @param {string} filePath - The path of the file to delete.
-     * @returns {Promise<DeleteFileResponse>} A promise that resolves with the server response.
+     * @returns {Promise<DeleteFileSuccessResponse | DeleteFileErrorResponse>} A promise that resolves with the server response.
      */
-    deleteFile: (filename: string, filePath: string): Promise<DeleteFileResponse> => {
+    deleteFile: (filename: string, filePath: string): Promise<DeleteFileSuccessResponse | DeleteFileErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -118,9 +130,9 @@ const cbfs = {
      * @description Deletes a folder.
      * @param {string} foldername - The name of the folder to delete.
      * @param {string} folderpath - The path of the folder to delete.
-     * @returns {Promise<DeleteFolderResponse>} A promise that resolves with the server response.
+     * @returns {Promise<DeleteFolderSuccessResponse | DeleteFolderErrorResponse>} A promise that resolves with the server response.
      */
-    deleteFolder: (foldername: string, folderpath: string): Promise<DeleteFolderResponse> => {
+    deleteFolder: (foldername: string, folderpath: string): Promise<DeleteFolderSuccessResponse | DeleteFolderErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -136,9 +148,9 @@ const cbfs = {
     /**
      * @function listFile
      * @description Lists all files.
-     * @returns {Promise<FileListResponse>} A promise that resolves with the list of files.
+     * @returns {Promise<FileListSuccessResponse | FileListErrorResponse>} A promise that resolves with the list of files.
      */
-    listFile: (folderPath: string, isRecursive: boolean = false): Promise<any> => {
+    listFile: (folderPath: string, isRecursive: boolean = false): Promise<FileListSuccessResponse | FileListErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -155,9 +167,9 @@ const cbfs = {
      * @function listCodeDefinitionNames
      * @description Lists all code definition names in a given path.
      * @param {string} path - The path to search for code definitions.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of code definition names.
+     * @returns {Promise<ListCodeDefinitionNamesSuccessResponse | ListCodeDefinitionNamesErrorResponse>} A promise that resolves with the list of code definition names.
      */
-    listCodeDefinitionNames: (path: string): Promise<{success: boolean, result: any}> => {
+    listCodeDefinitionNames: (path: string): Promise<ListCodeDefinitionNamesSuccessResponse | ListCodeDefinitionNamesErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -176,9 +188,9 @@ const cbfs = {
      * @param {string} path - The path to search within.
      * @param {string} regex - The regex pattern to search for.
      * @param {string} filePattern - The file pattern to match files.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<SearchFilesSuccessResponse | SearchFilesErrorResponse>} A promise that resolves with the search results.
      */
-    searchFiles: (path: string, regex: string, filePattern: string): Promise<{success: boolean, result: any}> => {
+    searchFiles: (path: string, regex: string, filePattern: string): Promise<SearchFilesSuccessResponse | SearchFilesErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -197,9 +209,9 @@ const cbfs = {
      * @description Writes content to a file.
      * @param {string} relPath - The relative path of the file to write to.
      * @param {string} newContent - The new content to write into the file.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the write operation result.
+     * @returns {Promise<WriteToFileSuccessResponse | WriteToFileErrorResponse>} A promise that resolves with the write operation result.
      */
-    writeToFile: (relPath:string, newContent:string) => {
+    writeToFile: (relPath:string, newContent:string): Promise<WriteToFileSuccessResponse | WriteToFileErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -231,9 +243,9 @@ const cbfs = {
      * @param {string} includePattern - Pattern of files to include.
      * @param {string} excludePattern - Pattern of files to exclude.
      * @param {boolean} caseSensitive - Whether the search is case sensitive.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<GrepSearchSuccessResponse | GrepSearchErrorResponse>} A promise that resolves with the search results.
      */
-    grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<{success: boolean, result: any}> => {
+    grepSearch: (path: string, query: string, includePattern?: string, excludePattern?: string, caseSensitive: boolean = true): Promise<GrepSearchSuccessResponse | GrepSearchErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -254,9 +266,9 @@ const cbfs = {
      * @function fileSearch
      * @description Performs a fuzzy search for files.
      * @param {string} query - The query to search for.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the search results.
+     * @returns {Promise<FileSearchSuccessResponse | FileSearchErrorResponse>} A promise that resolves with the search results.
      */
-    fileSearch: (query: string): Promise<{success: boolean, result: any}> => {
+    fileSearch: (query: string): Promise<FileSearchSuccessResponse | FileSearchErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -277,9 +289,9 @@ const cbfs = {
      * @param {string} diffIdentifier - The diff identifier.
      * @param {string} prompt - The prompt for the edit.
      * @param {string} applyModel - The model to apply the edit with.
-     * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the edit result.
+     * @returns {Promise<EditFileAndApplyDiffSuccessResponse | EditFileAndApplyDiffErrorResponse>} A promise that resolves with the edit result.
      */
-    editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<{success: boolean, result: any}> => {
+    editFileWithDiff: (targetFile: string, codeEdit: string, diffIdentifier: string, prompt: string, applyModel?: string): Promise<EditFileAndApplyDiffSuccessResponse | EditFileAndApplyDiffErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
