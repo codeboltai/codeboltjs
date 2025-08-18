@@ -1,6 +1,15 @@
 import cbws from '../core/websocket';
-import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '../types/socketMessageTypes';
 import { EventType, BrowserAction, BrowserResponseType } from '@codebolt/types';
+import { 
+    BrowserNewPageSuccessResponse, BrowserNewPageErrorResponse,
+    BrowserGoToPageSuccessResponse, BrowserGoToPageErrorResponse,
+    BrowserGetUrlSuccessResponse, BrowserGetUrlErrorResponse,
+    BrowserScreenshotSuccessResponse, BrowserScreenshotErrorResponse,
+    BrowserGetHtmlSuccessResponse, BrowserGetHtmlErrorResponse,
+    BrowserGetMarkdownSuccessResponse, BrowserGetMarkdownErrorResponse,
+    BrowserGetContentSuccessResponse, BrowserGetContentErrorResponse,
+    BrowserExtractTextSuccessResponse, BrowserExtractTextErrorResponse
+} from '../types/libFunctionTypes';
 
 /**
  * A module for interacting with a browser through WebSockets.
@@ -10,7 +19,7 @@ const cbbrowser = {
     /**
      * Opens a new page in the browser.
      */
-    newPage: (): Promise<BrowserActionResponseData> => {
+    newPage: (): Promise<BrowserNewPageSuccessResponse> => {
        
         return cbws.messageManager.sendAndWaitForResponse(
             {
@@ -23,9 +32,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the current URL of the browser's active page.
-     * @returns {Promise<UrlResponse>} A promise that resolves with the URL.
+     * @returns {Promise<BrowserGetUrlSuccessResponse>} A promise that resolves with the URL.
      */
-    getUrl: (): Promise<UrlResponse> => {
+    getUrl: (): Promise<BrowserGetUrlSuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.BROWSER_EVENT,
@@ -38,9 +47,9 @@ const cbbrowser = {
     /**
      * Navigates to a specified URL.
      * @param {string} url - The URL to navigate to.
-     * @returns {Promise<GoToPageResponse>} A promise that resolves when navigation is complete.
+     * @returns {Promise<BrowserGoToPageSuccessResponse>} A promise that resolves when navigation is complete.
      */
-    goToPage: (url: string): Promise<GoToPageResponse> => {
+    goToPage: (url: string): Promise<BrowserGoToPageSuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.BROWSER_EVENT,
@@ -54,7 +63,7 @@ const cbbrowser = {
     /**
      * Takes a screenshot of the current page.
      */
-    screenshot: (): Promise<BrowserScreenshotResponse> => {
+    screenshot: (): Promise<BrowserScreenshotSuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
             "type": EventType.BROWSER_EVENT,
@@ -66,9 +75,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the HTML content of the current page.
-     * @returns {Promise<HtmlReceived>} A promise that resolves with the HTML content.
+     * @returns {Promise<BrowserGetHtmlSuccessResponse>} A promise that resolves with the HTML content.
      */
-    getHTML: (): Promise<HtmlReceived> => {
+    getHTML: (): Promise<BrowserGetHtmlSuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.BROWSER_EVENT,
@@ -80,9 +89,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the Markdown content of the current page.
-     * @returns {Promise<GetMarkdownResponse>} A promise that resolves with the Markdown content.
+     * @returns {Promise<BrowserGetMarkdownSuccessResponse>} A promise that resolves with the Markdown content.
      */
-    getMarkdown: (): Promise<GetMarkdownResponse> => {
+    getMarkdown: (): Promise<BrowserGetMarkdownSuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.BROWSER_EVENT,
@@ -115,9 +124,9 @@ const cbbrowser = {
 
     /**
      * Retrieves the content of the current page.
-     *  @returns {Promise<GetContentResponse>} A promise that resolves with the content.
+     *  @returns {Promise<BrowserGetContentSuccessResponse>} A promise that resolves with the content.
      */
-    getContent: (): Promise<GetContentResponse> => {
+    getContent: (): Promise<BrowserGetContentSuccessResponse> => {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {
@@ -158,10 +167,10 @@ const cbbrowser = {
 
     /**
      * Extracts text from the current page.
-     *  @returns {Promise<ExtractTextResponse>} A promise that resolves with the extracted text.
+     *  @returns {Promise<BrowserExtractTextSuccessResponse>} A promise that resolves with the extracted text.
      * 
      */
-    extractText: (): Promise<ExtractTextResponse> => {
+    extractText: (): Promise<BrowserExtractTextSuccessResponse> => {
         
         return cbws.messageManager.sendAndWaitForResponse(
             {

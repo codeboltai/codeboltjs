@@ -3,14 +3,12 @@ import type {
     Task, 
     SubTask, 
     TaskResponse,
-    TaskCreateOptions,
-    TaskUpdateOptions,
-    AddSubTaskOptions,
-    UpdateSubTaskOptions,
-    TaskFilterOptions,
-    TaskMarkdownImportOptions,
-    TaskMarkdownExportOptions
-} from '../types';
+    TaskAddParams,
+    TaskGetParams,
+    TaskUpdateParams,
+    SubTaskAddParams,
+    SubTaskUpdateParams
+} from '../types/libFunctionTypes';
 import { EventType, TaskAction, TaskResponseType } from '@codebolt/types';
 
 /**
@@ -19,10 +17,10 @@ import { EventType, TaskAction, TaskResponseType } from '@codebolt/types';
 const taskplaner = {
     /**
      * Adds a new task with enhanced parameters.
-     * @param {TaskCreateOptions} params - The task parameters including title, agentId, description, etc.
+     * @param {TaskAddParams} params - The task parameters including title, agentId, description, etc.
      * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add task event.
      */
-    addTask: async (params: TaskCreateOptions): Promise<TaskResponse> => {
+    addTask: async (params: TaskAddParams): Promise<TaskResponse> => {
         const { title, agentId = 'default-agent', description, phase, category, priority, tags } = params;
         
         return cbws.messageManager.sendAndWaitForResponse(
@@ -65,10 +63,10 @@ const taskplaner = {
 
     /**
      * Retrieves all tasks with optional filtering.
-     * @param {TaskFilterOptions} filters - Optional filters for agentId, category, phase, etc.
+     * @param {TaskGetParams} filters - Optional filters for agentId, category, phase, etc.
      * @returns {Promise<TaskResponse>} A promise that resolves with the response from the get tasks event.
      */
-    getTasks: async (filters: TaskFilterOptions = {}): Promise<TaskResponse> => {
+    getTasks: async (filters: TaskGetParams = {}): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: EventType.TASK_EVENT,
@@ -131,10 +129,10 @@ const taskplaner = {
 
     /**
      * Updates an existing task.
-     * @param {TaskUpdateOptions} params - The task update parameters.
+     * @param {TaskUpdateParams} params - The task update parameters.
      * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
      */
-    updateTask: async (params: TaskUpdateOptions): Promise<TaskResponse> => {
+    updateTask: async (params: TaskUpdateParams): Promise<TaskResponse> => {
         const { taskId, ...updates } = params;
         
         return cbws.messageManager.sendAndWaitForResponse(
@@ -190,10 +188,10 @@ const taskplaner = {
 
     /**
      * Adds a subtask to an existing task.
-     * @param {AddSubTaskOptions} params - The subtask parameters.
+     * @param {SubTaskAddParams} params - The subtask parameters.
      * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add subtask event.
      */
-    addSubTask: async (params: AddSubTaskOptions): Promise<TaskResponse> => {
+    addSubTask: async (params: SubTaskAddParams): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: EventType.TASK_EVENT,
@@ -206,10 +204,10 @@ const taskplaner = {
 
     /**
      * Updates an existing subtask.
-     * @param {UpdateSubTaskOptions} params - The subtask update parameters.
+     * @param {SubTaskUpdateParams} params - The subtask update parameters.
      * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update subtask event.
      */
-    updateSubTask: async (params: UpdateSubTaskOptions): Promise<TaskResponse> => {
+    updateSubTask: async (params: SubTaskUpdateParams): Promise<TaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: EventType.TASK_EVENT,

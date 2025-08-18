@@ -1,8 +1,12 @@
 import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
-import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '../types/socketMessageTypes';
-
 import { TerminalEventType, TerminalResponseType } from '@codebolt/types';
+import { 
+    TerminalCommandOutputSuccessResponse, TerminalCommandOutputErrorResponse,
+    TerminalCommandErrorSuccessResponse, TerminalCommandErrorErrorResponse,
+    TerminalCommandFinishSuccessResponse, TerminalCommandFinishErrorResponse,
+    TerminalInterruptSuccessResponse, TerminalInterruptErrorResponse
+} from '../types/libFunctionTypes';
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
@@ -21,9 +25,10 @@ const cbterminal = {
      * of the executed command and resolves the promise accordingly.
      *
      * @param {string} command - The command to be executed.
-     * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
+     * @param {boolean} returnEmptyStringOnSuccess - Whether to return empty string on success.
+     * @returns {Promise<TerminalCommandOutputSuccessResponse | TerminalCommandOutputErrorResponse | TerminalCommandErrorSuccessResponse | TerminalCommandErrorErrorResponse | TerminalCommandFinishSuccessResponse | TerminalCommandFinishErrorResponse>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false) => {
+    executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false): Promise<TerminalCommandOutputSuccessResponse | TerminalCommandOutputErrorResponse | TerminalCommandErrorSuccessResponse | TerminalCommandErrorErrorResponse | TerminalCommandFinishSuccessResponse | TerminalCommandFinishErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": TerminalEventType.EXECUTE_COMMAND,
@@ -39,9 +44,10 @@ const cbterminal = {
      * Listens for messages from the WebSocket and resolves the promise when an error is encountered.
      *
      * @param {string} command - The command to be executed.
-     * @returns {Promise<CommandError>} A promise that resolves when an error occurs during command execution.
+     * @param {boolean} executeInMain - Whether to execute in main process.
+     * @returns {Promise<TerminalCommandErrorSuccessResponse | TerminalCommandErrorErrorResponse>} A promise that resolves when an error occurs during command execution.
      */
-    executeCommandRunUntilError: async (command: string,executeInMain=false): Promise<CommandError> => {
+    executeCommandRunUntilError: async (command: string,executeInMain=false): Promise<TerminalCommandErrorSuccessResponse | TerminalCommandErrorErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": TerminalEventType.EXECUTE_COMMAND_RUN_UNTIL_ERROR,
@@ -56,9 +62,9 @@ const cbterminal = {
     /**
      * Sends a manual interrupt signal to the terminal.
      *
-     * @returns {Promise<TerminalInterruptResponse>} 
+     * @returns {Promise<TerminalInterruptSuccessResponse | TerminalInterruptErrorResponse>} 
      */
-    sendManualInterrupt(): Promise<TerminalInterruptResponse>  {
+    sendManualInterrupt(): Promise<TerminalInterruptSuccessResponse | TerminalInterruptErrorResponse>  {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": TerminalEventType.SEND_INTERRUPT_TO_TERMINAL,

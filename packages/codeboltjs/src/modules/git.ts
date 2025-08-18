@@ -1,30 +1,30 @@
 import cbws from '../core/websocket';
+import { EventType, GitAction, GitResponseType } from '@codebolt/types';
 import { 
-    GitInitResponse, 
-    GitPullResponse, 
-    GitPushResponse, 
-    GitStatusResponse, 
-    AddResponse, 
-    GitCommitResponse, 
-    GitCheckoutResponse, 
-    GitBranchResponse, 
-    GitLogsResponse, 
-    GitDiffResponse 
-} from '../types/socketMessageTypes';
+    GitInitSuccessResponse, GitInitErrorResponse,
+    GitPullSuccessResponse, GitPullErrorResponse,
+    GitPushSuccessResponse, GitPushErrorResponse,
+    GitStatusSuccessResponse, GitStatusErrorResponse,
+    GitAddSuccessResponse, GitAddErrorResponse,
+    GitCommitSuccessResponse, GitCommitErrorResponse,
+    GitCheckoutSuccessResponse, GitCheckoutErrorResponse,
+    GitBranchSuccessResponse, GitBranchErrorResponse,
+    GitLogsSuccessResponse, GitLogsErrorResponse,
+    GitDiffSuccessResponse, GitDiffErrorResponse
+} from '../types/libFunctionTypes';
 
-
-import { EventType , GitAction, GitResponseType} from '@codebolt/types';
 
 /**
  * A service for interacting with Git operations via WebSocket messages.
  */
+
 const gitService = {
     /**
      * Initializes a new Git repository at the given path.
      * @param {string} path - The file system path where the Git repository should be initialized.
-     * @returns {Promise<GitInitResponse>} A promise that resolves with the response from the init event.
+     * @returns {Promise<GitInitSuccessResponse | GitInitErrorResponse>} A promise that resolves with the response from the init event.
      */
-    init: async (path: string): Promise<GitInitResponse> => {
+    init: async (path: string): Promise<GitInitSuccessResponse | GitInitErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -36,11 +36,10 @@ const gitService = {
     },  
    
     /**
-     * Pulls the latest changes from the remote repository to the local repository at the given path.
-     * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<GitPullResponse>} A promise that resolves with the response from the pull event.
+     * Pulls the latest changes from the remote repository to the local repository.
+     * @returns {Promise<GitPullSuccessResponse | GitPullErrorResponse>} A promise that resolves with the response from the pull event.
      */
-    pull: async (): Promise<GitPullResponse> => {
+    pull: async (): Promise<GitPullSuccessResponse | GitPullErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -50,11 +49,10 @@ const gitService = {
         );
     },
     /**
-     * Pushes local repository changes to the remote repository at the given path.
-     * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<GitPushResponse>} A promise that resolves with the response from the push event.
+     * Pushes local repository changes to the remote repository.
+     * @returns {Promise<GitPushSuccessResponse | GitPushErrorResponse>} A promise that resolves with the response from the push event.
      */
-    push: async (): Promise<GitPushResponse> => {
+    push: async (): Promise<GitPushSuccessResponse | GitPushErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -65,11 +63,10 @@ const gitService = {
         );
     },
     /**
-     * Retrieves the status of the local repository at the given path.
-     * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<GitStatusResponse>} A promise that resolves with the response from the status event.
+     * Retrieves the status of the local repository.
+     * @returns {Promise<GitStatusSuccessResponse | GitStatusErrorResponse>} A promise that resolves with the response from the status event.
      */
-    status: async (): Promise<GitStatusResponse> => {
+    status: async (): Promise<GitStatusSuccessResponse | GitStatusErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -79,11 +76,10 @@ const gitService = {
         );
     },
     /**
-     * Adds changes in the local repository to the staging area at the given path.
-     * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<AddResponse>} A promise that resolves with the response from the add event.
+     * Adds all changes in the local repository to the staging area.
+     * @returns {Promise<GitAddSuccessResponse | GitAddErrorResponse>} A promise that resolves with the response from the add event.
      */
-    addAll: async (): Promise<AddResponse> => {
+    addAll: async (): Promise<GitAddSuccessResponse | GitAddErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -95,9 +91,9 @@ const gitService = {
     /**
      * Commits the staged changes in the local repository with the given commit message.
      * @param {string} message - The commit message to use for the commit.
-     * @returns {Promise<GitCommitResponse>} A promise that resolves with the response from the commit event.
+     * @returns {Promise<GitCommitSuccessResponse | GitCommitErrorResponse>} A promise that resolves with the response from the commit event.
      */
-    commit: async (message: string): Promise<GitCommitResponse> => {
+    commit: async (message: string): Promise<GitCommitSuccessResponse | GitCommitErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -108,12 +104,11 @@ const gitService = {
         );
     },
     /**
-     * Checks out a branch or commit in the local repository at the given path.
-     * @param {string} path - The file system path of the local Git repository.
+     * Checks out a branch or commit in the local repository.
      * @param {string} branch - The name of the branch or commit to check out.
-     * @returns {Promise<GitCheckoutResponse>} A promise that resolves with the response from the checkout event.
+     * @returns {Promise<GitCheckoutSuccessResponse | GitCheckoutErrorResponse>} A promise that resolves with the response from the checkout event.
      */
-    checkout: async ( branch: string): Promise<GitCheckoutResponse> => {
+    checkout: async ( branch: string): Promise<GitCheckoutSuccessResponse | GitCheckoutErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -124,12 +119,11 @@ const gitService = {
         );
     },
     /**
-     * Creates a new branch in the local repository at the given path.
-     * @param {string} path - The file system path of the local Git repository.
+     * Creates a new branch in the local repository.
      * @param {string} branch - The name of the new branch to create.
-     * @returns {Promise<GitBranchResponse>} A promise that resolves with the response from the branch event.
+     * @returns {Promise<GitBranchSuccessResponse | GitBranchErrorResponse>} A promise that resolves with the response from the branch event.
      */
-    branch: async (branch: string): Promise<GitBranchResponse> => {
+    branch: async (branch: string): Promise<GitBranchSuccessResponse | GitBranchErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -140,11 +134,11 @@ const gitService = {
         );
     },
     /**
-     * Retrieves the commit logs for the local repository at the given path.
+     * Retrieves the commit logs for the local repository.
      * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<GitLogsResponse>} A promise that resolves with the response from the logs event.
+     * @returns {Promise<GitLogsSuccessResponse | GitLogsErrorResponse>} A promise that resolves with the response from the logs event.
      */
-    logs: async (path: string): Promise<GitLogsResponse> => {
+    logs: async (path: string): Promise<GitLogsSuccessResponse | GitLogsErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,
@@ -157,10 +151,9 @@ const gitService = {
     /**
      * Retrieves the diff of changes for a specific commit in the local repository.
      * @param {string} commitHash - The hash of the commit to retrieve the diff for.
-     * @param {string} path - The file system path of the local Git repository.
-     * @returns {Promise<GitDiffResponse>} A promise that resolves with the response from the diff event.
+     * @returns {Promise<GitDiffSuccessResponse | GitDiffErrorResponse>} A promise that resolves with the response from the diff event.
      */
-    diff: async (commitHash: string): Promise<GitDiffResponse> => {
+    diff: async (commitHash: string): Promise<GitDiffSuccessResponse | GitDiffErrorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.GIT_EVENT,

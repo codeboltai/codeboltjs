@@ -13,19 +13,56 @@
 // ================================
 
 /**
+ * Content block within a message
+ */
+export interface MessageContentBlock {
+  /** Type of content block */
+  type: 'text' | 'image' | 'file' | 'code' | 'error' | 'tool_result';
+  /** Text content for text blocks */
+  text?: string;
+  /** Image URL for image blocks */
+  image_url?: string;
+  /** File information for file blocks */
+  file?: {
+    name: string;
+    path: string;
+    size?: number;
+    type?: string;
+  };
+  /** Code information for code blocks */
+  code?: {
+    language: string;
+    code: string;
+    filename?: string;
+  };
+  /** Error information for error blocks */
+  error?: {
+    message: string;
+    code?: string;
+    details?: Record<string, unknown>;
+  };
+  /** Tool result for tool_result blocks */
+  tool_result?: {
+    tool_name: string;
+    result: unknown;
+    success: boolean;
+  };
+}
+
+/**
  * Represents a message in the conversation with roles and content.
  */
 export interface Message {
   /** The role of the message sender: user, assistant, tool, or system */
   role: 'user' | 'assistant' | 'tool' | 'system';
   /** The content of the message, can be an array of content blocks or a string */
-  content: any[] | string;
+  content: MessageContentBlock[] | string;
   /** Optional ID for tool calls */
   tool_call_id?: string;
   /** Optional tool calls for assistant messages */
   tool_calls?: ToolCall[];
   /** Additional properties that might be present */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -46,6 +83,34 @@ export interface ToolCall {
 }
 
 /**
+ * JSON Schema for tool parameters
+ */
+export interface JSONSchema {
+  /** Schema type */
+  type: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'integer';
+  /** Schema description */
+  description?: string;
+  /** Required properties for objects */
+  required?: string[];
+  /** Properties for objects */
+  properties?: Record<string, JSONSchema>;
+  /** Items for arrays */
+  items?: JSONSchema;
+  /** Enum values */
+  enum?: unknown[];
+  /** Minimum value for numbers */
+  minimum?: number;
+  /** Maximum value for numbers */
+  maximum?: number;
+  /** Pattern for strings */
+  pattern?: string;
+  /** Format for strings */
+  format?: string;
+  /** Additional properties allowed */
+  additionalProperties?: boolean | JSONSchema;
+}
+
+/**
  * Represents a tool definition in OpenAI format
  */
 export interface Tool {
@@ -58,7 +123,7 @@ export interface Tool {
     /** Description of what the function does */
     description?: string;
     /** JSON schema for the function parameters */
-    parameters?: any;
+    parameters?: JSONSchema;
   };
 }
 
@@ -135,7 +200,7 @@ export interface ConversationEntry {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | Array<{ type: string; text: string }>;
   tool_call_id?: string;
-  tool_calls?: any[];
+  tool_calls?: ToolCall[];
 }
 
 /**
@@ -147,9 +212,9 @@ export interface ToolResult {
   /** ID that links this result to the original tool call */
   tool_call_id: string;
   /** The content returned by the tool */
-  content: any;
+  content: string | Record<string, unknown>;
   /** Optional user message to be added after tool execution */
-  userMessage?: any;
+  userMessage?: string | Record<string, unknown>;
 }
 
 /**
@@ -159,7 +224,7 @@ export interface ToolDetails {
   /** The name of the tool to execute */
   toolName: string;
   /** Input parameters for the tool */
-  toolInput: any;
+  toolInput: Record<string, unknown>;
   /** Unique ID for this tool use instance */
   toolUseId: string;
 }
@@ -204,9 +269,13 @@ export interface UserMessage {
   /** Thread identifier */
   threadId: string;
   /** Any text selection in the editor */
-  selection?: any;
-  remixPrompt?:string
-  mentionedAgents?:[]
+  selection?: {
+    start: number;
+    end: number;
+    text: string;
+  };
+  remixPrompt?: string;
+  mentionedAgents?: string[];
 }
 
 /**
@@ -215,8 +284,8 @@ export interface UserMessage {
 export interface CodeboltAPI {
   mcp: {
     listMcpFromServers: (servers: string[]) => Promise<{ data: OpenAITool[] }>;
-    getTools: (mcps: any[]) => Promise<{ data: OpenAITool[] }>;
-    executeTool: (toolboxName: string, actualToolName: string, toolInput: any) => Promise<{ data: any }>;
+    getTools: (mcps: string[]) => Promise<{ data: OpenAITool[] }>;
+    executeTool: (toolboxName: string, actualToolName: string, toolInput: Record<string, unknown>) => Promise<{ data: string | Record<string, unknown> }>;
   };
   fs: {
     readFile: (filepath: string) => Promise<string>;
@@ -226,7 +295,7 @@ export interface CodeboltAPI {
     getProjectPath: () => Promise<{ projectPath: string }>;
   };
   chat: {
-    sendMessage: (message: string, metadata: any) => Promise<void>;
+    sendMessage: (message: string, metadata: Record<string, unknown>) => Promise<void>;
   };
 }
 
@@ -290,6 +359,117 @@ export interface GrepSearchOptions {
 // ================================
 
 /**
+ * File information structure
+ */
+export interface FileInfo {
+  /** File or directory name */
+  name: string;
+  /** Full path to the file or directory */
+  path: string;
+  /** Whether this is a directory */
+  isDirectory: boolean;
+  /** File size in bytes */
+  size?: number;
+  /** Last modified timestamp */
+  modified?: string;
+  /** Creation timestamp */
+  created?: string;
+  /** File permissions */
+  permissions?: string;
+  /** File extension */
+  extension?: string;
+}
+
+/**
+ * Search match information
+ */
+export interface SearchMatch {
+  /** Line number where match was found */
+  line: number;
+  /** Content of the line */
+  content: string;
+  /** Line number (alias for line) */
+  lineNumber: number;
+  /** Column where match starts */
+  column?: number;
+  /** Length of the match */
+  matchLength?: number;
+}
+
+/**
+ * File search result
+ */
+export interface FileSearchResult {
+  /** Path to the file */
+  path: string;
+  /** Matches found in the file */
+  matches: SearchMatch[];
+  /** Relevance score for fuzzy search */
+  score?: number;
+}
+
+/**
+ * Grep search result
+ */
+export interface GrepSearchResult {
+  /** Path to the file */
+  file: string;
+  /** Line number where match was found */
+  line: number;
+  /** Content of the line */
+  content: string;
+  /** The actual match text */
+  match: string;
+  /** Column where match starts */
+  column?: number;
+  /** Context lines before and after */
+  context?: {
+    before: string[];
+    after: string[];
+  };
+}
+
+/**
+ * Code definition information
+ */
+export interface CodeDefinition {
+  /** Name of the definition */
+  name: string;
+  /** Type of definition (function, class, variable, etc.) */
+  type: string;
+  /** File path where definition is located */
+  file: string;
+  /** Line number where definition starts */
+  line: number;
+  /** Column where definition starts */
+  column?: number;
+  /** Scope of the definition */
+  scope?: string;
+  /** Documentation comment if available */
+  documentation?: string;
+}
+
+/**
+ * Diff result information
+ */
+export interface DiffResult {
+  /** Status of the diff operation */
+  status: 'success' | 'error' | 'review_started' | 'rejected';
+  /** File that was modified */
+  file: string;
+  /** Result message */
+  message: string;
+  /** Diff content if available */
+  diff?: string;
+  /** Applied changes summary */
+  changes?: {
+    added: number;
+    removed: number;
+    modified: number;
+  };
+}
+
+/**
  * Base response interface for all FS operations
  */
 export interface BaseFSResponse {
@@ -301,8 +481,8 @@ export interface BaseFSResponse {
   success?: boolean;
   /** Response message */
   message?: string;
-  /** Response data */
-  data?: any;
+  /** Response data - specific to each operation type */
+  data?: FileInfo[] | FileSearchResult[] | GrepSearchResult[] | CodeDefinition[] | DiffResult | string | number | boolean | Record<string, unknown>;
   /** Error message if operation failed */
   error?: string;
 }
@@ -400,14 +580,7 @@ export interface FileListSuccessResponse extends BaseFSResponse {
   type: 'fileListResponse';
   success: true;
   /** Array of file information */
-  files?: Array<{
-    name: string;
-    path: string;
-    isDirectory: boolean;
-    size?: number;
-    modified?: string;
-    created?: string;
-  }>;
+  files?: FileInfo[];
 }
 
 export interface FileListErrorResponse extends BaseFSResponse {
@@ -423,14 +596,7 @@ export interface SearchFilesSuccessResponse extends BaseFSResponse {
   type: 'searchFilesResponse';
   success: true;
   /** Search results */
-  files?: Array<{
-    path: string;
-    matches: Array<{
-      line: number;
-      content: string;
-      lineNumber: number;
-    }>;
-  }>;
+  files?: FileSearchResult[];
 }
 
 export interface SearchFilesErrorResponse extends BaseFSResponse {
@@ -460,12 +626,7 @@ export interface GrepSearchSuccessResponse extends BaseFSResponse {
   type: 'grepSearchResponse';
   success: true;
   /** Search results */
-  results?: Array<{
-    file: string;
-    line: number;
-    content: string;
-    match: string;
-  }>;
+  results?: GrepSearchResult[];
 }
 
 export interface GrepSearchErrorResponse extends BaseFSResponse {
@@ -498,6 +659,8 @@ export interface ListCodeDefinitionNamesSuccessResponse extends BaseFSResponse {
   success: true;
   /** Array of code definition names */
   definitions?: string[];
+  /** Detailed code definition information */
+  codeDefinitions?: CodeDefinition[];
 }
 
 export interface ListCodeDefinitionNamesErrorResponse extends BaseFSResponse {
@@ -513,11 +676,7 @@ export interface EditFileAndApplyDiffSuccessResponse extends BaseFSResponse {
   type: 'editFileAndApplyDiffResponse';
   success: true;
   /** Diff result information */
-  data?: {
-    status: 'success' | 'error' | 'review_started' | 'rejected';
-    file: string;
-    message: string;
-  };
+  data?: DiffResult;
 }
 
 export interface EditFileAndApplyDiffErrorResponse extends BaseFSResponse {
@@ -654,16 +813,398 @@ export interface EditFileWithDiffParams {
 // Browser API Types
 // ================================
 
-export interface BrowserNavigationOptions {
+/**
+ * Browser viewport information
+ */
+export interface BrowserViewportInfo {
+  /** Viewport width */
+  width: number;
+  /** Viewport height */
+  height: number;
+  /** Device pixel ratio */
+  devicePixelRatio: number;
+  /** Horizontal scroll position */
+  scrollX: number;
+  /** Vertical scroll position */
+  scrollY: number;
+  /** Page Y offset */
+  pageYOffset: number;
+  /** Page X offset */
+  pageXOffset: number;
+  /** Window width */
+  windowWidth: number;
+  /** Window height */
+  windowHeight: number;
+  /** Offset height */
+  offsetHeight: number;
+  /** Scroll height */
+  scrollHeight: number;
+}
+
+/**
+ * Browser element information
+ */
+export interface BrowserElement {
+  /** Element ID */
+  id: string;
+  /** HTML tag name */
+  tag: string;
+  /** Element text content */
+  text: string;
+  /** Element attributes */
+  attributes: Record<string, string>;
+}
+
+/**
+ * Browser snapshot tree structure
+ */
+export interface BrowserSnapshotTree {
+  /** Array of strings */
+  strings: string[];
+  /** Document nodes */
+  documents: Array<{
+    nodes: {
+      backendNodeId: number[];
+      attributes: Array<{ name: string; value: string }>;
+      nodeValue: string[];
+      parentIndex: number[];
+      nodeType: number[];
+      nodeName: string[];
+      isClickable: { index: number[] };
+      textValue: { index: number[]; value: string[] };
+      inputValue: { index: number[]; value: string[] };
+      inputChecked: { index: number[] };
+    };
+  }>;
+}
+
+/**
+ * Browser action payload
+ */
+export interface BrowserActionPayload {
+  /** Action type */
+  action?: string;
+  /** Success status */
+  success?: boolean;
+  /** Content text */
+  content?: string;
+  /** HTML content */
+  html?: string;
+  /** Markdown content */
+  markdown?: string;
+  /** Text content */
+  text?: string;
+  /** URL */
+  url?: string;
+  /** Viewport information */
+  viewport?: BrowserViewportInfo;
+  /** Browser info */
+  info?: BrowserViewportInfo;
+  /** DOM tree snapshot */
+  tree?: BrowserSnapshotTree;
+  /** Screenshot data */
+  screenshot?: string;
+  /** PDF data */
+  pdf?: Buffer | string;
+  /** Page elements */
+  elements?: BrowserElement[];
+  /** CSS selector */
+  selector?: string;
+  /** Full page flag */
+  fullPage?: boolean;
+  /** Additional options */
+  options?: Record<string, unknown>;
+}
+
+/**
+ * Browser navigation result
+ */
+export interface BrowserNavigationResult {
+  /** Target URL */
+  url: string;
+  /** Success status */
+  success: boolean;
+  /** Navigation message */
+  message?: string;
+  /** Page title */
+  title?: string;
+}
+
+/**
+ * Browser screenshot result
+ */
+export interface BrowserScreenshotResult {
+  /** Screenshot data */
+  screenshot: string;
+  /** Full page flag */
+  fullPage?: boolean;
+  /** Image format */
+  format?: 'png' | 'jpeg';
+  /** Image quality */
+  quality?: number;
+  /** Viewport info */
+  viewport?: BrowserViewportInfo;
+}
+
+/**
+ * Browser content result
+ */
+export interface BrowserContentResult {
+  /** Content text */
+  content?: string;
+  /** HTML content */
+  html?: string;
+  /** Markdown content */
+  markdown?: string;
+  /** Text content */
+  text?: string;
+  /** URL */
+  url?: string;
+  /** Page title */
+  title?: string;
+}
+
+/**
+ * Browser element interaction result
+ */
+export interface BrowserElementInteractionResult {
+  /** Success status */
+  success: boolean;
+  /** Element selector */
+  selector: string;
+  /** Interaction message */
+  message?: string;
+  /** Element found */
+  element?: BrowserElement;
+}
+
+// ================================
+// Browser Response Types
+// ================================
+
+/**
+ * Base response interface for all Browser operations
+ */
+export interface BaseBrowserResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response payload */
+  payload?: BrowserActionPayload;
+  /** Event identifier */
+  eventId?: string;
+  /** Response data - specific to each operation type */
+  data?: BrowserNavigationResult | BrowserScreenshotResult | BrowserContentResult | BrowserElementInteractionResult | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Browser new page response types
+ */
+export interface BrowserNewPageSuccessResponse extends BaseBrowserResponse {
+  type: 'newPageResponse';
+  success: true;
+  /** New page result data */
+  data?: BrowserNavigationResult;
+}
+
+export interface BrowserNewPageErrorResponse extends BaseBrowserResponse {
+  type: 'newPageResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser navigation response types
+ */
+export interface BrowserGoToPageSuccessResponse extends BaseBrowserResponse {
+  type: 'goToPageResponse';
+  success: true;
+  /** Navigation result data */
+  data?: BrowserNavigationResult;
+}
+
+export interface BrowserGoToPageErrorResponse extends BaseBrowserResponse {
+  type: 'goToPageResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser URL response types
+ */
+export interface BrowserGetUrlSuccessResponse extends BaseBrowserResponse {
+  type: 'getUrlResponse';
+  success: true;
+  /** Current URL */
+  url?: string;
+  /** Current URL data */
+  data?: { url: string; currentUrl: string };
+}
+
+export interface BrowserGetUrlErrorResponse extends BaseBrowserResponse {
+  type: 'getUrlResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser screenshot response types
+ */
+export interface BrowserScreenshotSuccessResponse extends BaseBrowserResponse {
+  type: 'screenshotResponse';
+  success: true;
+  /** Screenshot result data */
+  data?: BrowserScreenshotResult;
+}
+
+export interface BrowserScreenshotErrorResponse extends BaseBrowserResponse {
+  type: 'screenshotResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser HTML response types
+ */
+export interface BrowserGetHtmlSuccessResponse extends BaseBrowserResponse {
+  type: 'getHTMLResponse';
+  success: true;
+  /** HTML content result data */
+  data?: BrowserContentResult;
+}
+
+export interface BrowserGetHtmlErrorResponse extends BaseBrowserResponse {
+  type: 'getHTMLResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser markdown response types
+ */
+export interface BrowserGetMarkdownSuccessResponse extends BaseBrowserResponse {
+  type: 'getMarkdownResponse';
+  success: true;
+  /** Markdown content result data */
+  data?: BrowserContentResult;
+}
+
+export interface BrowserGetMarkdownErrorResponse extends BaseBrowserResponse {
+  type: 'getMarkdownResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser content response types
+ */
+export interface BrowserGetContentSuccessResponse extends BaseBrowserResponse {
+  type: 'getContentResponse';
+  success: true;
+  /** Content result data */
+  data?: BrowserContentResult;
+}
+
+export interface BrowserGetContentErrorResponse extends BaseBrowserResponse {
+  type: 'getContentResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser text extraction response types
+ */
+export interface BrowserExtractTextSuccessResponse extends BaseBrowserResponse {
+  type: 'extractTextResponse';
+  success: true;
+  /** Text extraction result data */
+  data?: BrowserContentResult;
+}
+
+export interface BrowserExtractTextErrorResponse extends BaseBrowserResponse {
+  type: 'extractTextResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Browser element interaction response types
+ */
+export interface BrowserClickSuccessResponse extends BaseBrowserResponse {
+  type: 'clickResponse';
+  success: true;
+  /** Click result data */
+  data?: BrowserElementInteractionResult;
+}
+
+export interface BrowserClickErrorResponse extends BaseBrowserResponse {
+  type: 'clickResponse';
+  success: false;
+  error: string;
+}
+
+export interface BrowserTypeSuccessResponse extends BaseBrowserResponse {
+  type: 'typeResponse';
+  success: true;
+  /** Type result data */
+  data?: BrowserElementInteractionResult;
+}
+
+export interface BrowserTypeErrorResponse extends BaseBrowserResponse {
+  type: 'typeResponse';
+  success: false;
+  error: string;
+}
+
+export interface BrowserScrollSuccessResponse extends BaseBrowserResponse {
+  type: 'scrollResponse';
+  success: true;
+  /** Scroll result data */
+  data?: { success: boolean; viewport?: BrowserViewportInfo };
+}
+
+export interface BrowserScrollErrorResponse extends BaseBrowserResponse {
+  type: 'scrollResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Browser responses
+ */
+export type BrowserResponse = 
+  | BrowserNewPageSuccessResponse | BrowserNewPageErrorResponse
+  | BrowserGoToPageSuccessResponse | BrowserGoToPageErrorResponse
+  | BrowserGetUrlSuccessResponse | BrowserGetUrlErrorResponse
+  | BrowserScreenshotSuccessResponse | BrowserScreenshotErrorResponse
+  | BrowserGetHtmlSuccessResponse | BrowserGetHtmlErrorResponse
+  | BrowserGetMarkdownSuccessResponse | BrowserGetMarkdownErrorResponse
+  | BrowserGetContentSuccessResponse | BrowserGetContentErrorResponse
+  | BrowserExtractTextSuccessResponse | BrowserExtractTextErrorResponse
+  | BrowserClickSuccessResponse | BrowserClickErrorResponse
+  | BrowserTypeSuccessResponse | BrowserTypeErrorResponse
+  | BrowserScrollSuccessResponse | BrowserScrollErrorResponse;
+
+/**
+ * Browser operation parameters
+ */
+export interface BrowserGoToPageParams {
   /** URL to navigate to */
   url: string;
-  /** Wait for page load (default: true) */
+  /** Wait for page load */
   waitForLoad?: boolean;
-  /** Timeout in milliseconds */
+  /** Navigation timeout */
   timeout?: number;
 }
 
-export interface BrowserScreenshotOptions {
+export interface BrowserScreenshotParams {
   /** Take full page screenshot */
   fullPage?: boolean;
   /** Image quality (0-100) */
@@ -672,20 +1213,196 @@ export interface BrowserScreenshotOptions {
   format?: 'png' | 'jpeg';
 }
 
-export interface BrowserElementSelector {
+export interface BrowserElementSelectorParams {
   /** CSS selector */
   selector: string;
-  /** Whether to wait for element */
+  /** Wait for element */
   waitFor?: boolean;
   /** Timeout for waiting */
   timeout?: number;
+}
+
+export interface BrowserTypeParams extends BrowserElementSelectorParams {
+  /** Text to type */
+  text: string;
+  /** Clear field before typing */
+  clear?: boolean;
+}
+
+export interface BrowserScrollParams {
+  /** Horizontal scroll position */
+  x?: number;
+  /** Vertical scroll position */
+  y?: number;
+  /** Scroll behavior */
+  behavior?: 'auto' | 'smooth';
 }
 
 // ================================
 // Terminal API Types
 // ================================
 
-export interface TerminalExecuteOptions {
+/**
+ * Terminal command execution result
+ */
+export interface TerminalCommandResult {
+  /** Command that was executed */
+  command: string;
+  /** Exit code */
+  exitCode: number;
+  /** Standard output */
+  stdout?: string;
+  /** Standard error */
+  stderr?: string;
+  /** Execution time in milliseconds */
+  executionTime?: number;
+  /** Working directory */
+  cwd?: string;
+}
+
+/**
+ * Terminal command output
+ */
+export interface TerminalCommandOutput {
+  /** Output content */
+  output: string;
+  /** Standard output */
+  stdout?: string;
+  /** Standard error */
+  stderr?: string;
+  /** Command being executed */
+  command?: string;
+  /** Timestamp */
+  timestamp?: string;
+}
+
+/**
+ * Terminal command error
+ */
+export interface TerminalCommandError {
+  /** Error message */
+  error: string;
+  /** Exit code */
+  exitCode?: number;
+  /** Standard error */
+  stderr?: string;
+  /** Command that failed */
+  command?: string;
+  /** Error type */
+  errorType?: 'execution' | 'timeout' | 'permission' | 'not_found';
+}
+
+/**
+ * Terminal interrupt result
+ */
+export interface TerminalInterruptResult {
+  /** Whether interrupt was successful */
+  interrupted: boolean;
+  /** Interrupt message */
+  message?: string;
+  /** Process ID that was interrupted */
+  processId?: string;
+}
+
+// ================================
+// Terminal Response Types
+// ================================
+
+/**
+ * Base response interface for all Terminal operations
+ */
+export interface BaseTerminalResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: TerminalCommandResult | TerminalCommandOutput | TerminalCommandError | TerminalInterruptResult | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Terminal command output response types
+ */
+export interface TerminalCommandOutputSuccessResponse extends BaseTerminalResponse {
+  type: 'commandOutput';
+  success: true;
+  /** Command output data */
+  data?: TerminalCommandOutput;
+}
+
+export interface TerminalCommandOutputErrorResponse extends BaseTerminalResponse {
+  type: 'commandOutput';
+  success: false;
+  error: string;
+}
+
+/**
+ * Terminal command error response types
+ */
+export interface TerminalCommandErrorSuccessResponse extends BaseTerminalResponse {
+  type: 'commandError';
+  success: true;
+  /** Command error data */
+  data?: TerminalCommandError;
+}
+
+export interface TerminalCommandErrorErrorResponse extends BaseTerminalResponse {
+  type: 'commandError';
+  success: false;
+  error: string;
+}
+
+/**
+ * Terminal command finish response types
+ */
+export interface TerminalCommandFinishSuccessResponse extends BaseTerminalResponse {
+  type: 'commandFinish';
+  success: true;
+  /** Command finish data */
+  data?: TerminalCommandResult;
+}
+
+export interface TerminalCommandFinishErrorResponse extends BaseTerminalResponse {
+  type: 'commandFinish';
+  success: false;
+  error: string;
+}
+
+/**
+ * Terminal interrupt response types
+ */
+export interface TerminalInterruptSuccessResponse extends BaseTerminalResponse {
+  type: 'terminalInterrupted';
+  success: true;
+  /** Interrupt result data */
+  data?: TerminalInterruptResult;
+}
+
+export interface TerminalInterruptErrorResponse extends BaseTerminalResponse {
+  type: 'terminalInterrupted';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Terminal responses
+ */
+export type TerminalResponse = 
+  | TerminalCommandOutputSuccessResponse | TerminalCommandOutputErrorResponse
+  | TerminalCommandErrorSuccessResponse | TerminalCommandErrorErrorResponse
+  | TerminalCommandFinishSuccessResponse | TerminalCommandFinishErrorResponse
+  | TerminalInterruptSuccessResponse | TerminalInterruptErrorResponse;
+
+/**
+ * Terminal operation parameters
+ */
+export interface TerminalExecuteParams {
   /** Command to execute */
   command: string;
   /** Working directory */
@@ -696,24 +1413,474 @@ export interface TerminalExecuteOptions {
   timeout?: number;
   /** Whether to run in background */
   background?: boolean;
+  /** Return empty string on success */
+  returnEmptyStringOnSuccess?: boolean;
+  /** Execute in main process */
+  executeInMain?: boolean;
 }
 
 // ================================
 // Git API Types
 // ================================
 
-export interface GitCommitOptions {
+/**
+ * Git file status information
+ */
+export interface GitFileStatus {
+  /** File path */
+  path: string;
+  /** Index status (staged changes) */
+  index: string;
+  /** Working directory status (unstaged changes) */
+  working_dir: string;
+}
+
+/**
+ * Git repository status information
+ */
+export interface GitStatusResult {
+  /** Files not added to git */
+  not_added: string[];
+  /** Files with conflicts */
+  conflicted: string[];
+  /** Newly created files */
+  created: string[];
+  /** Deleted files */
+  deleted: string[];
+  /** Modified files */
+  modified: string[];
+  /** Renamed files */
+  renamed: string[];
+  /** Detailed file status information */
+  files: GitFileStatus[];
+  /** Staged files */
+  staged: string[];
+  /** Number of commits ahead of remote */
+  ahead: number;
+  /** Number of commits behind remote */
+  behind: number;
+  /** Current branch name */
+  current: string | null;
+  /** Tracking branch name */
+  tracking: string | null;
+  /** Whether in detached HEAD state */
+  detached: boolean;
+}
+
+/**
+ * Git commit information
+ */
+export interface GitCommitSummary {
+  /** Commit hash */
+  hash: string;
+  /** Commit date */
+  date: string;
   /** Commit message */
   message: string;
+  /** Git references (branches, tags) */
+  refs: string;
+  /** Full commit body */
+  body: string;
   /** Author name */
-  author?: string;
+  author_name: string;
   /** Author email */
+  author_email: string;
+}
+
+/**
+ * Git diff file information
+ */
+export interface GitDiffFile {
+  /** File path */
+  file: string;
+  /** Number of changes */
+  changes: number;
+  /** Number of insertions */
+  insertions: number;
+  /** Number of deletions */
+  deletions: number;
+  /** Whether file is binary */
+  binary: boolean;
+}
+
+/**
+ * Git diff result information
+ */
+export interface GitDiffResult {
+  /** Files with changes */
+  files: GitDiffFile[];
+  /** Total insertions */
+  insertions: number;
+  /** Total deletions */
+  deletions: number;
+  /** Total changed files */
+  changed: number;
+}
+
+/**
+ * Git pull result information
+ */
+export interface GitPullResult {
+  /** Number of files updated */
+  files: number;
+  /** Number of insertions */
+  insertions: number;
+  /** Number of deletions */
+  deletions: number;
+  /** Summary message */
+  summary: string;
+  /** Remote branch information */
+  remote?: {
+    name: string;
+    url: string;
+  };
+}
+
+/**
+ * Git push result information
+ */
+export interface GitPushResult {
+  /** Number of commits pushed */
+  commits: number;
+  /** Summary message */
+  summary: string;
+  /** Remote branch information */
+  remote?: {
+    name: string;
+    url: string;
+  };
+}
+
+/**
+ * Git commit result information
+ */
+export interface GitCommitResult {
+  /** Commit hash */
+  hash: string;
+  /** Commit message */
+  message: string;
+  /** Number of files committed */
+  files: number;
+  /** Number of insertions */
+  insertions: number;
+  /** Number of deletions */
+  deletions: number;
+  /** Author information */
+  author: {
+    name: string;
+    email: string;
+  };
+}
+
+/**
+ * Git branch information
+ */
+export interface GitBranchInfo {
+  /** Branch name */
+  name: string;
+  /** Whether this is the current branch */
+  current: boolean;
+  /** Commit hash at branch tip */
+  commit: string;
+  /** Last commit message */
+  message: string;
+  /** Whether branch is remote */
+  remote: boolean;
+}
+
+/**
+ * Git checkout result information
+ */
+export interface GitCheckoutResult {
+  /** Branch or commit checked out */
+  target: string;
+  /** Previous branch or commit */
+  previous?: string;
+  /** Whether checkout was successful */
+  success: boolean;
+  /** Additional information */
+  message?: string;
+}
+
+/**
+ * Git add result information
+ */
+export interface GitAddResult {
+  /** Number of files added */
+  files: number;
+  /** List of added files */
+  added: string[];
+  /** Summary message */
+  summary: string;
+}
+
+/**
+ * Git init result information
+ */
+export interface GitInitResult {
+  /** Repository path */
+  path: string;
+  /** Whether repository was created */
+  created: boolean;
+  /** Initial branch name */
+  branch: string;
+  /** Summary message */
+  message: string;
+}
+
+// ================================
+// Git Response Types
+// ================================
+
+/**
+ * Base response interface for all Git operations
+ */
+export interface BaseGitResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: GitInitResult | GitPullResult | GitPushResult | GitStatusResult | GitAddResult | GitCommitResult | GitCheckoutResult | GitBranchInfo[] | GitCommitSummary[] | GitDiffResult | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Git init response types
+ */
+export interface GitInitSuccessResponse extends BaseGitResponse {
+  type: 'gitInitResponse';
+  success: true;
+  /** Git init result data */
+  data?: GitInitResult;
+}
+
+export interface GitInitErrorResponse extends BaseGitResponse {
+  type: 'gitInitResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git pull response types
+ */
+export interface GitPullSuccessResponse extends BaseGitResponse {
+  type: 'PullResponse';
+  success: true;
+  /** Git pull result data */
+  data?: GitPullResult;
+}
+
+export interface GitPullErrorResponse extends BaseGitResponse {
+  type: 'PullResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git push response types
+ */
+export interface GitPushSuccessResponse extends BaseGitResponse {
+  type: 'PushResponse';
+  success: true;
+  /** Git push result data */
+  data?: GitPushResult;
+}
+
+export interface GitPushErrorResponse extends BaseGitResponse {
+  type: 'PushResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git status response types
+ */
+export interface GitStatusSuccessResponse extends BaseGitResponse {
+  type: 'gitStatusResponse';
+  success: true;
+  /** Git status result data */
+  data?: GitStatusResult;
+}
+
+export interface GitStatusErrorResponse extends BaseGitResponse {
+  type: 'gitStatusResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git add response types
+ */
+export interface GitAddSuccessResponse extends BaseGitResponse {
+  type: 'AddResponse';
+  success: true;
+  /** Git add result data */
+  data?: GitAddResult;
+}
+
+export interface GitAddErrorResponse extends BaseGitResponse {
+  type: 'AddResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git commit response types
+ */
+export interface GitCommitSuccessResponse extends BaseGitResponse {
+  type: 'gitCommitResponse';
+  success: true;
+  /** Git commit result data */
+  data?: GitCommitResult;
+}
+
+export interface GitCommitErrorResponse extends BaseGitResponse {
+  type: 'gitCommitResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git checkout response types
+ */
+export interface GitCheckoutSuccessResponse extends BaseGitResponse {
+  type: 'gitCheckoutResponse';
+  success: true;
+  /** Git checkout result data */
+  data?: GitCheckoutResult;
+}
+
+export interface GitCheckoutErrorResponse extends BaseGitResponse {
+  type: 'gitCheckoutResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git branch response types
+ */
+export interface GitBranchSuccessResponse extends BaseGitResponse {
+  type: 'gitBranchResponse';
+  success: true;
+  /** Array of branch names */
+  branches?: string[];
+  /** Detailed branch information */
+  data?: GitBranchInfo[];
+}
+
+export interface GitBranchErrorResponse extends BaseGitResponse {
+  type: 'gitBranchResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git logs response types
+ */
+export interface GitLogsSuccessResponse extends BaseGitResponse {
+  type: 'gitLogsResponse';
+  success: true;
+  /** Array of commit summaries */
+  logs?: GitCommitSummary[];
+  /** Detailed commit information */
+  data?: GitCommitSummary[];
+}
+
+export interface GitLogsErrorResponse extends BaseGitResponse {
+  type: 'gitLogsResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Git diff response types
+ */
+export interface GitDiffSuccessResponse extends BaseGitResponse {
+  type: 'gitDiffResponse';
+  success: true;
+  /** Diff content as string */
+  diff?: string;
+  /** Structured diff result */
+  data?: GitDiffResult;
+}
+
+export interface GitDiffErrorResponse extends BaseGitResponse {
+  type: 'gitDiffResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Git responses
+ */
+export type GitResponse = 
+  | GitInitSuccessResponse | GitInitErrorResponse
+  | GitPullSuccessResponse | GitPullErrorResponse
+  | GitPushSuccessResponse | GitPushErrorResponse
+  | GitStatusSuccessResponse | GitStatusErrorResponse
+  | GitAddSuccessResponse | GitAddErrorResponse
+  | GitCommitSuccessResponse | GitCommitErrorResponse
+  | GitCheckoutSuccessResponse | GitCheckoutErrorResponse
+  | GitBranchSuccessResponse | GitBranchErrorResponse
+  | GitLogsSuccessResponse | GitLogsErrorResponse
+  | GitDiffSuccessResponse | GitDiffErrorResponse;
+
+/**
+ * Git operation parameters
+ */
+export interface GitInitParams {
+  /** Path where to initialize the repository */
+  path: string;
+}
+
+export interface GitPullParams {
+  /** Remote name (optional) */
+  remote?: string;
+  /** Branch name (optional) */
+  branch?: string;
+}
+
+export interface GitPushParams {
+  /** Remote name (optional) */
+  remote?: string;
+  /** Branch name (optional) */
+  branch?: string;
+}
+
+export interface GitCommitParams {
+  /** Commit message */
+  message: string;
+  /** Author name (optional) */
+  author?: string;
+  /** Author email (optional) */
   email?: string;
-  /** Whether to add all files */
+  /** Whether to add all files before commit */
   addAll?: boolean;
 }
 
-export interface GitLogOptions {
+export interface GitCheckoutParams {
+  /** Branch or commit to checkout */
+  branch: string;
+  /** Whether to create new branch */
+  create?: boolean;
+}
+
+export interface GitBranchParams {
+  /** Branch name */
+  branch: string;
+  /** Whether to delete the branch */
+  delete?: boolean;
+  /** Whether to force the operation */
+  force?: boolean;
+}
+
+export interface GitLogsParams {
   /** Number of commits to retrieve */
   maxCount?: number;
   /** Starting from commit hash */
@@ -722,6 +1889,15 @@ export interface GitLogOptions {
   to?: string;
   /** File path to filter logs */
   path?: string;
+}
+
+export interface GitDiffParams {
+  /** Commit hash to diff against */
+  commitHash?: string;
+  /** File path to diff */
+  file?: string;
+  /** Whether to show staged changes */
+  staged?: boolean;
 }
 
 // ================================
@@ -775,183 +1951,530 @@ export interface VectorQueryOptions {
 // Agent API Types
 // ================================
 
-export interface AgentMessageHandler {
-  (userMessage: UserMessage): void | Promise<void> | any | Promise<any>;
+/**
+ * Agent function definition
+ */
+export interface AgentFunction {
+  /** Function type */
+  type: 'function';
+  /** Function details */
+  function: {
+    /** Function name */
+    name: string;
+    /** Function description */
+    description: string;
+    /** Function parameters */
+    parameters: {
+      /** Parameter type */
+      type: 'object';
+      /** Parameter properties */
+      properties: Record<string, {
+        /** Property type */
+        type: string;
+        /** Property description */
+        description: string;
+      }>;
+      /** Required properties */
+      required?: string[];
+      /** Additional properties allowed */
+      additionalProperties?: boolean;
+    };
+    /** Strict mode */
+    strict?: boolean;
+  };
 }
 
-export interface AgentConfiguration {
+/**
+ * Agent detail information
+ */
+export interface AgentDetail {
+  /** Agent ID */
+  id: string;
   /** Agent name */
-  name?: string;
+  name: string;
   /** Agent description */
   description?: string;
-  /** Available tools */
-  tools?: Tool[];
-  /** System prompt */
-  systemPrompt?: string;
+  /** Agent type */
+  type?: string;
+  /** Agent location */
+  location?: string;
+  /** Agent functions */
+  functions?: AgentFunction[];
+  /** Agent metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Agent search result
+ */
+export interface AgentSearchResult {
+  /** Agent details */
+  agent: AgentDetail;
+  /** Search relevance score */
+  score: number;
+  /** Search match details */
+  matchDetails?: {
+    /** Matched task */
+    task: string;
+    /** Match confidence */
+    confidence: number;
+  };
+}
+
+/**
+ * Agent task completion result
+ */
+export interface AgentTaskCompletionResult {
+  /** Agent ID */
+  agentId: string;
+  /** Task that was completed */
+  task: string;
+  /** Completion result */
+  result: string;
+  /** Completion status */
+  status: 'completed' | 'failed' | 'in_progress';
+  /** Completion timestamp */
+  timestamp: string;
+  /** Completion metadata */
+  metadata?: Record<string, unknown>;
+}
+
+// ================================
+// Agent Response Types
+// ================================
+
+/**
+ * Base response interface for all Agent operations
+ */
+export interface BaseAgentResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: AgentSearchResult[] | AgentDetail[] | AgentFunction[] | AgentTaskCompletionResult | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Agent find response types
+ */
+export interface AgentFindSuccessResponse extends BaseAgentResponse {
+  type: 'findAgentByTaskResponse';
+  success: true;
+  /** Agent search results */
+  agents?: AgentSearchResult[];
+  /** Search result data */
+  data?: AgentSearchResult[];
+}
+
+export interface AgentFindErrorResponse extends BaseAgentResponse {
+  type: 'findAgentByTaskResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Agent list response types
+ */
+export interface AgentListSuccessResponse extends BaseAgentResponse {
+  type: 'listAgentsResponse';
+  success: true;
+  /** List of agents */
+  agents?: AgentFunction[];
+  /** Agent list data */
+  data?: AgentFunction[];
+}
+
+export interface AgentListErrorResponse extends BaseAgentResponse {
+  type: 'listAgentsResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Agent detail response types
+ */
+export interface AgentDetailSuccessResponse extends BaseAgentResponse {
+  type: 'agentsDetailResponse';
+  success: true;
+  /** Agent details payload */
+  payload?: {
+    agents: AgentDetail[];
+  };
+  /** Agent details data */
+  data?: AgentDetail[];
+}
+
+export interface AgentDetailErrorResponse extends BaseAgentResponse {
+  type: 'agentsDetailResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Agent task completion response types
+ */
+export interface AgentTaskCompletionSuccessResponse extends BaseAgentResponse {
+  type: 'taskCompletionResponse';
+  success: true;
+  /** Task completion result */
+  from?: string;
+  /** Agent ID */
+  agentId?: string;
+  /** Task */
+  task?: string;
+  /** Completion result */
+  result?: string;
+  /** Task completion data */
+  data?: AgentTaskCompletionResult;
+}
+
+export interface AgentTaskCompletionErrorResponse extends BaseAgentResponse {
+  type: 'taskCompletionResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Agent responses
+ */
+export type AgentResponse = 
+  | AgentFindSuccessResponse | AgentFindErrorResponse
+  | AgentListSuccessResponse | AgentListErrorResponse
+  | AgentDetailSuccessResponse | AgentDetailErrorResponse
+  | AgentTaskCompletionSuccessResponse | AgentTaskCompletionErrorResponse;
+
+/**
+ * Agent operation parameters
+ */
+export interface AgentFindParams {
+  /** Task to find agent for */
+  task: string;
+  /** Maximum results to return */
+  maxResult?: number;
+  /** Agent filter list */
+  agents?: string[];
+  /** Agent location filter */
+  agentLocation?: string;
+  /** Filter using method */
+  getFrom?: string;
+}
+
+export interface AgentStartParams {
+  /** Agent ID to start */
+  agentId: string;
+  /** Task for the agent */
+  task: string;
+}
+
+export interface AgentListParams {
+  /** Agent type filter */
+  type?: string;
+}
+
+export interface AgentDetailParams {
+  /** List of agent IDs to get details for */
+  agentList?: string[];
 }
 
 // ================================
 // Memory API Types
 // ================================
 
-export interface MemorySetOptions {
+/**
+ * Memory entry information
+ */
+export interface MemoryEntry {
   /** Memory key */
   key: string;
   /** Memory value */
-  value: any;
-  /** Expiration time in seconds */
-  ttl?: number;
+  value: string | number | boolean | Record<string, unknown> | unknown[];
+  /** Memory expiration time */
+  expiresAt?: string;
+  /** Memory creation timestamp */
+  createdAt: string;
+  /** Memory update timestamp */
+  updatedAt: string;
 }
 
-export interface MemoryGetOptions {
-  /** Memory key */
+/**
+ * Memory operation result
+ */
+export interface MemoryOperationResult {
+  /** Operation key */
   key: string;
-  /** Default value if key not found */
-  defaultValue?: any;
+  /** Operation success */
+  success: boolean;
+  /** Operation message */
+  message?: string;
+  /** Operation timestamp */
+  timestamp: string;
+}
+
+/**
+ * Memory list result
+ */
+export interface MemoryListResult {
+  /** Memory entries */
+  entries: Record<string, MemoryEntry>;
+  /** Memory keys */
+  keys: string[];
+  /** Total count */
+  totalCount: number;
 }
 
 // ================================
-// Task API Types
+// Memory Response Types
 // ================================
 
-export interface TaskCreateOptions {
-  /** Task title */
-  title: string;
-  /** Agent ID for task organization */
-  agentId?: string;
-  /** Task description */
-  description?: string;
-  /** Task phase */
-  phase?: string;
-  /** Task category */
-  category?: string;
-  /** Task priority */
-  priority?: 'low' | 'medium' | 'high';
-  /** Associated tags */
-  tags?: string[];
+/**
+ * Base response interface for all Memory operations
+ */
+export interface BaseMemoryResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: MemoryOperationResult | MemoryListResult | MemoryEntry | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
 }
 
-export interface TaskUpdateOptions {
-  /** Task ID */
-  taskId: string;
-  /** New title */
-  title?: string;
-  /** New description */
-  description?: string;
-  /** New phase */
-  phase?: string;
-  /** New category */
-  category?: string;
-  /** Completion status */
-  completed?: boolean;
-  /** New priority */
-  priority?: 'low' | 'medium' | 'high';
-  /** New tags */
-  tags?: string[];
-  /** New agent ID */
-  agentId?: string;
+/**
+ * Memory set response types
+ */
+export interface MemorySetSuccessResponse extends BaseMemoryResponse {
+  type: 'memorySetResponse';
+  success: true;
+  /** Memory key */
+  key?: string;
+  /** Memory value */
+  value?: string | number | boolean | Record<string, unknown> | unknown[];
+  /** Memory operation data */
+  data?: MemoryOperationResult;
 }
 
-export interface AddSubTaskOptions {
-  /** Parent task ID */
-  taskId: string;
-  /** Subtask title */
-  title: string;
-  /** Subtask description */
-  description?: string;
-  /** Subtask requirements */
-  requirements?: string[];
+export interface MemorySetErrorResponse extends BaseMemoryResponse {
+  type: 'memorySetResponse';
+  success: false;
+  error: string;
 }
 
-export interface UpdateSubTaskOptions {
-  /** Parent task ID */
-  taskId: string;
-  /** Subtask ID */
-  subtaskId: string;
-  /** New title */
-  title?: string;
-  /** New description */
-  description?: string;
-  /** Completion status */
-  completed?: boolean;
-  /** New requirements */
-  requirements?: string[];
+/**
+ * Memory get response types
+ */
+export interface MemoryGetSuccessResponse extends BaseMemoryResponse {
+  type: 'memoryGetResponse';
+  success: true;
+  /** Memory key */
+  key?: string;
+  /** Memory value */
+  value?: string | number | boolean | Record<string, unknown> | unknown[];
+  /** Memory entry data */
+  data?: MemoryEntry;
 }
 
-export interface TaskFilterOptions {
-  /** Filter by agent ID */
-  agentId?: string;
-  /** Filter by category */
-  category?: string;
-  /** Filter by phase */
-  phase?: string;
-  /** Filter by priority */
-  priority?: 'low' | 'medium' | 'high';
-  /** Filter by completion status */
-  completed?: boolean;
+export interface MemoryGetErrorResponse extends BaseMemoryResponse {
+  type: 'memoryGetResponse';
+  success: false;
+  error: string;
 }
 
-export interface TaskMarkdownImportOptions {
-  /** Markdown content to import */
-  markdown: string;
-  /** Agent ID for imported tasks */
-  agentId?: string;
-  /** Phase for imported tasks */
-  phase?: string;
-  /** Category for imported tasks */
-  category?: string;
+/**
+ * Memory delete response types
+ */
+export interface MemoryDeleteSuccessResponse extends BaseMemoryResponse {
+  type: 'memoryDeleteResponse';
+  success: true;
+  /** Memory key */
+  key?: string;
+  /** Memory operation data */
+  data?: MemoryOperationResult;
 }
 
-export interface TaskMarkdownExportOptions {
-  /** Filter by phase */
-  phase?: string;
-  /** Filter by agent ID */
-  agentId?: string;
-  /** Filter by category */
-  category?: string;
+export interface MemoryDeleteErrorResponse extends BaseMemoryResponse {
+  type: 'memoryDeleteResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Memory list response types
+ */
+export interface MemoryListSuccessResponse extends BaseMemoryResponse {
+  type: 'memoryListResponse';
+  success: true;
+  /** Memory keys */
+  keys?: string[];
+  /** Memory entries */
+  entries?: Record<string, MemoryEntry>;
+  /** Memory list data */
+  data?: MemoryListResult;
+}
+
+export interface MemoryListErrorResponse extends BaseMemoryResponse {
+  type: 'memoryListResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Memory clear response types
+ */
+export interface MemoryClearSuccessResponse extends BaseMemoryResponse {
+  type: 'memoryClearResponse';
+  success: true;
+  /** Memory operation data */
+  data?: MemoryOperationResult;
+}
+
+export interface MemoryClearErrorResponse extends BaseMemoryResponse {
+  type: 'memoryClearResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Memory responses
+ */
+export type MemoryResponse = 
+  | MemorySetSuccessResponse | MemorySetErrorResponse
+  | MemoryGetSuccessResponse | MemoryGetErrorResponse
+  | MemoryDeleteSuccessResponse | MemoryDeleteErrorResponse
+  | MemoryListSuccessResponse | MemoryListErrorResponse
+  | MemoryClearSuccessResponse | MemoryClearErrorResponse;
+
+// ================================
+// State Management API Types
+// ================================
+
+/**
+ * State entry information
+ */
+export interface StateEntry {
+  /** State key */
+  key: string;
+  /** State value */
+  value: string | number | boolean | Record<string, unknown> | unknown[];
+  /** State update timestamp */
+  updatedAt: string;
+  /** State metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * State operation result
+ */
+export interface StateOperationResult {
+  /** Operation key */
+  key: string;
+  /** Operation success */
+  success: boolean;
+  /** Operation message */
+  message?: string;
+  /** Operation timestamp */
+  timestamp: string;
+}
+
+/**
+ * State list result
+ */
+export interface StateListResult {
+  /** State entries */
+  entries: Record<string, StateEntry>;
+  /** State keys */
+  keys: string[];
+  /** Total count */
+  totalCount: number;
 }
 
 // ================================
-// Code Utils API Types
+// State Response Types
 // ================================
 
-export interface CodeAnalysisOptions {
-  /** File or directory path */
-  path: string;
-  /** Language to analyze */
-  language?: string;
-  /** Analysis rules to apply */
-  rules?: string[];
+/**
+ * Base response interface for all State operations
+ */
+export interface BaseStateResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: StateOperationResult | StateListResult | StateEntry | Record<string, unknown> | string | number | boolean;
+  /** Error message if operation failed */
+  error?: string;
 }
 
-export interface CodeParseOptions {
-  /** Code content or file path */
-  input: string;
-  /** Programming language */
-  language: string;
-  /** Whether input is file path */
-  isFilePath?: boolean;
+/**
+ * State get response types
+ */
+export interface StateGetSuccessResponse extends BaseStateResponse {
+  type: 'getAppStateResponse' | 'getAgentStateResponse';
+  success: true;
+  /** State data */
+  state?: Record<string, unknown>;
+  /** State payload */
+  payload?: Record<string, unknown>;
+  /** State data */
+  data?: Record<string, unknown>;
 }
 
-// ================================
-// Debug API Types
-// ================================
-
-export interface DebugLogOptions {
-  /** Log message */
-  message: string;
-  /** Log level */
-  level?: 'debug' | 'info' | 'warn' | 'error';
-  /** Additional metadata */
-  metadata?: Record<string, any>;
-  /** Component name */
-  component?: string;
+export interface StateGetErrorResponse extends BaseStateResponse {
+  type: 'getAppStateResponse' | 'getAgentStateResponse';
+  success: false;
+  error: string;
 }
+
+/**
+ * State update response types
+ */
+export interface StateUpdateSuccessResponse extends BaseStateResponse {
+  type: 'updateProjectStateResponse' | 'addToAgentStateResponse';
+  success: true;
+  /** State data */
+  state?: Record<string, unknown>;
+  /** State payload */
+  payload?: { success: boolean };
+  /** State operation data */
+  data?: StateOperationResult;
+}
+
+export interface StateUpdateErrorResponse extends BaseStateResponse {
+  type: 'updateProjectStateResponse' | 'addToAgentStateResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all State responses
+ */
+export type StateResponse = 
+  | StateGetSuccessResponse | StateGetErrorResponse
+  | StateUpdateSuccessResponse | StateUpdateErrorResponse;
 
 // ================================
 // Project API Types
 // ================================
 
+/**
+ * Project information
+ */
 export interface ProjectInfo {
   /** Project name */
   name: string;
@@ -960,235 +2483,343 @@ export interface ProjectInfo {
   /** Project type */
   type?: string;
   /** Project configuration */
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
+  /** Project metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Project settings
+ */
+export interface ProjectSettings {
+  /** Settings data */
+  settings: Record<string, unknown>;
+  /** Project path */
+  projectPath?: string;
+  /** Project name */
+  projectName?: string;
+}
+
+/**
+ * Project state
+ */
+export interface ProjectState {
+  /** State data */
+  state: Record<string, unknown>;
+  /** Project path */
+  projectPath?: string;
+  /** Project name */
+  projectName?: string;
+}
+
+/**
+ * Repository map
+ */
+export interface RepositoryMap {
+  /** Repository structure */
+  structure: Record<string, unknown>;
+  /** Repository metadata */
+  metadata?: Record<string, unknown>;
 }
 
 // ================================
-// Crawler API Types
+// Project Response Types
 // ================================
 
-export interface CrawlerOptions {
-  /** URL to crawl */
-  url: string;
-  /** Maximum depth */
-  maxDepth?: number;
-  /** Follow external links */
-  followExternal?: boolean;
-  /** Custom headers */
-  headers?: Record<string, string>;
-  /** Request timeout */
-  timeout?: number;
+/**
+ * Base response interface for all Project operations
+ */
+export interface BaseProjectResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: ProjectInfo | ProjectSettings | ProjectState | RepositoryMap | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
 }
 
-// ================================
-// MCP Tools API Types
-// ================================
-
-export interface MCPExecuteOptions {
-  /** Tool name */
-  toolName: string;
-  /** Server name */
-  serverName?: string;
-  /** Tool parameters */
-  params?: Record<string, any>;
-  /** Request timeout */
-  timeout?: number;
+/**
+ * Project path response types
+ */
+export interface ProjectPathSuccessResponse extends BaseProjectResponse {
+  type: 'getProjectPathResponse';
+  success: true;
+  /** Project path */
+  projectPath?: string;
+  /** Project name */
+  projectName?: string;
+  /** Project info data */
+  data?: ProjectInfo;
 }
 
-export interface MCPConfigureOptions {
-  /** Server name */
-  serverName: string;
-  /** Configuration data */
-  config: Record<string, any>;
-  /** Whether to enable the server */
-  enabled?: boolean;
+export interface ProjectPathErrorResponse extends BaseProjectResponse {
+  type: 'getProjectPathResponse';
+  success: false;
+  error: string;
 }
 
-// ================================
-// State Management API Types
-// ================================
-
-export interface StateUpdateOptions {
-  /** State key */
-  key: string;
-  /** State value */
-  value: any;
-  /** Whether to merge with existing state */
-  merge?: boolean;
+/**
+ * Project settings response types
+ */
+export interface ProjectSettingsSuccessResponse extends BaseProjectResponse {
+  type: 'getProjectSettingsResponse';
+  success: true;
+  /** Project settings */
+  projectSettings?: Record<string, unknown>;
+  /** Project settings data */
+  data?: ProjectSettings;
 }
+
+export interface ProjectSettingsErrorResponse extends BaseProjectResponse {
+  type: 'getProjectSettingsResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Project state response types
+ */
+export interface ProjectStateSuccessResponse extends BaseProjectResponse {
+  type: 'getProjectStateResponse';
+  success: true;
+  /** Project state */
+  projectState?: Record<string, unknown>;
+  /** Project state data */
+  data?: ProjectState;
+}
+
+export interface ProjectStateErrorResponse extends BaseProjectResponse {
+  type: 'getProjectStateResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Repository map response types
+ */
+export interface RepositoryMapSuccessResponse extends BaseProjectResponse {
+  type: 'getRepoMapResponse';
+  success: true;
+  /** Repository map */
+  repoMap?: RepositoryMap;
+  /** Repository map data */
+  data?: RepositoryMap;
+}
+
+export interface RepositoryMapErrorResponse extends BaseProjectResponse {
+  type: 'getRepoMapResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Project responses
+ */
+export type ProjectResponse = 
+  | ProjectPathSuccessResponse | ProjectPathErrorResponse
+  | ProjectSettingsSuccessResponse | ProjectSettingsErrorResponse
+  | ProjectStateSuccessResponse | ProjectStateErrorResponse
+  | RepositoryMapSuccessResponse | RepositoryMapErrorResponse;
 
 // ================================
 // Chat API Types
 // ================================
 
-export interface ChatSendOptions {
+/**
+ * Chat message information
+ */
+export interface ChatMessageInfo {
+  /** Message ID */
+  id: string;
+  /** Message content */
+  content: string;
+  /** Message sender */
+  sender: string;
+  /** Message timestamp */
+  timestamp: string;
+  /** Message type */
+  type: string;
+  /** Message role */
+  role?: 'user' | 'assistant' | 'system';
+  /** Message metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Chat history result
+ */
+export interface ChatHistoryResult {
+  /** Array of chat messages */
+  messages: ChatMessageInfo[];
+  /** Total message count */
+  totalCount: number;
+  /** Conversation ID */
+  conversationId?: string;
+  /** Agent ID */
+  agentId?: string;
+}
+
+/**
+ * Chat reply result
+ */
+export interface ChatReplyResult {
+  /** Reply message */
+  message: string;
+  /** Reply ID */
+  messageId: string;
+  /** Thread ID */
+  threadId: string;
+  /** Reply timestamp */
+  timestamp: string;
+  /** Reply metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Chat process control result
+ */
+export interface ChatProcessControlResult {
+  /** Process ID */
+  processId: string;
+  /** Process status */
+  status: 'started' | 'stopped' | 'running';
+  /** Process message */
+  message?: string;
+  /** Process metadata */
+  metadata?: Record<string, unknown>;
+}
+
+// ================================
+// Chat Response Types
+// ================================
+
+/**
+ * Base response interface for all Chat operations
+ */
+export interface BaseChatResponse {
+  /** Response type identifier */
+  type: string;
+  /** Unique request identifier */
+  requestId: string;
+  /** Whether the operation was successful */
+  success?: boolean;
+  /** Response message */
+  message?: string;
+  /** Response data - specific to each operation type */
+  data?: ChatHistoryResult | ChatReplyResult | ChatProcessControlResult | ChatMessageInfo[] | string | number | boolean | Record<string, unknown>;
+  /** Error message if operation failed */
+  error?: string;
+}
+
+/**
+ * Chat history response types
+ */
+export interface ChatGetHistorySuccessResponse extends BaseChatResponse {
+  type: 'getChatHistoryResponse';
+  success: true;
+  /** Chat history result data */
+  data?: ChatHistoryResult;
+}
+
+export interface ChatGetHistoryErrorResponse extends BaseChatResponse {
+  type: 'getChatHistoryResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Chat reply response types
+ */
+export interface ChatWaitForReplySuccessResponse extends BaseChatResponse {
+  type: 'waitForReplyResponse';
+  success: true;
+  /** Chat reply result data */
+  data?: ChatReplyResult;
+}
+
+export interface ChatWaitForReplyErrorResponse extends BaseChatResponse {
+  type: 'waitForReplyResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Chat process control response types
+ */
+export interface ChatProcessStartedSuccessResponse extends BaseChatResponse {
+  type: 'processStartedResponse';
+  success: true;
+  /** Process control result data */
+  data?: ChatProcessControlResult;
+}
+
+export interface ChatProcessStartedErrorResponse extends BaseChatResponse {
+  type: 'processStartedResponse';
+  success: false;
+  error: string;
+}
+
+export interface ChatProcessStoppedSuccessResponse extends BaseChatResponse {
+  type: 'processStoppedResponse';
+  success: true;
+  /** Process control result data */
+  data?: ChatProcessControlResult;
+}
+
+export interface ChatProcessStoppedErrorResponse extends BaseChatResponse {
+  type: 'processStoppedResponse';
+  success: false;
+  error: string;
+}
+
+/**
+ * Union type for all Chat responses
+ */
+export type ChatResponse = 
+  | ChatGetHistorySuccessResponse | ChatGetHistoryErrorResponse
+  | ChatWaitForReplySuccessResponse | ChatWaitForReplyErrorResponse
+  | ChatProcessStartedSuccessResponse | ChatProcessStartedErrorResponse
+  | ChatProcessStoppedSuccessResponse | ChatProcessStoppedErrorResponse;
+
+/**
+ * Chat operation parameters
+ */
+export interface ChatSendMessageParams {
   /** Message content */
   message: string;
   /** Conversation ID */
   conversationId?: string;
   /** Message metadata */
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   /** Mentioned files */
   mentionedFiles?: string[];
   /** Mentioned agents */
   mentionedAgents?: string[];
 }
 
-export interface ChatHistoryOptions {
+export interface ChatWaitForReplyParams {
+  /** Message to wait for reply to */
+  message: string;
+  /** Timeout in milliseconds */
+  timeout?: number;
   /** Conversation ID */
   conversationId?: string;
-  /** Maximum number of messages */
-  limit?: number;
-  /** Starting from message ID */
-  from?: string;
-  /** Include system messages */
-  includeSystem?: boolean;
 }
 
-// ================================
-// Notification API Types
-// ================================
-
-export interface NotificationOptions {
-  /** Notification message */
-  message: string;
-  /** Notification type */
-  type?: 'info' | 'warning' | 'error' | 'success';
-  /** Notification title */
-  title?: string;
-  /** Display duration in milliseconds */
-  duration?: number;
-  /** Additional metadata */
-  metadata?: Record<string, any>;
+export interface ChatProcessControlParams {
+  /** Process ID */
+  processId?: string;
+  /** Process message */
+  message?: string;
+  /** Process metadata */
+  metadata?: Record<string, unknown>;
 }
-
-// ================================
-// Utility Types for API
-// ================================
-
-/**
- * Standard API response wrapper
- */
-export interface APIResponse<T = any> {
-  /** Whether the operation was successful */
-  success: boolean;
-  /** Response data */
-  data?: T;
-  /** Error message if unsuccessful */
-  error?: string;
-  /** Error code if unsuccessful */
-  code?: string;
-  /** Additional metadata */
-  metadata?: Record<string, any>;
-}
-
-/**
- * Pagination options for list operations
- */
-export interface PaginationOptions {
-  /** Page number (1-based) */
-  page?: number;
-  /** Number of items per page */
-  pageSize?: number;
-  /** Sort field */
-  sortBy?: string;
-  /** Sort direction */
-  sortOrder?: 'asc' | 'desc';
-}
-
-/**
- * Filtering options for list operations
- */
-export interface FilterOptions {
-  /** Search query */
-  query?: string;
-  /** Field filters */
-  filters?: Record<string, any>;
-  /** Date range */
-  dateRange?: {
-    from?: Date | string;
-    to?: Date | string;
-  };
-}
-
-/**
- * Common options for async operations
- */
-export interface AsyncOperationOptions {
-  /** Operation timeout in milliseconds */
-  timeout?: number;
-  /** Retry configuration */
-  retry?: {
-    attempts?: number;
-    delay?: number;
-  };
-  /** Progress callback */
-  onProgress?: (progress: number) => void;
-  /** Cancellation signal */
-  signal?: AbortSignal;
-}
-
-// ================================
-// Event Types for API
-// ================================
-
-export interface APIEventMap {
-  connected: () => void;
-  disconnected: () => void;
-  error: (error: Error) => void;
-  message: (message: any) => void;
-  progress: (progress: number) => void;
-}
-
-// ================================
-// Configuration Types for Library
-// ================================
-
-export interface CodeboltConfig {
-  /** WebSocket configuration */
-  websocket?: {
-    url?: string;
-    timeout?: number;
-    reconnectInterval?: number;
-    maxReconnectAttempts?: number;
-    autoReconnect?: boolean;
-  };
-  /** Logging configuration */
-  logging?: {
-    level?: 'debug' | 'info' | 'warn' | 'error';
-    enabled?: boolean;
-    format?: 'json' | 'text';
-  };
-  /** Default timeouts for operations */
-  timeouts?: {
-    default?: number;
-    llm?: number;
-    browser?: number;
-    terminal?: number;
-    fileSystem?: number;
-  };
-  /** Feature flags */
-  features?: {
-    autoRetry?: boolean;
-    caching?: boolean;
-    compression?: boolean;
-  };
-}
-
-
-
-// ================================
-// Callback Types
-// ================================
-
-export type ProgressCallback = (progress: number, message?: string) => void;
-export type ErrorCallback = (error: Error) => void;
-export type SuccessCallback<T = any> = (result: T) => void;
-export type CompletionCallback<T = any> = (error: Error | null, result?: T) => void;
-
-// ================================
-// Summary Section
-// ================================
 
 /**
  * This file contains comprehensive TypeScript types for the codeboltjs library API.

@@ -1,7 +1,13 @@
 // chat.ts
 import cbws from '../core/websocket';
-import { ChatMessage, UserMessage } from '../types/socketMessageTypes';
 import { ChatEventType, ChatResponseType } from '@codebolt/types';
+import { 
+    ChatGetHistorySuccessResponse, ChatGetHistoryErrorResponse,
+    ChatWaitForReplySuccessResponse, ChatWaitForReplyErrorResponse,
+    ChatProcessStartedSuccessResponse, ChatProcessStartedErrorResponse,
+    ChatProcessStoppedSuccessResponse, ChatProcessStoppedErrorResponse,
+    UserMessage
+} from '../types/libFunctionTypes';
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
 /**
@@ -12,7 +18,7 @@ const cbchat = {
      * Retrieves the chat history from the server.
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
      */
-    getChatHistory: (): Promise<ChatMessage[]> => {
+    getChatHistory: (): Promise<ChatGetHistorySuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": ChatEventType.GET_CHAT_HISTORY
@@ -65,7 +71,7 @@ const cbchat = {
      * @param {string} message - The message for which a reply is expected.
      * @returns {Promise<UserMessage>} A promise that resolves with the reply.
      */
-    waitforReply: (message: string): Promise<UserMessage> => {
+    waitforReply: (message: string): Promise<ChatWaitForReplySuccessResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": ChatEventType.WAIT_FOR_REPLY,
