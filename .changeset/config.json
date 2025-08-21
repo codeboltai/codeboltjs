@@ -3,9 +3,16 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [],
+  "linked": [
+    ["@codebolt/codeboltjs", "@codebolt/utils", "@codebolt/types"],
+    ["@codebolt/codeparser", "@codebolt/mcp"]
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [
+    "@codebolt/eslint-config",
+    "@codebolt/geminiagent",
+    "@codebolt/act"
+  ]
 }
