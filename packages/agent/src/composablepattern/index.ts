@@ -69,12 +69,6 @@ export {
 // Memory and storage
 export { 
   Memory,
-  InMemoryStore,
-  FileStore,
-  LibSQLStore,
-  createLibSQLMemory,
-  createFileMemory,
-  createInMemoryMemory,
   createCodeBoltMemory,
   createCodeBoltAgentMemory,
   createCodeBoltProjectMemory,

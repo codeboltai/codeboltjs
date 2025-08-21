@@ -6,7 +6,7 @@
 import { 
   ComposableAgent, 
   createTool, 
-  createInMemoryMemory,
+  createCodeBoltAgentMemory,
   z 
 } from '../index';
 
@@ -32,7 +32,7 @@ const researchAgent = new ComposableAgent({
     Structure your response with clear sections and bullet points.
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Create writing agent
@@ -44,7 +44,7 @@ const writingAgent = new ComposableAgent({
     Use clear headings, compelling introductions, and actionable conclusions.
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Create review agent
@@ -56,7 +56,7 @@ const reviewAgent = new ComposableAgent({
     Provide a quality score (1-10) and specific improvement suggestions.
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Content creation workflow
@@ -174,7 +174,7 @@ const classificationAgent = new ComposableAgent({
     Respond in JSON format: {"category": "...", "urgency": "...", "summary": "..."}
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Create technical support agent
@@ -186,7 +186,7 @@ const technicalAgent = new ComposableAgent({
     Be clear, step-by-step, and ask clarifying questions if needed.
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Create billing agent
@@ -198,7 +198,7 @@ const billingAgent = new ComposableAgent({
     Be helpful and provide clear explanations of charges and policies.
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Customer support workflow
@@ -357,7 +357,7 @@ const analysisAgent = new ComposableAgent({
       }
     })
   },
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 export const dataProcessingWorkflow = createWorkflow({

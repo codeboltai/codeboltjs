@@ -1,2 +1,4 @@
 packages:
   - 'packages/*'
+  - 'common/*'
+  - 'agents/*'

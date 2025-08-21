@@ -8,7 +8,7 @@ process.env.CODEBOLT_ID = process.env.CODEBOLT_ID || 'default_id';
 
 const codebolt = require('@codebolt/codeboltjs');
 
-const { UserMessage, SystemPrompt, TaskInstruction, Agent } = require("@codebolt/codeboltjs/utils");
+const { UserMessage, SystemPrompt, TaskInstruction, Agent } = require("@codebolt/utils");
 
 codebolt.onMessage(async (reqMessage) => {
     try {

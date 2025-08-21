@@ -60,9 +60,9 @@ const textProcessingStep = createSimpleStep({
     
     return {
       processedText: text.toLowerCase().trim(),
-      wordCount: text.split(/\s+/).filter(w => w.length > 0).length,
+      wordCount: text.split(/\s+/).filter((w: string) => w.length > 0).length,
       characterCount: text.length,
-      sentences: text.split(/[.!?]+/).filter(s => s.trim().length > 0).length,
+      sentences: text.split(/[.!?]+/).filter((s: string) => s.trim().length > 0).length,
       containsEmail: /\S+@\S+\.\S+/.test(text),
       containsPhone: /\d{3}-\d{3}-\d{4}/.test(text)
     };

@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/codeboltjs": "file:/Users/ravirawat/Documents/codeboltai/codeboltjs",
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/utils": "workspace:*",
     "copy-webpack-plugin": "^12.0.2",
     "node-loader": "^2.1.0",
     "utf-8-validate": "^6.0.5"

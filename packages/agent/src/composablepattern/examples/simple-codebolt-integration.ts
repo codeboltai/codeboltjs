@@ -151,14 +151,14 @@ codebolt.onMessage(async (reqMessage: any) => {
     const mcps = codebolt.userMessage.getMentionedMCPs();
     
     // Conditionally update processing config
-    if (files.some(f => f.endsWith('.env') || f.endsWith('.secret'))) {
+    if (files.some((f: string) => f.endsWith('.env') || f.endsWith('.secret'))) {
       // Don't process sensitive files
       codebolt.userMessage.updateProcessingConfig({
         processMentionedFiles: false
       });
     }
     
-    if (mcps.some(mcp => mcp.toolbox === 'admin')) {
+    if (mcps.some((mcp: any) => mcp.toolbox === 'admin')) {
       // Only process admin MCPs for authorized users
       const isAdmin = checkUserPermissions(codebolt.userMessage.getMessageId());
       codebolt.userMessage.updateProcessingConfig({

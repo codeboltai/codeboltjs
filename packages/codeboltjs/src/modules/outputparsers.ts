@@ -3,13 +3,13 @@
  */
 
 // Type definitions for output parsing
-interface CSVRow {
+export interface CSVRow {
   [key: string]: string;
 }
 
-type ParsableOutput = string | string[] | { toString(): string };
+export type ParsableOutput = string | string[] | { toString(): string };
 
-interface ParseResult<T = unknown> {
+export interface ParseResult<T = unknown> {
   success: boolean;
   parsed?: T;
   error?: Error;

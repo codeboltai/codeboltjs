@@ -4,7 +4,7 @@ import {
     LLMAgentStep, 
     ToolExecutor, 
     ToolListClass as ToolList 
-} from '@codebolt/agentprocessorframework';
+} from '@codebolt/agent/processor';
 import { 
     HandleUrlMessageModifier,
     BaseContextMessageModifier,
@@ -25,7 +25,7 @@ import {
     FileDeleteTool,
     FileMoveTool,
     FileCopyTool
-} from '@codebolt/agentprocessorpieces';
+} from '@codebolt/agent/processor-pieces';
 
 // Initialize components
 const toolList = new ToolList([
@@ -238,4 +238,4 @@ codebolt.onMessage(async (message: any): Promise<any> => {
 });
 
 // Export components for external use
-export { RequestMessage, LLMAgentStep, ToolExecutor, ToolListClass as ToolList } from '@codebolt/agentprocessorframework';
+export { RequestMessage, LLMAgentStep, ToolExecutor, ToolListClass as ToolList } from '@codebolt/agent/processor';

@@ -20,8 +20,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agentprocessorframework": "workspace:*",
-    "@codebolt/agentprocessorpieces": "workspace:*",
+    "@codebolt/agent": "workspace:*",
     "@codebolt/codeboltjs": "^2.2.1"
   },
   "devDependencies": {

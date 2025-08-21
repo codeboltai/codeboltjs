@@ -44,7 +44,7 @@ class UserContextManager {
       this.state.userConfig = {
         processMentionedMCPs: message.mentionedMCPs?.length > 0,
         processRemixPrompt: !!message.remixPrompt,
-        processMentionedFiles: message.mentionedFiles?.length > 0,
+        processMentionedFiles: (message.mentionedFiles?.length ?? 0) > 0,
         processMentionedAgents: message.mentionedAgents?.length > 0
       };
     }

@@ -7,7 +7,7 @@ import {
   ComposableAgent, 
   createTool, 
   MDocument,
-  createInMemoryMemory,
+  createCodeBoltAgentMemory,
   z 
 } from '../index';
 
@@ -92,7 +92,7 @@ export const documentAgent = new ComposableAgent({
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
   tools: { processDocumentTool },
-  memory: createInMemoryMemory()
+  memory: createCodeBoltAgentMemory()
 });
 
 // Example usage

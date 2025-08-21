@@ -6,8 +6,7 @@
 import { 
   ComposableAgent, 
   createTool, 
-  Memory, 
-  LibSQLStore,
+  createCodeBoltDbMemory,
   z 
 } from '../index';
 
@@ -66,11 +65,7 @@ export const codeboltagent = new ComposableAgent({
   `,
   model: 'gpt-4o-mini', // References configuration in codeboltagents.yaml
   tools: { weatherTool },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      url: 'file:../mastra.db', // path is relative to the .mastra/output directory
-    }),
-  }),
+  memory: createCodeBoltDbMemory(),
 });
 
 // Example usage
