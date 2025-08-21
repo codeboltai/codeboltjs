@@ -1,0 +1,99 @@
+{
+  "response": {
+    "message": null,
+    "type": "llmResponse",
+    "token": {
+      "prompt_tokens": 4872,
+      "completion_tokens": 18,
+      "total_tokens": 4890,
+      "prompt_tokens_details": {
+        "cached_tokens": 4736,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "status": 200,
+    "model": "gpt-4o-2024-08-06",
+    "request": "",
+    "timestamp": "2025-08-18T14:04:53.895Z",
+    "requestId": "03fd7478-4600-4f63-a2ad-26ab7bab7107",
+    "messageId": "o0ohrhd0nasr5r3vzcnz",
+    "agentInstanceId": "43ffea70-7be3-47e9-9aba-f93bc2b17622",
+    "agentId": "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9",
+    "parentAgentInstanceId": "",
+    "parentId": "",
+    "usage": {
+      "prompt_tokens": 4872,
+      "completion_tokens": 18,
+      "total_tokens": 4890,
+      "prompt_tokens_details": {
+        "cached_tokens": 4736,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "completion": {
+      "id": "chatcmpl-C5uljUAy9vnmGUSHiLvPlSwdzj9av",
+      "object": "chat.completion",
+      "created": 1755525895,
+      "model": "gpt-4o-2024-08-06",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [
+              {
+                "id": "call_tqbdiRRJlWcbB8mgw9g0o8gO",
+                "type": "function",
+                "function": {
+                  "name": "codebolt--execute_command",
+                  "arguments": "{\"command\":\"npm install\"}"
+                }
+              }
+            ],
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4872,
+        "completion_tokens": 18,
+        "total_tokens": 4890,
+        "prompt_tokens_details": {
+          "cached_tokens": 4736,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "service_tier": "default",
+      "system_fingerprint": "fp_46bff0e0c8"
+    },
+    "pricing": {
+      "inputCost": 0.00068,
+      "outputCost": 0.00036,
+      "totalCost": 0.0010400000000000001
+    }
+  },
+  "timestamp": "2025-08-18T14:04:57.578Z",
+  "requestTimestamp": "2025-08-18T14:04:53.799Z"
+}

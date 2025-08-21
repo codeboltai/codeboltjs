@@ -1,0 +1,89 @@
+{
+  "response": {
+    "message": "Hello! How can I assist you today?",
+    "type": "llmResponse",
+    "token": {
+      "prompt_tokens": 5658,
+      "completion_tokens": 10,
+      "total_tokens": 5668,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "status": 200,
+    "model": "gpt-4o-2024-08-06",
+    "request": "",
+    "timestamp": "2025-08-18T16:29:37.314Z",
+    "requestId": "6ab7cfb9-1e67-4363-868d-88539bc245c5",
+    "messageId": "sloi5m3wo4ionz00c0k7sk",
+    "agentInstanceId": "0159c70c-cfe8-49b4-af1b-9d22e32f9dd1",
+    "agentId": "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9",
+    "parentAgentInstanceId": "",
+    "parentId": "",
+    "usage": {
+      "prompt_tokens": 5658,
+      "completion_tokens": 10,
+      "total_tokens": 5668,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "completion": {
+      "id": "chatcmpl-C5x1m31sdSmi5jUF7tfhl0plZJ408",
+      "object": "chat.completion",
+      "created": 1755534578,
+      "model": "gpt-4o-2024-08-06",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "Hello! How can I assist you today?",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 5658,
+        "completion_tokens": 10,
+        "total_tokens": 5668,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "service_tier": "default",
+      "system_fingerprint": "fp_46bff0e0c8"
+    },
+    "pricing": {
+      "inputCost": 0.028290000000000003,
+      "outputCost": 0.0002,
+      "totalCost": 0.02849
+    }
+  },
+  "timestamp": "2025-08-18T16:29:39.668Z",
+  "requestTimestamp": "2025-08-18T16:29:37.157Z"
+}

@@ -1,0 +1,99 @@
+{
+  "response": {
+    "message": "To run this Node.js project, I'll start by reviewing the `package.json` file to identify any scripts or dependencies that might be relevant. After that, I will run the necessary commands to start the project.\n\nLet's first examine the `package.json` file.",
+    "type": "llmResponse",
+    "token": {
+      "prompt_tokens": 4725,
+      "completion_tokens": 83,
+      "total_tokens": 4808,
+      "prompt_tokens_details": {
+        "cached_tokens": 4608,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "status": 200,
+    "model": "gpt-4o-2024-08-06",
+    "request": "",
+    "timestamp": "2025-08-18T13:02:13.983Z",
+    "requestId": "41e9b036-56e7-42a7-8f4d-c43e2c520d7e",
+    "messageId": "yrddvo5mqccrjybimhx2",
+    "agentInstanceId": "14ef1e0c-1c5e-4ad9-847c-0c34f0a3f4d2",
+    "agentId": "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9",
+    "parentAgentInstanceId": "",
+    "parentId": "",
+    "usage": {
+      "prompt_tokens": 4725,
+      "completion_tokens": 83,
+      "total_tokens": 4808,
+      "prompt_tokens_details": {
+        "cached_tokens": 4608,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "completion": {
+      "id": "chatcmpl-C5tn5Lo1C68XePgW8vliSAfl2nHW9",
+      "object": "chat.completion",
+      "created": 1755522135,
+      "model": "gpt-4o-2024-08-06",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "To run this Node.js project, I'll start by reviewing the `package.json` file to identify any scripts or dependencies that might be relevant. After that, I will run the necessary commands to start the project.\n\nLet's first examine the `package.json` file.",
+            "tool_calls": [
+              {
+                "id": "call_92soKDzHw7K7WuX8mXLsTDIF",
+                "type": "function",
+                "function": {
+                  "name": "codebolt--read_file",
+                  "arguments": "{\"path\":\"/Users/ravirawat/Documents/cbtest/high-lime/package.json\"}"
+                }
+              }
+            ],
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "tool_calls"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4725,
+        "completion_tokens": 83,
+        "total_tokens": 4808,
+        "prompt_tokens_details": {
+          "cached_tokens": 4608,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "service_tier": "default",
+      "system_fingerprint": "fp_46bff0e0c8"
+    },
+    "pricing": {
+      "inputCost": 0.000585,
+      "outputCost": 0.0016600000000000002,
+      "totalCost": 0.0022450000000000005
+    }
+  },
+  "timestamp": "2025-08-18T13:02:18.004Z",
+  "requestTimestamp": "2025-08-18T13:02:13.873Z"
+}

@@ -1,0 +1,89 @@
+{
+  "response": {
+    "message": "The project is now running. The server is listening for requests at [http://localhost:3000/](http://localhost:3000/). You can open this URL in your browser to interact with the application.",
+    "type": "llmResponse",
+    "token": {
+      "prompt_tokens": 6073,
+      "completion_tokens": 45,
+      "total_tokens": 6118,
+      "prompt_tokens_details": {
+        "cached_tokens": 5760,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "status": 200,
+    "model": "gpt-4o-2024-08-06",
+    "request": "",
+    "timestamp": "2025-08-18T16:32:52.490Z",
+    "requestId": "a9b20437-cc31-4a21-8770-4c527f44b2b1",
+    "messageId": "j5zt5ugo2oofjfm24wt8m",
+    "agentInstanceId": "18af59e7-fa47-4033-81f9-761ba0401d68",
+    "agentId": "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9",
+    "parentAgentInstanceId": "",
+    "parentId": "",
+    "usage": {
+      "prompt_tokens": 6073,
+      "completion_tokens": 45,
+      "total_tokens": 6118,
+      "prompt_tokens_details": {
+        "cached_tokens": 5760,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "completion": {
+      "id": "chatcmpl-C5x5CKH9Fuoz2rOYIy1zFLEhtOQmF",
+      "object": "chat.completion",
+      "created": 1755534790,
+      "model": "gpt-4o-2024-08-06",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "The project is now running. The server is listening for requests at [http://localhost:3000/](http://localhost:3000/). You can open this URL in your browser to interact with the application.",
+            "refusal": null,
+            "annotations": []
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 6073,
+        "completion_tokens": 45,
+        "total_tokens": 6118,
+        "prompt_tokens_details": {
+          "cached_tokens": 5760,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "service_tier": "default",
+      "system_fingerprint": "fp_46bff0e0c8"
+    },
+    "pricing": {
+      "inputCost": 0.0015650000000000002,
+      "outputCost": 0.0009000000000000001,
+      "totalCost": 0.002465
+    }
+  },
+  "timestamp": "2025-08-18T16:33:12.150Z",
+  "requestTimestamp": "2025-08-18T16:32:52.262Z"
+}
