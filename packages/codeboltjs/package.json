@@ -32,7 +32,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@codebolt/codeparser": "workspace:*",
     "@codebolt/types": "workspace:*",
     "@types/uuid": "^10.0.0",
     "buffer": "^6.0.3",

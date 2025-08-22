@@ -9,7 +9,6 @@ import cbcrawler from '../modules/crawler';
 import cbsearch from '../modules/search';
 import cbknowledge from '../modules/knowledge';
 import cbrag from '../modules/rag';
-import { cbcodeparsers } from '@codebolt/codeparser';
 import cboutputparsers from '../modules/outputparsers';
 import cbproject from '../modules/project';
 import git from '../modules/git';
@@ -103,7 +102,6 @@ class Codebolt {
     search = cbsearch;
     knowledge = cbknowledge;
     rag = cbrag;
-    codeparsers = cbcodeparsers;
     outputparsers = cboutputparsers;
     project = cbproject;
     dbmemory = dbmemory;

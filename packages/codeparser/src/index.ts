@@ -19,6 +19,11 @@ export {
   loadRequiredLanguageParsers
 } from "./parse-source-code/languageParser";
 
+// Export JS tree functionality (moved from codeboltjs)
+export {
+  getJsTree
+} from "./js-tree";
+
 // Export codeparsers functions
 export { default as cbcodeparsers } from "./codeparsers";
 

@@ -1,16 +1,9 @@
 import cbws from '../core/websocket';
-import * as fs from 'fs';
-import path from 'path';
 // import Parser from 'tree-sitter';
 // import JavaScript from 'tree-sitter-javascript';
 // import typescript from "tree-sitter-typescript"; // TypeScript and TSX grammar
 
 import { MatchProblemResponse, GetMatcherListTreeResponse, getMatchDetail } from '@codebolt/types/sdk';
-import { loadRequiredLanguageParsers } from '@codebolt/codeparser';
-
-// Import and re-export types from InternalTypes for consistency
-import type { JSTreeStructureItem, JSTreeResponse } from '../types/InternalTypes';
-export type { JSTreeStructureItem, JSTreeResponse };
 
 import { CodeAction, CodeResponseType, EventType } from '@codebolt/types/enum';
 
@@ -18,82 +11,6 @@ import { CodeAction, CodeResponseType, EventType } from '@codebolt/types/enum';
  * A utility module for working with code.
  */
 const cbcodeutils = {
-
-    /**
-     * Retrieves a JavaScript tree structure for a given file path.
-     * @param {string} filePath - The path of the file to retrieve the JS tree for.
-     * @returns {Promise<JSTreeResponse>} A promise that resolves with the JS tree response.
-     */
-    getJsTree: async (filePath?: string): Promise<JSTreeResponse> => {
-        try {
-            // If no filePath is provided, we can't parse anything
-            if (!filePath) {
-                throw new Error('No file path provided for parsing');
-            }
-            
-            // Get absolute path to ensure file can be accessed
-            const absolutePath = path.resolve(filePath);
-            
-            // Check if file exists
-            await fs.promises.access(absolutePath);
-            
-            // Get file extension to determine language parser
-            const ext = path.extname(absolutePath).toLowerCase().slice(1);
-            
-            // Load appropriate language parser
-            const languageParsers = await loadRequiredLanguageParsers([absolutePath]);
-            
-            // Get parser for this file type
-            const { parser, query } = languageParsers[ext] || {};
-            if (!parser || !query) {
-                throw new Error(`Unsupported language: ${ext}`);
-            }
-            
-            // Read file content
-            const fileContent = await fs.promises.readFile(absolutePath, 'utf8');
-            
-            // Parse file to get AST
-            const tree = parser.parse(fileContent);
-            
-            // Get captures from the AST using the query
-            const captures = query.captures(tree.rootNode);
-            
-            // Sort captures by position
-            captures.sort((a: any, b: any) => 
-                a.node.startPosition.row - b.node.startPosition.row || 
-                a.node.startPosition.column - b.node.startPosition.column
-            );
-            
-            // Transform captures into a structured format
-            const structure = captures.map((capture: any) => {
-                const { node, name } = capture;
-                return {
-                    type: name.includes('definition.') ? name.split('definition.')[1] : name,
-                    name: node.text,
-                    startLine: node.startPosition.row,
-                    endLine: node.endPosition.row,
-                    startColumn: node.startPosition.column,
-                    endColumn: node.endPosition.column,
-                    nodeType: node.type
-                };
-            });
-            
-            // Return response with the appropriate structure
-            return {
-                event: CodeResponseType.GET_JS_TREE_RESPONSE,
-                payload: {
-                    filePath: absolutePath,
-                    structure
-                }
-            };
-        } catch (error) {
-            // Return error response
-            return {
-                event: CodeResponseType.GET_JS_TREE_RESPONSE,
-                error: error instanceof Error ? error.message : String(error)
-            };
-        }
-    },
 
     /**
      * Retrieves all files as Markdown.

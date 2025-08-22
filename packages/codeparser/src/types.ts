@@ -68,3 +68,38 @@ export interface ParseOptions {
   /** List of directories to ignore */
   ignoreDirectories?: string[];
 }
+
+// ================================
+// JS Tree Types (moved from codeboltjs)
+// ================================
+
+export interface JSTreeStructureItem {
+  /** Type of the item (function, class, variable, etc.) */
+  type: string;
+  /** Name of the code structure item */
+  name: string;
+  /** Start line number */
+  startLine: number;
+  /** End line number */
+  endLine: number;
+  /** Start column number */
+  startColumn: number;
+  /** End column number */
+  endColumn: number;
+  /** Node type from the AST */
+  nodeType: string;
+}
+
+export interface JSTreeResponse {
+  /** Event type */
+  event: string;
+  /** Response payload */
+  payload?: {
+    /** File path that was parsed */
+    filePath: string;
+    /** Parsed structure items */
+    structure: JSTreeStructureItem[];
+  };
+  /** Error message if parsing failed */
+  error?: string;
+}
