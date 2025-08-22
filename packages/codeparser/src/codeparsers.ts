@@ -1,5 +1,6 @@
-import { parseFile, loadRequiredLanguageParsers } from "@codebolt/codeparser";
-import type { ASTNode } from "../types/commonTypes";
+import { parseFile } from "./parse-source-code";
+import { loadRequiredLanguageParsers } from "./parse-source-code/languageParser";
+import { CodeboltASTNode } from "./types";
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -304,8 +305,8 @@ const cbcodeparsers = {
             
             if (classNode) {
                 // Convert the class node to a JSON-serializable object
-                const serializeNode = (node: any): ASTNode => {
-                    const result: ASTNode = {
+                const serializeNode = (node: any): CodeboltASTNode => {
+                    const result: CodeboltASTNode = {
                         type: node.type,
                         text: node.text,
                         startPosition: { row: node.startPosition.row, column: node.startPosition.column },
@@ -328,8 +329,8 @@ const cbcodeparsers = {
         
         // Otherwise return the full AST
         // Convert the full tree to a JSON-serializable object
-        const serializeNode = (node: any): ASTNode => {
-            const result: ASTNode = {
+        const serializeNode = (node: any): CodeboltASTNode => {
+            const result: CodeboltASTNode = {
                 type: node.type,
                 text: node.text,
                 startPosition: { row: node.startPosition.row, column: node.startPosition.column },

@@ -19,6 +19,9 @@ export {
   loadRequiredLanguageParsers
 } from "./parse-source-code/languageParser";
 
+// Export codeparsers functions
+export { default as cbcodeparsers } from "./codeparsers";
+
 // Export types
 export * from "./types";
 

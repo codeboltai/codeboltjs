@@ -28,6 +28,18 @@ export interface ASTNode {
   [key: string]: any;
 }
 
+/**
+ * AST Node type compatible with @codebolt/codeboltjs
+ * Uses startPosition/endPosition format with row/column
+ */
+export interface CodeboltASTNode {
+  type: string;
+  text: string;
+  startPosition: { row: number; column: number };
+  endPosition: { row: number; column: number };
+  children: CodeboltASTNode[];
+}
+
 export interface ParserConfig {
   language: string;
   options: {

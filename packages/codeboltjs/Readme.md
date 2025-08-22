@@ -121,6 +121,9 @@ For detailed type usage examples, see [TYPES.md](./TYPES.md).
 - `codebolt.agent` - Agent operations
 - `codebolt.vectordb` - Vector database operations
 - `codebolt.mcp` - MCP (Model Context Protocol) tools
+- `codebolt.codeparsers` - Code parsing and AST generation (migrated from internal module)
+
+> **Note**: The `codeparsers` functions have been migrated to the `@codebolt/codeparser` package for better modularity. You can still access them through `codebolt.codeparsers` or import directly from `@codebolt/codeparser`. See [CODEPARSERS_MIGRATION.md](./CODEPARSERS_MIGRATION.md) for details.
 
 ### Example Usage
 

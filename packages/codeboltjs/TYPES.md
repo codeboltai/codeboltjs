@@ -238,12 +238,16 @@ const analysis: CodeAnalysis = await codebolt.codeutils.analyze({
   path: './src/utils.ts'
 });
 
-// AST parsing results
+// AST parsing results (now from @codebolt/codeparser package)
 const ast: ASTNode[] = await codebolt.codeparsers.parse({
   input: './src/app.ts',
   language: 'typescript',
   isFilePath: true
 });
+
+// Alternative: Direct import from @codebolt/codeparser
+import { cbcodeparsers } from '@codebolt/codeparser';
+const classes = await cbcodeparsers.getClassesInFile('./src/app.ts');
 ```
 
 ## Utility Types
