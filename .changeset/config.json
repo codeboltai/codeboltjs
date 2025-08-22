@@ -13,6 +13,8 @@
   "ignore": [
     "@codebolt/eslint-config",
     "@codebolt/geminiagent",
-    "@codebolt/act"
+    "@codebolt/act",
+    "@codebolt/docs-nursid",
+    "@codebolt/docs"
   ]
 }
