@@ -1,101 +1,177 @@
-# CodeBolt Agent Utils
+# CodeBolt Agent Package
 
-A TypeScript library providing utilities for building and managing AI agents with CodeBolt. This package extracts the agent functionality from the main CodeBolt library into a focused, reusable package.
+A comprehensive TypeScript framework for building and managing AI agents with CodeBolt. This package provides multiple architectural patterns and utilities to meet different development needs, from simple composable agents to complex multi-step workflows.
 
-## Features
+## 🚀 Quick Start
 
-- **Agent Class**: Core agent functionality for managing conversations with LLMs
-- **Message Builders**: Utilities for building user messages, system prompts, and task instructions
-- **Prompt Management**: Advanced prompt building and management capabilities
-- **LLM Output Handling**: Processing and managing LLM responses and tool executions
-- **Follow-up Questions**: Generate contextual follow-up questions for conversations
+```typescript
+import { ComposableAgent, createTool } from '@codebolt/agent/composable';
+import { z } from 'zod';
 
-## Installation
+// Create a simple weather tool
+const weatherTool = createTool({
+  id: 'get-weather',
+  description: 'Get current weather for a location',
+  inputSchema: z.object({ location: z.string() }),
+  outputSchema: z.object({ temperature: z.number(), conditions: z.string() }),
+  execute: async ({ context }) => {
+    return await getWeatherAPI(context.location);
+  },
+});
+
+// Create and run agent
+const agent = new ComposableAgent({
+  name: 'Weather Agent',
+  instructions: 'You are a helpful weather assistant.',
+  model: 'gpt-4o-mini',
+  tools: { weatherTool },
+  memory: createCodeBoltAgentMemory('weather_agent')
+});
+
+const result = await agent.execute('What is the weather in New York?');
+```
+
+## ✨ Key Features
+
+- **Multiple Patterns**: Choose between Composable, Builder, and Processor patterns
+- **Type Safety**: Full TypeScript support with Zod validation
+- **Memory Management**: Persistent conversation storage with CodeBolt integration
+- **Tool System**: Extensible tool framework with validation
+- **Workflow Orchestration**: Multi-step agent processes with conditional logic
+- **Model Agnostic**: Support for OpenAI, Anthropic, Ollama, and more
+- **Stream Support**: Real-time streaming responses
+
+## 📦 Installation
 
 ```bash
 npm install @codebolt/agent
 ```
 
-## Usage
+## 📖 Documentation
 
-### Basic Agent Setup
+**📚 [View Complete Documentation](./DOCUMENTATION.md)** - Comprehensive guide with examples, API reference, and best practices
+
+### Quick Links
+- [Architectural Patterns](./DOCUMENTATION.md#architectural-patterns) - Choose the right pattern for your use case
+- [API Reference](./API_REFERENCE.md) - Complete API documentation  
+- [Examples](./EXAMPLES.md) - Real-world usage examples and tutorials
+- [Best Practices](./DOCUMENTATION.md#best-practices) - Tips for optimal agent development
+- [Migration Guide](./DOCUMENTATION.md#migration-guide) - Upgrading from previous versions
+
+## 🎯 Architecture Patterns
+
+### Composable Pattern (Recommended)
+**Best for**: Rapid prototyping, simple agents, beginners
 
 ```typescript
-import { Agent, SystemPrompt, TaskInstruction } from '@codebolt/agent';
+import { ComposableAgent, createTool, createCodeBoltAgentMemory } from '@codebolt/agent/composable';
 
-// Create a system prompt
-const systemPrompt = new SystemPrompt();
-await systemPrompt.loadPrompt('./prompts/system.yaml');
+const agent = new ComposableAgent({
+  name: 'My Agent',
+  instructions: 'You are a helpful assistant.',
+  model: 'gpt-4o-mini',
+  tools: { myTool },
+  memory: createCodeBoltAgentMemory('agent_id')
+});
 
-// Create a task instruction
-const taskInstruction = new TaskInstruction();
-await taskInstruction.loadInstruction('./tasks/coding-task.yaml');
-
-// Initialize agent
-const agent = new Agent([], systemPrompt);
-
-// Run the agent on a task
-const result = await agent.runAgent(taskInstruction);
+const result = await agent.execute('Help me with this task');
 ```
 
-### Building User Messages
+### Builder Pattern
+**Best for**: Complex workflows, fine-grained control
 
 ```typescript
-import { UserMessage } from '@codebolt/agent-utils';
+import { Agent, InitialPromptBuilder, LLMOutputHandler } from '@codebolt/agent/builder';
 
-const userMessage = new UserMessage();
-await userMessage.addMessage("Please help me with my code");
-await userMessage.addFileContent("./src/main.ts");
-```
-
-### Advanced Prompt Building
-
-```typescript
-import { InitialPromptBuilder } from '@codebolt/agent';
-
-const promptBuilder = new InitialPromptBuilder("Fix the bug in my application");
-promptBuilder
-  .addSystemInstructions("You are a helpful coding assistant")
-  .addFile("./src/problematic-file.ts")
-  .addTaskDetails("Find and fix the TypeScript compilation errors");
+const promptBuilder = new InitialPromptBuilder(userMessage)
+  .addSystemInstructions("You are a coding assistant")
+  .addFile("./src/main.ts")
+  .addTaskDetails("Fix compilation errors");
 
 const prompt = await promptBuilder.build();
+const agent = new Agent(tools, systemPrompt);
+const result = await agent.runAgent(prompt);
 ```
 
-### LLM Output Handling
+### Processor Pattern
+**Best for**: Advanced customization, specialized requirements
 
 ```typescript
-import { LLMOutputHandler } from '@codebolt/agent';
+import { BaseProcessor, AgentStep } from '@codebolt/agent/processor';
 
-const outputHandler = new LLMOutputHandler();
-const result = await outputHandler.processLLMResponse(llmResponse, tools);
+class CustomProcessor extends BaseProcessor {
+  async process(messages: any[]): Promise<any> {
+    return this.executeCustomFlow(messages);
+  }
+}
 ```
 
-## API Reference
+## 🛠️ Available Exports
 
-### Classes
+### Composable Pattern
+```typescript
+import { 
+  ComposableAgent, createTool, createWorkflow,
+  Memory, createCodeBoltAgentMemory, MDocument 
+} from '@codebolt/agent/composable';
+```
 
-- `Agent` - Core agent for managing LLM conversations and tool executions
-- `UserMessage` - Builder for user messages with file content support
-- `SystemPrompt` - Management of system prompts from YAML files
-- `TaskInstruction` - Handling of task instructions and metadata
-- `InitialPromptBuilder` - Fluent interface for building complex prompts
-- `FollowUpPromptBuilder` - Generate follow-up questions for conversations
-- `LLMOutputHandler` - Process LLM responses and handle tool executions
+### Builder Pattern  
+```typescript
+import { 
+  Agent, InitialPromptBuilder, LLMOutputHandler,
+  SystemPrompt, TaskInstruction, UserMessage 
+} from '@codebolt/agent/builder';
+```
 
-### Types
+### Processor Pattern
+```typescript
+import { 
+  BaseProcessor, AgentStep, BaseTool,
+  ChatCompressionProcessor, LoopDetectionProcessor 
+} from '@codebolt/agent/processor';
+```
 
-The package exports comprehensive TypeScript types for all interfaces, including:
-- `Message`, `ToolResult`, `ToolDetails`
-- `OpenAIMessage`, `OpenAITool`, `ConversationEntry`
-- `UserMessageContent`, `CodeboltAPI`
-- `MCPTool`, `InitialUserMessage`
+## 🏗️ Workflow System
 
-## Dependencies
+Create complex multi-agent workflows:
 
-This package depends on `@codebolt/codeboltjs` for core functionality like file system operations, LLM communication, and tool execution.
+```typescript
+const workflow = createWorkflow({
+  name: 'Content Pipeline',
+  steps: [
+    createAgentStep({
+      id: 'research', 
+      agent: researchAgent,
+      messageTemplate: 'Research: {{topic}}'
+    }),
+    createAgentStep({
+      id: 'write',
+      agent: writingAgent, 
+      messageTemplate: 'Write article: {{researchData}}'
+    })
+  ]
+});
 
-## Development
+const result = await workflow.execute({ topic: 'AI Ethics' });
+```
+
+## 🧠 Memory & Storage
+
+Integrated with CodeBolt's storage system:
+
+```typescript
+// Agent-scoped persistent storage
+const agentMemory = createCodeBoltAgentMemory('my_agent');
+
+// Project-scoped storage
+const projectMemory = createCodeBoltProjectMemory('project_agent');
+
+// Fast access memory database  
+const dbMemory = createCodeBoltDbMemory('cache_agent');
+```
+
+## 🔧 Development
 
 ```bash
 # Install dependencies
@@ -104,17 +180,32 @@ npm install
 # Build the project
 npm run build
 
-# Run in development mode
+# Development mode
 npm run dev
 
-# Clean build artifacts
-npm run clean
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
 ```
 
-## License
+## 📋 Pattern Comparison
 
-MIT
+| Pattern | Complexity | Use Case | Learning Curve |
+|---------|------------|----------|----------------|
+| **Composable** | Low | Rapid prototyping, simple agents | Low |
+| **Builder** | Medium | Complex workflows, custom logic | Medium |
+| **Processor** | High | Advanced customization | High |
 
-## Contributing
+## 🤝 Contributing
 
-Please see the main CodeBolt repository for contribution guidelines.
+See our [Contributing Guide](./DOCUMENTATION.md#contributing) for development setup, coding standards, and submission guidelines.
+
+## 📄 License
+
+MIT - See the main CodeBolt repository for details.
+
+---
+
+**📚 [Complete Documentation](./DOCUMENTATION.md)** | **🐛 [Report Issues](https://github.com/codeboltai/codeboltjs/issues)** | **💬 [Join Community](https://discord.gg/codebolt)**
