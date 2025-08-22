@@ -37,8 +37,6 @@
     "access": "public"
   },
   "dependencies": {
-    "pdf-parse": "^1.1.1",
-    "@types/pdf-parse": "^1.1.5",
     "@codebolt/codeboltjs": "workspace:*"
   },
   "devDependencies": {

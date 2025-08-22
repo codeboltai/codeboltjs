@@ -4,10 +4,10 @@ Utility functions for document processing and other common tasks.
 
 ## Features
 
-- PDF to text conversion using pdf-parse
 - Document processing utilities
 - File system helpers
 - Error handling for document operations
+- Chat manager utilities
 
 ## Installation
 
@@ -18,35 +18,30 @@ npm install @codebolt/utils
 ## Usage
 
 ```typescript
-import { docutils } from '@codebolt/utils';
+import { docutils, chatmanager } from '@codebolt/utils';
 
-// Convert PDF to text
-const text = await docutils.pdf_to_text('./document.pdf');
-console.log(text);
+// Document utilities are available for future enhancements
+// Chat manager utilities for conversation handling
 ```
 
 ## API
 
 ### Document Utils
 
-- `docutils.pdf_to_text(pdf_path: string): Promise<string>` - Convert PDF document to text
+The docutils module is available for future document processing enhancements.
+PDF functionality has been removed to reduce bundle size.
 
-The `pdf_to_text` function:
-- Validates file existence
-- Reads PDF files as buffer
-- Extracts text content using pdf-parse
-- Provides comprehensive error handling
-- Returns the extracted text as a string
+### Chat Manager
+
+Utilities for managing chat conversations and message processing.
 
 ### Error Handling
 
 The utilities include robust error handling for:
-- File not found errors
-- PDF parsing errors  
 - File system access errors
+- Processing errors
 - Unknown errors with fallback messages
 
 ## Dependencies
 
-- `pdf-parse` - PDF parsing library
-- `@types/pdf-parse` - TypeScript definitions for pdf-parse
+Minimal dependencies for optimal performance and reduced bundle size.

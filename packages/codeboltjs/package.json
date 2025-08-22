@@ -18,7 +18,7 @@
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "echo \"Integration tests require WebSocket server - skipping for release\" && exit 0",
-    "clean": "rm -rf dist build",
+    "clean": "powershell -Command \"Remove-Item -Path 'dist' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item -Path 'build' -Recurse -Force -ErrorAction SilentlyContinue\"",
     "lint": "eslint src/**/*.ts && tsc --noEmit"
   },
   "repository": {

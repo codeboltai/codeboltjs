@@ -89,9 +89,11 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
+        exclude: /node_modules[\/\\]pdf-parse/, // Exclude pdf-parse to avoid large file warnings
         use: {
           loader: 'babel-loader',
           options: {
+            compact: false, // Disable compact mode to avoid large file warnings
             presets: [
               [
                 '@babel/preset-env',

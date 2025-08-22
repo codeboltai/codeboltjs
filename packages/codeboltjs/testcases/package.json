@@ -26,7 +26,6 @@
         "test:project": "node tests/project-test.js",
         "test:agent": "node tests/agent-test.js",
         "test:rag": "node tests/rag-test.js",
-        "test:docutils": "node tests/docutils-test.js",
         "test:search": "node tests/search-test.js",
         "test:knowledge": "node tests/knowledge-test.js",
         "test:codeparsers": "node tests/codeparsers-test.js",
@@ -52,7 +51,7 @@
         "test:mcp:vector": "node tests/mcp_tools/vectordb-mcp-test.js",
         "test:mcp:application": "node tests/mcp_tools/application-mcp-test.js",
         "test:mcp:all": "node tests/mcp_tools/run-all-mcp-tests.js",
-        "test:all": "npm run test:fs && npm run test:git && npm run test:chat && npm run test:terminal && npm run test:browser && npm run test:llm && npm run test:tools && npm run test:vectordb && npm run test:websocket && npm run test:codeutils && npm run test:toolBox && npm run test:debug && npm run test:dbmemory && npm run test:crawler && npm run test:tokenizer && npm run test:task && npm run test:state && npm run test:project && npm run test:agent && npm run test:rag && npm run test:docutils && npm run test:search && npm run test:knowledge && npm run test:codeparsers && npm run test:outputparsers && npm run test:history && npm run test:mcp:all"
+        "test:all": "npm run test:fs && npm run test:git && npm run test:chat && npm run test:terminal && npm run test:browser && npm run test:llm && npm run test:tools && npm run test:vectordb && npm run test:websocket && npm run test:codeutils && npm run test:toolBox && npm run test:debug && npm run test:dbmemory && npm run test:crawler && npm run test:tokenizer && npm run test:task && npm run test:state && npm run test:project && npm run test:agent && npm run test:rag && npm run test:search && npm run test:knowledge && npm run test:codeparsers && npm run test:outputparsers && npm run test:history && npm run test:mcp:all"
     },
     "keywords": [
         "codebolt",
