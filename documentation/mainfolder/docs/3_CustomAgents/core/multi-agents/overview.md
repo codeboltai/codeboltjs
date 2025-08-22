@@ -920,10 +920,10 @@ Ready to implement multi-agent systems? Here's your learning path:
 
 ## Advanced Topics
 
-- [Agent Orchestration Patterns](orchestration-patterns.md)
-- [Communication Protocols](communication-protocols.md)
-- [Performance Optimization](performance-optimization.md)
-- [Fault Tolerance Strategies](fault-tolerance.md)
+- **Agent Orchestration Patterns**
+- **Communication Protocols**
+- **Performance Optimization**
+- **Fault Tolerance Strategies**
 
 ## Community Resources
 

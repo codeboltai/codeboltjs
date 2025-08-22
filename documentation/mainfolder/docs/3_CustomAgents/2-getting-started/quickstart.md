@@ -208,8 +208,8 @@ Congratulations! In just 15 minutes, you've:
 Now that you've got the basics down, here's what to explore next:
 
 ### Immediate Next Steps
-1. **Learn Core Concepts**: [concepts.md](concepts.md) - Understand the fundamentals
-2. **Create Custom Agents**: [../core/agents/custom-agent.md](custom-agent.md)
+1. **Learn Core Concepts**: **Concepts** - Understand the fundamentals
+2. **Create Custom Agents**: **Custom Agent Development**
 3. **Explore Multi-Agent Workflows**: [../core/multi-agents/overview.md](3_CustomAgents/core/multi-agents/overview.md)
 
 ### Advanced Features
@@ -218,7 +218,7 @@ Now that you've got the basics down, here's what to explore next:
 3. **TypeScript SDK**: [../core/typescript-sdk/overview.md](3_CustomAgents/typescript-sdk/overview.md) - Build custom integrations
 
 ### Real-World Projects
-1. **End-to-End Tutorials**: [../tutorials.md](../tutorials.md) - Complete project walkthroughs
+1. **End-to-End Tutorials**: **Tutorials** - Complete project walkthroughs
 
 ## Pro Tips for Success
 
@@ -235,6 +235,6 @@ If something didn't work as expected:
 - **Agent not triggering**: Check the trigger patterns match your file types
 - **Inline Edit not working**: Ensure you have selected text before pressing Ctrl+K
 - **CLI commands failing**: Verify you're in a Codebolt project directory
-- **Need more help**: Check our [Troubleshooting Guide](../troubleshooting.md)
+- **Need more help**: Check our **Troubleshooting Guide**
 
-Ready to dive deeper? Let's explore the [Core Concepts](concepts.md) that power Codebolt AI Editor!
+Ready to dive deeper? Let's explore the **Core Concepts** that power Codebolt AI Editor!

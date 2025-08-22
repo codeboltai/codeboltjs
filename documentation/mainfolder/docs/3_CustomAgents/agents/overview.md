@@ -330,7 +330,7 @@ codebolt agent test "Code Reviewer" --file src/example.js --dry-run
 
 Ready to create your own agents? Check out these guides:
 
-- [Creating Custom Agents](custom-agent.md) - Step-by-step agent development
+- **Creating Custom Agents** - Step-by-step agent development
 - [Remixing Agents](remix-agent.md) - Modify existing agents for your needs
 - [Multi-Agent Coordination](3_CustomAgents/core/multi-agents/overview.md) - Orchestrate multiple agents
 

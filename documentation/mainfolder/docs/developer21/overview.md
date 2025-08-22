@@ -98,10 +98,10 @@ Codebolt Templates are reusable project templates that provide complete applicat
 - **Registry Integration**: Publish and discover templates in the community
 
 **What You'll Learn:**
-- [Creating Templates](creating-templates.md) - Build reusable project templates
-- [Configuration](configuration.md) - Set up codeboltconfig.yaml
-- [Best Practices](best-practices.md) - Follow industry standards
-- [Publishing](publishing.md) - Share templates with the community
+- **Creating Templates** - Build reusable project templates
+- **Configuration** - Set up codeboltconfig.yaml
+- **Best Practices** - Follow industry standards
+- **Publishing** - Share templates with the community
 
 ---
 
@@ -117,7 +117,7 @@ Codebolt Templates are reusable project templates that provide complete applicat
 1. **Deep dive into the [TypeScript SDK](./typescriptSdk/overview.md)** - Leverage the full power of the platform
 2. **Create [Custom Agents](./agents/3_customagents/3_firstExtension.md)** - Build sophisticated AI workflows
 3. **Develop [Advanced Tools](./tools/create_tool.md)** - Create specialized utilities
-4. **Contribute [Templates](creating-templates.md)** - Share best practices with the community
+4. **Contribute Templates** - Share best practices with the community
 
 ## Development Workflow
 
