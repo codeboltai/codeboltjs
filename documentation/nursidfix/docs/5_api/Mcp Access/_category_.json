@@ -1,0 +1,11 @@
+{
+    "label": "MCP Access",
+    "position": 3,
+    "collapsible": false,
+    "collapsed": true,
+    "className": "red",
+    "link": {
+        "type": "doc",
+        "id": "api/Mcp Access/index"
+    }
+  }
