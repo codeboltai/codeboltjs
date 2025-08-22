@@ -117,3 +117,5 @@ Thumbs.db
 
 # Turbo
 .turbo/
+.codebolt
+.codeboltAgents

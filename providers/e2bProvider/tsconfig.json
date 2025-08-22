@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "declaration": true,
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@codebolt/codeboltjs": ["../../packages/codeboltjs/dist"],
+      "@codebolt/types/*": ["../../common/types/dist/*"]
+    },
+    "types": ["node"]
+  },
+  "include": [
+    "index.ts",
+    "example.ts",
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

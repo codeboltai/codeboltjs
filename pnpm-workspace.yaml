@@ -3,3 +3,4 @@ packages:
   - 'common/*'
   - 'agents/*'
   - 'documentation/*'
+  - 'providers/*'

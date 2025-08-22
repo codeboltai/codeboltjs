@@ -209,6 +209,234 @@ class Codebolt {
             console.error('Failed to set up message handler:', error);
         });
     }
+
+    /**
+     * Sets up a listener for provider start events.
+     * @param {Function} handler - The handler function to call when provider starts.
+     * @returns {void}
+     */
+    onProviderStart(handler: (initvars: any) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleProviderStart = async (response: any) => {
+                console.log("Provider start event received");
+                if (response.type === "providerStart") {
+                    try {
+                        const result = await handler(response.initvars || {});
+                        
+                        const message: any = {
+                            "type": "providerStartResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in provider start handler:', error);
+                        cbws.messageManager.send({
+                            "type": "providerStartResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleProviderStart);
+        }).catch(error => {
+            console.error('Failed to set up provider start handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for provider agent start events.
+     * @param {Function} handler - The handler function to call when provider agent starts.
+     * @returns {void}
+     */
+    onProviderAgentStart(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleProviderAgentStart = async (response: any) => {
+                console.log("Provider agent start event received");
+                if (response.type === "providerAgentStart") {
+                    try {
+                        const result = await handler(response.userMessage || {});
+                        
+                        const message: any = {
+                            "type": "providerAgentStartResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in provider agent start handler:', error);
+                        cbws.messageManager.send({
+                            "type": "providerAgentStartResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleProviderAgentStart);
+        }).catch(error => {
+            console.error('Failed to set up provider agent start handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for get diff files events.
+     * @param {Function} handler - The handler function to call when diff files are requested.
+     * @returns {void}
+     */
+    onGetDiffFiles(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleGetDiffFiles = async (response: any) => {
+                console.log("Get diff files event received");
+                if (response.type === "getDiffFiles") {
+                    try {
+                        const result = await handler();
+                        
+                        const message: any = {
+                            "type": "getDiffFilesResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in get diff files handler:', error);
+                        cbws.messageManager.send({
+                            "type": "getDiffFilesResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleGetDiffFiles);
+        }).catch(error => {
+            console.error('Failed to set up get diff files handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for close signal events.
+     * @param {Function} handler - The handler function to call when close signal is received.
+     * @returns {void}
+     */
+    onCloseSignal(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCloseSignal = async (response: any) => {
+                console.log("Close signal event received");
+                if (response.type === "closeSignal") {
+                    try {
+                        const result = await handler();
+                        
+                        const message: any = {
+                            "type": "closeSignalResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in close signal handler:', error);
+                        cbws.messageManager.send({
+                            "type": "closeSignalResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCloseSignal);
+        }).catch(error => {
+            console.error('Failed to set up close signal handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for create patch request events.
+     * @param {Function} handler - The handler function to call when patch request is created.
+     * @returns {void}
+     */
+    onCreatePatchRequest(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCreatePatchRequest = async (response: any) => {
+                console.log("Create patch request event received");
+                if (response.type === "createPatchRequest") {
+                    try {
+                        const result = await handler();
+                        
+                        const message: any = {
+                            "type": "createPatchRequestResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in create patch request handler:', error);
+                        cbws.messageManager.send({
+                            "type": "createPatchRequestResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCreatePatchRequest);
+        }).catch(error => {
+            console.error('Failed to set up create patch request handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for create pull request events.
+     * @param {Function} handler - The handler function to call when pull request is created.
+     * @returns {void}
+     */
+    onCreatePullRequestRequest(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCreatePullRequestRequest = async (response: any) => {
+                console.log("Create pull request event received");
+                if (response.type === "createPullRequestRequest") {
+                    try {
+                        const result = await handler();
+                        
+                        const message: any = {
+                            "type": "createPullRequestRequestResponse"
+                        };
+                        
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+                        
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in create pull request handler:', error);
+                        cbws.messageManager.send({
+                            "type": "createPullRequestRequestResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCreatePullRequestRequest);
+        }).catch(error => {
+            console.error('Failed to set up create pull request handler:', error);
+        });
+    }
 }
 
 export default Codebolt; 
