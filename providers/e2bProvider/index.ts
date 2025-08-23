@@ -3,10 +3,9 @@
  * @description Simple functional implementation covering all notification types from notification.enum.ts
  */
 
-const codebolt = require('@codebolt/codeboltjs');
-const { UserMessage, SystemPrompt, TaskInstruction, Agent } = require("@codebolt/codeboltjs/utils");
-const { createE2BSandbox } = require('./sandbox');
-const { 
+import codebolt from '@codebolt/codeboltjs';
+import { createE2BSandbox } from './sandbox.js';
+import { 
   NotificationEventType,
   AgentNotificationAction,
   BrowserNotificationAction,
@@ -23,10 +22,10 @@ const {
   SystemNotificationAction,
   TerminalNotificationAction,
   TaskNotificationAction
-} = require('../../common/types/dist/codeboltjstypes/notification.enum');
+} from '../../common/types/dist/codeboltjstypes/notification.enum.js';
 
+// Import websocket from codeboltjs package - access via the main export
 // @ts-ignore
-const cbws = require('../../packages/codeboltjs/src/core/websocket');
 
 // Simple state management
 let currentSandbox: any = null;
@@ -627,168 +626,106 @@ async function processUserMessage(userMessage: any): Promise<void> {
 // Notification helper functions using proper schemas and actions
 
 function sendAgentNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-agent-${Date.now()}`,
-    type: NotificationEventType.AGENT_NOTIFY,
-    action: action,
-    data: data,
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  // Use the proper codebolt notification functions
+  if (action === AgentNotificationAction.START_SUBAGENT_TASK_REQUEST) {
+    codebolt.notify.agent.StartSubagentTaskRequestNotify(
+      data.parentAgentId || 'e2b-provider',
+      data.subagentId || 'e2b-sandbox', 
+      data.task || 'E2B agent task',
+      data.priority || 'normal',
+      data.dependencies || []
+    );
+  } else if (action === AgentNotificationAction.START_SUBAGENT_TASK_RESULT) {
+    codebolt.notify.agent.StartSubagentTaskResponseNotify(
+      isError ? `Error: ${data}` : data,
+      isError
+    );
+  }
 }
 
+// Simplified notification functions using codebolt.notify API
 function sendFsNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-fs-${Date.now()}`,
-    type: NotificationEventType.FS_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `FS ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendTerminalNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-terminal-${Date.now()}`,
-    type: NotificationEventType.TERMINAL_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Terminal ${action}: ${JSON.stringify(data)}`;
+  if (action === TerminalNotificationAction.EXECUTE_COMMAND_REQUEST && typeof data === 'object' && data.command) {
+    codebolt.notify.terminal.CommandExecutionRequestNotify(data.command, data.returnEmptyStringOnSuccess, data.executeInMain);
+  } else {
+    codebolt.notify.chat.AgentTextResponseNotify(message, isError);
+  }
 }
 
 function sendGitNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-git-${Date.now()}`,
-    type: NotificationEventType.GIT_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Git ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendBrowserNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-browser-${Date.now()}`,
-    type: NotificationEventType.BROWSER_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Browser ${action}: ${JSON.stringify(data)}`;
+  if (action === BrowserNotificationAction.WEB_FETCH_REQUEST && typeof data === 'object' && data.url) {
+    codebolt.notify.browser.WebFetchRequestNotify(data.url, data.method, data.headers, data.body, data.timeout);
+  } else if (action === BrowserNotificationAction.WEB_SEARCH_REQUEST && typeof data === 'object' && data.query) {
+    codebolt.notify.browser.WebSearchRequestNotify(data.query, data.maxResults, data.searchEngine);
+  } else {
+    codebolt.notify.chat.AgentTextResponseNotify(message, isError);
+  }
 }
 
 function sendCrawlerNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-crawler-${Date.now()}`,
-    type: NotificationEventType.CRAWLER_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Crawler ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendSearchNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-search-${Date.now()}`,
-    type: NotificationEventType.SEARCH_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Search ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendCodeUtilsNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-codeutils-${Date.now()}`,
-    type: NotificationEventType.CODEUTILS_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `CodeUtils ${action}: ${JSON.stringify(data)}`;
+  if (action === CodeUtilsNotificationAction.GREP_SEARCH_REQUEST && typeof data === 'object' && data.pattern) {
+    codebolt.notify.codeutils.GrepSearchRequestNotify(data.pattern, data.filePath, data.recursive, data.ignoreCase, data.maxResults);
+  } else {
+    codebolt.notify.chat.AgentTextResponseNotify(message, isError);
+  }
 }
 
 function sendLlmNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-llm-${Date.now()}`,
-    type: NotificationEventType.LLM_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `LLM ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendMcpNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-mcp-${Date.now()}`,
-    type: NotificationEventType.MCP_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `MCP ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendChatNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-chat-${Date.now()}`,
-    type: NotificationEventType.CHAT_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : JSON.stringify(data);
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendTaskNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-task-${Date.now()}`,
-    type: NotificationEventType.TASK_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Task ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendDbMemoryNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-dbmemory-${Date.now()}`,
-    type: NotificationEventType.DBMEMORY_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `Memory ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendHistoryNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-history-${Date.now()}`,
-    type: NotificationEventType.HISTORY_NOTIFY,
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `History ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 function sendSystemNotification(action: string, data: any, isError: boolean = false): void {
-  const notification = {
-    toolUseId: `e2b-system-${Date.now()}`,
-    type: NotificationEventType.AGENT_NOTIFY, // Using AGENT_NOTIFY for system notifications
-    action: action,
-    ...(typeof data === 'string' ? { content: data } : { data: data }),
-    isError: isError
-  };
-  cbws.messageManager.send(notification);
+  const message = typeof data === 'string' ? data : `System ${action}: ${JSON.stringify(data)}`;
+  codebolt.notify.chat.AgentTextResponseNotify(message, isError);
 }
 
 // Legacy notification function for backward compatibility
@@ -918,7 +855,7 @@ function getSandboxStatus(): { initialized: boolean; sandboxId?: string } {
 }
 
 // Export utility functions for external use
-module.exports = {
+export {
   getSandboxStatus,
   sendNotification,
   handleListFiles

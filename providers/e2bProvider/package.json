@@ -6,6 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "start":"node dist/index.js",
+
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",

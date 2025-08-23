@@ -2,5 +2,5 @@ packages:
   - 'packages/*'
   - 'common/*'
   - 'agents/*'
-  - 'documentation/*'
+  # - 'documentation/*'
   - 'providers/*'
