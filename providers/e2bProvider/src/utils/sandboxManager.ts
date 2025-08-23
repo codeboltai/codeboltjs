@@ -1,36 +1,9 @@
 /**
- * @fileoverview E2B Sandbox Implementation
- * @description Sandbox interface and mock implementation for E2B remote code execution
+ * @fileoverview Sandbox Manager Utility
+ * @description Manages multiple E2B sandbox instances
  */
 
-/**
- * E2B Sandbox interface (simplified for implementation)
- * In a real implementation, this would import from the E2B SDK
- */
-export interface E2BSandbox {
-  id: string;
-  create(): Promise<void>;
-  destroy(): Promise<void>;
-  filesystem: {
-    write(path: string, content: string): Promise<void>;
-    read(path: string): Promise<string>;
-    exists(path: string): Promise<boolean>;
-    list(path: string): Promise<string[]>;
-    mkdir(path: string): Promise<void>;
-    rm(path: string, recursive?: boolean): Promise<void>;
-  };
-  git: {
-    getDiff(): Promise<string>;
-    status(): Promise<any>;
-    add(files: string[]): Promise<void>;
-    commit(message: string): Promise<void>;
-    push(): Promise<void>;
-    pull(): Promise<void>;
-  };
-  terminal: {
-    run(command: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
-  };
-}
+import { E2BSandbox, SandboxConfig } from '../types/sandbox';
 
 /**
  * Mock E2B Sandbox implementation for demonstration
@@ -40,8 +13,8 @@ export class MockE2BSandbox implements E2BSandbox {
   public id: string;
   private isCreated: boolean = false;
 
-  constructor() {
-    this.id = `sandbox-${Date.now()}`;
+  constructor(config?: SandboxConfig) {
+    this.id = config?.id || `sandbox-${Date.now()}`;
   }
 
   async create(): Promise<void> {
@@ -146,8 +119,8 @@ index 1234567..abcdefg 100644
  * Factory function to create a new E2B sandbox instance
  * In a real implementation, this might connect to actual E2B services
  */
-export function createE2BSandbox(): E2BSandbox {
-  return new MockE2BSandbox();
+export function createE2BSandbox(config?: SandboxConfig): E2BSandbox {
+  return new MockE2BSandbox(config);
 }
 
 /**
@@ -159,8 +132,8 @@ export class SandboxManager {
   /**
    * Create and register a new sandbox
    */
-  async createSandbox(): Promise<E2BSandbox> {
-    const sandbox = createE2BSandbox();
+  async createSandbox(config?: SandboxConfig): Promise<E2BSandbox> {
+    const sandbox = createE2BSandbox(config);
     await sandbox.create();
     this.sandboxes.set(sandbox.id, sandbox);
     return sandbox;
@@ -200,6 +173,13 @@ export class SandboxManager {
     const destroyPromises = Array.from(this.sandboxes.values()).map(sandbox => sandbox.destroy());
     await Promise.all(destroyPromises);
     this.sandboxes.clear();
+  }
+
+  /**
+   * Get sandbox count
+   */
+  getCount(): number {
+    return this.sandboxes.size;
   }
 }
 
