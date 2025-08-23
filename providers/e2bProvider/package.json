@@ -4,12 +4,17 @@
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "docs/README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepublish": "npm run clean && npm run build"
   },
   "keywords": [
     "codebolt",

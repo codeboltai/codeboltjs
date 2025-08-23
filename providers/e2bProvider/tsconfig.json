@@ -6,22 +6,21 @@
     "declaration": true,
     "outDir": "./dist",
     "declarationDir": "./dist",
-    "rootDir": "./",
-    "baseUrl": "./",
+    "rootDir": "./src",
+    "baseUrl": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@codebolt/codeboltjs": ["../../packages/codeboltjs/dist"],
-      "@codebolt/types/*": ["../../common/types/dist/*"]
+      "@codebolt/codeboltjs": ["../../../packages/codeboltjs/dist"],
+      "@codebolt/types/*": ["../../../common/types/dist/*"],
+      "@/*": ["./*"]
     },
     "types": ["node"]
   },
   "include": [
-    "index.ts",
-    "example.ts",
-    "**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
