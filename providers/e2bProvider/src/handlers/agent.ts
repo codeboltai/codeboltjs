@@ -58,7 +58,7 @@ export function onProviderAgentStart(userMessage: UserMessage): void {
   }
 
   // Start agent loop using .then pattern (non-blocking)
-  startAgentLoop(userMessage)
+  processUserMessage(userMessage)
     .then(() => {
       console.log('[E2B Provider] Agent loop completed');
     })

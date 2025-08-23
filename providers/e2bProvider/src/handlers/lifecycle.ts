@@ -96,8 +96,7 @@ export async function onCloseSignal(): Promise<{ status: string; sandboxId?: str
     const errorMessage = `Failed to destroy sandbox: ${error instanceof Error ? error.message : 'Unknown error'}`;
     
     return {
-      status: 'error',
-      error: errorMessage
+      status: 'error'
     };
   }
 }
