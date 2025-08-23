@@ -2,16 +2,18 @@
   "name": "@codebolt/e2b-provider",
   "version": "1.0.0",
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
-  "main": "dist/index.js",
+  "main": "start-provider.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
+    "start-provider.js",
     "docs/README.md"
   ],
   "scripts": {
     "build": "tsc",
-    "start":"node dist/index.js",
-
+    "start": "node start-provider.js",
+    "start:clean": "NODE_OPTIONS= node dist/index.js",
+    "start:direct": "node dist/index.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",

@@ -65,6 +65,8 @@ codebolt.onCreatePullRequestRequest(onCreatePullRequestRequest);
 
 console.log('[E2B Provider] All event handlers registered successfully');
 
+
+
 // Export utility functions for external use (maintaining backward compatibility)
 const exportedUtils = {
   getSandboxStatus,
@@ -75,6 +77,22 @@ const exportedUtils = {
 module.exports = exportedUtils;
 
 // ES6 export
-export default exportedUtils;
-
 console.log('[E2B Provider] Modular E2B provider loaded successfully!');
+
+// Filter out unsupported NODE_OPTIONS for packaged apps to prevent warnings
+if (process.env.NODE_OPTIONS) {
+  const supportedOptions = ['--max-http-header-size', '--http-parser'];
+  const currentOptions = process.env.NODE_OPTIONS.split(' ').filter(option => 
+    supportedOptions.some(supported => option.includes(supported))
+  );
+  
+  if (currentOptions.length === 0) {
+    delete process.env.NODE_OPTIONS;
+    console.log('[E2B Provider] Removed unsupported NODE_OPTIONS for packaged app compatibility');
+  } else {
+    process.env.NODE_OPTIONS = currentOptions.join(' ');
+    console.log('[E2B Provider] Filtered NODE_OPTIONS to only supported options:', process.env.NODE_OPTIONS);
+  }
+}
+
+export default exportedUtils;
