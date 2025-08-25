@@ -299,19 +299,13 @@ class Codebolt {
                     try {
                         const result = await handler();
                         
-                        const message: any = {
-                            "type": "getDiffFilesResponse"
-                        };
                         
-                        if (result !== undefined && result !== null) {
-                            message.message = result;
-                        }
                         
-                        cbws.messageManager.send(message);
+                        cbws.messageManager.send(result);
                     } catch (error) {
                         console.error('Error in get diff files handler:', error);
                         cbws.messageManager.send({
-                            "type": "getDiffFilesResponse",
+                            "type": "getDiffFiles",
                             "error": error instanceof Error ? error.message : "Unknown error occurred"
                         });
                     }

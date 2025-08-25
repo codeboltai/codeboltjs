@@ -1,5 +1,5 @@
 import cbws from '../core/websocket';
-import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse, FileListResponse, GrepSearchResponse, EditFileAndApplyDiffResponse, FileSearchResponse, SearchFilesResponse, ListCodeDefinitionsResponse } from '@codebolt/types/sdk';
+import { CreateFileResponse, CreateFolderResponse, ReadFileResponse, UpdateFileResponse, DeleteFileResponse, DeleteFolderResponse, FileListResponse, GrepSearchResponse, EditFileAndApplyDiffResponse, FileSearchResponse, SearchFilesResponse, ListCodeDefinitionsResponse, ReadManyFilesResponse, ListDirectoryResponse } from '@codebolt/types/sdk';
 
 import { FSAction, FSResponseType, EventType } from '@codebolt/types/enum';
 
@@ -293,6 +293,72 @@ const cbfs = {
                 }
             },
             FSResponseType.EDIT_FILE_AND_APPLY_DIFF_RESPONSE
+        );
+    },
+
+    /**
+     * @function readManyFiles
+     * @description Reads multiple files based on paths, patterns, or glob expressions.
+     * @param {string[]} paths - An array of file paths, directory paths, or glob patterns to read.
+     * @param {string[]} include - Optional glob patterns for files to include.
+     * @param {string[]} exclude - Optional glob patterns for files/directories to exclude.
+     * @param {boolean} recursive - Whether to search recursively through subdirectories.
+     * @param {boolean} use_default_excludes - Whether to use default exclusion patterns (node_modules, .git, etc.).
+     * @param {number} max_files - Maximum number of files to read.
+     * @param {number} max_total_size - Maximum total size of content to read (in bytes).
+     * @param {boolean} include_metadata - Whether to include file metadata in output.
+     * @param {string} separator_format - Custom separator format for file content.
+     * @param {boolean} notifyUser - Whether to notify the user about the operation.
+     * @returns {Promise<ReadManyFilesResponse>} A promise that resolves with the read operation result.
+     */
+    readManyFiles: (params: {
+        paths: string[];
+        include?: string[];
+        exclude?: string[];
+        recursive?: boolean;
+        use_default_excludes?: boolean;
+        max_files?: number;
+        max_total_size?: number;
+        include_metadata?: boolean;
+        separator_format?: string;
+        notifyUser?: boolean;
+    }): Promise<ReadManyFilesResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.FS_EVENT,
+                "action": FSAction.READ_MANY_FILES,
+                "message": params
+            },
+            FSResponseType.READ_MANY_FILES_RESPONSE
+        );
+    },
+
+    /**
+     * @function listDirectory
+     * @description Lists directory contents using advanced directory listing tool.
+     * @param {string} path - The path to the directory to list.
+     * @param {string[]} ignore - Optional array of glob patterns for files/directories to ignore.
+     * @param {boolean} show_hidden - Whether to show hidden files and directories.
+     * @param {boolean} detailed - Whether to include detailed information (size, permissions, etc.).
+     * @param {number} limit - Maximum number of entries to return.
+     * @param {boolean} notifyUser - Whether to notify the user about the operation.
+     * @returns {Promise<ListDirectoryResponse>} A promise that resolves with the directory listing result.
+     */
+    listDirectory: (params: {
+        path: string;
+        ignore?: string[];
+        show_hidden?: boolean;
+        detailed?: boolean;
+        limit?: number;
+        notifyUser?: boolean;
+    }): Promise<ListDirectoryResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.FS_EVENT,
+                "action": FSAction.LIST_DIRECTORY,
+                "message": params
+            },
+            FSResponseType.LIST_DIRECTORY_RESPONSE
         );
     },
   

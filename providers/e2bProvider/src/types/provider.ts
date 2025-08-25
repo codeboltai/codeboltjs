@@ -40,54 +40,13 @@ export interface ProviderStatus {
 }
 
 /**
- * User message interface
- */
-export interface UserMessage {
-  userMessage: string;
-  conversationId?: string;
-  timestamp?: string;
-  metadata?: Record<string, any>;
-}
-
-/**
  * Agent start parameters interface
  */
 export interface AgentStartParams {
-  userMessage: UserMessage;
+  userMessage: any; // Using any to avoid circular dependency with codeboltjs UserMessage
   context?: Record<string, any>;
   options?: {
     timeout?: number;
     maxIterations?: number;
   };
-}
-
-/**
- * Diff files result interface
- */
-export interface DiffFilesResult {
-  diff: string;
-  files: string[];
-  metadata?: {
-    totalChanges: number;
-    additions: number;
-    deletions: number;
-  };
-}
-
-/**
- * Patch creation result interface
- */
-export interface PatchResult {
-  patchId: string;
-  status: 'patch_created' | 'patch_failed';
-  error?: string;
-}
-
-/**
- * Pull request creation result interface
- */
-export interface PullRequestResult {
-  pullRequestId: string;
-  status: 'pull_request_created' | 'pull_request_failed';
-  error?: string;
 }
