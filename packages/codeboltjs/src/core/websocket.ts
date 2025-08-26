@@ -24,15 +24,13 @@ class cbws {
 
     private getUniqueConnectionId(): string {
         try {
-            console.log('[WebSocket] Reading unique connection ID from codeboltagent.yaml');
-            let fileContents = fs.readFileSync('./codeboltagent.yaml', 'utf8');
-            let data: any = yaml.load(fileContents);
-            const connectionId = data.unique_connectionid;
-            console.log('[WebSocket] Successfully retrieved connection ID:', connectionId);
-            return connectionId;
+            // Generate a unique ID using timestamp and random string
+            const timestamp = Date.now().toString(36);
+            const randomPart = Math.random().toString(36).substring(2, 15);
+            return `ws_${timestamp}_${randomPart}`;
         } catch (e) {
-            console.error('[WebSocket] Unable to locate codeboltagent.yaml file:', e);
-            return '';
+            console.error('[WebSocket] Error generating unique connection ID:', e);
+            return `ws_fallback_${Date.now()}`;
         }
     }
 
@@ -59,7 +57,7 @@ class cbws {
         console.log('[WebSocket] Starting WebSocket initialization');
         
         const uniqueConnectionId = this.getUniqueConnectionId();
-        const initialMessage = this.getInitialMessage();
+        // const initialMessage = "Hello" //this.getInitialMessage();
 
         const agentIdParam = process.env.agentId ? `&agentId=${process.env.agentId}` : '';
         const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
@@ -71,7 +69,7 @@ class cbws {
 
         console.log('[WebSocket] Logging all relevant variables:');
         console.log('uniqueConnectionId:', uniqueConnectionId);
-        console.log('initialMessage:', initialMessage);
+        // console.log('initialMessage:', initialMessage);
         console.log('agentIdParam:', agentIdParam);
         console.log('parentIdParam:', parentIdParam);
         console.log('parentAgentInstanceIdParam:', parentAgentInstanceIdParam);
