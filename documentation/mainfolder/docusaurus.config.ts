@@ -78,10 +78,22 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
-          sidebarId: 'devSidebar',
+          sidebarId: 'customAgentSidebar',
           position: 'left',
-          label: 'Developer Guide',
+          label: 'Custom Agents',
         },
+        {
+          type: 'docSidebar',
+          sidebarId: 'multiAgentSidebar',
+          position: 'left',
+          label: 'Multi-Agent Orchestration',
+        },
+        // {
+        //   type: 'docSidebar',
+        //   sidebarId: 'devSidebar',
+        //   position: 'left',
+        //   label: 'Developer Guide',
+        // },
         // {
         //   type: 'docSidebar',
         //   sidebarId: 'toolSidebar',

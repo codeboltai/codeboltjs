@@ -64,7 +64,7 @@ cbapicategory:
       link: /docs/api/ApiAccess/terminal
       description: Handle Terminal Related Functionalities like Running Commands and Getting Output. Supports handling multiple terminals and long running code executions like Servers.
     - name: Tokenizer
-      link: /docs/api/apiaccess/tokenizer
+      link: /docs/api/ApiAccess/tokenizer
       description: Tokenization related Functionalities are provided so that the code can be tokenized and the tokens can be used to perform and measure various operations.
     - name: ToolBox
       link: /docs/api/ApiAccess/toolbox
@@ -81,7 +81,7 @@ cbapicategory:
 
 ## Overview
 
-Codebolt exposes all the major functions needed to create an AI Agent using the [CodeboltJS SDK](/docs/api/codeboltjs-sdk). The SDK provides a list of functions that you can use when creating a Codebolt Agent. Although these functions can be used in any mode, but they are primarily used for [Agent creation in Direct Function Mode](/docs/agent/direct-function-mode).
+Codebolt exposes all the major functions needed to create an AI Agent using the CodeboltJS SDK. The SDK provides a list of functions that you can use when creating a Codebolt Agent. Although these functions can be used in any mode, but they are primarily used for Agent creation in Direct Function Mode.
 
 The major functions exposed are:
 <CBAPICategory />

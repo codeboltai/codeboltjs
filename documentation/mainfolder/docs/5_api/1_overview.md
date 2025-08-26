@@ -10,14 +10,14 @@ CodeboltAI has been built from ground up so that the entire editor can be fully 
 
 There are two types of interfaces that are available to the AI Agents.
 
-1. [Direct API Access](/docs/api/apiaccess/)
-2. [MCP Access](/docs/api/mcpAPI/)
+1. [Direct API Access](/docs/api/ApiAccess/)
+2. [MCP Access](/docs/api/Mcp Access/)
 
 ## Direct API Access
 
-[Direct API Access](/docs/api/apiaccess/) is the most direct way to interact with the Codebolt application. It is a set of APIs that are available to the AI Agents.
+[Direct API Access](/docs/api/ApiAccess/) is the most direct way to interact with the Codebolt application. It is a set of APIs that are available to the AI Agents.
 
 ## MCP Access
 
-We have also provided a simplified Interface in the form of [MCP (Model Context Protocol)](/docs/api/mcpAPI/) that can be used to interact with the Codebolt application.
+We have also provided a simplified Interface in the form of [MCP (Model Context Protocol)](/docs/api/Mcp Access/) that can be used to interact with the Codebolt application.
 This can be used directly by the LLMs through agents to interact with the Codebolt application.
