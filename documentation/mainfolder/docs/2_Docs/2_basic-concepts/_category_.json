@@ -1,7 +1,7 @@
 {
-    "label": "Welcome",
+    "label": "Basic Concepts",
     "position": 2,
-    "collapsible": false,
+    "collapsible": true,
     "collapsed": true,
     "className": "red"
 }
