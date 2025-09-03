@@ -4,11 +4,9 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem'; 
 
 
-
 To get started, please ensure your device meets the requirements, download the Codebolt Editor, and follow the instructions to install and launch it.
 
 <Tabs>
-
 
   <TabItem value="windows" label="Windows">
 

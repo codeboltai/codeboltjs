@@ -1,4 +1,4 @@
-# Chat
+# Overview
 
 Codebolt's chat is your AI coding assistant that helps you while you code. You can ask questions, get code explanations, generate code snippets, fix bugs, and get help with your projects - all from the chat panel on the side.
 
