@@ -1,4 +1,4 @@
-import { BaseTool } from '../../processor';
+import { BaseTool } from '../processor';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

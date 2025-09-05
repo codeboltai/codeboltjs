@@ -1,60 +1,82 @@
+import type { FlatUserMessage } from '@codebolt/types';
+
+
 export interface ToolCall {
+    /** Unique identifier for this tool call */
     id: string;
+    /** The type of tool call */
+    type: 'function';
+    /** Function call details */
     function: {
+        /** Name of the function to call */
         name: string;
-        arguments: string | Record<string, any>;
+        /** Arguments for the function call as JSON string */
+        arguments: string;
     };
 }
 
 export interface Message {
-    role: 'user' | 'assistant' | 'tool' | 'system';
-    content: string | any[];
+    /** Role of the message sender */
+    role: 'system' | 'user' | 'assistant' | 'tool';
+    /** Content of the message */
+    content: string | Array<{ type: string; text: string }>;
+    /** Optional name for the message sender */
     name?: string;
-    tool_calls?: ToolCall[];
+    /** Tool call ID for tool messages */
     tool_call_id?: string;
-    [key: string]: any;
+    /** Tool calls for assistant messages */
+    tool_calls?: Array<{
+        id: string;
+        type: 'function';
+        function: {
+            name: string;
+            arguments: string;
+        };
+    }>;
 }
 
 export interface ProcessedMessage {
+    /** Array of messages in OpenAI format */
     messages: Message[];
-    metadata?: Record<string, any>;
+    /** Optional metadata about the processing */
+    metadata?: Record<string, unknown>;
 }
 
 export interface ProcessorInput {
     message: ProcessedMessage;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 export interface ProcessorOutput {
     type: string;
-    value?: any;
+    value?: unknown;
 }
 
 export interface Processor {
     processInput(input: ProcessorInput): Promise<ProcessorOutput[]>;
-    setContext(key: string, value: any): void;
-    getContext(key: string): any;
+    setContext(key: string, value: unknown): void;
+    getContext(key: string): unknown;
     clearContext(): void;
 }
 
 export interface MessageModifierInput {
-    originalRequest: any;
+    originalRequest: FlatUserMessage;
     createdMessage: ProcessedMessage;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 export interface MessageModifier {
     modify(input: MessageModifierInput): Promise<ProcessedMessage>;
-    setContext(key: string, value: any): void;
-    getContext(key: string): any;
+    setContext(key: string, value: unknown): void;
+    getContext(key: string): unknown;
     clearContext(): void;
 }
 
 export interface Tool {
     name: string;
     description: string;
-    parameters: Record<string, any>;
-    execute(params: any, abortSignal?: AbortSignal): Promise<any>;
+    parameters: Record<string, unknown>;
+    execute(params: unknown, abortSignal?: AbortSignal): Promise<unknown>;
 }
 
 export interface ToolList {
@@ -67,12 +89,12 @@ export interface ToolList {
 export interface AgentStepInput {
     message: ProcessedMessage;
     tools: Tool[];
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 export interface AgentStepOutput {
     response: ProcessedMessage;
-    toolCalls?: Array<{ tool: string; parameters: any }>;
+    toolCalls?: Array<{ tool: string; parameters: unknown }>;
     finished: boolean;
 }
 
@@ -83,13 +105,13 @@ export interface IAgentStep {
 }
 
 export interface ToolExecutionInput {
-    toolCalls: Array<{ tool: string; parameters: any }>;
+    toolCalls: Array<{ tool: string; parameters: unknown }>;
     tools: ToolList;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
 }
 
 export interface ToolExecutionOutput {
-    results: Array<{ tool: string; result: any; error?: string }>;
+    results: Array<{ tool: string; result: unknown; error?: string }>;
     success: boolean;
 }
 

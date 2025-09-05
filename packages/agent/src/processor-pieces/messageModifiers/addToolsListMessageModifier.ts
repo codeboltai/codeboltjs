@@ -1,4 +1,4 @@
-import { BaseMessageModifier, MessageModifierInput, ProcessedMessage, Message, ToolList, Tool } from '../../processor';
+import { BaseMessageModifier, MessageModifierInput, ProcessedMessage, Message, ToolList, Tool } from '../base/baseMessageModifier';
 
 export interface AddToolsListMessageModifierOptions {
     toolsList: ToolList;
