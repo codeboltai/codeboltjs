@@ -18,3 +18,5 @@ The @ symbol lets you precisely choose what Chat should focus on:
 - **@docs/** - Reference documentation files
 
 ![@-file](/application/@-file.png)
+
+
