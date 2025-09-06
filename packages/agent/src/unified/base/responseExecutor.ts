@@ -11,7 +11,7 @@ import type {
     Processor,
     ProcessorInput,
     ProcessedMessage
-} from '../types/processorTypes';
+} from '../../types/processorTypes';
 
 // ToolDetails type for internal use
 interface ToolDetails {
