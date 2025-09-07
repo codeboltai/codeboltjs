@@ -1,0 +1,12 @@
+{
+    "label": "CodeBoltUtils",
+    "position": 2,
+    "collapsible": false,
+    "collapsed": true,
+    "className": "red",
+    "link": {
+      "type": "doc",
+
+      "id": "api/UtilityFunctions/index"
+    }
+  }

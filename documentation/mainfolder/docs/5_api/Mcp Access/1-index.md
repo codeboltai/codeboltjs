@@ -43,7 +43,7 @@ foreach(tool in result.tools){
 }
 ```
 
-You can then send the Tool Execution Result back to the LLM in the [Agent Execution Loop](/docs/agent/execution-loop) using something like:
+You can then send the Tool Execution Result back to the LLM in the Agent Execution Loop using something like:
 ```
 codebolt.llm.inference(message, [...tools,...toolexecutionResult])
 ```
@@ -78,7 +78,7 @@ var tools = [
 
 Calling this getTools gives the complete json including a unique name, description, schema, for the tool. 
 
-All the functionalities exposed in the [API Access](/docs/api/apiaccess) are also exposed as Tool Format. 
+All the functionalities exposed in the API Access are also exposed as Tool Format. 
 
 Also now when you receive the response from the LLM, since the Tool Names are consistent and pre-defined, we can simply let codebolt process the response automatically.
 #### 1.1.2.1 Process all Tools using a single api:
@@ -140,7 +140,7 @@ foreach (resulttool in llmResult.tools){
 
 In the above example, we have added a custom Tool Call called as mycalculatoradd, which has been added by the agent and this gets processed at agent level. This allows agent creators to create custom tools at the agent level, instead of relying on the Codebolt provided Tools or custom MCPs added by the user. 
 
-Please read more about the different ways in which [agent creators can add and run tools from the Agent logic](/docs/agent/custom-tools)
+Please read more about the different ways in which agent creators can add and run tools from the Agent logic
 
 ## 1.2 Custom Functionality Calling
 
