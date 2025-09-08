@@ -3,14 +3,7 @@
  * Shared across all processor types
  */
 
-export interface Message {
-    role: 'user' | 'assistant' | 'tool' | 'system';
-    content: string | unknown[];
-    name?: string;
-    tool_calls?: ToolCall[];
-    tool_call_id?: string;
-    [key: string]: unknown;
-}
+import { Message } from '../../sdk-types';
 
 export interface ProcessedMessage {
     messages: Message[];

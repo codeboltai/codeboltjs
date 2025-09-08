@@ -112,19 +112,19 @@ export function createDevelopmentAgent(codebolt?: CodeboltAPI): UnifiedAgent {
     });
 
     // Add development event listeners
-    agent.addEventListener('step_started', (event) => {
+    agent.addEventListener('step_started', (event: any) => {
         console.log('🚀 [Dev] Step started:', event.data);
     });
 
-    agent.addEventListener('tool_execution_started', (event) => {
+    agent.addEventListener('tool_execution_started', (event: any) => {
         console.log('🔧 [Dev] Tool execution started:', event.data);
     });
 
-    agent.addEventListener('agent_error', (event) => {
+    agent.addEventListener('agent_error', (event: any) => {
         console.error('❌ [Dev] Agent error:', event.data);
     });
 
-    agent.addEventListener('agent_completed', (event) => {
+    agent.addEventListener('agent_completed', (event: any) => {
         console.log('✅ [Dev] Agent completed:', event.data);
     });
 

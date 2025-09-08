@@ -1,42 +1,28 @@
 import {UnifiedMessageProcessingError} from '../types/types';
-import { MessageModifierInput, ProcessedMessage, MessageModifier } from '../../processor';
-import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { FlatUserMessage} from '@codebolt/types/sdk';
+import type { InitialPromptGeneratorInterface, MessageModifier, ProcessedMessage} from '@codebolt/types/agent';
 
 
-/**
- * Unified message processor interface specifically for message modifiers
- * Processes FlatUserMessage through a chain of MessageModifiers and returns OpenAI-formatted messages
- */
-export interface UnifiedMessageProcessor {
-    /** Process and modify input messages */
-    processMessage(input: FlatUserMessage): Promise<ProcessedMessage>;
-    /** Add a message modifier */
-    addProcessor(processor: MessageModifier): void;
-    /** Set context value */
-    setContext(key: string, value: unknown): void;
-    /** Get context value */
-    getContext(key: string): unknown;
-    /** Clear all context */
-    clearContext(): void;
-}
+
+
 
 /**
  * Initial prompt generator that combines message modifiers with unified processing
  */
-export class InitialPromptGenerator implements UnifiedMessageProcessor {
+export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
     private processors: MessageModifier[] = [];
-    private context: Record<string, unknown> = {};
+    private metaData: Record<string, unknown> = {};
     private enableLogging: boolean;
 
     constructor(options: { 
         processors?: MessageModifier[];
         baseSystemPrompt?: string;
-        context?: Record<string, unknown>;  
+        metaData?: Record<string, unknown>;  
         enableLogging?: boolean;
         templating?: boolean;
     } = {}) {
         this.processors = options.processors || [];
-        this.context = options.context || {};
+        this.metaData = options.metaData || {};
         this.enableLogging = options.enableLogging !== false;
     }
 
@@ -72,11 +58,7 @@ export class InitialPromptGenerator implements UnifiedMessageProcessor {
             for (const messageModifier of this.processors) {
                 try {
                     // Each modifier returns a new ProcessedMessage
-                    createdMessage = await messageModifier.modify({
-                        originalRequest: input,  // The entire FlatUserMessage
-                        createdMessage: createdMessage,  // Current state of processed messages
-                        context: this.context
-                    });
+                    createdMessage = await messageModifier.modify(input, createdMessage);
 
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
@@ -101,58 +83,42 @@ export class InitialPromptGenerator implements UnifiedMessageProcessor {
         }
     }
 
-    /**
-     * Add a message modifier to the generator
-     */
-    addProcessor(processor: MessageModifier): void {
-        this.processors.push(processor);
-        if (this.enableLogging) {
-            console.log('[UnifiedMessageModifier] Added message modifier:', processor.constructor.name);
-        }
-    }
-
-    /**
-     * Remove a message modifier from the generator
-     */
-    removeProcessor(processor: MessageModifier): boolean {
-        const index = this.processors.indexOf(processor);
-        if (index > -1) {
-            this.processors.splice(index, 1);
-            if (this.enableLogging) {
-                console.log('[UnifiedMessageModifier] Removed message modifier:', processor.constructor.name);
-            }
-            return true;
-        }
-        return false;
-    }
-
+   
+     
     /**
      * Set context value
      */
-    setContext(key: string, value: unknown): void {
-        this.context[key] = value;
+    setMetaData(key: string, value: unknown): void {
+        this.metaData[key] = value;
     }
 
     /**
      * Get context value
      */
-    getContext(key: string): unknown {
-        return this.context[key];
+    getMetaData(key: string): unknown {
+        return this.metaData[key];
     }
 
     /**
      * Clear all context
      */
-    clearContext(): void {
-        this.context = {};
+    clearMetaData(): void {
+        this.metaData = {};
     }
 
     /**
      * Get all message modifiers
      */
-    getProcessors(): MessageModifier[] {
-        return [...this.processors];
+    updateProcessors(processors: MessageModifier[]){
+        this.processors=processors;
+    };
+
+    getProcessors(){
+        return this.processors
     }
+
+
+
 
 
 }
@@ -162,21 +128,10 @@ export class InitialPromptGenerator implements UnifiedMessageProcessor {
  */
 export function createUnifiedMessageProcessor(options: {
     processors?: MessageModifier[];
-    context?: Record<string, unknown>;
+    metaData?: Record<string, unknown>;
     enableLogging?: boolean;
-} = {}): UnifiedMessageProcessor {
+} = {}): InitialPromptGeneratorInterface {
     return new InitialPromptGenerator(options);
 }
 
-/**
- * Utility function to create a basic message processor with default settings
- */
-export function createBasicMessageProcessor(): UnifiedMessageProcessor {
-    return new InitialPromptGenerator({
-        enableLogging: true,
-        context: {
-            timestamp: new Date().toISOString(),
-            version: '1.0.0'
-        }
-    });
-}
+

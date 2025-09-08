@@ -1,5 +1,10 @@
-import { BaseMessageModifier, MessageModifierInput, ProcessedMessage, Message, ToolList, Tool } from '../base/baseMessageModifier';
-
+import { ToolList } from 'src/processor/types/interfaces';
+import { BaseMessageModifier } from '../base/baseMessageModifier';
+import { 
+    MessageModifier, 
+    MessageModifierOptions,
+    ProcessedMessage
+} from '@codebolt/types/agent';
 export interface AddToolsListMessageModifierOptions {
     toolsList: ToolList;
     addToolsLocation?: 'InsidePrompt' | 'Tool' | 'SystemMessage';

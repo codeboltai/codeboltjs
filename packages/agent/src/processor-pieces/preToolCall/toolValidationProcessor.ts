@@ -242,8 +242,8 @@ export class ToolValidationProcessor extends BaseProcessor {
                 if (typeof value === 'string') {
                     // SQL injection patterns
                     const sqlInjectionPatterns = [
-                        /('|(\\')|(;)|(\\;)|(--)|(\s*or\s+)|(union\s+select)/i,
-                        /(drop\s+table)|(delete\s+from)|(insert\s+into)/i
+                        /('|\\'|;|\\;|--|\s*or\s+|union\s+select)/i,
+                        /(drop\s+table|delete\s+from|insert\s+into)/i
                     ];
 
                     // Command injection patterns
@@ -255,8 +255,8 @@ export class ToolValidationProcessor extends BaseProcessor {
                     // Path traversal patterns
                     const pathTraversalPatterns = [
                         /\.\.\//,
-                        /\.\.\\\\,
-                        /%2e%2e%2f/i
+                        /\.\.\\/, // fixed: properly closed regex for Windows path traversal
+                        /%2[eE]%2[eE]%2[fF]/i
                     ];
 
                     const allPatterns = [

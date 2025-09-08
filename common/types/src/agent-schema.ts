@@ -8,3 +8,5 @@ export * from './agent/common';
 
 // Export all processor types
 export * from './agent/processorTypes';
+
+export * from './agent/baseAgentTypes/agentStepTypes'

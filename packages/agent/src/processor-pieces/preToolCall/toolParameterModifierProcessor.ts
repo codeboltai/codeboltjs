@@ -200,7 +200,7 @@ export class ToolParameterModifierProcessor extends BaseProcessor {
                     sanitizedPath = sanitizedPath.replace(/\\/g, '/');
                     
                     // Remove dangerous path components
-                    sanitizedPath = sanitizedPath.replace(/\.\.\/|\.\.\\\\g, '');
+                    sanitizedPath = sanitizedPath.replace(/\.\.\/|\.\.\\+/g, '');
                     
                     // Remove multiple slashes
                     sanitizedPath = sanitizedPath.replace(/\/+/g, '/');

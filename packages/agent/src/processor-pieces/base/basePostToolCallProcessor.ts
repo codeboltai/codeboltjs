@@ -9,14 +9,13 @@ import {
     PostToolCallProcessor,
     PostToolCallProcessorInput,
     PostToolCallProcessorOutput,
-    PostToolCallProcessorOptions
-} from '@codebolt/types/src/agent/processorTypes/postToolCallProcessorTypes';
-import { 
+    PostToolCallProcessorOptions,
     ToolResult,
     EnhancedToolResult,
     ResultProcessingRule,
     ToolExecutionMetrics
-} from '@codebolt/types/src/agent/common';
+} from '@codebolt/types/agent';
+
 
 export abstract class BasePostToolCallProcessor implements PostToolCallProcessor {
     protected context: Record<string, unknown> = {};

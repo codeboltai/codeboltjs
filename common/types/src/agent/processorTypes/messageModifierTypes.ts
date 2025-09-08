@@ -4,20 +4,15 @@
  * Called by the InitialPromptGenerator
  */
 
+import { FlatUserMessage } from '../../sdk-types';
 import { ProcessedMessage } from '../common';
 
 export interface MessageModifier {
-    modify(input: MessageModifierInput): Promise<ProcessedMessage>;
-    setContext(key: string, value: unknown): void;
-    getContext(key: string): unknown;
-    clearContext(): void;
+    modify(originalRequest: FlatUserMessage,createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
+  
 }
 
-export interface MessageModifierInput {
-    originalRequest: unknown;
-    createdMessage: ProcessedMessage;
-    context?: Record<string, unknown>;
-}
+
 
 export interface MessageModifierOptions {
     context?: Record<string, unknown>;

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2019",
-    "module": "commonjs",
+    "module": "Node16",
     "lib": ["es2019"],
     "rootDir": "./src",
     "outDir": "./dist",
@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "baseUrl": "./",
@@ -19,7 +19,7 @@
   },
   "include": [
     "src/**/*"
-, "../../common/types/src/agent/baseAgentTypes", "../../common/types/src/agent/common", "../../common/types/src/agent/highLevelAgentTypes", "../../common/types/src/agent/processorTypes", "../../common/types/src/agent/toolTypes"  ],
+  ],
   "exclude": [
     "node_modules",
     "dist",
