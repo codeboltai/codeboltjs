@@ -8,8 +8,8 @@ import {
     MessageModifier, 
     MessageModifierInput, 
     MessageModifierOptions 
-} from '../../types/processorTypes/messageModifierTypes';
-import { ProcessedMessage } from '../../types/common';
+} from '@codebolt/types/src/agent/processorTypes/messageModifierTypes';
+import { ProcessedMessage } from '@codebolt/types/src/agent/common';
 
 export abstract class BaseMessageModifier implements MessageModifier {
     protected context: Record<string, unknown> = {};

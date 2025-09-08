@@ -9,12 +9,14 @@ import {
     PostInferenceProcessor,
     PostInferenceProcessorInput,
     PostInferenceProcessorOutput,
-    PostInferenceProcessorOptions,
+    PostInferenceProcessorOptions
+} from '@codebolt/types/src/agent/processorTypes/postInferenceTypes';
+import { 
     LLMInferenceTriggerEvent,
     ExitEvent,
     ValidationRule,
     ValidationResult
-} from '../../types/processorTypes/postInferenceTypes';
+} from '@codebolt/types/src/agent/common';
 
 export abstract class BasePostInferenceProcessor implements PostInferenceProcessor {
     protected context: Record<string, unknown> = {};

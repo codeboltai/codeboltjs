@@ -19,7 +19,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "../../common/types/src/agent/baseAgentTypes", "../../common/types/src/agent/common", "../../common/types/src/agent/highLevelAgentTypes", "../../common/types/src/agent/processorTypes", "../../common/types/src/agent/toolTypes"  ],
   "exclude": [
     "node_modules",
     "dist",

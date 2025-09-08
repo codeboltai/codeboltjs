@@ -4,7 +4,7 @@
  * Called by the InitialPromptGenerator
  */
 
-import { Message, ProcessedMessage, ToolCall } from '../common';
+import { ProcessedMessage } from '../common';
 
 export interface MessageModifier {
     modify(input: MessageModifierInput): Promise<ProcessedMessage>;

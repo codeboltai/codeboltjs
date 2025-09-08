@@ -6,13 +6,10 @@
  */
 
 import { 
-    Message, 
     ProcessedMessage, 
-    ToolCall,
     ToolResult,
     EnhancedToolResult,
     ResultProcessingRule,
-    ToolExecutionMetrics
 } from '../common';
 
 export interface PostToolCallProcessor {

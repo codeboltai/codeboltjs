@@ -9,12 +9,14 @@ import {
     PreToolCallProcessor,
     PreToolCallProcessorInput,
     PreToolCallProcessorOutput,
-    PreToolCallProcessorOptions,
+    PreToolCallProcessorOptions
+} from '@codebolt/types/src/agent/processorTypes/preToolCallProcessorTypes';
+import { 
     InterceptedTool,
     ToolValidationRule,
     ToolValidationResult,
     ToolCall
-} from '../../types/processorTypes/preToolCallProcessorTypes';
+} from '@codebolt/types/src/agent/common';
 
 export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     protected context: Record<string, unknown> = {};

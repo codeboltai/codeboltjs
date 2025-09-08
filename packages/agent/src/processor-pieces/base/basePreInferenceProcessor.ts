@@ -9,8 +9,8 @@ import {
     PreInferenceProcessorInput,
     PreInferenceProcessorOutput,
     PreInferenceProcessorOptions
-} from '../../types/processorTypes/preInferenceProcessorTypes';
-import { ExitEvent } from '../../types/common';
+} from '@codebolt/types/src/agent/processorTypes/preInferenceProcessorTypes';
+import { ExitEvent } from '@codebolt/types/src/agent/common';
 
 export abstract class BasePreInferenceProcessor implements PreInferenceProcessor {
     protected context: Record<string, unknown> = {};

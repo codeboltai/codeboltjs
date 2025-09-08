@@ -6,13 +6,10 @@
  */
 
 import { 
-    Message, 
     ProcessedMessage, 
-    ToolCall, 
     ExitEvent, 
     LLMInferenceTriggerEvent,
     ValidationRule,
-    ValidationResult
 } from '../common';
 
 export interface PostInferenceProcessor {

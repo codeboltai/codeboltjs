@@ -6,12 +6,8 @@
  */
 
 import { 
-    Message, 
     ProcessedMessage, 
-    ToolCall, 
-    InterceptedTool,
-    ToolValidationRule,
-    ToolValidationResult
+    InterceptedTool
 } from '../common';
 
 export interface PreToolCallProcessor {

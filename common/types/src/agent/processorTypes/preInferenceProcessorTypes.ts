@@ -4,7 +4,7 @@
  * Called by AgentStep before the LLM calling step
  */
 
-import { Message, ProcessedMessage, ToolCall, ExitEvent } from '../common';
+import { ProcessedMessage, ExitEvent } from '../common';
 
 export interface PreInferenceProcessor {
     modify(input: PreInferenceProcessorInput): Promise<PreInferenceProcessorOutput>;
