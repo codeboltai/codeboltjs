@@ -2,9 +2,8 @@ import type {
     CodeboltAPI,
     OpenAITool 
 } from '../types/libTypes';
-import type { 
-    Processor 
-} from '../types/processorTypes';
+import type {  MessageModifier} from '@codebolt/types/agent';
+
 import type {
     UnifiedAgent,
     UnifiedAgentConfig,
@@ -34,7 +33,7 @@ export function createQuickAgent(options: {
     return agent.execute({
         userMessage: options.userMessage,
         tools: options.tools
-    }).then(result => result.response);
+    }).then((result: any) => result.response);
 }
 
 /**
@@ -43,7 +42,7 @@ export function createQuickAgent(options: {
 export function createAdvancedAgent(config: {
     llmConfig: LLMConfig;
     codebolt: CodeboltAPI;
-    processors?: Processor[];
+    processors?: MessageModifier[];
     maxIterations?: number;
     maxConversationLength?: number;
     enableLogging?: boolean;
