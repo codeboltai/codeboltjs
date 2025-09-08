@@ -1,375 +1,682 @@
 import cbws from '../core/websocket';
+import { randomUUID } from 'crypto';
 import type { 
-    Task, 
-    SubTask, 
-    TaskResponse,
-    TaskCreateOptions,
-    TaskUpdateOptions,
+    // Legacy types for backward compatibility
+    Task as LegacyTask, 
+    SubTask as LegacySubTask, 
+    TaskResponse as LegacyTaskResponse,
+    TaskCreateOptions as LegacyTaskCreateOptions,
+    TaskUpdateOptions as LegacyTaskUpdateOptions,
     AddSubTaskOptions,
     UpdateSubTaskOptions,
     TaskFilterOptions,
     TaskMarkdownImportOptions,
     TaskMarkdownExportOptions
 } from '../types';
-import { EventType, TaskAction, TaskResponseType } from '@codebolt/types/enum';
+
+// Import new task service types from common/types package
+import type {
+    // Task event schemas
+    CreateTaskEvent,
+    GetTaskListEvent,
+    AddStepToTaskEvent,
+    GetTaskDetailEvent,
+    GetTaskMessagesEvent,
+    UpdateTaskEvent,
+    DeleteTaskEvent,
+    CompleteTaskEvent,
+    GetAllStepsEvent,
+    UpdateStepStatusEvent,
+    CompleteStepEvent,
+    SendSteeringMessageEvent,
+    GetCurrentRunningStepEvent,
+    CanTaskStartEvent,
+    GetTasksDependentOnEvent,
+    GetTasksReadyToStartEvent,
+    GetTaskDependencyChainEvent,
+    GetTaskStatsEvent,
+    // Options types
+    CreateTaskOptions,
+    UpdateTaskOptions,
+    GetTaskListOptions,
+    AddStepToTaskOptions,
+    GetTaskDetailOptions,
+    GetTaskMessagesOptions,
+    UpdateStepStatusOptions,
+    CompleteStepOptions,
+    SendSteeringMessageOptions,
+    GetAllStepsOptions,
+    GetActiveStepOptions,
+    DeleteTaskOptions,
+    CompleteTaskOptions,
+    CanTaskStartOptions,
+    GetTasksDependentOnOptions,
+    GetTasksReadyToStartOptions,
+    GetTaskDependencyChainOptions,
+    GetTaskStatsOptions,
+    // Data types
+    Step,
+    Metadata
+} from '@codebolt/types/wstypes/agent-to-app-ws/actions/taskEventSchemas';
+
+// Import response types
+import type {
+    TaskResponse,
+    TaskListResponse,
+    StepResponse,
+    StepListResponse,
+    TaskMessagesResponse,
+    ActiveStepResponse,
+    SendSteeringMessageResponse,
+    DeleteTaskResponse,
+    CanTaskStartResponse,
+    TaskStatsResponse,
+    CreateTaskResponse,
+    GetTaskListResponse,
+    AddStepToTaskResponse,
+    GetTaskDetailResponse,
+    GetTaskMessagesResponse,
+    GetAllStepsResponse,
+    GetCurrentRunningStepResponse,
+    UpdateStepStatusResponse,
+    CompleteStepResponse,
+    UpdateTaskResponse,
+    CompleteTaskResponse,
+    GetTasksDependentOnResponse,
+    GetTasksReadyToStartResponse,
+    GetTaskDependencyChainResponse,
+    GetTaskStatsResponse,
+    Task,
+    ExtendedTask,
+    ExtendedStep,
+    TaskMessage
+} from '@codebolt/types/wstypes/app-to-agent-ws/taskServiceResponses';
 
 /**
- * Enhanced task planner with agent-based organization and comprehensive task management.
+ * Enhanced task service with comprehensive task and step management.
+ * This module provides a modern API for task management based on the new task service schemas.
  */
-const taskplaner = {
+const taskService = {
     /**
-     * Adds a new task with enhanced parameters.
-     * @param {TaskCreateOptions} params - The task parameters including title, agentId, description, etc.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add task event.
+     * Creates a new task with comprehensive options.
+     * @param {CreateTaskOptions} options - The task creation parameters
+     * @returns {Promise<CreateTaskResponse>} A promise that resolves with the task creation response
      */
-    addTask: async (params: TaskCreateOptions): Promise<TaskResponse> => {
-        const { title, agentId = 'default-agent', description, phase, category, priority, tags } = params;
+    createTask: async (options: CreateTaskOptions): Promise<CreateTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: CreateTaskEvent = {
+            type: 'taskEvent',
+            action: 'createTask',
+            requestId,
+            agentId: options.threadId, // Using threadId as agentId for now
+            threadId: options.threadId,
+            message: options
+        };
         
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action:TaskAction.ADD_TASK,
-                agentId: agentId,
-                message: {
-                    title: title,
-                    description: description,
-                    phase: phase,
-                    category: category,
-                    priority: priority,
-                    tags: tags
-                }
-            },
-            TaskResponseType.ADD_TASK_RESPONSE
+            event,
+            'createTaskResponse'
         );
     },
 
     /**
-     * Adds a task using simple string parameter (legacy support).
-     * @param {string} task - The task title.
-     * @param {string} agentId - The agent ID (optional, defaults to 'default-agent').
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add task event.
+     * Creates a simple task with minimal parameters (legacy compatibility).
+     * @param {string} taskName - The task name
+     * @param {string} threadId - The thread ID (defaults to 'default-thread')
+     * @returns {Promise<CreateTaskResponse>} A promise that resolves with the task creation response
      */
-    addSimpleTask: async (task: string, agentId: string = 'default-agent'): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.ADD_TASK,
-                agentId: agentId,
-                message: {
-                    task: task
-                }
-            },
-            TaskResponseType.ADD_TASK_RESPONSE
-        );
+    createSimpleTask: async (taskName: string, threadId: string = 'default-thread'): Promise<CreateTaskResponse> => {
+        const options: CreateTaskOptions = {
+            threadId,
+            name: taskName,
+            taskType: 'interactive',
+            executionType: 'manual',
+            environmentType: 'local',
+            startOption: 'manual'
+        };
+        
+        return taskService.createTask(options);
     },
 
     /**
-     * Retrieves all tasks with optional filtering.
-     * @param {TaskFilterOptions} filters - Optional filters for agentId, category, phase, etc.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the get tasks event.
+     * Retrieves a list of tasks with optional filtering.
+     * @param {GetTaskListOptions} options - Optional filters for tasks
+     * @returns {Promise<GetTaskListResponse>} A promise that resolves with the task list response
      */
-    getTasks: async (filters: TaskFilterOptions = {}): Promise<TaskResponse> => {
+    getTaskList: async (options: GetTaskListOptions = {}): Promise<GetTaskListResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTaskListEvent = {
+            type: 'taskEvent',
+            action: 'getTaskList',
+            requestId,
+            message: options
+        };
+        
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.GET_TASKS,
-                message: filters
-            },
-            TaskResponseType.GET_TASKS_RESPONSE
+            event,
+            'getTaskListResponse'
         );
     },
     
     /**
-     * Retrieves tasks for a specific agent.
-     * @param {string} agentId - The agent ID.
-     * @returns {Promise<TaskResponse>} A promise that resolves with tasks for the specified agent.
+     * Retrieves detailed information about a specific task.
+     * @param {GetTaskDetailOptions} options - The task detail options
+     * @returns {Promise<GetTaskDetailResponse>} A promise that resolves with the task detail response
      */
-    getTasksByAgent: async (agentId: string): Promise<TaskResponse> => {
+    getTaskDetail: async (options: GetTaskDetailOptions): Promise<GetTaskDetailResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTaskDetailEvent = {
+            type: 'taskEvent',
+            action: 'getTaskDetail',
+            requestId,
+            message: options
+        };
+        
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.GET_TASKS_BY_AGENT,
-                message: {
-                    agentId: agentId
-                }
-            },
-            TaskResponseType.GET_TASKS_BY_AGENT_RESPONSE
+            event,
+            'getTaskDetailResponse'
         );
     },
 
     /**
-     * Retrieves tasks by category.
-     * @param {string} category - The category name.
-     * @returns {Promise<TaskResponse>} A promise that resolves with tasks in the specified category.
+     * Adds a step to an existing task.
+     * @param {AddStepToTaskOptions} options - The step addition options
+     * @returns {Promise<AddStepToTaskResponse>} A promise that resolves with the step addition response
      */
-    getTasksByCategory: async (category: string): Promise<TaskResponse> => {
+    addStepToTask: async (options: AddStepToTaskOptions): Promise<AddStepToTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: AddStepToTaskEvent = {
+            type: 'taskEvent',
+            action: 'addStepToTask',
+            requestId,
+            message: options
+        };
+        
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.GET_TASKS_BY_CATEGORY,
-                message: {
-                    category: category
-                }
-            },
-            TaskResponseType.GET_TASKS_BY_CATEGORY_RESPONSE
+            event,
+            'addStepToTaskResponse'
         );
     },
 
     /**
-     * Retrieves all available agents.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the list of all agents.
+     * Retrieves messages for a specific task.
+     * @param {GetTaskMessagesOptions} options - The task messages options
+     * @returns {Promise<GetTaskMessagesResponse>} A promise that resolves with the task messages response
      */
-    getAllAgents: async (): Promise<TaskResponse> => {
+    getTaskMessages: async (options: GetTaskMessagesOptions): Promise<GetTaskMessagesResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTaskMessagesEvent = {
+            type: 'taskEvent',
+            action: 'getTaskMessages',
+            requestId,
+            message: options
+        };
+        
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.GET_ALL_AGENTS
-            },
-            TaskResponseType.GET_ALL_AGENTS_RESPONSE
+            event,
+            'getTaskMessagesResponse'
         );
     },
 
     /**
      * Updates an existing task.
-     * @param {TaskUpdateOptions} params - The task update parameters.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
+     * @param {string} taskId - The task ID to update
+     * @param {UpdateTaskOptions} updates - The task update parameters
+     * @returns {Promise<UpdateTaskResponse>} A promise that resolves with the task update response
      */
-    updateTask: async (params: TaskUpdateOptions): Promise<TaskResponse> => {
-        const { taskId, ...updates } = params;
+    updateTask: async (taskId: string, updates: UpdateTaskOptions): Promise<UpdateTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: UpdateTaskEvent = {
+            type: 'taskEvent',
+            action: 'updateTask',
+            requestId,
+            message: {
+                taskId,
+                ...updates
+            }
+        };
         
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.UPDATE_TASK,
-                message: {
-                    taskId: taskId,
-                    ...updates
-                }
-            },
-            TaskResponseType.UPDATE_TASKS_RESPONSE
+            event,
+            'updateTaskResponse'
         );
     },
 
     /**
-     * Updates an existing task using legacy string parameter.
-     * @param {string} taskId - The task ID.
-     * @param {string} task - The updated task information.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
+     * Updates a task with simple name change (legacy compatibility).
+     * @param {string} taskId - The task ID
+     * @param {string} taskName - The new task name
+     * @returns {Promise<UpdateTaskResponse>} A promise that resolves with the task update response
      */
-    updateSimpleTask: async (taskId: string, task: string): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.UPDATE_TASK,
-                message: {
-                    taskId: taskId,
-                    task: task
-                }
-            },
-            TaskResponseType.UPDATE_TASKS_RESPONSE
-        );
+    updateSimpleTask: async (taskId: string, taskName: string): Promise<UpdateTaskResponse> => {
+        return taskService.updateTask(taskId, {
+            name: taskName
+        });
     },
 
     /**
      * Deletes a task.
-     * @param {string} taskId - The task ID to delete.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the delete task event.
+     * @param {string} taskId - The task ID to delete
+     * @returns {Promise<DeleteTaskResponse>} A promise that resolves with the task deletion response
      */
-    deleteTask: async (taskId: string): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.DELETE_TASK,
-                message: {
-                    taskId: taskId
-                }
-            },
-            TaskResponseType.DELETE_TASK_RESPONSE
-        );
-    },
-
-    /**
-     * Adds a subtask to an existing task.
-     * @param {AddSubTaskOptions} params - The subtask parameters.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add subtask event.
-     */
-    addSubTask: async (params: AddSubTaskOptions): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.ADD_SUB_TASK,
-                message: params
-            },
-            TaskResponseType.ADD_SUB_TASK_RESPONSE
-        );
-    },
-
-    /**
-     * Updates an existing subtask.
-     * @param {UpdateSubTaskOptions} params - The subtask update parameters.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update subtask event.
-     */
-    updateSubTask: async (params: UpdateSubTaskOptions): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.UPDATE_SUB_TASK,
-                message: params
-            },
-            TaskResponseType.UPDATE_SUB_TASK_RESPONSE
-        );
-    },
-
-    /**
-     * Deletes a subtask.
-     * @param {string} taskId - The parent task ID.
-     * @param {string} subtaskId - The subtask ID to delete.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the delete subtask event.
-     */
-    deleteSubTask: async (taskId: string, subtaskId: string): Promise<TaskResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.DELETE_SUB_TASK,
-                message: {
-                    taskId: taskId,
-                    subtaskId: subtaskId
-                }
-            },
-            TaskResponseType.DELETE_SUB_TASK_RESPONSE
-        );
-    },
-
-    /**
-     * Creates tasks from markdown content.
-     * @param {TaskMarkdownImportOptions} params - The markdown parameters including content, agentId, phase, and category.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the create tasks from markdown event.
-     */
-    createTasksFromMarkdown: async (params: TaskMarkdownImportOptions): Promise<TaskResponse> => {
-        const { markdown, agentId = 'default-agent', phase, category } = params;
+    deleteTask: async (taskId: string): Promise<DeleteTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: DeleteTaskEvent = {
+            type: 'taskEvent',
+            action: 'deleteTask',
+            requestId,
+            message: {
+                taskId
+            }
+        };
         
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.CREATE_TASKS_FROM_MARKDOWN,
-                agentId: agentId,
-                message: {
-                    markdown: markdown,
-                    phase: phase,
-                    category: category
-                }
-            },
-            TaskResponseType.CREATE_TASKS_FROM_MARKDOWN_RESPONSE
+            event,
+            'deleteTaskResponse'
         );
     },
 
     /**
-     * Exports tasks to markdown format.
-     * @param {TaskMarkdownExportOptions} params - The export parameters including optional phase, agentId, and category filters.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the markdown content.
+     * Completes a task.
+     * @param {string} taskId - The task ID to complete
+     * @returns {Promise<CompleteTaskResponse>} A promise that resolves with the task completion response
      */
-    exportTasksToMarkdown: async (params: TaskMarkdownExportOptions = {}): Promise<TaskResponse> => {
+    completeTask: async (taskId: string): Promise<CompleteTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: CompleteTaskEvent = {
+            type: 'taskEvent',
+            action: 'completeTask',
+            requestId,
+            message: {
+                taskId
+            }
+        };
+        
         return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: EventType.TASK_EVENT,
-                action: TaskAction.EXPORT_TASKS_TO_MARKDOWN,
-                message: params
-            },
-            TaskResponseType.EXPORT_TASKS_TO_MARKDOWN_RESPONSE
+            event,
+            'completeTaskResponse'
         );
     },
+
+    /**
+     * Retrieves all steps with optional filtering.
+     * @param {GetAllStepsOptions} options - Optional filters for steps
+     * @returns {Promise<GetAllStepsResponse>} A promise that resolves with the steps response
+     */
+    getAllSteps: async (options: GetAllStepsOptions = {}): Promise<GetAllStepsResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetAllStepsEvent = {
+            type: 'taskEvent',
+            action: 'getAllSteps',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getAllStepsResponse'
+        );
+    },
+
+    /**
+     * Gets the currently running step for a task or agent.
+     * @param {GetActiveStepOptions} options - Options for getting active step
+     * @returns {Promise<GetCurrentRunningStepResponse>} A promise that resolves with the active step response
+     */
+    getCurrentRunningStep: async (options: GetActiveStepOptions = {}): Promise<GetCurrentRunningStepResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetCurrentRunningStepEvent = {
+            type: 'taskEvent',
+            action: 'getCurrentRunningStep',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getCurrentRunningStepResponse'
+        );
+    },
+
+    /**
+     * Updates the status of a specific step.
+     * @param {UpdateStepStatusOptions} options - The step status update options
+     * @returns {Promise<UpdateStepStatusResponse>} A promise that resolves with the step update response
+     */
+    updateStepStatus: async (options: UpdateStepStatusOptions): Promise<UpdateStepStatusResponse> => {
+        const requestId = randomUUID();
+        
+        const event: UpdateStepStatusEvent = {
+            type: 'taskEvent',
+            action: 'updateStepStatus',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'updateStepStatusResponse'
+        );
+    },
+
+    /**
+     * Completes a specific step.
+     * @param {CompleteStepOptions} options - The step completion options
+     * @returns {Promise<CompleteStepResponse>} A promise that resolves with the step completion response
+     */
+    completeStep: async (options: CompleteStepOptions): Promise<CompleteStepResponse> => {
+        const requestId = randomUUID();
+        
+        const event: CompleteStepEvent = {
+            type: 'taskEvent',
+            action: 'completeStep',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'completeStepResponse'
+        );
+    },
+
+    /**
+     * Sends a steering message to a running step.
+     * @param {SendSteeringMessageOptions} options - The steering message options
+     * @returns {Promise<SendSteeringMessageResponse>} A promise that resolves with the steering message response
+     */
+    sendSteeringMessage: async (options: SendSteeringMessageOptions): Promise<SendSteeringMessageResponse> => {
+        const requestId = randomUUID();
+        
+        const event: SendSteeringMessageEvent = {
+            type: 'taskEvent',
+            action: 'sendSteeringMessage',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'sendSteeringMessageResponse'
+        );
+    },
+
+    /**
+     * Checks if a task can start based on its dependencies.
+     * @param {string} taskId - The task ID to check
+     * @returns {Promise<CanTaskStartResponse>} A promise that resolves with the task start capability response
+     */
+    canTaskStart: async (taskId: string): Promise<CanTaskStartResponse> => {
+        const requestId = randomUUID();
+        
+        const event: CanTaskStartEvent = {
+            type: 'taskEvent',
+            action: 'canTaskStart',
+            requestId,
+            message: {
+                taskId
+            }
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'canTaskStartResponse'
+        );
+    },
+
+    /**
+     * Gets tasks that depend on a specific task.
+     * @param {string} taskId - The task ID to check dependencies for
+     * @returns {Promise<GetTasksDependentOnResponse>} A promise that resolves with the dependent tasks response
+     */
+    getTasksDependentOn: async (taskId: string): Promise<GetTasksDependentOnResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTasksDependentOnEvent = {
+            type: 'taskEvent',
+            action: 'getTasksDependentOn',
+            requestId,
+            message: {
+                taskId
+            }
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getTasksDependentOnResponse'
+        );
+    },
+
+    /**
+     * Gets tasks that are ready to start.
+     * @param {GetTasksReadyToStartOptions} options - Optional filters for ready tasks
+     * @returns {Promise<GetTasksReadyToStartResponse>} A promise that resolves with the ready tasks response
+     */
+    getTasksReadyToStart: async (options: GetTasksReadyToStartOptions = {}): Promise<GetTasksReadyToStartResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTasksReadyToStartEvent = {
+            type: 'taskEvent',
+            action: 'getTasksReadyToStart',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getTasksReadyToStartResponse'
+        );
+    },
+
+    /**
+     * Gets the dependency chain for a specific task.
+     * @param {string} taskId - The task ID to get dependency chain for
+     * @returns {Promise<GetTaskDependencyChainResponse>} A promise that resolves with the dependency chain response
+     */
+    getTaskDependencyChain: async (taskId: string): Promise<GetTaskDependencyChainResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTaskDependencyChainEvent = {
+            type: 'taskEvent',
+            action: 'getTaskDependencyChain',
+            requestId,
+            message: {
+                taskId
+            }
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getTaskDependencyChainResponse'
+        );
+    },
+
+    /**
+     * Gets task statistics.
+     * @param {GetTaskStatsOptions} options - Optional filters for task stats
+     * @returns {Promise<GetTaskStatsResponse>} A promise that resolves with the task stats response
+     */
+    getTaskStats: async (options: GetTaskStatsOptions = {}): Promise<GetTaskStatsResponse> => {
+        const requestId = randomUUID();
+        
+        const event: GetTaskStatsEvent = {
+            type: 'taskEvent',
+            action: 'getTaskStats',
+            requestId,
+            message: options
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getTaskStatsResponse'
+        );
+    }
+},
+
+    // ================================
+    // Utility Functions
+    // ================================
 
     /**
      * Utility function to toggle task completion status.
-     * @param {string} taskId - The task ID.
-     * @param {boolean} completed - The new completion status.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
+     * @param {string} taskId - The task ID
+     * @param {boolean} completed - The new completion status
+     * @returns {Promise<UpdateTaskResponse>} A promise that resolves with the task update response
      */
-    toggleTaskCompletion: async (taskId: string, completed: boolean): Promise<TaskResponse> => {
-        return taskplaner.updateTask({
-            taskId: taskId,
+    toggleTaskCompletion: async (taskId: string, completed: boolean): Promise<UpdateTaskResponse> => {
+        return taskService.updateTask(taskId, {
             completed: completed
-        });
-    },
-
-    /**
-     * Utility function to toggle subtask completion status.
-     * @param {string} taskId - The parent task ID.
-     * @param {string} subtaskId - The subtask ID.
-     * @param {boolean} completed - The new completion status.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update subtask event.
-     */
-    toggleSubTaskCompletion: async (taskId: string, subtaskId: string, completed: boolean): Promise<TaskResponse> => {
-        return taskplaner.updateSubTask({
-            taskId: taskId,
-            subtaskId: subtaskId,
-            completed: completed
-        });
-    },
-
-    /**
-     * Utility function to move a task to a different agent.
-     * @param {string} taskId - The task ID.
-     * @param {string} newAgentId - The new agent ID.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
-     */
-    moveTaskToAgent: async (taskId: string, newAgentId: string): Promise<TaskResponse> => {
-        return taskplaner.updateTask({
-            taskId: taskId,
-            agentId: newAgentId
-        });
-    },
-
-    /**
-     * Utility function to set task priority.
-     * @param {string} taskId - The task ID.
-     * @param {'low' | 'medium' | 'high'} priority - The priority level.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
-     */
-    setTaskPriority: async (taskId: string, priority: 'low' | 'medium' | 'high'): Promise<TaskResponse> => {
-        return taskplaner.updateTask({
-            taskId: taskId,
-            priority: priority
-        });
-    },
-
-    /**
-     * Utility function to add tags to a task.
-     * @param {string} taskId - The task ID.
-     * @param {string[]} tags - The tags to add.
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the update task event.
-     */
-    addTaskTags: async (taskId: string, tags: string[]): Promise<TaskResponse> => {
-        return taskplaner.updateTask({
-            taskId: taskId,
-            tags: tags
         });
     },
 
     /**
      * Utility function to create a quick task with minimal parameters.
-     * @param {string} title - The task title.
-     * @param {string} agentId - The agent ID (optional, defaults to 'default-agent').
-     * @param {string} category - The category (optional).
-     * @returns {Promise<TaskResponse>} A promise that resolves with the response from the add task event.
+     * @param {string} name - The task name
+     * @param {string} threadId - The thread ID (defaults to 'default-thread')
+     * @returns {Promise<CreateTaskResponse>} A promise that resolves with the task creation response
      */
-    createQuickTask: async (title: string, agentId: string = 'default-agent', category?: string): Promise<TaskResponse> => {
-        return taskplaner.addTask({
-            title: title,
-            agentId: agentId,
-            category: category,
-            priority: 'medium'
+    createQuickTask: async (name: string, threadId: string = 'default-thread'): Promise<CreateTaskResponse> => {
+        return taskService.createTask({
+            threadId,
+            name,
+            taskType: 'interactive',
+            executionType: 'immediate',
+            environmentType: 'local',
+            startOption: 'immediately'
         });
+    },
+
+    // ================================
+    // Legacy Compatibility Functions
+    // ================================
+
+    /**
+     * Legacy function: Adds a task (mapped to createTask)
+     * @deprecated Use createTask instead
+     */
+    addTask: async (params: LegacyTaskCreateOptions): Promise<CreateTaskResponse> => {
+        const options: CreateTaskOptions = {
+            threadId: params.agentId || 'default-thread',
+            name: params.title,
+            taskType: 'interactive',
+            executionType: 'manual',
+            environmentType: 'local',
+            startOption: 'manual'
+        };
+        
+        return taskService.createTask(options);
+    },
+
+    /**
+     * Legacy function: Gets tasks (mapped to getTaskList)
+     * @deprecated Use getTaskList instead
+     */
+    getTasks: async (filters: TaskFilterOptions = {}): Promise<GetTaskListResponse> => {
+        const options: GetTaskListOptions = {
+            threadId: filters.agentId,
+            status: 'all'
+        };
+        
+        return taskService.getTaskList(options);
+    },
+
+    /**
+     * Legacy function: Gets tasks by agent (mapped to getTaskList with threadId filter)
+     * @deprecated Use getTaskList with threadId filter instead
+     */
+    getTasksByAgent: async (agentId: string): Promise<GetTaskListResponse> => {
+        return taskService.getTaskList({
+            threadId: agentId
+        });
+    },
+
+    /**
+     * Legacy function: Gets tasks by category (use getTaskList with custom filtering)
+     * @deprecated Use getTaskList instead
+     */
+    getTasksByCategory: async (category: string): Promise<GetTaskListResponse> => {
+        // Note: The new API doesn't have category filtering built-in
+        // This would need to be implemented as post-processing
+        return taskService.getTaskList();
     }
 };
 
-// Export types for external use
+// ================================
+// Type Exports
+// ================================
+
+// Export new types
 export type {
+    // New task service types
     Task,
-    SubTask,
+    ExtendedTask,
+    Step,
+    ExtendedStep,
+    TaskMessage,
+    Metadata,
+    CreateTaskOptions,
+    UpdateTaskOptions,
+    GetTaskListOptions,
+    AddStepToTaskOptions,
+    GetTaskDetailOptions,
+    GetTaskMessagesOptions,
+    UpdateStepStatusOptions,
+    CompleteStepOptions,
+    SendSteeringMessageOptions,
+    GetAllStepsOptions,
+    GetActiveStepOptions,
+    DeleteTaskOptions,
+    CompleteTaskOptions,
+    CanTaskStartOptions,
+    GetTasksDependentOnOptions,
+    GetTasksReadyToStartOptions,
+    GetTaskDependencyChainOptions,
+    GetTaskStatsOptions,
+    // Response types
     TaskResponse,
-    TaskCreateOptions,
-    TaskUpdateOptions,
+    TaskListResponse,
+    StepResponse,
+    StepListResponse,
+    TaskMessagesResponse,
+    ActiveStepResponse,
+    SendSteeringMessageResponse,
+    DeleteTaskResponse,
+    CanTaskStartResponse,
+    TaskStatsResponse,
+    CreateTaskResponse,
+    GetTaskListResponse,
+    AddStepToTaskResponse,
+    GetTaskDetailResponse,
+    GetTaskMessagesResponse,
+    GetAllStepsResponse,
+    GetCurrentRunningStepResponse,
+    UpdateStepStatusResponse,
+    CompleteStepResponse,
+    UpdateTaskResponse,
+    CompleteTaskResponse,
+    GetTasksDependentOnResponse,
+    GetTasksReadyToStartResponse,
+    GetTaskDependencyChainResponse,
+    GetTaskStatsResponse
+};
+
+// Export legacy types for backward compatibility
+export type {
+    LegacyTask as Task_Legacy,
+    LegacySubTask as SubTask,
+    LegacyTaskResponse as TaskResponse_Legacy,
+    LegacyTaskCreateOptions as TaskCreateOptions_Legacy,
+    LegacyTaskUpdateOptions as TaskUpdateOptions_Legacy,
     AddSubTaskOptions,
     UpdateSubTaskOptions,
     TaskFilterOptions,
@@ -377,4 +684,4 @@ export type {
     TaskMarkdownExportOptions
 };
 
-export default taskplaner;
+export default taskService;
