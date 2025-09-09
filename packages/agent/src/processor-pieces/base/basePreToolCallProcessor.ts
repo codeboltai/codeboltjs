@@ -15,6 +15,7 @@ import {
     ToolValidationResult,
     ToolCall
 } from '@codebolt/types/agent';
+import { Tool } from '@codebolt/types/sdk';
 
 export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     protected context: Record<string, unknown> = {};
@@ -91,18 +92,18 @@ export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
         };
     }
 
-    // Helper method to extract tool calls from message
-    protected extractToolCalls(input: PreToolCallProcessorInput): ToolCall[] {
-        const toolCalls: ToolCall[] = [];
+    // // Helper method to extract tool calls from message
+    // protected extractToolCalls(input: PreToolCallProcessorInput): ToolCall[] {
+    //     const toolCalls: ToolCall[] = [];
         
-        for (const msg of input.llmResponseMessage.messages) {
-            if (msg.tool_calls) {
-                toolCalls.push(...msg.tool_calls);
-            }
-        }
+    //     for (const msg of input.llmResponseMessage.messages) {
+    //         if (msg.tool_calls) {
+    //             toolCalls.push(...msg.tool_calls);
+    //         }
+    //     }
         
-        return toolCalls;
-    }
+    //     return toolCalls;
+    // }
 
     // Helper method to check if tool should be intercepted
     protected shouldInterceptTool(toolName: string, interceptableTools?: string[]): boolean {
@@ -131,34 +132,34 @@ export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
         };
     }
 
-    // Helper method to create exit output
-    protected createExitOutput(
-        reason: string,
-        nextPrompt?: PreToolCallProcessorInput['nextPrompt']
-    ): PreToolCallProcessorOutput {
-        return {
-            nextPrompt: nextPrompt || { messages: [], metadata: {} },
-            context: {
-                ...this.context,
-                exitReason: reason,
-                exitedBy: this.constructor.name,
-                exitedAt: new Date().toISOString()
-            },
-            shouldExit: true
-        };
-    }
+    // // Helper method to create exit output
+    // protected createExitOutput(
+    //     reason: string,
+    //     nextPrompt?: PreToolCallProcessorInput['nextPrompt']
+    // ): PreToolCallProcessorOutput {
+    //     return {
+    //         nextPrompt: nextPrompt {mess} ,
+    //         context: {
+    //             ...this.context,
+    //             exitReason: reason,
+    //             exitedBy: this.constructor.name,
+    //             exitedAt: new Date().toISOString()
+    //         },
+    //         shouldExit: true
+    //     };
+    // }
 
-    // Helper method to validate all tool calls in the input
-    protected validateAllToolCalls(
-        input: PreToolCallProcessorInput,
-        validationRules: ToolValidationRule[]
-    ): { isValid: boolean; results: ToolValidationResult[] } {
-        const toolCalls = this.extractToolCalls(input);
-        const results = toolCalls.map(toolCall => this.validateToolCall(toolCall, validationRules));
-        const isValid = results.every(result => result.isValid);
+    // // Helper method to validate all tool calls in the input
+    // protected validateAllToolCalls(
+    //     input: PreToolCallProcessorInput,
+    //     validationRules: ToolValidationRule[]
+    // ): { isValid: boolean; results: ToolValidationResult[] } {
+    //     const toolCalls = this.extractToolCalls(input);
+    //     const results = toolCalls.map(toolCall => this.validateToolCall(toolCall, validationRules));
+    //     const isValid = results.every(result => result.isValid);
         
-        return { isValid, results };
-    }
+    //     return { isValid, results };
+    // }
 
     // Helper method to check if local tools are enabled
     protected isLocalToolsEnabled(): boolean {

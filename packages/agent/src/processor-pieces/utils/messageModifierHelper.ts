@@ -3,7 +3,12 @@ import { ProcessedMessage } from "@codebolt/types/agent";
   // Helper method to merge messages
   export const mergeMessages=(existing: ProcessedMessage, additional: ProcessedMessage): ProcessedMessage=>{
     return {
-        messages: [...existing.messages, ...additional.messages],
+        message: {
+            ...existing.message,
+            ...additional.message,
+            messages: [...existing.message.messages, ...additional.message.messages],
+            tools: additional.message.tools
+        },
         metadata: {
             ...existing.metadata,
             ...additional.metadata,
@@ -21,7 +26,10 @@ export const addSystemMessage=(message: ProcessedMessage, systemContent: string)
     };
 
     return {
-        messages: [systemMessage, ...message.messages],
+        message: {
+            ...message.message,
+            messages: [systemMessage, ...message.message.messages]
+        },
         metadata: {
             ...message.metadata,
             systemMessageAdded: true
@@ -38,7 +46,10 @@ export const addUserContext=(message: ProcessedMessage, contextKey: string, cont
     };
 
     return {
-        messages: [...message.messages, contextMessage],
+        message: {
+            ...message.message,
+            messages: [...message.message.messages, contextMessage]
+        },
         metadata: {
             ...message.metadata,
             contextAdded: contextKey

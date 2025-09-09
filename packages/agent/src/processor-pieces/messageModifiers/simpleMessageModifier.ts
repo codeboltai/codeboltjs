@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, Message } from "@codebolt/types/sdk";
+import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 
 export class SimpleMessageModifier extends BaseMessageModifier {
     constructor(){
@@ -9,13 +9,15 @@ export class SimpleMessageModifier extends BaseMessageModifier {
 
     modify(originalRequest: FlatUserMessage,createdMessage: ProcessedMessage, context?: Record<string, unknown>): Promise<ProcessedMessage> {
         
-        const contextMessage: Message = {
+        const contextMessage: MessageObject = {
             role: 'user',
-            content:"hi",
-            name: 'user-message-added'
+            content:"hi"
         };
         return Promise.resolve({
-            messages: [contextMessage, ...createdMessage.messages],
+            message: {
+                ...createdMessage.message,
+                messages: [...createdMessage.message.messages, contextMessage]
+            },
             metadata: {
                 ...createdMessage.metadata,
                 userMessageAdded: true

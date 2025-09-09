@@ -13,6 +13,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
     private processors: MessageModifier[] = [];
     private metaData: Record<string, unknown> = {};
     private enableLogging: boolean;
+    private baseSystemPrompt?: string;
 
     constructor(options: { 
         processors?: MessageModifier[];
@@ -24,6 +25,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
         this.processors = options.processors || [];
         this.metaData = options.metaData || {};
         this.enableLogging = options.enableLogging !== false;
+        this.baseSystemPrompt = options.baseSystemPrompt;
     }
 
     /**
@@ -38,13 +40,24 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
             // Create initial ProcessedMessage from FlatUserMessage
             const content = input.userMessage;
 
+            // Create messages array, starting with system message if baseSystemPrompt is defined
+            const messages = [];
+            if (this.baseSystemPrompt !== undefined) {
+                messages.push({
+                    role: 'system' as const,
+                    content: this.baseSystemPrompt
+                });
+            }
+            messages.push({
+                role: 'user' as const,
+                content
+            });
+
             let createdMessage: ProcessedMessage = {
-                messages: [
-                    {
-                        role: 'user',
-                        content
-                    }
-                ],
+                message: {
+                    messages,
+                    tools: []
+                },
                 metadata: {
                     timestamp: new Date().toISOString(),
                     messageId: input.messageId,
@@ -68,7 +81,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
 
             if (this.enableLogging) {
                 console.log('[InitialPromptGenerator] Processing completed:', {
-                    messageCount: createdMessage.messages.length,
+                    messageCount: createdMessage.message.messages.length,
                     metadata: createdMessage.metadata
                 });
             }
@@ -128,6 +141,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
  */
 export function createUnifiedMessageProcessor(options: {
     processors?: MessageModifier[];
+    baseSystemPrompt?: string;
     metaData?: Record<string, unknown>;
     enableLogging?: boolean;
 } = {}): InitialPromptGeneratorInterface {

@@ -5,145 +5,141 @@ import type {
 import type {  MessageModifier} from '@codebolt/types/agent';
 
 import type {
-    UnifiedAgent,
     UnifiedAgentConfig,
     LLMConfig
 } from '../types/types';
 import { 
-    createUnifiedAgent,
-    createUnifiedMessageModifier,
-    createUnifiedAgentStep,
-    createUnifiedResponseExecutor
+   createDefaultMessageProcessor
 } from '../index';
 
-/**
- * Quick agent creation for simple use cases
- */
-export function createQuickAgent(options: {
-    userMessage: string;
-    tools?: OpenAITool[];
-    codebolt?: CodeboltAPI;
-}): Promise<string> {
-    const agent = createUnifiedAgent({
-        codebolt: options.codebolt,
-        enableLogging: false,
-        maxIterations: 5
-    });
+// /**
+//  * Quick agent creation for simple use cases
+//  */
+// export function createQuickAgent(options: {
+//     userMessage: string;
+//     tools?: OpenAITool[];
+//     codebolt?: CodeboltAPI;
+// }): Promise<string> {
+//     const agent = createUnifiedAgent({
+//         codebolt: options.codebolt,
+//         enableLogging: false,
+//         maxIterations: 5
+//     });
 
-    return agent.execute({
-        userMessage: options.userMessage,
-        tools: options.tools
-    }).then((result: any) => result.response);
-}
+//     return agent.execute({
+//         userMessage: options.userMessage,
+//         tools: options.tools
+//     }).then((result: any) => result.response);
+// }
 
 /**
  * Advanced agent creation with full configuration
  */
-export function createAdvancedAgent(config: {
-    llmConfig: LLMConfig;
-    codebolt: CodeboltAPI;
-    processors?: MessageModifier[];
-    maxIterations?: number;
-    maxConversationLength?: number;
-    enableLogging?: boolean;
-}): UnifiedAgent {
-    const agentConfig: UnifiedAgentConfig = {
-        llmConfig: config.llmConfig,
-        codebolt: config.codebolt,
-        maxIterations: config.maxIterations || 15,
-        maxConversationLength: config.maxConversationLength || 100,
-        enableLogging: config.enableLogging !== false
-    };
+// export function createAdvancedAgent(config: {
+//     llmConfig: LLMConfig;
+//     codebolt: CodeboltAPI;
+//     processors?: MessageModifier[];
+//     maxIterations?: number;
+//     maxConversationLength?: number;
+//     enableLogging?: boolean;
+// }): UnifiedAgent {
+//     const agentConfig: UnifiedAgentConfig = {
+//         llmConfig: config.llmConfig,
+//         codebolt: config.codebolt,
+//         maxIterations: config.maxIterations || 15,
+//         maxConversationLength: config.maxConversationLength || 100,
+//         enableLogging: config.enableLogging !== false
+//     };
 
-    const agent = createUnifiedAgent(agentConfig);
+//     const agent = createUnifiedAgent(agentConfig);
 
-    // Add custom processors if provided
-    if (config.processors && config.processors.length > 0) {
-        const messageModifier = createUnifiedMessageModifier({
-            processors: config.processors,
-            enableLogging: config.enableLogging
-        });
-        agent.addMessageModifier(messageModifier);
-    }
+//     // Add custom processors if provided
+//     if (config.processors && config.processors.length > 0) {
+//         const messageModifier = createUnifiedMessageModifier({
+//             processors: config.processors,
+//             enableLogging: config.enableLogging
+//         });
+//         agent.addMessageModifier(messageModifier);
+//     }
 
-    return agent;
-}
+//     return agent;
+// }
 
-/**
- * Create agent with custom components
- */
-export function createCustomAgent(config: {
-    messageModifier?: any;
-    agentStep?: any;
-    responseExecutor?: any;
-    agentConfig?: UnifiedAgentConfig;
-}): UnifiedAgent {
-    const agent = createUnifiedAgent(config.agentConfig);
+// /**
+//  * Create agent with custom components
+//  */
+// export function createCustomAgent(config: {
+//     messageModifier?: any;
+//     agentStep?: any;
+//     responseExecutor?: any;
+//     agentConfig?: UnifiedAgentConfig;
+// }): UnifiedAgent {
+//     const agent = createUnifiedAgent(config.agentConfig);
 
-    if (config.messageModifier) {
-        agent.addMessageModifier(config.messageModifier);
-    }
+//     if (config.messageModifier) {
+//         agent.addMessageModifier(config.messageModifier);
+//     }
 
-    if (config.agentStep) {
-        agent.setAgentStep(config.agentStep);
-    }
+//     if (config.agentStep) {
+//         agent.setAgentStep(config.agentStep);
+//     }
 
-    if (config.responseExecutor) {
-        agent.setResponseExecutor(config.responseExecutor);
-    }
+//     if (config.responseExecutor) {
+//         agent.setResponseExecutor(config.responseExecutor);
+//     }
 
-    return agent;
-}
+//     return agent;
+// }
 
-/**
- * Utility to create a development agent with verbose logging
- */
-export function createDevelopmentAgent(codebolt?: CodeboltAPI): UnifiedAgent {
-    const agent = createUnifiedAgent({
-        codebolt,
-        enableLogging: true,
-        maxIterations: 10,
-        maxConversationLength: 30,
-        llmConfig: {
-            llmname: 'DevelopmentLLM',
-            temperature: 0.8
-        }
-    });
+// /**
+//  * Utility to create a development agent with verbose logging
+//  */
+// export function createDevelopmentAgent(codebolt?: CodeboltAPI): UnifiedAgent {
+//     const agent = createUnifiedAgent({
+//         codebolt,
+//         enableLogging: true,
+//         maxIterations: 10,
+//         maxConversationLength: 30,
+//         llmConfig: {
+//             llmname: 'DevelopmentLLM',
+//             temperature: 0.8
+//         }
+//     });
 
-    // Add development event listeners
-    agent.addEventListener('step_started', (event: any) => {
-        console.log('🚀 [Dev] Step started:', event.data);
-    });
+//     // Add development event listeners
+//     agent.addEventListener('step_started', (event: any) => {
+//         console.log('🚀 [Dev] Step started:', event.data);
+//     });
 
-    agent.addEventListener('tool_execution_started', (event: any) => {
-        console.log('🔧 [Dev] Tool execution started:', event.data);
-    });
+//     agent.addEventListener('tool_execution_started', (event: any) => {
+//         console.log('🔧 [Dev] Tool execution started:', event.data);
+//     });
 
-    agent.addEventListener('agent_error', (event: any) => {
-        console.error('❌ [Dev] Agent error:', event.data);
-    });
+//     agent.addEventListener('agent_error', (event: any) => {
+//         console.error('❌ [Dev] Agent error:', event.data);
+//     });
 
-    agent.addEventListener('agent_completed', (event: any) => {
-        console.log('✅ [Dev] Agent completed:', event.data);
-    });
+//     agent.addEventListener('agent_completed', (event: any) => {
+//         console.log('✅ [Dev] Agent completed:', event.data);
+//     });
 
-    return agent;
-}
+//     return agent;
+// }
 
 /**
  * Utility to create a testing agent with minimal configuration
  */
-export function createTestingAgent(): UnifiedAgent {
-    return createUnifiedAgent({
-        enableLogging: false,
-        maxIterations: 3,
-        maxConversationLength: 10,
-        llmConfig: {
-            llmname: 'TestLLM',
-            temperature: 0.1
-        }
-    });
-}
+// export function createTestingAgent(): UnifiedAgent {
+//     return createUnifiedAgent({
+//         enableLogging: false,
+//         maxIterations: 3,
+//         maxConversationLength: 10,
+//         llmConfig: {
+//             llmname: 'TestLLM',
+//             temperature: 0.1
+//         }
+//     });
+// }
 
 /**
  * Utility to validate agent configuration
@@ -202,34 +198,34 @@ export function validateAgentConfig(config: UnifiedAgentConfig): {
 /**
  * Utility to create agent from environment variables
  */
-export function createAgentFromEnv(codebolt?: CodeboltAPI): UnifiedAgent {
-    const config: UnifiedAgentConfig = {
-        codebolt,
-        maxIterations: parseInt(process.env.AGENT_MAX_ITERATIONS || '10'),
-        maxConversationLength: parseInt(process.env.AGENT_MAX_CONVERSATION_LENGTH || '50'),
-        enableLogging: process.env.AGENT_ENABLE_LOGGING !== 'false',
-        llmConfig: {
-            llmname: process.env.AGENT_LLM_NAME || 'DefaultLLM',
-            model: process.env.AGENT_LLM_MODEL,
-            temperature: parseFloat(process.env.AGENT_LLM_TEMPERATURE || '0.7'),
-            maxTokens: process.env.AGENT_LLM_MAX_TOKENS ? parseInt(process.env.AGENT_LLM_MAX_TOKENS) : undefined,
-            apiKey: process.env.AGENT_LLM_API_KEY,
-            baseUrl: process.env.AGENT_LLM_BASE_URL
-        },
-        retryConfig: {
-            maxRetries: parseInt(process.env.AGENT_MAX_RETRIES || '3'),
-            retryDelay: parseInt(process.env.AGENT_RETRY_DELAY || '1000')
-        }
-    };
+// export function createAgentFromEnv(codebolt?: CodeboltAPI): UnifiedAgent {
+//     const config: UnifiedAgentConfig = {
+//         codebolt,
+//         maxIterations: parseInt(process.env.AGENT_MAX_ITERATIONS || '10'),
+//         maxConversationLength: parseInt(process.env.AGENT_MAX_CONVERSATION_LENGTH || '50'),
+//         enableLogging: process.env.AGENT_ENABLE_LOGGING !== 'false',
+//         llmConfig: {
+//             llmname: process.env.AGENT_LLM_NAME || 'DefaultLLM',
+//             model: process.env.AGENT_LLM_MODEL,
+//             temperature: parseFloat(process.env.AGENT_LLM_TEMPERATURE || '0.7'),
+//             maxTokens: process.env.AGENT_LLM_MAX_TOKENS ? parseInt(process.env.AGENT_LLM_MAX_TOKENS) : undefined,
+//             apiKey: process.env.AGENT_LLM_API_KEY,
+//             baseUrl: process.env.AGENT_LLM_BASE_URL
+//         },
+//         retryConfig: {
+//             maxRetries: parseInt(process.env.AGENT_MAX_RETRIES || '3'),
+//             retryDelay: parseInt(process.env.AGENT_RETRY_DELAY || '1000')
+//         }
+//     };
 
-    return createUnifiedAgent(config);
-}
+//     return createUnifiedAgent(config);
+// }
 
 /**
  * Utility to benchmark agent performance
  */
 export async function benchmarkAgent(
-    agent: UnifiedAgent,
+    agent: any,
     testCases: Array<{
         name: string;
         input: any;

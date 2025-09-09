@@ -5,6 +5,7 @@
  * Mostly used for things like Response Validation
  */
 
+import { LLMCompletion } from '../../sdk-types';
 import { 
     ProcessedMessage, 
     ExitEvent, 
@@ -13,28 +14,18 @@ import {
 } from '../common';
 
 export interface PostInferenceProcessor {
-    modify(input: PostInferenceProcessorInput): Promise<PostInferenceProcessorOutput>;
-    setContext(key: string, value: unknown): void;
-    getContext(key: string): unknown;
-    clearContext(): void;
+    modify(llmMessageSent: ProcessedMessage,llmResponseMessage: LLMCompletion, nextPrompt: ProcessedMessage): Promise<PostInferenceProcessorOutput>;
 }
 
-export interface PostInferenceProcessorInput {
-    llmMessageSent: ProcessedMessage;
-    llmResponseMessage: ProcessedMessage;
-    nextPrompt: ProcessedMessage;
-    context?: Record<string, unknown>;
-}
+
 
 export interface PostInferenceProcessorOutput {
     nextPrompt: ProcessedMessage;
-    context?: Record<string, unknown>;
     llmInferenceTriggerEvent?: LLMInferenceTriggerEvent;
     exitEvent?: ExitEvent;
 }
 
 export interface PostInferenceProcessorOptions {
-    context?: Record<string, unknown>;
     enabled?: boolean;
     priority?: number;
     validationRules?: ValidationRule[];

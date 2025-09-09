@@ -3,12 +3,13 @@
  * Shared across all processor types
  */
 
-import { Message } from '../../sdk-types';
+import {  LLMInferenceParams } from '../../sdk-types';
 
-export interface ProcessedMessage {
-    messages: Message[];
+export interface ProcessedMessage  {
+    message:LLMInferenceParams,
     metadata?: Record<string, unknown>;
 }
+
 
 export interface ToolCall {
     id: string;

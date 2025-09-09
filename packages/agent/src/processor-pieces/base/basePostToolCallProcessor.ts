@@ -77,9 +77,12 @@ export abstract class BasePostToolCallProcessor implements PostToolCallProcessor
             tool_call_id: result.toolCallId,
             name: result.toolName
         }));
-
+       
         return {
-            messages: [...input.nextPrompt.messages, ...toolMessages],
+            message: {
+                ...input.nextPrompt.message,
+                messages: [...input.nextPrompt.message.messages, ...toolMessages]
+            },
             metadata: {
                 ...input.nextPrompt.metadata,
                 toolResults: input.toolResults.length,

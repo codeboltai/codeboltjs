@@ -10,7 +10,7 @@
 /**
  * Represents a message in the conversation with roles and content.
  */
-export interface Message {
+export interface MessageObject {
   /** The role of the message sender: user, assistant, tool, or system */
   role: 'user' | 'assistant' | 'tool' | 'system';
   /** The content of the message, can be an array of content blocks or a string */
@@ -21,12 +21,12 @@ export interface Message {
       url: string;
     };
   }>;
-  /** Optional ID for tool calls */
-  tool_call_id?: string;
-  /** Optional tool calls for assistant messages */
-  tool_calls?: ToolCall[];
-  /** Optional name for the message */
-  name?: string;
+  // /** Optional ID for tool calls */
+  // tool_call_id?: string;
+  // /** Optional tool calls for assistant messages */
+  // tool_calls?: ToolCall[];
+  // /** Optional name for the message */
+  // name?: string;
 }
 
 /**
@@ -86,7 +86,7 @@ export type ToolChoice = 'auto' | 'none' | 'required' | {
  */
 export interface LLMInferenceParams {
   /** Array of messages in the conversation */
-  messages: Message[];
+  messages: MessageObject[];
   /** Available tools for the model to use */
   tools?: Tool[];
   /** How the model should use tools */

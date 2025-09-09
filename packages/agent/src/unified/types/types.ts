@@ -1,9 +1,5 @@
-import type { 
-    ProcessedMessage, 
-    Message, 
-    Tool, 
-    Processor 
-} from './processorTypes';
+
+import { Processor } from 'src/types/processorTypes';
 import type { 
     OpenAIMessage, 
     OpenAITool, 
@@ -177,7 +173,7 @@ export interface UnifiedAgentOutput {
  */
 export interface UnifiedMessageModifier {
     /** Process and modify input messages */
-    processMessage(input: UnifiedMessageInput): Promise<UnifiedMessageOutput>;
+    processMessage(input: any): Promise<UnifiedMessageOutput>;
     /** Add a processor to the modifier */
     addProcessor(processor: Processor): void;
     /** Set context value */
@@ -188,15 +184,7 @@ export interface UnifiedMessageModifier {
     clearContext(): void;
 }
 
-/**
- * Unified agent step interface
- */
-export interface UnifiedAgentStep {
-    /** Execute a single agent step */
-    executeStep(input: UnifiedStepInput): Promise<UnifiedStepOutput>;
-    /** Generate LLM response */
-    generateResponse(messages: OpenAIMessage[], tools: OpenAITool[], context?: Record<string, any>): Promise<any>;
-}
+
 
 /**
  * Unified response executor interface
@@ -237,20 +225,20 @@ export interface UnifiedResponseExecutor {
 /**
  * Main unified agent interface
  */
-export interface UnifiedAgent {
-    /** Execute agent with input */
-    execute(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
-    /** Execute single step */
-    step(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
-    /** Execute with loop until completion */
-    loop(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
-    /** Add message modifier */
-    addMessageModifier(modifier: UnifiedMessageModifier): void;
-    /** Set agent step processor */
-    setAgentStep(agentStep: UnifiedAgentStep): void;
-    /** Set response executor */
-    setResponseExecutor(executor: UnifiedResponseExecutor): void;
-}
+// export interface UnifiedAgent {
+//     /** Execute agent with input */
+//     execute(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
+//     /** Execute single step */
+//     step(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
+//     /** Execute with loop until completion */
+//     loop(input: UnifiedAgentInput): Promise<UnifiedAgentOutput>;
+//     /** Add message modifier */
+//     addMessageModifier(modifier: UnifiedMessageModifier): void;
+//     /** Set agent step processor */
+//     setAgentStep(agentStep: UnifiedAgentStep): void;
+//     /** Set response executor */
+//     setResponseExecutor(executor: UnifiedResponseExecutor): void;
+// }
 
 // ================================
 // Event Types

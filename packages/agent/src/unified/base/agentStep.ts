@@ -1,75 +1,84 @@
-import type { 
-    OpenAIMessage, 
-    OpenAITool,
-    ToolResult,
-    CodeboltAPI 
-} from '../types/libTypes';
-import type {
-    UnifiedAgentStep,
-    UnifiedStepInput,
-    UnifiedStepOutput,
-    LLMConfig
-} from '../types/types';
+import { PostInferenceProcessor, PreInferenceProcessor,AgentStepInterface, AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
+
+import * as codebolt from '@codebolt/codeboltjs'
+
+
 import {
     UnifiedStepExecutionError
 } from '../types/types';
+import { Tool,MessageObject, FlatUserMessage ,LLMInferenceParams, LLMCompletion} from '@codebolt/types/sdk';
+
 
 /**
  * Unified agent step that handles LLM interaction and tool call analysis
  */
-export class AgentStep implements UnifiedAgentStep {
-    private preLLmProcessors: Processor[];
-    private postLLmProcessors: Processor[];
-    private llmConfig: LLMConfig;
-    private codebolt?: CodeboltAPI;
+export class AgentStep implements AgentStepInterface {
+    private preLLmProcessors: PreInferenceProcessor[];
+    private postLLmProcessors: PostInferenceProcessor[];
+    private llmRole: string;
+ 
+ 
+
     private enableLogging: boolean;
 
     constructor(options: {
-        llmConfig?: LLMConfig;
-        codebolt?: CodeboltAPI;
-        preLLmProcessors?: Processor[];
-        postLLmProcessors?: Processor[];
+        preLLmProcessors?: PreInferenceProcessor[];
+        postLLmProcessors?: PostInferenceProcessor[];
+        llmRole?: string;
         enableLogging?: boolean;
     } = {}) {
+      
         this.preLLmProcessors = options.preLLmProcessors || [];
         this.postLLmProcessors = options.postLLmProcessors || [];
-        this.llmConfig = options.llmConfig || { llmname: 'DefaultLLM' };
-        this.codebolt = options.codebolt;
+        this.llmRole = options.llmRole || 'default'
         this.enableLogging = options.enableLogging !== false;
     }
 
     /**
      * Execute a single agent step
      */
-    async executeStep(input: UnifiedStepInput): Promise<UnifiedStepOutput> {
+    async executeStep(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<AgentStepOutput> {
         try {
             if (this.enableLogging) {
                 console.log('[UnifiedAgentStep] Executing step with:', {
-                    messageCount: input.messages.length,
-                    toolCount: input.tools.length,
-                    toolChoice: input.toolChoice
+                    messageCount: createdMessage.message.messages.length,
+                    toolCount: 0,
+                    toolChoice: 'auto'
                 });
             }
 
-            // Generate LLM response
-            const llmResponse = await this.generateLLMResponse(input.messages, input.tools, input.context);
 
-            
+            for (const preLLMProcessor of this.preLLmProcessors) {
+                try {
+                    // Each modifier returns a new ProcessedMessage
+                   createdMessage= await preLLMProcessor.modify(originalRequest,createdMessage);
+
+                } catch (error) {
+                    console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
+                    // Continue with other modifiers
+                }
+            }
+
+
+            // Generate LLM response
+            const llmResponse = await this.generateResponse(createdMessage.message);
+
+            // Extract tool calls from LLM response
+            const toolCalls = this.extractToolCalls(llmResponse);
 
             // Determine if processing is finished
             const finished = this.isProcessingFinished(llmResponse, toolCalls);
 
-            const output: UnifiedStepOutput = {
-                llmResponse,
-                finished,
-                toolCalls: toolCalls || undefined,
-                context: { ...input.context }
+            const output: AgentStepOutput = {
+                rawLLMResponse:llmResponse,
+                metaData: createdMessage.metadata || {},
+                nextMessage:createdMessage
             };
 
             if (this.enableLogging) {
                 console.log('[UnifiedAgentStep] Step completed:', {
-                    finished: output.finished,
-                    toolCallsCount: output.toolCalls?.length || 0
+                    finished: output.rawLLMResponse.finish_reason,
+                    toolCallsCount: output.rawLLMResponse.tool_calls?.length || 0
                 });
             }
 
@@ -77,41 +86,29 @@ export class AgentStep implements UnifiedAgentStep {
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            throw new UnifiedStepExecutionError(
-                `Failed to execute agent step: ${errorMessage}`,
-                { input, llmConfig: this.llmConfig }
-            );
+            throw new Error(`Failed to execute agent step: ${errorMessage}`);
         }
     }
 
-    
+    /**
+     * Extract tool calls from LLM response
+     */
+    private extractToolCalls(llmResponse: any): Array<{ tool: string; parameters: any }> | null {
+        if (llmResponse?.completion?.choices?.[0]?.message?.tool_calls) {
+            return llmResponse.completion.choices[0].message.tool_calls.map((tc: any) => ({
+                tool: tc.function.name,
+                parameters: tc.function.arguments
+            }));
+        }
+        return null;
+    }
 
     /**
      * Generate response using actual LLM service
      */
-    private async generateLLMResponse(
-        messages: OpenAIMessage[], 
-        tools: OpenAITool[], 
-        context?: Record<string, any>
-    ): Promise<any> {
-        // This would integrate with the actual LLM service
-        // For now, return a mock structure that matches expected format
-        const lastMessage = messages[messages.length - 1];
-        const content = this.extractMessageContent(lastMessage.content);
-
-        return {
-            completion: {
-                choices: [
-                    {
-                        message: {
-                            role: 'assistant',
-                            content: `I understand you want me to: ${content}. Let me help you with that.`,
-                            tool_calls: [] // Would be populated by actual LLM
-                        }
-                    }
-                ]
-            }
-        };
+   private  async generateResponse(messageForLLM:LLMInferenceParams): Promise<LLMCompletion> {
+      const response = await codebolt.default.llm.inference(messageForLLM)
+      return response.completion
     }
 
 
@@ -119,7 +116,7 @@ export class AgentStep implements UnifiedAgentStep {
     /**
      * Extract tool parameters from content
      */
-    private extractToolParameters(content: string, tool: OpenAITool): any {
+    private extractToolParameters(content: string, tool: Tool): any {
         const parameters: any = {};
         
         // Basic parameter extraction based on tool schema
@@ -168,15 +165,15 @@ export class AgentStep implements UnifiedAgentStep {
     /**
      * Extract content from OpenAI message format
      */
-    private extractMessageContent(content: string | Array<{ type: string; text: string }>): string {
+    private extractMessageContent(content: string | Array<{ type: string; text?: string; image_url?: { url: string; } }>): string {
         if (typeof content === 'string') {
             return content;
         }
 
         if (Array.isArray(content)) {
             return content
-                .filter(block => block.type === 'text')
-                .map(block => block.text)
+                .filter(block => block.type === 'text' && block.text)
+                .map(block => block.text!)
                 .join(' ');
         }
 
@@ -209,35 +206,35 @@ export class AgentStep implements UnifiedAgentStep {
     /**
      * Update LLM configuration
      */
-    setLLMConfig(config: LLMConfig): void {
-        this.llmConfig = { ...this.llmConfig, ...config };
+    setLLMConfig(config: string): void {
+        this.llmRole =config
     }
 
     /**
      * Get current LLM configuration
      */
-    getLLMConfig(): LLMConfig {
-        return { ...this.llmConfig };
+    getLLMConfig(): string {
+        return  this.llmRole ;
     }
 }
 
 /**
  * Factory function to create a unified agent step
  */
-export function createUnifiedAgentStep(options: {
-    llmConfig?: LLMConfig;
-    codebolt?: CodeboltAPI;
-    enableLogging?: boolean;
-} = {}): UnifiedAgentStep {
-    return new UnifiedAgentStepImpl(options);
-}
+// export function createUnifiedAgentStep(options: {
+//     llmConfig?: LLMConfig;
+//     codebolt?: CodeboltAPI;
+//     enableLogging?: boolean;
+// } = {}): UnifiedAgentStep {
+//     return new UnifiedAgentStepImpl(options);
+// }
 
 /**
  * Create a basic agent step with default configuration
  */
-export function createBasicAgentStep(): UnifiedAgentStep {
-    return new UnifiedAgentStepImpl({
-        llmConfig: { llmname: 'DefaultLLM', temperature: 0.7 },
-        enableLogging: true
-    });
-}
+// export function createBasicAgentStep(): UnifiedAgentStep {
+//     return new UnifiedAgentStepImpl({
+//         llmConfig: { llmname: 'DefaultLLM', temperature: 0.7 },
+//         enableLogging: true
+//     });
+// }

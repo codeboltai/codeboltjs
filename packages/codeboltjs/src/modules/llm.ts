@@ -1,6 +1,6 @@
 import cbws from '../core/websocket';
 import { LLMResponse } from '@codebolt/types/sdk';
-import type { Message, ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '@codebolt/types/sdk';
+import type { MessageObject, ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '@codebolt/types/sdk';
 import { EventType, LLMResponseType } from '@codebolt/types/enum';
 
 /**
@@ -23,22 +23,13 @@ const cbllm = {
      *   - stream: Whether to stream the response
      * @returns A promise that resolves with the LLM's response
      */
-    inference: async (params: { 
-        messages: Message[]; 
-        tools?: Tool[]; 
-        tool_choice?: string; 
-        full?: boolean;
-        llmrole?: string;
-        max_tokens?: number;
-        temperature?: number;
-        stream?: boolean;
-    }, llmrole?: string): Promise<{ completion: LLMCompletion }> => {
+    inference: async (params:LLMInferenceParams): Promise<{ completion: LLMCompletion }> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.LLM_EVENT,
                 "message": {
                     prompt: params,
-                    llmrole
+                    llmrole:params.llmrole
                 },
             },
             LLMResponseType.LLM_RESPONSE
