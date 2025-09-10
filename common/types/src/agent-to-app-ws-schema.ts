@@ -358,19 +358,9 @@ export {
 
 export {
   taskEventBaseSchema,
-  addTaskEventSchema,
-  addSimpleTaskEventSchema,
-  getTasksEventSchema,
-  getTasksByAgentEventSchema,
-  getTasksByCategoryEventSchema,
-  getAllAgentsEventSchema,
   updateTaskEventSchema,
   deleteTaskEventSchema,
-  addSubTaskEventSchema,
-  updateSubTaskEventSchema,
-  deleteSubTaskEventSchema,
-  createTasksFromMarkdownEventSchema,
-  exportTasksToMarkdownEventSchema,
+
   taskEventSchema
 } from './wstypes/agent-to-app-ws/actions/taskEventSchemas';
 

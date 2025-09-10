@@ -108,3 +108,68 @@ export interface EditFileAndApplyDiffResponse extends BaseFsSDKResponse {
     message: string;
   };
 }
+
+// Information about a single file read operation for readManyFiles
+export interface FileReadInfo {
+  filePath: string;
+  relativePath: string;
+  success: boolean;
+  content?: string;
+  error?: string;
+  size?: number;
+  modifiedTime?: Date;
+  truncated?: boolean;
+}
+
+// Result of readManyFiles operation
+export interface ReadManyFilesResult {
+  files: FileReadInfo[];
+  totalFiles: number;
+  successfullyRead: number;
+  failedToRead: number;
+  totalContentSize: number;
+  isTruncated: boolean;
+  searchedPaths: string[];
+  combinedContent: string;
+}
+
+export interface ReadManyFilesResponse extends BaseFsSDKResponse {
+  paths?: string[];
+  files?: FileReadInfo[];
+  totalFiles?: number;
+  successfullyRead?: number;
+  failedToRead?: number;
+  totalContentSize?: number;
+  isTruncated?: boolean;
+  combinedContent?: string;
+  result?: string | ReadManyFilesResult;
+}
+
+// Directory entry information for listDirectory
+export interface DirectoryEntry {
+  name: string;
+  path: string;
+  type: 'file' | 'directory' | 'symlink' | 'other';
+  size?: number;
+  permissions?: string;
+  modifiedTime?: Date;
+  isHidden?: boolean;
+}
+
+// Result of listDirectory operation
+export interface LSResult {
+  entries: DirectoryEntry[];
+  totalCount: number;
+  shownCount: number;
+  isTruncated: boolean;
+  llmContent?: string;
+}
+
+export interface ListDirectoryResponse extends BaseFsSDKResponse {
+  path?: string;
+  entries?: DirectoryEntry[];
+  totalCount?: number;
+  shownCount?: number;
+  isTruncated?: boolean;
+  result?: string | LSResult;
+}

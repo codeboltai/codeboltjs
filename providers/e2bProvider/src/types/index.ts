@@ -21,6 +21,5 @@ export type {
   InitVars,
   ProviderConfig,
   ProviderStatus,
-  UserMessage,
-  DiffFilesResult
+  AgentStartParams
 } from './provider';
