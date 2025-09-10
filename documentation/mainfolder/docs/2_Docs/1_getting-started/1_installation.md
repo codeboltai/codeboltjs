@@ -154,4 +154,6 @@ If you haven’t created any projects yet, this area will show **“No recent pr
 
 ### Video Guide
 
-<iframe width="100%" height="500" src="https://www.youtube.com/embed/YpZV_AFHsX8?si=oNo5MzqlAPqqgdgu" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> 
+<video width="100%" controls src="/video/basics/onboarding.mp4">
+  Your browser does not support the video tag.
+</video>

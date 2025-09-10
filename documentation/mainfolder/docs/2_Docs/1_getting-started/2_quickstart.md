@@ -33,3 +33,7 @@ Already have a project? Select **Open Project** and browse your local files.
 
 ✅ That’s it! You’re ready to start coding with Codebolt.
 
+### Video Guide
+![Open Project](/video/basics/quickstart.gif)
+
+

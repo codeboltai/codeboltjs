@@ -65,7 +65,7 @@ The Command Palette is a quick-access tool for running commands. Instead of sear
 
 Dockview gives you freedom to customize your workspace layout. You can move panels, resize them, and arrange tools the way you like. This makes the editor flexible for your needs.
 
-
+![docview](/video/basics/docview.gif)
 
 ## LSP
 

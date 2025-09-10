@@ -1,11 +1,39 @@
 # Create Local MCP
 
-Folder structure for local tool
+Click on Create Custom MCP. A popup will appear asking for the title, unique name, and description. Fill in the details, then click Create MCP.
 
-Example index.js code
+```js
+import { ToolBox } from '@codebolt/codeboltjs/utils';
+import { z } from 'zod';
 
-Adding to mcp_servers.json
+const toolbox = new ToolBox({
+  name: "hello",
+  version: "1.0.0"
+});
 
-Restarting editor + testing
+toolbox.addTool({
+  name: "hello",
+  description: "Says hello",
+  parameters: z.object({
+    name: z.string().describe("Name to greet")
+  }),
+  execute: async (args, context) => {
+    return `Hello, ${args.name}!`;
+  }
+});
 
-Screenshot: seeing write_file under Local MCPs
+async function main() {
+  try {
+    await toolbox.activate();
+    console.log('Toolbox is running!');
+  } catch (error) {
+    console.error('Failed to start toolbox:', error);
+  }
+}
+
+main();
+```
+
+<video controls width="100%" src="/video/basics/localmcp.mp4">
+ Browser not accept 
+</video>
