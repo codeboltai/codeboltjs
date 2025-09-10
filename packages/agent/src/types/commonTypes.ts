@@ -67,10 +67,14 @@ export interface DiffResult {
     insertions: number;
     deletions: number;
     binary: boolean;
+    status?: 'added' | 'modified' | 'deleted' | 'renamed' | 'copied';
+    oldFile?: string;
+    diff?: string; // Raw diff content for this file
   }>;
   insertions: number;
   deletions: number;
   changed: number;
+  rawDiff?: string; // Full raw diff content
 }
 
 // ================================

@@ -176,6 +176,8 @@ export enum FSAction {
     FILE_SEARCH = "file_search",
     EDIT_FILE_WITH_DIFF = "edit_file_with_diff",
     EDIT_FILE_AND_APPLY_DIFF = "edit_file_and_apply_diff",
+    READ_MANY_FILES = "read_many_files",
+    LIST_DIRECTORY = "list_directory",
 }
 
 export enum FSResponseType {
@@ -192,6 +194,8 @@ export enum FSResponseType {
     GREP_SEARCH_RESPONSE = "grepSearchResponse",
     FILE_SEARCH_RESPONSE = "fileSearchResponse",
     EDIT_FILE_AND_APPLY_DIFF_RESPONSE = "editFileAndApplyDiffResponse",
+    READ_MANY_FILES_RESPONSE = "readManyFilesResponse",
+    LIST_DIRECTORY_RESPONSE = "listDirectoryResponse",
 }
 
 

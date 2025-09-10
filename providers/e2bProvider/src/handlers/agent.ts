@@ -21,26 +21,11 @@ import {
   sendDbMemoryNotification,
   sendHistoryNotification
 } from '../utils/messageHelpers';
-import { UserMessage, DiffFilesResult, PatchResult, PullRequestResult } from '../types/provider';
+import type { UserMessage, DiffResult } from '@codebolt/codeboltjs';
 
-const codebolt = require('@codebolt/codeboltjs');
+import * as codebolt from '@codebolt/codeboltjs';
+import { AgentNotificationAction, FsNotificationAction, GitNotificationAction, SearchNotificationAction, TerminalNotificationAction } from '@codebolt/types/enum';
 
-const { 
-  AgentNotificationAction,
-  FsNotificationAction,
-  TerminalNotificationAction,
-  GitNotificationAction,
-  BrowserNotificationAction,
-  CrawlerNotificationAction,
-  SearchNotificationAction,
-  CodeUtilsNotificationAction,
-  LlmNotificationAction,
-  McpNotificationAction,
-  ChatNotificationAction,
-  TaskNotificationAction,
-  DbMemoryNotificationAction,
-  HistoryNotificationAction
-} = require('../../../../common/types/dist/codeboltjstypes/notification.enum');
 
 /**
  * Provider agent start handler - starts agent loop with sandbox
@@ -71,7 +56,7 @@ export function onProviderAgentStart(userMessage: UserMessage): void {
 /**
  * Get diff files handler - uses sandbox git
  */
-export async function onGetDiffFiles(): Promise<DiffFilesResult> {
+export async function onGetDiffFiles(): Promise<DiffResult> {
   console.log('[E2B Provider] Getting diff files');
   
   try {
@@ -85,17 +70,40 @@ export async function onGetDiffFiles(): Promise<DiffFilesResult> {
     // Send git diff request notification
     sendGitNotification(GitNotificationAction.DIFF_REQUEST, { path: '/' });
     
-    const diff = await currentSandbox.git.getDiff();
+    // Get git status and diff content
     const status = await currentSandbox.git.status();
+    const rawDiff = await currentSandbox.git.getDiff();
     
-    const result: DiffFilesResult = {
-      diff,
-      files: [...status.modified, ...status.added, ...status.deleted],
-      metadata: {
-        totalChanges: status.modified.length + status.added.length + status.deleted.length,
-        additions: status.added.length,
-        deletions: status.deleted.length
-      }
+    // Parse the raw diff to extract file-specific information
+    const files = [...status.modified, ...status.added, ...status.deleted].map(file => {
+      // Extract file-specific diff content
+      const filePattern = new RegExp(`diff --git a/${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} b/${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?(?=(?:diff --git)|$)`, 'g');
+      const fileDiffMatch = rawDiff.match(filePattern);
+      const fileDiff = fileDiffMatch ? fileDiffMatch[0] : '';
+      
+      // Count insertions and deletions from diff
+      const insertions = (fileDiff.match(/^\+(?!\+\+)/gm) || []).length;
+      const deletions = (fileDiff.match(/^-(?!--)/gm) || []).length;
+      
+      return {
+        file,
+        changes: insertions + deletions,
+        insertions,
+        deletions,
+        binary: false,
+        status: status.added.includes(file) ? 'added' as const :
+                status.deleted.includes(file) ? 'deleted' as const :
+                'modified' as const,
+        diff: fileDiff // Include the actual diff content
+      };
+    });
+    
+    const result: DiffResult & { rawDiff?: string } = {
+      files,
+      insertions: files.reduce((sum, file) => sum + file.insertions, 0),
+      deletions: files.reduce((sum, file) => sum + file.deletions, 0),
+      changed: files.length,
+      rawDiff // Include the full raw diff
     };
     
     // Send git diff result notification
@@ -111,7 +119,7 @@ export async function onGetDiffFiles(): Promise<DiffFilesResult> {
 /**
  * Create patch request handler
  */
-export async function onCreatePatchRequest(): Promise<PatchResult> {
+export async function onCreatePatchRequest(): Promise<{ patchId: string; status: string; error?: string }> {
   try {
     const currentSandbox = getCurrentSandbox();
     const isInitialized = getIsInitialized();
@@ -142,7 +150,7 @@ export async function onCreatePatchRequest(): Promise<PatchResult> {
 /**
  * Create pull request handler
  */
-export async function onCreatePullRequestRequest(): Promise<PullRequestResult> {
+export async function onCreatePullRequestRequest(): Promise<{ pullRequestId: string; status: string; error?: string }> {
   try {
     const currentSandbox = getCurrentSandbox();
     const isInitialized = getIsInitialized();
@@ -352,35 +360,7 @@ async function processUserMessage(userMessage: UserMessage): Promise<void> {
   }
 }
 
-/**
- * Ask what to do next (as specified in requirements)
- */
-async function askNextAction(): Promise<void> {
-  const question = "What would you like me to do next in the E2B sandbox?";
-  const options = [
-    "Create a file",
-    "List files", 
-    "Run a command",
-    "Git operations",
-    "Web operations",
-    "Search operations",
-    "AI/LLM operations",
-    "Task management",
-    "Exit"
-  ];
 
-  try {
-    const response = await codebolt.chat.askQuestion(question, options, true);
-    console.log('[E2B Provider] User selected:', response);
-    
-    const choice = typeof response === 'string' ? response : 
-                  (response as any)?.data || response;
-    processUserChoice(choice);
-  } catch (error) {
-    console.error('[E2B Provider] Error asking question:', error);
-    sendNotification('error', 'Failed to get user input');
-  }
-}
 
 /**
  * Process user's choice from the question

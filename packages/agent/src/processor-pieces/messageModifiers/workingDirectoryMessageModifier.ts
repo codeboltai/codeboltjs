@@ -25,7 +25,7 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
         this.showFolderStructureSummary = options.showFolderStructureSummary || false;
         this.listFiles = options.listFiles || false;
         this.listFilesDepth = options.listFilesDepth || 2;
-        this.listFilesLimit = options.listFilesLimit || 100;
+        this.listFilesLimit = options.listFilesLimit || 200;
         this.listFilesIgnoreFromGitignore = options.listFilesIgnoreFromGitignore || true;
         this.listFilesIgnore = options.listFilesIgnore || ['node_modules', '.git', 'dist', 'build'];
     }
@@ -87,16 +87,42 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
 
     private async generateFolderStructureSummary(projectPath: string): Promise<string> {
         try {
-            // Use CodeBolt's file listing if available (simplified call)
-            const files = await codebolt.fs.listFile(projectPath, true);
+            // Use CodeBolt's directory listing with recursive option
+            const response = await codebolt.fs.listDirectory({
+                path: projectPath,
+                show_hidden: false,
+                detailed: false,
+                limit: 200,
+                notifyUser: false
+            });
             
             const directories = new Set<string>();
-            files.forEach((file: any) => {
-                const dir = path.dirname(file.path || file);
-                if (dir !== '.' && !this.shouldIgnore(dir)) {
-                    directories.add(dir);
+            
+            // Extract directories from the response
+            if (response && response.success) {
+                let entries;
+                if (typeof response.result === 'string') {
+                    // If result is a string, we'll need to parse it or work with what we have
+                    return response.result.split('\n').slice(0, 20).join('\n');
+                } else if (response.result && response.result.entries) {
+                    entries = response.result.entries;
+                } else if (response.entries) {
+                    entries = response.entries;
                 }
-            });
+                
+                if (entries) {
+                    entries.forEach((entry: any) => {
+                        if (entry.type === 'directory' && !this.shouldIgnore(entry.path || entry.name)) {
+                            directories.add(entry.path || entry.name);
+                        }
+                        // Also get parent directories of files
+                        const dir = path.dirname(entry.path || entry.name);
+                        if (dir !== '.' && !this.shouldIgnore(dir)) {
+                            directories.add(dir);
+                        }
+                    });
+                }
+            }
             
             const sortedDirs = Array.from(directories).sort();
             return sortedDirs.length > 0 
@@ -110,15 +136,42 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
 
     private async generateFilesList(projectPath: string): Promise<string> {
         try {
-            // Use CodeBolt's file listing (simplified call)
-            const files = await codebolt.fs.listFile(projectPath, false);
-
-          
+            // Use CodeBolt's directory listing to get files
+            const response = await codebolt.fs.listDirectory({
+                path: projectPath,
+                show_hidden: false,
+                detailed: false,
+                limit: this.listFilesLimit,
+                notifyUser: false
+            });
             
-            const filteredFiles = files
-                .filter((file: any) => !this.shouldIgnore(file.path || file))
-                .slice(0, this.listFilesLimit)
-                .map((file: any) => file.path || file);
+            const files: string[] = [];
+            
+            // Extract files from the response
+            if (response && response.success) {
+                let entries;
+                if (typeof response.result === 'string') {
+                    // If result is a string, split and filter for files
+                    return response.result.split('\n')
+                        .filter((line: string) => !this.shouldIgnore(line))
+                        .slice(0, this.listFilesLimit)
+                        .join('\n');
+                } else if (response.result && response.result.entries) {
+                    entries = response.result.entries;
+                } else if (response.entries) {
+                    entries = response.entries;
+                }
+                
+                if (entries) {
+                    entries.forEach((entry: any) => {
+                        if (entry.type === 'file' && !this.shouldIgnore(entry.path || entry.name)) {
+                            files.push(entry.path || entry.name);
+                        }
+                    });
+                }
+            }
+            
+            const filteredFiles = files.slice(0, this.listFilesLimit);
             
             return filteredFiles.length > 0 
                 ? filteredFiles.join('\n')
