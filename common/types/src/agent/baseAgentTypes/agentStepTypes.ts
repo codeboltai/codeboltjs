@@ -34,19 +34,6 @@ export interface AgentStepInterface {
 }
 
 
-/**
- * Input for unified agent step processing
- */
-export interface UnifiedStepInput {
-    /** Processed messages */
-    messages: MessageObject[];
-    /** Available tools */
-    tools: Tool[];
-    /** Processing context */
-    context?: Record<string, any>;
-    /** Tool choice strategy */
-    toolChoice?: 'auto' | 'none' | 'required';
-}
 
 /**
  * Output from unified agent step processing
@@ -54,9 +41,6 @@ export interface UnifiedStepInput {
 export interface AgentStepOutput {
     /** LLM response */
     rawLLMResponse: LLMCompletion;
-    /** Updated context */
-    metaData: Record<string, unknown>;
-
     nextMessage:ProcessedMessage
 }
 export interface LLMConfig {

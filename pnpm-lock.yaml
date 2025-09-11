@@ -170,6 +170,37 @@ importers:
         specifier: ^5.3.3
         version: 5.9.2
 
+  agents/initailPromptTest:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.10
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.9
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.5
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.2
+
   common/eslint-config:
     devDependencies:
       '@eslint/js':
@@ -204,11 +235,8 @@ importers:
   packages/agent:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../codeboltjs
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^2.2.0
+        version: 2.2.1(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -219,6 +247,9 @@ importers:
       '@codebolt/eslint-config':
         specifier: workspace:*
         version: link:../../common/eslint-config
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -2514,6 +2545,9 @@ packages:
     resolution: {integrity: sha512-kVCxPF3vQM/N0B1PmoqVUqgHP+EeVjmZSQn+1oCRPxd2P21P2F19lIgbR3HBosbB1PUhOAoctJnfEn2GbN2eZA==}
     engines: {node: '>=18'}
 
+  get-tsconfig@4.10.1:
+    resolution: {integrity: sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ==}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -3533,6 +3567,9 @@ packages:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
     engines: {node: '>=8'}
 
+  resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   resolve.exports@2.0.3:
     resolution: {integrity: sha512-OcXjMsGdhL4XnbShKpAcSqPMzQoYkYyhbEaeSko47MjRP9NfEQMhZkXL1DoFlt9LWQn4YttrdnV6X2OiyzBi+A==}
     engines: {node: '>=10'}
@@ -3839,6 +3876,11 @@ packages:
     peerDependencies:
       typescript: '*'
       webpack: ^5.0.0
+
+  tsx@4.20.5:
+    resolution: {integrity: sha512-+wKjMNU9w/EaQayHXb7WA7ZaHY6hN8WgfvHNQ3t1PnU91/7O8TcTnIhCDYTZwnt8JsO9IBqZ30Ln1r7pPF52Aw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   tty-browserify@0.0.1:
     resolution: {integrity: sha512-C3TaO7K81YvjCgQH9Q1S3R3P3BtN3RIM8n+OvX4il1K1zgE8ZhI0op7kClgkxtutIE8hQrcrHBXvIheqKUUCxw==}
@@ -6809,6 +6851,10 @@ snapshots:
       '@sec-ant/readable-stream': 0.4.1
       is-stream: 4.0.1
 
+  get-tsconfig@4.10.1:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
+
   glob-parent@5.1.2:
     dependencies:
       is-glob: 4.0.3
@@ -7973,6 +8019,8 @@ snapshots:
 
   resolve-from@5.0.0: {}
 
+  resolve-pkg-maps@1.0.0: {}
+
   resolve.exports@2.0.3: {}
 
   resolve@1.22.10:
@@ -8299,6 +8347,13 @@ snapshots:
       source-map: 0.7.6
       typescript: 5.9.2
       webpack: 5.101.0(webpack-cli@5.1.4)
+
+  tsx@4.20.5:
+    dependencies:
+      esbuild: 0.25.9
+      get-tsconfig: 4.10.1
+    optionalDependencies:
+      fsevents: 2.3.3
 
   tty-browserify@0.0.1: {}
 

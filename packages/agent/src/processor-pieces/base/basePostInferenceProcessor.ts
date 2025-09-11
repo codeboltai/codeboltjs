@@ -7,7 +7,6 @@
 
 import { 
     PostInferenceProcessor,
-    PostInferenceProcessorOutput,
     PostInferenceProcessorOptions,
     LLMInferenceTriggerEvent,
     ExitEvent,
@@ -28,7 +27,7 @@ export abstract class BasePostInferenceProcessor implements PostInferenceProcess
 
     }
 
-    abstract modify(llmMessageSent: ProcessedMessage,llmResponseMessage: LLMResponse, nextPrompt: ProcessedMessage): Promise<PostInferenceProcessorOutput>;
+    abstract modify(llmMessageSent: ProcessedMessage,llmResponseMessage: LLMResponse, nextPrompt: ProcessedMessage): Promise<ProcessedMessage>;
 
     // setContext(key: string, value: unknown): void {
     //     this.context[key] = value;

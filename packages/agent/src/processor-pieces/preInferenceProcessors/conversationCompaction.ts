@@ -10,7 +10,7 @@ export class ConversationCompection extends BasePreInferenceProcessor {
     constructor(){
         super()
     }
-    modify(originalRequest: FlatUserMessage,createdMessage: ProcessedMessage, context?: Record<string, unknown>): Promise<ProcessedMessage> {
+    modify(originalRequest: FlatUserMessage,createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         
         const updatedMessages = createdMessage.message.messages.map(message => {
             if (message.role === 'user') {
