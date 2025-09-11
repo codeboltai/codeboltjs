@@ -14,16 +14,11 @@ import {
 } from '../common';
 
 export interface PostInferenceProcessor {
-    modify(llmMessageSent: ProcessedMessage,llmResponseMessage: LLMCompletion, nextPrompt: ProcessedMessage): Promise<PostInferenceProcessorOutput>;
+    modify(llmMessageSent: ProcessedMessage,llmResponseMessage: LLMCompletion, nextPrompt: ProcessedMessage): Promise<ProcessedMessage>;
 }
 
 
 
-export interface PostInferenceProcessorOutput {
-    nextPrompt: ProcessedMessage;
-    llmInferenceTriggerEvent?: LLMInferenceTriggerEvent;
-    exitEvent?: ExitEvent;
-}
 
 export interface PostInferenceProcessorOptions {
     enabled?: boolean;

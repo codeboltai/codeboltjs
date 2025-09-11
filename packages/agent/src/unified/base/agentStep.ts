@@ -13,8 +13,8 @@ import { Tool,MessageObject, FlatUserMessage ,LLMInferenceParams, LLMCompletion}
  * Unified agent step that handles LLM interaction and tool call analysis
  */
 export class AgentStep implements AgentStepInterface {
-    private preLLmProcessors: PreInferenceProcessor[];
-    private postLLmProcessors: PostInferenceProcessor[];
+    private preInferenceProcessors: PreInferenceProcessor[];
+    private postInferenceProcessors: PostInferenceProcessor[];
     private llmRole: string;
  
  
@@ -22,14 +22,14 @@ export class AgentStep implements AgentStepInterface {
     private enableLogging: boolean;
 
     constructor(options: {
-        preLLmProcessors?: PreInferenceProcessor[];
-        postLLmProcessors?: PostInferenceProcessor[];
+        preInferenceProcessors?: PreInferenceProcessor[];
+        postInferenceProcessors?: PostInferenceProcessor[];
         llmRole?: string;
         enableLogging?: boolean;
     } = {}) {
       
-        this.preLLmProcessors = options.preLLmProcessors || [];
-        this.postLLmProcessors = options.postLLmProcessors || [];
+        this.preInferenceProcessors = options.preInferenceProcessors || [];
+        this.postInferenceProcessors = options.postInferenceProcessors || [];
         this.llmRole = options.llmRole || 'default'
         this.enableLogging = options.enableLogging !== false;
     }
@@ -48,10 +48,10 @@ export class AgentStep implements AgentStepInterface {
             }
 
 
-            for (const preLLMProcessor of this.preLLmProcessors) {
+            for (const preInferenceProcessor of this.preInferenceProcessors) {
                 try {
                     // Each modifier returns a new ProcessedMessage
-                   createdMessage= await preLLMProcessor.modify(originalRequest,createdMessage);
+                   createdMessage= await preInferenceProcessor.modify(originalRequest,createdMessage);
 
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
@@ -62,6 +62,19 @@ export class AgentStep implements AgentStepInterface {
 
             // Generate LLM response
             const llmResponse = await this.generateResponse(createdMessage.message);
+
+
+            for (const postInferenceProcessor of this.postInferenceProcessors) {
+                try {
+                    // Each modifier returns a new ProcessedMessage
+                    //TODO ccheck format 
+                   createdMessage= await postInferenceProcessor.modify(createdMessage,llmResponse,createdMessage);
+
+                } catch (error) {
+                    console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
+                    // Continue with other modifiers
+                }
+            }
 
             // Extract tool calls from LLM response
             const toolCalls = this.extractToolCalls(llmResponse);
