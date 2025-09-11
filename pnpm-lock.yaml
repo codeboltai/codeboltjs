@@ -234,9 +234,9 @@ importers:
 
   packages/agent:
     dependencies:
-      '@codebolt/codeboltjs':
-        specifier: ^2.2.0
-        version: 2.2.1(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -244,12 +244,12 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../codeboltjs
       '@codebolt/eslint-config':
         specifier: workspace:*
         version: link:../../common/eslint-config
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9

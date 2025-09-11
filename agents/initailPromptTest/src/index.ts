@@ -3,7 +3,7 @@ import {InitialPromptGenerator,} from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import { SimpleMessageModifier,ConversationCompection,CheckForNoToolCall,AddCurrentDirectoryRootFilesModifier } from '@codebolt/agent/processor-pieces';
 import { AgentStep } from '@codebolt/agent/unified';
-import { ProcessedMessage } from '@codebolt/types/agent';
+import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
 codebolt.onMessage(async (reqMessage) => {
     try {
@@ -49,11 +49,11 @@ codebolt.onMessage(async (reqMessage) => {
     
         let agent = new AgentStep({preInferenceProcessors:preLLMProcessors,postInferenceProcessors:postLLMProcessors})
     
-        let result =  await agent.executeStep(testMessage,prompt); //Primarily for LLM Calling and has 
-        
+        let result:AgentStepOutput =  await agent.executeStep(testMessage,prompt); //Primarily for LLM Calling and has 
+         
         prompt= result.nextMessage;
         console.log(prompt)
-        codebolt.chat.sendMessage("process finished",{})
+        codebolt.chat.sendMessage(result.rawLLMResponse.choices?.[0]?.message?.content ?? "No response generated",{})
 
 
 
