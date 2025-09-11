@@ -56,6 +56,15 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 nextMessage.message.messages.push(messageObject);
             }
         }
+        else{
+            nextMessage.message.messages.push({
+                role: "user",
+                content: [{
+                    type: "text",
+                    text: "If you have completed the user's task, use the codebolt--attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
+                }]
+            })
+        }
 
         for (const postToolCallProcessor of this.postToolCallProcessors) {
             try {
@@ -238,17 +247,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
                 }
 
-                if (toolResults.length === 0) {
-                    fallBackMessages = [{
-                        role: "user",
-                        content: [{
-                            type: "text",
-                            text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
-                        }]
-                    }];
-
-
-                }
+               
                 return toolResults
             }
             catch (error) {

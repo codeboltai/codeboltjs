@@ -50,3 +50,11 @@ export {SimpleMessageModifier} from './messageModifiers/simpleMessageModifier'
 export {AddCurrentDirectoryRootFilesModifier} from './messageModifiers/addCurrentDirectoryRootFilesModifier'
 export {ConversationCompection } from './preInferenceProcessors/conversationCompaction'
 export {CheckForNoToolCall} from './postInferenceProcessors/checkForNoToolCall'
+
+export {BaseContextMessageModifier} from './messageModifiers/baseContextMessageModifier'
+export {BaseSystemInstructionMessageModifier} from './messageModifiers/baseSystemInstructionMessageModifier'
+
+export {WorkingDirectoryMessageModifier} from './messageModifiers/workingDirectoryMessageModifier'
+
+export {AddToolsListMessageModifier} from './messageModifiers/addToolsListMessageModifier'
+

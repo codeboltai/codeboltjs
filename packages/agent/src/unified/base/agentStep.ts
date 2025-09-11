@@ -51,7 +51,13 @@ export class AgentStep implements AgentStepInterface {
             // add llm reslponse to created message
             
             let modifiedMessage:ProcessedMessage= createdMessage;
-            modifiedMessage.message.messages.push(rawLLMResponse)
+            rawLLMResponse.choices?.forEach(contentBlock=>{
+                modifiedMessage.message.messages.push({
+                    ...contentBlock.message,
+                    role: contentBlock.message.role as 'user' | 'assistant' | 'tool' | 'system'
+                })
+
+            })
 
             for (const postInferenceProcessor of this.postInferenceProcessors) {
                 try {

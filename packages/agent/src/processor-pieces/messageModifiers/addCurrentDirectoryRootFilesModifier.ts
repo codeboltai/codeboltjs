@@ -28,23 +28,29 @@ export class AddCurrentDirectoryRootFilesModifier extends BaseMessageModifier {
             const filesContent = filesList || 'No files found';
             
             // Find system message and append files list to it
-            const updatedMessages = createdMessage.message.messages.map(message => {
-                if (message.role === 'system') {
-                    return {
-                        ...message,
-                        content: `${message.content}\n\nCurrent directory root files:\n\n${filesContent}`
-                    };
-                }
-                return message;
-            });
+            const messages = [...createdMessage.message.messages];
+            const systemMessageIndex = messages.findIndex(message => message.role === 'system');
+            
+            if (systemMessageIndex !== -1) {
+                // Update existing system message
+                messages[systemMessageIndex] = {
+                    ...messages[systemMessageIndex],
+                    content: `${messages[systemMessageIndex].content}\n\nCurrent directory root files:\n\n${filesContent}`
+                };
+            } else {
+                // Add new system message if none exists
+                messages.unshift({
+                    role: 'system',
+                    content: `Current directory root files:\n\n${filesContent}`
+                });
+            }
 
-            // Add the files list to the message
+            // Return updated message
             return {
                 message: {
                     ...createdMessage.message,
-                    messages: [...createdMessage.message.messages, ...updatedMessages]
+                    messages
                 },
-            
                 metadata: {
                     ...createdMessage.metadata,
                     currentDirectoryFilesAdded: true,

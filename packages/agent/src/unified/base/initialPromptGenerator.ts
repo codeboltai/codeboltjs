@@ -1,6 +1,7 @@
 import {UnifiedMessageProcessingError} from '../types/types';
 import type { FlatUserMessage} from '@codebolt/types/sdk';
 import type { InitialPromptGeneratorInterface, MessageModifier, ProcessedMessage} from '@codebolt/types/agent';
+import codebolt from '@codebolt/codeboltjs';
 
 
 
@@ -42,12 +43,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
 
             // Create messages array, starting with system message if baseSystemPrompt is defined
             const messages = [];
-            if (this.baseSystemPrompt !== undefined) {
-                messages.push({
-                    role: 'system' as const,
-                    content: this.baseSystemPrompt
-                });
-            }
+         
             messages.push({
                 role: 'user' as const,
                 content
@@ -72,6 +68,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
                 try {
                     // Each modifier returns a new ProcessedMessage
                     createdMessage = await messageModifier.modify(input, createdMessage);
+                   
 
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
@@ -85,7 +82,15 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
                     metadata: createdMessage.metadata
                 });
             }
-
+            if (this.baseSystemPrompt !== undefined) {
+                const hasSystem = createdMessage.message.messages.some(msg => msg.role === 'system');
+                if (!hasSystem) {
+                    createdMessage.message.messages.unshift({
+                        role: 'system' as const,
+                        content: this.baseSystemPrompt
+                    });
+                }
+            }
             return createdMessage;
 
         } catch (error) {
