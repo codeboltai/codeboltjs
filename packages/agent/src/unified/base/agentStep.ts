@@ -65,7 +65,8 @@ export class AgentStep implements AgentStepInterface {
             }
             const output: AgentStepOutput = {
                 rawLLMResponse:rawLLMResponse,
-                nextMessage:modifiedMessage
+                nextMessage:modifiedMessage,
+                actualMessageSentToLLM:createdMessage
             };
 
             return output;

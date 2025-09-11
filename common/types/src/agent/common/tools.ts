@@ -4,13 +4,15 @@
  */
 
 export interface ToolResult {
-    toolCallId: string;
-    toolName: string;
-    result: unknown;
-    success: boolean;
-    error?: string;
-    executionTime?: number;
-    metadata?: Record<string, unknown>;
+   /** Always 'tool' for tool execution results */
+   role: 'tool';
+   /** ID that links this result to the original tool call */
+   tool_call_id: string;
+   /** The content returned by the tool */
+   content: any;
+   /** Optional user message to be added after tool execution */
+   userMessage?: any;
+ 
 }
 
 export interface EnhancedToolResult extends ToolResult {

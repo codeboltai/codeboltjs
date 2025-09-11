@@ -5,42 +5,22 @@
  * or any other custom exotic tool Processor
  */
 
+import { LLMCompletion } from '../../sdk-types';
 import { 
     ProcessedMessage, 
-    InterceptedTool
 } from '../common';
 
 export interface PreToolCallProcessor {
     modify(input: PreToolCallProcessorInput): Promise<PreToolCallProcessorOutput>;
-    interceptTool?(toolName: string, toolInput: unknown): Promise<boolean>;
-    setContext(key: string, value: unknown): void;
-    getContext(key: string): unknown;
-    clearContext(): void;
 }
 
 export interface PreToolCallProcessorInput {
     llmMessageSent: ProcessedMessage;
-    llmResponseMessage: ProcessedMessage;
+    rawLLMResponseMessage: LLMCompletion;
     nextPrompt: ProcessedMessage;
-    context?: Record<string, unknown>;
 }
 
 export interface PreToolCallProcessorOutput {
     nextPrompt: ProcessedMessage;
-    context?: Record<string, unknown>;
     shouldExit?: boolean;
-    interceptedTools?: InterceptedTool[];
 }
-
-export interface PreToolCallProcessorOptions {
-    context?: Record<string, unknown>;
-    enabled?: boolean;
-    priority?: number;
-    interceptableTools?: string[];
-    localToolsEnabled?: boolean;
-}
-
-// Factory function type for pre-tool call processors
-export type PreToolCallProcessorFactory<T extends PreToolCallProcessor = PreToolCallProcessor> = (
-    config?: PreToolCallProcessorOptions
-) => T;

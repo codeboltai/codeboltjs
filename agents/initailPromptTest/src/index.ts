@@ -1,7 +1,7 @@
 import codebolt from '@codebolt/codeboltjs';
-import {InitialPromptGenerator,} from '@codebolt/agent/unified'
+import { InitialPromptGenerator, AgentExecutionResult, ResponseExecutor } from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
-import { SimpleMessageModifier,ConversationCompection,CheckForNoToolCall,AddCurrentDirectoryRootFilesModifier } from '@codebolt/agent/processor-pieces';
+import { SimpleMessageModifier, ConversationCompection, CheckForNoToolCall, AddCurrentDirectoryRootFilesModifier } from '@codebolt/agent/processor-pieces';
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
@@ -9,7 +9,7 @@ codebolt.onMessage(async (reqMessage) => {
     try {
 
 
-        codebolt.chat.sendMessage("starting process",{})
+        codebolt.chat.sendMessage("starting process", {})
         const testMessage: FlatUserMessage = {
             userMessage: "hi",
             currentFile: "",
@@ -39,22 +39,30 @@ codebolt.onMessage(async (reqMessage) => {
         let promptGenerator = new InitialPromptGenerator({
             processors: [new SimpleMessageModifier(),
             new AddCurrentDirectoryRootFilesModifier()],
-            baseSystemPrompt:'Based on User Msessage send reply'
+            baseSystemPrompt: 'Based on User Msessage send reply'
         });
-        let prompt:ProcessedMessage = await promptGenerator.processMessage(testMessage);
-       
-        let preLLMProcessors= [new ConversationCompection()]
-        let postLLMProcessors= [new CheckForNoToolCall()]
-    
-    
-        let agent = new AgentStep({preInferenceProcessors:preLLMProcessors,postInferenceProcessors:postLLMProcessors})
-    
-        let result:AgentStepOutput =  await agent.executeStep(testMessage,prompt); //Primarily for LLM Calling and has 
-         
-        prompt= result.nextMessage;
-        console.log(prompt)
-        codebolt.chat.sendMessage(result.rawLLMResponse.choices?.[0]?.message?.content ?? "No response generated",{})
+        let prompt: ProcessedMessage = await promptGenerator.processMessage(testMessage);
+        let preLLMProcessors = [new ConversationCompection()]
+        let postLLMProcessors = [new CheckForNoToolCall()]
 
+
+        let agent = new AgentStep({ preInferenceProcessors: preLLMProcessors, postInferenceProcessors: postLLMProcessors })
+        let result: AgentStepOutput = await agent.executeStep(testMessage, prompt); //Primarily for LLM Calling and has 
+        prompt = result.nextMessage;
+        console.log(prompt)
+        let responseExecutor = new ResponseExecutor({
+            preToolCalProcessors: [],
+            postToolCallProcessors: []
+
+        })
+        // codebolt.chat.sendMessage(result.rawLLMResponse.choices?.[0]?.message?.content ?? "No response generated",{})
+        let { completed, nextMessage, toolResults } = await responseExecutor.executeResponse({
+            initailUserMessage: testMessage,
+            actualMessageSentToLLM: result.actualMessageSentToLLM,
+            rawLLMOutput: result.rawLLMResponse,
+            nextMessage: result.nextMessage,
+        });
+        
 
 
     } catch (error) {

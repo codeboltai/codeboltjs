@@ -9,7 +9,6 @@ import {
     PreToolCallProcessor,
     PreToolCallProcessorInput,
     PreToolCallProcessorOutput,
-    PreToolCallProcessorOptions,
     InterceptedTool,
     ToolValidationRule,
     ToolValidationResult,
@@ -20,8 +19,8 @@ import { Tool } from '@codebolt/types/sdk';
 export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     protected context: Record<string, unknown> = {};
 
-    constructor(options: PreToolCallProcessorOptions = {}) {
-        this.context = options.context || {};
+    constructor() {
+        // this.context = options.context || {};
     }
 
     abstract modify(input: PreToolCallProcessorInput): Promise<PreToolCallProcessorOutput>;
@@ -105,32 +104,32 @@ export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     //     return toolCalls;
     // }
 
-    // Helper method to check if tool should be intercepted
-    protected shouldInterceptTool(toolName: string, interceptableTools?: string[]): boolean {
-        if (!interceptableTools) {
-            return false;
-        }
-        return interceptableTools.includes(toolName) || interceptableTools.includes('*');
-    }
+    // // Helper method to check if tool should be intercepted
+    // protected shouldInterceptTool(toolName: string, interceptableTools?: string[]): boolean {
+    //     if (!interceptableTools) {
+    //         return false;
+    //     }
+    //     return interceptableTools.includes(toolName) || interceptableTools.includes('*');
+    // }
 
-    // Helper method to create standard success output
-    protected createSuccessOutput(
-        nextPrompt: PreToolCallProcessorInput['nextPrompt'],
-        additionalContext?: Record<string, unknown>,
-        interceptedTools?: InterceptedTool[]
-    ): PreToolCallProcessorOutput {
-        return {
-            nextPrompt,
-            context: {
-                ...this.context,
-                ...additionalContext,
-                processedBy: this.constructor.name,
-                processedAt: new Date().toISOString()
-            },
-            shouldExit: false,
-            interceptedTools
-        };
-    }
+    // // Helper method to create standard success output
+    // protected createSuccessOutput(
+    //     nextPrompt: PreToolCallProcessorInput['nextPrompt'],
+    //     additionalContext?: Record<string, unknown>,
+    //     interceptedTools?: InterceptedTool[]
+    // ): PreToolCallProcessorOutput {
+    //     return {
+    //         nextPrompt,
+    //         context: {
+    //             ...this.context,
+    //             ...additionalContext,
+    //             processedBy: this.constructor.name,
+    //             processedAt: new Date().toISOString()
+    //         },
+    //         shouldExit: false,
+    //         interceptedTools
+    //     };
+    // }
 
     // // Helper method to create exit output
     // protected createExitOutput(
@@ -162,8 +161,8 @@ export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     // }
 
     // Helper method to check if local tools are enabled
-    protected isLocalToolsEnabled(): boolean {
-        const options = this.context.options as PreToolCallProcessorOptions;
-        return options?.localToolsEnabled || false;
-    }
+    // protected isLocalToolsEnabled(): boolean {
+    //     const options = this.context.options as PreToolCallProcessorOptions;
+    //     return options?.localToolsEnabled || false;
+    // }
 }

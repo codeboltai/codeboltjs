@@ -22,7 +22,7 @@ export interface MessageObject {
     };
   }>;
   // /** Optional ID for tool calls */
-  // tool_call_id?: string;
+  tool_call_id?: string; // used in tool call result
   // /** Optional tool calls for assistant messages */
   // tool_calls?: ToolCall[];
   // /** Optional name for the message */

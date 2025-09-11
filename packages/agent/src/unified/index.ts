@@ -44,6 +44,8 @@ export { InitialPromptGenerator } from './base/initialPromptGenerator';
 
 export {AgentStep} from './base/agentStep'
 
+export {ResponseExecutor} from './base/responseExecutor'
+
 // export {
 
 //     createUnifiedAgentStep,
