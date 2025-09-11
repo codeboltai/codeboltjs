@@ -176,24 +176,10 @@ export {
 // taskEventSchemas
 export {
   type TaskEventBase,
-  type TaskCreateOptions,
-  type TaskUpdateOptions,
-  type TaskFilterOptions,
-  type AddSubTaskOptions,
-  type UpdateSubTaskOptions,
-  type AddTaskEvent,
-  type AddSimpleTaskEvent,
-  type GetTasksEvent,
-  type GetTasksByAgentEvent,
-  type GetTasksByCategoryEvent,
-  type GetAllAgentsEvent,
+
   type UpdateTaskEvent,
   type DeleteTaskEvent,
-  type AddSubTaskEvent,
-  type UpdateSubTaskEvent,
-  type DeleteSubTaskEvent,
-  type CreateTasksFromMarkdownEvent,
-  type ExportTasksToMarkdownEvent,
+
   type TaskEvent,
 } from './wstypes/agent-to-app-ws/actions/taskEventSchemas';
 

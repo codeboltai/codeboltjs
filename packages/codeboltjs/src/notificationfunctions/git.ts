@@ -527,8 +527,8 @@ export function GitDiffRequestNotify(
 }
 
 /**
- * Sends a git diff response notification
- * @param content - The response content (diff information or error details)
+ * Sends a git diff response notification with comprehensive diff data
+ * @param content - The response content (raw diff string, structured GitDiffResult, or wrapped response)
  * @param isError - Whether this is an error response
  * @param toolUseId - The toolUseId from the original request
  */
@@ -542,11 +542,67 @@ export function GitDiffResponseNotify(
         return;
     }
 
+    // Process and validate content based on schema expectations
+    let processedContent: any;
+    
+    if (typeof content === 'string') {
+        // Raw diff string - pass through as-is
+        processedContent = content;
+    } else if (content && typeof content === 'object') {
+        // Check if it's a structured GitDiffResult
+        if (content.files && Array.isArray(content.files)) {
+            // Validate GitDiffResult structure
+            processedContent = {
+                files: content.files.map((file: any) => ({
+                    file: file.file || file.path || '',
+                    changes: file.changes || 0,
+                    insertions: file.insertions || file.additions || 0,
+                    deletions: file.deletions || 0,
+                    binary: file.binary || false,
+                    status: file.status,
+                    oldFile: file.oldFile
+                })),
+                insertions: content.insertions || content.additions || 0,
+                deletions: content.deletions || 0,
+                changed: content.changed || content.files?.length || 0,
+                diff: content.diff,
+                stats: content.stats,
+                metadata: content.metadata ? {
+                    totalChanges: content.metadata.totalChanges || 0,
+                    additions: content.metadata.additions || content.metadata.insertions || 0,
+                    deletions: content.metadata.deletions || 0,
+                    commitHash: content.metadata.commitHash,
+                    parentCommit: content.metadata.parentCommit
+                } : undefined
+            };
+        } else if (content.success !== undefined || content.data !== undefined) {
+            // Wrapped response format
+            processedContent = {
+                success: content.success || !isError,
+                data: content.data || content.diff || content.content || '',
+                commitHash: content.commitHash || content.hash,
+                message: content.message || content.error
+            };
+        } else {
+            // Generic object - try to extract useful information
+            processedContent = {
+                success: !isError,
+                data: content.diff || content.content || JSON.stringify(content),
+                message: content.message || content.error
+            };
+        }
+    } else {
+        // Fallback for unexpected content types
+        processedContent = isError ? 
+            { success: false, message: 'Git diff operation failed', data: '' } :
+            { success: true, data: content || '', message: 'Git diff completed' };
+    }
+
     const notification: GitDiffResponseNotification = {
         toolUseId,
         type: NotificationEventType.GIT_NOTIFY,
         action: GitNotificationAction.DIFF_RESULT,
-        content,
+        content: processedContent,
         isError
     };
 

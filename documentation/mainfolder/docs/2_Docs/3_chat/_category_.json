@@ -3,9 +3,5 @@
     "position": 3,
     "collapsible": true,
     "collapsed": true,
-    "className": "blue",
-    "link": {
-        "type": "doc",
-        "id": "Docs/chat/overview"
-    }
+    "className": "blue"
 }

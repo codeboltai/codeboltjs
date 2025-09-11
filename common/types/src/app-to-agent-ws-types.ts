@@ -46,13 +46,7 @@ export type {
   ProjectServiceResponse,
   // Task service responses
   TaskResponse,
-  AddTaskResponse,
-  GetTasksResponse,
-  UpdateTasksResponse,
-  DeleteTaskResponse,
-  AddSubTaskResponse,
-  UpdateSubTaskResponse,
-  GetTasksByAgentResponse,
+
   TaskServiceResponse,
   // LLM service responses
   LLMResponse,
