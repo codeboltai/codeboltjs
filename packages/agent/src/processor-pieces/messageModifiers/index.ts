@@ -5,9 +5,9 @@ export { DirectoryContextModifier, type DirectoryContextOptions } from './direct
 export { IdeContextModifier, type IdeContextOptions, type FileInfo, type IdeContext } from './ideContextModifier';
 export { ChatCompressionModifier, type ChatCompressionOptions } from './chatCompressionModifier';
 export { AtFileProcessorModifier, type AtFileProcessorOptions } from './atFileProcessorModifier';
-export { ShellProcessorModifier, type ShellProcessorOptions } from './shellProcessorModifier';
+export { ShellProcessorModifier, type ShellProcessorOptions } from '../additionalModifiers/shellProcessorModifier';
 export { ArgumentProcessorModifier, type ArgumentProcessorOptions } from './argumentProcessorModifier';
 export { MemoryImportModifier, type MemoryImportOptions } from './memoryImportModifier';
-export { LoopDetectionModifier, type LoopDetectionOptions } from './loopDetectionModifier';
+export { LoopDetectionModifier, type LoopDetectionOptions } from '../additionalModifiers/loopDetectionModifier';
 export { ToolInjectionModifier, type ToolInjectionOptions } from './toolInjectionModifier';
 export { ChatRecordingModifier, type ChatRecordingOptions } from './chatRecordingModifier';

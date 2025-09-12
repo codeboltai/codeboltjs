@@ -8,7 +8,7 @@ import codebolt from "@codebolt/codeboltjs";
 
 const MAX_ITEMS = 200;
 const TRUNCATION_INDICATOR = '...';
-const DEFAULT_IGNORED_FOLDERS = new Set(['node_modules', '.git', 'dist']);
+const DEFAULT_IGNORED_FOLDERS = new Set(['node_modules', '.git', 'dist', 'build', '.next', '.cache', '.tmp', 'tmp']);
 
 // --- Interfaces ---
 
@@ -65,6 +65,8 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
 
 export class DirectoryContextModifier extends BaseMessageModifier {
     private readonly options: DirectoryContextOptions;
+    private gitignorePatterns: Set<string> = new Set();
+    private gitignoreRegexes: RegExp[] = [];
 
     constructor(options: DirectoryContextOptions = {}){
         super()
@@ -86,6 +88,9 @@ export class DirectoryContextModifier extends BaseMessageModifier {
             if (workspaceDirectories.length === 0) {
                 return createdMessage;
             }
+            
+            // Load gitignore patterns from all workspace directories
+            await this.loadGitignorePatterns(workspaceDirectories);
             
             const folderStructures = await Promise.all(
                 workspaceDirectories.map((dir) => this.getFolderStructure(dir))
@@ -129,6 +134,94 @@ ${folderStructure}`;
             console.error('Error in DirectoryContextModifier:', error);
             return createdMessage;
         }
+    }
+
+    private async loadGitignorePatterns(workspaceDirectories: string[]): Promise<void> {
+        this.gitignorePatterns.clear();
+        this.gitignoreRegexes = [];
+        
+        for (const dir of workspaceDirectories) {
+            try {
+                const gitignorePath = path.join(dir, '.gitignore');
+                const content = await fs.readFile(gitignorePath, 'utf-8');
+                this.parseGitignoreContent(content);
+            } catch (error) {
+                // .gitignore file doesn't exist or can't be read, continue
+                console.debug(`No .gitignore found in ${dir}`);
+            }
+        }
+    }
+
+    private parseGitignoreContent(content: string): void {
+        const lines = content.split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('#')); // Remove empty lines and comments
+        
+        for (const line of lines) {
+            this.gitignorePatterns.add(line);
+            
+            // Convert gitignore pattern to regex
+            let regexPattern = line
+                .replace(/\./g, '\\.')  // Escape dots
+                .replace(/\*/g, '.*')   // Convert * to .*
+                .replace(/\?/g, '.')    // Convert ? to .
+                .replace(/\//g, '\\/'); // Escape slashes
+            
+            // Handle directory patterns (ending with /)
+            if (line.endsWith('/')) {
+                regexPattern = regexPattern.slice(0, -2) + '$'; // Remove \/ and add end anchor
+            }
+            
+            try {
+                this.gitignoreRegexes.push(new RegExp(regexPattern));
+            } catch (error) {
+                console.warn(`Invalid gitignore pattern: ${line}`);
+            }
+        }
+    }
+
+    private isGitIgnored(filePath: string, fileName: string): boolean {
+        // Check against gitignore patterns
+        for (const regex of this.gitignoreRegexes) {
+            if (regex.test(fileName) || regex.test(filePath)) {
+                return true;
+            }
+        }
+        
+        // Check exact matches
+        return this.gitignorePatterns.has(fileName) || 
+               this.gitignorePatterns.has(filePath) ||
+               this.gitignorePatterns.has(fileName + '/'); // Directory pattern
+    }
+
+    private shouldIgnoreFile(fileName: string, filePath?: string): boolean {
+        // Check gitignore first
+        if (filePath && this.isGitIgnored(filePath, fileName)) {
+            return true;
+        }
+        
+        // Ignore hidden files (except .gitignore itself)
+        if (fileName.startsWith('.') && fileName !== '.gitignore') {
+            return true;
+        }
+        
+        // Ignore temporary files and caches
+        const ignoredPatterns = [
+            /^───.*\.tar\.zst$/, // Weird temporary files like ───0069a971db0f139f.tar.zst
+            /\.tmp$/,
+            /\.temp$/,
+            /\.cache$/,
+            /\.log$/,
+            /\.swp$/,
+            /\.bak$/,
+            /~$/,
+            /^#.*#$/,
+            /\.DS_Store$/,
+            /Thumbs\.db$/,
+            /desktop\.ini$/,
+        ];
+        
+        return ignoredPatterns.some(pattern => pattern.test(fileName));
     }
 
     /**
@@ -260,6 +353,13 @@ ${folderStructure}`;
               break;
             }
             const fileName = entry.name;
+            
+            // Skip hidden files, temporary files, and other unwanted files
+            const filePath = path.join(currentPath, fileName);
+            if (this.shouldIgnoreFile(fileName, filePath)) {
+              continue;
+            }
+            
             if (
               !options.fileIncludePattern ||
               options.fileIncludePattern.test(fileName)
@@ -289,7 +389,9 @@ ${folderStructure}`;
             const subFolderName = entry.name;
             const subFolderPath = path.join(currentPath, subFolderName);
     
-            if (options.ignoredFolders.has(subFolderName)) {
+            // Check if folder should be ignored (built-in ignore list or gitignore)
+            if (options.ignoredFolders.has(subFolderName) || 
+                this.shouldIgnoreFile(subFolderName, subFolderPath)) {
               const ignoredSubFolder: FullFolderInfo = {
                 name: subFolderName,
                 path: subFolderPath,

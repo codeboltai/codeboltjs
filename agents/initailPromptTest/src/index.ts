@@ -6,16 +6,19 @@ import {
 } from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
-    SimpleMessageModifier,
-    ConversationCompection,
-    CheckForNoToolCall,
-    AddCurrentDirectoryRootFilesModifier,
-    BaseContextMessageModifier,
-    BaseSystemInstructionMessageModifier,
-    WorkingDirectoryMessageModifier,
-    AddToolsListMessageModifier,
-    MentionedFilesModifier,
+    EnvironmentContextModifier,
+    CoreSystemPromptModifier,
+    DirectoryContextModifier,
+    IdeContextModifier,
+    ChatCompressionModifier,
+    AtFileProcessorModifier,
+    ToolInjectionModifier
+
+   
 } from '@codebolt/agent/processor-pieces';
+
+
+
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
@@ -27,19 +30,32 @@ codebolt.onMessage(async (reqMessage:FlatUserMessage) => {
       
         let promptGenerator = new InitialPromptGenerator({
             processors: [
-            new BaseSystemInstructionMessageModifier(),
-            new BaseContextMessageModifier(),
-            new WorkingDirectoryMessageModifier(),
-            new AddToolsListMessageModifier({
-                addToolsLocation:'Tool'
-            }),
-            new MentionedFilesModifier()
+                // 1. Environment Context (date, OS)
+                new EnvironmentContextModifier(),
+                
+                // 2. Directory Context (folder structure)  
+                new DirectoryContextModifier(),
+                
+                // 3. IDE Context (active file, opened files)
+                new IdeContextModifier(),
+                
+                // 4. Core System Prompt (instructions)
+                new CoreSystemPromptModifier(),
+                
+                // 5. Tools (function declarations)
+                new ToolInjectionModifier(),
+                
+                // 6. Chat Compression (history management)
+                new ChatCompressionModifier(),
+                
+                // 7. At-file processing (@file mentions)
+                new AtFileProcessorModifier()
         ],
             baseSystemPrompt: 'Based on User Msessage send reply'
         });
         let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        let preLLMProcessors = [new ConversationCompection()]
-        let postLLMProcessors = [new CheckForNoToolCall()]
+        let preLLMProcessors = []
+        let postLLMProcessors = []
       
 
 

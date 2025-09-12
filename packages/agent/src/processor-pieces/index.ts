@@ -49,12 +49,5 @@
 export {ConversationCompection } from './preInferenceProcessors/conversationCompaction'
 export {CheckForNoToolCall} from './postInferenceProcessors/checkForNoToolCall'
 
-export {BaseContextMessageModifier} from './messageModifiers/baseContextMessageModifier'
-export {BaseSystemInstructionMessageModifier} from './messageModifiers/baseSystemInstructionMessageModifier'
-
-export {WorkingDirectoryMessageModifier} from './messageModifiers/workingDirectoryMessageModifier'
-
-export {AddToolsListMessageModifier} from './messageModifiers/addToolsListMessageModifier'
-
-export {MentionedFilesModifier} from './messageModifiers/mentionedFilesModifier'
+export * from './messageModifiers'
 
