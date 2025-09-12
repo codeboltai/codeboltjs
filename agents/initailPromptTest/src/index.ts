@@ -13,7 +13,8 @@ import {
     BaseContextMessageModifier,
     BaseSystemInstructionMessageModifier,
     WorkingDirectoryMessageModifier,
-    AddToolsListMessageModifier
+    AddToolsListMessageModifier,
+    MentionedFilesModifier,
 } from '@codebolt/agent/processor-pieces';
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
@@ -31,7 +32,8 @@ codebolt.onMessage(async (reqMessage:FlatUserMessage) => {
             new WorkingDirectoryMessageModifier(),
             new AddToolsListMessageModifier({
                 addToolsLocation:'Tool'
-            })
+            }),
+            new MentionedFilesModifier()
         ],
             baseSystemPrompt: 'Based on User Msessage send reply'
         });

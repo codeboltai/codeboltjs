@@ -46,8 +46,6 @@
 // } from './tools/fileTools';
 
 
-export {SimpleMessageModifier} from './messageModifiers/simpleMessageModifier'
-export {AddCurrentDirectoryRootFilesModifier} from './messageModifiers/addCurrentDirectoryRootFilesModifier'
 export {ConversationCompection } from './preInferenceProcessors/conversationCompaction'
 export {CheckForNoToolCall} from './postInferenceProcessors/checkForNoToolCall'
 
@@ -57,4 +55,6 @@ export {BaseSystemInstructionMessageModifier} from './messageModifiers/baseSyste
 export {WorkingDirectoryMessageModifier} from './messageModifiers/workingDirectoryMessageModifier'
 
 export {AddToolsListMessageModifier} from './messageModifiers/addToolsListMessageModifier'
+
+export {MentionedFilesModifier} from './messageModifiers/mentionedFilesModifier'
 

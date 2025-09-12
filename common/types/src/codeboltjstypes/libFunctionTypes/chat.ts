@@ -53,6 +53,8 @@ export interface UserMessage {
     templateType: string;
     processId: string;
     shadowGitHash: string;
+    activeFile: string;
+    openedFiles: string[]
   };
   sender: {
     senderType: string;
@@ -97,6 +99,9 @@ export interface FlatUserMessage {
   processId?: string;
   shadowGitHash?: string;
   remixPrompt?: any;
+  activeFile: string;
+    openedFiles: string[]
+
 }
 
 // Chat history responses
