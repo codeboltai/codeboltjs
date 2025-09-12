@@ -57,11 +57,12 @@ export class ResponseExecutor implements AgentResponseExecutor {
             }
         }
         else{
+            this.completed=true;
             nextMessage.message.messages.push({
                 role: "user",
                 content: [{
                     type: "text",
-                    text: "If you have completed the user's task, use the codebolt--attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
+                    text: "If you have completed the user's task, use the attempt_completion tool. if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
                 }]
             })
         }
@@ -138,10 +139,12 @@ export class ResponseExecutor implements AgentResponseExecutor {
                     for (const tool of contentBlock.message.tool_calls) {
                         try {
                             const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
+                        
 
                             if (!userRejectedToolUse) {
                                 if (toolName.includes("attempt_completion")) {
                                     taskCompletedBlock = tool;
+                                    this.completed=true
                                 } else {
 
                                     let [serverName] = toolName.replace('--', ':').split(':');
@@ -169,10 +172,13 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     }
                                     else {
                                         console.log("Executing tool: ", toolName, toolInput);
+                                       
+
                                         const [didUserReject, result] = await this.executeTool(toolName, toolInput);
                                         console.log("Tool result: ", result);
                                         // toolResults.push(this.parseToolResult(toolUseId, result));
                                         let toolResult = this.parseToolResult(toolUseId, result)
+                                      
 
                                         toolResults.push({
                                             role: "tool",
@@ -272,6 +278,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
         console.log("Executing tool: ", toolName, toolInput);
         const [toolboxName, actualToolName] = toolName.split('--');
         console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
+       
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
         console.log("Tool result: ", data);
         return [false, data];

@@ -18,37 +18,12 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage:FlatUserMessage) => {
     try {
 
 
         codebolt.chat.sendMessage("starting process", {})
-        const testMessage: FlatUserMessage = {
-            userMessage: "hi",
-            currentFile: "",
-            selectedAgent: {
-                id: "test-agent",
-                name: "Test Agent"
-            },
-            mentionedFiles: [],
-            mentionedFullPaths: [],
-            mentionedFolders: [],
-            mentionedMultiFile: [],
-            mentionedMCPs: [],
-            uploadedImages: [],
-            actions: [],
-            mentionedAgents: [],
-            mentionedDocs: [],
-            links: [],
-            universalAgentLastMessage: "",
-            selection: null,
-            controlFiles: [],
-            feedbackMessage: "",
-            terminalMessage: "",
-            messageId: "test-message-id",
-            threadId: "test-thread-id",
-            templateType: ""
-        };
+      
         let promptGenerator = new InitialPromptGenerator({
             processors: [
             new BaseSystemInstructionMessageModifier(),
@@ -60,7 +35,7 @@ codebolt.onMessage(async (reqMessage) => {
         ],
             baseSystemPrompt: 'Based on User Msessage send reply'
         });
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(testMessage);
+        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
         let preLLMProcessors = [new ConversationCompection()]
         let postLLMProcessors = [new CheckForNoToolCall()]
       
@@ -70,7 +45,7 @@ codebolt.onMessage(async (reqMessage) => {
         
         do {
             let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-            let result: AgentStepOutput = await agent.executeStep(testMessage, prompt); //Primarily for LLM Calling and has 
+            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
             prompt = result.nextMessage;
             console.log(prompt)
             let responseExecutor = new ResponseExecutor({
@@ -80,7 +55,7 @@ codebolt.onMessage(async (reqMessage) => {
             })
             // codebolt.chat.sendMessage(result.rawLLMResponse.choices?.[0]?.message?.content ?? "No response generated",{})
             let executionResult = await responseExecutor.executeResponse({
-                initailUserMessage: testMessage,
+                initailUserMessage: reqMessage,
                 actualMessageSentToLLM: result.actualMessageSentToLLM,
                 rawLLMOutput: result.rawLLMResponse,
                 nextMessage: result.nextMessage,
@@ -88,6 +63,11 @@ codebolt.onMessage(async (reqMessage) => {
             
             completed = executionResult.completed;
             prompt = executionResult.nextMessage;
+          
+            
+            if (completed) {
+                break;
+            }
             
         } while (!completed);
 

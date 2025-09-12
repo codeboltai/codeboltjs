@@ -38,7 +38,7 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
     private readonly listFilesIgnore: string[];
     private readonly maxItems: number;
     private readonly showFullDirectoryContext: boolean;
-    private readonly defaultIgnoredFolders = new Set(['node_modules', '.git', 'dist']);
+    private readonly defaultIgnoredFolders = new Set(['node_modules', '.git', 'dist','.codebolt','.codeboltAgents']);
     private readonly truncationIndicator = '...';
 
     constructor(options: WorkingDirectoryMessageModifierOptions = {}) {
@@ -48,7 +48,7 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
         this.listFilesDepth = options.listFilesDepth || 2;
         this.listFilesLimit = options.listFilesLimit || 100;
         this.listFilesIgnoreFromGitignore = options.listFilesIgnoreFromGitignore || true;
-        this.listFilesIgnore = options.listFilesIgnore || ['node_modules', '.git', 'dist', 'build'];
+        this.listFilesIgnore = options.listFilesIgnore || ['node_modules', '.git', 'dist','.codebolt','.codeboltAgents'];
         this.maxItems = options.maxItems || 200;
         this.showFullDirectoryContext = options.showFullDirectoryContext || true;
     }
@@ -216,8 +216,15 @@ export class WorkingDirectoryMessageModifier extends BaseMessageModifier {
     }
 
     private shouldIgnore(filePath: string): boolean {
+        const basename = path.basename(filePath);
+        
+        // Ignore any folder/file that starts with a dot
+        if (basename.startsWith('.')) {
+            return true;
+        }
+        
         return this.listFilesIgnore.some(ignore => 
-            filePath.includes(ignore) || path.basename(filePath) === ignore
+            filePath.includes(ignore) || basename === ignore
         );
     }
 
@@ -338,7 +345,9 @@ ${folderStructure}`;
                     const subFolderName = entry.name;
                     const subFolderPath = path.join(currentPath, subFolderName);
 
-                    const isIgnored = this.defaultIgnoredFolders.has(subFolderName) || this.shouldIgnore(subFolderPath);
+                    const isIgnored = this.defaultIgnoredFolders.has(subFolderName) || 
+                                     subFolderName.startsWith('.') || 
+                                     this.shouldIgnore(subFolderPath);
 
                     if (isIgnored) {
                         const ignoredSubFolder: FullFolderInfo = {
