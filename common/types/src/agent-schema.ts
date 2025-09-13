@@ -11,4 +11,10 @@ export * from './agent/processorTypes';
 
 export * from './agent/baseAgentTypes/agentStepTypes'
 
+export * from './agent/highLevelAgentTypes/agentTypes'
+
+export * from './agent/highLevelAgentTypes/toolTypes'
+
+export * from './agent/highLevelAgentTypes/workflowTypes'
+
 

@@ -1,6 +1,6 @@
-import { ProcessedMessage } from "@codebolt/types/agent";
-import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { ProcessedMessage, PostToolCallProcessorInput, PostToolCallProcessorOutput, ToolResult } from "@codebolt/types/agent";
+import { BasePostToolCallProcessor } from "../base";
+import { MessageObject } from "@codebolt/types/sdk";
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -12,7 +12,7 @@ export interface ShellProcessorOptions {
     workingDirectory?: string;
 }
 
-export class ShellProcessorModifier extends BaseMessageModifier {
+export class ShellProcessorModifier extends BasePostToolCallProcessor {
     private readonly options: ShellProcessorOptions;
     private readonly execAsync = promisify(exec);
     private readonly SHELL_TRIGGER = '!{';
@@ -30,55 +30,125 @@ export class ShellProcessorModifier extends BaseMessageModifier {
         };
     }
 
-    async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    async modify(input: PostToolCallProcessorInput): Promise<PostToolCallProcessorOutput> {
         try {
-            // Get the user message content to process
-            const userMessage = createdMessage.message.messages.find(msg => msg.role === 'user');
-            if (!userMessage || typeof userMessage.content !== 'string') {
-                return createdMessage;
+            const { llmMessageSent, rawLLMResponseMessage, nextPrompt, toolResults } = input;
+
+            // Process shell commands in tool results if they exist
+            let processedNextPrompt = nextPrompt;
+            let shouldExit = false;
+
+            if (toolResults && toolResults.length > 0) {
+                // Look for shell-related tool results or commands in the content
+                const shellResults = toolResults.filter(result => 
+                    // Check if the tool call ID suggests it's a shell command
+                    (result.tool_call_id && (
+                        result.tool_call_id.includes('run_terminal_cmd') || 
+                        result.tool_call_id.includes('shell')
+                    )) ||
+                    // Check if content contains shell triggers or placeholders
+                    (result.content && typeof result.content === 'string' && 
+                     (result.content.includes(this.SHELL_TRIGGER) || result.content.includes(this.ARGS_PLACEHOLDER)))
+                );
+
+                if (shellResults.length > 0) {
+                    processedNextPrompt = await this.processShellInToolResults(nextPrompt, shellResults);
+                }
             }
 
-            const content = userMessage.content;
-            const args = createdMessage.metadata?.args as string || '';
-            
-            // First, replace {{args}} placeholders
-            let processedContent = content.replace(new RegExp(this.escapeRegex(this.ARGS_PLACEHOLDER), 'g'), args);
-            
-            // Then process shell injections if enabled
-            if (this.options.enableShellExecution && processedContent.includes(this.SHELL_TRIGGER)) {
-                processedContent = await this.processShellInjections(processedContent, args);
-            }
+            // Also process any shell injections in the next prompt messages
+            const updatedMessages: MessageObject[] = [];
+            let contentModified = false;
 
-            // If content was modified, update the message
-            if (processedContent !== content) {
-                const updatedMessages = createdMessage.message.messages.map(msg => {
-                    if (msg.role === 'user' && typeof msg.content === 'string' && msg.content === content) {
-                        return {
-                            ...msg,
-                            content: processedContent
-                        };
+            for (const message of processedNextPrompt.message.messages) {
+                if (typeof message.content === 'string') {
+                    let processedContent = message.content;
+                    
+                    // Replace {{args}} placeholders if metadata has args
+                    const args = processedNextPrompt.metadata?.args as string || '';
+                    if (processedContent.includes(this.ARGS_PLACEHOLDER)) {
+                        processedContent = processedContent.replace(
+                            new RegExp(this.escapeRegex(this.ARGS_PLACEHOLDER), 'g'), 
+                            args
+                        );
+                        contentModified = true;
                     }
-                    return msg;
-                });
+                    
+                    // Process shell injections if enabled
+                    if (this.options.enableShellExecution && processedContent.includes(this.SHELL_TRIGGER)) {
+                        processedContent = await this.processShellInjections(processedContent, args);
+                        contentModified = true;
+                    }
 
-                return Promise.resolve({
+                    updatedMessages.push({
+                        ...message,
+                        content: processedContent
+                    });
+                } else {
+                    updatedMessages.push(message);
+                }
+            }
+
+            if (contentModified) {
+                processedNextPrompt = {
                     message: {
-                        ...createdMessage.message,
+                        ...processedNextPrompt.message,
                         messages: updatedMessages
                     },
                     metadata: {
-                        ...createdMessage.metadata,
+                        ...processedNextPrompt.metadata,
                         shellProcessed: true,
-                        argsReplaced: content.includes(this.ARGS_PLACEHOLDER)
+                        argsReplaced: true
                     }
-                });
+                };
             }
 
-            return createdMessage;
+            return {
+                nextPrompt: processedNextPrompt,
+                shouldExit
+            };
         } catch (error) {
             console.error('Error in ShellProcessorModifier:', error);
-            return createdMessage;
+            return {
+                nextPrompt: input.nextPrompt,
+                shouldExit: false
+            };
         }
+    }
+
+    private async processShellInToolResults(nextPrompt: ProcessedMessage, shellResults: ToolResult[]): Promise<ProcessedMessage> {
+        // Process shell commands found in tool results
+        let processedPrompt = nextPrompt;
+        
+        for (const result of shellResults) {
+            if (result.content && typeof result.content === 'string') {
+                const args = processedPrompt.metadata?.args as string || '';
+                
+                // Process any shell injections in the tool result content
+                if (result.content.includes(this.SHELL_TRIGGER)) {
+                    const processedContent = await this.processShellInjections(result.content, args);
+                    
+                    // Add the processed result as a system message
+                    const systemMessage: MessageObject = {
+                        role: 'system',
+                        content: `[Shell Tool Result]: ${processedContent}`
+                    };
+
+                    processedPrompt = {
+                        message: {
+                            ...processedPrompt.message,
+                            messages: [...processedPrompt.message.messages, systemMessage]
+                        },
+                        metadata: {
+                            ...processedPrompt.metadata,
+                            shellToolResultsProcessed: true
+                        }
+                    };
+                }
+            }
+        }
+        
+        return processedPrompt;
     }
 
     private async processShellInjections(content: string, args: string): Promise<string> {

@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
-import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { BasePostInferenceProcessor } from "../base";
+import { FlatUserMessage, LLMResponse, MessageObject } from "@codebolt/types/sdk";
 
 export interface LoopDetectionOptions {
     maxSimilarMessages?: number;
@@ -15,7 +15,7 @@ interface MessageHistory {
     role: string;
 }
 
-export class LoopDetectionModifier extends BaseMessageModifier {
+export class LoopDetectionModifier extends BasePostInferenceProcessor {
     private readonly options: LoopDetectionOptions;
     private messageHistory: MessageHistory[] = [];
     private loopDetected: boolean = false;
@@ -30,17 +30,38 @@ export class LoopDetectionModifier extends BaseMessageModifier {
         };
     }
 
-    modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    modify(llmMessageSent: ProcessedMessage, llmResponseMessage: LLMResponse, nextPrompt: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             if (!this.options.enableLoopPrevention) {
-                return Promise.resolve(createdMessage);
+                return Promise.resolve(nextPrompt);
             }
 
             const currentTime = Date.now();
-            const messages = createdMessage.message.messages;
+            
+            // Add LLM response to history
+            if (llmResponseMessage.content) {
+                this.messageHistory.push({
+                    content: llmResponseMessage.content,
+                    timestamp: currentTime,
+                    role: llmResponseMessage.role
+                });
+            }
 
-            // Add current messages to history
-            for (const message of messages) {
+            // Add any choice messages from LLM response to history
+            if (llmResponseMessage.choices) {
+                for (const choice of llmResponseMessage.choices) {
+                    if (choice.message && choice.message.content) {
+                        this.messageHistory.push({
+                            content: choice.message.content,
+                            timestamp: currentTime,
+                            role: choice.message.role
+                        });
+                    }
+                }
+            }
+
+            // Add the original sent message to history if it exists
+            for (const message of llmMessageSent.message.messages) {
                 if (typeof message.content === 'string') {
                     this.messageHistory.push({
                         content: message.content,
@@ -59,21 +80,21 @@ export class LoopDetectionModifier extends BaseMessageModifier {
             if (loopDetected && !this.loopDetected) {
                 this.loopDetected = true;
                 
-                // Add loop detection warning
+                // Add loop detection warning to the next prompt
                 const warningMessage: MessageObject = {
                     role: 'system',
                     content: `[Loop Detection Warning] Similar messages detected in recent conversation. This may indicate a conversational loop. Consider rephrasing your request or providing more specific information.`
                 };
 
-                const updatedMessages = [...messages, warningMessage];
+                const updatedMessages = [...nextPrompt.message.messages, warningMessage];
 
                 return Promise.resolve({
                     message: {
-                        ...createdMessage.message,
+                        ...nextPrompt.message,
                         messages: updatedMessages
                     },
                     metadata: {
-                        ...createdMessage.metadata,
+                        ...nextPrompt.metadata,
                         loopDetected: true,
                         loopDetectionWarningAdded: true
                     }
@@ -86,16 +107,16 @@ export class LoopDetectionModifier extends BaseMessageModifier {
             }
 
             return Promise.resolve({
-                message: createdMessage.message,
+                message: nextPrompt.message,
                 metadata: {
-                    ...createdMessage.metadata,
+                    ...nextPrompt.metadata,
                     loopDetectionChecked: true,
                     loopDetected: false
                 }
             });
         } catch (error) {
             console.error('Error in LoopDetectionModifier:', error);
-            return Promise.resolve(createdMessage);
+            return Promise.resolve(nextPrompt);
         }
     }
 

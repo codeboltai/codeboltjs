@@ -1,5 +1,5 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
-import { BaseMessageModifier } from "../base";
+import { BaseMessageModifier, BasePreInferenceProcessor } from "../base";
 import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 
 export interface ChatCompressionOptions {
@@ -9,7 +9,7 @@ export interface ChatCompressionOptions {
     enableCompression?: boolean;
 }
 
-export class ChatCompressionModifier extends BaseMessageModifier {
+export class ChatCompressionModifier extends BasePreInferenceProcessor {
     private readonly options: ChatCompressionOptions;
     private hasFailedCompressionAttempt: boolean = false;
 
@@ -136,3 +136,5 @@ ${conversationSummary}
         this.hasFailedCompressionAttempt = false;
     }
 }
+
+////
