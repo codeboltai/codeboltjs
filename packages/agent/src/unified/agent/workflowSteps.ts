@@ -1,117 +1,234 @@
-import { AgentInterface, StepConfig, StepType, ToolInterface, workflowContext, workflowStepOutput } from "@codebolt/types/agent";
-import { ZodAny, ZodType } from "zod";
+import { AgentInterface, BaseWorkFlowStep, StepConfig, StepType, ToolInterface, workflowContext, workflowStepOutput } from "@codebolt/types/agent";
+import { ZodType } from "zod";
 
 
-
-export function createStep(stepId: string, description: string, inputSchema: ZodAny, outputSchema: ZodAny, execute: any) {
-
-
-
-}
-
-
-
-export abstract class BaseWorkFlowStep {
-    id: string;
-    description: string;
-    inputSchema?: ZodType<any, any, any>;
-    outputSchema?: ZodType<any, any, any>;
-    // executionFunction: (context: any) => any;
-    type: StepType
-
-    constructor(config: StepConfig) {
-        this.id = config.id;
-        this.description = config.description;
+export class ParallelStep implements BaseWorkFlowStep{
+   public id: string;
+   public description: string;
+   public type: StepType;
+   public inputSchema?: ZodType<any, any, any>;
+   public outputSchema?: ZodType<any, any, any>;
+   private steps:WorkFlowStep[]
+       constructor(config:StepConfig,steps:WorkFlowStep[]){
+        this.steps=steps;
+        this.id=config.id;
+        this.description=config.description;
+        this.type=config.type;
         this.inputSchema = config.inputSchema;
         this.outputSchema = config.outputSchema;
-        // this.executionFunction = config.execute
-        this.type = config.type
-    }
-    execute(context:any) {
-
-    }
-
-}
-
-export class ParallelWorkflow extends BaseWorkFlowStep{
-       private steps:BaseWorkFlowStep[]
-       constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
-        super(config)
-        this.steps=steps;
        }
        async execute(context: any): Promise<workflowContext> {
-          
-            //    // Execute all steps in parallel using Promise.all
-            //    const stepPromises = this.steps.map((step, index) => 
-            //     Promise.resolve(step.execute(context))
-            //    );
-               
-
-           
+            try {
+                // Execute all steps in parallel using Promise.all
+                const stepPromises = this.steps.map((step, index) => 
+                    step.execute(context).catch(error => ({
+                        stepId: `${this.id}_step_${index}`,
+                        success: false,
+                        result: null,
+                        error: error instanceof Error ? error.message : 'Unknown error occurred'
+                    }))
+                );
+                
+                const results = await Promise.all(stepPromises);
+                return results;
+            } catch (error) {
+                // If Promise.all fails entirely, return error result
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                return [{
+                    stepId: this.id,
+                    success: false,
+                    result: null,
+                    error: `Failed to execute parallel steps: ${errorMessage}`
+                }];
+            }
        }
 }
 
-export class ConditionWorkflow extends BaseWorkFlowStep{
-    private steps:BaseWorkFlowStep[]
-    constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
-     super(config)
-     this.steps=steps;
+export class ConditionStep implements BaseWorkFlowStep{
+    public id: string;
+    public description: string;
+    public type: StepType;
+    public inputSchema?: ZodType<any, any, any>;
+    public outputSchema?: ZodType<any, any, any>;
+    private steps:WorkFlowStep[]
+    constructor(config:StepConfig,steps:WorkFlowStep[]){
+        this.steps=steps;
+        this.id=config.id;
+        this.description=config.description;
+        this.type=config.type;
+        this.inputSchema = config.inputSchema;
+        this.outputSchema = config.outputSchema;
     }
     async execute(context: any): Promise<workflowContext> {
-       
-         //    // Execute all steps in parallel using Promise.all
-         //    const stepPromises = this.steps.map((step, index) => 
-         //     Promise.resolve(step.execute(context))
-         //    );
+        try {
+            // For condition step, execute steps sequentially based on conditions
+            // This is a basic implementation - you may want to add condition logic
+            const results: workflowStepOutput[] = [];
             
-
-        
-    }
-}
-
-export class LoopWorkflow extends BaseWorkFlowStep{
-    private steps:BaseWorkFlowStep[]
-    constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
-     super(config)
-     this.steps=steps;
-    }
-    async execute(context: any): Promise<workflowContext> {
-       
-         //    // Execute all steps in parallel using Promise.all
-         //    const stepPromises = this.steps.map((step, index) => 
-         //     Promise.resolve(step.execute(context))
-         //    );
+            for (let i = 0; i < this.steps.length; i++) {
+                const step = this.steps[i];
+                try {
+                    const result = await step.execute(context);
+                    results.push(result);
+                    
+                    // If step fails and it's a condition, you might want to break or continue
+                    // This depends on your condition logic
+                    if (!result.success) {
+                        break; // Stop on first failure for condition step
+                    }
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                    results.push({
+                        stepId: `${this.id}_step_${i}`,
+                        success: false,
+                        result: null,
+                        error: errorMessage
+                    });
+                    break; // Stop on error
+                }
+            }
             
-
-        
-    }
-}
-
-
-
-
-
-export class WorkFlowStep extends BaseWorkFlowStep {
-    constructor(config: StepConfig) {
-        super(config)
-    }
-    execute(): workflowStepOutput {
-        return {
-            stepId: this.id,
-            success: true,
-            metaData: "any",
-            result: "any"
+            return results;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return [{
+                stepId: this.id,
+                success: false,
+                result: null,
+                error: `Failed to execute condition steps: ${errorMessage}`
+            }];
         }
     }
 }
-export class AgentWorkFlowStep extends BaseWorkFlowStep {
-    private agent:AgentInterface
-    constructor(config: StepConfig, agent: AgentInterface) {
-        super(config)
-        this.agent=agent
+
+export class LoopStep implements BaseWorkFlowStep{
+    public id: string;
+    public description: string;
+    public type: StepType;
+    public inputSchema?: ZodType<any, any, any>;
+    public outputSchema?: ZodType<any, any, any>;
+    private steps:WorkFlowStep[]
+    private maxIterations: number;
+    
+    constructor(config:StepConfig,steps:WorkFlowStep[], maxIterations: number = 10){
+        this.steps=steps;
+        this.id=config.id;
+        this.description=config.description;
+        this.type=config.type;
+        this.inputSchema = config.inputSchema;
+        this.outputSchema = config.outputSchema;
+        this.maxIterations = maxIterations;
     }
-   async execute(): Promise<workflowStepOutput> {
-        let {result,success,error} = await this.agent.execute()
+    
+    async execute(context: any): Promise<workflowContext> {
+        try {
+            const allResults: workflowStepOutput[] = [];
+            let iteration = 0;
+            let shouldContinue = true;
+            
+            while (shouldContinue && iteration < this.maxIterations) {
+                const iterationResults: workflowStepOutput[] = [];
+                
+                // Execute all steps in this iteration
+                for (let i = 0; i < this.steps.length; i++) {
+                    const step = this.steps[i];
+                    try {
+                        const result = await step.execute(context);
+                        result.stepId = `${result.stepId}_loop_${iteration}`;
+                        iterationResults.push(result);
+                        
+                        // You can add loop exit conditions based on step results
+                        // For example, stop if a specific condition is met
+                        if (!result.success) {
+                            shouldContinue = false;
+                            break;
+                        }
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                        iterationResults.push({
+                            stepId: `${this.id}_step_${i}_loop_${iteration}`,
+                            success: false,
+                            result: null,
+                            error: errorMessage
+                        });
+                        shouldContinue = false;
+                        break;
+                    }
+                }
+                
+                allResults.push(...iterationResults);
+                iteration++;
+                
+                // You can add custom loop continuation logic here
+                // For now, it continues until max iterations or failure
+            }
+            
+            return allResults;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return [{
+                stepId: this.id,
+                success: false,
+                result: null,
+                error: `Failed to execute loop steps: ${errorMessage}`
+            }];
+        }
+    }
+}
+export class WorkFlowStep implements BaseWorkFlowStep {
+    public id: string;
+    public description: string;
+    public type: StepType;
+    public inputSchema?: ZodType<any, any, any>;
+    public outputSchema?: ZodType<any, any, any>;
+    private config: StepConfig;
+   
+    constructor(config: StepConfig) {
+        this.config = config;
+        this.id = config.id;
+        this.description = config.description;
+        this.type = config.type;
+        this.inputSchema = config.inputSchema;
+        this.outputSchema = config.outputSchema;
+    }
+    
+    async execute(context: any): Promise<workflowStepOutput> {
+        try {
+            const result = await this.config.execute(context);
+            return {
+                stepId: this.config.id,
+                success: true,
+                result: result,
+                metaData: context
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return {
+                stepId: this.config.id,
+                success: false,
+                result: null,
+                error: errorMessage
+            };
+        }
+    }
+}
+export class AgentStep implements BaseWorkFlowStep {
+    private agent:AgentInterface
+    public id: string;
+    public description: string;
+    public type: StepType;
+    public inputSchema?: ZodType<any, any, any>;
+    public outputSchema?: ZodType<any, any, any>;
+    constructor(config: StepConfig, agent: AgentInterface) {
+        this.agent=agent
+        this.id=config.id;
+        this.description=config.description;
+        this.type=config.type;
+        this.inputSchema = config.inputSchema;
+        this.outputSchema = config.outputSchema;
+    }
+   async execute(context: any): Promise<workflowStepOutput> {
+        let {result,success,error} = await this.agent.execute(context)
         return {
             stepId: this.id,
             success: success,
@@ -120,28 +237,44 @@ export class AgentWorkFlowStep extends BaseWorkFlowStep {
         }
     }
 }
-export class ToolWorkFlowStep extends BaseWorkFlowStep {
+export class ToolStep implements BaseWorkFlowStep {
     private tool:ToolInterface
-    private config:StepConfig
+    public id: string;
+    public description: string;
+    public type: StepType;
+    public inputSchema?: ZodType<any, any, any>;
+    public outputSchema?: ZodType<any, any, any>;
+    
     constructor(config: StepConfig, tool: ToolInterface) {
-
-        super(config)
-        this.tool=tool
-        this.config=config
+        this.id=config.id;
+        this.description=config.description;
+        this.type=config.type;
+        this.inputSchema = config.inputSchema;
+        this.outputSchema = config.outputSchema;
+        this.tool=tool;
     }
     async execute(context:any): Promise<workflowStepOutput> {
-
-        let {result,success,error} = await this.tool.execute({},context)
-        return {
-            stepId: this.id,
-            success: success,
-            result:result,
-            error:error
+        try {
+            let {result,success,error} = await this.tool.execute({},context)
+            return {
+                stepId: this.id,
+                success: success,
+                result:result,
+                error:error
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return {
+                stepId: this.id,
+                success: false,
+                result: null,
+                error: errorMessage
+            };
         }
     }
 }
 
-// export class parllelAgentStep extends BaseWorkFlowStep{
+// export class parllelAgentStep implements BaseWorkFlowStep{
 //     private agents: AgentInterface[]
 //     private config: StepConfig
     
