@@ -20,3 +20,5 @@ export type workflowStepOutput = {
     result: any;
     error?: string;
 };
+
+export type workflowContext=workflowStepOutput[]

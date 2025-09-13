@@ -1,4 +1,4 @@
-import { AgentInterface, StepConfig, StepType, ToolInterface, workflowStepOutput } from "@codebolt/types/agent";
+import { AgentInterface, StepConfig, StepType, ToolInterface, workflowContext, workflowStepOutput } from "@codebolt/types/agent";
 import { ZodAny, ZodType } from "zod";
 
 
@@ -14,9 +14,9 @@ export function createStep(stepId: string, description: string, inputSchema: Zod
 export abstract class BaseWorkFlowStep {
     id: string;
     description: string;
-    inputSchema: ZodType<any, any, any>;
+    inputSchema?: ZodType<any, any, any>;
     outputSchema?: ZodType<any, any, any>;
-    executionFunction: (context: any) => any;
+    // executionFunction: (context: any) => any;
     type: StepType
 
     constructor(config: StepConfig) {
@@ -24,7 +24,7 @@ export abstract class BaseWorkFlowStep {
         this.description = config.description;
         this.inputSchema = config.inputSchema;
         this.outputSchema = config.outputSchema;
-        this.executionFunction = config.execute
+        // this.executionFunction = config.execute
         this.type = config.type
     }
     execute(context:any) {
@@ -32,6 +32,62 @@ export abstract class BaseWorkFlowStep {
     }
 
 }
+
+export class ParallelWorkflow extends BaseWorkFlowStep{
+       private steps:BaseWorkFlowStep[]
+       constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
+        super(config)
+        this.steps=steps;
+       }
+       async execute(context: any): Promise<workflowContext> {
+          
+            //    // Execute all steps in parallel using Promise.all
+            //    const stepPromises = this.steps.map((step, index) => 
+            //     Promise.resolve(step.execute(context))
+            //    );
+               
+
+           
+       }
+}
+
+export class ConditionWorkflow extends BaseWorkFlowStep{
+    private steps:BaseWorkFlowStep[]
+    constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
+     super(config)
+     this.steps=steps;
+    }
+    async execute(context: any): Promise<workflowContext> {
+       
+         //    // Execute all steps in parallel using Promise.all
+         //    const stepPromises = this.steps.map((step, index) => 
+         //     Promise.resolve(step.execute(context))
+         //    );
+            
+
+        
+    }
+}
+
+export class LoopWorkflow extends BaseWorkFlowStep{
+    private steps:BaseWorkFlowStep[]
+    constructor(config:StepConfig,steps:BaseWorkFlowStep[]){
+     super(config)
+     this.steps=steps;
+    }
+    async execute(context: any): Promise<workflowContext> {
+       
+         //    // Execute all steps in parallel using Promise.all
+         //    const stepPromises = this.steps.map((step, index) => 
+         //     Promise.resolve(step.execute(context))
+         //    );
+            
+
+        
+    }
+}
+
+
 
 
 
