@@ -1,0 +1,34 @@
+{
+  "name": "@epoml/example",
+  "version": "1.0.0",
+  "description": "Example usage of EPOML library",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "example:basic": "ts-node src/example-usage.ts",
+    "example:demo": "ts-node src/demo-variables.ts",
+    "example:test": "ts-node src/test-variables.ts",
+    "example:custom": "ts-node src/custom-component-example.ts",
+    "example:new": "ts-node src/new-components-example.ts",
+    "example:conditional-loop": "ts-node src/conditional-loop-example.ts",
+    "example:debug": "ts-node src/debug-template-variable.ts",
+    "example:tool": "ts-node src/tool-components-example.ts",
+    "example:loop": "ts-node src/loop-test.ts",
+    "example:loop-component": "ts-node src/loop-component-example.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "epoml": "workspace:*",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1"
+  }
+}
