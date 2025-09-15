@@ -90,67 +90,82 @@ async function buildFolderStructure(
   if (respectGitignore) {
     gitignorePatterns = await loadGitignorePatterns(rootPath);
   }
-
-  // Collect entries level by level
+  // Breadth-first traversal with normalization and level tracking
   let currentLevel = 0;
-  let currentPaths = [{ path: rootPath, level: 0 }];
-  
-  while (currentLevel <= maxDepth && currentPaths.length > 0 && allEntries.length < itemLimit) {
+  let currentPaths: { path: string; level: number }[] = [{ path: rootPath.replace(/[\/\\]+$/, ''), level: 0 }];
+
+  while (currentLevel < maxDepth && currentPaths.length > 0 && allEntries.length < itemLimit) {
     const nextPaths: { path: string; level: number }[] = [];
-    
+
     for (const { path: currentPath, level } of currentPaths) {
       if (allEntries.length >= itemLimit) break;
-      
       try {
         const listResult = await codebolt.fs.listFile(currentPath, false);
-        
-        if (listResult && listResult.success && listResult.result) {
-          const files = listResult.result.split('\n').filter((file: string) => file.trim());
-          
-          for (const file of files) {
-            if (allEntries.length >= itemLimit) break;
-            
-            const fullPath = path.join(currentPath, file);
-            const relativePath = path.relative(rootPath, fullPath);
-            
-            // Skip if matches gitignore patterns
-            if (respectGitignore && shouldIgnore(relativePath, gitignorePatterns)) {
-              // If it's a directory and matches gitignore, add a placeholder
-              if (await isDirectory(fullPath)) {
-                allEntries.push({
-                  name: file,
-                  fullPath,
-                  isDirectory: true,
-                  level: level + 1
-                });
-              }
-              continue;
+        if (!(listResult && listResult.success && listResult.result)) {
+          continue;
+        }
+
+        const raw = String(listResult.result).trim();
+        if (raw.toLowerCase().startsWith('no files found')) {
+          continue;
+        }
+
+        const files = raw.split('\n').filter((file: string) => file.trim());
+        for (const file of files) {
+          if (allEntries.length >= itemLimit) break;
+
+          const rawName = file.trim();
+          const joinedPath = path.join(currentPath, rawName);
+          const normalizedFullPath = joinedPath.replace(/[\/\\]+$/, '');
+          const relativePath = path.relative(rootPath, normalizedFullPath);
+          const cleanFileName = rawName.replace(/[\/\\]+$/, '');
+
+          const isDir = await isDirectory(normalizedFullPath);
+
+          // Skip if matches gitignore patterns
+          if (respectGitignore && shouldIgnore(relativePath, gitignorePatterns)) {
+            if (isDir) {
+              allEntries.push({
+                name: cleanFileName,
+                fullPath: normalizedFullPath,
+                isDirectory: true,
+                level: level + 1
+              });
             }
-            
-            const isDir = await isDirectory(fullPath);
-            
-            allEntries.push({
-              name: file,
-              fullPath,
-              isDirectory: isDir,
-              level: level + 1
-            });
-            
-            // Add to next level if it's a directory and we haven't reached max depth
-            if (isDir && level < maxDepth) {
-              nextPaths.push({ path: fullPath, level: level + 1 });
-            }
+            continue;
+          }
+
+          allEntries.push({
+            name: cleanFileName,
+            fullPath: normalizedFullPath,
+            isDirectory: isDir,
+            level: level + 1
+          });
+
+          if (isDir) {
+            nextPaths.push({ path: normalizedFullPath, level: level + 1 });
           }
         }
       } catch (error) {
-        // Skip directories we can't read
         continue;
       }
     }
-    
+
     currentPaths = nextPaths;
     currentLevel++;
   }
+  
+  // Debug the collected entries before tree generation
+  console.log(`[FOLDER DEBUG] Collected ${allEntries.length} total entries`);
+  console.log(`[FOLDER DEBUG] Entries by level:`, 
+    allEntries.reduce((acc, entry) => {
+      acc[entry.level] = (acc[entry.level] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>)
+  );
+  console.log(`[FOLDER DEBUG] Sample entries:`, 
+    allEntries.slice(0, 10).map(e => `${e.name} (level ${e.level}) at ${e.fullPath}`)
+  );
   
   // Generate tree structure
   const content = generateTreeStructure(rootPath, allEntries, gitignorePatterns, respectGitignore);
@@ -226,55 +241,140 @@ function generateTreeStructure(
   }
   
   const lines: string[] = [];
-  const pathMap = new Map<string, FileEntry[]>();
   
-  // Group entries by their parent directory
+  // Group entries by level for easier processing
+  const entriesByLevel = new Map<number, FileEntry[]>();
   for (const entry of entries) {
-    const parentPath = path.dirname(entry.fullPath);
-    if (!pathMap.has(parentPath)) {
-      pathMap.set(parentPath, []);
+    if (!entriesByLevel.has(entry.level)) {
+      entriesByLevel.set(entry.level, []);
     }
-    pathMap.get(parentPath)!.push(entry);
+    entriesByLevel.get(entry.level)!.push(entry);
   }
   
-  // Sort entries
-  for (const [parentPath, children] of pathMap.entries()) {
-    children.sort((a, b) => {
+  // Build a hierarchical structure using a simpler approach
+  interface TreeNode {
+    name: string;
+    fullPath: string;
+    isDirectory: boolean;
+    children: TreeNode[];
+    level: number;
+  }
+  
+  // Create a map to store all nodes
+  const nodeMap = new Map<string, TreeNode>();
+  
+  // First, create nodes for all entries
+  for (const entry of entries) {
+    const node: TreeNode = {
+      name: entry.name,
+      fullPath: entry.fullPath,
+      isDirectory: entry.isDirectory,
+      children: [],
+      level: entry.level
+    };
+    nodeMap.set(entry.fullPath, node);
+  }
+  
+  // Build parent-child relationships using a simpler approach
+  const rootNodes: TreeNode[] = [];
+  
+  console.log(`[TREE DEBUG] Building tree from ${entries.length} entries`);
+  console.log(`[TREE DEBUG] Root path: ${rootPath}`);
+  
+  // First pass: identify root nodes (direct children of root)
+  for (const entry of entries) {
+    const node = nodeMap.get(entry.fullPath)!;
+    const parentPath = path.dirname(entry.fullPath);
+    
+    // Normalize paths for comparison
+    const normalizedRootPath = path.normalize(rootPath);
+    const normalizedParentPath = path.normalize(parentPath);
+    
+    console.log(`[TREE DEBUG] Checking ${entry.name}: parentPath="${normalizedParentPath}", rootPath="${normalizedRootPath}"`);
+    
+    if (normalizedParentPath === normalizedRootPath) {
+      console.log(`[TREE DEBUG] Adding ${entry.name} as root node`);
+      rootNodes.push(node);
+    }
+  }
+  
+  // Second pass: build nested relationships
+  for (const entry of entries) {
+    const node = nodeMap.get(entry.fullPath)!;
+    const parentPath = path.dirname(entry.fullPath);
+    const normalizedRootPath = path.normalize(rootPath);
+    const normalizedParentPath = path.normalize(parentPath);
+    
+    // Skip root nodes (already processed)
+    if (normalizedParentPath === normalizedRootPath) {
+      continue;
+    }
+    
+    // Find the parent node
+    const parentNode = nodeMap.get(parentPath);
+    if (parentNode) {
+      console.log(`[TREE DEBUG] Adding ${entry.name} as child of ${parentNode.name}`);
+      parentNode.children.push(node);
+    } else {
+      console.log(`[TREE DEBUG] Parent not found for ${entry.name}, parent path: ${parentPath}`);
+      // As fallback, add to root
+      rootNodes.push(node);
+    }
+  }
+  
+  console.log(`[TREE DEBUG] Final root nodes: ${rootNodes.length}`);
+  console.log(`[TREE DEBUG] Root nodes:`, rootNodes.map(n => `${n.name} (${n.children.length} children)`));
+  
+  // Sort function for nodes
+  function sortNodes(nodes: TreeNode[]) {
+    nodes.sort((a, b) => {
       // Directories first, then files
       if (a.isDirectory && !b.isDirectory) return -1;
       if (!a.isDirectory && b.isDirectory) return 1;
       return a.name.localeCompare(b.name);
     });
-  }
-  
-  // Generate tree
-  function addEntries(currentPath: string, prefix: string = '', isLast: boolean = true) {
-    const children = pathMap.get(currentPath) || [];
     
-    for (let i = 0; i < children.length; i++) {
-      const entry = children[i];
-      const isLastChild = i === children.length - 1;
-      const connector = isLastChild ? '└───' : '├───';
-      const childPrefix = prefix + (isLastChild ? '    ' : '│   ');
-      
-      const relativePath = path.relative(rootPath, entry.fullPath);
-      const isIgnored = respectGitignore && shouldIgnore(relativePath, gitignorePatterns);
-      
-      if (entry.isDirectory) {
-        const displayName = isIgnored ? `${entry.name}/...` : `${entry.name}/`;
-        lines.push(`${prefix}${connector}${displayName}`);
-        
-        if (!isIgnored) {
-          addEntries(entry.fullPath, childPrefix, isLastChild);
-        }
-      } else {
-        lines.push(`${prefix}${connector}${entry.name}`);
+    // Recursively sort children
+    for (const node of nodes) {
+      if (node.children.length > 0) {
+        sortNodes(node.children);
       }
     }
   }
   
-  // Start with root directory entries
-  addEntries(rootPath);
+  // Sort all nodes
+  sortNodes(rootNodes);
+  
+  // Generate tree display
+  function renderNode(node: TreeNode, prefix: string = '', isLast: boolean = true): void {
+    const connector = isLast ? '└───' : '├───';
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    
+    const relativePath = path.relative(rootPath, node.fullPath);
+    const isIgnored = respectGitignore && shouldIgnore(relativePath, gitignorePatterns);
+    
+    if (node.isDirectory) {
+      const displayName = isIgnored ? `${node.name}/...` : `${node.name}/`;
+      lines.push(`${prefix}${connector}${displayName}`);
+      
+      if (!isIgnored && node.children.length > 0) {
+        for (let i = 0; i < node.children.length; i++) {
+          const child = node.children[i];
+          const isLastChild = i === node.children.length - 1;
+          renderNode(child, childPrefix, isLastChild);
+        }
+      }
+    } else {
+      lines.push(`${prefix}${connector}${node.name}`);
+    }
+  }
+  
+  // Render all root nodes
+  for (let i = 0; i < rootNodes.length; i++) {
+    const node = rootNodes[i];
+    const isLastChild = i === rootNodes.length - 1;
+    renderNode(node, '', isLastChild);
+  }
   
   return lines.join('\n');
 }
@@ -289,9 +389,13 @@ function generateMarkdownFolder(
 ): Component {
   let output = '';
   
-  // Add item limit message if provided
+  // Add item count message
   if (itemLimit) {
-    output += `Showing up to ${itemLimit} items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (${itemLimit} items) was reached.\n\n`;
+    const actualCount = result.itemCount;
+    const displayMessage = result.hasMore 
+      ? `Showing ${actualCount} of ${actualCount}+ items (display limit of ${itemLimit} reached).`
+      : `Showing ${actualCount} items.`;
+    output += `${displayMessage} Folders or files indicated with ... contain more items not shown, were ignored, or reached the display limit.\n\n`;
   }
   
   // Add absolute path
@@ -415,9 +519,13 @@ function generateTextFolder(
 ): Component {
   let output = '';
   
-  // Add item limit message if provided
+  // Add item count message
   if (itemLimit) {
-    output += `Showing up to ${itemLimit} items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (${itemLimit} items) was reached.\n\n`;
+    const actualCount = result.itemCount;
+    const displayMessage = result.hasMore 
+      ? `Showing ${actualCount} of ${actualCount}+ items (display limit of ${itemLimit} reached).`
+      : `Showing ${actualCount} items.`;
+    output += `${displayMessage} Folders or files indicated with ... contain more items not shown, were ignored, or reached the display limit.\n\n`;
   }
   
   // Add absolute path
