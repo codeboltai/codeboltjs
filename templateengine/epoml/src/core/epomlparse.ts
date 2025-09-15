@@ -47,8 +47,37 @@ import {
   Loop,
   DateTime,
   OSInformation,
-  GitCheck
+  GitCheck,
+  RawText
 } from '../components';
+
+/**
+ * Preprocess RawText components to handle them before JSX parsing
+ * This allows RawText to contain literal angle brackets without JSX parsing errors
+ * @param prompt The EPOML string to preprocess
+ * @returns The processed prompt with RawText components converted to use content prop
+ */
+function preprocessRawText(prompt: string): string {
+  // Match RawText components with children content, including nested angle brackets
+  const rawTextRegex = /<RawText(\s+[^>]*)?>([^]*?)<\/RawText>/g;
+  
+  return prompt.replace(rawTextRegex, (match, attributes, content) => {
+    // Clean up the attributes (if any)
+    const attrs = attributes ? attributes.trim() : '';
+    
+    // Escape the content for use in a JavaScript string
+    const escapedContent = content
+      .replace(/\\/g, '\\\\')     // Escape backslashes
+      .replace(/"/g, '\\"')       // Escape quotes
+      .replace(/\n/g, '\\n')      // Escape newlines
+      .replace(/\r/g, '\\r')      // Escape carriage returns
+      .replace(/\t/g, '\\t');     // Escape tabs
+    
+    // Convert to a self-closing RawText with content prop
+    const attrsWithSpace = attrs ? ` ${attrs}` : '';
+    return `<RawText${attrsWithSpace} content={"${escapedContent}"} />`;
+  });
+}
 
 /**
  * Parse EPOML (Enhanced Plain Old Markup Language) and convert it to a string
@@ -60,13 +89,16 @@ export async function epomlparse(prompt: string, variables?: Record<string, any>
   // Set the evaluation context with the provided variables
   setEvaluationContext(variables || {});
   
+  // Process RawText components before JSX parsing
+  const processedPrompt = preprocessRawText(prompt);
+  
   // Escape template variables {{}} to avoid JSX parsing issues
   // We'll replace them with a placeholder and restore them later
   const templateVarPlaceholder = '__TEMPLATE_VAR__';
   const templateVarMap: Record<string, string> = {};
   let placeholderCounter = 0;
   
-  const escapedPrompt = prompt.replace(/\{\{([^}]+)\}\}/g, (match) => {
+  const escapedPrompt = processedPrompt.replace(/\{\{([^}]+)\}\}/g, (match) => {
     const placeholder = `${templateVarPlaceholder}_${placeholderCounter++}`;
     templateVarMap[placeholder] = match;
     return placeholder;
@@ -152,6 +184,7 @@ export async function epomlparse(prompt: string, variables?: Record<string, any>
   (global as any).DateTime = DateTime;
   (global as any).OSInformation = OSInformation;
   (global as any).GitCheck = GitCheck;
+  (global as any).RawText = RawText;
   
   // Make variables available globally for the eval
   if (variables) {

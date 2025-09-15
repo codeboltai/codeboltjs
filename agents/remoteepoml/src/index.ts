@@ -59,10 +59,13 @@ const prompt = `<>
 
 
     # Examples (Illustrating Tone and Workflow)
-    <exampleasdf>
-    user: 1 + 2
-    model: 3
-    </exampleasd>
+    
+    <RawText>
+      <example>
+      user: 1 + 2
+      model: 3
+      </example>
+    </RawText>
 </>
 `;
             let parsedPrompt = await epomlparse(prompt);

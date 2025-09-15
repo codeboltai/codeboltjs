@@ -47,6 +47,7 @@ import {
   DateTime,
   OSInformation,
   GitCheck,
+  RawText,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -90,7 +91,8 @@ import {
   type LoopProps,
   type DateTimeProps,
   type OSInformationProps,
-  type GitCheckProps
+  type GitCheckProps,
+  type RawTextProps
 } from './components';
 import { epomlparse } from './core/epomlparse';
 import { type TemplateVariables, type Component } from './types';
@@ -145,6 +147,7 @@ export {
   DateTime,
   OSInformation,
   GitCheck,
+  RawText,
   epomlparse, 
   registerComponent, 
   unregisterComponent, 
@@ -194,5 +197,6 @@ export {
   type DateTimeProps,
   type OSInformationProps,
   type GitCheckProps,
+  type RawTextProps,
   type TemplateVariables
 };
