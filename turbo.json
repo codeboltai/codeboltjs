@@ -5,7 +5,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "outputLogs": "errors-only"
     },
     "lint": {
       "outputs": []
@@ -35,7 +36,8 @@
     },
     "example:basic": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "outputLogs": "new-only"
     }
   }
 }

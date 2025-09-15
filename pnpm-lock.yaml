@@ -167,6 +167,28 @@ importers:
         specifier: ^5.3.3
         version: 5.9.2
 
+  agents/remoteepoml:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.10
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.9
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.2
+
   common/eslint-config:
     devDependencies:
       '@eslint/js':
