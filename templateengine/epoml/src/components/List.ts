@@ -1,5 +1,6 @@
 import { createElement } from '../core/createElement';
 import { Component, BaseComponentProps } from '../types';
+import { render } from '../core/renderer';
 
 export interface ListProps extends BaseComponentProps {
   /** Whether to use numbered (ordered) list instead of bulleted (unordered) list */
@@ -8,7 +9,7 @@ export interface ListProps extends BaseComponentProps {
   start?: number;
 }
 
-export function List(props: ListProps): Component {
+export async function List(props: ListProps): Promise<Component> {
   const {
     ordered = false,
     start,
@@ -18,20 +19,20 @@ export function List(props: ListProps): Component {
     children = []
   } = props;
 
-  // Process children content - for List component, we extract content from ListItem children
-  const items = children.map(child => {
-    if (typeof child === 'string') {
-      return child.trim();
-    } else if (typeof child === 'object' && child !== null && 'children' in child) {
-      // For ListItem components, extract content from children
-      if (Array.isArray(child.children)) {
-        // Join all string children of the ListItem
-        return child.children.map(c => typeof c === 'string' ? c : '').join('').trim();
+  // Process children content - render each child component first
+  const renderedItems = await Promise.all(
+    children.map(async child => {
+      if (typeof child === 'string') {
+        return child.trim();
+      } else {
+        // Render the child component (like ListItem) to get its content
+        const rendered = await render(child);
+        return rendered.trim();
       }
-      return '';
-    }
-    return String(child);
-  }).filter(item => item !== '');
+    })
+  );
+
+  const items = renderedItems.filter(item => item !== '');
 
   // Generate the component based on syntax
   switch (syntax) {

@@ -44,7 +44,10 @@ import {
   MessageContext,
   ToolRequest,
   ToolResponse,
-  Loop
+  Loop,
+  DateTime,
+  OSInformation,
+  GitCheck
 } from '../components';
 
 /**
@@ -146,6 +149,9 @@ export async function epomlparse(prompt: string, variables?: Record<string, any>
   (global as any).ToolRequest = ToolRequest;
   (global as any).ToolResponse = ToolResponse;
   (global as any).Loop = Loop;
+  (global as any).DateTime = DateTime;
+  (global as any).OSInformation = OSInformation;
+  (global as any).GitCheck = GitCheck;
   
   // Make variables available globally for the eval
   if (variables) {

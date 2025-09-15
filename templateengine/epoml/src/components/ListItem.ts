@@ -1,10 +1,11 @@
 import { createElement } from '../core/createElement';
 import { Component, BaseComponentProps } from '../types';
+import { render } from '../core/renderer';
 
 export interface ListItemProps extends BaseComponentProps {
 }
 
-export function ListItem(props: ListItemProps): Component {
+export async function ListItem(props: ListItemProps): Promise<Component> {
   const {
     syntax = 'markdown',
     className,
@@ -12,8 +13,18 @@ export function ListItem(props: ListItemProps): Component {
     children = []
   } = props;
 
-  // Process children content
-  let content = children.map(child => typeof child === 'string' ? child : '').join('');
+  // Process children content by rendering nested components
+  const renderedChildren = await Promise.all(
+    children.map(child => {
+      if (typeof child === 'string') {
+        return Promise.resolve(child);
+      } else {
+        return render(child);
+      }
+    })
+  );
+  
+  const content = renderedChildren.join('');
 
   // Generate the component based on syntax
   switch (syntax) {
@@ -43,7 +54,7 @@ function generateMarkdownListItem(
   className?: string,
   speaker?: string
 ): Component {
-  return createElement('div', { className, 'data-speaker': speaker }, `- ${content}`);
+  return createElement('div', { className, 'data-speaker': speaker }, content);
 }
 
 function generateHtmlListItem(
@@ -86,5 +97,5 @@ function generateTextListItem(
   className?: string,
   speaker?: string
 ): Component {
-  return createElement('div', { className, 'data-speaker': speaker }, `- ${content}`);
+  return createElement('div', { className, 'data-speaker': speaker }, content);
 }

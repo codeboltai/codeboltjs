@@ -45,3 +45,6 @@ export { MCPToolServer, type MCPToolServerProps } from './MCPToolServer';
 export { CodeboltToolFunction, type CodeboltToolFunctionProps } from './CodeboltToolFunction';
 export { MCPToolFunction, type MCPToolFunctionProps } from './MCPToolFunction';
 export { Loop, type LoopProps } from './Loop';
+export { DateTime, type DateTimeProps } from './DateTime';
+export { OSInformation, type OSInformationProps } from './OSInformation';
+export { GitCheck, type GitCheckProps } from './GitCheck';

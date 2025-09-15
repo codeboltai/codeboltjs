@@ -44,6 +44,9 @@ import {
   ToolRequest,
   ToolResponse,
   Loop,
+  DateTime,
+  OSInformation,
+  GitCheck,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -84,7 +87,10 @@ import {
   type MessageContextProps,
   type ToolRequestProps,
   type ToolResponseProps,
-  type LoopProps
+  type LoopProps,
+  type DateTimeProps,
+  type OSInformationProps,
+  type GitCheckProps
 } from './components';
 import { epomlparse } from './core/epomlparse';
 import { type TemplateVariables, type Component } from './types';
@@ -136,6 +142,9 @@ export {
   ToolRequest,
   ToolResponse,
   Loop,
+  DateTime,
+  OSInformation,
+  GitCheck,
   epomlparse, 
   registerComponent, 
   unregisterComponent, 
@@ -182,5 +191,8 @@ export {
   type ToolRequestProps,
   type ToolResponseProps,
   type LoopProps,
+  type DateTimeProps,
+  type OSInformationProps,
+  type GitCheckProps,
   type TemplateVariables
 };
