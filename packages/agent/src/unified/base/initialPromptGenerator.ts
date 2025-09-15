@@ -1,6 +1,6 @@
-import {UnifiedMessageProcessingError} from '../types/types';
-import type { FlatUserMessage} from '@codebolt/types/sdk';
-import type { InitialPromptGeneratorInterface, MessageModifier, ProcessedMessage} from '@codebolt/types/agent';
+import { UnifiedMessageProcessingError } from '../types/types';
+import type { FlatUserMessage, MessageObject } from '@codebolt/types/sdk';
+import type { InitialPromptGeneratorInterface, MessageModifier, ProcessedMessage } from '@codebolt/types/agent';
 import codebolt from '@codebolt/codeboltjs';
 
 
@@ -16,10 +16,10 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
     private enableLogging: boolean;
     private baseSystemPrompt?: string;
 
-    constructor(options: { 
+    constructor(options: {
         processors?: MessageModifier[];
         baseSystemPrompt?: string;
-        metaData?: Record<string, unknown>;  
+        metaData?: Record<string, unknown>;
         enableLogging?: boolean;
         templating?: boolean;
     } = {}) {
@@ -42,16 +42,11 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
             const content = input.userMessage;
 
             // Create messages array, starting with system message if baseSystemPrompt is defined
-            const messages = [];
-         
-            messages.push({
-                role: 'user' as const,
-                content
-            });
+            const messages: MessageObject[] = [];
 
             let createdMessage: ProcessedMessage = {
                 message: {
-                    messages,
+                    messages: messages,
                     tools: []
                 },
                 metadata: {
@@ -60,7 +55,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
                     threadId: input.threadId
                 }
             };
-            
+
 
             // Apply all message modifiers in sequence
             // Each modifier receives the original request (FlatUserMessage) and the current processed message
@@ -68,13 +63,21 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
                 try {
                     // Each modifier returns a new ProcessedMessage
                     createdMessage = await messageModifier.modify(input, createdMessage);
-                   
 
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
                     // Continue with other modifiers
                 }
             }
+            createdMessage.message.messages.push({
+                role: 'assistant' as const,
+                content:"Got it. Thanks for the context!"
+            });
+
+            createdMessage.message.messages.push({
+                role: 'user' as const,
+                content
+            });
 
             if (this.enableLogging) {
                 console.log('[InitialPromptGenerator] Processing completed:', {
@@ -96,13 +99,13 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             throw new UnifiedMessageProcessingError(
-                `Failed to process message: ${errorMessage}`            
+                `Failed to process message: ${errorMessage}`
             );
         }
     }
 
-   
-     
+
+
     /**
      * Set context value
      */
@@ -127,11 +130,11 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
     /**
      * Get all message modifiers
      */
-    updateProcessors(processors: MessageModifier[]){
-        this.processors=processors;
+    updateProcessors(processors: MessageModifier[]) {
+        this.processors = processors;
     };
 
-    getProcessors(){
+    getProcessors() {
         return this.processors
     }
 

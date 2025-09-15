@@ -19,7 +19,7 @@ export class ToolInjectionModifier extends BaseMessageModifier {
         this.options = {
             toolsLocation: options.toolsLocation || 'Tool',
             includeToolDescriptions: options.includeToolDescriptions !== false,
-            maxToolsInMessage: options.maxToolsInMessage || 20,
+            maxToolsInMessage: options.maxToolsInMessage || 30,
             giveToolExamples: options.giveToolExamples || false,
             maxToolExamples: options.maxToolExamples || 2
         };
@@ -28,6 +28,7 @@ export class ToolInjectionModifier extends BaseMessageModifier {
     async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             const toolsResponse = await codebolt.mcp.listMcpFromServers(['codebolt']);
+           
             const tools = toolsResponse?.data || [];
             
             if (tools.length === 0) {

@@ -57,7 +57,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
             }
         }
         else{
-            this.completed=true;
+            // this.completed=true;
             nextMessage.message.messages.push({
                 role: "user",
                 content: [{
@@ -234,7 +234,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                     );
 
                     if (result === "") {
-                        this.completed = true;
+                        // this.completed = true;
                         result = "The user is satisfied with the result.";
                     }
                     let toolResult = this.parseToolResult(taskCompletedBlock.id, result)

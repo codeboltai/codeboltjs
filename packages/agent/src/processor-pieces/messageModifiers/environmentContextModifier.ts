@@ -26,7 +26,9 @@ export class EnvironmentContextModifier extends BaseMessageModifier {
         '.DS_Store',
         'coverage/**',
         '.next/**',
-        '.nuxt/**'
+        '.nuxt/**',
+        '.codebolt',
+        '.codebolt/**',
     ];
 
     constructor(options: EnvironmentContextOptions = {}){
@@ -96,24 +98,13 @@ ${directoryListing}
 
             const finalContent = contextParts.join('\n\n');
             const contextMessage: MessageObject = {
-                role: 'system',
+                role: 'user',
                 content: finalContent
             };
 
-            // Find existing system message or add new one
+            // Push the context message to the messages array
             const messages = [...createdMessage.message.messages];
-            const systemMessageIndex = messages.findIndex(msg => msg.role === 'system');
-            
-            if (systemMessageIndex !== -1) {
-                // Append to existing system message
-                messages[systemMessageIndex] = {
-                    ...messages[systemMessageIndex],
-                    content: `${messages[systemMessageIndex].content}\n\n${finalContent}`
-                };
-            } else {
-                // Add new system message at the beginning
-                messages.unshift(contextMessage);
-            }
+            messages.push(contextMessage);
 
             return Promise.resolve({
                 message: {

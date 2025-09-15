@@ -25,8 +25,6 @@ export class Agent implements AgentInterface {
         this.enableLogging = config.enableLogging !== false;
     }
 
-   
-
     async execute(reqMessage: FlatUserMessage): Promise<{ success: boolean; result: any; error?: string; }> {
         if (!reqMessage) {
             return {

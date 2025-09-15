@@ -8,14 +8,10 @@ import codebolt from "@codebolt/codeboltjs";
 export interface AtFileProcessorOptions {
     maxFileSize?: number;
     allowedExtensions?: string[];
-    basePath?: string;
     enableRecursiveSearch?: boolean;
 }
 
-interface AtCommandPart {
-    type: 'text' | 'atPath';
-    content: string;
-}
+
 
 interface FileFilteringOptions {
     respectGitIgnore: boolean;
@@ -35,7 +31,6 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
         this.options = {
             maxFileSize: options.maxFileSize || 1024 * 1024, // 1MB default
             allowedExtensions: options.allowedExtensions || ['.ts', '.js', '.d.ts', '.json', '.md', '.txt', '.yml', '.yaml', '.xml', '.html', '.css', '.py', '.java', '.cpp', '.c', '.h'],
-            basePath: options.basePath || process.cwd(),
             enableRecursiveSearch: options.enableRecursiveSearch !== false
         };
     }
@@ -62,15 +57,22 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
             
             if (lastUserMessageIndex !== -1 && result.processedContent) {
                 const lastUserMessage = messages[lastUserMessageIndex];
-                const currentContent = Array.isArray(lastUserMessage.content) 
-                    ? lastUserMessage.content 
-                    : [{ type: 'text', text: lastUserMessage.content as string }];
                 
-                // Add file content as separate content parts (like gemini-cli)
+                // Convert string content to array format if needed
+                let currentContent: any[];
+                if (Array.isArray(lastUserMessage.content)) {
+                    currentContent = lastUserMessage.content;
+                } else {
+                    // Convert string content to array format
+                    currentContent = [{ type: 'text', text: lastUserMessage.content as string }];
+                }
+                
+                // Ensure processedContent is in array format
                 const newContent = Array.isArray(result.processedContent) 
                     ? result.processedContent 
                     : [{ type: 'text', text: result.processedContent }];
                 
+                // Merge existing content with processed content
                 messages[lastUserMessageIndex] = {
                     ...lastUserMessage,
                     content: [...currentContent, ...newContent]
@@ -108,9 +110,9 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
         let workspaceDirectories: string[] = [];
         try {
             const { projectPath } = await codebolt.project.getProjectPath();
-            workspaceDirectories = projectPath ? [projectPath] : [this.options.basePath!];
+            workspaceDirectories = projectPath ? [projectPath] : [await this.getProjectPath()];
         } catch (error) {
-            workspaceDirectories = [this.options.basePath!];
+            workspaceDirectories = [await this.getProjectPath()];
         }
 
         // Process mentioned files using readManyFiles
@@ -252,7 +254,8 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
         }
         
         // Fallback to original path
-        return path.isAbsolute(pathName) ? pathName : path.resolve(this.options.basePath!, pathName);
+        const projectPath = await this.getProjectPath();
+        return path.isAbsolute(pathName) ? pathName : path.resolve(projectPath, pathName);
     }
 
     private async globSearch(pathName: string, dir: string): Promise<string | null> {
@@ -319,14 +322,16 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
                         for (const filePath of files.slice(0, 20)) { // Limit files
                             try {
                                 const content = await this.readFileContent(filePath);
-                                results.push({ path: path.relative(this.options.basePath!, filePath), content });
+                                const projectPath = await this.getProjectPath();
+                                results.push({ path: path.relative(projectPath, filePath), content });
                             } catch (error) {
                                 results.push({ path: filePath, content: `[Error reading file: ${error}]` });
                             }
                         }
                     } else {
                         // Handle single file
-                        const resolvedPath = path.isAbsolute(pathSpec) ? pathSpec : path.resolve(this.options.basePath!, pathSpec);
+                        const projectPath = await this.getProjectPath();
+                        const resolvedPath = path.isAbsolute(pathSpec) ? pathSpec : path.resolve(projectPath, pathSpec);
                         const content = await this.readFileContent(resolvedPath);
                         results.push({ path: pathSpec, content });
                     }
@@ -339,7 +344,8 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
             // Fallback to individual file reading
             for (const pathSpec of pathSpecs) {
                 try {
-                    const resolvedPath = path.isAbsolute(pathSpec) ? pathSpec : path.resolve(this.options.basePath!, pathSpec);
+                    const projectPath = await this.getProjectPath();
+                    const resolvedPath = path.isAbsolute(pathSpec) ? pathSpec : path.resolve(projectPath, pathSpec);
                     const content = await this.readFileContent(resolvedPath);
                     results.push({ path: pathSpec, content });
                 } catch (error) {
@@ -445,6 +451,16 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
             }
         }
         return -1;
+    }
+
+    private async getProjectPath(): Promise<string> {
+        try {
+            const { projectPath } = await codebolt.project.getProjectPath();
+            return projectPath || process.cwd();
+        } catch (error) {
+            console.warn('Failed to get project path from codebolt.project.getProjectPath(), falling back to process.cwd()');
+            return process.cwd();
+        }
     }
 
     private isNodeError(error: unknown): error is NodeJS.ErrnoException {
