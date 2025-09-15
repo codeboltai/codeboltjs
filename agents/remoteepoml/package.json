@@ -23,7 +23,6 @@
     "@codebolt/agent": "workspace:*",
     "@codebolt/codeboltjs": "workspace:*",
     "epoml": "workspace:*",
-    "@swc/core": "^1.13.5",
     "@swc/wasm": "^1.13.5"
   },
   "devDependencies": {

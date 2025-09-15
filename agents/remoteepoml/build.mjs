@@ -11,8 +11,6 @@ esbuild.build({
   external: [
     'bufferutil', 
     'utf-8-validate',
-    '@swc/core',
-    '@swc/wasm',
-    '@swc/core-win32-x64-msvc'
+    '@swc/wasm'
   ],
 }).catch(() => process.exit(1));

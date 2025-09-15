@@ -1,4 +1,4 @@
-import * as swc from '@swc/core';
+import * as swc from '@swc/wasm';
 import { render, setEvaluationContext } from './renderer';
 import { createElement } from './createElement';
 import { Fragment } from './Fragment';
