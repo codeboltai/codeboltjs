@@ -22,6 +22,19 @@ codebolt.onMessage(async (message: any): Promise<any> => {
 // </GitCheck>
 // </>` 
 const prompt = `<>
+      This is the Gemini CLI. We are setting up the context for our chat.
+        Today's date is <DateTime day="today" /> (formatted according to the user's locale).
+
+        My operating system is: <OSInformation os={true} osVersion={true} />
+
+          I'm currently working in the directory: /Users/utkarshshukla/Codebolt/aci
+
+          Here is the folder structure of the current working directory:
+
+          <Folder path="/Users/utkarshshukla/Codebolt/aci" itemLimit={100} />
+          <GitCheck isARepo={true} path="/path/to/project" showGitInfo={true}>
+        Project is under version control
+      </GitCheck>
         You are an interactive CLI agent specializing in software engineering tasks. Your primary goal is to help users safely and efficiently, adhering strictly to the following instructions and utilizing your available tools.
       
       <List>
