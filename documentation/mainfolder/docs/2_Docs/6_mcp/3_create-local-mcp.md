@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 const toolbox = new ToolBox({
   name: "hello",
-  version: "1.0.0"
+  version: "1.0.0"  
 });
 
 toolbox.addTool({

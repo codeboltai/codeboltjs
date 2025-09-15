@@ -1,8 +1,11 @@
 import codebolt from '@codebolt/codeboltjs';
+import { epomlparse } from 'epoml';
 // Main message handler for CodeBolt
 codebolt.onMessage(async (message: any): Promise<any> => {
     try {
-        codebolt.chat.sendMessage("Hi", {message: "Hello"});
+        const prompt = `<Folder path="C:\\btpl\\agents\\ApiExample\\sample" />` 
+
+        codebolt.chat.sendMessage(await epomlparse(prompt), {message: "Hello"});
     } catch (error) {
         console.error(error);
     }

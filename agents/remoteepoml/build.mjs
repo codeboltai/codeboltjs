@@ -8,5 +8,11 @@ esbuild.build({
   target: 'node20',
   outfile: 'dist/index.js',
   format: 'cjs',
-  external: ['bufferutil', 'utf-8-validate'],
+  external: [
+    'bufferutil', 
+    'utf-8-validate',
+    '@swc/core',
+    '@swc/wasm',
+    '@swc/core-win32-x64-msvc'
+  ],
 }).catch(() => process.exit(1));
