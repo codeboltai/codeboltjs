@@ -48,6 +48,7 @@ import {
   OSInformation,
   GitCheck,
   RawText,
+  MCPToolServer,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -93,6 +94,8 @@ import {
   type OSInformationProps,
   type GitCheckProps,
   type RawTextProps
+  type MCPToolServerProps
+
 } from './components';
 import { epomlparse } from './core/epomlparse';
 import { type TemplateVariables, type Component } from './types';
@@ -153,6 +156,7 @@ export {
   unregisterComponent, 
   getComponent, 
   clearComponents,
+  MCPToolServer,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -198,5 +202,6 @@ export {
   type OSInformationProps,
   type GitCheckProps,
   type RawTextProps,
-  type TemplateVariables
+  type TemplateVariables,
+  type MCPToolServerProps
 };

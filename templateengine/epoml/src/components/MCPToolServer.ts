@@ -1,5 +1,6 @@
 import { createElement } from '../core/createElement';
 import { Component, BaseComponentProps } from '../types';
+import codebolt from '@codebolt/codeboltjs';
 
 export interface MCPToolServerProps extends BaseComponentProps {
   /** List of MCP server names */
@@ -8,15 +9,26 @@ export interface MCPToolServerProps extends BaseComponentProps {
   templateVars?: Record<string, any>;
 }
 
-export function MCPToolServer(props: MCPToolServerProps): Component {
+export async function MCPToolServer(props: MCPToolServerProps): Promise<Component> {
   const {
-    mcpServerNames = [],
+    mcpServerNames = ['codebolt'],
     templateVars = {},
     syntax = 'markdown',
     className,
     speaker,
     children = []
   } = props;
+
+  // Fetch MCP tools from servers
+  let mcpTools: any[] = [];
+  try {
+    const enabledResponse = await codebolt.mcp.listMcpFromServers(mcpServerNames);
+    if (enabledResponse && enabledResponse.data) {
+      mcpTools = enabledResponse.data;
+    }
+  } catch (error) {
+    console.error('Error fetching MCP tools:', error);
+  }
 
   // Process template variables
   const processedMCPServerNames = mcpServerNames.map(name => {
@@ -27,28 +39,29 @@ export function MCPToolServer(props: MCPToolServerProps): Component {
   // Generate the component based on syntax
   switch (syntax) {
     case 'markdown':
-      return generateMarkdownMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateMarkdownMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
     
     case 'html':
-      return generateHtmlMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateHtmlMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
     
     case 'json':
-      return generateJsonMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateJsonMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
     
     case 'yaml':
-      return generateYamlMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateYamlMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
     
     case 'xml':
-      return generateXmlMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateXmlMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
     
     case 'text':
     default:
-      return generateTextMCPToolServer(processedMCPServerNames, children, className, speaker);
+      return generateTextMCPToolServer(processedMCPServerNames, mcpTools, children, className, speaker);
   }
 }
 
 function generateMarkdownMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -63,9 +76,32 @@ function generateMarkdownMCPToolServer(
     result += '\n';
   }
   
+  // Display MCP tools
+  if (mcpTools.length > 0) {
+    result += `### Available Tools (${mcpTools.length}):\n\n`;
+    mcpTools.forEach((tool, index) => {
+      if (tool.type === 'function' && tool.function) {
+        const func = tool.function;
+        result += `${index + 1}. **${func.name}**\n`;
+        result += `   - *${func.description}*\n`;
+        
+        if (func.parameters && func.parameters.properties) {
+          const requiredParams = func.parameters.required || [];
+          const paramNames = Object.keys(func.parameters.properties);
+          if (paramNames.length > 0) {
+            result += `   - Parameters: ${paramNames.map(param => 
+              requiredParams.includes(param) ? `**${param}**` : param
+            ).join(', ')}\n`;
+          }
+        }
+        result += '\n';
+      }
+    });
+  }
+  
   // Process children (for foreach/for loop support)
   if (children.length > 0) {
-    result += `### Tools:\n\n`;
+    result += `### Additional Content:\n\n`;
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
     result += childrenContent;
   }
@@ -75,6 +111,7 @@ function generateMarkdownMCPToolServer(
 
 function generateHtmlMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -99,11 +136,39 @@ function generateHtmlMCPToolServer(
     html += `</ul>`;
   }
   
+  // Display MCP tools
+  if (mcpTools.length > 0) {
+    html += `<h3>Available Tools (${mcpTools.length}):</h3>`;
+    html += `<div class="tools-list">`;
+    mcpTools.forEach((tool, index) => {
+      if (tool.type === 'function' && tool.function) {
+        const func = tool.function;
+        html += `<div class="tool-item">`;
+        html += `<h4>${index + 1}. ${func.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h4>`;
+        html += `<p class="tool-description"><em>${func.description.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</em></p>`;
+        
+        if (func.parameters && func.parameters.properties) {
+          const requiredParams = func.parameters.required || [];
+          const paramNames = Object.keys(func.parameters.properties);
+          if (paramNames.length > 0) {
+            html += `<p class="tool-parameters"><strong>Parameters:</strong> `;
+            html += paramNames.map(param => 
+              requiredParams.includes(param) ? `<strong>${param}</strong>` : param
+            ).join(', ');
+            html += `</p>`;
+          }
+        }
+        html += `</div>`;
+      }
+    });
+    html += `</div>`;
+  }
+  
   // Process children (for foreach/for loop support)
   if (children.length > 0) {
-    html += `<h3>Tools:</h3>`;
+    html += `<h3>Additional Content:</h3>`;
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
-    html += `<div class="tools">${childrenContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+    html += `<div class="additional-content">${childrenContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
   }
   
   html += `</div>`;
@@ -113,18 +178,20 @@ function generateHtmlMCPToolServer(
 
 function generateJsonMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
 ): Component {
   const obj: any = {
     type: 'mcp-tool-server',
-    mcpServers: mcpServerNames
+    mcpServers: mcpServerNames,
+    tools: mcpTools
   };
   
   if (children.length > 0) {
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
-    obj.tools = childrenContent;
+    obj.additionalContent = childrenContent;
   }
   
   return createElement('div', { className, 'data-speaker': speaker }, JSON.stringify(obj, null, 2));
@@ -132,6 +199,7 @@ function generateJsonMCPToolServer(
 
 function generateYamlMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -141,9 +209,29 @@ function generateYamlMCPToolServer(
     yaml += `  - ${JSON.stringify(serverName)}\n`;
   });
   
+  yaml += `tools:\n`;
+  mcpTools.forEach((tool, index) => {
+    if (tool.type === 'function' && tool.function) {
+      const func = tool.function;
+      yaml += `  - name: ${JSON.stringify(func.name)}\n`;
+      yaml += `    description: ${JSON.stringify(func.description)}\n`;
+      if (func.parameters && func.parameters.properties) {
+        const requiredParams = func.parameters.required || [];
+        const paramNames = Object.keys(func.parameters.properties);
+        if (paramNames.length > 0) {
+          yaml += `    parameters:\n`;
+          paramNames.forEach(param => {
+            yaml += `      - name: ${JSON.stringify(param)}\n`;
+            yaml += `        required: ${requiredParams.includes(param)}\n`;
+          });
+        }
+      }
+    }
+  });
+  
   if (children.length > 0) {
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
-    yaml += `tools: ${JSON.stringify(childrenContent)}\n`;
+    yaml += `additionalContent: ${JSON.stringify(childrenContent)}\n`;
   }
   
   return createElement('div', { className, 'data-speaker': speaker }, yaml);
@@ -151,6 +239,7 @@ function generateYamlMCPToolServer(
 
 function generateXmlMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -165,9 +254,35 @@ function generateXmlMCPToolServer(
     xml += `</mcp-servers>`;
   }
   
+  if (mcpTools.length > 0) {
+    xml += `<tools count="${mcpTools.length}">`;
+    mcpTools.forEach((tool, index) => {
+      if (tool.type === 'function' && tool.function) {
+        const func = tool.function;
+        xml += `<tool index="${index + 1}">`;
+        xml += `<name>${func.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</name>`;
+        xml += `<description>${func.description.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</description>`;
+        
+        if (func.parameters && func.parameters.properties) {
+          const requiredParams = func.parameters.required || [];
+          const paramNames = Object.keys(func.parameters.properties);
+          if (paramNames.length > 0) {
+            xml += `<parameters>`;
+            paramNames.forEach(param => {
+              xml += `<parameter name="${param.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" required="${requiredParams.includes(param)}" />`;
+            });
+            xml += `</parameters>`;
+          }
+        }
+        xml += `</tool>`;
+      }
+    });
+    xml += `</tools>`;
+  }
+  
   if (children.length > 0) {
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
-    xml += `<tools>${childrenContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</tools>`;
+    xml += `<additional-content>${childrenContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</additional-content>`;
   }
   
   xml += `</mcp-tool-server>`;
@@ -177,6 +292,7 @@ function generateXmlMCPToolServer(
 
 function generateTextMCPToolServer(
   mcpServerNames: string[],
+  mcpTools: any[],
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -191,9 +307,34 @@ function generateTextMCPToolServer(
     result += '\n';
   }
   
+  // Display MCP tools
+  if (mcpTools.length > 0) {
+    result += `Available Tools (${mcpTools.length}):\n`;
+    result += '==================\n\n';
+    mcpTools.forEach((tool, index) => {
+      if (tool.type === 'function' && tool.function) {
+        const func = tool.function;
+        result += `${index + 1}. ${func.name}\n`;
+        result += `   Description: ${func.description}\n`;
+        
+        if (func.parameters && func.parameters.properties) {
+          const requiredParams = func.parameters.required || [];
+          const paramNames = Object.keys(func.parameters.properties);
+          if (paramNames.length > 0) {
+            result += `   Parameters: ${paramNames.map(param => 
+              requiredParams.includes(param) ? `*${param}*` : param
+            ).join(', ')}\n`;
+          }
+        }
+        result += '\n';
+      }
+    });
+  }
+  
   // Process children (for foreach/for loop support)
   if (children.length > 0) {
-    result += 'Tools:\n------\n';
+    result += 'Additional Content:\n';
+    result += '------------------\n';
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
     result += childrenContent;
   }

@@ -88,6 +88,7 @@ const prompt = `<>
 
         codebolt.chat.sendMessage(parsedPrompt, {message: "Hello"});
         // codebolt.chat.sendMessage("Hi2", {message: "Hello"});
+        
     } catch (error) {
         console.error(error);
     }
