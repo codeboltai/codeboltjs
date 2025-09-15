@@ -44,7 +44,8 @@ import {
   MessageContext,
   ToolRequest,
   ToolResponse,
-  Loop
+  Loop,
+  MCPToolServer
 } from '../components';
 
 /**
@@ -146,7 +147,8 @@ export async function epomlparse(prompt: string, variables?: Record<string, any>
   (global as any).ToolRequest = ToolRequest;
   (global as any).ToolResponse = ToolResponse;
   (global as any).Loop = Loop;
-  
+  (global as any).MCPToolServer = MCPToolServer;
+
   // Make variables available globally for the eval
   if (variables) {
     for (const [key, value] of Object.entries(variables)) {

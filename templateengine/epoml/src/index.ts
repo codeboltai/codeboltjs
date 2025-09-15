@@ -44,6 +44,7 @@ import {
   ToolRequest,
   ToolResponse,
   Loop,
+  MCPToolServer,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -84,7 +85,9 @@ import {
   type MessageContextProps,
   type ToolRequestProps,
   type ToolResponseProps,
-  type LoopProps
+  type LoopProps,
+  type MCPToolServerProps
+
 } from './components';
 import { epomlparse } from './core/epomlparse';
 import { type TemplateVariables, type Component } from './types';
@@ -141,6 +144,7 @@ export {
   unregisterComponent, 
   getComponent, 
   clearComponents,
+  MCPToolServer,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -182,5 +186,6 @@ export {
   type ToolRequestProps,
   type ToolResponseProps,
   type LoopProps,
-  type TemplateVariables
+  type TemplateVariables,
+  type MCPToolServerProps
 };
