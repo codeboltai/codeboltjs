@@ -68,13 +68,13 @@ function generateMarkdownMCPToolServer(
 ): Component {
   let result = `## 🌐 MCP Tool Servers\n\n`;
   
-  if (mcpServerNames.length > 0) {
-    result += `### Available MCP Servers:\n\n`;
-    mcpServerNames.forEach((serverName, index) => {
-      result += `${index + 1}. **${serverName}**\n`;
-    });
-    result += '\n';
-  }
+  // if (mcpServerNames.length > 0) {
+  //   result += `### Available MCP Servers:\n\n`;
+  //   mcpServerNames.forEach((serverName, index) => {
+  //     result += `${index + 1}. **${serverName}**\n`;
+  //   });
+  //   result += '\n';
+  // }
   
   // Display MCP tools
   if (mcpTools.length > 0) {
@@ -127,14 +127,14 @@ function generateHtmlMCPToolServer(
   
   html += `<h2>🌐 MCP Tool Servers</h2>`;
   
-  if (mcpServerNames.length > 0) {
-    html += `<h3>Available MCP Servers:</h3>`;
-    html += `<ul>`;
-    mcpServerNames.forEach(serverName => {
-      html += `<li><strong>${serverName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</strong></li>`;
-    });
-    html += `</ul>`;
-  }
+  // if (mcpServerNames.length > 0) {
+  //   html += `<h3>Available MCP Servers:</h3>`;
+  //   html += `<ul>`;
+  //   mcpServerNames.forEach(serverName => {
+  //     html += `<li><strong>${serverName.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</strong></li>`;
+  //   });
+  //   html += `</ul>`;
+  // }
   
   // Display MCP tools
   if (mcpTools.length > 0) {
@@ -299,13 +299,13 @@ function generateTextMCPToolServer(
 ): Component {
   let result = 'MCP TOOL SERVERS\n===============\n\n';
   
-  if (mcpServerNames.length > 0) {
-    result += 'Available MCP Servers:\n';
-    mcpServerNames.forEach((serverName, index) => {
-      result += `${index + 1}. ${serverName}\n`;
-    });
-    result += '\n';
-  }
+  // if (mcpServerNames.length > 0) {
+  //   result += 'Available MCP Servers:\n';
+  //   mcpServerNames.forEach((serverName, index) => {
+  //     result += `${index + 1}. ${serverName}\n`;
+  //   });
+  //   result += '\n';
+  // }
   
   // Display MCP tools
   if (mcpTools.length > 0) {

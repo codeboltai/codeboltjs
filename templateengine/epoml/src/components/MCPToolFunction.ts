@@ -1,19 +1,35 @@
 import { createElement } from '../core/createElement';
 import { Component, BaseComponentProps } from '../types';
+import codebolt from '@codebolt/codeboltjs';
 
 export interface MCPToolFunctionProps extends BaseComponentProps {
   /** Name of the MCP tool */
   toolName?: string;
   /** Function signature or description */
-  toolFunction?: string;
+  toolFunction?: string[];
   /** Template variables for dynamic content */
   templateVars?: Record<string, any>;
 }
 
-export function MCPToolFunction(props: MCPToolFunctionProps): Component {
+interface MCPToolFunction {
+  name: string;
+  description?: string;
+  parameters?: {
+    type: string;
+    properties?: Record<string, any>;
+    required?: string[];
+  };
+}
+
+interface MCPTool {
+  type: "function";
+  function: MCPToolFunction;
+}
+
+export async function MCPToolFunction(props: MCPToolFunctionProps): Promise<Component> {
   const {
     toolName = '',
-    toolFunction = '',
+    toolFunction = ['codebolt'],
     templateVars = {},
     syntax = 'markdown',
     className,
@@ -21,44 +37,94 @@ export function MCPToolFunction(props: MCPToolFunctionProps): Component {
     children = []
   } = props;
 
+  // Fetch MCP tools from servers
+  let mcpTools: MCPTool[] = [];
+  let selectedTool: MCPTool | null = null;
+  let errorMessage: string | null = null;
+  
+  try {
+    const enabledResponse = await codebolt.mcp.listMcpFromServers(toolFunction);
+    if (enabledResponse && enabledResponse.data) {
+      mcpTools = enabledResponse.data;
+      
+      // Find the specific tool if toolName is provided
+      if (toolName) {
+        selectedTool = mcpTools.find(tool => tool.function.name === toolName) || null;
+        
+        // If toolName was provided but not found, set error message
+        if (!selectedTool) {
+          errorMessage = `Tool "${toolName}" not found in any of the specified toolboxes: ${toolFunction.join(', ')}`;
+        }
+      }
+    } else if (enabledResponse && enabledResponse.error) {
+      errorMessage = `Error from MCP server: ${enabledResponse.error}`;
+    } else {
+      errorMessage = 'No MCP tools found or invalid response from server';
+    }
+  } catch (error) {
+    console.error('Error fetching MCP tools:', error);
+    errorMessage = `Failed to fetch MCP tools: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  }
+
   // Process template variables
-  const processedToolName = toolName; // In a real implementation, this would process template variables
-  const processedToolFunction = toolFunction; // In a real implementation, this would process template variables
+  const processedToolName = selectedTool ? selectedTool.function.name : toolName;
+  const processedToolFunction = selectedTool ? selectedTool.function.description || '' : '';
 
   // Generate the component based on syntax
   switch (syntax) {
     case 'markdown':
-      return generateMarkdownMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateMarkdownMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
     
     case 'html':
-      return generateHtmlMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateHtmlMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
     
     case 'json':
-      return generateJsonMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateJsonMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
     
     case 'yaml':
-      return generateYamlMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateYamlMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
     
     case 'xml':
-      return generateXmlMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateXmlMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
     
     case 'text':
     default:
-      return generateTextMCPToolFunction(processedToolName, processedToolFunction, children, className, speaker);
+      return generateTextMCPToolFunction(processedToolName, processedToolFunction, selectedTool, errorMessage, children, className, speaker);
   }
 }
 
 function generateMarkdownMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
 ): Component {
   let result = `### 🌐 ${toolName || 'MCP Tool Function'}\n\n`;
   
+  if (errorMessage) {
+    result += `⚠️ **Error:** ${errorMessage}\n\n`;
+  }
+  
   if (toolFunction) {
-    result += `**Function:** ${toolFunction}\n\n`;
+    result += `**Description:** ${toolFunction}\n\n`;
+  }
+  
+  if (selectedTool && selectedTool.function.parameters) {
+    result += `**Parameters:**\n`;
+    if (selectedTool.function.parameters.properties) {
+      Object.entries(selectedTool.function.parameters.properties).forEach(([key, value]) => {
+        const paramInfo = value as any;
+        const isRequired = selectedTool.function.parameters?.required?.includes(key);
+        result += `- \`${key}\`${isRequired ? ' (required)' : ''}: ${paramInfo.description || 'No description'}\n`;
+        if (paramInfo.type) {
+          result += `  - Type: \`${paramInfo.type}\`\n`;
+        }
+      });
+    }
+    result += `\n`;
   }
   
   // Process children (for foreach/for loop support)
@@ -74,6 +140,8 @@ function generateMarkdownMCPToolFunction(
 function generateHtmlMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -89,8 +157,26 @@ function generateHtmlMCPToolFunction(
   
   html += `<h3>🌐 ${toolName || 'MCP Tool Function'}</h3>`;
   
+  if (errorMessage) {
+    html += `<div class="error" style="color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; margin: 10px 0;"><strong>⚠️ Error:</strong> ${errorMessage.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+  }
+  
   if (toolFunction) {
-    html += `<p><strong>Function:</strong> ${toolFunction.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+    html += `<p><strong>Description:</strong> ${toolFunction.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+  }
+  
+  if (selectedTool && selectedTool.function.parameters) {
+    html += `<h4>Parameters:</h4><ul>`;
+    if (selectedTool.function.parameters.properties) {
+      Object.entries(selectedTool.function.parameters.properties).forEach(([key, value]) => {
+        const paramInfo = value as any;
+        const isRequired = selectedTool.function.parameters?.required?.includes(key);
+        const description = paramInfo.description || 'No description';
+        const type = paramInfo.type || 'unknown';
+        html += `<li><code>${key}</code>${isRequired ? ' <strong>(required)</strong>' : ''}: ${description.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}<br><small>Type: <code>${type}</code></small></li>`;
+      });
+    }
+    html += `</ul>`;
   }
   
   // Process children (for foreach/for loop support)
@@ -108,6 +194,8 @@ function generateHtmlMCPToolFunction(
 function generateJsonMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -117,8 +205,20 @@ function generateJsonMCPToolFunction(
     toolName: toolName || 'MCP Tool Function'
   };
   
+  if (errorMessage) {
+    obj.error = errorMessage;
+  }
+  
   if (toolFunction) {
-    obj.function = toolFunction;
+    obj.description = toolFunction;
+  }
+  
+  if (selectedTool) {
+    obj.tool = {
+      name: selectedTool.function.name,
+      description: selectedTool.function.description,
+      parameters: selectedTool.function.parameters
+    };
   }
   
   if (children.length > 0) {
@@ -132,14 +232,41 @@ function generateJsonMCPToolFunction(
 function generateYamlMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
 ): Component {
   let yaml = `type: mcp-tool-function\ntoolName: ${JSON.stringify(toolName || 'MCP Tool Function')}\n`;
   
+  if (errorMessage) {
+    yaml += `error: ${JSON.stringify(errorMessage)}\n`;
+  }
+  
   if (toolFunction) {
-    yaml += `function: ${JSON.stringify(toolFunction)}\n`;
+    yaml += `description: ${JSON.stringify(toolFunction)}\n`;
+  }
+  
+  if (selectedTool) {
+    yaml += `tool:\n`;
+    yaml += `  name: ${JSON.stringify(selectedTool.function.name)}\n`;
+    if (selectedTool.function.description) {
+      yaml += `  description: ${JSON.stringify(selectedTool.function.description)}\n`;
+    }
+    if (selectedTool.function.parameters) {
+      yaml += `  parameters:\n`;
+      yaml += `    type: ${JSON.stringify(selectedTool.function.parameters.type)}\n`;
+      if (selectedTool.function.parameters.properties) {
+        yaml += `    properties:\n`;
+        Object.entries(selectedTool.function.parameters.properties).forEach(([key, value]) => {
+          yaml += `      ${key}: ${JSON.stringify(value)}\n`;
+        });
+      }
+      if (selectedTool.function.parameters.required) {
+        yaml += `    required: ${JSON.stringify(selectedTool.function.parameters.required)}\n`;
+      }
+    }
   }
   
   if (children.length > 0) {
@@ -153,6 +280,8 @@ function generateYamlMCPToolFunction(
 function generateXmlMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -160,10 +289,35 @@ function generateXmlMCPToolFunction(
   let xml = `<mcp-tool-function name="${(toolName || 'MCP Tool Function').replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`;
   
   if (toolFunction) {
-    xml += ` function="${toolFunction.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`;
+    xml += ` description="${toolFunction.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`;
   }
   
   xml += '>';
+  
+  if (errorMessage) {
+    xml += `<error>${errorMessage.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</error>`;
+  }
+  
+  if (selectedTool) {
+    xml += `<tool name="${selectedTool.function.name.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">`;
+    if (selectedTool.function.description) {
+      xml += `<description>${selectedTool.function.description.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</description>`;
+    }
+    if (selectedTool.function.parameters) {
+      xml += `<parameters type="${selectedTool.function.parameters.type}">`;
+      if (selectedTool.function.parameters.properties) {
+        Object.entries(selectedTool.function.parameters.properties).forEach(([key, value]) => {
+          const paramInfo = value as any;
+          const isRequired = selectedTool.function.parameters?.required?.includes(key);
+          xml += `<parameter name="${key.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" type="${paramInfo.type || 'unknown'}" required="${isRequired}">`;
+          xml += `<description>${(paramInfo.description || 'No description').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</description>`;
+          xml += `</parameter>`;
+        });
+      }
+      xml += `</parameters>`;
+    }
+    xml += `</tool>`;
+  }
   
   if (children.length > 0) {
     const childrenContent = children.map(child => typeof child === 'string' ? child : '').join('');
@@ -178,6 +332,8 @@ function generateXmlMCPToolFunction(
 function generateTextMCPToolFunction(
   toolName: string,
   toolFunction: string,
+  selectedTool: MCPTool | null,
+  errorMessage: string | null,
   children: (Component | string)[],
   className?: string,
   speaker?: string
@@ -186,8 +342,27 @@ function generateTextMCPToolFunction(
   
   result += `Tool Name: ${toolName || 'MCP Tool Function'}\n\n`;
   
+  if (errorMessage) {
+    result += `ERROR: ${errorMessage}\n\n`;
+  }
+  
   if (toolFunction) {
-    result += `Function: ${toolFunction}\n\n`;
+    result += `Description: ${toolFunction}\n\n`;
+  }
+  
+  if (selectedTool && selectedTool.function.parameters) {
+    result += `Parameters:\n`;
+    if (selectedTool.function.parameters.properties) {
+      Object.entries(selectedTool.function.parameters.properties).forEach(([key, value]) => {
+        const paramInfo = value as any;
+        const isRequired = selectedTool.function.parameters?.required?.includes(key);
+        result += `  ${key}${isRequired ? ' (required)' : ''}: ${paramInfo.description || 'No description'}\n`;
+        if (paramInfo.type) {
+          result += `    Type: ${paramInfo.type}\n`;
+        }
+      });
+    }
+    result += `\n`;
   }
   
   // Process children (for foreach/for loop support)

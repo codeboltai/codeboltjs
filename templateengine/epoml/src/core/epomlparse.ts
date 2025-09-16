@@ -49,7 +49,8 @@ import {
   OSInformation,
   GitCheck,
   RawText,
-  MCPToolServer
+  MCPToolServer,
+  MCPToolFunction
 } from '../components';
 
 /**
@@ -186,7 +187,7 @@ export async function epomlparse(prompt: string, variables?: Record<string, any>
   (global as any).OSInformation = OSInformation;
   (global as any).GitCheck = GitCheck;
   (global as any).RawText = RawText;
-  
+  (global as any).MCPToolFunction = MCPToolFunction;
   (global as any).MCPToolServer = MCPToolServer;
 
   // Make variables available globally for the eval

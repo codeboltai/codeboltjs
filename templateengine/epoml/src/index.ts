@@ -49,6 +49,7 @@ import {
   GitCheck,
   RawText,
   MCPToolServer,
+  MCPToolFunction,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -94,7 +95,8 @@ import {
   type OSInformationProps,
   type GitCheckProps,
   type RawTextProps,
-  type MCPToolServerProps
+  type MCPToolServerProps,
+  MCPToolFunctionProps
 
 } from './components';
 import { epomlparse } from './core/epomlparse';
@@ -157,6 +159,7 @@ export {
   getComponent, 
   clearComponents,
   MCPToolServer,
+  MCPToolFunction,
   type AudioProps,
   type BoldProps,
   type CaptionedParagraphProps,
@@ -203,5 +206,6 @@ export {
   type GitCheckProps,
   type RawTextProps,
   type TemplateVariables,
-  type MCPToolServerProps
+  type MCPToolServerProps,
+  type MCPToolFunctionProps
 };
