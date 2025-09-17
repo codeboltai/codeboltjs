@@ -28,7 +28,7 @@
   "type": "module",
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
-    "@codebolt/shared-types": "*",
+    "@codebolt/shared-types": "workspace:*",
     "@codebolt/types": "latest",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",

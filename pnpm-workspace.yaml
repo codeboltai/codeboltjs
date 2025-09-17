@@ -5,3 +5,6 @@ packages:
   # - 'documentation/*'
   - 'providers/*'
   - 'templateengine/*'
+  - 'tui/*'
+  - 'remoteexecutor/*'
+  - 'remoteenvironments/*'

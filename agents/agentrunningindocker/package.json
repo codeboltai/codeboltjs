@@ -20,7 +20,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@codebolt/shared-types": "file:../shared-types",
+    "@codebolt/shared-types": "workspace:*",
     "ws": "^8.18.0",
     "uuid": "^10.0.0"
   },
