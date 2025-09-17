@@ -1,11 +1,8 @@
 import codebolt from '@codebolt/codeboltjs';
-import { 
-    RequestMessage, 
-    LLMAgentStep, 
-    ToolExecutor, 
-    ToolListClass as ToolList 
-} from '@codebolt/agent/processor';
-import { 
+// Import from unified framework (adjust path as needed for your build system)
+import {
+    createAgent,
+    createTool,
     HandleUrlMessageModifier,
     BaseContextMessageModifier,
     WorkingDirectoryMessageModifier,
@@ -13,229 +10,252 @@ import {
     ImageAttachmentMessageModifier,
     AddToolsListMessageModifier,
     LoopDetectionProcessor,
-    ChatCompressionProcessor,
-    ContextManagementProcessor,
     AdvancedLoopDetectionProcessor,
     TokenManagementProcessor,
     ResponseValidationProcessor,
     ChatRecordingProcessor,
     TelemetryProcessor,
+    ConversationCompactorProcessor,
+    ContextManagementProcessor,
     FileReadTool,
     FileWriteTool,
     FileDeleteTool,
     FileMoveTool,
     FileCopyTool
-} from '@codebolt/agent/processor-pieces';
+} from '../../../packages/agent/src/unified/index';
 
-// Initialize components
-const toolList = new ToolList([
+// Zod for schema validation
+import { z } from 'zod';
+
+// Create unified tools using the new framework
+const fileTools = [
     new FileReadTool(),
     new FileWriteTool(),
     new FileDeleteTool(),
     new FileMoveTool(),
     new FileCopyTool()
-]);
-const toolExecutor = new ToolExecutor(toolList, {
-    maxRetries: 3,
-    enableLogging: true
+];
+
+// Create the unified Gemini agent
+const geminiAgent = createAgent({
+    name: 'Gemini Agent',
+    instructions: `You are a helpful AI assistant powered by Google's Gemini model. You can:
+    - Answer questions and provide information
+    - Help with coding and development tasks
+    - Read, write, and manage files
+    - Analyze images and documents
+    - Browse web content from URLs
+    
+    Always be helpful, accurate, and provide clear explanations for your actions.`,
+    
+    description: 'Gemini-powered AI assistant with file operations and web browsing capabilities',
+    
+    tools: fileTools,
+    
+    // LLM Configuration for Gemini
+    llmConfig: {
+        model: 'gemini-pro',
+        temperature: 0.7,
+        maxTokens: 8192
+    },
+    
+    // Execution settings
+    maxIterations: 10,
+    maxConversationLength: 50,
+    enableLogging: true,
+    
+    // Enhanced processors for Gemini agent
+    processors: {
+        // Message modification processors
+        messageModifiers: [
+            new BaseContextMessageModifier({
+                prependmessage: "This is Codebolt Agent. Setting up the Context.",
+                datetime: true,
+                osInfo: true,
+                workingdir: true
+            }),
+            new WorkingDirectoryMessageModifier({
+                showFolderStructureSummary: true,
+                listFiles: true,
+                listFilesDepth: 2,
+                listFilesLimit: 200,
+                listFilesIgnoreFromGitignore: true,
+                listFilesIgnore: ["node_modules"]
+            }),
+            new BaseSystemInstructionMessageModifier({
+                systemInstruction: "You are a helpful assistant that can answer questions and help with tasks."
+            }),
+            new HandleUrlMessageModifier({
+                fetchUrlContent: true
+            }),
+            new ImageAttachmentMessageModifier({
+                passImageAs: "URL"
+            }),
+            new AddToolsListMessageModifier({
+                toolsList: fileTools,
+                addToolsLocation: "InsidePrompt",
+                giveToolExamples: true,
+                maxToolExamples: 2
+            })
+        ],
+        
+        // Follow-up conversation processors
+        followUpConversation: [
+            // Core safety and performance
+            new AdvancedLoopDetectionProcessor({
+                toolCallThreshold: 5,
+                contentLoopThreshold: 10,
+                enableLLMDetection: false
+            }),
+            new TokenManagementProcessor({
+                maxTokens: 128000,
+                warningThreshold: 0.8,
+                enableCompression: true
+            }),
+            
+            // Context and intelligence
+            new ContextManagementProcessor({
+                enableProjectContext: true,
+                enableIdeContext: true,
+                enableDirectoryContext: true
+            }),
+            new ConversationCompactorProcessor({
+                maxConversationLength: 30,
+                compactionThreshold: 0.7,
+                preserveRecentMessages: 5,
+                enableSummarization: true
+            }),
+            
+            // Legacy compatibility
+            new LoopDetectionProcessor({ maxLoops: 10 }),
+            
+            // Monitoring and recording
+            new ChatRecordingProcessor({
+                enableTokenTracking: true,
+                exportFormat: 'json',
+                autoExport: false
+            }),
+            new TelemetryProcessor({
+                enablePerformanceTracking: true,
+                enableErrorTracking: true,
+                enableUsageTracking: true,
+                sampleRate: 1.0
+            })
+        ],
+        
+        // Pre-tool call processors
+        preToolCall: [
+            new ResponseValidationProcessor({
+                validateToolCalls: true,
+                validateContent: true,
+                validateStructure: true
+            })
+        ]
+    }
 });
 
-// Main message handler for CodeBolt
+// Main message handler for CodeBolt using unified framework
 codebolt.onMessage(async (message: any): Promise<any> => {
     try {
-        console.log('[GeminiAgent] Processing message:', message);
+        console.log('[GeminiAgent] Processing message with unified framework:', message);
         
-        // Step 1: Message Modification
-        const messageModifier = new RequestMessage({
-            messageModifiers: [
-                new BaseContextMessageModifier({
-                    prependmessage: "This is Codebolt Agent. Setting up the Context.",
-                    datetime: true,
-                    osInfo: true,
-                    workingdir: true
-                }),
-                new WorkingDirectoryMessageModifier({
-                    showFolderStructureSummary: true,
-                    listFiles: true,
-                    listFilesDepth: 2,
-                    listFilesLimit: 200,
-                    listFilesIgnoreFromGitignore: true,
-                    listFilesIgnore: ["node_modules"]
-                }),
-                new BaseSystemInstructionMessageModifier({
-                    systemInstruction: "You are a helpful assistant that can answer questions and help with tasks."
-                }),
-                new HandleUrlMessageModifier({
-                    fetchUrlContent: true,
-                }),
-                new ImageAttachmentMessageModifier({
-                    passImageAs: "URL",
-                }),
-                new AddToolsListMessageModifier({
-                    toolsList: toolList,
-                    addToolsLocation: "InsidePrompt", //or as Tool
-                    giveToolExamples: true,
-                    maxToolExamples: 2,
-                }),
-            ]
-        });
-        const InitialPrompt = await messageModifier.modify(message);
-        console.log('[GeminiAgent] Message modified');
+        // Extract the user message content
+        let userMessage = '';
+        if (typeof message === 'string') {
+            userMessage = message;
+        } else if (message.content) {
+            userMessage = message.content;
+        } else if (message.messages && message.messages.length > 0) {
+            const lastMessage = message.messages[message.messages.length - 1];
+            userMessage = lastMessage.content || '';
+        } else {
+            userMessage = JSON.stringify(message);
+        }
         
-                 // Step 2: Create Agent Step with Enhanced Processors
-         const agentStep = new LLMAgentStep({
-             inputProcessors: [
-                 // Phase 1: Core Safety & Performance
-                 new AdvancedLoopDetectionProcessor({ 
-                     toolCallThreshold: 5,
-                     contentLoopThreshold: 10,
-                     enableLLMDetection: false  // Disable for now to avoid extra LLM calls
-                 }),
-                 new TokenManagementProcessor({ 
-                     maxTokens: 128000,
-                     warningThreshold: 0.8,
-                     enableCompression: true
-                 }),
-                 
-                 // Phase 2: Context & Intelligence  
-                 new ContextManagementProcessor({
-                     enableProjectContext: true,
-                     enableIdeContext: true,
-                     enableDirectoryContext: true
-                 }),
-                 new ChatCompressionProcessor({
-                     compressionThreshold: 0.7,
-                     tokenLimit: 128000
-                 }),
-                 
-                 // Legacy processor for compatibility
-                 new LoopDetectionProcessor({ maxLoops: 10 })
-             ],
-             outputProcessors: [
-                 // Phase 1: Critical Validation
-                 new ResponseValidationProcessor({
-                     validateToolCalls: true,
-                     validateContent: true,
-                     validateStructure: true
-                 }),
-                 
-                 // Phase 3: Monitoring & Recording
-                 new ChatRecordingProcessor({ 
-                     enableTokenTracking: true,
-                     exportFormat: 'json',
-                     autoExport: false  // Manual export for now
-                 }),
-                 new TelemetryProcessor({
-                     enablePerformanceTracking: true,
-                     enableErrorTracking: true,
-                     enableUsageTracking: true,
-                     sampleRate: 1.0
-                 })
-             ],
-             toolList: toolList,
-             toolExecutor: toolExecutor,
-             llmconfig: {
-                 llmname: "gemini-pro",
-                 model: "gemini-pro",
-                 temperature: 0.7,
-                 maxTokens: 8192
-             },
-             maxIterations: 10
-         });
+        console.log('[GeminiAgent] Extracted user message:', userMessage);
         
-        // Step 3: Main Processing Loop
-        let currentMessage = InitialPrompt;
-        let iteration = 0;
-        const maxIterations = 10;
-        
-        while (iteration < maxIterations) {
-            iteration++;
-            console.log(`[GeminiAgent] Processing iteration ${iteration}`);
-            
-            // Process one step
-            const agentStepMessageResponse = await agentStep.step(currentMessage);
-            console.log('[GeminiAgent] Agent step completed');
-            
-            // Check if we need tool execution
-            const lastMessage = agentStepMessageResponse.messages[agentStepMessageResponse.messages.length - 1];
-            if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-                console.log(`[GeminiAgent] Tool calls detected: ${lastMessage.tool_calls.length}`);
-                
-                // Execute tools
-                const toolExecution = new ToolExecutor(toolList, {
-                    maxRetries: 2,
-                    enableLogging: true
-                });
-                
-                const toolCalls = lastMessage.tool_calls.map(tc => ({
-                    tool: tc.function.name,
-                    parameters: typeof tc.function.arguments === 'string' 
-                        ? JSON.parse(tc.function.arguments) 
-                        : tc.function.arguments
-                }));
-                
-                const updatedMessage = await toolExecution.executeTools({
-                    toolCalls,
-                    tools: toolList,
-                    context: { iteration, promptId: `prompt-${Date.now()}` }
-                });
-                
-                console.log('[GeminiAgent] Tools executed');
-                
-                // Add tool results to the message for next iteration
-                currentMessage = {
-                    messages: [
-                        ...agentStepMessageResponse.messages,
-                        {
-                            role: 'system',
-                            content: `Tool execution results: ${JSON.stringify(updatedMessage.results)}`,
-                            name: 'tool-executor'
-                        }
-                    ]
-                };
-                
-                // Continue the loop
-                continue;
-            } else {
-                // No tool calls, we're done
-                console.log('[GeminiAgent] No tool calls, processing complete');
-                break;
+        // Execute the unified agent
+        const result = await geminiAgent.execute(userMessage, {
+            maxIterations: 10,
+            includeHistory: true,
+            context: {
+                sessionId: `gemini-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                originalMessage: message
             }
-        }
+        });
         
-        if (iteration >= maxIterations) {
-            console.log('[GeminiAgent] Max iterations reached');
-        }
+        console.log('[GeminiAgent] Agent execution completed:', {
+            success: result.success,
+            iterations: result.iterations,
+            toolsUsed: result.toolResults?.length || 0
+        });
         
-        // Send final response to user
-        const finalMessage = currentMessage.messages[currentMessage.messages.length - 1];
-        if (finalMessage.role === 'assistant') {
-            const content = typeof finalMessage.content === 'string' 
-                ? finalMessage.content 
-                : JSON.stringify(finalMessage.content);
-            codebolt.chat.sendMessage(content, {});
+        // Send response to user
+        if (result.success && result.response) {
+            await codebolt.chat.sendMessage(result.response, {});
+        } else if (result.error) {
+            await codebolt.chat.sendMessage(`Sorry, I encountered an error: ${result.error}`, {});
+        } else {
+            await codebolt.chat.sendMessage('I was unable to process your request. Please try again.', {});
         }
         
         console.log('[GeminiAgent] Processing complete');
-        return { 
-            success: true, 
-            iterations: iteration,
-            response: currentMessage
+        return {
+            success: result.success,
+            iterations: result.iterations,
+            response: result.response,
+            error: result.error,
+            toolResults: result.toolResults,
+            conversationHistory: result.conversationHistory,
+            executionTime: result.executionTime
         };
         
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error('[GeminiAgent] Error:', errorMessage);
+        console.error('[GeminiAgent] Unexpected error:', errorMessage);
         
         // Send error message to user
-        codebolt.chat.sendMessage(`Sorry, I encountered an error: ${errorMessage}`, {});
+        try {
+            await codebolt.chat.sendMessage(`Sorry, I encountered an unexpected error: ${errorMessage}`, {});
+        } catch (chatError) {
+            console.error('[GeminiAgent] Failed to send error message to chat:', chatError);
+        }
         
-        return { 
-            error: errorMessage,
-            success: false
+        return {
+            success: false,
+            error: errorMessage
         };
     }
 });
 
-// Export components for external use
-export { RequestMessage, LLMAgentStep, ToolExecutor, ToolListClass as ToolList } from '@codebolt/agent/processor';
+// Export unified framework components for external use
+export {
+    createAgent,
+    createTool,
+    createWorkflow,
+    createOrchestrator,
+    Agent,
+    Tool,
+    UnifiedWorkflow,
+    UnifiedOrchestrator
+} from '../../../packages/agent/src/unified/index';
+
+// Export the configured Gemini agent for external use
+export { geminiAgent };
+
+// Export utility functions for Gemini agent
+export const getGeminiAgentStatus = () => ({
+    name: geminiAgent.config.name,
+    tools: geminiAgent.listTools().length,
+    processors: {
+        messageModifiers: geminiAgent.config.processors?.messageModifiers?.length || 0,
+        followUpConversation: geminiAgent.config.processors?.followUpConversation?.length || 0,
+        preToolCall: geminiAgent.config.processors?.preToolCall?.length || 0
+    },
+    llmConfig: geminiAgent.config.llmConfig
+});
+
+export const executeGeminiAgent = async (message: string, options?: any) => {
+    return await geminiAgent.execute(message, options);
+};

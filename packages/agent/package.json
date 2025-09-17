@@ -35,12 +35,16 @@
     "directory": "packages/agent"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
     "@codebolt/types": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.22.4"
   },
+  "peerDependencies": {
+    "@codebolt/codeboltjs": "workspace:*"
+  },
   "devDependencies": {
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/types": "workspace:*",
     "@codebolt/eslint-config": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",
@@ -64,6 +68,10 @@
     "./processor-pieces": {
       "types": "./dist/processor-pieces/index.d.ts",
       "default": "./dist/processor-pieces/index.js"
+    },
+    "./unified":{
+       "types": "./dist/unified/index.d.ts",
+      "default": "./dist/unified/index.js"
     }
   }
 }
