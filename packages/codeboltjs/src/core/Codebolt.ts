@@ -155,7 +155,7 @@ class Codebolt {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
-                console.log("Message received By Agent Library Starting Custom Agent Handler Logic");
+                console.log("Message received By Agent Library Starting Custom Agent Handler Logic",response);
                 if (response.type === "messageResponse") {
                     try {
                         // Extract user-facing message from internal socket message
@@ -175,7 +175,9 @@ class Codebolt {
                             threadId: response.message.threadId,
                             selection: response.message.selection,
                             remixPrompt:response.message.remixPrompt,
-                            mentionedAgents: response.message.mentionedAgents || []
+                            mentionedAgents: response.message.mentionedAgents || [],
+                            activeFile: response.message.activeFile,
+                            openedFiles: response.message.activeFile
                         };
 
                         // Automatically save the user message globally

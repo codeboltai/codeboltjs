@@ -1,0 +1,22 @@
+- Processor Types:
+	- common/types/src/agent/processorTypes/
+- BaseClasses For Processors:
+	- packages/agent/src/processor-pieces/base/
+- Individual Processor:
+	- packages/agent/src/processor-pieces/messageModifiers
+This was for Individual Processors. Now the agent Framework is divided into three hierarchy:
+- Base Steps:
+	- packages/agent/src/unified/base/*
+	- These are individual steps as defined in [link](2_Functions):
+		- InitialPromptGenerator
+		- agentstep
+		- responseExecutor 
+- Broad Agent level:
+	- packages/agent/src/unified/agent/*
+	- This has:
+		- Agent: This runs the loop inside it and uses InitialPromptGenerator, agentStep and responseExecutor
+		- Tool
+		- Workflow
+		- WorkflowSteps
+- Orchestrator:
+	- Orchestrator can run Workflow and agents

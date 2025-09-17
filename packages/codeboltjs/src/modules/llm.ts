@@ -1,7 +1,9 @@
 import cbws from '../core/websocket';
 import { LLMResponse } from '@codebolt/types/sdk';
-import type { Message, ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '@codebolt/types/sdk';
-import { EventType, LLMResponseType } from '@codebolt/types/enum';
+import type { MessageObject, ToolCall, Tool, LLMInferenceParams, LLMCompletion, LLMModelConfig } from '@codebolt/types/sdk';
+import { EventType, LLMResponseType, StateAction, StateResponseType } from '@codebolt/types/enum';
+
+
 
 /**
  * A module for interacting with language learning models (LLMs) via WebSocket.
@@ -23,47 +25,43 @@ const cbllm = {
      *   - stream: Whether to stream the response
      * @returns A promise that resolves with the LLM's response
      */
-    inference: async (params: { 
-        messages: Message[]; 
-        tools?: Tool[]; 
-        tool_choice?: string; 
-        full?: boolean;
-        llmrole?: string;
-        max_tokens?: number;
-        temperature?: number;
-        stream?: boolean;
-    }, llmrole?: string): Promise<{ completion: LLMCompletion }> => {
+    inference: async (params:LLMInferenceParams): Promise<{ completion: LLMCompletion }> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.LLM_EVENT,
                 "message": {
                     prompt: params,
-                    llmrole
+                    llmrole:params.llmrole
                 },
             },
             LLMResponseType.LLM_RESPONSE
         );
     },
 
+  
+
     /**
-     * Legacy method for backward compatibility - converts simple string prompt to message format.
-     * @deprecated Use the new inference method with proper message format instead.
+     * Gets the model configuration for a specific model or the default application model.
+     * If modelId is provided, returns configuration for that specific model.
+     * If modelId is not provided, returns the default application LLM configuration.
      * 
-     * @param {string} message - The input message or prompt to be sent to the LLM.
-     * @param {string} llmrole - The role of the LLM to determine which model to use.
-     * @returns {Promise<LLMResponse>} A promise that resolves with the LLM's response.
+     * @param modelId - Optional model identifier. If not provided, returns default model config.
+     * @returns A promise that resolves with the model configuration including provider and model details.
      */
-    legacyInference: async (message: string, llmrole: string): Promise<LLMResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                "type": EventType.LLM_EVENT,
-                "message": {
-                    prompt: message,
-                    llmrole
+    getModelConfig: async (modelId?: string): Promise<{ config: LLMModelConfig | null, success: boolean, error?: string }> => {
+       
+            return await cbws.messageManager.sendAndWaitForResponse(
+                {
+                    "type": EventType.STATE_EVENT,
+                    "message": {
+                        action: StateAction.GET_APP_STATE,
+                        modelId: modelId // Include modelId if provided for future extensibility
+                    },
                 },
-            },
-            LLMResponseType.LLM_RESPONSE
-        );
+                StateResponseType.GET_APP_STATE_RESPONSE
+            );
+
+       
     }
 
     /**
