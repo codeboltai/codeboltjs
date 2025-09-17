@@ -1,0 +1,49 @@
+{
+  "name": "@codebolt/tui",
+  "version": "0.2.0",
+  "description": "Codebolt CLI - Terminal interface for Codebolt server",
+  "type": "module",
+  "main": "dist/index.mjs",
+  "scripts": {
+    "build": "rm -rf dist && node esbuild.config.js",
+    "start": "node dist/index.mjs",
+    "dev": "npm run build && node dist/index.mjs",
+    "debug": "node --inspect-brk dist/index.mjs",
+    "lint": "eslint src/**/*.ts src/**/*.tsx",
+    "lint:fix": "eslint src/**/*.ts src/**/*.tsx --fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.3.0",
+    "dotenv": "^17.1.0",
+    "figures": "^6.1.0",
+    "ink": "^6.1.0",
+    "ink-select-input": "^6.2.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^19.1.0",
+    "react-devtools-core": "^4.28.5",
+    "strip-ansi": "^7.1.0",
+    "uuid": "^10.0.0",
+    "ws": "^8.18.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.13",
+    "@types/yargs": "^17.0.32",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,1 @@
+This it the GO based TUI for Codebolt. This is the Frontend for the Codebolt CLI on Terminal.
