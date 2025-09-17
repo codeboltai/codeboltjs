@@ -217,13 +217,13 @@ class Codebolt {
      * @param {Function} handler - The handler function to call when provider starts.
      * @returns {void}
      */
-    onProviderStart(handler: (initvars: any) => void | Promise<void> | any | Promise<any>) {
+    onProviderStart(handler: (initvars: { type: string; environmentName: string }) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
-            const handleProviderStart = async (response: any) => {
+            const handleProviderStart = async (response: { type: string; environmentName: string }) => {
                 console.log("Provider start event received");
                 if (response.type === "providerStart") {
                     try {
-                        const result = await handler(response.initvars || {});
+                        const result = await handler(response|| {});
                         
                         const message: any = {
                             "type": "providerStartResponse"

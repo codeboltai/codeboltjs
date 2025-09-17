@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/agentserver",
+  "name": "@codebolt/newagentserver",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

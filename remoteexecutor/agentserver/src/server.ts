@@ -2,8 +2,7 @@ import { formatLogMessage } from '@codebolt/shared-types';
 import { DockerServer } from './core/dockerServer';
 import { getServerConfig } from './config';
 import { spawn, ChildProcess } from 'child_process';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { Command } from 'commander';
 
@@ -53,8 +52,7 @@ Examples:
  * Find the gotui binary path
  */
 function findGotuiBinary(): string | null {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  // In CommonJS, __filename and __dirname are available globally
   
   // Try different possible locations for the gotui binary
   const possiblePaths = [
@@ -165,7 +163,7 @@ async function main(): Promise<void> {
     let tuiProcess: ChildProcess | null = null;
     if (!options.noui) {
       console.log(formatLogMessage('info', 'Main', 'Starting TUI interface...'));
-      tuiProcess = startGoTUI(config.host, config.port, options.verbose);
+      tuiProcess = startGoTUI(config.host || 'localhost', config.port, options.verbose);
       
       if (tuiProcess) {
         console.log(formatLogMessage('info', 'Main', 'TUI started successfully. Use Ctrl+C to exit.'));

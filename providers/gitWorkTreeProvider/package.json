@@ -1,0 +1,58 @@
+{
+  "name": "@codebolt/git-worktree-provider",
+  "version": "1.0.0",
+  "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
+  "main": "start-provider.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "start-provider.js",
+    "docs/README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node start-provider.js",
+    "start:clean": "NODE_OPTIONS= node dist/index.js",
+    "start:direct": "node dist/index.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "codebolt",
+    "e2b",
+    "provider",
+    "sandbox",
+    "remote-execution",
+    "typescript"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "@e2b/sdk": "^0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "@e2b/sdk": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeboltai/codeboltjs.git",
+    "directory": "providers/e2bProvider"
+  },
+  "bugs": {
+    "url": "https://github.com/codeboltai/codeboltjs/issues"
+  },
+  "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/providers/e2bProvider#readme"
+}
