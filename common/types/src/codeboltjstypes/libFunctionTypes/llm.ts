@@ -21,12 +21,12 @@ export interface MessageObject {
       url: string;
     };
   }>;
-  // /** Optional ID for tool calls */
+  /** Optional ID for tool calls */
   tool_call_id?: string; // used in tool call result
-  // /** Optional tool calls for assistant messages */
-  // tool_calls?: ToolCall[];
-  // /** Optional name for the message */
-  // name?: string;
+  /** Optional tool calls for assistant messages */
+  tool_calls?: ToolCall[];
+  /** Optional name for the message */
+  name?: string;
 }
 
 /**
@@ -169,4 +169,42 @@ export interface LLMResponse extends BaseLLMSDKResponse {
  */
 export interface InferenceResponse {
   completion: LLMCompletion;
+}
+
+/**
+ * LLM model configuration interface matching the actual response structure
+ */
+export interface LLMModelConfig {
+  /** Unique LLM identifier */
+  llm_id: string;
+  /** User-defined model name */
+  user_model_name: string | null;
+  /** Actual model name */
+  model_name: string;
+  /** Configuration datetime */
+  datetime: string;
+  /** Maximum tokens for input */
+  max_tokens: number;
+  /** Maximum output tokens */
+  max_output_tokens: number;
+  /** Cached token information */
+  cached_token: string | null;
+  /** Cost per input token */
+  input_cost_per_token: number;
+  /** Cost per output token */
+  output_cost_per_token: number;
+  /** LiteLLM provider name */
+  litellm_provider: string;
+  /** Model mode (e.g., 'chat') */
+  mode: string;
+  /** Whether model supports function calling */
+  supports_function_calling: number;
+  /** Whether model supports parallel function calling */
+  supports_parallel_function_calling: number | null;
+  /** Whether model supports vision */
+  supports_vision: number | null;
+  /** Model source */
+  source: string | null;
+  /** Maximum input tokens */
+  max_input_tokens: number;
 }

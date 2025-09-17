@@ -9,3 +9,4 @@ export { MemoryImportModifier, type MemoryImportOptions } from './memoryImportMo
 export { LoopDetectionModifier, type LoopDetectionOptions } from '../postInferenceProcessors/loopDetectionModifier';
 export { ToolInjectionModifier, type ToolInjectionOptions } from './toolInjectionModifier';
 export { ChatRecordingModifier, type ChatRecordingOptions } from './chatRecordingModifier';
+export { ChatHistoryMessageModifier, type ChatHistoryMessageModifierOptions } from './chatHistoryMessageModifier';

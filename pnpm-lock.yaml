@@ -145,32 +145,7 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
 
-  agents/geminiagent:
-    dependencies:
-      '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
-      '@codebolt/codeboltjs':
-        specifier: ^2.2.1
-        version: 2.2.1(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.25
-        version: 20.19.10
-      esbuild:
-        specifier: ^0.25.9
-        version: 0.25.9
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.2
-
-  agents/initailPromptTest:
+  agents/geminiAgentTest:
     dependencies:
       '@codebolt/agent':
         specifier: workspace:*
@@ -197,6 +172,31 @@ importers:
       tsx:
         specifier: ^4.7.0
         version: 4.20.5
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.2
+
+  agents/geminiagent:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: ^2.2.1
+        version: 2.2.1(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.10
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.9
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
       typescript:
         specifier: ^5.3.3
         version: 5.9.2

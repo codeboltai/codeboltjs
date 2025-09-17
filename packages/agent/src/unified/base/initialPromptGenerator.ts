@@ -76,7 +76,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
 
             createdMessage.message.messages.push({
                 role: 'user' as const,
-                content
+                content:content.trim()
             });
 
             if (this.enableLogging) {
