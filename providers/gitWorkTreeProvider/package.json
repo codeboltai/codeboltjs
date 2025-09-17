@@ -32,10 +32,12 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*"
+    "@codebolt/types": "workspace:*",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.13",
     "typescript": "^5.4.5"
   },
   "peerDependencies": {

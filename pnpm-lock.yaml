@@ -659,10 +659,16 @@ importers:
       '@e2b/sdk':
         specifier: ^0.16.0
         version: 0.16.2
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     devDependencies:
       '@types/node':
         specifier: ^20.14.2
         version: 20.19.10
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
       typescript:
         specifier: ^5.4.5
         version: 5.9.2

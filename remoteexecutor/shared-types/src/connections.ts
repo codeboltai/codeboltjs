@@ -1,6 +1,16 @@
 import WebSocket from 'ws';
 
 /**
+ * Project information
+ */
+export interface ProjectInfo {
+  path: string;
+  name?: string;
+  type?: string;
+  metadata?: Record<string, any>;
+}
+
+/**
  * Connection information for an app or agent
  */
 export interface ClientConnection {
@@ -8,6 +18,7 @@ export interface ClientConnection {
   ws: WebSocket;
   type: 'app' | 'agent' | 'client';
   connectedAt: Date;
+  currentProject?: ProjectInfo;
 }
 
 /**
@@ -37,6 +48,7 @@ export interface ConnectionInfo {
   id: string;
   type: 'app' | 'agent' | 'client';
   connectedAt: Date;
+  currentProject?: ProjectInfo;
 }
 
 /**

@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ClientConnection,
+  ProjectInfo,
   createErrorResponse,
   formatLogMessage
 } from '@codebolt/shared-types';
@@ -53,12 +54,13 @@ export class ConnectionManager {
   /**
    * Register a new app or agent connection
    */
-  registerConnection(connectionId: string, ws: WebSocket, connectionType: 'app' | 'agent', parentId?: string): void {
+  registerConnection(connectionId: string, ws: WebSocket, connectionType: 'app' | 'agent', parentId?: string, projectInfo?: ProjectInfo): void {
     const connection: ClientConnection = {
       id: connectionId,
       ws: ws,
       type: connectionType,
-      connectedAt: new Date()
+      connectedAt: new Date(),
+      currentProject: projectInfo
     };
 
     if (connectionType === 'agent') {
@@ -74,13 +76,13 @@ export class ConnectionManager {
         }
         this.parentToAgentsMapping.get(parentId)!.add(connectionId);
         
-        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} with parent: ${parentId}`));
+        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} with parent: ${parentId}${projectInfo ? ` and project: ${projectInfo.path}` : ''}`));
       } else {
-        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} (no parent)`));
+        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} (no parent)${projectInfo ? ` with project: ${projectInfo.path}` : ''}`));
       }
     } else if (connectionType === 'app') {
       this.apps.set(connectionId, connection);
-      console.log(formatLogMessage('info', 'ConnectionManager', `App registered: ${connectionId}`));
+      console.log(formatLogMessage('info', 'ConnectionManager', `App registered: ${connectionId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}`));
     }
 
     // Confirm registration
@@ -472,5 +474,49 @@ export class ConnectionManager {
       apps: this.apps.size,
       agents: this.agents.size
     };
+  }
+
+  /**
+   * Update project information for a connection
+   */
+  updateConnectionProject(connectionId: string, projectInfo: ProjectInfo): boolean {
+    const connection = this.getConnection(connectionId);
+    if (!connection) {
+      console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
+      return false;
+    }
+
+    connection.currentProject = projectInfo;
+    console.log(formatLogMessage('info', 'ConnectionManager', `Updated project for ${connectionId}: ${projectInfo.path}`));
+    return true;
+  }
+
+  /**
+   * Get project information for a connection
+   */
+  getConnectionProject(connectionId: string): ProjectInfo | undefined {
+    const connection = this.getConnection(connectionId);
+    return connection?.currentProject;
+  }
+
+  /**
+   * Get all connections with their project information
+   */
+  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
+    const allConnections = this.getAllConnections();
+    return allConnections.map(connection => ({
+      connection,
+      project: connection.currentProject
+    }));
+  }
+
+  /**
+   * Get connections by project path
+   */
+  getConnectionsByProject(projectPath: string): ClientConnection[] {
+    const allConnections = this.getAllConnections();
+    return allConnections.filter(connection => 
+      connection.currentProject?.path === projectPath
+    );
   }
 }

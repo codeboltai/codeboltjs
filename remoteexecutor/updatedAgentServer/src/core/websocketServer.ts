@@ -5,7 +5,8 @@ import {
   formatLogMessage, 
   isMessageWithType, 
   createErrorResponse, 
-  Message 
+  Message,
+  ProjectInfo 
 } from '@codebolt/shared-types';
 
 import { ConnectionManager } from './connectionManager';
@@ -140,7 +141,26 @@ export class WebSocketServer {
       agentId: queryParams.get('agentId') || undefined,
       parentId: queryParams.get('parentId') || undefined,
       clientType: queryParams.get('clientType') || undefined,
-      appId: queryParams.get('appId') || undefined
+      appId: queryParams.get('appId') || undefined,
+      currentProject: queryParams.get('currentProject') || undefined,
+      projectName: queryParams.get('projectName') || undefined,
+      projectType: queryParams.get('projectType') || undefined
+    };
+  }
+
+  /**
+   * Create ProjectInfo from connection parameters
+   */
+  private createProjectInfo(params: ConnectionParams): ProjectInfo | undefined {
+    if (!params.currentProject) {
+      return undefined;
+    }
+
+    return {
+      path: params.currentProject,
+      name: params.projectName,
+      type: params.projectType,
+      metadata: {}
     };
   }
 
@@ -153,21 +173,23 @@ export class WebSocketServer {
     params: ConnectionParams, 
     fallbackClientId: string
   ): ConnectionRegistrationResult {
+    const projectInfo = this.createProjectInfo(params);
+
     // Priority 1: Auto-register agent if agentId and parentId are provided
     if (params.agentId && params.parentId) {
-      this.registerAgent(ws, params.agentId, params.parentId, 'auto');
+      this.registerAgent(ws, params.agentId, params.parentId, 'auto', projectInfo);
       return { clientId: params.agentId };
     }
     
     // Priority 2: Auto-register app if clientType is 'app'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP) {
       const connectionId = params.appId || fallbackClientId;
-      this.registerApp(ws, connectionId, 'auto');
+      this.registerApp(ws, connectionId, 'auto', projectInfo);
       return { clientId: connectionId };
     }
     
     // Default: Register as app if no specific parameters provided
-    this.registerApp(ws, fallbackClientId, 'auto');
+    this.registerApp(ws, fallbackClientId, 'auto', projectInfo);
     return { clientId: fallbackClientId };
   }
 
@@ -178,16 +200,18 @@ export class WebSocketServer {
     ws: WebSocket, 
     agentId: string, 
     parentId?: string, 
-    registrationType: RegistrationType = 'auto'
+    registrationType: RegistrationType = 'auto',
+    projectInfo?: ProjectInfo
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer', 
-      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}`));
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}${projectInfo ? ` and project: ${projectInfo.path}` : ''}`));
     
     this.connectionManager.registerConnection(
       agentId, 
       ws, 
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT, 
-      parentId
+      parentId,
+      projectInfo
     );
     
     this.sendRegistrationConfirmation(
@@ -195,7 +219,8 @@ export class WebSocketServer {
       agentId, 
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT, 
       parentId, 
-      registrationType
+      registrationType,
+      projectInfo
     );
   }
 
@@ -205,13 +230,14 @@ export class WebSocketServer {
   private registerApp(
     ws: WebSocket, 
     appId: string, 
-    registrationType: RegistrationType = 'auto'
+    registrationType: RegistrationType = 'auto',
+    projectInfo?: ProjectInfo
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer', 
-      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId}`));
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}`));
     
-    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP);
-    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType);
+    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, projectInfo);
+    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType, projectInfo);
   }
 
   /**
@@ -222,7 +248,8 @@ export class WebSocketServer {
     connectionId: string, 
     connectionType: string, 
     parentId?: string,
-    registrationType: RegistrationType = 'auto'
+    registrationType: RegistrationType = 'auto',
+    projectInfo?: ProjectInfo
   ): void {
     const message = {
       type: WEBSOCKET_CONSTANTS.MESSAGE_TYPES.REGISTERED,
@@ -232,7 +259,8 @@ export class WebSocketServer {
         WEBSOCKET_CONSTANTS.MESSAGES.AUTO_REGISTRATION_SUCCESS : 
         WEBSOCKET_CONSTANTS.MESSAGES.REGISTRATION_SUCCESS,
       registrationType,
-      ...(parentId && { parentId })
+      ...(parentId && { parentId }),
+      ...(projectInfo && { currentProject: projectInfo })
     };
     
     this.sendMessage(ws, message);

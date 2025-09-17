@@ -8,6 +8,9 @@ export type ConnectionParams = {
   parentId?: string;
   clientType?: string;
   appId?: string;
+  currentProject?: string;
+  projectName?: string;
+  projectType?: string;
 };
 
 export type RegistrationResult = {
