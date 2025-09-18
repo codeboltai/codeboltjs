@@ -64,7 +64,7 @@ try {
     mentionedMCPs: ["sqlite", "filesystem"]
   };
   
-  const mentionedToolBoxes = await codebolt.tools.getMentionedToolBoxes(message);
+  const mentionedToolBoxes = await codebolt.mcp.getMentionedToolBoxes(message);
   console.log('   - Message content:', message.content);
   console.log('   - Mentioned MCPs:', message.mentionedMCPs);
   
@@ -82,7 +82,7 @@ try {
 ### Error Handling
 ```js
 try {
-  const mentionedToolBoxes = await codebolt.tools.getMentionedToolBoxes(userMessage);
+  const mentionedToolBoxes = await codebolt.mcp.getMentionedToolBoxes(userMessage);
   console.log("Successfully retrieved toolbox data");
 } catch (error) {
   console.error("Getting mentioned toolboxes failed:", error.message);

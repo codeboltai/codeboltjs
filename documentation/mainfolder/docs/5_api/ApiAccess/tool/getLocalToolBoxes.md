@@ -33,7 +33,7 @@ Array<{
 const codebolt = require('@codebolt/codeboltjs');
 
 
-const localToolBoxes = await codebolt.tools.getLocalToolBoxes();
+const localToolBoxes = await codebolt.mcp.getLocalToolBoxes();
 console.log("Local ToolBoxes:", localToolBoxes);
 
 
