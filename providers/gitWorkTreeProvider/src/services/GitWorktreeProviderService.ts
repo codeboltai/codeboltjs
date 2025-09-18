@@ -18,6 +18,7 @@ import {
   AgentStartMessage,
   AgentServerMessage
 } from '../interfaces/IProviderService';
+import { FlatUserMessage } from '@codebolt/types/sdk';
 
 // Promisify exec for async/await usage
 const execAsync = promisify(exec);
@@ -56,12 +57,56 @@ export class GitWorktreeProviderService implements IProviderService {
     };
 
     // Set agent server path relative to this file
-    this.config.agentServerPath = this.config.agentServerPath || 
-      path.resolve(__dirname, '../../../remoteexecutor/updatedAgentServer/dist/server.mjs');
+    this.config.agentServerPath = "/Users/ravirawat/Documents/codeboltai/codeboltjs/remoteexecutor/updatedAgentServer/dist/server.mjs";
     
     // Update server URL based on config
     this.agentServerConnection.serverUrl = 
       `ws://${this.config.agentServerHost}:${this.config.agentServerPort}`;
+    
+    // Setup process cleanup handlers
+    this.setupProcessCleanupHandlers();
+  }
+
+  /**
+   * Setup process cleanup handlers for graceful shutdown
+   */
+  private setupProcessCleanupHandlers(): void {
+    // Handle process termination signals
+    const cleanup = async (signal: string) => {
+      console.log(`[Git WorkTree Provider] Received ${signal}, initiating cleanup...`);
+      try {
+        await this.onCloseSignal();
+      } catch (error) {
+        console.error('[Git WorkTree Provider] Error during signal cleanup:', error);
+      }
+      process.exit(0);
+    };
+
+    // Register signal handlers
+    process.on('SIGINT', () => cleanup('SIGINT'));
+    process.on('SIGTERM', () => cleanup('SIGTERM'));
+    
+    // Handle uncaught exceptions
+    process.on('uncaughtException', async (error) => {
+      console.error('[Git WorkTree Provider] Uncaught exception:', error);
+      try {
+        await this.onCloseSignal();
+      } catch (cleanupError) {
+        console.error('[Git WorkTree Provider] Error during exception cleanup:', cleanupError);
+      }
+      process.exit(1);
+    });
+    
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', async (reason, promise) => {
+      console.error('[Git WorkTree Provider] Unhandled rejection at:', promise, 'reason:', reason);
+      try {
+        await this.onCloseSignal();
+      } catch (cleanupError) {
+        console.error('[Git WorkTree Provider] Error during rejection cleanup:', cleanupError);
+      }
+      process.exit(1);
+    });
   }
 
   /**
@@ -83,10 +128,13 @@ export class GitWorktreeProviderService implements IProviderService {
       // Start agent server
       console.log('[Git WorkTree Provider] Starting agent server...');
       await this.startAgentServer();
-      
+      // INSERT_YOUR_CODE
+      // Add a delay of 5 seconds after starting the agent server
+      await new Promise(resolve => setTimeout(resolve, 10000));
       // Connect to agent server WebSocket
       console.log('[Git WorkTree Provider] Connecting to agent server...');
       await this.connectToAgentServer(worktreeInfo.path!, initvars.environmentName);
+      console.log('[Git WorkTree Provider] Connected to agent server...');
       
       return {
         success: true,
@@ -104,30 +152,13 @@ export class GitWorktreeProviderService implements IProviderService {
   /**
    * Provider agent start handler - forwards message to agent server
    */
-  async onProviderAgentStart(initvars: AgentStartMessage): Promise<void> {
-    console.log('[Git WorkTree Provider] Agent start requested, forwarding to agent server:', initvars);
+  async onProviderAgentStart(agentMessage:any): Promise<void> {
+    console.log('[Git WorkTree Provider] Agent start requested, forwarding to agent server:', agentMessage);
     
     // Check if we have a connection to the agent server
     if (!this.agentServerConnection.isConnected || !this.agentServerConnection.wsConnection) {
       throw new Error('Agent server is not connected. Cannot forward agent start message.');
-    }
-    
-    // Prepare the message to send to agent server
-    const agentMessage: AgentServerMessage = {
-      type: 'agentStart',
-      action: 'startAgent',
-      data: {
-        userMessage: initvars.userMessage || '',
-        task: initvars.task || '',
-        context: initvars.context || {},
-        worktreePath: this.worktreeInfo.path,
-        environmentName: this.worktreeInfo.branch,
-        originalMessage: initvars
-      },
-      messageId: `agent-start-${Date.now()}`,
-      timestamp: Date.now()
-    };
-    
+    }    
     try {
       // Send message to agent server
       const success = await this.sendMessageToAgent(agentMessage);
@@ -246,25 +277,45 @@ export class GitWorktreeProviderService implements IProviderService {
     console.log('[Git WorkTree Provider] Received close signal, cleaning up...');
     
     try {
-      // Close WebSocket connection
+      // Close WebSocket connection first
       if (this.agentServerConnection.wsConnection) {
         console.log('[Git WorkTree Provider] Closing WebSocket connection...');
-        this.agentServerConnection.wsConnection.close();
+        try {
+          this.agentServerConnection.wsConnection.close();
+        } catch (wsError) {
+          console.warn('[Git WorkTree Provider] Error closing WebSocket:', wsError);
+        }
         this.agentServerConnection.wsConnection = null;
         this.agentServerConnection.isConnected = false;
       }
       
-      // Stop agent server
+      // Stop agent server process with timeout
+      console.log('[Git WorkTree Provider] Stopping agent server process...');
       await this.stopAgentServer();
       
       // Remove worktree
       const { projectPath } = await codebolt.project.getProjectPath();
+      // let projectPath ="/Users/ravirawat/Documents/cbtest/fond-amber"
       if (projectPath) {
         await this.removeWorktree(projectPath);
       }
       
+      console.log('[Git WorkTree Provider] Cleanup completed successfully');
+      
     } catch (error) {
       console.error('[Git WorkTree Provider] Error during cleanup:', error);
+      
+      // Force kill any remaining processes as a last resort
+      if (this.agentServerConnection.process && !this.agentServerConnection.process.killed) {
+        console.warn('[Git WorkTree Provider] Force killing remaining agent server process...');
+        try {
+          this.agentServerConnection.process.kill('SIGKILL');
+          this.agentServerConnection.process = null;
+        } catch (killError) {
+          console.error('[Git WorkTree Provider] Failed to force kill process:', killError);
+        }
+      }
+      
       // Don't throw error during cleanup to avoid blocking shutdown
     }
   }
@@ -281,6 +332,29 @@ export class GitWorktreeProviderService implements IProviderService {
    */
   onCreatePullRequestRequest(): void {
     throw new Error("Function not implemented.");
+  }
+
+  /**
+   * Handle incoming WebSocket messages
+   */
+  async onMessage(userMessage:any): Promise<void> {
+  
+
+    try {
+      // Forward the message to the agent server if connected
+      if (this.agentServerConnection.isConnected && this.agentServerConnection.wsConnection) {
+      
+        const success = await this.sendMessageToAgent(userMessage);
+        if (!success) {
+          console.warn('[GitWorktreeProviderService] Failed to forward message to agent server');
+        }
+      } else {
+        console.warn('[GitWorktreeProviderService] Agent server not connected, cannot forward message');
+      }
+    } catch (error) {
+      console.error('[GitWorktreeProviderService] Error processing message:', error);
+      throw error;
+    }
   }
 
   /**
@@ -304,11 +378,11 @@ export class GitWorktreeProviderService implements IProviderService {
       this.agentServerConnection.process.stdout?.on('data', (data) => {
         const output = data.toString();
         console.log('[Git WorkTree Provider] Agent Server:', output);
+        resolve();
         
         // Check if server has started successfully
         if (output.includes('Server started successfully') && !serverStarted) {
           serverStarted = true;
-          resolve();
         }
       });
       
@@ -324,14 +398,22 @@ export class GitWorktreeProviderService implements IProviderService {
       this.agentServerConnection.process.on('exit', (code, signal) => {
         console.log(`[Git WorkTree Provider] Agent server exited with code ${code}, signal ${signal}`);
         this.agentServerConnection.process = null;
+        this.agentServerConnection.isConnected = false;
+        
+        // Close WebSocket connection if process exits unexpectedly
+        if (this.agentServerConnection.wsConnection) {
+          console.log('[Git WorkTree Provider] Closing WebSocket due to agent server exit');
+          this.agentServerConnection.wsConnection.close();
+          this.agentServerConnection.wsConnection = null;
+        }
       });
       
       // Timeout
-      setTimeout(() => {
-        if (!serverStarted) {
-          reject(new Error('Agent server startup timeout'));
-        }
-      }, this.config.timeouts?.agentServerStartup || 30000);
+      // setTimeout(() => {
+      //   if (!serverStarted) {
+      //     reject(new Error('Agent server startup timeout'));
+      //   }
+      // }, this.config.timeouts?.agentServerStartup || 30000);
     });
   }
 
@@ -356,35 +438,36 @@ export class GitWorktreeProviderService implements IProviderService {
         try {
           const message = JSON.parse(data.toString());
           console.log('[Git WorkTree Provider] WebSocket message received:', message.type || 'unknown');
-          
-          // Handle different message types
-          switch (message.type) {
-            case 'registered':
-              console.log('[Git WorkTree Provider] Successfully registered with agent server');
-              break;
+          // codebolt.chat.sendMessage(JSON.stringify(message),{})
+          codebolt.websocket?.send(data.toString())
+          // // Handle different message types
+          // switch (message.type) {
+          //   case 'registered':
+          //     console.log('[Git WorkTree Provider] Successfully registered with agent server');
+          //     break;
               
-            case 'agentStartResponse':
-              console.log('[Git WorkTree Provider] Agent start response:', message.data?.status || 'unknown');
-              if (message.data?.error) {
-                console.error('[Git WorkTree Provider] Agent start error:', message.data.error);
-              }
-              break;
+          //   case 'agentStartResponse':
+          //     console.log('[Git WorkTree Provider] Agent start response:', message.data?.status || 'unknown');
+          //     if (message.data?.error) {
+          //       console.error('[Git WorkTree Provider] Agent start error:', message.data.error);
+          //     }
+          //     break;
               
-            case 'agentMessage':
-              console.log('[Git WorkTree Provider] Agent message:', message.data?.message || 'no message');
-              break;
+          //   case 'agentMessage':
+          //     console.log('[Git WorkTree Provider] Agent message:', message.data?.message || 'no message');
+          //     break;
               
-            case 'notification':
-              console.log('[Git WorkTree Provider] Agent notification:', message.action, message.data);
-              break;
+          //   case 'notification':
+          //     console.log('[Git WorkTree Provider] Agent notification:', message.action, message.data);
+          //     break;
               
-            case 'error':
-              console.error('[Git WorkTree Provider] Agent server error:', message.message || 'unknown error');
-              break;
+          //   case 'error':
+          //     console.error('[Git WorkTree Provider] Agent server error:', message.message || 'unknown error');
+          //     break;
               
-            default:
-              console.log('[Git WorkTree Provider] Unhandled message type:', message.type, message);
-          }
+          //   default:
+          //     console.log('[Git WorkTree Provider] Unhandled message type:', message.type, message);
+          // }
         } catch (error) {
           console.error('[Git WorkTree Provider] Error parsing WebSocket message:', error);
         }
@@ -447,28 +530,82 @@ export class GitWorktreeProviderService implements IProviderService {
    */
   async stopAgentServer(): Promise<boolean> {
     if (!this.agentServerConnection.process) {
+      console.log('[Git WorkTree Provider] No agent server process to stop');
       return true;
     }
 
-    console.log('[Git WorkTree Provider] Stopping agent server...');
+    console.log('[Git WorkTree Provider] Stopping agent server process...');
     
     return new Promise<boolean>((resolve) => {
-      this.agentServerConnection.process!.kill('SIGTERM');
+      const process = this.agentServerConnection.process!;
+      let resolved = false;
+      
+      let cleanup = () => {
+        if (!resolved) {
+          resolved = true;
+          this.agentServerConnection.process = null;
+          console.log('[Git WorkTree Provider] Agent server process stopped');
+          resolve(true);
+        }
+      };
+      
+      // Listen for process exit
+      process.on('exit', (code, signal) => {
+        console.log(`[Git WorkTree Provider] Agent server exited with code ${code}, signal ${signal}`);
+        cleanup();
+      });
+      
+      // Listen for process error
+      process.on('error', (error) => {
+        console.error('[Git WorkTree Provider] Agent server process error during shutdown:', error);
+        cleanup();
+      });
+      
+      try {
+        // Try graceful shutdown first
+        console.log('[Git WorkTree Provider] Sending SIGTERM to agent server...');
+        process.kill('SIGTERM');
+      } catch (error) {
+        console.warn('[Git WorkTree Provider] Error sending SIGTERM:', error);
+        // Process might already be dead, continue with cleanup
+        cleanup();
+        return;
+      }
       
       // Wait for graceful shutdown, then force kill if needed
-      const timeout = setTimeout(() => {
-        if (this.agentServerConnection.process && !this.agentServerConnection.process.killed) {
-          console.log('[Git WorkTree Provider] Force killing agent server...');
-          this.agentServerConnection.process.kill('SIGKILL');
+      const gracefulTimeout = setTimeout(() => {
+        if (process && !process.killed && !resolved) {
+          console.log('[Git WorkTree Provider] Graceful shutdown timeout, force killing agent server...');
+          try {
+            process.kill('SIGKILL');
+          } catch (killError) {
+            console.error('[Git WorkTree Provider] Error force killing process:', killError);
+          }
+          
+          // Give it a moment for the kill signal to take effect
+          setTimeout(() => {
+            cleanup();
+          }, 1000);
         }
-        resolve(true);
       }, 5000);
       
-      this.agentServerConnection.process?.on('exit', () => {
-        clearTimeout(timeout);
-        this.agentServerConnection.process = null;
-        resolve(true);
-      });
+      // Final timeout to ensure we don't hang indefinitely
+      const finalTimeout = setTimeout(() => {
+        console.warn('[Git WorkTree Provider] Process cleanup timeout reached, proceeding...');
+        clearTimeout(gracefulTimeout);
+        cleanup();
+      }, 10000);
+      
+      // Clear timeouts when process exits
+      const originalCleanup = cleanup;
+      const enhancedCleanup = () => {
+        clearTimeout(gracefulTimeout);
+        clearTimeout(finalTimeout);
+        originalCleanup();
+      };
+      
+      // Replace the cleanup function
+      cleanup = enhancedCleanup;
     });
   }
 
@@ -642,5 +779,41 @@ export class GitWorktreeProviderService implements IProviderService {
    */
   isInitialized(): boolean {
     return this.worktreeInfo.isCreated && this.agentServerConnection.isConnected;
+  }
+
+  /**
+   * Handle agent messages from raw WebSocket
+   */
+  handleAgentMessage(message: any): void {
+    console.log('[Git WorkTree Provider Service] Handling agent message:', message);
+    // Forward agent messages or handle them as needed
+    // This could be used for agent-to-agent communication
+  }
+
+  /**
+   * Handle notifications from raw WebSocket
+   */
+  handleNotification(action: string, data: any): void {
+    console.log('[Git WorkTree Provider Service] Handling notification:', action, data);
+    // Handle server notifications like status updates, progress, etc.
+    switch (action) {
+      case 'statusUpdate':
+        console.log('[Git WorkTree Provider Service] Status update:', data);
+        break;
+      case 'progressUpdate':
+        console.log('[Git WorkTree Provider Service] Progress update:', data);
+        break;
+      default:
+        console.log('[Git WorkTree Provider Service] Unknown notification action:', action, data);
+    }
+  }
+
+  /**
+   * Handle unknown message types from raw WebSocket
+   */
+  handleUnknownMessage(message: any): void {
+    console.log('[Git WorkTree Provider Service] Handling unknown message type:', message.type, message);
+    // Handle any custom message types that might be added in the future
+    // or provide extensibility for custom protocol messages
   }
 }

@@ -11,7 +11,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
-import { listFiles, parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
+// import { listFiles, parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
 import { detectLanguage } from '../../utils/detectLanguage.js';
 
 // Import handlers statically instead of using dynamic imports

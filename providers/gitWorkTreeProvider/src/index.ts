@@ -1,5 +1,6 @@
 
 import codebolt from "@codebolt/codeboltjs";
+import { FlatUserMessage } from '@codebolt/types/sdk';
 import { GitWorktreeProviderService } from './services/GitWorktreeProviderService';
 import { 
   ProviderInitVars, 
@@ -40,6 +41,13 @@ codebolt.onCloseSignal(onCloseSignal);
  */
 codebolt.onCreatePatchRequest(onCreatePatchRequest);
 
+
+/**
+ * Message listener - handles incoming WebSocket messages
+ */
+
+codebolt.onRawMessage(onRawMessage)
+
 /**
  * Create pull request handler
  */
@@ -50,6 +58,7 @@ async function onProviderStart(initvars: ProviderInitVars): Promise<ProviderStar
 }
 
 async function onProviderAgentStart(initvars: AgentStartMessage): Promise<void> {
+    
     return await providerService.onProviderAgentStart(initvars);
 }
 
@@ -68,4 +77,20 @@ function onCreatePatchRequest(): void {
 function onCreatePullRequestRequest(): void {
     return providerService.onCreatePullRequestRequest();
 }
+
+async function onRawMessage(userMessage:any): Promise<void> {
+    console.log('[GitWorktreeProvider] MessageReceived in On Raw Message',userMessage);
+
+  
+    // Handle the message through the provider service
+    return await providerService.onMessage(userMessage);
+}
+
+
+
+
+
+
+
+
 

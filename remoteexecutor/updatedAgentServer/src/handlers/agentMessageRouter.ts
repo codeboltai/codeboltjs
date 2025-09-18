@@ -211,60 +211,63 @@ export class AgentMessageRouter {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling agent request: ${message.type || message.action} from ${agent.id}`));
     
     // Handle all typed events from agents
-    const action = message.action || message.type;
+   
+    // Forward the message to the related app instead of sending back to client
+    this.sendMessageToApp.forwardToApp(agent, message);
+
     
-    switch (action) {
-      // File System Events
-      case 'readFile':
-        this.readFileHandler.handleReadFile(agent, message as ReadFileEvent);
-        break;
-      case 'createFile':
-        this.createFileHandler.handleCreateFile(agent, message as CreateFileEvent);
-        break;
-      case 'createFolder':
-        this.createFolderHandler.handleCreateFolder(agent, message as CreateFolderEvent);
-        break;
-      case 'updateFile':
-        this.updateFileHandler.handleUpdateFile(agent, message as UpdateFileEvent);
-        break;
-      case 'deleteFile':
-        this.deleteFileHandler.handleDeleteFile(agent, message as DeleteFileEvent);
-        break;
-      case 'deleteFolder':
-        this.deleteFolderHandler.handleDeleteFolder(agent, message as DeleteFolderEvent);
-        break;
-      case 'fileList':
-        this.fileListHandler.handleFileList(agent, message as FileListEvent);
-        break;
-      case 'listCodeDefinitionNames':
-        this.listCodeDefinitionNamesHandler.handleListCodeDefinitionNames(agent, message as ListCodeDefinitionNamesEvent);
-        break;
-      case 'searchFiles':
-        this.searchFilesHandler.handleSearchFiles(agent, message as SearchFilesEvent);
-        break;
-      case 'writeToFile':
-        this.writeFileHandler.handleWriteToFile(agent, message as WriteToFileEvent);
-        break;
-      case 'grep_search':
-        this.grepSearchHandler.handleGrepSearch(agent, message as GrepSearchEvent);
-        break;
-      case 'file_search':
-        this.fileSearchHandler.handleFileSearch(agent, message as FileSearchEvent);
-        break;
-      case 'edit_file_with_diff':
-        this.editFileWithDiffHandler.handleEditFileWithDiff(agent, message as EditFileWithDiffEvent);
-        break;
-      case 'editFileAndApplyDiff':
-        this.utilsHandler.handleUtilsEvent(agent, message as UtilsEvent);
-        break;
-      case 'codebase_search':
-        this.codebaseSearchHandler.handleCodebaseSearch(agent, message as any);
-        break;
-      default: 
-      let data= await this.notificationService.sendToAppRelatedToAgentId(agent.id,message,true);
-      this.connectionManager.sendToConnection(agent.id, { ...data, clientId: agent.id });
-        // console.warn(formatLogMessage('warn', 'MessageRouter', `Unhandled action: ${action} from ${agent.id}`));
-        break;
-    }
+    // switch (action) {
+    //   // File System Events
+    //   case 'readFile':
+    //     this.readFileHandler.handleReadFile(agent, message as ReadFileEvent);
+    //     break;
+    //   case 'createFile':
+    //     this.createFileHandler.handleCreateFile(agent, message as CreateFileEvent);
+    //     break;
+    //   case 'createFolder':
+    //     this.createFolderHandler.handleCreateFolder(agent, message as CreateFolderEvent);
+    //     break;
+    //   case 'updateFile':
+    //     this.updateFileHandler.handleUpdateFile(agent, message as UpdateFileEvent);
+    //     break;
+    //   case 'deleteFile':
+    //     this.deleteFileHandler.handleDeleteFile(agent, message as DeleteFileEvent);
+    //     break;
+    //   case 'deleteFolder':
+    //     this.deleteFolderHandler.handleDeleteFolder(agent, message as DeleteFolderEvent);
+    //     break;
+    //   case 'fileList':
+    //     this.fileListHandler.handleFileList(agent, message as FileListEvent);
+    //     break;
+    //   case 'listCodeDefinitionNames':
+    //     this.listCodeDefinitionNamesHandler.handleListCodeDefinitionNames(agent, message as ListCodeDefinitionNamesEvent);
+    //     break;
+    //   case 'searchFiles':
+    //     this.searchFilesHandler.handleSearchFiles(agent, message as SearchFilesEvent);
+    //     break;
+    //   case 'writeToFile':
+    //     this.writeFileHandler.handleWriteToFile(agent, message as WriteToFileEvent);
+    //     break;
+    //   case 'grep_search':
+    //     this.grepSearchHandler.handleGrepSearch(agent, message as GrepSearchEvent);
+    //     break;
+    //   case 'file_search':
+    //     this.fileSearchHandler.handleFileSearch(agent, message as FileSearchEvent);
+    //     break;
+    //   case 'edit_file_with_diff':
+    //     this.editFileWithDiffHandler.handleEditFileWithDiff(agent, message as EditFileWithDiffEvent);
+    //     break;
+    //   case 'editFileAndApplyDiff':
+    //     this.utilsHandler.handleUtilsEvent(agent, message as UtilsEvent);
+    //     break;
+    //   case 'codebase_search':
+    //     this.codebaseSearchHandler.handleCodebaseSearch(agent, message as any);
+    //     break;
+    //   default: 
+    //   let data= await this.notificationService.sendToAppRelatedToAgentId(agent.id,message,true);
+    //   this.connectionManager.sendToConnection(agent.id, { ...data, clientId: agent.id });
+    //     // console.warn(formatLogMessage('warn', 'MessageRouter', `Unhandled action: ${action} from ${agent.id}`));
+    //     break;
+    // }
   }
 }

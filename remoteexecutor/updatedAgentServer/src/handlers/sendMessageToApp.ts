@@ -23,8 +23,12 @@ export class SendMessageToApp {
       this.connectionManager.cacheMessageToAgent(message.id, agent.id);
     }
     
-    // Add agentId to the message so app knows where to send response back
-    const messageWithAgentId = { ...message, agentId: agent.id };
+    // Add agentId and agentInstanceId to the message so app knows where to send response back
+    const messageWithAgentId = { 
+      ...message, 
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId 
+    };
     
     const apps = this.connectionManager.getAllApps();
     if (apps.length === 0) {

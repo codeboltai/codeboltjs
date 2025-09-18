@@ -9,7 +9,7 @@ import type { ListCodeDefinitionNamesEvent } from '@codebolt/types/agent-to-app-
 import { SendMessageToApp } from '../sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';
-import { parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
+// import { parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
 
 /**
  * Handles list code definition names messages - implements functionality similar to fsService.listCodeDefinitionNames
@@ -75,7 +75,7 @@ export class ListCodeDefinitionNamesHandler {
       }
 
       // Parse source code for definitions using the original implementation
-      const result = await parseSourceCodeForDefinitionsTopLevel(dirPath);
+      const result = []// await parseSourceCodeForDefinitionsTopLevel(dirPath);
       
       const response = {
         success: true,

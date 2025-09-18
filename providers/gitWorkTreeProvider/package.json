@@ -18,7 +18,13 @@
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
-    "prepublish": "npm run clean && npm run build"
+    "prepublish": "npm run clean && npm run build",
+    "test": "npm run build && node dist/test-provider.js",
+    "test:index": "npm run build && node dist/test-index.js",
+    "test:provider": "npm run build && node dist/test-provider.js",
+    "test:dev": "ts-node test-provider.ts",
+    "test:index:dev": "ts-node test-index.ts",
+    "test:provider:dev": "ts-node test-provider.ts"
   },
   "keywords": [
     "codebolt",
@@ -38,7 +44,8 @@
   "devDependencies": {
     "@types/node": "^20.14.2",
     "@types/ws": "^8.5.13",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.1"
   },
   "peerDependencies": {
     "@e2b/sdk": "^0.16.0"

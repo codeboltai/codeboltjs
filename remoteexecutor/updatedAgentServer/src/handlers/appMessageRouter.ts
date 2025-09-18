@@ -27,48 +27,15 @@ export class AppMessageRouter {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling app response: ${message.type} from ${app.id}`));
 
     // Check if this message has a requestId and could be a response to a pending request
-    const messageWithRequestId = message as Message & { requestId?: string };
-    if (messageWithRequestId.requestId) {
-      // Try to resolve any pending request first
-      this.notificationService.handleResponse(messageWithRequestId.requestId, message);
-      return
-    }
+    // const messageWithRequestId = message as Message & { requestId?: string };
+    // if (messageWithRequestId.requestId) {
+    //   // Try to resolve any pending request first
+    //   this.notificationService.handleResponse(messageWithRequestId.requestId, message);
+    //   return
+    // }
 
-    switch (message.type) {
-      case 'messageResponse':
-        // App -> Agent: response forwarding
-        this.sendMessageToAgent.sendResponseToAgent(app, message as ResponseMessage);
-        break;
-      
-      default:
-        // All other app messages go to agent (if agentId is specified)
-        console.log(formatLogMessage('info', 'MessageRouter', `Forwarding unknown app response type: ${message.type} to agent`));
-        // Try to find the original agent using message ID
-        let targetAgentId: string | undefined;
-        
-        if (message.id) {
-          targetAgentId = this.connectionManager.getAndRemoveAgentForMessage(message.id);
-        }
-        
-        // Fallback to agentId if present in message
-        const messageWithAgentId = message as { agentId?: string };
-        if (!targetAgentId && messageWithAgentId.agentId) {
-          targetAgentId = messageWithAgentId.agentId;
-        }
-        
-        if (targetAgentId) {
-          this.connectionManager.sendToSpecificAgent(targetAgentId,app.id, message).then((success) => {
-            if (!success) {
-              console.warn(formatLogMessage('warn', 'MessageRouter', `Failed to send to specific agent ${targetAgentId}`));
-            }
-          }).catch((error) => {
-            console.error(formatLogMessage('error', 'MessageRouter', `Error sending to specific agent ${targetAgentId}: ${error}`));
-          });
-        } else {
-          console.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier: ${message.type}`));
-        }
-        break;
-    }
+    this.sendMessageToAgent.sendResponseToAgent(app, message as ResponseMessage);
+   
   }
 
 

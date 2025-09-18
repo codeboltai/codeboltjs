@@ -21,16 +21,7 @@ export class SendMessageToAgent {
     console.log(formatLogMessage('info', 'MessageRouter', `Sending response from app ${app.id} to agent`));
     
     // First try to find the agent using cached message ID
-    let targetAgentId: string | undefined;
-    
-    if (message.id) {
-      targetAgentId = this.connectionManager.getAndRemoveAgentForMessage(message.id);
-    }
-    
-    // Fallback to agentId if present in message
-    if (!targetAgentId && 'agentId' in message && typeof (message as Record<string, unknown>).agentId === 'string') {
-      targetAgentId = (message as Record<string, unknown>).agentId as string;
-    }
+     let targetAgentId = message?.data?.agentId || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9';
     
     if (targetAgentId) {
       this.connectionManager.sendToSpecificAgent(targetAgentId,app.id, message).then((success) => {

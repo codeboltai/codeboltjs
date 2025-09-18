@@ -1,5 +1,6 @@
 import { ChildProcess } from 'child_process';
 import WebSocket from 'ws';
+import { FlatUserMessage } from '@codebolt/types/sdk';
 
 /**
  * Provider initialization variables
@@ -17,6 +18,7 @@ export interface AgentStartMessage {
   task?: string;
   context?: any;
   timestamp?: number;
+  agentId:string;
 }
 
 /**
@@ -105,6 +107,7 @@ export interface IProviderService {
   onCloseSignal(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
+  onMessage(userMessage: FlatUserMessage): Promise<void>;
 
   // Agent server management
   startAgentServer(): Promise<void>;

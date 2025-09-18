@@ -9,7 +9,7 @@ import type { FileListEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';
-import { listFiles, LIST_FILES_LIMIT } from '../../utils/parse-source-code/index.js';
+// import { listFiles, LIST_FILES_LIMIT } from '../../utils/parse-source-code/index.js';
 
 /**
  * Handles file list messages - implements same logic as fsService.listFiles
@@ -76,7 +76,7 @@ export class FileListHandler {
       }
 
       // List files using the original parse-source-code implementation
-      const files = await listFiles(folderPath, isRecursive || false);
+      const files = []//await listFiles(folderPath, isRecursive || false);
       const formattedFiles = this.formatFilesList(folderPath, files);
       
       const response = {

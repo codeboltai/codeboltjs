@@ -19,6 +19,7 @@ export interface ClientConnection {
   type: 'app' | 'agent' | 'client';
   connectedAt: Date;
   currentProject?: ProjectInfo;
+  instanceId?:string
 }
 
 /**
