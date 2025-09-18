@@ -7,7 +7,7 @@ esbuild.build({
   format: 'esm',
   outfile: 'dist/server.mjs',
   banner: {
-    js: `import { createRequire } from 'module';\nconst require = createRequire(import.meta.url);`
+    js: `#!/usr/bin/env node\nimport { createRequire } from 'module';\nconst require = createRequire(import.meta.url);`
   },
   // Obfuscation and Minification Options
   minify: true,

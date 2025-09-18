@@ -1,8 +1,17 @@
 {
   "name": "@codebolt/newagentserver",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
+  "main": "dist/server.mjs",
+  "bin": {
+    "codebolt-agent-server": "dist/server.mjs",
+    "newagentserver": "dist/server.mjs"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && node esbuild.config.js",
@@ -20,11 +29,29 @@
     "docker:run": "docker run -p 3001:3001 --name agentserver codebolt/agentserver:latest",
     "docker:stop": "docker stop agentserver && docker rm agentserver",
     "docker:logs": "docker logs -f agentserver",
-    "docker:publish": "npm run docker:build && npm run docker:tag && npm run docker:push"
+    "docker:publish": "npm run docker:build && npm run docker:tag && npm run docker:push",
+    "prepublishOnly": "npm run build && npm run typecheck && npm run lint",
+    "publish:npm": "npm publish --access public",
+    "publish:beta": "npm publish --tag beta --access public"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "codebolt",
+    "agent",
+    "server",
+    "remote-execution",
+    "development-tools"
+  ],
+  "author": "CodeBolt Team",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeboltai/codeboltjs.git",
+    "directory": "remoteexecutor/updatedAgentServer"
+  },
+  "homepage": "https://github.com/codeboltai/codeboltjs#readme",
+  "bugs": {
+    "url": "https://github.com/codeboltai/codeboltjs/issues"
+  },
   "type": "module",
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
