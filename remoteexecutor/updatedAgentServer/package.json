@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/newagentserver",
+  "name": "@codebolt/agentserver",
   "version": "1.0.0",
   "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
   "main": "dist/server.mjs",
@@ -53,6 +53,9 @@
     "url": "https://github.com/codeboltai/codeboltjs/issues"
   },
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
     "@codebolt/shared-types": "workspace:*",
