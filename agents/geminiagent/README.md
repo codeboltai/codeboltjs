@@ -1,640 +1,665 @@
-# CodeBolt Gemini Agent
+# Gemini Agent - Unified Framework
 
-🤖 **A sophisticated AI agent implementation powered by Google's Gemini model**, integrated with CodeBolt's agent processor framework for seamless development workflow automation.
+A powerful AI agent implementation using Google's Gemini model, built on the **Unified Agent Framework**. This agent provides intelligent assistance with file operations, web browsing, image analysis, and comprehensive conversation management.
 
-## 📖 Table of Contents
+## 🚀 Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Built-in Tools](#built-in-tools)
-- [Message Processing Pipeline](#message-processing-pipeline)
-- [Development](#development)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+- **🤖 Gemini-Powered Intelligence** - Leverages Google's advanced Gemini Pro model
+- **📁 File Operations** - Read, write, delete, move, and copy files
+- **🌐 Web Content Processing** - Automatically extract and analyze web content from URLs
+- **🖼️ Image Analysis** - Process and analyze image attachments
+- **💬 Advanced Conversation Management** - Smart conversation compression and continuity
+- **🔄 Loop Detection** - Prevents infinite loops with advanced detection algorithms
+- **📊 Telemetry & Monitoring** - Comprehensive performance tracking and analytics
+- **🛡️ Safety & Validation** - Built-in response validation and safety checks
 
-## 🎯 Overview
+## 📋 Table of Contents
 
-The **CodeBolt Gemini Agent** is a production-ready AI agent that combines Google's powerful Gemini language model with CodeBolt's comprehensive agent processing framework. It provides intelligent code assistance, file operations, and workflow automation capabilities.
+1. [Installation](#installation)
+2. [Quick Start](#quick-start)
+3. [Configuration](#configuration)
+4. [Features](#features-detailed)
+5. [API Reference](#api-reference)
+6. [Examples](#examples)
+7. [Troubleshooting](#troubleshooting)
+8. [Migration Guide](#migration-guide)
 
-### Key Benefits
-
-- 🚀 **Intelligent Code Assistance**: Leverages Gemini's advanced reasoning capabilities
-- 🔧 **Comprehensive Tool Integration**: Built-in file operations and extensible tool system
-- 🛡️ **Robust Error Handling**: Advanced loop detection and safety mechanisms
-- 📊 **Performance Monitoring**: Built-in telemetry and performance tracking
-- 🔄 **Flexible Processing**: Multiple processing modes for different use cases
-
-## ✨ Features
-
-### Core Capabilities
-
-- **Multi-Modal Input Processing**: Handle text, URLs, and image attachments
-- **Advanced Tool Execution**: Built-in file operations with retry logic
-- **Intelligent Loop Detection**: Prevent infinite loops and improve safety
-- **Context Management**: Automatic project and directory context awareness
-- **Chat Compression**: Intelligent conversation history management
-- **Token Management**: Optimize token usage and prevent limits
-- **Telemetry & Monitoring**: Track performance and usage metrics
-
-### Agent Features
-
-- **Multi-Language Support**: Works with TypeScript and other supported languages
-- **Framework Agnostic**: Compatible with various development frameworks
-- **YAML Configuration**: Easy configuration through YAML files
-- **Hot Reload Support**: Real-time development with automatic updates
-- **Error Recovery**: Graceful error handling and recovery mechanisms
-
-## 🏗️ Architecture
-
-```mermaid
-graph TB
-    A[User Message] --> B[Message Modifiers]
-    B --> C[Input Processors]
-    C --> D[LLM Agent Step]
-    D --> E{Tool Calls?}
-    E -->|Yes| F[Tool Executor]
-    F --> G[Output Processors]
-    E -->|No| G
-    G --> H[Response]
-    F --> I[Iteration Check]
-    I -->|Continue| D
-    I -->|Complete| H
-```
-
-### Core Components
-
-#### 1. **Message Modifiers**
-- `BaseContextMessageModifier`: Adds system context and metadata
-- `WorkingDirectoryMessageModifier`: Provides directory structure context
-- `HandleUrlMessageModifier`: Processes and fetches URL content
-- `ImageAttachmentMessageModifier`: Handles image inputs
-- `AddToolsListMessageModifier`: Injects available tools information
-
-#### 2. **Input Processors**
-- `AdvancedLoopDetectionProcessor`: Detects and prevents infinite loops
-- `TokenManagementProcessor`: Manages token limits and optimization
-- `ContextManagementProcessor`: Handles project and IDE context
-- `ChatCompressionProcessor`: Compresses conversation history
-
-#### 3. **Output Processors**
-- `ResponseValidationProcessor`: Validates tool calls and content
-- `ChatRecordingProcessor`: Records conversation for analysis
-- `TelemetryProcessor`: Tracks performance and usage metrics
-
-#### 4. **Tool System**
-- `ToolList`: Manages available tools and their metadata
-- `ToolExecutor`: Executes tools with retry logic and error handling
-- Built-in file operations tools
-
-## 📦 Installation
+## 🛠️ Installation
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- npm 10+ or pnpm
-- TypeScript support
+- Node.js 18+ 
+- TypeScript 5.0+
+- Access to Google Gemini API
 
-### Install the Agent
+### Install Dependencies
 
 ```bash
-# Using npm
+# Install the agent package
 npm install @codebolt/geminiagent
 
-# Using pnpm
-pnpm add @codebolt/geminiagent
-
-# Using yarn
-yarn add @codebolt/geminiagent
+# Or if developing locally
+cd agents/geminiagent
+npm install
 ```
 
-### Development Setup
+### Build the Agent
 
 ```bash
-# Clone the repository
-git clone https://github.com/codeboltai/codeboltjs.git
-cd codeboltjs/agents/geminiagent
-
-# Install dependencies
-npm install
-
-# Build the agent
 npm run build
-
-# Start development mode
-npm run dev
 ```
 
 ## 🚀 Quick Start
 
 ### Basic Usage
 
-The Gemini agent is designed to work seamlessly with CodeBolt's message handling system:
+```typescript
+import { geminiAgent, executeGeminiAgent } from '@codebolt/geminiagent';
+
+// Execute a simple query
+const result = await executeGeminiAgent('Hello, can you help me with my project?');
+console.log(result.response);
+
+// Execute with options
+const result = await executeGeminiAgent('Analyze this code file', {
+  maxIterations: 5,
+  includeHistory: true,
+  context: {
+    projectType: 'web-application',
+    language: 'typescript'
+  }
+});
+```
+
+### Using with CodeBolt
+
+The agent automatically integrates with CodeBolt's messaging system:
 
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
+import './agents/geminiagent'; // This registers the message handler
 
-// The agent automatically handles incoming messages
-// through the codebolt.onMessage() handler
-
-// Send a message to the agent
-codebolt.chat.sendMessage('Help me create a new React component', {});
+// The agent will automatically handle messages sent through CodeBolt
 ```
 
-### Manual Integration
-
-For custom implementations:
+### Custom Configuration
 
 ```typescript
-import { 
-    RequestMessage, 
-    LLMAgentStep, 
-    ToolExecutor, 
-    ToolListClass as ToolList 
-} from '@codebolt/geminiagent';
+import { createAgent } from '@codebolt/geminiagent';
 
-// Initialize the agent components
-const toolList = new ToolList([
-    // Add your tools here
-]);
-
-const agentStep = new LLMAgentStep({
-    toolList,
-    llmconfig: {
-        llmname: "gemini-pro",
-        model: "gemini-pro",
-        temperature: 0.7,
-        maxTokens: 8192
-    }
+const customGeminiAgent = createAgent({
+  name: 'Custom Gemini Assistant',
+  instructions: 'You are a specialized coding assistant.',
+  llmConfig: {
+    model: 'gemini-pro',
+    temperature: 0.3, // Lower temperature for more focused responses
+    maxTokens: 4096
+  },
+  maxIterations: 8,
+  enableLogging: true
 });
 ```
 
 ## ⚙️ Configuration
 
-### Agent Configuration (codeboltagent.yaml)
+### Environment Variables
 
-```yaml
-title: geminiagent
-unique_id: geminiagent
-initial_message: Hello! I'm your advanced AI developer. How can I assist you today?
-description: Advanced Gemini-powered CodeBolt Agent
+```bash
+# Google AI API Configuration
+GOOGLE_AI_API_KEY=your_gemini_api_key_here
 
-metadata:
-  agent_routing:
-    worksonblankcode: true
-    worksonexistingcode: true
-    supportedlanguages:
-      - typescript
-      - javascript
-      - python
-      - java
-    supportedframeworks:
-      - all
+# Optional: Custom model configuration
+GEMINI_MODEL=gemini-pro
+GEMINI_TEMPERATURE=0.7
+GEMINI_MAX_TOKENS=8192
 
-  defaultagentllm:
-    strict: true
-    modelorder:
-      - gemini-pro
-      - gemini-1.5-pro
-
-  llm_role:
-    - name: documentationllm
-      description: LLM for documentation tasks
-      modelorder:
-        - gemini-pro
-        - gpt-4-turbo
-    - name: testingllm
-      description: LLM for testing tasks
-      modelorder:
-        - gemini-pro
-        - gpt-4-turbo
+# Optional: Logging and monitoring
+ENABLE_TELEMETRY=true
+LOG_LEVEL=info
 ```
 
-### TypeScript Configuration
-
-The agent uses strict TypeScript configuration for type safety:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "Node16",
-    "moduleResolution": "node16",
-    "strict": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "sourceMap": true
-  }
-}
-```
-
-### Build Configuration
-
-The agent uses esbuild for fast compilation:
-
-```javascript
-// build.mjs
-import esbuild from 'esbuild';
-
-esbuild.build({
-  entryPoints: ['src/index.ts'],
-  bundle: true,
-  platform: 'node',
-  target: 'node20',
-  outfile: 'dist/index.js',
-  format: 'cjs',
-  external: ['bufferutil', 'utf-8-validate']
-});
-```
-
-## 📚 API Reference
-
-### Core Components
-
-#### RequestMessage
-
-Handles message modification and preprocessing:
+### Agent Configuration Options
 
 ```typescript
-const messageModifier = new RequestMessage({
-    messageModifiers: [
-        new BaseContextMessageModifier({ /* options */ }),
-        new WorkingDirectoryMessageModifier({ /* options */ }),
-        // ... other modifiers
-    ]
-});
-
-const modifiedMessage = await messageModifier.modify(originalMessage);
+const agentConfig = {
+  // Basic settings
+  name: 'Gemini Agent',
+  instructions: 'System instructions for the agent',
+  description: 'Agent description',
+  
+  // LLM Configuration
+  llmConfig: {
+    model: 'gemini-pro',           // Gemini model to use
+    temperature: 0.7,              // Response creativity (0-1)
+    maxTokens: 8192,               // Maximum response tokens
+    topP: 0.9,                     // Nucleus sampling
+    topK: 40,                      // Top-K sampling
+    stopSequences: ['END']         // Stop generation sequences
+  },
+  
+  // Execution settings
+  maxIterations: 10,               // Max tool execution iterations
+  maxConversationLength: 50,       // Max conversation history
+  enableLogging: true,             // Enable console logging
+  
+  // Tools and processors are configured automatically
+};
 ```
 
-#### LLMAgentStep
-
-Core processing component:
-
-```typescript
-const agentStep = new LLMAgentStep({
-    inputProcessors: [/* processors */],
-    outputProcessors: [/* processors */],
-    toolList: toolList,
-    toolExecutor: toolExecutor,
-    llmconfig: {
-        llmname: "gemini-pro",
-        model: "gemini-pro",
-        temperature: 0.7,
-        maxTokens: 8192
-    },
-    maxIterations: 10
-});
-
-const response = await agentStep.step(message);
-```
-
-#### ToolExecutor
-
-Manages tool execution with retry logic:
-
-```typescript
-const toolExecutor = new ToolExecutor(toolList, {
-    maxRetries: 3,
-    enableLogging: true
-});
-
-const result = await toolExecutor.executeTools({
-    toolCalls: [/* tool calls */],
-    tools: toolList,
-    context: { /* context */ }
-});
-```
-
-### Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `maxIterations` | number | 10 | Maximum processing iterations |
-| `maxRetries` | number | 3 | Tool execution retry attempts |
-| `temperature` | number | 0.7 | LLM response creativity |
-| `maxTokens` | number | 8192 | Maximum token limit |
-| `enableLogging` | boolean | true | Enable detailed logging |
-
-## 🛠️ Built-in Tools
-
-The agent includes a comprehensive set of file manipulation tools:
+## 🔧 Features (Detailed)
 
 ### File Operations
 
-#### FileReadTool
+The agent includes comprehensive file management capabilities:
 
 ```typescript
-// Read file contents
-const content = await fileReadTool.execute({
-    filePath: '/path/to/file.txt'
+// Examples of what the agent can do:
+await geminiAgent.execute('Read the contents of package.json');
+await geminiAgent.execute('Create a new file called README.md with project documentation');
+await geminiAgent.execute('Delete all .log files in the current directory');
+await geminiAgent.execute('Move all images from src/ to assets/images/');
+```
+
+**Available File Tools:**
+- **FileReadTool** - Read file contents
+- **FileWriteTool** - Write/create files
+- **FileDeleteTool** - Delete files
+- **FileMoveTool** - Move/rename files
+- **FileCopyTool** - Copy files
+
+### Web Content Processing
+
+Automatically processes URLs in messages:
+
+```typescript
+await geminiAgent.execute('Summarize the content from https://example.com/article');
+await geminiAgent.execute('What are the main points in this documentation: https://docs.example.com');
+```
+
+**Features:**
+- Automatic URL detection and content extraction
+- Metadata extraction (title, description, etc.)
+- Content summarization and analysis
+- Support for various web content types
+
+### Image Analysis
+
+Process and analyze images:
+
+```typescript
+// The agent can analyze images attached to messages
+await geminiAgent.execute('What do you see in this image?', {
+  context: {
+    attachments: [{ type: 'image', url: 'path/to/image.jpg' }]
+  }
 });
 ```
 
-#### FileWriteTool
+### Advanced Conversation Management
+
+**Conversation Compaction:**
+- Automatically compresses long conversations
+- Preserves important context and recent messages
+- Configurable compression thresholds
+
+**Loop Detection:**
+- Prevents infinite loops in agent execution
+- Advanced semantic analysis for loop detection
+- Configurable detection thresholds
+
+**Context Management:**
+- Maintains project context across conversations
+- IDE integration for enhanced context awareness
+- Directory and file structure awareness
+
+## 📚 API Reference
+
+### Main Functions
+
+#### `executeGeminiAgent(message, options?)`
+
+Execute the Gemini agent with a message.
 
 ```typescript
-// Write content to file
-await fileWriteTool.execute({
-    filePath: '/path/to/file.txt',
-    content: 'Hello, World!',
-    encoding: 'utf8'
+const result = await executeGeminiAgent(message, {
+  maxIterations?: number;
+  includeHistory?: boolean;
+  context?: Record<string, unknown>;
 });
 ```
 
-#### FileDeleteTool
+**Parameters:**
+- `message` (string): The user message to process
+- `options` (object, optional):
+  - `maxIterations`: Maximum tool execution iterations (default: 10)
+  - `includeHistory`: Include conversation history in response (default: false)
+  - `context`: Additional context data
 
+**Returns:**
 ```typescript
-// Delete a file
-await fileDeleteTool.execute({
-    filePath: '/path/to/file.txt'
-});
-```
-
-#### FileMoveTool
-
-```typescript
-// Move a file
-await fileMoveTool.execute({
-    sourcePath: '/path/to/source.txt',
-    destinationPath: '/path/to/destination.txt'
-});
-```
-
-#### FileCopyTool
-
-```typescript
-// Copy a file
-await fileCopyTool.execute({
-    sourcePath: '/path/to/source.txt',
-    destinationPath: '/path/to/copy.txt'
-});
-```
-
-### Custom Tool Development
-
-Create custom tools by extending the base tool class:
-
-```typescript
-import { BaseTool } from '@codebolt/agent/processor';
-
-class CustomTool extends BaseTool {
-    constructor() {
-        super(
-            'CustomTool',
-            'Description of what this tool does',
-            {
-                parameter1: 'string',
-                parameter2: 'number'
-            }
-        );
-    }
-
-    async execute(params: any): Promise<any> {
-        // Implement tool logic
-        return {
-            success: true,
-            result: `Processed: ${params.parameter1}`
-        };
-    }
+{
+  success: boolean;
+  response?: string;
+  error?: string;
+  iterations: number;
+  toolResults?: ToolResult[];
+  conversationHistory?: Message[];
+  executionTime: number;
 }
-
-// Add to tool list
-toolList.addTool(new CustomTool());
 ```
 
-## 🔄 Message Processing Pipeline
+#### `getGeminiAgentStatus()`
 
-The agent follows a sophisticated message processing pipeline:
-
-### 1. Message Modification Phase
+Get the current status and configuration of the Gemini agent.
 
 ```typescript
-// Context enrichment
-BaseContextMessageModifier → WorkingDirectoryMessageModifier → 
-HandleUrlMessageModifier → ImageAttachmentMessageModifier → 
-AddToolsListMessageModifier
+const status = getGeminiAgentStatus();
+console.log(status);
+// {
+//   name: 'Gemini Agent',
+//   tools: 5,
+//   processors: {
+//     messageModifiers: 6,
+//     followUpConversation: 8,
+//     preToolCall: 1
+//   },
+//   llmConfig: { model: 'gemini-pro', temperature: 0.7, ... }
+// }
 ```
 
-### 2. Input Processing Phase
+### Agent Instance Methods
+
+#### `geminiAgent.execute(message, options?)`
+
+Direct execution method on the agent instance.
+
+#### `geminiAgent.addTool(tool)`
+
+Add a custom tool to the agent.
 
 ```typescript
-// Safety and optimization
-AdvancedLoopDetectionProcessor → TokenManagementProcessor → 
-ContextManagementProcessor → ChatCompressionProcessor
+import { createTool } from '@codebolt/geminiagent';
+
+const customTool = createTool({
+  id: 'custom-calculator',
+  name: 'Calculator',
+  description: 'Perform mathematical calculations',
+  inputSchema: z.object({ expression: z.string() }),
+  execute: async ({ input }) => ({ result: eval(input.expression) })
+});
+
+geminiAgent.addTool(customTool);
 ```
 
-### 3. LLM Processing Phase
+#### `geminiAgent.listTools()`
+
+Get a list of all available tools.
+
+#### `geminiAgent.clearConversationHistory()`
+
+Clear the agent's conversation history.
+
+## 💡 Examples
+
+### Basic File Operations
 
 ```typescript
-// Core AI processing
-LLMAgentStep.step() → Tool Call Detection → Tool Execution
+// Read and analyze a configuration file
+const result = await executeGeminiAgent(
+  'Read my package.json file and tell me what dependencies I have'
+);
+
+// Create a new component file
+await executeGeminiAgent(
+  'Create a new React component called UserProfile in src/components/ with basic props and TypeScript'
+);
+
+// Organize project files
+await executeGeminiAgent(
+  'Move all .test.js files to a tests/ directory and update their import paths'
+);
 ```
 
-### 4. Output Processing Phase
+### Web Content Analysis
 
 ```typescript
-// Validation and monitoring
-ResponseValidationProcessor → ChatRecordingProcessor → 
-TelemetryProcessor
+// Analyze documentation
+await executeGeminiAgent(
+  'Read this API documentation and create a summary: https://api.example.com/docs'
+);
+
+// Compare multiple sources
+await executeGeminiAgent(`
+  Compare the information from these two articles:
+  - https://example1.com/article
+  - https://example2.com/article
+  
+  What are the key differences in their approaches?
+`);
 ```
 
-### 5. Iteration Control
+### Code Analysis and Generation
 
 ```typescript
-// Loop management
-Iteration Check → Continue/Complete Decision → Response Generation
+// Code review
+await executeGeminiAgent(
+  'Review the code in src/utils/helpers.ts and suggest improvements'
+);
+
+// Generate tests
+await executeGeminiAgent(
+  'Generate unit tests for the functions in src/auth/login.ts using Jest'
+);
+
+// Refactoring assistance
+await executeGeminiAgent(
+  'Help me refactor this component to use React hooks instead of class components'
+);
 ```
 
-## 🔧 Development
-
-### Project Structure
-
-```
-geminiagent/
-├── src/
-│   └── index.ts          # Main agent implementation
-├── dist/                 # Compiled output
-├── llm-requests/         # LLM request/response logs
-├── codeboltagent.yaml    # Agent configuration
-├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-├── build.mjs             # Build script
-└── README.md             # This documentation
-```
-
-### Available Scripts
-
-```bash
-# Build the agent
-npm run build
-
-# Development mode with watch
-npm run dev
-
-# Clean build artifacts
-npm run clean
-
-# Type checking
-npx tsc --noEmit
-```
-
-### Debugging
-
-The agent includes comprehensive logging:
+### Project Management
 
 ```typescript
-// Enable debug logging
-console.log('[GeminiAgent] Processing message:', message);
-console.log('[GeminiAgent] Tool calls detected:', toolCalls.length);
-console.log('[GeminiAgent] Processing complete');
+// Project analysis
+await executeGeminiAgent(
+  'Analyze my project structure and suggest improvements for better organization'
+);
+
+// Documentation generation
+await executeGeminiAgent(
+  'Generate comprehensive README documentation for this project based on the code and package.json'
+);
+
+// Dependency management
+await executeGeminiAgent(
+  'Check for outdated dependencies and suggest updates, considering breaking changes'
+);
 ```
 
-### LLM Request Logging
-
-All LLM interactions are logged in the `llm-requests/` directory:
-
-- `llm-request-*.json`: Request payloads sent to Gemini
-- `llm-response-*.json`: Responses received from Gemini
-
-## 📖 Examples
-
-### Example 1: File Operations
-
-```typescript
-// User: "Read the contents of package.json"
-// Agent will:
-// 1. Detect file read request
-// 2. Execute FileReadTool
-// 3. Return file contents
-```
-
-### Example 2: Code Generation
-
-```typescript
-// User: "Create a new React component for a todo list"
-// Agent will:
-// 1. Analyze requirements
-// 2. Generate component code
-// 3. Use FileWriteTool to save the file
-// 4. Confirm creation
-```
-
-### Example 3: Project Analysis
-
-```typescript
-// User: "Analyze the project structure and suggest improvements"
-// Agent will:
-// 1. Read project files
-// 2. Analyze structure
-// 3. Provide recommendations
-// 4. Optionally implement changes
-```
-
-## 🔍 Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
 
-#### 1. **Build Errors**
+#### 1. Import Errors
 
-```bash
-# Clear cache and rebuild
-npm run clean
+**Problem:** Cannot find module '@codebolt/agent/unified'
+
+**Solution:** 
+```typescript
+// Use relative imports during development
+import { createAgent } from '../../../packages/agent/src/unified/index';
+
+// Or ensure the package is properly built and installed
 npm run build
 ```
 
-#### 2. **Module Resolution Issues**
+#### 2. API Key Issues
 
+**Problem:** Gemini API authentication failures
+
+**Solution:**
 ```bash
-# Check TypeScript configuration
-npx tsc --showConfig
+# Set your API key
+export GOOGLE_AI_API_KEY=your_api_key_here
 
-# Verify dependencies
-npm ls
+# Or in your .env file
+GOOGLE_AI_API_KEY=your_api_key_here
 ```
 
-#### 3. **Memory Issues**
+#### 3. Memory Issues
 
-```bash
-# Increase Node.js memory limit
-export NODE_OPTIONS="--max-old-space-size=4096"
-npm run build
+**Problem:** Agent runs out of memory with long conversations
+
+**Solution:**
+```typescript
+// Configure conversation compaction
+const agent = createAgent({
+  processors: {
+    followUpConversation: [
+      new ConversationCompactorProcessor({
+        maxConversationLength: 20, // Reduce conversation length
+        compactionThreshold: 0.6,  // More aggressive compaction
+        enableSummarization: true
+      })
+    ]
+  }
+});
 ```
 
-#### 4. **Tool Execution Failures**
+#### 4. Tool Execution Timeouts
 
-Check the console logs for detailed error messages:
+**Problem:** Tools taking too long to execute
+
+**Solution:**
+```typescript
+// Reduce max iterations and add timeouts
+const result = await executeGeminiAgent(message, {
+  maxIterations: 5,
+  timeout: 30000 // 30 seconds
+});
+```
+
+### Debug Mode
+
+Enable detailed logging for troubleshooting:
 
 ```typescript
-// Enable verbose logging
-const toolExecutor = new ToolExecutor(toolList, {
-    maxRetries: 3,
-    enableLogging: true
+const debugAgent = createAgent({
+  name: 'Debug Gemini Agent',
+  enableLogging: true,
+  logLevel: 'debug',
+  processors: {
+    followUpConversation: [
+      new ChatRecordingProcessor({
+        enableRecording: true,
+        storageLocation: './debug-logs'
+      })
+    ]
+  }
 });
 ```
 
 ### Performance Optimization
 
-1. **Token Management**: Adjust `maxTokens` based on your use case
-2. **Compression Settings**: Fine-tune `compressionThreshold`
-3. **Iteration Limits**: Optimize `maxIterations` for your workflows
-4. **Tool Retries**: Balance reliability vs. performance with `maxRetries`
+For better performance in production:
+
+```typescript
+const optimizedAgent = createAgent({
+  name: 'Optimized Gemini Agent',
+  llmConfig: {
+    temperature: 0.3, // Lower temperature for faster responses
+    maxTokens: 4096   // Reduce token limit
+  },
+  maxIterations: 5,   // Reduce max iterations
+  processors: {
+    followUpConversation: [
+      new ConversationCompactorProcessor({
+        maxConversationLength: 15,
+        enableSummarization: false // Disable expensive operations
+      }),
+      new TokenManagementProcessor({
+        maxTokens: 4000,
+        enableCompression: true
+      })
+    ]
+  }
+});
+```
+
+## 🔄 Migration Guide
+
+### From Legacy Processor Pattern
+
+If you're migrating from the old processor-based implementation:
+
+#### Old Implementation
+```typescript
+// Old way - manual processor management
+const messageModifier = new RequestMessage({
+  messageModifiers: [/* processors */]
+});
+const agentStep = new LLMAgentStep({
+  inputProcessors: [/* processors */],
+  outputProcessors: [/* processors */]
+});
+```
+
+#### New Implementation
+```typescript
+// New way - unified agent with integrated processors
+const agent = createAgent({
+  name: 'Gemini Agent',
+  processors: {
+    messageModifiers: [/* processors */],
+    followUpConversation: [/* processors */],
+    preToolCall: [/* processors */]
+  }
+});
+```
+
+### Key Changes
+
+1. **Simplified API**: Single `execute()` method instead of manual step management
+2. **Integrated Processors**: All processors configured in agent creation
+3. **Better Error Handling**: Comprehensive error management and recovery
+4. **Enhanced Monitoring**: Built-in telemetry and performance tracking
+5. **Type Safety**: Full TypeScript support with proper type definitions
+
+### Migration Steps
+
+1. **Update Imports**
+```typescript
+// Old
+import { LLMAgentStep, RequestMessage } from '@codebolt/agent/processor';
+
+// New
+import { createAgent } from '@codebolt/agent/unified';
+```
+
+2. **Convert Agent Creation**
+```typescript
+// Old - manual setup
+const messageModifier = new RequestMessage({...});
+const agentStep = new LLMAgentStep({...});
+
+// New - unified creation
+const agent = createAgent({...});
+```
+
+3. **Update Execution Logic**
+```typescript
+// Old - manual loop
+while (iteration < maxIterations) {
+  const response = await agentStep.step(message);
+  // Manual tool execution logic
+}
+
+// New - automatic execution
+const result = await agent.execute(message);
+```
+
+4. **Configure Processors**
+```typescript
+// Old - separate processor instances
+const processors = [new SomeProcessor(), new AnotherProcessor()];
+
+// New - organized processor configuration
+const agent = createAgent({
+  processors: {
+    messageModifiers: [new SomeProcessor()],
+    followUpConversation: [new AnotherProcessor()]
+  }
+});
+```
+
+## 📊 Performance Metrics
+
+The Gemini agent includes comprehensive performance monitoring:
+
+### Metrics Collected
+
+- **Execution Time** - Total time for request processing
+- **Token Usage** - Input and output token consumption
+- **Tool Usage** - Number and types of tools executed
+- **Iteration Count** - Number of processing iterations
+- **Error Rate** - Success/failure statistics
+- **Memory Usage** - Memory consumption tracking
+
+### Accessing Metrics
+
+```typescript
+const result = await executeGeminiAgent('Your message');
+
+console.log('Performance Metrics:', {
+  executionTime: result.executionTime,
+  iterations: result.iterations,
+  toolsUsed: result.toolResults?.length || 0,
+  success: result.success
+});
+```
+
+### Custom Metrics
+
+Add custom metrics tracking:
+
+```typescript
+const agent = createAgent({
+  processors: {
+    followUpConversation: [
+      new TelemetryProcessor({
+        customMetrics: {
+          'gemini.response.length': (context) => context.response?.length || 0,
+          'gemini.user.satisfaction': (context) => context.userFeedback?.rating || 0
+        }
+      })
+    ]
+  }
+});
+```
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
+We welcome contributions to improve the Gemini agent! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. **Fork the Repository**
-   ```bash
-   git fork https://github.com/codeboltai/codeboltjs.git
-   ```
+### Development Setup
 
-2. **Create a Feature Branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/your-org/codeboltjs.git
 
-3. **Make Your Changes**
-   - Follow TypeScript best practices
-   - Add tests for new features
-   - Update documentation
+# Navigate to the Gemini agent
+cd agents/geminiagent
 
-4. **Test Your Changes**
-   ```bash
-   npm run build
-   npm run test
-   ```
+# Install dependencies
+npm install
 
-5. **Submit a Pull Request**
-   - Provide clear description
-   - Include test coverage
-   - Update documentation
+# Start development
+npm run dev
+```
 
-### Development Guidelines
+### Running Tests
 
-- **Code Style**: Follow existing TypeScript conventions
-- **Testing**: Add unit tests for new features
-- **Documentation**: Update README and inline comments
-- **Performance**: Consider token usage and execution time
-- **Security**: Validate all inputs and handle errors gracefully
+```bash
+# Run unit tests
+npm test
+
+# Run integration tests
+npm run test:integration
+
+# Run with coverage
+npm run test:coverage
+```
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](../../../LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: [Unified Framework Docs](../../documentation/mainfolder/docs/3_CustomAgents/agentPatterns/5-unified/)
+- **Issues**: [GitHub Issues](https://github.com/your-org/codeboltjs/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/codeboltjs/discussions)
 
 ---
 
-**Built with ❤️ by the CodeBolt Team**
-
-- 🌐 [Website](https://codebolt.ai)
-- 📧 [Support](mailto:support@codebolt.ai)
-- 📚 [Documentation](https://docs.codebolt.ai)
-- 🐙 [GitHub](https://github.com/codeboltai)
-
-*For more information about the CodeBolt ecosystem, visit our [main documentation](../../README.md).*
+**Built with ❤️ using the Unified Agent Framework**

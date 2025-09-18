@@ -12,10 +12,11 @@ const cbchat = {
      * Retrieves the chat history from the server.
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
      */
-    getChatHistory: (): Promise<ChatMessage[]> => {
+    getChatHistory: (threadId:string): Promise<ChatMessage> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": ChatEventType.GET_CHAT_HISTORY
+                "type": ChatEventType.GET_CHAT_HISTORY,
+                threadId
             },
             ChatResponseType.GET_CHAT_HISTORY_RESPONSE
         );

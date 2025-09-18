@@ -136,7 +136,7 @@ class cbws {
             });
 
             this.websocket.on('message', (data: WebSocket.Data) => {
-                console.log('[WebSocket] Message received:', data.toString().substring(0, 100) + (data.toString().length > 100 ? '...' : ''));
+                console.log('[WebSocket] Message received:', data.toString());
             });
 
             this.websocket.on('ping', () => {

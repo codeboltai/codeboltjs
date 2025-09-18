@@ -3,22 +3,20 @@
  * Types for the cbchat module functions
  */
 
+import { MessageObject } from "./llm";
+
 // Base response interface for chat operations
 export interface BaseChatSDKResponse {
   success?: boolean;
   message?: string;
   error?: string;
+  type:string
 }
 
 // Chat message interfaces
 export interface ChatMessage extends BaseChatSDKResponse {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: string;
-  type: string;
-  role?: 'user' | 'assistant' | 'system';
-  metadata?: Record<string, any>;
+  threadId: string,
+  messages: MessageObject []
 }
 
 // Full UserMessage structure as received from WebSocket
@@ -53,6 +51,8 @@ export interface UserMessage {
     templateType: string;
     processId: string;
     shadowGitHash: string;
+    activeFile: string;
+    openedFiles: string[]
   };
   sender: {
     senderType: string;
@@ -97,6 +97,9 @@ export interface FlatUserMessage {
   processId?: string;
   shadowGitHash?: string;
   remixPrompt?: any;
+  activeFile: string;
+    openedFiles: string[]
+
 }
 
 // Chat history responses
