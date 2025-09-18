@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/newagentserver",
+  "name": "@codebolt/agentserver",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -26,6 +26,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
     "@codebolt/shared-types": "workspace:*",
