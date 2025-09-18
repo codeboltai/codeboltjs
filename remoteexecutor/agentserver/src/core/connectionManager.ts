@@ -356,7 +356,7 @@ export class ConnectionManager {
   async sendToSpecificAgent(agentId: string,applicationId:string, message: unknown): Promise<boolean> {
     const agent = this.agents.get(agentId);
     if (!agent) {
-      console.warn(formatLogMessage('warn', 'ConnectionManager', `Agent ${agentId} not found, attempting to start...`));
+      // console.warn(formatLogMessage('warn', 'ConnectionManager', `Agent ${agentId} not found, attempting to start...`));
       
       // Try to start the agent
       const started = await this.processManager.startAgent(agentId,applicationId);

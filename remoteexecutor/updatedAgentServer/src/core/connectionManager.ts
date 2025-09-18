@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ClientConnection,
+  ProjectInfo,
   createErrorResponse,
   formatLogMessage
 } from '@codebolt/shared-types';
@@ -18,8 +19,8 @@ export class ConnectionManager {
   private agents: Map<string, ClientConnection> = new Map();
   // Cache to map message IDs to agent IDs for response routing
   private messageToAgentCache: Map<string, string> = new Map();
-  // Mapping from parentId (app connection ID) to agent connection IDs
-  private parentToAgentsMapping: Map<string, Set<string>> = new Map();
+  // Mapping from parentId (app connection ID) to agent connection data
+  private parentToAgentsMapping: Map<string, Set<{connectionId: string, instanceId?: string}>> = new Map();
   // Mapping from agent connection ID to parentId (app connection ID)
   private agentToParentMapping: Map<string, string> = new Map();
   private processManager: ProcessManager;
@@ -53,12 +54,14 @@ export class ConnectionManager {
   /**
    * Register a new app or agent connection
    */
-  registerConnection(connectionId: string, ws: WebSocket, connectionType: 'app' | 'agent', parentId?: string): void {
+  registerConnection(connectionId: string, ws: WebSocket, connectionType: 'app' | 'agent', parentId?: string, projectInfo?: ProjectInfo, instanceId?: string): void {
     const connection: ClientConnection = {
       id: connectionId,
       ws: ws,
       type: connectionType,
-      connectedAt: new Date()
+      connectedAt: new Date(),
+      currentProject: projectInfo,
+      instanceId: instanceId
     };
 
     if (connectionType === 'agent') {
@@ -72,15 +75,15 @@ export class ConnectionManager {
         if (!this.parentToAgentsMapping.has(parentId)) {
           this.parentToAgentsMapping.set(parentId, new Set());
         }
-        this.parentToAgentsMapping.get(parentId)!.add(connectionId);
+        this.parentToAgentsMapping.get(parentId)!.add({connectionId, instanceId});
         
-        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} with parent: ${parentId}`));
+        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} with parent: ${parentId}${projectInfo ? ` and project: ${projectInfo.path}` : ''}${instanceId ? ` and instanceId: ${instanceId}` : ''}`));
       } else {
-        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} (no parent)`));
+        console.log(formatLogMessage('info', 'ConnectionManager', `Agent registered: ${connectionId} (no parent)${projectInfo ? ` with project: ${projectInfo.path}` : ''}${instanceId ? ` and instanceId: ${instanceId}` : ''}`));
       }
     } else if (connectionType === 'app') {
       this.apps.set(connectionId, connection);
-      console.log(formatLogMessage('info', 'ConnectionManager', `App registered: ${connectionId}`));
+      console.log(formatLogMessage('info', 'ConnectionManager', `App registered: ${connectionId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${instanceId ? ` and instanceId: ${instanceId}` : ''}`));
     }
 
     // Confirm registration
@@ -104,10 +107,10 @@ export class ConnectionManager {
       this.apps.delete(connectionId);
       
       // Clean up any agents that belong to this app
-      const agentIds = this.parentToAgentsMapping.get(connectionId);
-      if (agentIds) {
-        agentIds.forEach(agentId => {
-          this.agentToParentMapping.delete(agentId);
+      const agentData = this.parentToAgentsMapping.get(connectionId);
+      if (agentData) {
+        agentData.forEach(agent => {
+          this.agentToParentMapping.delete(agent.connectionId);
         });
         this.parentToAgentsMapping.delete(connectionId);
       }
@@ -122,7 +125,13 @@ export class ConnectionManager {
         this.agentToParentMapping.delete(connectionId);
         const siblings = this.parentToAgentsMapping.get(parentId);
         if (siblings) {
-          siblings.delete(connectionId);
+          // Find and remove the agent with matching connectionId
+          for (const agent of siblings) {
+            if (agent.connectionId === connectionId) {
+              siblings.delete(agent);
+              break;
+            }
+          }
           // If no more agents for this parent, remove the parent entry
           if (siblings.size === 0) {
             this.parentToAgentsMapping.delete(parentId);
@@ -166,14 +175,14 @@ export class ConnectionManager {
    * Get all agents that belong to a specific parent (app)
    */
   getAgentsByParent(parentId: string): ClientConnection[] {
-    const agentIds = this.parentToAgentsMapping.get(parentId);
-    if (!agentIds) {
+    const agentData = this.parentToAgentsMapping.get(parentId);
+    if (!agentData) {
       return [];
     }
     
     const agents: ClientConnection[] = [];
-    agentIds.forEach(agentId => {
-      const agent = this.agents.get(agentId);
+    agentData.forEach(agentInfo => {
+      const agent = this.agents.get(agentInfo.connectionId);
       if (agent) {
         agents.push(agent);
       }
@@ -193,8 +202,8 @@ export class ConnectionManager {
    * Get all agent IDs that belong to a specific parent (app)
    */
   getAgentIdsByParent(parentId: string): string[] {
-    const agentIds = this.parentToAgentsMapping.get(parentId);
-    return agentIds ? Array.from(agentIds) : [];
+    const agentData = this.parentToAgentsMapping.get(parentId);
+    return agentData ? Array.from(agentData).map(agent => agent.connectionId) : [];
   }
 
   /**
@@ -210,8 +219,8 @@ export class ConnectionManager {
    */
   getAllParentMappings(): { [parentId: string]: string[] } {
     const result: { [parentId: string]: string[] } = {};
-    this.parentToAgentsMapping.forEach((agentIds, parentId) => {
-      result[parentId] = Array.from(agentIds);
+    this.parentToAgentsMapping.forEach((agentData, parentId) => {
+      result[parentId] = Array.from(agentData).map(agent => agent.connectionId);
     });
     return result;
   }
@@ -224,8 +233,9 @@ export class ConnectionManager {
     if (this.parentToAgentsMapping.size === 0) {
       console.log(formatLogMessage('info', 'ConnectionManager', 'No parent-child mappings found'));
     } else {
-      this.parentToAgentsMapping.forEach((agentIds, parentId) => {
-        console.log(formatLogMessage('info', 'ConnectionManager', `Parent ${parentId} -> Agents: [${Array.from(agentIds).join(', ')}]`));
+      this.parentToAgentsMapping.forEach((agentData, parentId) => {
+        const agentInfo = Array.from(agentData).map(agent => `${agent.connectionId}${agent.instanceId ? ` (instanceId: ${agent.instanceId})` : ''}`);
+        console.log(formatLogMessage('info', 'ConnectionManager', `Parent ${parentId} -> Agents: [${agentInfo.join(', ')}]`));
       });
     }
     console.log(formatLogMessage('info', 'ConnectionManager', '=============================='));
@@ -356,55 +366,33 @@ export class ConnectionManager {
   async sendToSpecificAgent(agentId: string,applicationId:string, message: unknown): Promise<boolean> {
     const agent = this.agents.get(agentId);
     if (!agent) {
-      console.warn(formatLogMessage('warn', 'ConnectionManager', `Agent ${agentId} not found, attempting to start...`));
+      // console.warn(formatLogMessage('warn', 'ConnectionManager', `Agent ${agentId} not found, attempting to start...`));
       
       // Try to start the agent
       const started = await this.processManager.startAgent(agentId,applicationId);
+      
       if (!started) {
         console.error(formatLogMessage('error', 'ConnectionManager', `Failed to start agent ${agentId}`));
         return false;
       }
       
-      // Wait a moment for the agent to connect
-      await this.waitForAgentConnection(agentId, 1000000); // 10 second timeout
+      // Wait for the agent to connect and be ready
+      await this.waitForAgentConnectionAndReady(agentId);
       
-      // Check if agent is now connected
-      const newAgent = this.agents.get(agentId);
-      if (!newAgent) {
-        console.error(formatLogMessage('error', 'ConnectionManager', `Agent ${agentId} started but did not connect within timeout`));
-        return false;
-      }
-      
-      // Send message to the newly connected agent
-      try {
-        const messageToSend = {type:'messageResponse',message:message};
-        newAgent.ws.send(JSON.stringify(messageToSend));
-        console.log(formatLogMessage('info', 'ConnectionManager', `Message sent to newly started agent ${agentId}`));
-        
-        // Send chat notification to the app
-        // this.sendChatNotificationToApp(agentId, message, 'sendMessageRequest');
-        
-        return true;
-      } catch (error) {
-        console.error(formatLogMessage('error', 'ConnectionManager', `Error sending message to newly started agent ${agentId}: ${error}`));
-        return false;
-      }
+      // Get the ready agent and send message
+      const newAgent = this.agents.get(agentId)!;
+      return this.sendMessageToReadyAgent(newAgent, agentId, message);
     }
 
-    try {
-      const messageToSend = {type:'messageResponse',message:message};
-
-      agent.ws.send(JSON.stringify(messageToSend));
-      console.log(formatLogMessage('info', 'ConnectionManager', `Message sent to specific agent ${agentId}`));
+    // Agent exists, check if WebSocket is ready
+    if (!this.isWebSocketReady(agent.ws)) {
+      console.log(formatLogMessage('info', 'ConnectionManager', `Agent ${agentId} WebSocket not ready, waiting...`));
       
-      // Send chat notification to the app
-      // this.sendChatNotificationToApp(agentId, message, 'sendMessageRequest');
-      
-      return true;
-    } catch (error) {
-      console.error(formatLogMessage('error', 'ConnectionManager', `Error sending message to agent ${agentId}: ${error}`));
-      return false;
+      // Wait for WebSocket to be ready
+      await this.waitForWebSocketReady(agent.ws);
     }
+
+    return this.sendMessageToReadyAgent(agent, agentId, message);
   }
 
   /**
@@ -448,6 +436,75 @@ export class ConnectionManager {
   }
 
   /**
+   * Wait for an agent to connect and its WebSocket to be ready
+   */
+  private async waitForAgentConnectionAndReady(agentId: string): Promise<void> {
+    const checkInterval = 500; // Check every 500ms
+
+    while (true) {
+      const agent = this.agents.get(agentId);
+      if (agent && this.isWebSocketReady(agent.ws)) {
+        console.log(formatLogMessage('info', 'ConnectionManager', `Agent ${agentId} is connected and ready`));
+        return;
+      }
+      
+      // Wait before checking again
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+  }
+
+  /**
+   * Check if WebSocket is ready (open state)
+   */
+  private isWebSocketReady(ws: WebSocket): boolean {
+    return ws.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Wait for WebSocket to be ready (without timeout)
+   */
+  private async waitForWebSocketReady(ws: WebSocket): Promise<void> {
+    if (this.isWebSocketReady(ws)) {
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const checkInterval = 100; // Check every 100ms for WebSocket readiness
+
+      const checkReady = () => {
+        if (this.isWebSocketReady(ws)) {
+          console.log(formatLogMessage('info', 'ConnectionManager', 'WebSocket is now ready'));
+          resolve();
+          return;
+        }
+
+        setTimeout(checkReady, checkInterval);
+      };
+
+      checkReady();
+    });
+  }
+
+  /**
+   * Send message to a ready agent (helper method)
+   */
+  private sendMessageToReadyAgent(agent: ClientConnection, agentId: string, message: unknown): boolean {
+    try {
+      // const messageToSend = {type:'messageResponse',message:message};
+      agent.ws.send(JSON.stringify(message));
+      console.log(formatLogMessage('info', 'ConnectionManager', `Message sent to agent ${agentId}`));
+      
+      // Send chat notification to the app
+      // this.sendChatNotificationToApp(agentId, message, 'sendMessageRequest');
+      
+      return true;
+    } catch (error) {
+      console.error(formatLogMessage('error', 'ConnectionManager', `Error sending message to agent ${agentId}: ${error}`));
+      return false;
+    }
+  }
+
+  /**
    * Get the process manager (for access to agent management)
    */
   getProcessManager(): ProcessManager {
@@ -472,5 +529,49 @@ export class ConnectionManager {
       apps: this.apps.size,
       agents: this.agents.size
     };
+  }
+
+  /**
+   * Update project information for a connection
+   */
+  updateConnectionProject(connectionId: string, projectInfo: ProjectInfo): boolean {
+    const connection = this.getConnection(connectionId);
+    if (!connection) {
+      console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
+      return false;
+    }
+
+    connection.currentProject = projectInfo;
+    console.log(formatLogMessage('info', 'ConnectionManager', `Updated project for ${connectionId}: ${projectInfo.path}`));
+    return true;
+  }
+
+  /**
+   * Get project information for a connection
+   */
+  getConnectionProject(connectionId: string): ProjectInfo | undefined {
+    const connection = this.getConnection(connectionId);
+    return connection?.currentProject;
+  }
+
+  /**
+   * Get all connections with their project information
+   */
+  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
+    const allConnections = this.getAllConnections();
+    return allConnections.map(connection => ({
+      connection,
+      project: connection.currentProject
+    }));
+  }
+
+  /**
+   * Get connections by project path
+   */
+  getConnectionsByProject(projectPath: string): ClientConnection[] {
+    const allConnections = this.getAllConnections();
+    return allConnections.filter(connection => 
+      connection.currentProject?.path === projectPath
+    );
   }
 }

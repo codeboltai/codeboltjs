@@ -40,6 +40,11 @@ export class ProcessManager {
    * Get OS-specific agent storage path
    */
   private getAgentStoragePath(): string {
+    // For testing purposes, return the specified test path
+    // return '/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/remote-agent';
+    
+    // Original OS-specific logic (commented out for testing)
+    
     const platform = os.platform();
     
     switch (platform) {
@@ -53,6 +58,7 @@ export class ProcessManager {
         // Fallback to a generic path
         return path.join(os.homedir(), '.codebolt', 'remote-agents');
     }
+    
   }
 
   /**

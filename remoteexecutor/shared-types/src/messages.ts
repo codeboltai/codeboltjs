@@ -46,10 +46,12 @@ export interface AskAIMessage extends BaseMessage {
 export interface ResponseMessage extends BaseMessage {
   type: 'messageResponse';
   success: boolean;
-  data?: unknown;
+  data?: any;
   error?: string;
   originalRequest?: unknown;
 }
+
+
 
 /**
  * Connection establishment message
