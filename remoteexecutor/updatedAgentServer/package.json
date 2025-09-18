@@ -4,8 +4,7 @@
   "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
   "main": "dist/server.mjs",
   "bin": {
-    "codebolt-agent-server": "dist/server.mjs",
-    "newagentserver": "dist/server.mjs"
+    "codebolt-agentserver": "dist/server.mjs"
   },
   "files": [
     "dist/",
