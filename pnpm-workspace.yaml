@@ -1,10 +1,12 @@
 packages:
-  - 'packages/*'
-  - 'common/*'
-  - 'agents/*'
-  # - 'documentation/*'
-  - 'providers/*'
-  - 'templateengine/*'
-  - 'tui/*'
-  - 'remoteexecutor/*'
-  - 'remoteenvironments/*'
+  - packages/*
+  - common/*
+  - agents/*
+  - providers/*
+  - templateengine/*
+  - tui/*
+  - remoteexecutor/*
+  - remoteenvironments/*
+
+ignoredBuiltDependencies:
+  - esbuild

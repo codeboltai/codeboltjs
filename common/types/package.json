@@ -98,7 +98,6 @@
   },
   "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/packages/types#readme",
   "devDependencies": {
-    "@codebolt/eslint-config": "workspace:*",
     "typescript": "^5.4.5"
   },
   "dependencies": {

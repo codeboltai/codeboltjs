@@ -51,7 +51,6 @@
     "web-tree-sitter": "^0.24.1"
   },
   "devDependencies": {
-    "@codebolt/eslint-config": "workspace:*",
     "@types/node": "^20.14.2",
     "jest": "^29.7.0",
     "typescript": "^5.4.5"

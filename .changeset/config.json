@@ -11,10 +11,6 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@codebolt/eslint-config",
-    "@codebolt/geminiagent",
-    "@codebolt/act",
-    "@codebolt/docs-nursid",
-    "@codebolt/docs"
+    "@codebolt/geminiagent"
   ]
 }

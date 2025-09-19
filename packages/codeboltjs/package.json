@@ -47,7 +47,6 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@codebolt/eslint-config": "workspace:*",
     "@types/events": "^3.0.3",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",
