@@ -1,5 +1,12 @@
 # epoml
 
+## 2.2.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@2.2.2
+
 ## 1.0.0
 
 ### Major Changes

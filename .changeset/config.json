@@ -11,19 +11,5 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@codebolt/testAgent",
-    "@codebolt/agent", 
-    "@codebolt/codeboltjs",
-    "dockerprovideragent",
-    "@codebolt/git-worktree-provider",
-    "remoteserverprovideragent", 
-    "@codebolt/epomlagent",
-    "@codebolt/act",
-    "epoml",
-    "@codebolt/utils",
-    "@epoml/example",
-    "@tests",
-    "dockerprovideragent",
-    "remoteserverprovideragent"
   ]
 }

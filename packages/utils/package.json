@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/utils",
-  "version": "1.2.1",
+  "version": "2.2.2",
   "description": "Utility functions for document processing and other common tasks",
   "keywords": [
     "utils",
