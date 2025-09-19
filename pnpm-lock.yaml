@@ -600,7 +600,7 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
-  providers/gitworktreeprovider:
+  providers/gitWorkTreeProvider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -698,76 +698,6 @@ importers:
       wrangler:
         specifier: ^4.26.0
         version: 4.37.1(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-
-  remoteexecutor/agentserver:
-    dependencies:
-      '@arrowai/multillm':
-        specifier: ^1.0.0
-        version: 1.1.50(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5))(zod@3.25.76)
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      adm-zip:
-        specifier: ^0.5.16
-        version: 0.5.16
-      axios:
-        specifier: ^1.11.0
-        version: 1.12.2
-      cbvectordb:
-        specifier: ^1.0.0
-        version: 1.0.0
-      commander:
-        specifier: ^12.1.0
-        version: 12.1.0
-      express:
-        specifier: ^5.1.0
-        version: 5.1.0
-      ink:
-        specifier: ^6.1.0
-        version: 6.3.0(@types/react@19.1.13)(bufferutil@4.0.9)(react-devtools-core@4.28.5(bufferutil@4.0.9)(utf-8-validate@6.0.5))(react@19.1.1)(utf-8-validate@6.0.5)
-      simple-git:
-        specifier: ^3.28.0
-        version: 3.28.0
-      uuid:
-        specifier: ^10.0.0
-        version: 10.0.0
-      web-tree-sitter:
-        specifier: ^0.25.8
-        version: 0.25.9
-      ws:
-        specifier: ^8.18.0
-        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-    devDependencies:
-      '@types/adm-zip':
-        specifier: ^0.5.7
-        version: 0.5.7
-      '@types/axios':
-        specifier: ^0.9.36
-        version: 0.9.36
-      '@types/express':
-        specifier: ^5.0.0
-        version: 5.0.3
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
-      '@types/ws':
-        specifier: ^8.5.13
-        version: 8.18.1
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.38.0
-        version: 8.39.1(@typescript-eslint/parser@8.39.1(eslint@9.33.0(jiti@1.21.7))(typescript@5.9.2))(eslint@9.33.0(jiti@1.21.7))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^8.38.0
-        version: 8.39.1(eslint@9.33.0(jiti@1.21.7))(typescript@5.9.2)
-      esbuild:
-        specifier: ^0.21.0
-        version: 0.21.5
-      eslint:
-        specifier: ^9.32.0
-        version: 9.33.0(jiti@1.21.7)
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.2
 
   remoteexecutor/shared-types:
     dependencies:

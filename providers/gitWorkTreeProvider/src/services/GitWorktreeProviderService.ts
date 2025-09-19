@@ -57,8 +57,8 @@ export class GitWorktreeProviderService implements IProviderService {
       ...config
     };
 
-    // Set agent server path relative to this file
-    this.config.agentServerPath = "/Users/ravirawat/Documents/codeboltai/codeboltjs/remoteexecutor/updatedAgentServer/dist/server.mjs";
+    // Use npx to run the published agent server package
+    // No need to set agentServerPath as we'll use npx @codebolt/agentserver
     
     // Update server URL based on config
     this.agentServerConnection.serverUrl = 
@@ -461,12 +461,10 @@ export class GitWorktreeProviderService implements IProviderService {
       return;
     }
     
-    if (!fs.existsSync(this.config.agentServerPath!)) {
-      throw new Error(`Agent server not found at: ${this.config.agentServerPath}`);
-    }
+    // No need to check file existence since we're using npx package
     
     return new Promise((resolve, reject) => {
-      this.agentServerConnection.process = spawn('node', [this.config.agentServerPath!, '--noui'], {
+      this.agentServerConnection.process = spawn('npx', ['--yes', '@codebolt/agentserver', '--noui'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         detached: false
       });

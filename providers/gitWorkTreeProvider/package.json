@@ -2,7 +2,6 @@
   "name": "@codebolt/git-worktree-provider",
   "version": "1.0.0",
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
-  "main": "start-provider.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",

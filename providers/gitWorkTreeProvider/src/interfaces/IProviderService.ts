@@ -131,7 +131,6 @@ export interface IProviderService {
  * Configuration interface for the provider
  */
 export interface ProviderConfig {
-  agentServerPath?: string;
   agentServerPort?: number;
   agentServerHost?: string;
   worktreeBaseDir?: string;
