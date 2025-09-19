@@ -4,10 +4,10 @@
  */
 
 // Sandbox types
-export * from './sandbox';
+export * from './sandbox.js';
 
 // Provider types
-export * from './provider';
+export * from './provider.js';
 
 // Re-export commonly used types for convenience
 export type {
@@ -15,11 +15,11 @@ export type {
   SandboxConfig,
   GitStatus,
   TerminalResult
-} from './sandbox';
+} from './sandbox.js';
 
 export type {
   InitVars,
   ProviderConfig,
   ProviderStatus,
   AgentStartParams
-} from './provider';
+} from './provider.js';

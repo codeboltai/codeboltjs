@@ -3,7 +3,7 @@
  * @description Manages multiple E2B sandbox instances
  */
 
-import { E2BSandbox, SandboxConfig } from '../types/sandbox';
+import { E2BSandbox, SandboxConfig } from '../types/sandbox.js';
 
 /**
  * Mock E2B Sandbox implementation for demonstration

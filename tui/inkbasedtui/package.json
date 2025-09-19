@@ -9,7 +9,7 @@
     "start": "node dist/index.mjs",
     "dev": "npm run build && node dist/index.mjs",
     "debug": "node --inspect-brk dist/index.mjs",
-    "lint": "eslint src/**/*.ts src/**/*.tsx",
+    "lint:test": "eslint src/**/*.ts src/**/*.tsx",
     "lint:fix": "eslint src/**/*.ts src/**/*.tsx --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit"

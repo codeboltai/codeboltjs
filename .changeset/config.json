@@ -4,13 +4,12 @@
   "commit": false,
   "fixed": [],
   "linked": [
-    ["@codebolt/codeboltjs", "@codebolt/utils", "@codebolt/types", "@codebolt/agent"],
+    ["@codebolt/codeboltjs", "@codebolt/utils", "@codebolt/agent", "epoml"],
     ["@codebolt/codeparser", "@codebolt/mcp"]
   ],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch",
+  "updateInternalDependencies": "ignore",
   "ignore": [
-    "@codebolt/geminiagent"
   ]
 }

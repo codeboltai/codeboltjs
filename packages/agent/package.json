@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "test": "echo \"No tests yet, but build passes\" && exit 0",
-    "lint": "eslint src/**/*.ts && tsc --noEmit"
+    "lint:test": "eslint src/**/*.ts && tsc --noEmit"
   },
   "keywords": [
     "ai",

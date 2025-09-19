@@ -3,10 +3,10 @@
  * @description Handles provider start, stop, close signals, and initialization
  */
 
-import { createE2BSandbox } from '../utils/sandboxManager';
-import { sendNotification, sendSystemNotification } from '../utils/messageHelpers';
-import { InitVars, ProviderStatus } from '../types/provider';
-import { E2BSandbox } from '../types/sandbox';
+import { createE2BSandbox } from '../utils/sandboxManager.js';
+import { sendNotification, sendSystemNotification } from '../utils/messageHelpers.js';
+import { InitVars, ProviderStatus } from '../types/provider.js';
+import { E2BSandbox } from '../types/sandbox.js';
 
 const { SystemNotificationAction } = require('../../../../common/types/dist/codeboltjstypes/notification.enum');
 

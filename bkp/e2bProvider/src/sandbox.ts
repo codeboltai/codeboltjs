@@ -4,7 +4,7 @@
  */
 
 // Re-export types
-export * from './types/sandbox';
+export * from './types/sandbox.js';
 
 // Re-export sandbox utilities
 export {
@@ -12,7 +12,7 @@ export {
   createE2BSandbox,
   SandboxManager,
   defaultSandboxManager
-} from './utils/sandboxManager';
+} from './utils/sandboxManager.js';
 
 // Re-export for backward compatibility
-export { createE2BSandbox as default } from './utils/sandboxManager';
+export { createE2BSandbox as default } from './utils/sandboxManager.js';
