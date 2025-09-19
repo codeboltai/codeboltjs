@@ -525,47 +525,54 @@ export class GitWorktreeProviderService implements IProviderService {
     
     return new Promise((resolve, reject) => {
       this.agentServerConnection.wsConnection = new WebSocket(wsUrl);
+      let isRegistered = false;
       
       this.agentServerConnection.wsConnection.on('open', () => {
-        console.log('[Git WorkTree Provider] WebSocket connection established');
+        console.log('[Git WorkTree Provider] WebSocket connection established, waiting for registration...');
         this.agentServerConnection.isConnected = true;
-        resolve();
+        // Don't resolve here - wait for 'registered' message
       });
       
       this.agentServerConnection.wsConnection.on('message', (data: WebSocket.Data) => {
         try {
           const message = JSON.parse(data.toString());
           console.log('[Git WorkTree Provider] WebSocket message received:', message.type || 'unknown');
-          // codebolt.chat.sendMessage(JSON.stringify(message),{})
+          
+          // Check for registration message
+          if (message.type === 'registered' && !isRegistered) {
+            console.log('[Git WorkTree Provider] Successfully registered with agent server');
+            isRegistered = true;
+            resolve();
+            return;
+          }
+          
+          // Forward all messages to codebolt websocket
           codebolt.websocket?.send(data.toString())
-          // // Handle different message types
-          // switch (message.type) {
-          //   case 'registered':
-          //     console.log('[Git WorkTree Provider] Successfully registered with agent server');
-          //     break;
+          
+          // Handle different message types
+          switch (message.type) {
+            case 'agentStartResponse':
+              console.log('[Git WorkTree Provider] Agent start response:', message.data?.status || 'unknown');
+              if (message.data?.error) {
+                console.error('[Git WorkTree Provider] Agent start error:', message.data.error);
+              }
+              break;
               
-          //   case 'agentStartResponse':
-          //     console.log('[Git WorkTree Provider] Agent start response:', message.data?.status || 'unknown');
-          //     if (message.data?.error) {
-          //       console.error('[Git WorkTree Provider] Agent start error:', message.data.error);
-          //     }
-          //     break;
+            case 'agentMessage':
+              console.log('[Git WorkTree Provider] Agent message:', message.data?.message || 'no message');
+              break;
               
-          //   case 'agentMessage':
-          //     console.log('[Git WorkTree Provider] Agent message:', message.data?.message || 'no message');
-          //     break;
+            case 'notification':
+              console.log('[Git WorkTree Provider] Agent notification:', message.action, message.data);
+              break;
               
-          //   case 'notification':
-          //     console.log('[Git WorkTree Provider] Agent notification:', message.action, message.data);
-          //     break;
+            case 'error':
+              console.error('[Git WorkTree Provider] Agent server error:', message.message || 'unknown error');
+              break;
               
-          //   case 'error':
-          //     console.error('[Git WorkTree Provider] Agent server error:', message.message || 'unknown error');
-          //     break;
-              
-          //   default:
-          //     console.log('[Git WorkTree Provider] Unhandled message type:', message.type, message);
-          // }
+            default:
+              console.log('[Git WorkTree Provider] Unhandled message type:', message.type, message);
+          }
         } catch (error) {
           console.error('[Git WorkTree Provider] Error parsing WebSocket message:', error);
         }
@@ -583,10 +590,10 @@ export class GitWorktreeProviderService implements IProviderService {
         this.agentServerConnection.isConnected = false;
       });
       
-      // Timeout
+      // Timeout - now checks for both connection and registration
       setTimeout(() => {
-        if (this.agentServerConnection.wsConnection?.readyState !== WebSocket.OPEN) {
-          reject(new Error('WebSocket connection timeout'));
+        if (!isRegistered) {
+          reject(new Error('WebSocket registration timeout - did not receive "registered" message'));
         }
       }, this.config.timeouts?.wsConnection || 10000);
     });
