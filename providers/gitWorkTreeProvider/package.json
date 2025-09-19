@@ -1,8 +1,9 @@
 {
   "name": "@codebolt/git-worktree-provider",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
+  "main":"dist/index.js",
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
   "types": "dist/index.d.ts",
   "files": [
@@ -38,8 +39,8 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/types": "latest",
     "ws": "^8.18.0"
   },
   "devDependencies": {
