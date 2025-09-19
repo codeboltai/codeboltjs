@@ -1,4 +1,4 @@
-import { formatLogMessage } from '@codebolt/types/remote';
+import { formatLogMessage } from './types';
 import { DockerServer } from './core/agentServer';
 import { getServerConfig } from './config';
 import { spawn, ChildProcess } from 'child_process';

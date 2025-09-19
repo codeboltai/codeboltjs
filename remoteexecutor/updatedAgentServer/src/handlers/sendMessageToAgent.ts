@@ -1,4 +1,4 @@
-import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '@codebolt/types/remote';
+import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from './../types';
 
 import { ConnectionManager } from '../core/connectionManager';
 

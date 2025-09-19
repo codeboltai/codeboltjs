@@ -3,7 +3,7 @@
  */
 
 import { ConnectionManager } from '../core/connectionManager';
-import { formatLogMessage } from '@codebolt/types/remote';
+import { formatLogMessage } from './../types';
 import type { 
   ChatNotification,
   AgentTextResponseNotification,

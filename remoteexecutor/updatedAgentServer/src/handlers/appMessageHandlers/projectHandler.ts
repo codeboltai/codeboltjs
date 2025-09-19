@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/types/remote';
+} from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { ProjectEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';

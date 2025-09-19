@@ -6,7 +6,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/types/remote';
+} from './../../types';
 import type { GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';

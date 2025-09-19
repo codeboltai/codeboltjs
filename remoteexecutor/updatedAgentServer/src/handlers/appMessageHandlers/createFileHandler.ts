@@ -4,7 +4,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/types/remote';
+} from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { CreateFileEvent, FileCreateRequestNotification, FileCreateResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';

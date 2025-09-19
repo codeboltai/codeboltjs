@@ -5,7 +5,7 @@ import {
   ProjectInfo,
   createErrorResponse,
   formatLogMessage
-} from '@codebolt/types/remote';
+} from './../types';
 import { ProcessManager } from './../utils/processManager';
 import { NotificationService } from './../services/NotificationService';
 

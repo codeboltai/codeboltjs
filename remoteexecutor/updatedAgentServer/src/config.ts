@@ -1,4 +1,4 @@
-import { ServerConfig, DEFAULT_SERVER_CONFIG } from '@codebolt/types/remote';
+import { ServerConfig, DEFAULT_SERVER_CONFIG } from './types';
 
 /**
  * Server configuration with environment variable overrides

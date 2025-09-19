@@ -5,7 +5,7 @@ import {
   ConnectionsResponse, 
   HealthCheckResponse,
   formatLogMessage 
-} from '@codebolt/types/remote';
+} from './../types';
 import { ConnectionManager } from '../core/connectionManager';
 
 const __filename = fileURLToPath(import.meta.url);

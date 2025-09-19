@@ -4,7 +4,7 @@ import {
   ReadFileMessage,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/types/remote';
+} from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { ReadFileEvent, FileReadRequestNotification, FileReadResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';

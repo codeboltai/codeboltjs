@@ -9,7 +9,7 @@ import { pipeline } from 'stream';
 import { promisify } from 'util';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
-import { formatLogMessage, sleep } from '@codebolt/types/remote';
+import { formatLogMessage, sleep } from './../types';
 
 
 

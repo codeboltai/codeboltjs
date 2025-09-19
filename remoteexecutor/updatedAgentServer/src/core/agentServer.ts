@@ -1,6 +1,6 @@
 import express from 'express';
 import { createServer } from 'http';
-import { ServerConfig, formatLogMessage } from '@codebolt/types/remote';
+import { ServerConfig, formatLogMessage } from './.././types';
 import { HttpHandler } from './../handlers/httpHandler';
 import { WebSocketServer } from './websocketServer';
 import { ProcessManager } from './../utils/processManager';

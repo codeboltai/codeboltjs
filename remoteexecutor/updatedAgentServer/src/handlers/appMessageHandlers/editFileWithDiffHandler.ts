@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/types/remote';
+} from './../../types';
 import type { EditFileWithDiffEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../sendMessageToApp';
 
