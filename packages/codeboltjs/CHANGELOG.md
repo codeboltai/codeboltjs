@@ -1,5 +1,11 @@
 # @codebolt/codeboltjs
 
+## 2.2.2
+
+### Patch Changes
+
+- udpated the provider logic
+
 ## 2.2.1
 
 ### Patch Changes
