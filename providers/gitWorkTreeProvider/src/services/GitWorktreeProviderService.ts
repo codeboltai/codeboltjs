@@ -19,7 +19,7 @@ import {
   AgentStartMessage,
   AgentServerMessage
 } from '../interfaces/IProviderService';
-import { FlatUserMessage } from '@codebolt/types/sdk';
+
 
 // Promisify exec for async/await usage
 const execAsync = promisify(exec);

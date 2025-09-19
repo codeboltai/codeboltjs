@@ -1,6 +1,6 @@
 name: git-work-tree-provider
 unique_id: git-work-tree-provider
-version: 1.0.0
+version: 1.0.1
 description: This is the Docker Remote Provider that helps in creating managing the Remote Docker Instances. This provider runs in Codebolt.
 tags:
   - custom-agent
