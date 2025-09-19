@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService';
 import type { ChatEvent, ChatNotification } from '@codebolt/types/agent-to-app-ws-types';
 import type { 

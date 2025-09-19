@@ -2,7 +2,7 @@ import {
   ClientConnection,
   ResponseMessage,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { BaseHandler } from './baseHandler';
 
 /**

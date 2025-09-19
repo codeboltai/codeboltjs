@@ -2,6 +2,7 @@ import { exec, spawn, ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as net from 'net';
 import WebSocket from 'ws';
 import codebolt from "@codebolt/codeboltjs";
 
@@ -68,6 +69,88 @@ export class GitWorktreeProviderService implements IProviderService {
   }
 
   /**
+   * Check if a port is already in use
+   */
+  private async isPortInUse(port: number, host: string = 'localhost'): Promise<boolean> {
+    return new Promise((resolve) => {
+      const server = net.createServer();
+      
+      server.listen(port, host, () => {
+        server.once('close', () => {
+          resolve(false);
+        });
+        server.close();
+      });
+      
+      server.on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  /**
+   * Check if agent server is already running by testing port and health
+   */
+  private async isAgentServerRunning(): Promise<boolean> {
+    try {
+      const portInUse = await this.isPortInUse(
+        this.config.agentServerPort!,
+        this.config.agentServerHost!
+      );
+      
+      if (!portInUse) {
+        console.log(`[Git WorkTree Provider] Port ${this.config.agentServerPort} is not in use`);
+        return false;
+      }
+      
+      console.log(`[Git WorkTree Provider] Port ${this.config.agentServerPort} is in use, testing server health...`);
+      
+      // Test if we can actually connect to the server
+      const isHealthy = await this.testServerHealth();
+      if (isHealthy) {
+        console.log(`[Git WorkTree Provider] Agent server is running and healthy`);
+        return true;
+      } else {
+        console.log(`[Git WorkTree Provider] Port is in use but server is not responding correctly`);
+        return false;
+      }
+      
+    } catch (error) {
+      console.warn('[Git WorkTree Provider] Error checking if agent server is running:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Test if the agent server is healthy by attempting a simple connection
+   */
+  private async testServerHealth(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const testSocket = new WebSocket(this.agentServerConnection.serverUrl);
+      
+      const timeout = setTimeout(() => {
+        testSocket.close();
+        resolve(false);
+      }, 3000); // 3 second timeout
+      
+      testSocket.on('open', () => {
+        clearTimeout(timeout);
+        testSocket.close();
+        resolve(true);
+      });
+      
+      testSocket.on('error', () => {
+        clearTimeout(timeout);
+        resolve(false);
+      });
+    });
+  }
+
+  /**
    * Setup process cleanup handlers for graceful shutdown
    */
   private setupProcessCleanupHandlers(): void {
@@ -125,12 +208,21 @@ export class GitWorktreeProviderService implements IProviderService {
       // Create worktree
       const worktreeInfo = await this.createWorktree(projectPath, initvars.environmentName);
       
-      // Start agent server
-      console.log('[Git WorkTree Provider] Starting agent server...');
-      await this.startAgentServer();
-      // INSERT_YOUR_CODE
-      // Add a delay of 5 seconds after starting the agent server
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // Check if agent server is already running
+      // This prevents conflicts and unnecessary process spawning
+      console.log('[Git WorkTree Provider] Checking if agent server is already running...');
+      const isServerRunning = await this.isAgentServerRunning();
+      
+      if (isServerRunning) {
+        console.log('[Git WorkTree Provider] Agent server is already running and healthy, skipping startup');
+      } else {
+        // Start agent server
+        console.log('[Git WorkTree Provider] Starting agent server...');
+        await this.startAgentServer();
+        // Add a delay after starting the agent server to allow it to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+      
       // Connect to agent server WebSocket
       console.log('[Git WorkTree Provider] Connecting to agent server...');
       await this.connectToAgentServer(worktreeInfo.path!, initvars.environmentName);
@@ -362,6 +454,12 @@ export class GitWorktreeProviderService implements IProviderService {
    */
   async startAgentServer(): Promise<void> {
     console.log('[Git WorkTree Provider] Starting updatedAgentServer...');
+    
+    // Double-check if we already have a running process
+    if (this.agentServerConnection.process && !this.agentServerConnection.process.killed) {
+      console.log('[Git WorkTree Provider] Agent server process already exists, skipping startup');
+      return;
+    }
     
     if (!fs.existsSync(this.config.agentServerPath!)) {
       throw new Error(`Agent server not found at: ${this.config.agentServerPath}`);

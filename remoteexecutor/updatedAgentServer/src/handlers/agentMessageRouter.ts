@@ -1,4 +1,4 @@
-import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '@codebolt/shared-types';
+import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '@codebolt/types/remote';
 import { 
   ReadFileHandler, 
   WriteFileHandler, 
@@ -9,7 +9,6 @@ import {
   UpdateFileHandler,
   DeleteFileHandler,
   DeleteFolderHandler,
-  FileListHandler,
   SearchFilesHandler,
   FileSearchHandler,
   GrepSearchHandler,
@@ -127,7 +126,7 @@ export class AgentMessageRouter {
   private updateFileHandler: UpdateFileHandler;
   private deleteFileHandler: DeleteFileHandler;
   private deleteFolderHandler: DeleteFolderHandler;
-  private fileListHandler: FileListHandler;
+  // private fileListHandler: FileListHandler;
   private searchFilesHandler: SearchFilesHandler;
   private fileSearchHandler: FileSearchHandler;
   private grepSearchHandler: GrepSearchHandler;
@@ -169,7 +168,7 @@ export class AgentMessageRouter {
     this.updateFileHandler = new UpdateFileHandler();
     this.deleteFileHandler = new DeleteFileHandler();
     this.deleteFolderHandler = new DeleteFolderHandler();
-    this.fileListHandler = new FileListHandler();
+    // this.fileListHandler = new FileListHandler();
     this.searchFilesHandler = new SearchFilesHandler();
     this.fileSearchHandler = new FileSearchHandler();
     this.grepSearchHandler = new GrepSearchHandler();

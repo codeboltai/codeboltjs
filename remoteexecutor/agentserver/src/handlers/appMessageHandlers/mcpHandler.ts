@@ -2,7 +2,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService.js';
 import type { McpEvent, McpNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager.js';

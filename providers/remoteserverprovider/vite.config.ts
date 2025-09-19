@@ -82,6 +82,6 @@ export default defineConfig({
   },
   // Selective bundling - exclude packages with native dependencies
   ssr: {
-    noExternal: ['ws', 'uuid', 'js-yaml', '@codebolt/shared-types']
+    noExternal: ['ws', 'uuid', 'js-yaml', '@codebolt/types/remote']
   }
 });

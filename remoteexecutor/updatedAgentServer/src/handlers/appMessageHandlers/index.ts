@@ -8,7 +8,7 @@ export { CreateFolderHandler } from './createFolderHandler';
 export { UpdateFileHandler } from './updateFileHandler';
 export { DeleteFileHandler } from './deleteFileHandler';
 export { DeleteFolderHandler } from './deleteFolderHandler';
-export { FileListHandler } from './fileListHandler';
+// export { FileListHandler } from './fileListHandler';
 export { SearchFilesHandler } from './searchFilesHandler';
 export { FileSearchHandler } from './fileSearchHandler';
 export { GrepSearchHandler } from './grepSearchHandler';

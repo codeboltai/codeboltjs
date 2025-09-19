@@ -2,7 +2,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService.js';
 import type { McpEvent, McpNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager.js';
@@ -16,7 +16,7 @@ import { detectLanguage } from '../../utils/detectLanguage.js';
 
 // Import handlers statically instead of using dynamic imports
 import { CodebaseSearchHandler } from './codebaseSearchHandler.js';
-import { FileListHandler } from './fileListHandler.js';
+// import { FileListHandler } from './fileListHandler.js';
 import { ListCodeDefinitionNamesHandler } from './listCodeDefinitionNamesHandler.js';
 import { FileSearchHandler } from './fileSearchHandler.js';
 import { GrepSearchHandler } from './grepSearchHandler.js';
@@ -900,13 +900,13 @@ export class McpHandler {
   // Legacy file operation handlers
   private async handleListFiles(filePath: string, finalMessage: any, isRecursive?: any, askForPermission?: any): Promise<any> {
     try {
-      const listFilesHandler = new FileListHandler();
-      const agentObj = { id: finalMessage.agentId || 'default', type: 'agent', ws: null } as any;
-      const listEvent = {
-        requestId: this.generateMessageId(),
-        message: { path: filePath, recursive: isRecursive === 'true' || isRecursive === true }
-      };
-      await listFilesHandler.handleFileList(agentObj, listEvent as any);
+      // const listFilesHandler = new FileListHandler();
+      // const agentObj = { id: finalMessage.agentId || 'default', type: 'agent', ws: null } as any;
+      // const listEvent = {
+      //   requestId: this.generateMessageId(),
+      //   message: { path: filePath, recursive: isRecursive === 'true' || isRecursive === true }
+      // };
+      // await listFilesHandler.handleFileList(agentObj, listEvent as any);
       return { success: true, path: filePath };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -1612,31 +1612,7 @@ export class McpHandler {
       }
 
       case 'fs_list_files':
-      case 'list_files': {
-        const { folderPath, isRecursive = false } = params;
-        if (!folderPath) {
-          throw new Error('Folder path is required');
-        }
-
-        if (!isValidFilePath(folderPath)) {
-          throw new Error('Invalid folder path');
-        }
-
-        const resolvedPath = path.resolve(workingDir, folderPath);
-        
-        if (!fs.existsSync(resolvedPath)) {
-          throw new Error(`Directory does not exist: ${folderPath}`);
-        }
-
-        const files = await listFiles(resolvedPath, isRecursive);
-        
-        return {
-          folderPath: folderPath,
-          files: files,
-          count: files.length,
-          recursive: isRecursive
-        };
-      }
+     
 
       case 'fs_create_file':
       case 'create_file': {
@@ -1752,25 +1728,7 @@ export class McpHandler {
         };
       }
 
-      case 'list_code_definition_names': {
-        const { path: dirPath } = params;
-        if (!dirPath) {
-          throw new Error('Directory path is required');
-        }
-
-        if (!isValidFilePath(dirPath)) {
-          throw new Error('Invalid directory path');
-        }
-
-        const resolvedPath = path.resolve(process.cwd(), dirPath);
-        const definitions = await parseSourceCodeForDefinitionsTopLevel(resolvedPath);
-        
-        return {
-          path: dirPath,
-          definitions: definitions,
-          parsed: true
-        };
-      }
+   
 
       default:
         throw new Error(`Unknown codebase tool: ${action}`);

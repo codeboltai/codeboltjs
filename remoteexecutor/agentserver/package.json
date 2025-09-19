@@ -31,8 +31,7 @@
   },
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
-    "@codebolt/shared-types": "workspace:*",
-    "@codebolt/types": "latest",
+    "@codebolt/types": "workspace:*",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",
     "cbvectordb": "^1.0.0",

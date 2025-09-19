@@ -1,4 +1,4 @@
-import { formatLogMessage } from '@codebolt/shared-types';
+import { formatLogMessage } from '@codebolt/types/remote';
 
 /**
  * Handles incoming messages for the client

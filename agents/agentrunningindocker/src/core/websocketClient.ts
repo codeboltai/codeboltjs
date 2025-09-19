@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { ClientConfig, formatLogMessage, sleep } from '@codebolt/shared-types';
+import { ClientConfig, formatLogMessage, sleep } from '@codebolt/types/remote';
 import { AgentMessageHandler } from '../handlers/messageHandler';
 import { DemoManager } from '../demo/demoManager';
 

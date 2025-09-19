@@ -147,9 +147,9 @@ importers:
 
   agents/agentrunningindocker:
     dependencies:
-      '@codebolt/shared-types':
+      '@codebolt/types':
         specifier: workspace:*
-        version: link:../../remoteexecutor/shared-types
+        version: link:../../common/types
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -607,9 +607,9 @@ importers:
 
   providers/dockerprovider:
     dependencies:
-      '@codebolt/shared-types':
+      '@codebolt/types':
         specifier: workspace:*
-        version: link:../../remoteexecutor/shared-types
+        version: link:../../common/types
       dockerode:
         specifier: ^4.0.2
         version: 4.0.8
@@ -679,7 +679,7 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
-  providers/gitworktreeprovider:
+  providers/gitWorkTreeProvider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -709,9 +709,9 @@ importers:
 
   providers/remoteserverprovider:
     dependencies:
-      '@codebolt/shared-types':
+      '@codebolt/types':
         specifier: workspace:*
-        version: link:../../remoteexecutor/shared-types
+        version: link:../../common/types
       dockerode:
         specifier: ^4.0.2
         version: 4.0.8
@@ -783,12 +783,9 @@ importers:
       '@arrowai/multillm':
         specifier: ^1.0.0
         version: 1.1.50(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5))(zod@3.25.76)
-      '@codebolt/shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@codebolt/types':
-        specifier: latest
-        version: 1.0.15
+        specifier: workspace:*
+        version: link:../../common/types
       adm-zip:
         specifier: ^0.5.16
         version: 0.5.16
@@ -878,12 +875,9 @@ importers:
       '@arrowai/multillm':
         specifier: ^1.0.0
         version: 1.1.50(ws@8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5))(zod@3.25.76)
-      '@codebolt/shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       '@codebolt/types':
-        specifier: latest
-        version: 1.0.15
+        specifier: workspace:*
+        version: link:../../common/types
       adm-zip:
         specifier: ^0.5.16
         version: 0.5.16

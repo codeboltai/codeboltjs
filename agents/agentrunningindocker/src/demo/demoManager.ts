@@ -1,4 +1,4 @@
-import { ClientConfig, formatLogMessage } from '@codebolt/shared-types';
+import { ClientConfig, formatLogMessage } from '@codebolt/types/remote';
 import { DemoOperations } from './demoOperations';
 
 /**

@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { DockerProviderConfig } from '@codebolt/shared-types';
+import { DockerProviderConfig } from '@codebolt/types/remote';
 import { DockerProviderMessageHandler } from '../handlers/messageHandler';
 
 /**

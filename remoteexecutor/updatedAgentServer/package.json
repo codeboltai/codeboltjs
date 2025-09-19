@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/agentserver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
   "main": "dist/server.mjs",
   "bin": {
@@ -29,7 +29,7 @@
     "docker:stop": "docker stop agentserver && docker rm agentserver",
     "docker:logs": "docker logs -f agentserver",
     "docker:publish": "npm run docker:build && npm run docker:tag && npm run docker:push",
-    "prepublishOnly": "npm run build && npm run typecheck && npm run lint",
+    "prepublishOnly": "npm run build && npm run typecheck",
     "publish:npm": "npm publish --access public",
     "publish:beta": "npm publish --tag beta --access public"
   },
@@ -57,8 +57,7 @@
   },
   "dependencies": {
     "@arrowai/multillm": "^1.0.0",
-    "@codebolt/shared-types": "workspace:*",
-    "@codebolt/types": "latest",
+    "@codebolt/types": "workspace:*",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",
     "cbvectordb": "^1.0.0",

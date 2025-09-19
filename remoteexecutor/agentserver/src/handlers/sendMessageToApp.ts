@@ -1,4 +1,4 @@
-import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '@codebolt/shared-types';
+import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '@codebolt/types/remote';
 import { ReadFileHandler, WriteFileHandler, AskAIHandler, ResponseHandler } from './appMessageHandlers';
 import { ConnectionManager } from '../core/connectionManager';
 import { NotificationService } from '../services/NotificationService';

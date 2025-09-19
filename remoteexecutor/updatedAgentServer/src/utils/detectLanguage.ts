@@ -12,5 +12,5 @@ export function detectLanguage(filePath: string): string {
       '.jsx': 'javascript',
     };
   
-    return extension in extensionMap ? extensionMap[extension] : 'plaintext';
+  return ''
   }

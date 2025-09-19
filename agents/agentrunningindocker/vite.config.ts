@@ -17,7 +17,7 @@ export default defineConfig({
         'fs', 'path', 'crypto', 'http', 'https', 'url', 'events',
         'stream', 'util', 'os', 'child_process', 'cluster',
         // Mark dependencies as external
-        'ws', 'uuid', '@codebolt/shared-types'
+        'ws', 'uuid', '@codebolt/types/remote'
       ],
       output: {
         format: 'cjs',

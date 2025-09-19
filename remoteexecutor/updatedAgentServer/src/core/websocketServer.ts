@@ -7,7 +7,7 @@ import {
   createErrorResponse, 
   Message,
   ProjectInfo 
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 
 import { ConnectionManager } from './connectionManager';
 import { NotificationService } from './../services/NotificationService';

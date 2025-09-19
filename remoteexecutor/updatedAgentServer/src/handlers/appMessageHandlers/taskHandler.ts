@@ -1,12 +1,10 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService';
 import type { 
   TaskEvent,
-  TaskFilterOptions,
-  TaskUpdateOptions,
   AddTodoResponseNotification,
   GetTodoTasksResponseNotification,
   EditTodoTaskResponseNotification
@@ -65,7 +63,7 @@ export class TaskHandler {
 
     // Execute actual Task operations
     switch (action) {
-      case 'addTask':
+      case 'createTask':
         {
           console.log(formatLogMessage('info', 'TaskHandler', `Sent task addTask request notification`));
           
@@ -139,7 +137,7 @@ export class TaskHandler {
         }
         break;
 
-      case 'getTasks':
+      case 'getTaskList':
         {
           console.log(formatLogMessage('info', 'TaskHandler', `Sent task getTasks request notification`));
           
@@ -365,7 +363,14 @@ export class TaskHandler {
     return task;
   }
 
-  private async getTasks(filters?: TaskFilterOptions): Promise<Task[]> {
+  private async getTasks(filters?: {
+    agentId?: string;
+    category?: string;
+    phase?: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+    tags?: string[];
+  }): Promise<Task[]> {
     let tasks = Array.from(this.tasks.values());
 
     if (filters) {
@@ -394,7 +399,17 @@ export class TaskHandler {
     return tasks;
   }
 
-  private async updateTask(taskId: string, updates: TaskUpdateOptions): Promise<Task> {
+  private async updateTask(taskId: string, updates: {
+    title?: string;
+    description?: string;
+    phase?: string;
+    category?: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+    tags?: string[];
+    status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+    agentId?: string;
+    completed?: boolean;
+  }): Promise<Task> {
     const task = this.tasks.get(taskId);
     if (!task) {
       throw new Error(`Task with ID ${taskId} not found`);

@@ -1,4 +1,4 @@
-import { ClientConfig, DEFAULT_CLIENT_CONFIG } from '@codebolt/shared-types';
+import { ClientConfig, DEFAULT_CLIENT_CONFIG } from '@codebolt/types/remote';
 
 /**
  * Client configuration with environment variable overrides

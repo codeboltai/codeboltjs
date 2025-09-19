@@ -52,6 +52,10 @@
     "./app-to-ui-ws-types": {
       "types": "./dist/app-to-ui-ws-types.d.ts",
       "default": "./dist/app-to-ui-ws-types.js"
+    },
+    "./remote": {
+      "types": "./dist/remote/index.d.ts",
+      "default": "./dist/remote/index.js"
     }
   },
   "scripts": {

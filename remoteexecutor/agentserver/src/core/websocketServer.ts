@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer as WSServer } from 'ws';
 import { Server } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { formatLogMessage, isMessageWithType, Message } from '@codebolt/shared-types';
+import { formatLogMessage, isMessageWithType, Message } from '@codebolt/types/remote';
 
 import { ConnectionManager } from './connectionManager';
 import { NotificationService } from '../services/NotificationService';

@@ -1,6 +1,6 @@
 import {
   AskAIMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 
 /**
  * Handles ask AI messages by forwarding them to agents

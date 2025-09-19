@@ -4,7 +4,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import type { ListCodeDefinitionNamesEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
@@ -75,18 +75,18 @@ export class ListCodeDefinitionNamesHandler {
       }
 
       // Parse source code for definitions using the original implementation
-      const result = []// await parseSourceCodeForDefinitionsTopLevel(dirPath);
+      // const result = []// await parseSourceCodeForDefinitionsTopLevel(dirPath);
       
-      const response = {
-        success: true,
-        data: result,
-        definitions: result.split('\n').filter(line => line.trim()),
-        type: 'listCodeDefinitionNamesResponse',
-        id: requestId,
-        path: dirPath
-      };
+      // const response = {
+      //   success: true,
+      //   data: result,
+      //   definitions: result.split('\n').filter(line => line.trim()),
+      //   type: 'listCodeDefinitionNamesResponse',
+      //   id: requestId,
+      //   path: dirPath
+      // };
 
-      this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
+      // this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
       console.log(formatLogMessage('info', 'AgentMessageRouter', `Successfully extracted code definitions from: ${dirPath}`));
 
     } catch (error) {

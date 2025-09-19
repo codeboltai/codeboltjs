@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService';
 import type { GitEvent, GitInitEvent, GitCommitEvent, GitCheckoutEvent, GitBranchEvent, GitDiffEvent } from '@codebolt/types/agent-to-app-ws-types';
 import type { 
@@ -74,7 +74,10 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'initResult',
-                content: response.data,
+                content: {
+                  success: true,
+                  message: 'Git repository initialized'
+                },
                 isError: false
               };
 
@@ -97,7 +100,10 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'initResult',
-                content: error instanceof Error ? error.message : String(error),
+                content: {
+                  success: false,
+                  message: error instanceof Error ? error.message : String(error)
+                },
                 isError: true
               };
 
@@ -132,7 +138,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'pullResult',
-                content: response.data,
+                content: `Pull completed: ${result.summary?.changes || 0} changes`,
                 isError: false
               };
 
@@ -190,7 +196,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'pushResult',
-                content: response.data,
+                content: `Push completed successfully`,
                 isError: false
               };
 
@@ -248,7 +254,25 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'statusResult',
-                content: response.data,
+                content: {
+                  files: status.files.map(file => ({
+                    path: file.path,
+                    index: file.index || '',
+                    working_dir: file.working_dir || ''
+                  })),
+                  modified: status.modified,
+                  not_added: status.not_added,
+                  conflicted: status.conflicted,
+                  created: status.created,
+                  deleted: status.deleted,
+                  renamed: status.renamed.map(item => typeof item === 'string' ? item : item.to || ''),
+                  staged: status.staged,
+                  ahead: status.ahead,
+                  behind: status.behind,
+                  current: status.current,
+                  tracking: status.tracking,
+                  detached: status.detached
+                },
                 isError: false
               };
 
@@ -271,7 +295,25 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'statusResult',
-                content: error instanceof Error ? error.message : String(error),
+                content: {
+                  success: false,
+                  data: {
+                    files: [],
+                    modified: [],
+                    not_added: [],
+                    conflicted: [],
+                    created: [],
+                    deleted: [],
+                    renamed: [],
+                    staged: [],
+                    ahead: 0,
+                    behind: 0,
+                    current: null,
+                    tracking: null,
+                    detached: false
+                  },
+                  message: error instanceof Error ? error.message : String(error)
+                },
                 isError: true
               };
 
@@ -306,7 +348,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'addResult',
-                content: response.data,
+                content: 'Files added to staging area',
                 isError: false
               };
 
@@ -370,7 +412,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'commitResult',
-                content: response.data,
+                content: `Commit created: ${result.commit}`,
                 isError: false
               };
 
@@ -433,7 +475,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'checkoutResult',
-                content: response.data,
+                content: `Checked out to branch: ${checkoutEvent.branch}`,
                 isError: false
               };
 
@@ -501,7 +543,18 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'branchResult',
-                content: response.data,
+                content: {
+                  all: [branchEvent.branch],
+                  current: branchEvent.branch,
+                  branches: {
+                    [branchEvent.branch]: {
+                      current: true,
+                      name: branchEvent.branch,
+                      commit: '',
+                      label: branchEvent.branch
+                    }
+                  }
+                },
                 isError: false
               };
 
@@ -524,7 +577,10 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'branchResult',
-                content: error instanceof Error ? error.message : String(error),
+                content: {
+                  success: false,
+                  message: error instanceof Error ? error.message : String(error)
+                },
                 isError: true
               };
 
@@ -566,7 +622,11 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'logsResult',
-                content: response.data,
+                content: {
+                  all: formattedLogs,
+                  total: formattedLogs.length,
+                  latest: formattedLogs[0] || null
+                },
                 isError: false
               };
 
@@ -589,7 +649,14 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'logsResult',
-                content: error instanceof Error ? error.message : String(error),
+                content: {
+                  success: false,
+                  data: {
+                    all: [],
+                    total: 0
+                  },
+                  message: error instanceof Error ? error.message : String(error)
+                },
                 isError: true
               };
 
@@ -697,7 +764,7 @@ export class GitHandler {
                 toolUseId: requestId,
                 type: 'gitnotify',
                 action: 'cloneResult',
-                content: response.data,
+                content: `Repository cloned from: ${cloneEvent.url}`,
                 isError: false
               };
 

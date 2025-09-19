@@ -4,7 +4,7 @@ import {
   WriteFileMessage,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { NotificationService } from '../../services/NotificationService';
 import type { WriteToFileEvent, WriteToFileRequestNotification, WriteToFileResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';

@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   Message
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { ConnectionManager } from '../../core/connectionManager';
 
 /**

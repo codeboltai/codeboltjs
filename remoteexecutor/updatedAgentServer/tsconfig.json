@@ -26,7 +26,7 @@
     // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
 
     /* Modules */
-    "module": "commonjs",                                /* Use CommonJS module system. */
+    "module": "es2020",                                /* Use ES2020 module system to support import.meta. */
     "rootDir": "./src",                                  /* Specify the root folder within your source files. */
     "moduleResolution": "node",                     /* Use classic Node resolution. */
     "baseUrl": ".",                                  /* Specify the base directory to resolve non-relative module names. */

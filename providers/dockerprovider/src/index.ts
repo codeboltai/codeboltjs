@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { DockerProviderConfig } from '@codebolt/shared-types';
+import { DockerProviderConfig } from '@codebolt/types/remote';
 import { getDockerManagerConfig } from './config';
 import { DockerManager } from './core/dockerManager';
 import { CodeboltWebSocketClient } from './core/codeboltWebsocketClient';

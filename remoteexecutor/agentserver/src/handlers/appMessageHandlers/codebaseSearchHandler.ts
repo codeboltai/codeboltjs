@@ -4,7 +4,7 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { SendMessageToApp } from '../sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';

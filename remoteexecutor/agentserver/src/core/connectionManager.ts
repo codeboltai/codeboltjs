@@ -4,7 +4,7 @@ import {
   ClientConnection,
   createErrorResponse,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import { ProcessManager } from '../utils/processManager';
 import { NotificationService } from '../services/NotificationService';
 

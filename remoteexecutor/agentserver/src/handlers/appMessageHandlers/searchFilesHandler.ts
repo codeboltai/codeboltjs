@@ -1,7 +1,7 @@
 import {
   ClientConnection,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 import type { SearchFilesEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../sendMessageToApp';
 

@@ -7,7 +7,7 @@ import {
   AskAIMessage,
   CustomOperationMessage,
   formatLogMessage
-} from '@codebolt/shared-types';
+} from '@codebolt/types/remote';
 
 /**
  * Demo operations for the sample client

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ClientConfig, formatLogMessage } from '@codebolt/shared-types';
+import { ClientConfig, formatLogMessage } from '@codebolt/types/remote';
 import { AgentWebSocketClient } from './websocketClient';
 
 /**

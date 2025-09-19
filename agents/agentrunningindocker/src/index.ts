@@ -1,4 +1,4 @@
-import { formatLogMessage } from '@codebolt/shared-types';
+import { formatLogMessage } from '@codebolt/types/remote';
 import { SampleCodeboltAgent } from './core/agent';
 import { getClientConfig } from './config';
 
