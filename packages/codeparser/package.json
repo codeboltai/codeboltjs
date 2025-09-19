@@ -34,7 +34,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest --passWithNoTests",
     "dev": "tsc --watch",
-    "lint": "eslint src/**/*.ts && tsc --noEmit"
+    "lint:test": "eslint src/**/*.ts && tsc --noEmit"
   },
   "repository": {
     "type": "git",

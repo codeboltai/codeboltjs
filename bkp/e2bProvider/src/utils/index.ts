@@ -4,10 +4,10 @@
  */
 
 // Sandbox management utilities
-export * from './sandboxManager';
+export * from './sandboxManager.js';
 
 // Message and notification helpers
-export * from './messageHelpers';
+export * from './messageHelpers.js';
 
 /**
  * Filters NODE_OPTIONS to only include options supported in packaged apps
@@ -50,7 +50,7 @@ export {
   SandboxManager,
   createE2BSandbox,
   defaultSandboxManager
-} from './sandboxManager';
+} from './sandboxManager.js';
 
 export {
   sendNotification,
@@ -58,4 +58,4 @@ export {
   sendFsNotification,
   sendTerminalNotification,
   sendGitNotification
-} from './messageHelpers';
+} from './messageHelpers.js';

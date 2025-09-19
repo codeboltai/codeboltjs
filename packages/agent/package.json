@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "test": "echo \"No tests yet, but build passes\" && exit 0",
-    "lint": "eslint src/**/*.ts && tsc --noEmit"
+    "lint:test": "eslint src/**/*.ts && tsc --noEmit"
   },
   "keywords": [
     "ai",
@@ -68,8 +68,8 @@
       "types": "./dist/processor-pieces/index.d.ts",
       "default": "./dist/processor-pieces/index.js"
     },
-    "./unified":{
-       "types": "./dist/unified/index.d.ts",
+    "./unified": {
+      "types": "./dist/unified/index.d.ts",
       "default": "./dist/unified/index.js"
     }
   }

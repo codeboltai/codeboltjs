@@ -3,7 +3,7 @@
  * @description Handles agent operations, user message processing, and git operations
  */
 
-import { getCurrentSandbox, getIsInitialized } from './lifecycle';
+import { getCurrentSandbox, getIsInitialized } from './lifecycle.js';
 import { 
   sendNotification, 
   sendAgentNotification, 
@@ -20,7 +20,7 @@ import {
   sendTaskNotification,
   sendDbMemoryNotification,
   sendHistoryNotification
-} from '../utils/messageHelpers';
+} from '../utils/messageHelpers.js';
 import type { UserMessage, DiffResult } from '@codebolt/codeboltjs';
 
 import * as codebolt from '@codebolt/codeboltjs';

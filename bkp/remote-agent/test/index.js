@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const codeboltjs_1 = __importDefault(require("@codebolt/codeboltjs"));
 codeboltjs_1.default.onMessage(async (reqMessage) => {
-    codeboltjs_1.default.chat.sendMessage("Hey Message from Remove Agent", {});
+    codeboltjs_1.default.chat.sendMessage("Hey Message from Remote Agent", {});
     let messageForLLM = {
         messages: [
             {

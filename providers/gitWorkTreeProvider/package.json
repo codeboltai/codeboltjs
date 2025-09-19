@@ -1,6 +1,8 @@
 {
   "name": "@codebolt/git-worktree-provider",
+  "private": true,
   "version": "1.0.0",
+  "type": "module",
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
   "types": "dist/index.d.ts",
   "files": [
@@ -15,7 +17,7 @@
     "start:direct": "node dist/index.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint src/**/*.ts",
+    "lint:test": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
     "prepublish": "npm run clean && npm run build",
     "test": "npm run build && node dist/test-provider.js",

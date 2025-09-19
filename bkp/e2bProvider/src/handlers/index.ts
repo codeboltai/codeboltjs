@@ -4,10 +4,10 @@
  */
 
 // Lifecycle handlers
-export * from './lifecycle';
+export * from './lifecycle.js';
 
 // Agent handlers
-export * from './agent';
+export * from './agent.js';
 
 // Re-export commonly used handlers for convenience
 export {
@@ -16,7 +16,7 @@ export {
   getSandboxStatus,
   getCurrentSandbox,
   getIsInitialized
-} from './lifecycle';
+} from './lifecycle.js';
 
 export {
   onProviderAgentStart,
@@ -24,4 +24,4 @@ export {
   onCreatePatchRequest,
   onCreatePullRequestRequest,
   handleListFiles
-} from './agent';
+} from './agent.js';

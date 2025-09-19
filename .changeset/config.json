@@ -4,13 +4,26 @@
   "commit": false,
   "fixed": [],
   "linked": [
-    ["@codebolt/codeboltjs", "@codebolt/utils", "@codebolt/types", "@codebolt/agent"],
+    ["@codebolt/codeboltjs", "@codebolt/utils", "@codebolt/agent", "epoml"],
     ["@codebolt/codeparser", "@codebolt/mcp"]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@codebolt/geminiagent"
+    "@codebolt/testAgent",
+    "@codebolt/agent", 
+    "@codebolt/codeboltjs",
+    "dockerprovideragent",
+    "@codebolt/git-worktree-provider",
+    "remoteserverprovideragent", 
+    "@codebolt/epomlagent",
+    "@codebolt/act",
+    "epoml",
+    "@codebolt/utils",
+    "@epoml/example",
+    "@tests",
+    "dockerprovideragent",
+    "remoteserverprovideragent"
   ]
 }

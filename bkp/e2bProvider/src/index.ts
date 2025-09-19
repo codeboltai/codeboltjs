@@ -11,7 +11,7 @@ import {
   onProviderStart,
   onCloseSignal,
   getSandboxStatus
-} from './handlers/lifecycle';
+} from './handlers/lifecycle.js';
 
 import {
   onProviderAgentStart,
@@ -19,16 +19,16 @@ import {
   onCreatePatchRequest,
   onCreatePullRequestRequest,
   handleListFiles
-} from './handlers/agent';
+} from './handlers/agent.js';
 
 // Re-export types for external use
-export * from './types';
+export * from './types/index.js';
 
 // Re-export utilities for external use
-export * from './utils';
+export * from './utils/index.js';
 
 // Re-export handlers for external use
-export * from './handlers';
+export * from './handlers/index.js';
 
 // Register CodeBolt event handlers
 console.log('[E2B Provider] Registering event handlers...');
