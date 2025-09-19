@@ -1,5 +1,6 @@
 {
   "name": "@codebolt/tui",
+  "private": true,
   "version": "0.2.0",
   "description": "Codebolt CLI - Terminal interface for Codebolt server",
   "type": "module",
