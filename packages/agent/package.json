@@ -68,8 +68,8 @@
       "types": "./dist/processor-pieces/index.d.ts",
       "default": "./dist/processor-pieces/index.js"
     },
-    "./unified":{
-       "types": "./dist/unified/index.d.ts",
+    "./unified": {
+      "types": "./dist/unified/index.d.ts",
       "default": "./dist/unified/index.js"
     }
   }

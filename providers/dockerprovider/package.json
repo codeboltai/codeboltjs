@@ -15,7 +15,12 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["docker", "codebolt", "agent", "websocket"],
+  "keywords": [
+    "docker",
+    "codebolt",
+    "agent",
+    "websocket"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
