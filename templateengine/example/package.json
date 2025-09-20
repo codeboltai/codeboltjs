@@ -1,6 +1,6 @@
 {
   "name": "@epoml/example",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Example usage of EPOML library",
   "private": true,
   "main": "dist/index.js",

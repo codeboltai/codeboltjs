@@ -1,5 +1,11 @@
 # @codebolt/types
 
+## 1.0.16
+
+### Patch Changes
+
+- 9922290: The Remote Agent is working
+
 ## 1.0.15
 
 ### Patch Changes

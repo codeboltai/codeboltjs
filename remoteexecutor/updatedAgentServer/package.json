@@ -1,0 +1,84 @@
+{
+  "name": "@codebolt/agentserver",
+  "version": "1.0.3",
+  "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
+  "main": "dist/server.mjs",
+  "bin": {
+    "codebolt-agentserver": "dist/server.mjs"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && node esbuild.config.js",
+    "start": "node dist/server.mjs",
+    "dev": "npm run build && node dist/server.mjs",
+    "dev:local": "npm run build && node dist/server.mjs",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit",
+    "docker:build": "cd ../.. && turbo prune @codebolt/agentserver --docker && docker build -f packages/agentserver/Dockerfile -t codebolt/agentserver:latest .",
+    "docker:build:dev": "docker build -t codebolt/agentserver:dev .",
+    "docker:tag": "docker tag codebolt/agentserver:latest codebolt/agentserver:$npm_package_version",
+    "docker:push": "docker push codebolt/agentserver:latest && docker push codebolt/agentserver:$npm_package_version",
+    "docker:run": "docker run -p 3001:3001 --name agentserver codebolt/agentserver:latest",
+    "docker:stop": "docker stop agentserver && docker rm agentserver",
+    "docker:logs": "docker logs -f agentserver",
+    "docker:publish": "npm run docker:build && npm run docker:tag && npm run docker:push",
+    "prepublishOnly": "npm run build && npm run typecheck",
+    "publish:npm": "npm publish --access public",
+    "publish:beta": "npm publish --tag beta --access public"
+  },
+  "keywords": [
+    "codebolt",
+    "agent",
+    "server",
+    "remote-execution",
+    "development-tools"
+  ],
+  "author": "CodeBolt Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeboltai/codeboltjs.git",
+    "directory": "remoteexecutor/updatedAgentServer"
+  },
+  "homepage": "https://github.com/codeboltai/codeboltjs#readme",
+  "bugs": {
+    "url": "https://github.com/codeboltai/codeboltjs/issues"
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@arrowai/multillm": "^1.0.0",
+    "@codebolt/types": "workspace:*",
+    "adm-zip": "^0.5.16",
+    "axios": "^1.11.0",
+    "cbvectordb": "^1.0.0",
+    "commander": "^12.1.0",
+    "express": "^5.1.0",
+    "ink": "^6.1.0",
+    "simple-git": "^3.28.0",
+    "uuid": "^10.0.0",
+    "web-tree-sitter": "^0.25.8",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/axios": "^0.9.36",
+    "@types/express": "^5.0.0",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "esbuild": "^0.21.0",
+    "eslint": "^9.32.0",
+    "typescript": "^5.7.2"
+  }
+}

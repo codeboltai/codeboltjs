@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/types",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "A comprehensive TypeScript type definitions package for the CodeBolt ecosystem, providing type safety and schema validation for WebSocket communication between agents and applications.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -52,6 +52,10 @@
     "./app-to-ui-ws-types": {
       "types": "./dist/app-to-ui-ws-types.d.ts",
       "default": "./dist/app-to-ui-ws-types.js"
+    },
+    "./remote": {
+      "types": "./dist/remote/index.d.ts",
+      "default": "./dist/remote/index.js"
     }
   },
   "scripts": {
@@ -94,7 +98,6 @@
   },
   "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/packages/types#readme",
   "devDependencies": {
-    "@codebolt/eslint-config": "workspace:*",
     "typescript": "^5.4.5"
   },
   "dependencies": {

@@ -12,7 +12,7 @@
     "build:docs": "turbo run build:docs",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build lint && changeset publish",
+    "release": "turbo run build && changeset publish",
     "example": "turbo run example:basic"
   },
   "repository": {

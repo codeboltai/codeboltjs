@@ -1,0 +1,15 @@
+{
+  "name": "container-app",
+  "version": "1.0.0",
+  "description": "Node.js container that connects to WebSocket server",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

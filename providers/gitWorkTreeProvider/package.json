@@ -1,0 +1,68 @@
+{
+  "name": "@codebolt/git-worktree-provider",
+  "private": true,
+  "version": "1.0.1",
+  "main":"dist/index.js",
+  "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "start-provider.js",
+    "docs/README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node start-provider.js",
+    "start:clean": "NODE_OPTIONS= node dist/index.js",
+    "start:direct": "node dist/index.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint:test": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "prepublish": "npm run clean && npm run build",
+    "test": "npm run build && node dist/test-provider.js",
+    "test:index": "npm run build && node dist/test-index.js",
+    "test:provider": "npm run build && node dist/test-provider.js",
+    "test:dev": "ts-node test-provider.ts",
+    "test:index:dev": "ts-node test-index.ts",
+    "test:provider:dev": "ts-node test-provider.ts"
+  },
+  "keywords": [
+    "codebolt",
+    "e2b",
+    "provider",
+    "sandbox",
+    "remote-execution",
+    "typescript"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/codeboltjs": "2.2.2",
+    "@codebolt/types": "latest",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.1"
+  },
+  "peerDependencies": {
+    "@e2b/sdk": "^0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "@e2b/sdk": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeboltai/codeboltjs.git",
+    "directory": "providers/e2bProvider"
+  },
+  "bugs": {
+    "url": "https://github.com/codeboltai/codeboltjs/issues"
+  },
+  "homepage": "https://github.com/codeboltai/codeboltjs/tree/main/providers/e2bProvider#readme"
+}

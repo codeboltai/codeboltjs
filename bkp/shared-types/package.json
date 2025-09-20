@@ -1,0 +1,33 @@
+{
+  "name": "@codebolt/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Codebolt Docker HTTP system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "dev:local": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "keywords": [
+    "types",
+    "codebolt",
+    "websocket",
+    "docker"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "ws": "^8.18.0"
+  }
+}
