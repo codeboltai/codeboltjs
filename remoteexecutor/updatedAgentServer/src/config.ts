@@ -18,5 +18,8 @@ export function getServerConfig(): ServerConfig {
     reconnectDelay: process.env.RECONNECT_DELAY ? 
       parseInt(process.env.RECONNECT_DELAY) : 
       DEFAULT_SERVER_CONFIG.reconnectDelay,
-  };
+    // New flag: useIPC to drive child transport; defaults to false
+    // Accept 'true'/'1' as enabled
+    useIPC: process.env.useIPC === 'true' || process.env.useIPC === '1'
+  } as ServerConfig & { useIPC?: boolean };
 }

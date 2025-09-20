@@ -54,12 +54,15 @@ class Codebolt {
      */
     private async initializeConnection(): Promise<void> {
         try {
-            await cbws.initializeWebSocket();
-            this.websocket = cbws.getWebsocket;
+            const result = await cbws.initializeWebSocket();
+            // In IPC mode, initializeWebSocket returns void
+            if (result) {
+                this.websocket = cbws.getWebsocket;
+                console.log("Codebolt WebSocket connection established");
+            } else {
+                console.log("Codebolt IPC transport initialized");
+            }
             this.isReady = true;
-            console.log("Codebolt WebSocket connection established");
-            
-            // Execute all registered ready handlers
             for (const handler of this.readyHandlers) {
                 try {
                     await handler();
@@ -68,7 +71,7 @@ class Codebolt {
                 }
             }
         } catch (error) {
-            console.error('Failed to initialize WebSocket connection:', error);
+            console.error('Failed to initialize connection:', error);
             throw error;
         }
     }

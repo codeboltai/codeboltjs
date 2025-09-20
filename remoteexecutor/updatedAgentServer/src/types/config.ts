@@ -10,6 +10,8 @@ export interface ServerConfig {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
   healthCheckInterval?: number;
+  // When true, child agent processes will communicate via Node IPC instead of WebSocket
+  useIPC?: boolean;
 }
 
 export interface AgentConfig {

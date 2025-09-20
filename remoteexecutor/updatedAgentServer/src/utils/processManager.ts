@@ -10,6 +10,8 @@ import { promisify } from 'util';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from './../types';
+import { ConnectionManager } from '../core/connectionManager';
+import { AgentMessageRouter } from '../handlers/agentMessageRouter';
 
 
 
@@ -35,6 +37,8 @@ interface AgentDetailResponse {
 export class ProcessManager {
   private sampleClientProcess: ChildProcess | null = null;
   private agentProcesses: Map<string, ChildProcess> = new Map();
+  private connectionManager: ConnectionManager;
+  private agentMessageRouter: AgentMessageRouter;
 
   /**
    * Get OS-specific agent storage path
@@ -367,20 +371,50 @@ export class ProcessManager {
    
     
     try {
+      const useIPC = process.env.useIPC === 'true' || process.env.useIPC === '1';
       // Start the agent process
       const agentProcess = spawn('node', [finalAgentPath], {
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: useIPC ? ['pipe', 'pipe', 'pipe', 'ipc'] : ['pipe', 'pipe', 'pipe'],
         cwd: finalWorkingDir, // Set working directory to agent's directory
         env: { 
           ...process.env,
           parentId: applicationId,
           agentId: agentId,
-          SOCKET_PORT: '3001'
+          SOCKET_PORT: '3001',
+          useIPC: useIPC ? 'true' : undefined
         }
       });
 
       // Store the process
       this.agentProcesses.set(agentId, agentProcess);
+
+      // If using IPC, register a pseudo WebSocket connection backed by IPC
+      if (!this.connectionManager) {
+        this.connectionManager = ConnectionManager.getInstance();
+      }
+      if (!this.agentMessageRouter) {
+        this.agentMessageRouter = new AgentMessageRouter();
+      }
+
+      if (useIPC) {
+        const ipcWs = {
+          // Mimic WebSocket OPEN state for readiness checks
+          readyState: 1,
+          send: (data: any) => {
+            try {
+              const payload = typeof data === 'string' ? JSON.parse(data) : data;
+              if (typeof (agentProcess as any).send === 'function') {
+                (agentProcess as any).send(payload);
+              }
+            } catch (e) {
+              console.error(formatLogMessage('error', `Agent-${agentId}-IPC`, `Failed to send IPC message: ${e}`));
+            }
+          }
+        } as any;
+
+        // Register as an agent connection with IPC-backed sender
+        this.connectionManager.registerConnection(agentId, ipcWs, 'agent', applicationId);
+      }
 
       // Set up process event handlers
       agentProcess.stdout?.on('data', (data) => {
@@ -397,6 +431,25 @@ export class ProcessManager {
         }
       });
 
+      if (useIPC) {
+        // Handle IPC messages from child and forward to app via WebSocket routing layer
+        agentProcess.on('message', (msg: any) => {
+          try {
+            // Attach agent id for routing on server side
+            const message = { ...msg, agentId };
+            // Lookup the registered agent connection and route like WebSocket flow
+            const connection = this.connectionManager.getConnection(agentId);
+            if (connection) {
+              this.agentMessageRouter.handleAgentRequest(connection, message as any);
+            } else {
+              console.warn(formatLogMessage('warn', `Agent-${agentId}-IPC`, 'Connection not found for IPC message'));
+            }
+          } catch (e) {
+            console.error(formatLogMessage('error', `Agent-${agentId}-IPC`, `Failed to process IPC message: ${e}`));
+          }
+        });
+      }
+
       agentProcess.on('error', (error) => {
         console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
         this.agentProcesses.delete(agentId);
@@ -405,6 +458,15 @@ export class ProcessManager {
       agentProcess.on('exit', (code, signal) => {
         console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
         this.agentProcesses.delete(agentId);
+        // Remove connection if it was registered via IPC
+        if (useIPC) {
+          try {
+            if (!this.connectionManager) {
+              this.connectionManager = ConnectionManager.getInstance();
+            }
+            this.connectionManager.removeConnection(agentId);
+          } catch {}
+        }
       });
 
       console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));

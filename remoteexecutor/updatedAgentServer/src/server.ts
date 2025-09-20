@@ -12,6 +12,7 @@ interface CliOptions {
   host?: string;
   port?: number;
   verbose?: boolean;
+  useIPC?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ function setupCLI(): CliOptions {
     .option('--host <host>', 'server host', 'localhost')
     .option('--port <port>', 'server port', (value) => parseInt(value), 3001)
     .option('-v, --verbose', 'enable verbose logging', false)
+    .option('--useIPC', 'enable IPC transport for child agents instead of WebSocket', false)
     .addHelpText('after', `
 Examples:
   $ codebolt-code                    # Start with TUI interface
@@ -44,7 +46,8 @@ Examples:
     noui: options.noui,
     host: options.host,
     port: options.port,
-    verbose: options.verbose
+    verbose: options.verbose,
+    useIPC: options.useIPC
   };
 }
 
@@ -62,6 +65,10 @@ async function main(): Promise<void> {
     // Override config with CLI options
     if (options.host) config.host = options.host;
     if (options.port) config.port = options.port;
+    if (typeof options.useIPC !== 'undefined') {
+      // propagate to env for downstream components
+      process.env.useIPC = options.useIPC ? 'true' : 'false';
+    }
     
     console.log(formatLogMessage('info', 'Main', 'Starting Codebolt Code...'));
     
@@ -71,6 +78,7 @@ async function main(): Promise<void> {
     }
     
     console.log(formatLogMessage('info', 'Main', `UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`));
+    console.log(formatLogMessage('info', 'Main', `Child transport: ${process.env.useIPC === 'true' ? 'IPC' : 'WebSocket'}`));
     console.log(formatLogMessage('info', 'Main', `Server: ${config.host}:${config.port}`));
     
     // Create and start server

@@ -53,11 +53,17 @@ class cbws {
      * when the WebSocket connection is successfully opened.
      * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
      */
-    public async initializeWebSocket(): Promise<WebSocket> {
+    public async initializeWebSocket(): Promise<WebSocket | void> {
+        const useIPC = process.env.useIPC === 'true' || process.env.useIPC === '1';
+        if (useIPC) {
+            console.log('[IPC] Initializing IPC transport instead of WebSocket');
+            messageManager.initializeIPC();
+            this.initialized = true;
+            return;
+        }
+
         console.log('[WebSocket] Starting WebSocket initialization');
-        
         const uniqueConnectionId = this.getUniqueConnectionId();
-        // const initialMessage = "Hello" //this.getInitialMessage();
 
         const agentIdParam = process.env.agentId ? `&agentId=${process.env.agentId}` : '';
         const parentIdParam = process.env.parentId ? `&parentId=${process.env.parentId}` : '';
@@ -65,27 +71,9 @@ class cbws {
         const agentTask = process.env.agentTask ? `&agentTask=${process.env.agentTask}` : '';
         const socketPort = process.env.SOCKET_PORT || '12345';
         const serverUrl = process.env.CODEBOLT_SERVER_URL || 'localhost';
-        const threadToken =process.env.threadToken|| null
+        const threadToken = process.env.threadToken || null
 
-        console.log('[WebSocket] Logging all relevant variables:');
-        console.log('uniqueConnectionId:', uniqueConnectionId);
-        // console.log('initialMessage:', initialMessage);
-        console.log('agentIdParam:', agentIdParam);
-        console.log('parentIdParam:', parentIdParam);
-        console.log('parentAgentInstanceIdParam:', parentAgentInstanceIdParam);
-        console.log('agentTask:', agentTask);
-        console.log('socketPort:', socketPort);
-        console.log('serverUrl:', serverUrl);
-        console.log('threadToken:', threadToken);
-        console.log('[WebSocket] Environment variables check:');
-        console.log('process.env.agentId:', process.env.agentId);
-        console.log('process.env.threadToken:', process.env.threadToken);
-        console.log('process.env.parentId:', process.env.parentId);
-        console.log('process.env.agentTask:', process.env.agentTask);
-        
         const threadTokenParam = threadToken ? `&threadToken=${encodeURIComponent(threadToken)}` : '';
-        
-        // Add all custom environment variables as URL parameters
         const knownEnvVars = ['SOCKET_PORT', 'CODEBOLT_SERVER_URL', 'agentId', 'parentId', 'parentAgentInstanceId', 'agentTask', 'threadToken', 'Is_Dev', 'PATH', 'NODE_ENV', 'HOME', 'USER', 'SHELL'];
         let customParams = '';
         for (const [key, value] of Object.entries(process.env)) {
@@ -93,14 +81,12 @@ class cbws {
                 customParams += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
             }
         }
-        
         const wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${threadTokenParam}${customParams}${process.env.Is_Dev ? '&dev=true' : ''}`;
         console.log('[WebSocket] Connecting to:', wsUrl);
         
         this.websocket = new WebSocket(wsUrl);
 
         return new Promise((resolve, reject) => {
-            // Set a timeout for the connection
             const connectionTimeout = setTimeout(() => {
                 console.error('[WebSocket] Connection timeout after 10 seconds');
                 if (this.websocket) {
@@ -116,35 +102,15 @@ class cbws {
             });
 
             this.websocket.on('open', () => {
-                console.log('[WebSocket] Connection opened successfully');
                 clearTimeout(connectionTimeout);
-                // Initialize the message manager with this websocket
-                console.log('[WebSocket] Initializing message manager');
                 messageManager.initialize(this.websocket);
                 this.initialized = true;
-                console.log('[WebSocket] WebSocket fully initialized and ready');
                 resolve(this.websocket);
             });
 
-            this.websocket.on('close', (code: number, reason: Buffer) => {
-                console.log(`[WebSocket] Connection closed with code: ${code}, reason: ${reason.toString()}`);
-                clearTimeout(connectionTimeout);
-                // Clean up pending requests when connection closes
-                console.log('[WebSocket] Cleaning up message manager');
+            this.websocket.on('close', () => {
                 messageManager.cleanup();
                 this.initialized = false;
-            });
-
-            this.websocket.on('message', (data: WebSocket.Data) => {
-                console.log('[WebSocket] Message received:', data.toString());
-            });
-
-            this.websocket.on('ping', () => {
-                console.log('[WebSocket] Ping received');
-            });
-
-            this.websocket.on('pong', () => {
-                console.log('[WebSocket] Pong received');
             });
         });
     }
