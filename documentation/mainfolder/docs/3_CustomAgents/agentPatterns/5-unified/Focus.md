@@ -29,15 +29,17 @@ Runs the Tools
 Gets the Tools output
 Creates a followup prompt ^8wRMKBI3
 
-codebolt.onMessage((message)=>{
-    let llmprompt = messgaebuilder(message)
+```javascript
+codebolt.onMessage((message) => {
+    let llmprompt = messagebuilder(message)
     let done = false;
     while(!done){
         let llmoutput = AgentStep(llmprompt);
         llmprompt = LLMOutputHandler(llmoutput);
         done = llmprompt.iscompleted();
     }
-}) ^3v64gQnu
+})
+``` ^3v64gQnu
 
 %%
 ## Drawing

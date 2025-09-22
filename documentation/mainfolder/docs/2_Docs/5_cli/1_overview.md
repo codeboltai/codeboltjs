@@ -16,7 +16,7 @@ The Codebolt CLI is a command-line interface that allows you to:
 
 ## Command Categories
 
-### [Agent Commands](./agent.md)
+### [Agent Commands](./agent)
 Commands for creating, managing, and deploying Codebolt agents.
 
 **Key Commands:**
@@ -27,7 +27,7 @@ Commands for creating, managing, and deploying Codebolt agents.
 - `cloneagent` - Clone an existing agent
 - `pullagent` - Pull latest agent configuration
 
-### [MCP Tools Commands](./tools.md)
+### [MCP Tools Commands](./tools)
 Commands for developing and managing MCP (Model Context Protocol) tools.
 
 **Key Commands:**
@@ -39,7 +39,16 @@ Commands for developing and managing MCP (Model Context Protocol) tools.
 - `pulltool` - Pull latest tool configuration
 
 
-### [Utility Commands](./utility.md)
+### [Provider](./provider)
+Commands for developing and managing Providers.
+
+**Key Commands:**
+- `createprovider` - Create a new Provider
+- `publishprovider` - Publish provider to the marketplace
+
+
+
+### [Utility Commands](./utility)
 General utility commands for CLI management.
 
 **Key Commands:**
