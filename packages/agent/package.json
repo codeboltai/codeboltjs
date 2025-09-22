@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/agent",
-  "version": "1.2.1",
+  "version": "2.2.2",
   "description": "CodeBolt Agent utilities for building and managing AI agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "test": "echo \"No tests yet, but build passes\" && exit 0",
-    "lint": "eslint src/**/*.ts && tsc --noEmit"
+    "lint:test": "eslint src/**/*.ts && tsc --noEmit"
   },
   "keywords": [
     "ai",
@@ -45,7 +45,6 @@
   "devDependencies": {
     "@codebolt/codeboltjs": "workspace:*",
     "@codebolt/types": "workspace:*",
-    "@codebolt/eslint-config": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",
     "@types/uri-templates": "^0.1.34",
@@ -69,8 +68,8 @@
       "types": "./dist/processor-pieces/index.d.ts",
       "default": "./dist/processor-pieces/index.js"
     },
-    "./unified":{
-       "types": "./dist/unified/index.d.ts",
+    "./unified": {
+      "types": "./dist/unified/index.d.ts",
       "default": "./dist/unified/index.js"
     }
   }

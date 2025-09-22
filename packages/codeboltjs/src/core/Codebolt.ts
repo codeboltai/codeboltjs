@@ -212,18 +212,31 @@ class Codebolt {
         });
     }
 
+    onRawMessage(handler: (userMessage: FlatUserMessage) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleRawUserMessage = async (response: any) => {
+                if (response.type != "messageResponse" &&  response.type!="providerStart" && response.type!="providerAgentStart") {
+                   handler(response);
+                }
+            };
+            cbws.messageManager.on('message', handleRawUserMessage);
+        }).catch(error => {
+            console.error('Failed to set up message handler:', error);
+        });
+    }
+
     /**
      * Sets up a listener for provider start events.
      * @param {Function} handler - The handler function to call when provider starts.
      * @returns {void}
      */
-    onProviderStart(handler: (initvars: any) => void | Promise<void> | any | Promise<any>) {
+    onProviderStart(handler: (initvars: { type: string; environmentName: string }) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
-            const handleProviderStart = async (response: any) => {
+            const handleProviderStart = async (response: { type: string; environmentName: string }) => {
                 console.log("Provider start event received");
                 if (response.type === "providerStart") {
                     try {
-                        const result = await handler(response.initvars || {});
+                        const result = await handler(response|| {});
                         
                         const message: any = {
                             "type": "providerStartResponse"
@@ -261,7 +274,8 @@ class Codebolt {
                 console.log("Provider agent start event received");
                 if (response.type === "providerAgentStart") {
                     try {
-                        const result = await handler(response.userMessage || {});
+                       
+                        const result = await handler(response.userMessage);
                         
                         const message: any = {
                             "type": "providerAgentStartResponse"

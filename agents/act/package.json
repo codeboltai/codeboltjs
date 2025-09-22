@@ -1,6 +1,7 @@
 {
   "name": "@codebolt/act",
-  "version": "1.1.28",
+  "private": true,
+  "version": "1.1.29",
   "description": "This is a codebolt agent.",
   "main": "index.js",
   "scripts": {
