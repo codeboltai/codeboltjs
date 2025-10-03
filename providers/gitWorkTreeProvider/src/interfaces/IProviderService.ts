@@ -9,6 +9,17 @@ export interface ProviderInitVars {
   environmentName: string;
 }
 
+export enum AgentType {
+  Marketplace = 'Marketplace',
+  Local = 'Local'
+}
+
+export enum AgentCode {
+  Marketplace = 'Marketplace',
+  ZipUrl = 'ZipUrl',
+  Path = 'Path'
+}
+
 /**
  * Agent start message structure
  */
@@ -19,6 +30,9 @@ export interface AgentStartMessage {
   context?: any;
   timestamp?: number;
   agentId:string;
+  agentType?:AgentType;
+  agentCode?:AgentCode;
+  agentPathData?: string;
 }
 
 /**
