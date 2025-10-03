@@ -1,0 +1,90 @@
+import type WebSocket from "ws";
+import type { ChildProcess } from "child_process";
+
+export type ProviderTransportType = "websocket" | "custom";
+
+export interface ProviderInitVars {
+  environmentName: string;
+  [key: string]: unknown;
+}
+
+export interface AgentStartMessage {
+  type: string;
+  userMessage?: string;
+  task?: string;
+  context?: unknown;
+  timestamp?: number;
+  agentId: string;
+  [key: string]: unknown;
+}
+
+export interface AgentServerMessage {
+  type: string;
+  action?: string;
+  data?: unknown;
+  messageId?: string;
+  timestamp?: number;
+  [key: string]: unknown;
+}
+
+export interface ProviderStartResult {
+  success: boolean;
+  environmentName: string;
+  agentServerUrl: string;
+  workspacePath: string;
+  worktreePath?: string;
+  transport: ProviderTransportType;
+  [key: string]: unknown;
+}
+
+export interface ProviderState {
+  initialized: boolean;
+  environmentName: string | null;
+  projectPath: string | null;
+  workspacePath: string | null;
+}
+
+export interface AgentServerConnection {
+  wsConnection: WebSocket | null;
+  process: ChildProcess | null;
+  isConnected: boolean;
+  serverUrl: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface BaseProviderConfig {
+  agentServerPort: number;
+  agentServerHost: string;
+  reconnectAttempts: number;
+  reconnectDelay: number;
+  wsRegistrationTimeout: number;
+  transport: ProviderTransportType;
+  agentServerPath?: string;
+  agentServerArgs?: string[];
+  timeouts?: {
+    agentServerStartup?: number;
+    connection?: number;
+    cleanup?: number;
+  };
+  [key: string]: unknown;
+}
+
+export interface ProviderLifecycleHandlers {
+  onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
+  onProviderAgentStart(message: AgentStartMessage): Promise<void>;
+  onCloseSignal(): Promise<void>;
+  onMessage(message: AgentServerMessage): Promise<void>;
+}
+
+export interface ProviderTransport {
+  ensureTransportConnection(initVars: ProviderInitVars): Promise<void>;
+  sendToAgentServer(message: AgentServerMessage): Promise<boolean>;
+}
+
+export interface ProviderEventHandlers {
+  onProviderStart: (vars: ProviderInitVars) => Promise<ProviderStartResult>;
+  onProviderAgentStart: (message: AgentStartMessage) => Promise<void>;
+  onCloseSignal: () => Promise<void>;
+  onRawMessage: (message: AgentServerMessage) => Promise<void>;
+}
+
