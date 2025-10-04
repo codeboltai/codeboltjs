@@ -6,12 +6,12 @@ import * as fs from 'fs';
 import * as net from 'net';
 import WebSocket from 'ws';
 import codebolt from '@codebolt/codeboltjs';
+import { AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
-  AgentStartMessage,
   ProviderInitVars,
   ProviderStartResult,
-  RawMessageForAgent
+
 } from '@codebolt/provider';
 import {
   IProviderService,

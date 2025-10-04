@@ -1,16 +1,16 @@
 import type {
-  AgentStartMessage,
+
   ProviderInitVars,
   ProviderStartResult,
   AgentServerConnection as BaseAgentServerConnection,
-  RawMessageForAgent
+
 } from '@codebolt/provider';
+import { AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import { FlatUserMessage } from '@codebolt/types/sdk-types';
 import type { ChildProcess } from 'child_process';
 import type WebSocket from 'ws';
 
 export type {
-  AgentStartMessage,
   ProviderInitVars,
   ProviderStartResult
 } from '@codebolt/provider';
