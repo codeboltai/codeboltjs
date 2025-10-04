@@ -2,7 +2,6 @@ import WebSocket from "ws";
 import codebolt from "@codebolt/codeboltjs";
 import {
   AgentServerConnection,
-  AgentStartMessage,
   BaseProviderConfig,
   ProviderEventHandlers,
   ProviderInitVars,
@@ -10,10 +9,11 @@ import {
   ProviderStartResult,
   ProviderState,
   ProviderTransport,
-  RawMessageForAgent,
+
 } from "./ProviderTypes";
 
 import { FlatUserMessage } from "@codebolt/types/sdk";
+import { AgentStartMessage, RawMessageForAgent } from "@codebolt/types/provider";
 
 /**
  * BaseProvider encapsulates shared functionality for environment providers.

@@ -27,6 +27,7 @@ import { notificationFunctions, type NotificationFunctions } from '../notificati
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
+import {RawMessageForAgent,AgentStartMessage} from '@codebolt/types/provider'
 
 /**
  * @class Codebolt
@@ -212,7 +213,7 @@ class Codebolt {
         });
     }
 
-    onRawMessage(handler: (userMessage: FlatUserMessage) => void | Promise<void> | any | Promise<any>) {
+    onRawMessage(handler: (userMessage: RawMessageForAgent) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleRawUserMessage = async (response: any) => {
                 if (response.type != "messageResponse" &&  response.type!="providerStart" && response.type!="providerAgentStart") {
