@@ -17,8 +17,8 @@ export const taskEventBaseSchema = z.object({
   parentId: z.string().optional(),
 });
 
-// Metadata schema for task steps
-const metadataSchema = z.object({
+// MessageData schema for task steps (renamed from metadataSchema)
+const messageDataSchema = z.object({
   mentionedFiles: z.array(z.string()).optional(),
   mentionedFullPaths: z.array(z.string()).optional(),
   mentionedFolders: z.array(z.string()).optional(),
@@ -47,7 +47,7 @@ const positionSchema = z.object({
 const flowNodeDataSchema = z.object({
   value: z.string(),
   userMessage: z.string(),
-  metaData: metadataSchema,
+  messageData: messageDataSchema,
   condition: z.string(),
   agentId: z.string(),
   isMainTask: z.boolean(),
@@ -71,7 +71,7 @@ const flowDataSchema = z.object({
 const stepSchema = z.object({
   type: z.string(),
   userMessage: z.string(),
-  metaData: metadataSchema.optional(),
+  messageData: messageDataSchema.optional(),
   isMainTask: z.boolean().optional(),
   position: positionSchema.optional(),
   condition: z.string().optional(),
@@ -130,7 +130,7 @@ const addStepToTaskOptionsSchema = z.object({
   taskId: z.string(),
   type: z.string(),
   userMessage: z.string(),
-  metaData: metadataSchema.optional(),
+  messageData: messageDataSchema.optional(),
   isMainTask: z.boolean().optional(),
   position: positionSchema.optional(),
   condition: z.string().optional(),
@@ -370,7 +370,7 @@ export const taskEventSchema = z.union([
 
 // Inferred TypeScript types for events
 export type TaskEventBase = z.infer<typeof taskEventBaseSchema>;
-export type Metadata = z.infer<typeof metadataSchema>;
+export type MessageData = z.infer<typeof messageDataSchema>;
 export type Position = z.infer<typeof positionSchema>;
 export type FlowNodeData = z.infer<typeof flowNodeDataSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;

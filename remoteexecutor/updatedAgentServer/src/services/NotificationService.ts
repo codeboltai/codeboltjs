@@ -17,7 +17,6 @@ export interface NotificationMessage {
   data?: any;
   timestamp: number;
 }
-
 export class NotificationService {
   private static instance: NotificationService;
   private connectionManager: ConnectionManager;

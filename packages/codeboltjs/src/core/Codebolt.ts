@@ -14,7 +14,7 @@ import cbproject from '../modules/project';
 import git from '../modules/git';
 import dbmemory from '../modules/dbmemory';
 import cbstate from '../modules/state';
-// import task from '../modules/task';
+import task from '../modules/task';
 import vectorDB from '../modules/vectordb';
 import debug from '../modules/debug';
 import tokenizer from '../modules/tokenizer';
@@ -106,7 +106,7 @@ class Codebolt {
     project = cbproject;
     dbmemory = dbmemory;
     cbstate = cbstate;
-    // taskplaner = task;
+    task = task;
     vectordb = vectorDB;
     debug = debug;
     tokenizer = tokenizer;
