@@ -12,7 +12,8 @@ import {
   ProviderState,
   ProviderTransport,
 } from "./ProviderTypes";
-import { FlatUserMessage } from "@codebolt/types/sdk-types";
+
+import { FlatUserMessage } from "@codebolt/types/sdk";
 
 /**
  * BaseProvider encapsulates shared functionality for environment providers.

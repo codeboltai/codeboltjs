@@ -47,6 +47,7 @@
   },
   "peerDependencies": {
     "@codebolt/codeboltjs": "workspace:*"
+   
   },
   "exports": {
     ".": {
