@@ -544,7 +544,7 @@ importers:
         specifier: ^5.0.0
         version: 5.4.20(@types/node@22.18.5)(terser@5.43.1)
 
-  providers/gitWorkTreeProvider:
+  providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*

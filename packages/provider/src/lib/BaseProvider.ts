@@ -118,7 +118,7 @@ export abstract class BaseProvider
    * Handle raw incoming messages from the platform. Default behavior is to
    * forward the payload to the agent server transport.
    */
-  async onMessage(message:RawMessageForAgent): Promise<void> {
+  async onRawMessage(message:RawMessageForAgent): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       throw new Error("Agent server connection is not established");
     }
@@ -138,7 +138,7 @@ export abstract class BaseProvider
       onProviderStart: (vars) => this.onProviderStart(vars),
       onProviderAgentStart: (msg) => this.onProviderAgentStart(msg),
       onCloseSignal: () => this.onCloseSignal(),
-      onRawMessage: (msg) => this.onMessage(msg),
+      onRawMessage: (msg) => this.onRawMessage(msg),
     };
   }
 

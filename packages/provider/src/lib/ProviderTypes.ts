@@ -23,7 +23,6 @@ export interface AgentStartMessage extends FlatUserMessage {
   agentType:AgentType,
   path?:string
   [key: string]: unknown;
-
 }
 
 export interface RawMessageForAgent {
@@ -81,7 +80,7 @@ export interface ProviderLifecycleHandlers {
   onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
   onProviderAgentStart(message: AgentStartMessage): Promise<void>;
   onCloseSignal(): Promise<void>;
-  onMessage(message: RawMessageForAgent): Promise<void>;
+  onRawMessage(message: RawMessageForAgent): Promise<void>;
 }
 
 export interface ProviderTransport {
