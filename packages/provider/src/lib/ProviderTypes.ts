@@ -1,6 +1,5 @@
 import type WebSocket from "ws";
 import type { ChildProcess } from "child_process";
-import { FlatUserMessage} from "@codebolt/types/sdk";
 import {RawMessageForAgent,AgentStartMessage} from '@codebolt/types/provider'
 
 export type ProviderTransportType = "websocket" | "custom";
