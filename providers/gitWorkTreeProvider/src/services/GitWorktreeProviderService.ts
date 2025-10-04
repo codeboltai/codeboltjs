@@ -174,14 +174,13 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async onMessage(userMessage: RawMessageForAgent): Promise<void> {
-    console.log('[GitWorktreeProviderService] onMessage received:', userMessage?.type ?? 'unknown');
+  async onUserMessage(userMessage: RawMessageForAgent): Promise<void> {
+    console.log('[GitWorktreeProviderService] onUserMessage received:', userMessage?.messageId ?? 'unknown');
 
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       console.warn('[GitWorktreeProviderService] Agent server not connected, cannot forward message');
       return;
     }
-
     const success = await this.sendMessageToAgent(userMessage);
     if (!success) {
       console.warn('[GitWorktreeProviderService] Failed to forward message to agent server');
@@ -422,6 +421,7 @@ export class GitWorktreeProviderService
       wsConnection: this.agentServer.wsConnection as WebSocket | null,
       serverUrl: this.agentServer.serverUrl,
       isConnected: this.agentServer.isConnected,
+      metadata: this.agentServer.metadata,
     };
   }
 
