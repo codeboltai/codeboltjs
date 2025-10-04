@@ -8,10 +8,10 @@ import WebSocket from 'ws';
 import codebolt from '@codebolt/codeboltjs';
 import {
   BaseProvider,
-  AgentServerMessage,
   AgentStartMessage,
   ProviderInitVars,
-  ProviderStartResult
+  ProviderStartResult,
+  RawMessageForAgent
 } from '@codebolt/provider';
 import {
   IProviderService,
@@ -174,7 +174,7 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async onMessage(userMessage: FlatUserMessage): Promise<void> {
+  async onMessage(userMessage: RawMessageForAgent): Promise<void> {
     console.log('[GitWorktreeProviderService] onMessage received:', userMessage?.type ?? 'unknown');
 
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
@@ -241,7 +241,7 @@ export class GitWorktreeProviderService
     await this.ensureTransportConnection({ environmentName });
   }
 
-  async sendMessageToAgent(message: AgentServerMessage): Promise<boolean> {
+  async sendMessageToAgent(message: RawMessageForAgent ): Promise<boolean> {
     return this.sendToAgentServer(message);
   }
 
@@ -494,20 +494,20 @@ export class GitWorktreeProviderService
     return `${this.agentServer.serverUrl}?${query.toString()}`;
   }
 
-  protected handleTransportMessage(message: AgentServerMessage): void {
+  protected handleTransportMessage(message: RawMessageForAgent): void {
     if (message?.type) {
       console.log('[Git WorkTree Provider] WebSocket message received:', message.type);
     }
 
     switch (message.type) {
       case 'agentStartResponse':
-        console.log('[Git WorkTree Provider] Agent start response:', message.data?.status ?? 'unknown');
-        if (message.data?.error) {
-          console.error('[Git WorkTree Provider] Agent start error:', message.data.error);
+        console.log('[Git WorkTree Provider] Agent start response:', message.data ?? 'unknown');
+        if (message.data) {
+          console.error('[Git WorkTree Provider] Agent start error:', message.data);
         }
         break;
       case 'agentMessage':
-        console.log('[Git WorkTree Provider] Agent message:', message.data?.message ?? 'no message');
+        console.log('[Git WorkTree Provider] Agent message:', message.data ?? 'no message');
         break;
       case 'notification':
         console.log('[Git WorkTree Provider] Agent notification:', message.action, message.data);

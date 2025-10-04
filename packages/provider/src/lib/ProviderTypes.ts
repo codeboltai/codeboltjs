@@ -1,5 +1,6 @@
 import type WebSocket from "ws";
 import type { ChildProcess } from "child_process";
+import { FlatUserMessage } from "@codebolt/types/sdk";
 
 export type ProviderTransportType = "websocket" | "custom";
 
@@ -7,22 +8,29 @@ export interface ProviderInitVars {
   environmentName: string;
   [key: string]: unknown;
 }
+enum AgentType {
+  Marketplace = 'marketplace',
+  Zip_Path = 'zippath',
+  Folder_Path='folderpath',
+  URL = 'url'
+}
 
-export interface AgentStartMessage {
-  type: string;
-  userMessage?: string;
+export interface AgentStartMessage extends FlatUserMessage {
   task?: string;
   context?: unknown;
   timestamp?: number;
   agentId: string;
+  agentType:AgentType,
+  path?:string
   [key: string]: unknown;
+
 }
 
-export interface AgentServerMessage {
+export interface RawMessageForAgent {
   type: string;
+  requestId: string;
   action?: string;
   data?: unknown;
-  messageId?: string;
   timestamp?: number;
   [key: string]: unknown;
 }
@@ -73,18 +81,18 @@ export interface ProviderLifecycleHandlers {
   onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
   onProviderAgentStart(message: AgentStartMessage): Promise<void>;
   onCloseSignal(): Promise<void>;
-  onMessage(message: AgentServerMessage): Promise<void>;
+  onMessage(message: RawMessageForAgent): Promise<void>;
 }
 
 export interface ProviderTransport {
   ensureTransportConnection(initVars: ProviderInitVars): Promise<void>;
-  sendToAgentServer(message: AgentServerMessage): Promise<boolean>;
+  sendToAgentServer(message:  AgentStartMessage  | RawMessageForAgent): Promise<boolean>;
 }
 
 export interface ProviderEventHandlers {
   onProviderStart: (vars: ProviderInitVars) => Promise<ProviderStartResult>;
   onProviderAgentStart: (message: AgentStartMessage) => Promise<void>;
   onCloseSignal: () => Promise<void>;
-  onRawMessage: (message: AgentServerMessage) => Promise<void>;
+  onRawMessage: (message: RawMessageForAgent) => Promise<void>;
 }
 

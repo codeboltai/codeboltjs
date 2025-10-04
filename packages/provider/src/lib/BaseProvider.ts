@@ -2,7 +2,6 @@ import WebSocket from "ws";
 import codebolt from "@codebolt/codeboltjs";
 import {
   AgentServerConnection,
-  AgentServerMessage,
   AgentStartMessage,
   BaseProviderConfig,
   ProviderEventHandlers,
@@ -11,6 +10,7 @@ import {
   ProviderStartResult,
   ProviderState,
   ProviderTransport,
+  RawMessageForAgent,
 } from "./ProviderTypes";
 
 import { FlatUserMessage } from "@codebolt/types/sdk";
@@ -118,7 +118,7 @@ export abstract class BaseProvider
    * Handle raw incoming messages from the platform. Default behavior is to
    * forward the payload to the agent server transport.
    */
-  async onMessage(message: FlatUserMessage): Promise<void> {
+  async onMessage(message:RawMessageForAgent): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       throw new Error("Agent server connection is not established");
     }
@@ -170,7 +170,7 @@ export abstract class BaseProvider
   /**
    * Helper to send messages to the agent server.
    */
-  async sendToAgentServer(message: AgentServerMessage): Promise<boolean> {
+  async sendToAgentServer(message: RawMessageForAgent | AgentStartMessage): Promise<boolean> {
     if (!this.agentServer.wsConnection) {
       throw new Error("WebSocket connection is not open");
     }
@@ -338,7 +338,7 @@ export abstract class BaseProvider
    * Handle incoming transport messages and forward to Codebolt runtime by
    * default. Subclasses can override for custom routing.
    */
-  protected handleTransportMessage(message: AgentServerMessage): void {
+  protected handleTransportMessage(message: RawMessageForAgent): void {
     if (!message) {
       return;
     }
