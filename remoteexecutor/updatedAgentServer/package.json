@@ -16,7 +16,7 @@
     "build": "npm run clean && node esbuild.config.js",
     "start": "node dist/server.mjs",
     "dev": "npm run build && node dist/server.mjs",
-    "dev:local": "npm run build && node dist/server.mjs",
+    "dev:server": "npm run build && node dist/server.mjs --noui",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1",

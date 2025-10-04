@@ -414,6 +414,7 @@ export class GitWorktreeProviderService
     wsConnection: WebSocket | null;
     serverUrl: string;
     isConnected: boolean;
+    metadata: Record<string, unknown>;
   } {
     return {
       process: this.agentServer.process as ChildProcess | null,

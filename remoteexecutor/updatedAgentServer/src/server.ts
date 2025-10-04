@@ -81,12 +81,54 @@ async function main(): Promise<void> {
 
     // Start TUI if not disabled
     let tuiProcess: ChildProcess | null = null;
-  
+    
+    if (!options.noui) {
+      const gotuiPath = resolve(process.cwd(), '../../tui/gotui/gotui');
+      
+      if (existsSync(gotuiPath)) {
+        console.log(formatLogMessage('info', 'Main', `Starting TUI from: ${gotuiPath}`));
+
+        if (process.stdout.isTTY) {
+          process.stdout.write('\x1b[2J\x1b[3J\x1b[H');
+        }
+        
+        tuiProcess = spawn(gotuiPath, ['-host', config.host || 'localhost', '-port', (config.port || 3001).toString()], {
+          stdio: 'inherit',
+          cwd: process.cwd()
+        });
+        
+        if (tuiProcess) {
+          tuiProcess.on('error', (error) => {
+            console.error(formatLogMessage('error', 'Main', `Failed to start TUI: ${error.message}`));
+          });
+          
+          tuiProcess.on('exit', (code) => {
+            if (code !== 0) {
+              console.error(formatLogMessage('error', 'Main', `TUI exited with code: ${code}`));
+            } else {
+              console.log(formatLogMessage('info', 'Main', 'TUI exited successfully'));
+            }
+          });
+        }
+      } else {
+        console.error(formatLogMessage('error', 'Main', `TUI executable not found at: ${gotuiPath}`));
+      }
+    }
     
     // Handle graceful shutdown
     const shutdown = async () => {
       console.log(formatLogMessage('info', 'Main', 'Received shutdown signal, shutting down gracefully...'));
-     
+      
+      // Kill TUI process if running
+      if (tuiProcess) {
+        console.log(formatLogMessage('info', 'Main', 'Stopping TUI process...'));
+        tuiProcess.kill('SIGTERM');
+        tuiProcess = null;
+      }
+      
+      // Stop server
+      await server.stop();
+      process.exit(0);
     };
 
     process.on('SIGINT', shutdown);

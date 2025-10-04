@@ -34,7 +34,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
     "@codebolt/types": "workspace:*",
     "ws": "^8.18.0"
   },
@@ -43,10 +42,11 @@
     "@types/ws": "^8.5.13",
     "eslint": "^9.9.0",
     "typescript": "^5.4.5",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "@codebolt/codeboltjs": "workspace:*"
   },
   "peerDependencies": {
-    "@codebolt/codeboltjs": "^2.0.0"
+    "@codebolt/codeboltjs": "workspace:*"
   },
   "exports": {
     ".": {

@@ -40,7 +40,7 @@ export class DockerServer {
   public async start(): Promise<void> {
     return new Promise((resolve) => {
       this.server.listen(this.config.port, this.config.host, () => {
-        console.log(formatLogMessage('info', 'DockerServer', `Docker Server is running on port ${this.config.port}`));
+        console.log(formatLogMessage('info', 'DockerServer', `Console Agent Server is running on port ${this.config.port}`));
         console.log(formatLogMessage('info', 'DockerServer', `WebSocket server is ready for connections`));
         console.log(formatLogMessage('info', 'DockerServer', `Health check available at http://${this.config.host}:${this.config.port}/health`));
         console.log(formatLogMessage('info', 'DockerServer', `Connection info available at http://${this.config.host}:${this.config.port}/connections`));

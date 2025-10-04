@@ -1,6 +1,5 @@
 import WebSocket from "ws";
 import codebolt from "@codebolt/codeboltjs";
-import type { ChildProcess } from "child_process";
 import {
   AgentServerConnection,
   AgentServerMessage,

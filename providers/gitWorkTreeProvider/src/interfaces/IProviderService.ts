@@ -1,4 +1,3 @@
-import type { FlatUserMessage } from '@codebolt/types/sdk';
 import type {
   AgentServerMessage,
   AgentStartMessage,
@@ -72,7 +71,7 @@ export interface IProviderService {
   onCloseSignal(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
-  onMessage(userMessage: FlatUserMessage): Promise<void>;
+  onMessage(userMessage: AgentServerMessage): Promise<void>;
   startAgentServer(): Promise<void>;
   connectToAgentServer(worktreePath: string, environmentName: string): Promise<void>;
   stopAgentServer(): Promise<boolean>;
