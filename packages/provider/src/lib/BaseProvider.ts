@@ -4,15 +4,14 @@ import {
   AgentServerConnection,
   BaseProviderConfig,
   ProviderEventHandlers,
-  ProviderInitVars,
   ProviderLifecycleHandlers,
   ProviderStartResult,
   ProviderState,
   ProviderTransport,
 
 } from "./ProviderTypes";
+import { ProviderInitVars } from "@codebolt/types/provider";
 
-import { FlatUserMessage } from "@codebolt/types/sdk";
 import { AgentStartMessage, RawMessageForAgent } from "@codebolt/types/provider";
 
 /**

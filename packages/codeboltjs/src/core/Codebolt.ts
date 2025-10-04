@@ -27,7 +27,7 @@ import { notificationFunctions, type NotificationFunctions } from '../notificati
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
-import {RawMessageForAgent,AgentStartMessage} from '@codebolt/types/provider'
+import {RawMessageForAgent,AgentStartMessage,ProviderInitVars} from '@codebolt/types/provider'
 
 /**
  * @class Codebolt
@@ -231,7 +231,7 @@ class Codebolt {
      * @param {Function} handler - The handler function to call when provider starts.
      * @returns {void}
      */
-    onProviderStart(handler: (initvars: { type: string; environmentName: string }) => void | Promise<void> | any | Promise<any>) {
+    onProviderStart(handler: (initvars: ProviderInitVars) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleProviderStart = async (response: { type: string; environmentName: string }) => {
                 console.log("Provider start event received");

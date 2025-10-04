@@ -9,10 +9,10 @@ import codebolt from '@codebolt/codeboltjs';
 import { AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
-  ProviderInitVars,
   ProviderStartResult,
 
 } from '@codebolt/provider';
+import { ProviderInitVars } from '@codebolt/types/provider';
 import {
   IProviderService,
   DiffResult,
@@ -20,7 +20,6 @@ import {
   WorktreeInfo,
   ProviderConfig
 } from '../interfaces/IProviderService';
-import { FlatUserMessage } from '@codebolt/types/sdk-types';
 
 const execAsync = promisify(exec);
 
@@ -237,7 +236,7 @@ export class GitWorktreeProviderService
     }
 
     console.log('[Git WorkTree Provider] Ensuring WebSocket connection to agent server...');
-    await this.ensureTransportConnection({ environmentName });
+    await this.ensureTransportConnection({ environmentName, type: 'gitworktree' });
   }
 
   async sendMessageToAgent(message: RawMessageForAgent ): Promise<boolean> {

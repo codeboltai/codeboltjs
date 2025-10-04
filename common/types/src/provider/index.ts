@@ -26,3 +26,9 @@ export enum AgentType {
     timestamp?: number;
     [key: string]: unknown;
   }
+
+  export interface ProviderInitVars {
+    environmentName: string;
+    type: string;
+    [key: string]: unknown;
+  }

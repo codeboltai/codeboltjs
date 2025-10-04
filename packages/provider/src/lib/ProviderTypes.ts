@@ -1,13 +1,9 @@
 import type WebSocket from "ws";
 import type { ChildProcess } from "child_process";
 import {RawMessageForAgent,AgentStartMessage} from '@codebolt/types/provider'
+import { ProviderInitVars } from "@codebolt/types/provider";
 
 export type ProviderTransportType = "websocket" | "custom";
-
-export interface ProviderInitVars {
-  environmentName: string;
-  [key: string]: unknown;
-}
 
 
 export interface ProviderStartResult {
