@@ -10,6 +10,7 @@ module.exports = tseslint.config(
       parser: tseslint.parser,
       parserOptions: {
         project: true,
+        tsconfigRootDir: __dirname,
       },
     },
     rules: {
