@@ -27,8 +27,8 @@ const taskMessageSchema = z.object({
   agentId: z.string().optional(),
 });
 
-// Metadata schema
-const metadataSchema = z.object({
+// MessageData schema (renamed from metadataSchema)
+const messageDataSchema = z.object({
   mentionedFiles: z.array(z.string()),
   mentionedFullPaths: z.array(z.string()),
   mentionedFolders: z.array(z.string()),
@@ -57,7 +57,7 @@ const positionSchema = z.object({
 const flowNodeDataSchema = z.object({
   value: z.string(),
   userMessage: z.string(),
-  metaData: metadataSchema,
+  messageData: messageDataSchema,
   condition: z.string(),
   agentId: z.string(),
   isMainTask: z.boolean(),
@@ -82,7 +82,7 @@ const stepSchema = z.object({
   id: z.string(),
   type: z.string(),
   userMessage: z.string(),
-  metaData: metadataSchema,
+  messageData: messageDataSchema,
   isMainTask: z.boolean(),
   position: positionSchema,
   condition: z.string(),
@@ -277,7 +277,7 @@ export const PlannerTaskResponseSchema = plannerTaskResponseSchema;
 
 // Type exports
 export type TaskMessage = z.infer<typeof taskMessageSchema>;
-export type Metadata = z.infer<typeof metadataSchema>;
+export type MessageData = z.infer<typeof messageDataSchema>;
 export type Position = z.infer<typeof positionSchema>;
 export type FlowNodeData = z.infer<typeof flowNodeDataSchema>;
 export type FlowNode = z.infer<typeof flowNodeSchema>;

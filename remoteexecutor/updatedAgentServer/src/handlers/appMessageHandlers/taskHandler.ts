@@ -91,7 +91,7 @@ export class TaskHandler {
               const response = {
                 success: true,
                 data: newTask,
-                type: 'addTaskResponse',
+                type: 'createTaskResponse',
                 id: requestId,
                 message: `Task created: ${title}`
               };
@@ -151,7 +151,7 @@ export class TaskHandler {
               const response = {
                 success: true,
                 data: tasks,
-                type: 'getTasksResponse',
+                type: 'getTaskListResponse',
                 id: requestId,
                 message: `Retrieved ${tasks.length} tasks`
               };
@@ -175,7 +175,7 @@ export class TaskHandler {
               const errorResponse = {
                 success: false,
                 error: `Failed to get tasks: ${error}`,
-                type: 'getTasksResponse',
+                type: 'getTaskListResponse',
                 id: requestId
               };
 
