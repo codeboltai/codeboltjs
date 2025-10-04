@@ -12,6 +12,7 @@ import {
   ProviderState,
   ProviderTransport,
 } from "./ProviderTypes";
+import { FlatUserMessage } from "@codebolt/types/sdk-types";
 
 /**
  * BaseProvider encapsulates shared functionality for environment providers.
@@ -116,7 +117,7 @@ export abstract class BaseProvider
    * Handle raw incoming messages from the platform. Default behavior is to
    * forward the payload to the agent server transport.
    */
-  async onMessage(message: AgentServerMessage): Promise<void> {
+  async onMessage(message: FlatUserMessage): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       throw new Error("Agent server connection is not established");
     }
