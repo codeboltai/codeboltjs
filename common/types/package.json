@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./provider": {
+      "types": "./dist/provider-types.d.ts",
+      "default": "./dist/provider-types.js"
+    },
     "./agent": {
       "types": "./dist/agent-schema.d.ts",
       "default": "./dist/agent/agent-schema.js"
