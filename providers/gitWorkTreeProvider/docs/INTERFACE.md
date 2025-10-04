@@ -11,19 +11,17 @@ The Git WorkTree Provider has been refactored to use a clean interface-based arc
 ```
 src/
 ├── interfaces/
-│   ├── IProviderService.ts    # Main provider interface
-│   └── index.ts              # Interface exports
+│   ├── IProviderService.ts    # Git Worktree specific contracts
+│   └── index.ts               # Interface exports
 ├── services/
-│   ├── GitWorktreeProviderService.ts  # Implementation
-│   └── index.ts              # Service exports
-├── examples/
-│   └── usage.ts              # Usage examples
-└── index.ts                  # Main entry point
+│   ├── GitWorktreeProviderService.ts  # Extends @codebolt/provider BaseProvider
+│   └── index.ts               # Service exports
+└── index.ts                   # Main entry point
 ```
 
 ## Core Interface: `IProviderService`
 
-The main interface that defines the contract for the Git WorkTree Provider:
+The Git WorkTree provider now extends the shared `BaseProvider` from `@codebolt/provider`. Implementation-specific methods remain in `IProviderService`:
 
 ```typescript
 interface IProviderService {
@@ -65,6 +63,8 @@ interface ProviderStartResult {
   worktreePath: string;
   environmentName: string;
   agentServerUrl: string;
+  workspacePath: string;
+  transport: ProviderTransportType;
 }
 
 interface DiffFile {
@@ -86,6 +86,8 @@ interface DiffResult {
   rawDiff?: string;
 }
 ```
+
+The shared base provider additionally returns `workspacePath` and `transport` metadata to consumers.
 
 ### Configuration Types
 
@@ -123,7 +125,7 @@ interface AgentServerConnection {
 
 ## Implementation: `GitWorktreeProviderService`
 
-The main service class that implements the `IProviderService` interface:
+The main service class now extends `BaseProvider` from `@codebolt/provider` and implements `IProviderService`:
 
 ### Key Features
 
@@ -230,9 +232,9 @@ async function startAgentServer(): Promise<void> { ... }
 
 ### After (Interface-based)
 ```typescript
-// Encapsulated service with interface
-const provider: IProviderService = new GitWorktreeProviderService();
-await provider.startAgentServer();
+// Encapsulated service extending BaseProvider
+const provider = new GitWorktreeProviderService();
+await provider.onProviderStart({ environmentName: 'feature-x' });
 ```
 
 ## Future Enhancements
@@ -247,4 +249,4 @@ The interface-based architecture enables future enhancements:
 
 ## API Reference
 
-See the interface definitions in `src/interfaces/IProviderService.ts` for complete API documentation with TypeScript types and JSDoc comments.
+See the shared contracts in `@codebolt/provider` and the Git worktree specifics in `src/interfaces/IProviderService.ts` for complete API documentation with TypeScript types and JSDoc comments.

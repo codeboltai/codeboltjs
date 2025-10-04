@@ -38,6 +38,7 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
+    "@codebolt/provider": "workspace:*",
     "@codebolt/codeboltjs": "2.2.2",
     "@codebolt/types": "latest",
     "ws": "^8.18.0"
