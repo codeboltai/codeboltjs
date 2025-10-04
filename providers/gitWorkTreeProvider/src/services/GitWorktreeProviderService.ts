@@ -20,6 +20,7 @@ import {
   WorktreeInfo,
   ProviderConfig
 } from '../interfaces/IProviderService';
+import { FlatUserMessage } from '@codebolt/types/sdk-types';
 
 const execAsync = promisify(exec);
 
@@ -173,7 +174,7 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async onMessage(userMessage: any): Promise<void> {
+  async onMessage(userMessage: FlatUserMessage): Promise<void> {
     console.log('[GitWorktreeProviderService] onMessage received:', userMessage?.type ?? 'unknown');
 
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {

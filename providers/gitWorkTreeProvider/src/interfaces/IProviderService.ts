@@ -5,6 +5,7 @@ import type {
   ProviderStartResult,
   AgentServerConnection as BaseAgentServerConnection
 } from '@codebolt/provider';
+import { FlatUserMessage } from '@codebolt/types/sdk-types';
 import type { ChildProcess } from 'child_process';
 import type WebSocket from 'ws';
 
@@ -71,7 +72,7 @@ export interface IProviderService {
   onCloseSignal(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
-  onMessage(userMessage: AgentServerMessage): Promise<void>;
+  onMessage(userMessage: FlatUserMessage): Promise<void>;
   startAgentServer(): Promise<void>;
   connectToAgentServer(worktreePath: string, environmentName: string): Promise<void>;
   stopAgentServer(): Promise<boolean>;
