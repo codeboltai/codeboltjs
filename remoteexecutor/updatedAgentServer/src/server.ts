@@ -1,50 +1,53 @@
-import { formatLogMessage } from './types';
-import { DockerServer } from './core/agentServer';
+import { formatLogMessage, AgentCliOptions } from './types';
+import { AgentExecutorServer } from './core/agentServer';
 import { getServerConfig } from './config';
 import { spawn, ChildProcess } from 'child_process';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { Command } from 'commander';
 
-// Command line interface
-interface CliOptions {
-  noui: boolean;
-  host?: string;
-  port?: number;
-  verbose?: boolean;
-}
-
 /**
  * Setup CLI with commander
  */
-function setupCLI(): CliOptions {
+function setupCLI(): AgentCliOptions {
   const program = new Command();
   
   program
     .name('codebolt-code')
     .description('Codebolt Code - AI-powered coding assistant')
     .version('1.0.0')
-    .option('--noui, --no-ui', 'start server only (no TUI interface)', false)
+    .option('--noui', 'start server only (no TUI interface)')
     .option('--host <host>', 'server host', 'localhost')
     .option('--port <port>', 'server port', (value) => parseInt(value), 3001)
     .option('-v, --verbose', 'enable verbose logging', false)
-    .addHelpText('after', `
-Examples:
-  $ codebolt-code                    # Start with TUI interface
-  $ codebolt-code --noui            # Start server only
-  $ codebolt-code --port 8080       # Start with custom port
-  $ codebolt-code --noui --port 8080 # Server only on custom port
-  $ codebolt-code --verbose         # Enable verbose logging
+    .option('--agent-type <type>', 'agent type: marketplace, local-zip, local-path, or server-zip')
+    .option('--agent-detail <detail>', 'agent detail: marketplace ID, local path, zip file path, or server URL')
+    .option('--prompt <prompt>', 'initial prompt to send to the agent')
+.addHelpText('after', `
+ Examples:
+   $ codebolt-code                    # Start with TUI interface
+   $ codebolt-code --noui            # Start server only
+   $ codebolt-code --port 8080       # Start with custom port
+   $ codebolt-code --noui --port 8080 # Server only on custom port
+   $ codebolt-code --verbose         # Enable verbose logging
+   $ codebolt-code --agent-type marketplace --agent-detail agent-123  # Use marketplace agent
+   $ codebolt-code --agent-type local-path --agent-detail ./my-agent  # Use local agent
+   $ codebolt-code --agent-type local-zip --agent-detail agent.zip    # Use zipped agent
+   $ codebolt-code --agent-type server-zip --agent-detail https://example.com/agent.zip  # Use remote agent
+   $ codebolt-code --agent-type local-path --agent-detail ./my-agent --prompt "Hello, how are you?"  # Start agent with initial prompt
 `);
 
   program.parse();
   const options = program.opts();
   
   return {
-    noui: options.noui,
+    noui: Boolean(options.noui),
     host: options.host,
     port: options.port,
-    verbose: options.verbose
+    verbose: options.verbose,
+    agentType: options.agentType,
+    agentDetail: options.agentDetail,
+    prompt: options.prompt
   };
 }
 
@@ -54,7 +57,6 @@ Examples:
  */
 async function main(): Promise<void> {
   const options = setupCLI();
-
   try {
     // Get configuration
     const config = getServerConfig();
@@ -73,8 +75,29 @@ async function main(): Promise<void> {
     console.log(formatLogMessage('info', 'Main', `UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`));
     console.log(formatLogMessage('info', 'Main', `Server: ${config.host}:${config.port}`));
     
+    // Log agent configuration if provided
+    if (options.agentType && options.agentDetail) {
+      console.log(formatLogMessage('info', 'Main', `Agent Type: ${options.agentType}`));
+      console.log(formatLogMessage('info', 'Main', `Agent Detail: ${options.agentDetail}`));
+      
+      // Validate agent type
+      const validTypes = ['marketplace', 'local-zip', 'local-path', 'server-zip'];
+      if (!validTypes.includes(options.agentType)) {
+        console.error(formatLogMessage('error', 'Main', `Invalid agent type: ${options.agentType}. Valid types: ${validTypes.join(', ')}`));
+        process.exit(1);
+      }
+    } else if (options.agentType || options.agentDetail) {
+      console.error(formatLogMessage('error', 'Main', 'Both --agent-type and --agent-detail must be provided together'));
+      process.exit(1);
+    }
+    
+    // Log prompt if provided
+    if (options.prompt) {
+      console.log(formatLogMessage('info', 'Main', `Initial Prompt: ${options.prompt}`));
+    }
+    
     // Create and start server
-    const server = new DockerServer(config);
+    const server = new AgentExecutorServer(config, options);
     await server.start();
     
     console.log(formatLogMessage('info', 'Server', `Server started successfully on ${config.host}:${config.port}`));
@@ -156,4 +179,4 @@ async function main(): Promise<void> {
 // Start the application
 main();
 
-export { DockerServer };
+export { AgentExecutorServer };

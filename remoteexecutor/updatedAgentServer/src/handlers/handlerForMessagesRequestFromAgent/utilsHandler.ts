@@ -3,14 +3,14 @@ import {
   formatLogMessage
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
-import type { TokenizerEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
+import type { UtilsEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
- * Handles tokenizer events with notifications
+ * Handles utils events with notifications
  */
-export class TokenizerHandler {
+export class UtilsHandler {
   private notificationService: NotificationService;
   private connectionManager: ConnectionManager;
   private sendMessageToApp: SendMessageToApp;
@@ -22,13 +22,13 @@ export class TokenizerHandler {
   }
 
   /**
-   * Handle tokenizer events with proper typing
+   * Handle utils events with proper typing
    */
-  handleTokenizerEvent(agent: ClientConnection, tokenizerEvent: TokenizerEvent): void {
-    const { requestId, action } = tokenizerEvent;
-    console.log(formatLogMessage('info', 'TokenizerHandler', `Handling tokenizer event: ${action} from ${agent.id}`));
+  handleUtilsEvent(agent: ClientConnection, utilsEvent: UtilsEvent): void {
+    const { requestId, action } = utilsEvent;
+    console.log(formatLogMessage('info', 'UtilsHandler', `Handling utils event: ${action} from ${agent.id}`));
     
-    // Send properly typed request notification to app (using SystemNotificationBase for tokenizer events)
+    // Send properly typed request notification to app (using SystemNotificationBase for utils events)
     const requestNotification: SystemNotificationBase = {
       requestId: requestId,
       toolUseId: requestId,
@@ -38,9 +38,9 @@ export class TokenizerHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'TokenizerHandler', `Sent tokenizer request notification: ${action}`));
+    console.log(formatLogMessage('info', 'UtilsHandler', `Sent utils request notification: ${action}`));
 
     // Forward to app for processing
-    this.sendMessageToApp.forwardToApp(agent, tokenizerEvent as any);
+    this.sendMessageToApp.forwardToApp(agent, utilsEvent as any);
   }
 }

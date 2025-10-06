@@ -3,7 +3,7 @@ import {
   formatLogMessage
 } from './../../types';
 import type { EditFileWithDiffEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
  * Handles edit file with diff messages - forwards to app for processing

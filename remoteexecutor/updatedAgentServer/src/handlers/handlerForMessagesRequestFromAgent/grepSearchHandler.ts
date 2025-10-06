@@ -8,7 +8,7 @@ import {
   isValidFilePath
 } from './../../types';
 import type { GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../sendMessageToApp.js';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';
 

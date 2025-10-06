@@ -6,7 +6,7 @@ import {
   createErrorResponse,
   formatLogMessage
 } from './../types';
-import { ProcessManager } from './../utils/processManager';
+import { ChildAgentProcessManager } from '../utils/childAgentProcessManager';
 import { NotificationService } from './../services/NotificationService';
 
 /**
@@ -23,11 +23,11 @@ export class ConnectionManager {
   private parentToAgentsMapping: Map<string, Set<{connectionId: string, instanceId?: string}>> = new Map();
   // Mapping from agent connection ID to parentId (app connection ID)
   private agentToParentMapping: Map<string, string> = new Map();
-  private processManager: ProcessManager;
+  private childAgentProcessManager: ChildAgentProcessManager;
   private _notificationService?: NotificationService;
 
   private constructor() {
-    this.processManager = new ProcessManager();
+    this.childAgentProcessManager = new ChildAgentProcessManager();
     // Don't initialize NotificationService here to avoid circular dependency
   }
 
@@ -369,7 +369,7 @@ export class ConnectionManager {
       // console.warn(formatLogMessage('warn', 'ConnectionManager', `Agent ${agentId} not found, attempting to start...`));
       
       // Try to start the agent
-      const started = await this.processManager.startAgent(agentId,applicationId);
+      const started = await this.childAgentProcessManager.startAgent(agentId,applicationId);
       
       if (!started) {
         console.error(formatLogMessage('error', 'ConnectionManager', `Failed to start agent ${agentId}`));
@@ -507,8 +507,8 @@ export class ConnectionManager {
   /**
    * Get the process manager (for access to agent management)
    */
-  getProcessManager(): ProcessManager {
-    return this.processManager;
+  getProcessManager(): ChildAgentProcessManager {
+    return this.childAgentProcessManager;
   }
 
   /**

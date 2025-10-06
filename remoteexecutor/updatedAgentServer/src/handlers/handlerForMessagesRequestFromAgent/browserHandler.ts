@@ -3,14 +3,14 @@ import {
   formatLogMessage
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
-import type { CodeUtilsEvent, CodeUtilsNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
+import type { BrowserEvent, BrowserNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
- * Handles code utils events with notifications
+ * Handles browser events with notifications
  */
-export class CodeUtilsHandler {
+export class BrowserHandler {
   private notificationService: NotificationService;
   private connectionManager: ConnectionManager;
   private sendMessageToApp: SendMessageToApp;
@@ -22,25 +22,25 @@ export class CodeUtilsHandler {
   }
 
   /**
-   * Handle code utils events with proper typing
+   * Handle browser events with proper typing
    */
-  handleCodeUtilsEvent(agent: ClientConnection, codeUtilsEvent: CodeUtilsEvent): void {
-    const { requestId, action } = codeUtilsEvent;
-    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Handling codeutils event: ${action} from ${agent.id}`));
+  handleBrowserEvent(agent: ClientConnection, browserEvent: BrowserEvent): void {
+    const { requestId, action } = browserEvent;
+    console.log(formatLogMessage('info', 'BrowserHandler', `Handling browser event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
-    const requestNotification: CodeUtilsNotificationBase = {
+    const requestNotification: BrowserNotificationBase = {
       requestId: requestId,
       toolUseId: requestId,
-      type: 'codeutilsnotify',
+      type: 'browsernotify',
       action: `${action}Request`,
       agentId: agent.id
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Sent codeutils request notification: ${action}`));
+    console.log(formatLogMessage('info', 'BrowserHandler', `Sent browser request notification: ${action}`));
 
     // Forward to app for processing
-    this.sendMessageToApp.forwardToApp(agent, codeUtilsEvent as any);
+    this.sendMessageToApp.forwardToApp(agent, browserEvent as any);
   }
 }

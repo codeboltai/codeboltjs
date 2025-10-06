@@ -3,7 +3,7 @@ import {
   formatLogMessage
 } from './../../types';
 import type { SearchFilesEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
  * Handles search files messages - forwards to app for processing

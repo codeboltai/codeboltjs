@@ -5,7 +5,7 @@ import {
 import { NotificationService } from '../../services/NotificationService';
 import type { HistoryEvent, HistoryNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
  * Handles history events with notifications

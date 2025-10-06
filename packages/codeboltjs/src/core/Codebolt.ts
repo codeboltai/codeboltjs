@@ -234,7 +234,6 @@ class Codebolt {
     onProviderStart(handler: (initvars: ProviderInitVars) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleProviderStart = async (response: { type: string; environmentName: string }) => {
-                console.log("Provider start event received");
                 if (response.type === "providerStart") {
                     try {
                         const result = await handler(response|| {});

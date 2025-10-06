@@ -11,8 +11,8 @@ import {
 
 import { ConnectionManager } from './connectionManager';
 import { NotificationService } from './../services/NotificationService';
-import { AppMessageRouter } from '../handlers/appMessageRouter';
-import { AgentMessageRouter } from './../handlers/agentMessageRouter';
+import { AppMessageRouter } from '../handlers/appMessaging/routerforMessagesReceivedFromApp';
+import { AgentMessageRouter } from '../handlers/agentMessaging/routerforMessageReceivedFromAgent';
 
 // Import types and constants
 import { 
@@ -32,7 +32,6 @@ export class WebSocketServer {
   private wss: WSServer;
   private connectionManager: ConnectionManager;
   private notificationService: NotificationService;
-
   private appMessageRouter: AppMessageRouter;
   private agentMessageRouter: AgentMessageRouter;
 
@@ -42,7 +41,6 @@ export class WebSocketServer {
     this.notificationService = NotificationService.getInstance();
     this.appMessageRouter = new AppMessageRouter();
     this.agentMessageRouter = new AgentMessageRouter();
-
     this.setupWebSocket();
   }
 
@@ -320,7 +318,7 @@ export class WebSocketServer {
     try {
       switch (connection.type) {
         case WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT:
-          this.agentMessageRouter.handleAgentRequest(connection, message);
+          this.agentMessageRouter.handleAgentRequestMessage(connection, message);
           break;
         case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
           this.appMessageRouter.handleAppResponse(connection, message);

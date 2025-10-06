@@ -5,7 +5,7 @@ import {
 import { NotificationService } from '../../services/NotificationService';
 import type { ProjectEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
  * Handles project events with notifications

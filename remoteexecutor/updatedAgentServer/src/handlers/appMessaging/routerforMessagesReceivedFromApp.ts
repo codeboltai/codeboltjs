@@ -1,7 +1,7 @@
-import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from './../types';
-import { ReadFileHandler, WriteFileHandler, AskAIHandler, ResponseHandler } from './appMessageHandlers';
-import { ConnectionManager } from '../core/connectionManager';
-import { NotificationService } from '../services/NotificationService';
+import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '../../types';
+import { ReadFileHandler, WriteFileHandler, AskAIHandler, ResponseHandler } from '../appMessageHandlers';
+import { ConnectionManager } from '../../core/connectionManager';
+import { NotificationService } from '../../services/NotificationService';
 import { SendMessageToAgent } from './sendMessageToAgent';
 
 /**

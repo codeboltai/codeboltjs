@@ -6,7 +6,7 @@ import {
 import { NotificationService } from '../../services/NotificationService.js';
 import type { McpEvent, McpNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager.js';
-import { SendMessageToApp } from '../sendMessageToApp.js';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';

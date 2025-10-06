@@ -3,14 +3,14 @@ import {
   formatLogMessage
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
-import type { BrowserEvent, BrowserNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
+import type { DebugEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
- * Handles browser events with notifications
+ * Handles debug events with notifications
  */
-export class BrowserHandler {
+export class DebugHandler {
   private notificationService: NotificationService;
   private connectionManager: ConnectionManager;
   private sendMessageToApp: SendMessageToApp;
@@ -22,25 +22,25 @@ export class BrowserHandler {
   }
 
   /**
-   * Handle browser events with proper typing
+   * Handle debug events with proper typing
    */
-  handleBrowserEvent(agent: ClientConnection, browserEvent: BrowserEvent): void {
-    const { requestId, action } = browserEvent;
-    console.log(formatLogMessage('info', 'BrowserHandler', `Handling browser event: ${action} from ${agent.id}`));
+  handleDebugEvent(agent: ClientConnection, debugEvent: DebugEvent): void {
+    const { requestId, action } = debugEvent;
+    console.log(formatLogMessage('info', 'DebugHandler', `Handling debug event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
-    const requestNotification: BrowserNotificationBase = {
+    const requestNotification: SystemNotificationBase = {
       requestId: requestId,
       toolUseId: requestId,
-      type: 'browsernotify',
+      type: 'chatnotify', // Note: systemNotificationBaseSchema uses 'chatnotify' type
       action: `${action}Request`,
       agentId: agent.id
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'BrowserHandler', `Sent browser request notification: ${action}`));
+    console.log(formatLogMessage('info', 'DebugHandler', `Sent debug request notification: ${action}`));
 
     // Forward to app for processing
-    this.sendMessageToApp.forwardToApp(agent, browserEvent as any);
+    this.sendMessageToApp.forwardToApp(agent, debugEvent as any);
   }
 }

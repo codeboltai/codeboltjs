@@ -1,6 +1,7 @@
 import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from './../types';
 
-import { ConnectionManager } from '../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManager';
+import { WebSocketServer } from '../../core/websocketServer';
 
 
 /**
@@ -10,9 +11,11 @@ import { ConnectionManager } from '../core/connectionManager';
 export class SendMessageToAgent {
 
   private connectionManager: ConnectionManager;
+  private websocketServer?: WebSocketServer;
 
-  constructor() {
+  constructor(websocketServer?: WebSocketServer) {
     this.connectionManager = ConnectionManager.getInstance();
+    this.websocketServer = websocketServer;
   }
   /**
    * Send app response back to agent
@@ -42,6 +45,36 @@ export class SendMessageToAgent {
       if (!success) {
         console.warn(formatLogMessage('warn', 'MessageRouter', `No agents available for app response`));
       }
+    }
+  }
+
+  /**
+   * Send initial prompt to all connected agents
+   */
+  sendInitialPrompt(prompt: string): void {
+    try {
+      console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: ${prompt}`));
+      
+      // Create a message to send to the agent
+      const message = {
+        type: 'prompt',
+        data: {
+          prompt: prompt,
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      // Broadcast the message to all connected agents
+      if (this.websocketServer) {
+        this.websocketServer.broadcast(message);
+      } else {
+        // Fallback to connection manager
+        this.connectionManager.sendToAgent(message);
+      }
+      
+      console.log(formatLogMessage('info', 'SendMessageToAgent', 'Initial prompt sent successfully'));
+    } catch (error) {
+      console.error(formatLogMessage('error', 'SendMessageToAgent', `Failed to send initial prompt: ${error}`));
     }
   }
 

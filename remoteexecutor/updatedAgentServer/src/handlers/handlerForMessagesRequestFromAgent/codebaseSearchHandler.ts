@@ -5,7 +5,7 @@ import {
   formatLogMessage,
   isValidFilePath
 } from './../../types';
-import { SendMessageToApp } from '../sendMessageToApp.js';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';
 import { detectLanguage } from '../../utils/detectLanguage.js';

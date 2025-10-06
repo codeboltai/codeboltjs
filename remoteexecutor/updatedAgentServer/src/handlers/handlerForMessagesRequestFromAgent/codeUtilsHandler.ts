@@ -3,14 +3,14 @@ import {
   formatLogMessage
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
-import type { AgentEvent, AgentNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
+import type { CodeUtilsEvent, CodeUtilsNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../../core/connectionManager';
-import { SendMessageToApp } from '../sendMessageToApp';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
 
 /**
- * Handles agent events with notifications
+ * Handles code utils events with notifications
  */
-export class AgentHandler {
+export class CodeUtilsHandler {
   private notificationService: NotificationService;
   private connectionManager: ConnectionManager;
   private sendMessageToApp: SendMessageToApp;
@@ -22,25 +22,25 @@ export class AgentHandler {
   }
 
   /**
-   * Handle agent events with proper typing
+   * Handle code utils events with proper typing
    */
-  handleAgentEvent(agent: ClientConnection, agentEvent: AgentEvent): void {
-    const { requestId, action } = agentEvent;
-    console.log(formatLogMessage('info', 'AgentHandler', `Handling agent event: ${action} from ${agent.id}`));
+  handleCodeUtilsEvent(agent: ClientConnection, codeUtilsEvent: CodeUtilsEvent): void {
+    const { requestId, action } = codeUtilsEvent;
+    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Handling codeutils event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
-    const requestNotification: AgentNotificationBase = {
+    const requestNotification: CodeUtilsNotificationBase = {
       requestId: requestId,
       toolUseId: requestId,
-      type: 'agentnotify',
+      type: 'codeutilsnotify',
       action: `${action}Request`,
       agentId: agent.id
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentHandler', `Sent agent request notification: ${action}`));
+    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Sent codeutils request notification: ${action}`));
 
     // Forward to app for processing
-    this.sendMessageToApp.forwardToApp(agent, agentEvent as any);
+    this.sendMessageToApp.forwardToApp(agent, codeUtilsEvent as any);
   }
 }

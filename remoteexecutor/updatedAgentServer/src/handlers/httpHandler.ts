@@ -30,11 +30,6 @@ export class HttpHandler {
   private setupRoutes(): void {
     this.app.use(express.json());
     
-    // Serve sampleagent bundle
-    const bundlePath = path.join(__dirname, '../../../agentrunningindocker/dist/bundle');
-    this.app.use('/bundle', express.static(bundlePath));
-    console.log(formatLogMessage('info', 'HttpHandler', `Serving sampleagent bundle from ${bundlePath}`));
-    
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
 
@@ -111,7 +106,7 @@ export class HttpHandler {
     const connectionCounts = this.connectionManager.getConnectionCounts();
     
     res.json({
-      name: 'Codebolt Docker Server',
+      name: 'Codebolt Agent Server',
       version: process.env.npm_package_version || '1.0.0',
       startTime: this.startTime.toISOString(),
       uptime: uptime,

@@ -21,3 +21,4 @@ export * from './utils';
 
 // Export specific types for external use
 export type { DockerProviderConfig } from './config';
+export type { AgentCliOptions } from './cli';

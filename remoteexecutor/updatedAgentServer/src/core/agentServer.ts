@@ -1,28 +1,32 @@
 import express from 'express';
 import { createServer } from 'http';
-import { ServerConfig, formatLogMessage } from './.././types';
+import { ServerConfig, formatLogMessage, AgentCliOptions } from './.././types';
 import { HttpHandler } from './../handlers/httpHandler';
 import { WebSocketServer } from './websocketServer';
-import { ProcessManager } from './../utils/processManager';
+import { ChildAgentProcessManager } from '../utils/childAgentProcessManager';
 import { ConnectionManager } from './connectionManager';
+import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 
 /**
  * Main Docker Server class
  */
-export class DockerServer {
+export class AgentExecutorServer {
   private app: express.Application;
   private server: ReturnType<typeof createServer>;
   private websocketServer!: WebSocketServer;
   private httpHandler!: HttpHandler;
-  private processManager: ProcessManager;
+  private childAgentProcessManager: ChildAgentProcessManager;
+  private sendMessageToAgent: SendMessageToAgent;
   private config: ServerConfig;
+  private cliOptions?: AgentCliOptions;
 
-  constructor(config: ServerConfig) {
+  constructor(config: ServerConfig, cliOptions?: AgentCliOptions) {
     this.config = config;
+    this.cliOptions = cliOptions;
     this.app = express();
     this.server = createServer(this.app);
-    this.processManager = new ProcessManager();
-    
+    this.childAgentProcessManager = new ChildAgentProcessManager();
+    this.sendMessageToAgent = new SendMessageToAgent();
     this.setupHandlers();
   }
 
@@ -32,6 +36,7 @@ export class DockerServer {
   private setupHandlers(): void {
     this.httpHandler = new HttpHandler(this.app);
     this.websocketServer = new WebSocketServer(this.server);
+    this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
   }
 
   /**
@@ -39,35 +44,40 @@ export class DockerServer {
    */
   public async start(): Promise<void> {
     return new Promise((resolve) => {
-      this.server.listen(this.config.port, this.config.host, () => {
+      this.server.listen(this.config.port, this.config.host, async () => {
         console.log(formatLogMessage('info', 'DockerServer', `Console Agent Server is running on port ${this.config.port}`));
         console.log(formatLogMessage('info', 'DockerServer', `WebSocket server is ready for connections`));
         console.log(formatLogMessage('info', 'DockerServer', `Health check available at http://${this.config.host}:${this.config.port}/health`));
         console.log(formatLogMessage('info', 'DockerServer', `Connection info available at http://${this.config.host}:${this.config.port}/connections`));
         
-        // We Will do this later when preparring for production
-        // // Start the sample client after a delay if enabled
-        // if (this.config.enableSampleClient) {
-        //   setTimeout(() => {
-        //     this.startSampleClient();
-        //   }, this.config.sampleClientDelay);
-        // }
+        // Start agent if agent type and detail are provided
+        if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
+            const { agentType, agentDetail, prompt } = this.cliOptions!;
+            
+            console.log(formatLogMessage('info', 'DockerServer', `Starting agent: type=${agentType}, detail=${agentDetail}`));
+            const success = await this.childAgentProcessManager.startAgentByType(
+              agentType!,
+              agentDetail!,
+              'codebolt-server' // application ID
+            );
+            
+            if (success) {
+              console.log(formatLogMessage('info', 'DockerServer', 'Agent started successfully'));
+              
+              // Send initial prompt if provided
+              if (prompt) {
+                  this.sendMessageToAgent.sendInitialPrompt(prompt);
+              }
+            } else {
+              console.error(formatLogMessage('error', 'DockerServer', 'Failed to start agent'));
+            }
+        }
         
         resolve();
       });
     });
   }
 
-  /**
-   * Start the sample client
-   */
-  // private async startSampleClient(): Promise<void> {
-  //   try {
-  //     await this.processManager.startSampleClient();
-  //   } catch (error) {
-  //     console.error(formatLogMessage('error', 'DockerServer', `Failed to start sample client: ${error}`));
-  //   }
-  // }
 
   /**
    * Stop the server
@@ -76,7 +86,7 @@ export class DockerServer {
     console.log(formatLogMessage('info', 'DockerServer', 'Stopping Docker Server...'));
     
     // Stop managed processes
-    await this.processManager.stopAll();
+    await this.childAgentProcessManager.stopAll();
     
     // Close WebSocket connections
     this.websocketServer.close();

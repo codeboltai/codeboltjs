@@ -6,7 +6,7 @@ import {
   isValidFilePath
 } from './../../types';
 import type { ListCodeDefinitionNamesEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../sendMessageToApp.js';
+import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { ConnectionManager } from '../../core/connectionManager.js';
 // import { parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
