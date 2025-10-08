@@ -1,4 +1,7 @@
 import { ClientConnection, Message, ResponseMessage, formatLogMessage } from '../../types';
+
+import { UserMessage } from '@codebolt/types/sdk'
+
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
 import { SendMessageToAgent } from '../agentMessaging/sendMessageToAgent';
@@ -11,17 +14,17 @@ import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
 export class AppMessageRouter {
 
   private connectionManager: ConnectionManager;
-  private sendMessageToAgent:SendMessageToAgent;
+  private sendMessageToAgent: SendMessageToAgent;
   private notificationService: NotificationService;
 
   constructor() {
 
     this.connectionManager = ConnectionManager.getInstance();
-    this.sendMessageToAgent= new SendMessageToAgent();
+    this.sendMessageToAgent = new SendMessageToAgent();
     this.notificationService = NotificationService.getInstance();
   }
 
-  handleAppMessage(app: ClientConnection, message: Message): void {
+  handleAppMessage(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling app message: ${message.type} from ${app.id}`));
 
     this.handleAppResponse(app, message);
@@ -30,7 +33,7 @@ export class AppMessageRouter {
   /**
    * Handle responses from apps (responding back to agent requests)
    */
-   handleAppResponse(app: ClientConnection, message: Message): void {
+  handleAppResponse(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling app response: ${message.type} from ${app.id}`));
 
     // Check if this message has a requestId and could be a response to a pending request
@@ -40,19 +43,19 @@ export class AppMessageRouter {
     //   this.notificationService.handleResponse(messageWithRequestId.requestId, message);
     //   return
     // }
+    //check if its initial message
+    if (message.type == 'messageResponse') {
+      this.handleInitialUserMessage(app, message)
+    }
+    else {
+      this.sendMessageToAgent.sendResponseToAgent(app, message);
 
-    this.sendMessageToAgent.sendResponseToAgent(app, message as ResponseMessage);
-   
+    }
   }
-
-  handleInitialUserMessage(app: ClientConnection, message: Message): void {
+  handleInitialUserMessage(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${app.id}`));
-
-    this.sendMessageToAgent.sendInitialMessage(app, message);
+    this.sendMessageToAgent.sendInitialMessage(message);
   }
-
-
-
 
 
 
@@ -61,17 +64,17 @@ export class AppMessageRouter {
    */
   private forwardToApp(agent: ClientConnection, message: Message): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Forwarding request from agent ${agent.id} to app`));
-    
+
     // Cache the message ID -> agent ID mapping for response routing
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const appManager = this.connectionManager.getAppConnectionManager();
     if (message.id) {
       agentManager.cacheMessageToAgent(message.id, agent.id);
     }
-    
+
     // Add agentId to the message so app knows where to send response back
     const messageWithAgentId = { ...message, agentId: agent.id };
-    
+
     const apps = appManager.getAllApps();
     if (apps.length === 0) {
       const remoteClient = WranglerProxyClient.getInstance();
