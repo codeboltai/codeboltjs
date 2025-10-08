@@ -1,18 +1,19 @@
-import { ClientConnection, Message, formatLogMessage } from '../../types';
+import { ClientConnection, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
+import { BaseApplicationResponse, UserMessage } from '@codebolt/types/sdk';
 
 export class TuiMessageRouter {
   private readonly connectionManager = ConnectionManager.getInstance();
   private readonly sendMessageToRemote = new SendMessageToRemote();
 
-  handleTuiMessage(tui: ClientConnection, message: Message): void {
+  handleTuiMessage(tui: ClientConnection, message: UserMessage | BaseApplicationResponse): void {
     console.log(formatLogMessage('info', 'TuiMessageRouter', `Handling TUI message: ${message.type} from ${tui.id}`));
 
-    this.forwardToAgent(tui, message);
+    this.forwardToAgent(tui, message as UserMessage);
   }
 
-  private forwardToAgent(tui: ClientConnection, message: Message): void {
+  private forwardToAgent(tui: ClientConnection, message: UserMessage ): void {
     const agentManager = this.connectionManager.getAgentConnectionManager();
 
     const messageWithClientId = {
