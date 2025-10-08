@@ -123,6 +123,7 @@ async function main(): Promise<void> {
 
     // Start TUI if not disabled
     let tuiProcess: ChildProcess | null = null;
+    let isShuttingDown = false;
     
     if (!options.noui) {
       const gotuiPath = resolve(process.cwd(), '../../tui/gotui/gotui');
@@ -144,8 +145,13 @@ async function main(): Promise<void> {
             console.error(formatLogMessage('error', 'Main', `Failed to start TUI: ${error.message}`));
           });
           
-          tuiProcess.on('exit', (code) => {
-            if (code !== 0) {
+          tuiProcess.on('exit', (code, signal) => {
+            if (signal === 'SIGINT' || signal === 'SIGTERM') {
+              console.log(formatLogMessage('info', 'Main', 'TUI terminated by signal, shutting down server...'));
+              if (!isShuttingDown) {
+                shutdown();
+              }
+            } else if (code !== 0) {
               console.error(formatLogMessage('error', 'Main', `TUI exited with code: ${code}`));
             } else {
               console.log(formatLogMessage('info', 'Main', 'TUI exited successfully'));
@@ -159,10 +165,15 @@ async function main(): Promise<void> {
     
     // Handle graceful shutdown
     const shutdown = async (): Promise<void> => {
+      if (isShuttingDown) {
+        return; // Prevent multiple shutdown calls
+      }
+      isShuttingDown = true;
+      
       console.log(formatLogMessage('info', 'Main', 'Received shutdown signal, shutting down gracefully...'));
       
       // Kill TUI process if running
-      if (tuiProcess) {
+      if (tuiProcess && !tuiProcess.killed) {
         console.log(formatLogMessage('info', 'Main', 'Stopping TUI process...'));
         tuiProcess.kill('SIGTERM');
         tuiProcess = null;

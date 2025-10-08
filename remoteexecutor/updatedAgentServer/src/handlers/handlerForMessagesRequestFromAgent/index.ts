@@ -2,7 +2,6 @@ export { BaseHandler, IMessageHandler } from './baseHandler';
 export { ReadFileHandler } from './readFileHandler';
 export { WriteFileHandler } from './writeFileHandler';
 export { AskAIHandler } from './askAIHandler';
-export { ResponseHandler } from './responseHandler';
 export { CreateFileHandler } from './createFileHandler';
 export { CreateFolderHandler } from './createFolderHandler';
 export { UpdateFileHandler } from './updateFileHandler';

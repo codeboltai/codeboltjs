@@ -5,6 +5,7 @@ import {
 } from './../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
+import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui';
 
 /**
  * Base handler interface that all message handlers implement
@@ -18,9 +19,11 @@ export interface IMessageHandler {
  */
 export abstract class BaseHandler implements IMessageHandler {
   protected connectionManager: ConnectionManager;
+  protected sendMessageToTui: SendMessageToTui;
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
+    this.sendMessageToTui = new SendMessageToTui();
   }
 
   abstract handle(client: ClientConnection, message: Message): void;
@@ -62,26 +65,32 @@ export abstract class BaseHandler implements IMessageHandler {
   protected forwardToClient(agent: ClientConnection, message: unknown): void {
     const messageWithClientId = message as { clientId?: string };
     const appManager = this.connectionManager.getAppConnectionManager();
+    const remoteClient = WranglerProxyClient.getInstance();
     
     // If the message specifies a clientId, forward to that specific client
     if (messageWithClientId.clientId) {
-      const delivered = appManager.sendToApp(messageWithClientId.clientId, message);
-      if (!delivered) {
-        const remoteClient = WranglerProxyClient.getInstance();
+      const deliveredToApp = appManager.sendToApp(messageWithClientId.clientId, message);
+      const deliveredToTui = this.sendMessageToTui.sendToTui(messageWithClientId.clientId, message);
+
+      if (!deliveredToApp && !deliveredToTui) {
         if (remoteClient) {
           console.log(
             formatLogMessage('warn', 'BaseHandler', 'Failed to reach client locally, forwarding via remote proxy')
           );
           remoteClient.forwardAgentMessage(agent.id, message);
-          return;
+        } else {
+          console.warn(
+            formatLogMessage('warn', 'BaseHandler', `Client ${messageWithClientId.clientId} not found for agent response`)
+          );
         }
       } else {
-        WranglerProxyClient.getInstance()?.forwardAgentMessage(agent.id, message);
+        remoteClient?.forwardAgentMessage(agent.id, message);
       }
     } else {
       // Broadcast to all clients if no specific client is mentioned
       appManager.broadcast(message);
-      WranglerProxyClient.getInstance()?.forwardAgentMessage(agent.id, message);
+      this.sendMessageToTui.broadcast(message);
+      remoteClient?.forwardAgentMessage(agent.id, message);
     }
   }
 }

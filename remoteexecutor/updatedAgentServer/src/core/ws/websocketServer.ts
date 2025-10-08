@@ -13,6 +13,7 @@ import { ConnectionManager } from '../connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
 import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
 import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';
+import { TuiMessageRouter } from '../../handlers/tuiMessaging/routerforMessageReceivedFromTui';
 
 // Import types and constants
 import { 
@@ -33,6 +34,7 @@ export class WebSocketServer {
   private notificationService: NotificationService;
   private appMessageRouter: AppMessageRouter;
   private agentMessageRouter: AgentMessageRouter;
+  private tuiMessageRouter: TuiMessageRouter;
 
   constructor(server: Server) {
     this.wss = new WSServer({ server });
@@ -40,6 +42,7 @@ export class WebSocketServer {
     this.notificationService = NotificationService.getInstance();
     this.appMessageRouter = new AppMessageRouter();
     this.agentMessageRouter = new AgentMessageRouter();
+    this.tuiMessageRouter = new TuiMessageRouter();
     this.setupWebSocket();
   }
 
@@ -348,7 +351,7 @@ export class WebSocketServer {
           this.appMessageRouter.handleAppResponse(connection, message);
           break;
         case WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI:
-          this.appMessageRouter.handleAppResponse(connection, message);
+          this.tuiMessageRouter.handleTuiMessage(connection, message);
           break;
         default:
           console.warn(formatLogMessage('warn', 'WebSocketServer', 

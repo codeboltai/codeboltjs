@@ -14,8 +14,9 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && node esbuild.config.js",
+    "build:tui": "cd ../../tui/gotui && go build ./cmd/gotui",
     "start": "node dist/server.mjs",
-    "dev": "npm run build && node dist/server.mjs",
+    "dev": "npm run build:tui && npm run build && node dist/server.mjs",
     "dev:server": "npm run build && node dist/server.mjs --noui",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

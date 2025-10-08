@@ -528,8 +528,8 @@ export class ChildAgentProcessManager {
     const agentWorkingDir = this.getAgentPath(agentId);
     
     // Fallback to legacy paths if OS-specific path doesn't exist
-    let finalAgentPath = agentIndexPath;
-    let finalWorkingDir = agentWorkingDir;
+    const finalAgentPath = agentIndexPath;
+    const finalWorkingDir = agentWorkingDir;
     
    
     
