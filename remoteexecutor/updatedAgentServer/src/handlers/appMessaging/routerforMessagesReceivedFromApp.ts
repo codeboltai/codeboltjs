@@ -26,12 +26,6 @@ export class AppMessageRouter {
     this.notificationService = NotificationService.getInstance();
   }
 
-  handleAppMessage(app: ClientConnection, message: UserMessage): void {
-    console.log(formatLogMessage('info', 'MessageRouter', `Handling app message: ${message.type} from ${app.id}`));
-
-    this.handleAppResponse(app, message);
-  }
-
   /**
    * Handle responses from apps (responding back to agent requests)
    */
