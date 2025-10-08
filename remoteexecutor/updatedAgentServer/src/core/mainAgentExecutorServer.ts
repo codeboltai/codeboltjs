@@ -3,10 +3,10 @@ import { createServer } from 'http';
 import { ServerConfig, formatLogMessage, AgentCliOptions } from '../types';
 import { HttpHandler } from '../handlers/httpHandler';
 import { WebSocketServer } from './ws/websocketServer';
-import { ChildAgentProcessManager } from '../utils/childAgentProcessManager';
+import { ChildAgentProcessManager } from '../utils/childAgentManager/childAgentProcessManager';
 import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
-import { WranglerProxyClient } from './remote/wranglerProxyClient';
+import { RemoteProxyClient } from './remote/remoteProxyClient';
 
 /**
  * Main Docker Server class
@@ -20,7 +20,7 @@ export class AgentExecutorServer {
   private sendMessageToAgent: SendMessageToAgent;
   private config: ServerConfig;
   private cliOptions?: AgentCliOptions;
-  private remoteProxyClient?: WranglerProxyClient;
+  private remoteProxyClient?: RemoteProxyClient;
 
   constructor(config: ServerConfig, cliOptions?: AgentCliOptions) {
     this.config = config;
@@ -35,7 +35,7 @@ export class AgentExecutorServer {
     if (this.cliOptions?.remote) {
       const remoteUrl = this.cliOptions.remoteUrl;
       if (remoteUrl) {
-        this.remoteProxyClient = WranglerProxyClient.initialize({
+        this.remoteProxyClient = RemoteProxyClient.initialize({
           url: remoteUrl,
           serverId: `${this.config.host || 'localhost'}:${this.config.port}`,
           appToken: this.cliOptions.appToken,
@@ -81,7 +81,7 @@ export class AgentExecutorServer {
               
               // Send initial prompt if provided
               if (prompt) {
-                  this.sendMessageToAgent.sendInitialPrompt(prompt);
+                  this.sendMessageToAgent.sendInitialMessage(prompt);
               }
             } else {
               console.error(formatLogMessage('error', 'DockerServer', 'Failed to start agent'));

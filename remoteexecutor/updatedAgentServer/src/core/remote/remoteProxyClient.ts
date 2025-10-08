@@ -1,8 +1,9 @@
 import WebSocket from 'ws';
-import { formatLogMessage } from '../../types';
+import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../connectionManagers/connectionManager';
+import { RemoteMessageRouter } from '../../handlers/remoteMessaging/routerforMessageReceivedFromRemote';
 
-export interface WranglerProxyClientOptions {
+export interface RemoteProxyClientOptions {
   url: string;
   serverId?: string;
   appToken?: string;
@@ -43,33 +44,34 @@ type RemoteProxyIncomingMessage =
       type: 'request_connections';
     };
 
-export class WranglerProxyClient {
-  private static instance: WranglerProxyClient | undefined;
+export class RemoteProxyClient {
+  private static instance: RemoteProxyClient | undefined;
 
   private websocket?: WebSocket;
   private reconnectAttempts = 0;
   private manualClose = false;
-  private readonly options: WranglerProxyClientOptions;
+  private readonly options: RemoteProxyClientOptions;
   private readonly connectionManager = ConnectionManager.getInstance();
+  private readonly remoteRouter = new RemoteMessageRouter();
 
-  private constructor(options: WranglerProxyClientOptions) {
+  private constructor(options: RemoteProxyClientOptions) {
     this.options = options;
   }
 
-  static initialize(options: WranglerProxyClientOptions): WranglerProxyClient {
+  static initialize(options: RemoteProxyClientOptions): RemoteProxyClient {
     if (!options.url) {
       throw new Error('Wrangler proxy URL is required');
     }
 
-    if (!WranglerProxyClient.instance) {
-      WranglerProxyClient.instance = new WranglerProxyClient(options);
+    if (!RemoteProxyClient.instance) {
+      RemoteProxyClient.instance = new RemoteProxyClient(options);
     }
 
-    return WranglerProxyClient.instance;
+    return RemoteProxyClient.instance;
   }
 
-  static getInstance(): WranglerProxyClient | undefined {
-    return WranglerProxyClient.instance;
+  static getInstance(): RemoteProxyClient | undefined {
+    return RemoteProxyClient.instance;
   }
 
   public start(): void {
@@ -162,36 +164,20 @@ export class WranglerProxyClient {
         this.send({ type: 'pong', timestamp: Date.now() });
         break;
       case 'forward_to_agent': {
-        const agentManager = this.connectionManager.getAgentConnectionManager();
-        if (message.agentId) {
-          agentManager
-            .sendToSpecificAgent(message.agentId, message.applicationId || 'remote-proxy', message.payload)
-            .catch((error) => {
-              console.error(
-                formatLogMessage(
-                  'error',
-                  'WranglerProxyClient',
-                  `Failed to forward message to agent ${message.agentId}: ${error}`
-                )
-              );
-            });
-        } else {
-          agentManager.sendToAgent(message.payload);
-        }
+        this.routeInboundMessage('agent', message.payload, {
+          agentId: message.agentId,
+          clientId: message.applicationId
+        });
         break;
       }
       case 'forward_to_app': {
-        const appManager = this.connectionManager.getAppConnectionManager();
-        if (message.appId) {
-          appManager.sendToApp(message.appId, message.payload);
-        } else {
-          appManager.broadcast(message.payload);
-        }
+        this.routeInboundMessage('app', message.payload, {
+          clientId: message.appId
+        });
         break;
       }
       case 'broadcast_to_apps': {
-        const appManager = this.connectionManager.getAppConnectionManager();
-        appManager.broadcast(message.payload);
+        this.routeInboundMessage('app', message.payload, {});
         break;
       }
       case 'request_connections': {
@@ -210,6 +196,27 @@ export class WranglerProxyClient {
         console.warn(formatLogMessage('warn', 'WranglerProxyClient', `Unknown message type: ${unknownType}`));
       }
     }
+  }
+
+  private routeInboundMessage(
+    target: 'agent' | 'app' | 'tui',
+    payload: unknown,
+    extra: { agentId?: string; clientId?: string; tuiId?: string }
+  ): void {
+    if (!payload || typeof payload !== 'object') {
+      console.warn(formatLogMessage('warn', 'WranglerProxyClient', 'Ignoring non-object payload from remote proxy'));
+      return;
+    }
+
+    const message = {
+      ...(payload as Record<string, unknown>),
+      target,
+      agentId: extra.agentId,
+      clientId: extra.clientId,
+      tuiId: extra.tuiId
+    } as Message;
+
+    this.remoteRouter.handleRemoteMessage(message);
   }
 
   private onClose(): void {

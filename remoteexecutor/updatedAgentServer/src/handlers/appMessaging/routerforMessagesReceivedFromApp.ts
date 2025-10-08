@@ -2,7 +2,7 @@ import { ClientConnection, Message, ResponseMessage, formatLogMessage } from '..
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
 import { SendMessageToAgent } from '../agentMessaging/sendMessageToAgent';
-import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
+import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -13,11 +13,13 @@ export class AppMessageRouter {
   private connectionManager: ConnectionManager;
   private sendMessageToAgent:SendMessageToAgent;
   private notificationService: NotificationService;
+  private sendMessageToRemote: SendMessageToRemote;
 
   constructor() {
 
     this.connectionManager = ConnectionManager.getInstance();
     this.sendMessageToAgent= new SendMessageToAgent();
+    this.sendMessageToRemote = new SendMessageToRemote();
     this.notificationService = NotificationService.getInstance();
   }
 
@@ -74,12 +76,9 @@ export class AppMessageRouter {
     
     const apps = appManager.getAllApps();
     if (apps.length === 0) {
-      const remoteClient = WranglerProxyClient.getInstance();
-      if (remoteClient) {
-        console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
-        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
-        return;
-      }
+      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
+      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+      return;
 
       this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
       return;
@@ -89,14 +88,9 @@ export class AppMessageRouter {
     const app = apps[0];
     const success = appManager.sendToApp(app.id, messageWithAgentId);
     if (!success) {
-      const remoteClient = WranglerProxyClient.getInstance();
-      if (remoteClient) {
-        console.log(
-          formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy')
-        );
-        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
-        return;
-      }
+      console.log(formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy'));
+      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+      return;
 
       this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
     }

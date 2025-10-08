@@ -4,7 +4,7 @@ import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } 
 import { AgentConnectionsManager } from './agentConnectionsManager';
 import { AppConnectionsManager } from './appConnectionsManager';
 import { TuiConnectionsManager } from './tuiConnectionsManager';
-import { ChildAgentProcessManager } from '../../utils/childAgentProcessManager';
+import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
 
 /**
  * Coordinates operations across agent and app connection managers.

@@ -4,7 +4,7 @@ import {
   formatLogMessage
 } from './../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
+import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui';
 
 /**
@@ -20,10 +20,12 @@ export interface IMessageHandler {
 export abstract class BaseHandler implements IMessageHandler {
   protected connectionManager: ConnectionManager;
   protected sendMessageToTui: SendMessageToTui;
+  protected sendMessageToRemote: SendMessageToRemote;
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
     this.sendMessageToTui = new SendMessageToTui();
+    this.sendMessageToRemote = new SendMessageToRemote();
   }
 
   abstract handle(client: ClientConnection, message: Message): void;
@@ -41,22 +43,16 @@ export abstract class BaseHandler implements IMessageHandler {
   protected forwardToAgent(client: ClientConnection, message: Message): void {
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const success = agentManager.sendToAgent(message);
-    
-    if (!success) {
-      const remoteClient = WranglerProxyClient.getInstance();
-      if (remoteClient) {
-        console.log(
-          formatLogMessage('warn', 'BaseHandler', 'No local agents available, forwarding request via remote proxy')
-        );
-        remoteClient.forwardAppMessage(client.id, message);
-        return;
-      }
 
-      this.sendError(client.id, 'No agents available to handle the request', message.id);
+    if (!success) {
+      console.log(
+        formatLogMessage('warn', 'BaseHandler', 'No local agents available, forwarding request via remote proxy')
+      );
+      this.sendMessageToRemote.forwardAppMessage(client.id, message, { requireRemote: true });
       return;
     }
 
-    WranglerProxyClient.getInstance()?.forwardAppMessage(client.id, message);
+    this.sendMessageToRemote.forwardAppMessage(client.id, message);
   }
 
   /**
@@ -65,7 +61,6 @@ export abstract class BaseHandler implements IMessageHandler {
   protected forwardToClient(agent: ClientConnection, message: unknown): void {
     const messageWithClientId = message as { clientId?: string };
     const appManager = this.connectionManager.getAppConnectionManager();
-    const remoteClient = WranglerProxyClient.getInstance();
     
     // If the message specifies a clientId, forward to that specific client
     if (messageWithClientId.clientId) {
@@ -73,24 +68,18 @@ export abstract class BaseHandler implements IMessageHandler {
       const deliveredToTui = this.sendMessageToTui.sendToTui(messageWithClientId.clientId, message);
 
       if (!deliveredToApp && !deliveredToTui) {
-        if (remoteClient) {
-          console.log(
-            formatLogMessage('warn', 'BaseHandler', 'Failed to reach client locally, forwarding via remote proxy')
-          );
-          remoteClient.forwardAgentMessage(agent.id, message);
-        } else {
-          console.warn(
-            formatLogMessage('warn', 'BaseHandler', `Client ${messageWithClientId.clientId} not found for agent response`)
-          );
-        }
+        console.log(
+          formatLogMessage('warn', 'BaseHandler', 'Failed to reach client locally, forwarding via remote proxy')
+        );
+        this.sendMessageToRemote.forwardAgentMessage(agent, message as Message, { requireRemote: true });
       } else {
-        remoteClient?.forwardAgentMessage(agent.id, message);
+        this.sendMessageToRemote.forwardAgentMessage(agent, message as Message);
       }
     } else {
       // Broadcast to all clients if no specific client is mentioned
       appManager.broadcast(message);
       this.sendMessageToTui.broadcast(message);
-      remoteClient?.forwardAgentMessage(agent.id, message);
+      this.sendMessageToRemote.forwardAgentMessage(agent, message as Message);
     }
   }
 }

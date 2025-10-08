@@ -1,9 +1,10 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
+import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 
 export class TuiMessageRouter {
   private readonly connectionManager = ConnectionManager.getInstance();
+  private readonly sendMessageToRemote = new SendMessageToRemote();
 
   handleTuiMessage(tui: ClientConnection, message: Message): void {
     console.log(formatLogMessage('info', 'TuiMessageRouter', `Handling TUI message: ${message.type} from ${tui.id}`));
@@ -13,7 +14,6 @@ export class TuiMessageRouter {
 
   private forwardToAgent(tui: ClientConnection, message: Message): void {
     const agentManager = this.connectionManager.getAgentConnectionManager();
-    const remoteClient = WranglerProxyClient.getInstance();
 
     const messageWithClientId = {
       ...message,
@@ -23,18 +23,14 @@ export class TuiMessageRouter {
     const success = agentManager.sendToAgent(messageWithClientId);
 
     if (!success) {
-      if (remoteClient) {
-        console.log(
-          formatLogMessage('warn', 'TuiMessageRouter', 'No local agents available, forwarding via remote proxy')
-        );
-        remoteClient.forwardAppMessage(tui.id, messageWithClientId);
-        return;
-      }
-
+      console.log(
+        formatLogMessage('warn', 'TuiMessageRouter', 'No local agents available, forwarding via remote proxy')
+      );
+      this.sendMessageToRemote.forwardAppMessage(tui.id, messageWithClientId, { requireRemote: true });
       this.connectionManager.sendError(tui.id, 'No agents available to handle the TUI request', message.id);
       return;
     }
 
-    remoteClient?.forwardAppMessage(tui.id, messageWithClientId);
+    this.sendMessageToRemote.forwardAppMessage(tui.id, messageWithClientId);
   }
 }

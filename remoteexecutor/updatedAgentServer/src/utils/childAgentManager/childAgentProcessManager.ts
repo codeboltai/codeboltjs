@@ -5,8 +5,6 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as http from 'http';
 import { createWriteStream, createReadStream } from 'fs';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from '../types';

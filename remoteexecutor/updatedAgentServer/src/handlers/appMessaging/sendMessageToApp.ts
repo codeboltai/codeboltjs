@@ -1,6 +1,6 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
+import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -8,8 +8,10 @@ import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
  */
 export class SendMessageToApp {
   private connectionManager: ConnectionManager;
+  private sendMessageToRemote: SendMessageToRemote;
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
+    this.sendMessageToRemote = new SendMessageToRemote();
   }
   /**
    * Forward agent request to app
@@ -33,12 +35,9 @@ export class SendMessageToApp {
     
     const apps = appManager.getAllApps();
     if (apps.length === 0) {
-      const remoteClient = WranglerProxyClient.getInstance();
-      if (remoteClient) {
-        console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
-        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
-        return;
-      }
+      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
+      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+      return;
 
       this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
       return;
@@ -48,14 +47,9 @@ export class SendMessageToApp {
     const app = apps[0];
     const success = appManager.sendToApp(app.id, messageWithAgentId);
     if (!success) {
-      const remoteClient = WranglerProxyClient.getInstance();
-      if (remoteClient) {
-        console.log(
-          formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy')
-        );
-        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
-        return;
-      }
+      console.log(formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy'));
+      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+      return;
 
       this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
     }
