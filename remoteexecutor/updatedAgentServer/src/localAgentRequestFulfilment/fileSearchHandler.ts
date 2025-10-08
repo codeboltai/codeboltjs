@@ -6,12 +6,12 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from './../../types';
+} from '../types';
 import type { FileSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
-import { NotificationService } from '../../services/NotificationService.js';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
-import { detectLanguage } from '../../utils/detectLanguage.js';
+import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
+import { NotificationService } from '../services/NotificationService.js';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
+import { detectLanguage } from '../utils/detectLanguage.js';
 
 const execPromise = promisify(exec);
 

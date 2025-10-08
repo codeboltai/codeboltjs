@@ -1,10 +1,10 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService.js';
+} from '../types';  
+import { NotificationService } from '../services/NotificationService.js';
 import type { VectordbEvent, DbMemoryNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
 // @ts-ignore - External dependency, type declarations may not be available
 import { LocalIndex } from 'cbvectordb';
 // @ts-ignore - External dependency, type declarations may not be available  

@@ -1,8 +1,8 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types';
+import { NotificationService } from '../services/NotificationService';
 import type { GitEvent, GitInitEvent, GitCommitEvent, GitCheckoutEvent, GitBranchEvent, GitDiffEvent } from '@codebolt/types/agent-to-app-ws-types';
 import type { 
   GitInitResponseNotification,
@@ -17,7 +17,7 @@ import type {
   GitDiffResponseNotification,
   GitCloneResponseNotification
 } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import simpleGit from 'simple-git';
 import path from 'path';
 

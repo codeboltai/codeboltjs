@@ -1,6 +1,6 @@
 import {
   AskAIMessage
-} from './../../types';
+} from '../types';
 
 /**
  * Handles ask AI messages by forwarding them to agents

@@ -4,10 +4,10 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types';
+import { NotificationService } from '../services/NotificationService';
 import type { CreateFileEvent, FileCreateRequestNotification, FileCreateResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 
 /**
  * Handles create file messages with notifications

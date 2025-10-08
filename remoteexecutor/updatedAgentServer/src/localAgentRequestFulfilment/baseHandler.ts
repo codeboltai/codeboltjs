@@ -2,10 +2,10 @@ import {
   ClientConnection,
   Message,
   formatLogMessage
-} from './../../types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
-import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui';
+} from '../types';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { SendMessageToRemote } from '../handlers/remoteMessaging/sendMessageToRemote';
+import { SendMessageToTui } from '../handlers/tuiMessaging/sendMessageToTui';
 
 /**
  * Base handler interface that all message handlers implement

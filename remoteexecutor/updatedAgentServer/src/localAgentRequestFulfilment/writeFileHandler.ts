@@ -4,10 +4,10 @@ import {
   WriteFileMessage,
   formatLogMessage,
   isValidFilePath
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types';  
+import { NotificationService } from '../services/NotificationService';
 import type { WriteToFileEvent, WriteToFileRequestNotification, WriteToFileResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 
 /**
  * Handles write file messages with notifications

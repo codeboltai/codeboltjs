@@ -1,8 +1,8 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types'; 
+import { NotificationService } from '../services/NotificationService';
 import type { 
   TerminalEvent,
   ExecuteCommandEvent,
@@ -11,7 +11,7 @@ import type {
   CommandExecutionRequestNotification,
   CommandExecutionResponseNotification
 } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { spawn } from 'child_process';
 import * as os from 'os';
 

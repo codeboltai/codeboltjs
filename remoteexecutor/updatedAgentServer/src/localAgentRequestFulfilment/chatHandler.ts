@@ -1,16 +1,16 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types';
+import { NotificationService } from '../services/NotificationService';
 import type { ChatEvent, ChatNotification } from '@codebolt/types/agent-to-app-ws-types';
 import type { 
   ChatNotificationBase,
   UserMessageRequestNotification,
   AgentTextResponseNotification
 } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
 
 /**
  * Handles chat events with notifications

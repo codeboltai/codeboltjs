@@ -1,9 +1,9 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
+} from '../types';
 import type { EditFileWithDiffEvent } from '@codebolt/types/agent-to-app-ws-types';
-import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
+import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
 
 /**
  * Handles edit file with diff messages - forwards to app for processing
