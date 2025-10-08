@@ -73,7 +73,7 @@ export class SendMessageToAgent {
   /**
    * Send initial prompt to all connected agents
    */
-  sendInitialPrompt(prompt: string): void {
+  sendInitialMessage(prompt: string): void {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: ${prompt}`));
       

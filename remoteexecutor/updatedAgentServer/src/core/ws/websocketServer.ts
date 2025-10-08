@@ -96,7 +96,35 @@ export class WebSocketServer {
       }
 
       // All registration happens on connection, so just handle the message normally
-      return this.handleMessage(clientId, ws, message);
+      console.log(formatLogMessage('info', 'WebSocketServer', 
+        `Processing message from ${clientId}: ${JSON.stringify(message)}`));
+  
+      const connection = this.connectionManager.getConnection(clientId);
+      if (!connection) {
+        this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.CONNECTION_NOT_REGISTERED);
+        return;
+      }
+  
+      const messageWithConnection = this.enrichMessageWithConnection(message, clientId);
+      try {
+        switch (connection.type) {
+          case WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT:
+            this.agentMessageRouter.handleAgentRequestMessage(connection, messageWithConnection);
+            break;
+          case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
+            this.appMessageRouter.handleAppResponse(connection, messageWithConnection);
+            break;
+          case WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI:
+            this.tuiMessageRouter.handleTuiMessage(connection, messageWithConnection);
+            break;
+          default:
+            console.warn(formatLogMessage('warn', 'WebSocketServer', 
+              `Unknown connection type: ${connection.type} for ${connection.id}`));
+        }
+      } catch (error) {
+        console.error(formatLogMessage('error', 'WebSocketServer', 
+          `Error routing message for ${connection.id}: ${error}`));
+      }
     } catch (error) {
       console.error(formatLogMessage('error', 'WebSocketServer', `Error parsing message: ${error}`));
       this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.INVALID_MESSAGE_FORMAT);
@@ -312,22 +340,6 @@ export class WebSocketServer {
     }
   }
 
-  /**
-   * Handle incoming message and route appropriately
-   */
-  private handleMessage(clientId: string, ws: WebSocket, message: unknown): RegistrationResult {
-    console.log(formatLogMessage('info', 'WebSocketServer', 
-      `Processing message from ${clientId}: ${JSON.stringify(message)}`));
-
-    const connection = this.connectionManager.getConnection(clientId);
-    if (!connection) {
-      this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.CONNECTION_NOT_REGISTERED);
-      return;
-    }
-
-    const messageWithConnection = this.enrichMessageWithConnection(message, clientId);
-    this.routeMessage(connection, messageWithConnection);
-  }
 
   /**
    * Enrich message with connection information
@@ -336,31 +348,6 @@ export class WebSocketServer {
     const enrichedMessage = message as Message & { connectionId: string };
     enrichedMessage.connectionId = clientId;
     return enrichedMessage;
-  }
-
-  /**
-   * Route message to appropriate handler based on connection type
-   */
-  private routeMessage(connection: any, message: Message & { connectionId: string }): void {
-    try {
-      switch (connection.type) {
-        case WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT:
-          this.agentMessageRouter.handleAgentRequestMessage(connection, message);
-          break;
-        case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
-          this.appMessageRouter.handleAppResponse(connection, message);
-          break;
-        case WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI:
-          this.tuiMessageRouter.handleTuiMessage(connection, message);
-          break;
-        default:
-          console.warn(formatLogMessage('warn', 'WebSocketServer', 
-            `Unknown connection type: ${connection.type} for ${connection.id}`));
-      }
-    } catch (error) {
-      console.error(formatLogMessage('error', 'WebSocketServer', 
-        `Error routing message for ${connection.id}: ${error}`));
-    }
   }
 
   /**

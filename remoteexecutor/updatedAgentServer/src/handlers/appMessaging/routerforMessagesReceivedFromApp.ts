@@ -20,6 +20,13 @@ export class AppMessageRouter {
     this.sendMessageToAgent= new SendMessageToAgent();
     this.notificationService = NotificationService.getInstance();
   }
+
+  handleAppMessage(app: ClientConnection, message: Message): void {
+    console.log(formatLogMessage('info', 'MessageRouter', `Handling app message: ${message.type} from ${app.id}`));
+
+    this.handleAppResponse(app, message);
+  }
+
   /**
    * Handle responses from apps (responding back to agent requests)
    */
@@ -36,6 +43,12 @@ export class AppMessageRouter {
 
     this.sendMessageToAgent.sendResponseToAgent(app, message as ResponseMessage);
    
+  }
+
+  handleInitialUserMessage(app: ClientConnection, message: Message): void {
+    console.log(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${app.id}`));
+
+    this.sendMessageToAgent.sendInitialMessage(app, message);
   }
 
 
