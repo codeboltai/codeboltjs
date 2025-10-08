@@ -130,50 +130,6 @@ export const codeConfirmationMessageSchema = baseMessageSchema.extend({
   }),
 });
 
-// Message service response schemas
-export const sendMessageResponseSchema = z.object({
-  type: z.literal('sendMessageResponse'),
-  success: z.boolean(),
-  message: z.string(),
-  messageId: z.string(),
-  error: z.string().optional(),
-});
-
-export const waitForReplyResponseSchema = z.object({
-  type: z.literal('waitForReplyResponse'),
-  response: z.string(),
-  text: z.string(),
-  images: z.array(z.any()),
-  messageId: z.string(),
-  threadId: z.string(),
-});
-
-export const confirmationRequestResponseSchema = z.object({
-  type: z.literal('confirmationRequestResponse'),
-  response: z.string(),
-  text: z.string(),
-  images: z.array(z.any()),
-  messageId: z.string(),
-  threadId: z.string(),
-});
-
-export const fileReadWriteRequestResponseSchema = z.object({
-  type: z.literal('fileReadWriteRequestResponse'),
-  response: z.string(),
-  text: z.string(),
-  images: z.array(z.any()),
-  messageId: z.string(),
-  threadId: z.string(),
-});
-
-export const confirmationWithFeedbackResponseSchema = z.object({
-  type: z.literal('confirmationWithFeedbackResponse'),
-  response: z.string(),
-  text: z.string(),
-  images: z.array(z.any()),
-  messageId: z.string(),
-  threadId: z.string(),
-});
 
 // Union of all message service schemas
 export const messageServiceSchema = z.union([
@@ -185,12 +141,7 @@ export const messageServiceSchema = z.union([
   agentMessageSchema,
   infoWithLinkMessageSchema,
   codeViewInEditorMessageSchema,
-  codeConfirmationMessageSchema,
-  sendMessageResponseSchema,
-  waitForReplyResponseSchema,
-  confirmationRequestResponseSchema,
-  fileReadWriteRequestResponseSchema,
-  confirmationWithFeedbackResponseSchema,
+  codeConfirmationMessageSchema
 ]);
 
 // Inferred TypeScript types
@@ -203,9 +154,5 @@ export type AgentMessage = z.infer<typeof agentMessageSchema>;
 export type InfoWithLinkMessage = z.infer<typeof infoWithLinkMessageSchema>;
 export type CodeViewInEditorMessage = z.infer<typeof codeViewInEditorMessageSchema>;
 export type CodeConfirmationMessage = z.infer<typeof codeConfirmationMessageSchema>;
-export type SendMessageResponse = z.infer<typeof sendMessageResponseSchema>;
-export type WaitForReplyResponse = z.infer<typeof waitForReplyResponseSchema>;
-export type ConfirmationRequestResponse = z.infer<typeof confirmationRequestResponseSchema>;
-export type FileReadWriteRequestResponse = z.infer<typeof fileReadWriteRequestResponseSchema>;
-export type ConfirmationWithFeedbackResponse = z.infer<typeof confirmationWithFeedbackResponseSchema>;
+
 export type MessageService = z.infer<typeof messageServiceSchema>; 

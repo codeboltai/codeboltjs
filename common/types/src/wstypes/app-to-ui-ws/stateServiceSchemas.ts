@@ -32,5 +32,3 @@ export const stateServiceMessageSchema = z.union([
 
 // TypeScript types
 export type GetAgentStateResponse = z.infer<typeof getAgentStateResponseSchema>;
-export type StateErrorResponse = z.infer<typeof stateErrorResponseSchema>;export type AddToAgentStateResponse = z.infer<typeof addToAgentStateResponseSchema>;
-export type StateErrorResponse = z.infer<typeof stateErrorResponseSchema>;export type StateServiceMessage = z.infer<typeof stateServiceMessageSchema>; 

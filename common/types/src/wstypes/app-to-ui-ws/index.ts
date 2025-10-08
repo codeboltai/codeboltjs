@@ -23,8 +23,6 @@ export * as AgentMessages from './agentMessageSchemas';
 // State update schemas
 export * as StateMessages from './stateMessageSchemas';
 
-// Response message schemas
-export * as ResponseMessages from './responseMessageSchemas';
 
 // Individual CLI service schemas
 export * as TerminalService from './terminalServiceSchemas';
@@ -32,7 +30,7 @@ export * as VectordbService from './vectordbServiceSchemas';
 export * as TaskService from './taskServiceSchemas';
 export * as MessageService from './messageServiceSchemas';
 export * as MemoryService from './memoryServiceSchemas';
-export * as FsService from './fsServiceSchemas';
+
 export * as BrowserService from './browserServiceSchemas';
 export * as DebugService from './debugServiceSchemas';
 export * as GitService from './gitServiceSchemas';
@@ -56,7 +54,6 @@ import { fileMessageSchema } from './fileMessageSchemas';
 import { notificationMessageSchema } from './notificationMessageSchemas';
 import { agentMessageSchema } from './agentMessageSchemas';
 import { stateMessageSchema } from './stateMessageSchemas';
-import { responseMessageSchema } from './responseMessageSchemas';
 
 // Import individual service schemas
 import { terminalServiceSchema } from './terminalServiceSchemas';
@@ -64,7 +61,7 @@ import { vectordbServiceSchema } from './vectordbServiceSchemas';
 import { taskServiceMessageSchema } from './taskServiceSchemas';
 import { messageServiceSchema } from './messageServiceSchemas';
 import { memoryServiceSchema } from './memoryServiceSchemas';
-import { fsServiceMessageSchema } from './fsServiceSchemas';
+
 import { browserServiceMessageSchema } from './browserServiceSchemas';
 import { debugServiceSchema } from './debugServiceSchemas';
 import { gitServiceMessageSchema } from './gitServiceSchemas';
