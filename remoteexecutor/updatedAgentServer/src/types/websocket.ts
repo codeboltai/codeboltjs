@@ -8,6 +8,7 @@ export type ConnectionParams = {
   parentId?: string;
   clientType?: string;
   appId?: string;
+  tuiId?: string;
   currentProject?: string;
   projectName?: string;
   projectType?: string;
@@ -23,7 +24,7 @@ export type ConnectionRegistrationResult = {
 
 export type RegistrationType = 'auto' | 'manual';
 
-export type ClientType = 'agent' | 'app';
+export type ClientType = 'agent' | 'app' | 'tui';
 
 export type ConnectionType = ClientType;
 

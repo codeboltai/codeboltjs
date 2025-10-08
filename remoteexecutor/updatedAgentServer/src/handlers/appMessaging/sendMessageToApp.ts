@@ -1,7 +1,6 @@
-import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '../../types';
-import { ReadFileHandler, WriteFileHandler, AskAIHandler, ResponseHandler } from '../appMessageHandlers';
+import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { NotificationService } from '../../services/NotificationService';
+import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -34,6 +33,13 @@ export class SendMessageToApp {
     
     const apps = appManager.getAllApps();
     if (apps.length === 0) {
+      const remoteClient = WranglerProxyClient.getInstance();
+      if (remoteClient) {
+        console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
+        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
+        return;
+      }
+
       this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
       return;
     }
@@ -42,6 +48,15 @@ export class SendMessageToApp {
     const app = apps[0];
     const success = appManager.sendToApp(app.id, messageWithAgentId);
     if (!success) {
+      const remoteClient = WranglerProxyClient.getInstance();
+      if (remoteClient) {
+        console.log(
+          formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy')
+        );
+        remoteClient.forwardAgentMessage(agent.id, messageWithAgentId);
+        return;
+      }
+
       this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
     }
   }

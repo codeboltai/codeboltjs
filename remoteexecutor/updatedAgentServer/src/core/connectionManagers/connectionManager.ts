@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
 import { AgentConnectionsManager } from './agentConnectionsManager';
 import { AppConnectionsManager } from './appConnectionsManager';
+import { TuiConnectionsManager } from './tuiConnectionsManager';
 import { ChildAgentProcessManager } from '../../utils/childAgentProcessManager';
 
 /**
@@ -13,6 +14,7 @@ export class ConnectionManager {
 
   private readonly agentManager = AgentConnectionsManager.getInstance();
   private readonly appManager = AppConnectionsManager.getInstance();
+  private readonly tuiManager = TuiConnectionsManager.getInstance();
 
   private constructor() {}
 
@@ -27,7 +29,7 @@ export class ConnectionManager {
   registerConnection(
     connectionId: string,
     ws: WebSocket,
-    connectionType: 'app' | 'agent',
+    connectionType: 'app' | 'agent' | 'tui',
     parentId?: string,
     projectInfo?: ProjectInfo,
     instanceId?: string
@@ -43,6 +45,8 @@ export class ConnectionManager {
 
     if (connectionType === 'agent') {
       this.agentManager.registerAgent(connection, parentId);
+    } else if (connectionType === 'tui') {
+      this.tuiManager.registerTui(connection);
     } else {
       this.appManager.registerApp(connection);
     }
@@ -59,6 +63,11 @@ export class ConnectionManager {
 
     if (this.agentManager.getAgent(connectionId)) {
       this.agentManager.removeAgent(connectionId);
+      return;
+    }
+
+    if (this.tuiManager.getTui(connectionId)) {
+      this.tuiManager.removeTui(connectionId);
     }
   }
 
@@ -70,12 +79,16 @@ export class ConnectionManager {
     return this.agentManager;
   }
 
+  getTuiConnectionManager(): TuiConnectionsManager {
+    return this.tuiManager;
+  }
+
   getConnection(connectionId: string): ClientConnection | undefined {
-    return this.appManager.getApp(connectionId) || this.agentManager.getAgent(connectionId);
+    return this.appManager.getApp(connectionId) || this.agentManager.getAgent(connectionId) || this.tuiManager.getTui(connectionId);
   }
 
   getAllConnections(): ClientConnection[] {
-    return [...this.appManager.getAllApps(), ...this.agentManager.getAllAgents()];
+    return [...this.appManager.getAllApps(), ...this.agentManager.getAllAgents(), ...this.tuiManager.getAllTuis()];
   }
 
   sendToConnection(connectionId: string, message: unknown): boolean {
@@ -122,10 +135,11 @@ export class ConnectionManager {
     this.agentManager.cleanupOldCacheEntries();
   }
 
-  getConnectionCounts(): { apps: number; agents: number } {
+  getConnectionCounts(): { apps: number; agents: number; tuis: number } {
     return {
       apps: this.appManager.getAppCount(),
-      agents: this.agentManager.getAgentCount()
+      agents: this.agentManager.getAgentCount(),
+      tuis: this.tuiManager.getTuiCount()
     };
   }
 
@@ -138,32 +152,38 @@ export class ConnectionManager {
       return this.agentManager.updateAgentProject(connectionId, projectInfo);
     }
 
+    if (this.tuiManager.getTui(connectionId)) {
+      return this.tuiManager.updateTuiProject(connectionId, projectInfo);
+    }
+
     console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
     return false;
   }
 
   getConnectionProject(connectionId: string): ProjectInfo | undefined {
-    return this.appManager.getAppProject(connectionId) || this.agentManager.getAgentProject(connectionId);
+    return this.appManager.getAppProject(connectionId) || this.agentManager.getAgentProject(connectionId) || this.tuiManager.getTuiProject(connectionId);
   }
 
   getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
     return [
       ...this.appManager.getAllConnectionsWithProjects(),
-      ...this.agentManager.getAllConnectionsWithProjects()
+      ...this.agentManager.getAllConnectionsWithProjects(),
+      ...this.tuiManager.getAllConnectionsWithProjects()
     ];
   }
 
   getConnectionsByProject(projectPath: string): ClientConnection[] {
     return [
       ...this.appManager.getAppsByProject(projectPath),
-      ...this.agentManager.getAgentsByProject(projectPath)
+      ...this.agentManager.getAgentsByProject(projectPath),
+      ...this.tuiManager.getTuisByProject(projectPath)
     ];
   }
 
   private sendRegistrationConfirmation(
     ws: WebSocket,
     connectionId: string,
-    connectionType: 'app' | 'agent',
+    connectionType: 'app' | 'agent' | 'tui',
     parentId?: string
   ): void {
     const payload = {

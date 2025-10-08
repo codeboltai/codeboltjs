@@ -14,7 +14,7 @@ export interface ProjectInfo {
 export interface ClientConnection {
   id: string;
   ws: any; // WebSocket type - avoiding direct ws import for better compatibility
-  type: 'app' | 'agent' | 'client';
+  type: 'app' | 'agent' | 'client' | 'tui';
   connectedAt: Date;
   currentProject?: ProjectInfo;
   instanceId?:string
@@ -45,7 +45,7 @@ export interface HealthCheckResponse {
  */
 export interface ConnectionInfo {
   id: string;
-  type: 'app' | 'agent' | 'client';
+  type: 'app' | 'agent' | 'client' | 'tui';
   connectedAt: Date;
   currentProject?: ProjectInfo;
 }

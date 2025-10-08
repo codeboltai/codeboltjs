@@ -2,10 +2,11 @@ import express from 'express';
 import { createServer } from 'http';
 import { ServerConfig, formatLogMessage, AgentCliOptions } from '../types';
 import { HttpHandler } from '../handlers/httpHandler';
-import { WebSocketServer } from './websocketServer';
+import { WebSocketServer } from './ws/websocketServer';
 import { ChildAgentProcessManager } from '../utils/childAgentProcessManager';
 import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
+import { WranglerProxyClient } from './remote/wranglerProxyClient';
 
 /**
  * Main Docker Server class
@@ -19,6 +20,7 @@ export class AgentExecutorServer {
   private sendMessageToAgent: SendMessageToAgent;
   private config: ServerConfig;
   private cliOptions?: AgentCliOptions;
+  private remoteProxyClient?: WranglerProxyClient;
 
   constructor(config: ServerConfig, cliOptions?: AgentCliOptions) {
     this.config = config;
@@ -26,17 +28,30 @@ export class AgentExecutorServer {
     this.app = express();
     this.server = createServer(this.app);
     this.childAgentProcessManager = new ChildAgentProcessManager();
-    this.sendMessageToAgent = new SendMessageToAgent();
-    this.setupHandlers();
-  }
-
-  /**
-   * Setup HTTP and WebSocket handlers
-   */
-  private setupHandlers(): void {
     this.httpHandler = new HttpHandler(this.app);
     this.websocketServer = new WebSocketServer(this.server);
     this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
+
+    if (this.cliOptions?.remote) {
+      const remoteUrl = this.cliOptions.remoteUrl;
+      if (remoteUrl) {
+        this.remoteProxyClient = WranglerProxyClient.initialize({
+          url: remoteUrl,
+          serverId: `${this.config.host || 'localhost'}:${this.config.port}`,
+          appToken: this.cliOptions.appToken,
+          maxReconnectAttempts: this.config.maxReconnectAttempts,
+          reconnectDelay: this.config.reconnectDelay
+        });
+      } else {
+        console.warn(
+          formatLogMessage(
+            'warn',
+            'DockerServer',
+            'Remote proxy enabled without a URL. Skipping remote proxy initialization.'
+          )
+        );
+      }
+    }
   }
 
   /**
@@ -73,6 +88,14 @@ export class AgentExecutorServer {
             }
         }
         
+        if (this.remoteProxyClient) {
+          try {
+            this.remoteProxyClient.start();
+          } catch (error) {
+            console.error(formatLogMessage('error', 'DockerServer', `Failed to start remote proxy client: ${error}`));
+          }
+        }
+
         resolve();
       });
     });
@@ -90,6 +113,10 @@ export class AgentExecutorServer {
     
     // Close WebSocket connections
     this.websocketServer.close();
+
+    if (this.remoteProxyClient) {
+      this.remoteProxyClient.stop();
+    }
     
     // Close HTTP server
     this.server.close();

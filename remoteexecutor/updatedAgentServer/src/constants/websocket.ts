@@ -26,7 +26,8 @@ export const WEBSOCKET_CONSTANTS = {
   },
   CLIENT_TYPES: {
     AGENT: 'agent',
-    APP: 'app'
+    APP: 'app',
+    TUI: 'tui'
   }
 } as const;
 

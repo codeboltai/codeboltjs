@@ -20,6 +20,9 @@ function setupCLI(): AgentCliOptions {
     .option('--host <host>', 'server host', 'localhost')
     .option('--port <port>', 'server port', (value) => parseInt(value), 3001)
     .option('-v, --verbose', 'enable verbose logging', false)
+    .option('--remote', 'enable remote wrangler proxy connection')
+    .option('--remote-url <url>', 'wrangler proxy WebSocket URL')
+    .option('--app-token <token>', 'app token for identifying remote app sessions')
     .option('--agent-type <type>', 'agent type: marketplace, local-zip, local-path, or server-zip')
     .option('--agent-detail <detail>', 'agent detail: marketplace ID, local path, zip file path, or server URL')
     .option('--prompt <prompt>', 'initial prompt to send to the agent')
@@ -40,11 +43,17 @@ function setupCLI(): AgentCliOptions {
   program.parse();
   const options = program.opts();
   
+  const remoteUrl: string | undefined = options.remoteUrl || process.env.WRANGLER_PROXY_URL;
+  const appToken: string | undefined = options.appToken || process.env.APP_TOKEN;
+
   return {
     noui: Boolean(options.noui),
     host: options.host,
     port: options.port,
     verbose: options.verbose,
+    remote: Boolean(options.remote),
+    remoteUrl: remoteUrl || undefined,
+    appToken: appToken || undefined,
     agentType: options.agentType,
     agentDetail: options.agentDetail,
     prompt: options.prompt
@@ -74,6 +83,16 @@ async function main(): Promise<void> {
     
     console.log(formatLogMessage('info', 'Main', `UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`));
     console.log(formatLogMessage('info', 'Main', `Server: ${config.host}:${config.port}`));
+
+    if (options.remote) {
+      console.log(formatLogMessage('info', 'Main', `Remote proxy enabled${options.remoteUrl ? ` -> ${options.remoteUrl}` : ''}`));
+      if (!options.remoteUrl) {
+        console.warn(formatLogMessage('warn', 'Main', 'Remote proxy enabled but no URL provided. Set --remote-url or WRANGLER_PROXY_URL.'));
+      }
+      if (options.appToken) {
+        console.log(formatLogMessage('info', 'Main', `App token configured for remote proxy`));
+      }
+    }
     
     // Log agent configuration if provided
     if (options.agentType && options.agentDetail) {
@@ -139,7 +158,7 @@ async function main(): Promise<void> {
     }
     
     // Handle graceful shutdown
-    const shutdown = async () => {
+    const shutdown = async (): Promise<void> => {
       console.log(formatLogMessage('info', 'Main', 'Received shutdown signal, shutting down gracefully...'));
       
       // Kill TUI process if running
@@ -158,13 +177,13 @@ async function main(): Promise<void> {
     process.on('SIGTERM', shutdown);
     
     // Handle uncaught exceptions
-    process.on('uncaughtException', async (error) => {
+    process.on('uncaughtException', async (error: Error): Promise<void> => {
       console.error(formatLogMessage('error', 'Main', `Uncaught Exception: ${error}`));
       await server.stop();
       process.exit(1);
     });
 
-    process.on('unhandledRejection', async (reason, promise) => {
+    process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>): Promise<void> => {
       console.error(formatLogMessage('error', 'Main', `Unhandled Rejection at: ${promise}, reason: ${reason}`));
       await server.stop();
       process.exit(1);

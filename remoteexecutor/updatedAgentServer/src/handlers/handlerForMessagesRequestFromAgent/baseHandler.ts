@@ -1,8 +1,10 @@
 import {
   ClientConnection,
-  Message
+  Message,
+  formatLogMessage
 } from './../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { WranglerProxyClient } from '../../core/remote/wranglerProxyClient';
 
 /**
  * Base handler interface that all message handlers implement
@@ -38,8 +40,20 @@ export abstract class BaseHandler implements IMessageHandler {
     const success = agentManager.sendToAgent(message);
     
     if (!success) {
+      const remoteClient = WranglerProxyClient.getInstance();
+      if (remoteClient) {
+        console.log(
+          formatLogMessage('warn', 'BaseHandler', 'No local agents available, forwarding request via remote proxy')
+        );
+        remoteClient.forwardAppMessage(client.id, message);
+        return;
+      }
+
       this.sendError(client.id, 'No agents available to handle the request', message.id);
+      return;
     }
+
+    WranglerProxyClient.getInstance()?.forwardAppMessage(client.id, message);
   }
 
   /**
@@ -51,10 +65,23 @@ export abstract class BaseHandler implements IMessageHandler {
     
     // If the message specifies a clientId, forward to that specific client
     if (messageWithClientId.clientId) {
-      appManager.sendToApp(messageWithClientId.clientId, message);
+      const delivered = appManager.sendToApp(messageWithClientId.clientId, message);
+      if (!delivered) {
+        const remoteClient = WranglerProxyClient.getInstance();
+        if (remoteClient) {
+          console.log(
+            formatLogMessage('warn', 'BaseHandler', 'Failed to reach client locally, forwarding via remote proxy')
+          );
+          remoteClient.forwardAgentMessage(agent.id, message);
+          return;
+        }
+      } else {
+        WranglerProxyClient.getInstance()?.forwardAgentMessage(agent.id, message);
+      }
     } else {
       // Broadcast to all clients if no specific client is mentioned
       appManager.broadcast(message);
+      WranglerProxyClient.getInstance()?.forwardAgentMessage(agent.id, message);
     }
   }
 }

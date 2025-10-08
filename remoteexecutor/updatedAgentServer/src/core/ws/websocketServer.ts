@@ -7,12 +7,12 @@ import {
   createErrorResponse, 
   Message,
   ProjectInfo 
-} from './../types';
+} from '../../types';
 
-import { ConnectionManager } from './connectionManagers/connectionManager';
-import { NotificationService } from './../services/NotificationService';
-import { AppMessageRouter } from '../handlers/appMessaging/routerforMessagesReceivedFromApp';
-import { AgentMessageRouter } from '../handlers/agentMessaging/routerforMessageReceivedFromAgent';
+import { ConnectionManager } from '../connectionManagers/connectionManager';
+import { NotificationService } from '../../services/NotificationService';
+import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
+import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';
 
 // Import types and constants
 import { 
@@ -21,9 +21,8 @@ import {
   ConnectionRegistrationResult,
   RegistrationType,
   HealthStatus,
-  RegistrationMessage
-} from '../types';
-import { WEBSOCKET_CONSTANTS } from '../constants';
+} from '../../types';
+import { WEBSOCKET_CONSTANTS } from '../../constants';
 
 /**
  * WebSocket server management
@@ -187,6 +186,13 @@ export class WebSocketServer {
       return { clientId: connectionId };
     }
     
+    // Priority 3: Auto-register TUI if clientType is 'tui'
+    if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI) {
+      const connectionId = params.tuiId || fallbackClientId;
+      this.registerTui(ws, connectionId, 'auto', projectInfo, instanceId);
+      return { clientId: connectionId };
+    }
+    
     // Default: Register as app if no specific parameters provided
     this.registerApp(ws, fallbackClientId, 'auto', projectInfo, instanceId);
     return { clientId: fallbackClientId };
@@ -244,6 +250,23 @@ export class WebSocketServer {
   }
 
   /**
+   * Register a TUI connection
+   */
+  private registerTui(
+    ws: WebSocket, 
+    tuiId: string, 
+    registrationType: RegistrationType = 'auto',
+    projectInfo?: ProjectInfo,
+    tuiInstanceId?: string
+  ): void {
+    console.log(formatLogMessage('info', 'WebSocketServer', 
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
+    
+    this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, projectInfo, tuiInstanceId);
+    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, registrationType, projectInfo, { tuiInstanceId });
+  }
+
+  /**
    * Send registration confirmation message
    */
   private sendRegistrationConfirmation(
@@ -253,7 +276,7 @@ export class WebSocketServer {
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
-    instanceIds?: { agentInstanceId?: string; appInstanceId?: string }
+    instanceIds?: { agentInstanceId?: string; appInstanceId?: string; tuiInstanceId?: string }
   ): void {
     const message = {
       type: WEBSOCKET_CONSTANTS.MESSAGE_TYPES.REGISTERED,
@@ -266,7 +289,8 @@ export class WebSocketServer {
       ...(parentId && { parentId }),
       ...(projectInfo && { currentProject: projectInfo }),
       ...(instanceIds?.agentInstanceId && { agentInstanceId: instanceIds.agentInstanceId }),
-      ...(instanceIds?.appInstanceId && { appInstanceId: instanceIds.appInstanceId })
+      ...(instanceIds?.appInstanceId && { appInstanceId: instanceIds.appInstanceId }),
+      ...(instanceIds?.tuiInstanceId && { tuiInstanceId: instanceIds.tuiInstanceId })
     };
     
     this.sendMessage(ws, message);
@@ -321,6 +345,9 @@ export class WebSocketServer {
           this.agentMessageRouter.handleAgentRequestMessage(connection, message);
           break;
         case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
+          this.appMessageRouter.handleAppResponse(connection, message);
+          break;
+        case WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI:
           this.appMessageRouter.handleAppResponse(connection, message);
           break;
         default:

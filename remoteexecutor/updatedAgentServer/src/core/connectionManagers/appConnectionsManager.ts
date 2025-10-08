@@ -1,4 +1,4 @@
-import { ClientConnection, ProjectInfo, formatLogMessage } from './../types';
+import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
 
 /**
  * Manages lifecycle and operations for application WebSocket connections.
