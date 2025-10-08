@@ -17,6 +17,7 @@ export * from './crawlerServiceResponses';
 export * from './fsServiceResponses';
 export * from './gitServiceResponses';
 export * from './agentServiceResponses';
+export * from './baseAppResponse'
 
 // Original index service response schemas
 import { z } from 'zod';

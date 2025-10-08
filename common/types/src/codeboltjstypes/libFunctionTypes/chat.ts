@@ -22,38 +22,7 @@ export interface ChatMessage extends BaseChatSDKResponse {
 // Full UserMessage structure as received from WebSocket
 export interface UserMessage {
   type: string;
-  message: {
-    type: string;
-    userMessage: string;
-    currentFile: string;
-    selectedAgent: {
-      id: string;
-      name: string;
-      lastMessage: Record<string, any>;
-    };
-    mentionedFiles: string[];
-    mentionedFullPaths: string[];
-    mentionedFolders: string[];
-    mentionedMultiFile: string[];
-    mentionedMCPs: string[];
-    uploadedImages: string[];
-    actions: any[];
-    mentionedAgents: any[];
-    mentionedDocs: any[];
-    links: any[];
-    universalAgentLastMessage: string;
-    selection: any | null;
-    controlFiles: any[];
-    feedbackMessage: string;
-    terminalMessage: string;
-    messageId: string;
-    threadId: string;
-    templateType: string;
-    processId: string;
-    shadowGitHash: string;
-    activeFile: string;
-    openedFiles: string[]
-  };
+  message: FlatUserMessage,
   sender: {
     senderType: string;
     senderInfo: Record<string, any>;
@@ -98,7 +67,7 @@ export interface FlatUserMessage {
   shadowGitHash?: string;
   remixPrompt?: any;
   activeFile: string;
-    openedFiles: string[]
+  openedFiles: string[]
 
 }
 
