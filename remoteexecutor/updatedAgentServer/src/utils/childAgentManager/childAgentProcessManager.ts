@@ -7,7 +7,7 @@ import * as http from 'http';
 import { createWriteStream, createReadStream } from 'fs';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
-import { formatLogMessage, sleep } from '../types';
+import { formatLogMessage, sleep } from '../../types';
 
 
 
