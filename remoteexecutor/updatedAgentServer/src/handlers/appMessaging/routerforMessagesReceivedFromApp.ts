@@ -58,40 +58,40 @@ export class AppMessageRouter {
   /**
    * Forward agent request to app
    */
-  private forwardToApp(agent: ClientConnection, message: Message): void {
-    console.log(formatLogMessage('info', 'MessageRouter', `Forwarding request from agent ${agent.id} to app`));
+  // private forwardToApp(agent: ClientConnection, message: Message): void {
+  //   console.log(formatLogMessage('info', 'MessageRouter', `Forwarding request from agent ${agent.id} to app`));
 
-    // Cache the message ID -> agent ID mapping for response routing
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    if (message.id) {
-      agentManager.cacheMessageToAgent(message.id, agent.id);
-    }
+  //   // Cache the message ID -> agent ID mapping for response routing
+  //   const agentManager = this.connectionManager.getAgentConnectionManager();
+  //   const appManager = this.connectionManager.getAppConnectionManager();
+  //   if (message.id) {
+  //     agentManager.cacheMessageToAgent(message.id, agent.id);
+  //   }
 
-    // Add agentId to the message so app knows where to send response back
-    const messageWithAgentId = { ...message, agentId: agent.id };
+  //   // Add agentId to the message so app knows where to send response back
+  //   const messageWithAgentId = { ...message, agentId: agent.id };
 
-    const apps = appManager.getAllApps();
-    if (apps.length === 0) {
-      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
-      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
-      return;
+  //   const apps = appManager.getAllApps();
+  //   if (apps.length === 0) {
+  //     console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
+  //     this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+  //     return;
 
-      this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
-      return;
-    }
+  //     this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
+  //     return;
+  //   }
 
-    // Send to first available app
-    const app = apps[0];
-    const success = appManager.sendToApp(app.id, messageWithAgentId);
-    if (!success) {
-      console.log(formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy'));
-      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
-      return;
+  //   // Send to first available app
+  //   const app = apps[0];
+  //   const success = appManager.sendToApp(app.id, messageWithAgentId);
+  //   if (!success) {
+  //     console.log(formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy'));
+  //     this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId, { requireRemote: true });
+  //     return;
 
-      this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
-    }
-  }
+  //     this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
+  //   }
+  // }
 
 
 
