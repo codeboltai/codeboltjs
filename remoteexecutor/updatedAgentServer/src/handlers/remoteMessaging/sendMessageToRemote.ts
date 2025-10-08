@@ -1,6 +1,7 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
+import { BaseApplicationResponse } from '@codebolt/types/sdk';
 
 /**
  * Encapsulates outgoing traffic to the remote proxy.
@@ -35,7 +36,7 @@ export class SendMessageToRemote {
     client.forwardAgentMessage(agent.id, payload);
   }
 
-  forwardAppMessage(appId: string | undefined, message: Message, options?: { requireRemote?: boolean }): void {
+  forwardAppMessage(appId: string | undefined, message: BaseApplicationResponse, options?: { requireRemote?: boolean }): void {
     const client = this.remoteClient;
     if (!client) {
       console.warn(formatLogMessage('warn', 'SendMessageToRemote', 'Remote proxy client not initialized'));

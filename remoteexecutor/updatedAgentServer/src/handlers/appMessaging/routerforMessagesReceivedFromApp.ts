@@ -1,6 +1,6 @@
 import { ClientConnection, Message, ResponseMessage, formatLogMessage } from '../../types';
 
-import { UserMessage } from '@codebolt/types/sdk'
+import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk'
 
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
@@ -21,7 +21,7 @@ export class AppMessageRouter {
   constructor() {
 
     this.connectionManager = ConnectionManager.getInstance();
-    this.sendMessageToAgent= new SendMessageToAgent();
+    this.sendMessageToAgent = new SendMessageToAgent();
     this.sendMessageToRemote = new SendMessageToRemote();
     this.notificationService = NotificationService.getInstance();
   }
@@ -29,7 +29,7 @@ export class AppMessageRouter {
   /**
    * Handle responses from apps (responding back to agent requests)
    */
-  handleAppResponse(app: ClientConnection, message: UserMessage ): void {
+  handleAppResponse(app: ClientConnection, message: UserMessage | BaseApplicationResponse): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling app response: ${message.type} from ${app.id}`));
 
     // Check if this message has a requestId and could be a response to a pending request
@@ -41,10 +41,10 @@ export class AppMessageRouter {
     // }
     //check if its initial message
     if (message.type == 'messageResponse') {
-      this.handleInitialUserMessage(app, message)
+      this.handleInitialUserMessage(app, message as UserMessage)
     }
     else {
-      this.sendMessageToAgent.sendResponseToAgent(app, message);
+      this.sendMessageToAgent.sendResponseToAgent(app, message as BaseApplicationResponse);
 
     }
   }

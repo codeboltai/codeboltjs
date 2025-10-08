@@ -3,7 +3,7 @@ import { ClientConnection, ResponseMessage, formatLogMessage } from '../../types
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { WebSocketServer } from '../../core/ws/websocketServer';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
-import { UserMessage } from '@codebolt/types/sdk';
+import { UserMessage,BaseApplicationResponse } from '@codebolt/types/sdk';
 
 
 /**
@@ -23,7 +23,7 @@ export class SendMessageToAgent {
   /**
    * Send app response back to agent
    */
-   sendResponseToAgent(app: ClientConnection, message: UserMessage): void {
+   sendResponseToAgent(app: ClientConnection, message: BaseApplicationResponse): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Sending response from app ${app.id} to agent`));
     
     // First try to find the agent using cached message ID

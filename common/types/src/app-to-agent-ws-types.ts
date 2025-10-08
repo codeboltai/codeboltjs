@@ -149,6 +149,7 @@ export type {
   GetChatHistoryResponse,
   ErrorResponse,
   IndexServiceResponse,
+  BaseApplicationResponse,
   // Additional missing types
   CrawlResponse
 } from './wstypes/app-to-agent-ws/indexResponses';

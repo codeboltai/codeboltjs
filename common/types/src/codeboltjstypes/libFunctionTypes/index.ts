@@ -59,6 +59,8 @@ export * from './utils';
 // MCP types
 export * from './mcp';
 
+export * from './baseappResponse'
+
 // Output Parsers types
 export * from './outputparsers';
 
