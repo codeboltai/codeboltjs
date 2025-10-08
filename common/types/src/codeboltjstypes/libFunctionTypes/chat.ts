@@ -21,9 +21,9 @@ export interface ChatMessage extends BaseChatSDKResponse {
 
 // Full UserMessage structure as received from WebSocket
 export interface UserMessage {
-  type: "messageResponse";
+  type: string;
   message: {
-    type: "messageResponse";
+    type: string;
     userMessage: string;
     currentFile: string;
     selectedAgent: {

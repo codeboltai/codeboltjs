@@ -3,6 +3,7 @@ import { ClientConnection, ResponseMessage, formatLogMessage } from '../../types
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { WebSocketServer } from '../../core/ws/websocketServer';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
+import { UserMessage } from '@codebolt/types/sdk';
 
 
 /**
@@ -22,7 +23,7 @@ export class SendMessageToAgent {
   /**
    * Send app response back to agent
    */
-   sendResponseToAgent(app: ClientConnection, message: ResponseMessage): void {
+   sendResponseToAgent(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Sending response from app ${app.id} to agent`));
     
     // First try to find the agent using cached message ID
@@ -70,18 +71,11 @@ export class SendMessageToAgent {
   /**
    * Send initial prompt to all connected agents
    */
-  sendInitialMessage(prompt: string): void {
+  sendInitialMessage(message: UserMessage): void {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: ${prompt}`));
       
-      // Create a message to send to the agent
-      const message = {
-        type: 'prompt',
-        data: {
-          prompt: prompt,
-          timestamp: new Date().toISOString()
-        }
-      };
+    
       
       // Broadcast the message to all connected agents
       if (this.websocketServer) {
