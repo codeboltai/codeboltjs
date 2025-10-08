@@ -4,7 +4,7 @@ import {
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService.js';
 import type { MemoryEvent, DbMemoryNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManager.js';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import fs from 'fs';
 import path from 'path';
 

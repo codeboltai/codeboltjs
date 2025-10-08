@@ -10,7 +10,7 @@ import {
 import type { GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
-import { ConnectionManager } from '../../core/connectionManager.js';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 
 const execPromise = promisify(exec);
 

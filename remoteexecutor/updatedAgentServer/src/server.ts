@@ -1,5 +1,5 @@
 import { formatLogMessage, AgentCliOptions } from './types';
-import { AgentExecutorServer } from './core/agentServer';
+import { AgentExecutorServer } from './core/mainAgentExecutorServer';
 import { getServerConfig } from './config';
 import { spawn, ChildProcess } from 'child_process';
 import { resolve } from 'path';

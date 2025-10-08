@@ -6,7 +6,7 @@ import {
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { CreateFolderEvent, FolderCreateRequestNotification, FolderCreateResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 
 /**
  * Handles create folder messages with notifications

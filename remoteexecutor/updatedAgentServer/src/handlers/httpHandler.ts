@@ -6,7 +6,7 @@ import {
   HealthCheckResponse,
   formatLogMessage 
 } from './../types';
-import { ConnectionManager } from '../core/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,8 +73,10 @@ export class HttpHandler {
    * Handle connections info requests
    */
   private handleConnections(req: Request, res: Response): void {
-    const apps = this.connectionManager.getAllApps();
-    const agents = this.connectionManager.getAllAgents();
+    const appManager = this.connectionManager.getAppConnectionManager();
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const apps = appManager.getAllApps();
+    const agents = agentManager.getAllAgents();
     
     const appList = apps.map((app) => ({
       id: app.id,

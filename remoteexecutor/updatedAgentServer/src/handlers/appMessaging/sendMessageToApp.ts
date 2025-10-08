@@ -1,6 +1,6 @@
 import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '../../types';
 import { ReadFileHandler, WriteFileHandler, AskAIHandler, ResponseHandler } from '../appMessageHandlers';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
 
 /**
@@ -19,8 +19,10 @@ export class SendMessageToApp {
     console.log(formatLogMessage('info', 'MessageRouter', `Forwarding request from agent ${agent.id} to app`));
     
     // Cache the message ID -> agent ID mapping for response routing
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const appManager = this.connectionManager.getAppConnectionManager();
     if (message.id) {
-      this.connectionManager.cacheMessageToAgent(message.id, agent.id);
+      agentManager.cacheMessageToAgent(message.id, agent.id);
     }
     
     // Add agentId and agentInstanceId to the message so app knows where to send response back
@@ -30,7 +32,7 @@ export class SendMessageToApp {
       agentInstanceId: agent.instanceId 
     };
     
-    const apps = this.connectionManager.getAllApps();
+    const apps = appManager.getAllApps();
     if (apps.length === 0) {
       this.connectionManager.sendError(agent.id, 'No apps available to handle the request', message.id);
       return;
@@ -38,7 +40,7 @@ export class SendMessageToApp {
 
     // Send to first available app
     const app = apps[0];
-    const success = this.connectionManager.sendToApp(app.id, messageWithAgentId);
+    const success = appManager.sendToApp(app.id, messageWithAgentId);
     if (!success) {
       this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
     }

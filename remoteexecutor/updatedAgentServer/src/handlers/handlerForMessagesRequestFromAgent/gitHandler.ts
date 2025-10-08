@@ -17,7 +17,7 @@ import type {
   GitDiffResponseNotification,
   GitCloneResponseNotification
 } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import simpleGit from 'simple-git';
 import path from 'path';
 

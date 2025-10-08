@@ -1,10 +1,10 @@
 import express from 'express';
 import { createServer } from 'http';
-import { ServerConfig, formatLogMessage, AgentCliOptions } from './.././types';
-import { HttpHandler } from './../handlers/httpHandler';
+import { ServerConfig, formatLogMessage, AgentCliOptions } from '../types';
+import { HttpHandler } from '../handlers/httpHandler';
 import { WebSocketServer } from './websocketServer';
 import { ChildAgentProcessManager } from '../utils/childAgentProcessManager';
-import { ConnectionManager } from './connectionManager';
+import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 
 /**

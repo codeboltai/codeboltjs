@@ -2,7 +2,7 @@
  * Notification service for broadcasting events to clients
  */
 
-import { ConnectionManager } from '../core/connectionManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { formatLogMessage } from './../types';
 import type { 
   ChatNotification,
@@ -58,7 +58,8 @@ export class NotificationService {
     console.log(formatLogMessage('info', 'NotificationService', `Sending notification to app related to agent: ${agentId}`));
     
     // Get the parent app ID for this agent
-    const parentId = this.connectionManager.getParentByAgent(agentId);
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const parentId = agentManager.getParentByAgent(agentId);
     if (!parentId) {
       console.warn(formatLogMessage('warn', 'NotificationService', `No parent app found for agent ${agentId}, falling back to broadcast`));
       this.broadcast(notification);

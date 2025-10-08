@@ -7,7 +7,7 @@ import {
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { ReadFileEvent, FileReadRequestNotification, FileReadResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { response } from 'express';
 /**
  * Handles read file messages with notifications

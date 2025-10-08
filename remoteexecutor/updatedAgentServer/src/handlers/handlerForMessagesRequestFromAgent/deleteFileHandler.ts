@@ -6,7 +6,7 @@ import {
 } from './../../types';
 import { NotificationService } from '../../services/NotificationService';
 import type { DeleteFileEvent, FileDeleteRequestNotification, FileDeleteResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 
 /**
  * Handles delete file messages with notifications

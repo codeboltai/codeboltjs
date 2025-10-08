@@ -34,7 +34,7 @@ import {
   UtilsHandler,
   CodebaseSearchHandler
 } from '../appMessageHandlers/index.js';
-import { ConnectionManager } from '../../core/connectionManager.js';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import type { 

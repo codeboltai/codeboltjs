@@ -2,7 +2,7 @@ import {
   ClientConnection,
   Message
 } from './../../types';
-import { ConnectionManager } from '../../core/connectionManager';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 
 /**
  * Base handler interface that all message handlers implement
@@ -34,7 +34,8 @@ export abstract class BaseHandler implements IMessageHandler {
    * Forward message to available agent
    */
   protected forwardToAgent(client: ClientConnection, message: Message): void {
-    const success = this.connectionManager.sendToAgent(message);
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const success = agentManager.sendToAgent(message);
     
     if (!success) {
       this.sendError(client.id, 'No agents available to handle the request', message.id);
@@ -46,13 +47,14 @@ export abstract class BaseHandler implements IMessageHandler {
    */
   protected forwardToClient(agent: ClientConnection, message: unknown): void {
     const messageWithClientId = message as { clientId?: string };
+    const appManager = this.connectionManager.getAppConnectionManager();
     
     // If the message specifies a clientId, forward to that specific client
     if (messageWithClientId.clientId) {
-      this.connectionManager.sendToApp(messageWithClientId.clientId, message);
+      appManager.sendToApp(messageWithClientId.clientId, message);
     } else {
       // Broadcast to all clients if no specific client is mentioned
-      this.connectionManager.broadcastToApps(message);
+      appManager.broadcast(message);
     }
   }
 }

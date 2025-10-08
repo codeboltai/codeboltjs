@@ -7,7 +7,7 @@ import {
 } from './../../types';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../../services/NotificationService.js';
-import { ConnectionManager } from '../../core/connectionManager.js';
+import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import { detectLanguage } from '../../utils/detectLanguage.js';
 
 // Interface for codebase search event (since it may not be defined in shared types)

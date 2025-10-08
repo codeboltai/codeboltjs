@@ -12,7 +12,8 @@ export class ResponseHandler extends BaseHandler {
   handle(agent: ClientConnection, message: ResponseMessage): void {
     // Forward agent response back to the original client
     if (message.clientId) {
-      const success = this.connectionManager.sendToApp(message.clientId!, message);
+      const appManager = this.connectionManager.getAppConnectionManager();
+      const success = appManager.sendToApp(message.clientId!, message);
       if (success) {
         console.log(formatLogMessage('info', 'ResponseHandler', `Response forwarded to client ${message.clientId} from agent ${agent.id}`));
       } else {
