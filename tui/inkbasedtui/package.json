@@ -28,7 +28,7 @@
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
     "react": "^19.1.0",
-    "react-devtools-core": "^4.28.5",
+    "react-devtools-core": "^6.1.2",
     "strip-ansi": "^7.1.0",
     "uuid": "^10.0.0",
     "ws": "^8.18.0",

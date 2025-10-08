@@ -42,5 +42,14 @@
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.39.0"
   },
-  "packageManager": "pnpm@10.15.0"
+  "pnpm": {
+    "overrides": {
+      "@humanwhocodes/config-array": "npm:@eslint/config-array@^0.21.0",
+      "@humanwhocodes/object-schema": "npm:@eslint/object-schema@^2.1.4",
+      "glob": "^10.4.5",
+      "rimraf": "^5.0.10",
+      "mkdirp": "^3.0.1"
+    }
+  },
+  "packageManager": "pnpm@10.18.1"
 }

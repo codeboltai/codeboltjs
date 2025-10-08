@@ -15,6 +15,7 @@ export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
   private readonly appSocketsByToken = new Map<string, WebSocket>();
   private readonly gatewaySocketsByToken = new Map<string, WebSocket>();
+  private readonly monitoringSockets = new Set<WebSocket>();
 
   private readonly pendingAgentMessages = new Map<string, unknown[]>();
   private readonly pendingAppMessagesByToken = new Map<string, unknown[]>();
@@ -32,6 +33,18 @@ export class ProxyHub {
     const server = pair[1];
     server.accept();
 
+    const isMonitoringClient = request.headers.get('X-Monitoring-Client') === 'true';
+    if (isMonitoringClient) {
+      this.monitoringSockets.add(server);
+      this.sendJson(server, {
+        type: 'connection_update',
+        timestamp: Date.now(),
+        actor: 'monitor',
+        connected: true
+      });
+      this.broadcastConnectionUpdate();
+    }
+
     server.addEventListener('message', (event) => {
       try {
         const raw = event.data?.toString();
@@ -47,10 +60,18 @@ export class ProxyHub {
     });
 
     server.addEventListener('close', () => {
+      if (isMonitoringClient) {
+        this.monitoringSockets.delete(server);
+        this.broadcastConnectionUpdate();
+      }
       this.removeSocket(server);
     });
 
     server.addEventListener('error', () => {
+      if (isMonitoringClient) {
+        this.monitoringSockets.delete(server);
+        this.broadcastConnectionUpdate();
+      }
       this.removeSocket(server);
     });
 
@@ -93,6 +114,8 @@ export class ProxyHub {
     const ack = this.registerSocket(socket, message);
     this.sendJson(socket, ack);
     this.flushQueuesAfterRegister(message);
+    this.broadcastConnectionUpdate();
+    this.logMessage(message.actor === 'agent' ? 'incoming' : 'incoming', message.actor, message.agentId, message, message);
   }
 
   private handleGatewayRegistration(socket: WebSocket, message: GatewayRegisterMessage): void {
@@ -114,6 +137,8 @@ export class ProxyHub {
       appToken: token
     });
     this.flushGatewayQueue(token);
+    this.broadcastConnectionUpdate();
+    this.logMessage('incoming', 'system', undefined, message, message);
   }
 
   private handleForward(message: ForwardMessage, includeGateway: boolean): void {
@@ -124,6 +149,7 @@ export class ProxyHub {
         payload: message.payload,
         agentId: message.agentId
       }, includeGateway);
+      this.logMessage('outgoing', 'agent', message.agentId, message.payload, message);
       return;
     }
 
@@ -132,16 +158,19 @@ export class ProxyHub {
       payload: message.payload,
       agentId: message.agentId
     }, includeGateway);
+    this.logMessage('outgoing', 'app', message.agentId, message.payload, message);
   }
 
   private handleForwardFromGatewayAgent(message: GatewayForwardFromAgent): void {
     const token = this.normalizeToken(message.appToken);
     this.deliverToApps({ token, payload: message.payload }, false);
+    this.logMessage('incoming', 'agent', undefined, message.payload, message);
   }
 
   private handleForwardFromGatewayApp(message: GatewayForwardFromApp): void {
     const token = this.normalizeToken(message.appToken);
     this.deliverToAgents({ token, payload: message.payload, agentId: message.agentId }, false);
+    this.logMessage('incoming', 'app', message.agentId, message.payload, message);
   }
 
   private registerSocket(socket: WebSocket, message: RegisterMessage): RegisteredMessage {
@@ -174,6 +203,7 @@ export class ProxyHub {
     const socket = this.appSocketsByToken.get(params.token);
     if (socket) {
       this.sendJson(socket, params.payload);
+      this.logMessage('outgoing', 'app', params.agentId, params.payload, { target: 'app', ...params });
     } else {
       const queue = this.pendingAppMessagesByToken.get(params.token) ?? [];
       queue.push(params.payload);
@@ -198,6 +228,7 @@ export class ProxyHub {
       const socket = this.agents.get(params.agentId);
       if (socket) {
         this.sendJson(socket, params.payload);
+        this.logMessage('outgoing', 'agent', params.agentId, params.payload, { target: 'agent', ...params });
       } else {
         const queue = this.pendingAgentMessages.get(params.agentId) ?? [];
         queue.push(params.payload);
@@ -207,6 +238,7 @@ export class ProxyHub {
       const recipients = Array.from(this.agents.values());
       if (recipients.length) {
         recipients.forEach((socket) => this.sendJson(socket, params.payload));
+        this.logMessage('outgoing', 'agent', 'broadcast', params.payload, { target: 'broadcast', ...params });
       }
     }
 
@@ -289,26 +321,79 @@ export class ProxyHub {
   }
 
   private removeSocket(socket: WebSocket): void {
+    let disconnectedActor: { actor: string; id?: string } | null = null;
+    
     for (const [agentId, ws] of this.agents.entries()) {
       if (ws === socket) {
         this.agents.delete(agentId);
+        disconnectedActor = { actor: 'agent', id: agentId };
+        break;
       }
     }
 
     for (const [token, ws] of this.appSocketsByToken.entries()) {
       if (ws === socket) {
         this.appSocketsByToken.delete(token);
+        disconnectedActor = { actor: 'app', id: token };
+        break;
       }
     }
 
     for (const [token, ws] of this.gatewaySocketsByToken.entries()) {
       if (ws === socket) {
         this.gatewaySocketsByToken.delete(token);
+        disconnectedActor = { actor: 'gateway', id: token };
+        break;
       }
+    }
+
+    if (disconnectedActor) {
+      this.broadcastConnectionUpdate();
+      this.logMessage('system', 'system', undefined, 
+        { type: 'disconnection', actor: disconnectedActor.actor, id: disconnectedActor.id },
+        disconnectedActor
+      );
     }
   }
 
   private normalizeToken(token?: string): string {
     return token?.trim() || DEFAULT_TOKEN;
+  }
+
+  private broadcastConnectionUpdate(): void {
+    const update = {
+      type: 'connection_update',
+      timestamp: Date.now(),
+      actor: 'system',
+      connectedAgents: Array.from(this.agents.keys()),
+      connectedApps: Array.from(this.appSocketsByToken.keys()),
+      monitoringClients: this.monitoringSockets.size
+    };
+
+    this.monitoringSockets.forEach(socket => {
+      this.sendJson(socket, update);
+    });
+  }
+
+  private logMessage(
+    direction: 'incoming' | 'outgoing' | 'system',
+    actor: 'agent' | 'app' | 'system',
+    agentId: string | undefined,
+    payload: unknown,
+    raw: unknown
+  ): void {
+    const logEntry = {
+      type: 'message_log',
+      timestamp: Date.now(),
+      direction,
+      actor,
+      agentId,
+      payload,
+      raw
+    };
+
+    this.monitoringSockets.forEach(socket => {
+      this.sendJson(socket, logEntry);
+    });
   }
 }

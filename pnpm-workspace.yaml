@@ -10,3 +10,4 @@ packages:
 
 ignoredBuiltDependencies:
   - esbuild
+  - workerd
