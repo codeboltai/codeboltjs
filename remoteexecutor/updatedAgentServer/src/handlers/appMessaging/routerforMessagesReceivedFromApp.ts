@@ -29,7 +29,7 @@ export class AppMessageRouter {
   /**
    * Handle responses from apps (responding back to agent requests)
    */
-  handleAppResponse(app: ClientConnection, message: UserMessage): void {
+  handleAppResponse(app: ClientConnection, message: UserMessage ): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling app response: ${message.type} from ${app.id}`));
 
     // Check if this message has a requestId and could be a response to a pending request
