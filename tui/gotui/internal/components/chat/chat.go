@@ -44,10 +44,11 @@ type Chat struct {
 	hoverButton           bool
 
 	// Chat area dimensions
-	chatHeight   int
-	textHeight   int
-	sidebarWidth int
-	contentWidth int // effective content width for padding/fill
+	chatHeight        int
+	textHeight        int
+	rightSidebarWidth int
+	contentWidth      int // effective content width for padding/fill
+	rightPanels       []infoPanel
 }
 
 // Conversation represents a single chat history thread.
@@ -70,6 +71,11 @@ type conversationRegion struct {
 type verticalRegion struct {
 	yStart int
 	yEnd   int
+}
+
+type infoPanel struct {
+	title string
+	lines []string
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -104,9 +110,17 @@ func New() *Chat {
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
 		focused:               true,
-		sidebarWidth:          30, // Right sidebar width
-		textHeight:            3,  // Match input height exactly
+		rightSidebarWidth:     28,
+		textHeight:            3, // Match input height exactly
 		conversationListWidth: 28,
+		rightPanels: []infoPanel{
+			{title: "Subagents", lines: []string{"• No subagents running"}},
+			{title: "Todo", lines: []string{"[ ] Draft plan", "[ ] Implement feature", "[ ] Review changes"}},
+			{title: "MCP", lines: []string{"weather: connected", "puppeteer: disconnected"}},
+			{title: "Modified Files", lines: []string{"(none)"}},
+			{title: "Next Scheduled Tasks", lines: []string{"No upcoming tasks"}},
+			{title: "Context", lines: []string{"Tokens: 0 / 128K", "Uptime: 0m"}},
+		},
 	}
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 
@@ -172,6 +186,9 @@ func (c *Chat) SetSize(width, height int) {
 		maxConversationWidth     = 36
 		defaultConversationWidth = 28
 		minMainWidth             = 40
+		minRightWidth            = 18
+		maxRightWidth            = 32
+		defaultRightWidth        = 26
 	)
 
 	// Decide whether we have enough space to render the conversation list
@@ -194,14 +211,44 @@ func (c *Chat) SetSize(width, height int) {
 		}
 	}
 
-	separatorCount := 0
+	leftSeparator := 0
 	if c.conversationListWidth > 0 {
-		separatorCount = 1
+		leftSeparator = 1
 	}
-	availableForMain := width - c.conversationListWidth - separatorCount
+
+	availableAfterLeft := width - c.conversationListWidth - leftSeparator
+	if availableAfterLeft < 0 {
+		availableAfterLeft = 0
+	}
+
+	maxAllowedRight := availableAfterLeft - minMainWidth - 1
+	rightWidth := 0
+	if maxAllowedRight >= minRightWidth {
+		desired := c.rightSidebarWidth
+		if desired == 0 {
+			desired = defaultRightWidth
+		}
+		upper := maxAllowedRight
+		if upper > maxRightWidth {
+			upper = maxRightWidth
+		}
+		if upper < minRightWidth {
+			upper = minRightWidth
+		}
+		rightWidth = clampInt(desired, minRightWidth, upper)
+	}
+
+	rightSeparator := 0
+	if rightWidth > 0 {
+		rightSeparator = 1
+	}
+
+	availableForMain := availableAfterLeft - rightWidth - rightSeparator
 	if availableForMain < 0 {
 		availableForMain = 0
 	}
+
+	c.rightSidebarWidth = rightWidth
 	c.contentWidth = availableForMain
 
 	// Update input (exact size, no internal padding)
@@ -702,11 +749,17 @@ func (c *Chat) View() string {
 
 	separatorCount := 0
 	if convoWidth > 0 {
-		separatorCount = 1
+		separatorCount++
+	}
+	rightSidebar := ""
+	rightWidth := c.rightSidebarWidth
+	if rightWidth > 0 {
+		separatorCount++
+		rightSidebar = c.renderRightSidebar(theme)
 	}
 	chatWidth := c.contentWidth
 	if chatWidth <= 0 {
-		chatWidth = mainWidth - convoWidth - separatorCount
+		chatWidth = mainWidth - convoWidth - rightWidth - separatorCount
 	}
 	if chatWidth < 0 {
 		chatWidth = 0
@@ -717,7 +770,7 @@ func (c *Chat) View() string {
 		leftSidebar = c.renderConversationList()
 	}
 
-	layout := c.composeLayout(theme, leftSidebar, chatArea)
+	layout := c.composeLayout(theme, leftSidebar, chatArea, rightSidebar)
 
 	if c.commandPalette.IsVisible() {
 		return c.commandPalette.View(mainWidth, c.height)
@@ -740,11 +793,15 @@ func (c *Chat) GetMainWidth() int {
 
 // GetSidebarWidth returns the sidebar width
 func (c *Chat) GetSidebarWidth() int {
-	totalWidth := c.width + c.sidebarWidth + 1
+	width := c.rightSidebarWidth
+	if width <= 0 {
+		return 0
+	}
+	totalWidth := c.width + width + 1
 	if totalWidth < 60 {
 		return 0
 	}
-	return c.sidebarWidth
+	return width
 }
 
 func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
@@ -813,9 +870,12 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 	if mainWidth <= 0 {
 		separatorCount := 0
 		if c.conversationListWidth > 0 {
-			separatorCount = 1
+			separatorCount++
 		}
-		mainWidth = c.width - c.conversationListWidth - separatorCount
+		if c.rightSidebarWidth > 0 {
+			separatorCount++
+		}
+		mainWidth = c.width - c.conversationListWidth - c.rightSidebarWidth - separatorCount
 	}
 
 	chatWidth := mainWidth
@@ -847,8 +907,68 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 		Render(lipgloss.JoinVertical(lipgloss.Left, chatHistory, inputArea))
 }
 
-func (c *Chat) composeLayout(theme styles.Theme, leftSidebar, chatArea string) string {
-	segments := make([]string, 0, 3)
+func (c *Chat) renderRightSidebar(theme styles.Theme) string {
+	if c.rightSidebarWidth <= 0 || len(c.rightPanels) == 0 {
+		return ""
+	}
+
+	panelWidth := c.rightSidebarWidth
+	base := lipgloss.NewStyle().
+		Width(panelWidth).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(theme.Border).
+		Background(theme.Surface).
+		Padding(0, 1)
+
+	titleStyle := lipgloss.NewStyle().
+		Foreground(theme.Primary).
+		Bold(true)
+
+	contentStyle := lipgloss.NewStyle().
+		Foreground(theme.Foreground)
+
+	mutedStyle := lipgloss.NewStyle().
+		Foreground(theme.Muted)
+
+	successStyle := lipgloss.NewStyle().
+		Foreground(theme.Success)
+
+	errorStyle := lipgloss.NewStyle().
+		Foreground(theme.Error)
+
+	var sections []string
+	for _, panel := range c.rightPanels {
+		lines := make([]string, 0, len(panel.lines)+1)
+		lines = append(lines, titleStyle.Render(panel.title))
+		for _, line := range panel.lines {
+			trimmed := strings.TrimSpace(line)
+			lower := strings.ToLower(trimmed)
+			styled := contentStyle.Render(line)
+			switch {
+			case trimmed == "":
+				styled = mutedStyle.Render(line)
+			case strings.Contains(lower, "disconnected") || strings.Contains(lower, "missing") || strings.Contains(lower, "error"):
+				styled = errorStyle.Render(line)
+			case strings.Contains(lower, "connected"):
+				styled = successStyle.Render(line)
+			}
+			lines = append(lines, styled)
+		}
+		sectionView := base.Render(lipgloss.JoinVertical(lipgloss.Left, lines...))
+		sections = append(sections, sectionView)
+	}
+
+	sidebar := lipgloss.JoinVertical(lipgloss.Left, sections...)
+
+	return lipgloss.NewStyle().
+		Width(panelWidth).
+		Height(c.chatHeight).
+		Background(theme.Background).
+		Render(sidebar)
+}
+
+func (c *Chat) composeLayout(theme styles.Theme, leftSidebar, chatArea, rightSidebar string) string {
+	segments := make([]string, 0, 5)
 
 	if leftSidebar != "" {
 		segments = append(segments, leftSidebar)
@@ -856,6 +976,11 @@ func (c *Chat) composeLayout(theme styles.Theme, leftSidebar, chatArea string) s
 	}
 
 	segments = append(segments, chatArea)
+
+	if rightSidebar != "" {
+		segments = append(segments, layoutSeparator(theme))
+		segments = append(segments, rightSidebar)
+	}
 
 	return lipgloss.NewStyle().
 		Width(c.width).
