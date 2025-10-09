@@ -15,30 +15,13 @@ export const selectedAgentSchema = z.object({
 export const confirmationResponseSchema = z.object({
   type: z.literal('confirmationResponse'),
   userMessage: z.string(),
-  currentFile: z.string(),
-  mentionedFiles: z.array(z.string()),
-  mentionedFolders: z.array(z.string()),
-  actions: z.array(z.any()), // Define specific action schema if needed
-  mentionedAgents: z.array(z.string()),
-  selectedAgent: selectedAgentSchema,
-  universalAgentLastMessage: z.string(),
-  mentionedMultiFile: z.array(z.string()),
-  uploadedImages: z.array(z.string()),
-  selection: z.any().nullable(), // Define specific selection schema if needed
-  controlFiles: z.array(z.string()),
-  feedbackMessage: z.string(),
-  links: z.array(z.string()),
-  terminalMessage: z.string(),
-  messageId: z.string(),
-  threadId: z.string(),
-  templateType: z.string(),
-  processId: z.string(),
-  mentionedMCPs: z.array(z.string()),
-  mentionedDocs: z.array(z.string()),
-  activeFile: z.string(),
-  openedFiles: z.array(z.string()),
   action: z.string(),
   path: z.string(),
+  messageId: z.string(),
+  threadId: z.string(),
+  processId: z.string(),
+  agentInstanceId: z.string(),
+  agentId: z.string(),
 });
 
 // TypeScript type
