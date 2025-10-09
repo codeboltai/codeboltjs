@@ -1,11 +1,11 @@
 import {
   ClientConnection,
   formatLogMessage
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService';
+} from '../types'; 
+import { NotificationService } from '../services/NotificationService';
 import type { ProjectEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { SendMessageToApp } from '../appMessaging/sendMessageToApp';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
 
 /**
  * Handles project events with notifications

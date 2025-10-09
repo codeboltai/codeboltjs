@@ -22,6 +22,14 @@ func NewTemplateManager() *TemplateManager {
 	tm.RegisterTemplate(NewSystemTemplate())
 	tm.RegisterTemplate(NewErrorTemplate())
 
+	// Register file operation templates
+	tm.RegisterTemplate(NewReadFileTemplate())
+	tm.RegisterTemplate(NewWriteFileTemplate())
+	tm.RegisterTemplate(NewFileOperationTemplate())
+
+	// Register tool execution template
+	tm.RegisterTemplate(NewToolExecutionTemplate())
+
 	// Set default template
 	tm.defaultTemplate = NewDefaultTemplate()
 

@@ -32,7 +32,7 @@ import {
   CodeUtilsHandler,
   UtilsHandler,
   CodebaseSearchHandler
-} from '../handlerForMessagesRequestFromAgent/index.js';
+} from '../../localAgentRequestFulfilment/index.js';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';

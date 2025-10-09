@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -12,10 +13,12 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	zone "github.com/lrstanley/bubblezone"
 	"golang.org/x/term"
 
 	"gotui/internal/components/chat"
 	"gotui/internal/components/helpbar"
+	"gotui/internal/layout/panels"
 	"gotui/internal/layout/sidebar"
 	"gotui/internal/styles"
 	"gotui/internal/wsclient"
@@ -27,6 +30,22 @@ type Config struct {
 	Port int
 }
 
+const tabBarHeight = 2
+
+type tabID int
+
+const (
+	tabChat tabID = iota
+	tabLogs
+	tabGit
+)
+
+type tabRegion struct {
+	id    tabID
+	start int
+	end   int
+}
+
 // Model represents the main application model
 type Model struct {
 	// Configuration
@@ -36,9 +55,10 @@ type Model struct {
 	wsClient *wsclient.Client
 
 	// Components
-	chat    *chat.Chat
-	sidebar *sidebar.Sidebar
-	helpBar *helpbar.HelpBar
+	chat      *chat.Chat
+	sidebar   *sidebar.Sidebar
+	helpBar   *helpbar.HelpBar
+	gitPanels *panels.GitPanels
 
 	// State
 	retryCount  int
@@ -47,8 +67,11 @@ type Model struct {
 	chatFocused bool
 
 	// Layout
-	width  int
-	height int
+	width      int
+	height     int
+	tabs       []string
+	activeTab  tabID
+	tabRegions []tabRegion
 
 	// Key mappings
 	keyMap helpbar.KeyMap
@@ -63,6 +86,8 @@ func NewModel(cfg Config) *Model {
 	chatComp := chat.New()
 	sidebarComp := sidebar.New(wsClient, cfg.Host, cfg.Port)
 	helpBarComp := helpbar.New()
+	gitPanels := panels.NewGitPanels()
+	tabs := []string{"Chat", "Logs", "Git"}
 
 	// Set up WebSocket logging and notifications
 	wsClient.SetLogger(func(msg string) {
@@ -83,6 +108,9 @@ func NewModel(cfg Config) *Model {
 		chat:        chatComp,
 		sidebar:     sidebarComp,
 		helpBar:     helpBarComp,
+		gitPanels:   gitPanels,
+		tabs:        tabs,
+		activeTab:   tabChat,
 		chatFocused: true,
 		keyMap:      helpbar.DefaultKeyMap(),
 	}
@@ -109,6 +137,8 @@ func NewModel(cfg Config) *Model {
 	sidebarComp.LogsPanel().AddLine("📡 Client mode - connecting to server")
 	sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🔗 Target server: %s:%d", cfg.Host, cfg.Port))
 	sidebarComp.LogsPanel().AddLine("ℹ️  Server should be started by codebolt-code command")
+
+	m.refreshGitPanels()
 
 	return m
 }
@@ -163,23 +193,21 @@ func (m *Model) updateAllComponents() {
 			helpBarHeight = 0
 		}
 
-		// Calculate available height for chat and sidebar
-		availableHeight := m.height - helpBarHeight
+		contentHeight := m.height - helpBarHeight - tabBarHeight
+		if contentHeight < 1 {
+			contentHeight = 1
+		}
 
-		// First, set the chat component's total width so it can calculate internal layout
-		m.chat.SetSize(m.width, availableHeight)
+		m.chat.SetSize(m.width, contentHeight)
+		m.sidebar.SetSize(m.width, contentHeight)
+		if m.gitPanels != nil {
+			m.gitPanels.SetSize(m.width, contentHeight)
+		}
 
-		// Now get the calculated widths
-		sidebarWidth := m.chat.GetSidebarWidth()
-
-		// Update sidebar component
-		m.sidebar.SetSize(sidebarWidth, availableHeight)
-
-		// Update help bar
 		m.helpBar.SetSize(m.width, helpBarHeight)
 
-		log.Printf("updateAllComponents: chat=%dx%d, sidebar=%dx%d, helpbar=%dx%d",
-			m.width, availableHeight, sidebarWidth, availableHeight, m.width, helpBarHeight)
+		log.Printf("updateAllComponents: contentHeight=%d helpbar=%d tab=%d",
+			contentHeight, helpBarHeight, tabBarHeight)
 	}
 }
 
@@ -252,7 +280,53 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.updateLayout()
 
+	case tea.MouseClickMsg:
+		mouse := msg.Mouse()
+		if mouse.Y <= 1 {
+			if target, ok := m.tabIDForX(mouse.X); ok {
+				if cmd := m.switchTab(target); cmd != nil {
+					return m, cmd
+				}
+				return m, nil
+			}
+		}
+
 	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keyMap.NextTab):
+			if cmd := m.switchTab(m.nextTabID()); cmd != nil {
+				return m, cmd
+			}
+			return m, nil
+		case key.Matches(msg, m.keyMap.PrevTab):
+			if cmd := m.switchTab(m.prevTabID()); cmd != nil {
+				return m, cmd
+			}
+			return m, nil
+		case key.Matches(msg, m.keyMap.TabChat):
+			if cmd := m.switchTab(tabChat); cmd != nil {
+				return m, cmd
+			}
+			return m, nil
+		case key.Matches(msg, m.keyMap.TabLogs):
+			if cmd := m.switchTab(tabLogs); cmd != nil {
+				return m, cmd
+			}
+			return m, nil
+		case key.Matches(msg, m.keyMap.TabGit):
+			if cmd := m.switchTab(tabGit); cmd != nil {
+				return m, cmd
+			}
+			return m, nil
+		}
+
+		if m.chat != nil && m.activeTab == tabChat {
+			if key.Matches(msg, m.keyMap.ShowCommands) {
+				m.chat.ToggleCommandPalette()
+				return m, nil
+			}
+		}
+
 		switch {
 		case key.Matches(msg, m.keyMap.Quit):
 			return m, tea.Quit
@@ -260,8 +334,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpBar.Toggle()
 			m.updateLayout()
 		case key.Matches(msg, m.keyMap.FocusChat):
-			m.toggleChatFocus()
+			if m.activeTab == tabChat {
+				m.toggleChatFocus()
+			}
 		}
+
+	case chat.ModelSelectedMsg:
+		m.sidebar.AgentPanel().AddLine(fmt.Sprintf("🤖 Model selected: %s", msg.Option.Name))
+		m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Active model set to %s (%s)", msg.Option.Name, msg.Option.Provider))
 	}
 
 	// Pass messages to components
@@ -271,7 +351,213 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmd = m.sidebar.Update(msg)
 	cmds = append(cmds, cmd)
 
+	if m.gitPanels != nil {
+		if gitCmd := m.gitPanels.Update(msg); gitCmd != nil {
+			cmds = append(cmds, gitCmd)
+		}
+	}
+
 	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) helpBarHeight() int {
+	if m.helpBar == nil || !m.helpBar.IsVisible() {
+		return 0
+	}
+	return 3
+}
+
+func (m *Model) renderTabs() string {
+	if len(m.tabs) == 0 {
+		return ""
+	}
+
+	theme := styles.CurrentTheme()
+
+	activeStyle := lipgloss.NewStyle().
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(theme.Primary).
+		BorderBottom(false).
+		Padding(0, 2).
+		Background(theme.SurfaceHigh).
+		Foreground(theme.Primary).
+		Bold(true)
+
+	inactiveStyle := lipgloss.NewStyle().
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(theme.Border).
+		BorderBottom(true).
+		Padding(0, 2).
+		Background(theme.Surface).
+		Foreground(theme.Muted)
+
+	var rendered []string
+	m.tabRegions = m.tabRegions[:0]
+	cursor := 0
+	for idx, label := range m.tabs {
+		style := inactiveStyle
+		if idx == int(m.activeTab) {
+			style = activeStyle
+		}
+		renderedTab := style.Render(label)
+		tabWidth := lipgloss.Width(renderedTab)
+		if tabWidth < 0 {
+			tabWidth = 0
+		}
+		m.tabRegions = append(m.tabRegions, tabRegion{id: tabID(idx), start: cursor, end: cursor + tabWidth})
+		rendered = append(rendered, renderedTab)
+		cursor += tabWidth
+	}
+
+	row := lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+	rowWidth := lipgloss.Width(row)
+	if rowWidth < m.width {
+		padding := lipgloss.NewStyle().
+			Width(m.width - rowWidth).
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderBottom(true).
+			BorderForeground(theme.Border).
+			Render("")
+		row = lipgloss.JoinHorizontal(lipgloss.Top, row, padding)
+	}
+
+	separatorWidth := m.width
+	if separatorWidth < 0 {
+		separatorWidth = 0
+	}
+	separator := lipgloss.NewStyle().
+		Width(separatorWidth).
+		Foreground(theme.Border).
+		Render(strings.Repeat("─", separatorWidth))
+
+	bar := lipgloss.JoinVertical(lipgloss.Left, row, separator)
+
+	return lipgloss.NewStyle().
+		Width(m.width).
+		Height(tabBarHeight).
+		Background(theme.Background).
+		Render(bar)
+}
+
+func (m *Model) renderActiveTab(theme styles.Theme) string {
+	contentHeight := m.height - m.helpBarHeight() - tabBarHeight
+	if contentHeight < 1 {
+		contentHeight = 1
+	}
+
+	var view string
+	switch m.activeTab {
+	case tabChat:
+		view = m.chat.View()
+	case tabLogs:
+		view = m.sidebar.View()
+	case tabGit:
+		if m.gitPanels != nil {
+			view = m.gitPanels.View()
+		}
+	}
+
+	if view == "" {
+		placeholder := lipgloss.NewStyle().
+			Width(m.width).
+			Height(contentHeight).
+			Align(lipgloss.Center, lipgloss.Center).
+			Foreground(theme.Muted).
+			Render("No content")
+		view = placeholder
+	}
+
+	return lipgloss.NewStyle().
+		Width(m.width).
+		Height(contentHeight).
+		Background(theme.Background).
+		Render(view)
+}
+
+func (m *Model) nextTabID() tabID {
+	if len(m.tabs) == 0 {
+		return m.activeTab
+	}
+	return tabID((int(m.activeTab) + 1) % len(m.tabs))
+}
+
+func (m *Model) prevTabID() tabID {
+	if len(m.tabs) == 0 {
+		return m.activeTab
+	}
+	return tabID((int(m.activeTab) - 1 + len(m.tabs)) % len(m.tabs))
+}
+
+func (m *Model) tabIDForX(x int) (tabID, bool) {
+	for _, region := range m.tabRegions {
+		if x >= region.start && x < region.end {
+			return region.id, true
+		}
+	}
+	return 0, false
+}
+
+func (m *Model) switchTab(target tabID) tea.Cmd {
+	if target < 0 || int(target) >= len(m.tabs) {
+		return nil
+	}
+	if target == m.activeTab {
+		return nil
+	}
+
+	var cmds []tea.Cmd
+
+	if m.activeTab == tabChat && target != tabChat {
+		m.chatFocused = false
+		m.chat.Blur()
+	}
+
+	m.activeTab = target
+
+	if target == tabChat {
+		m.chatFocused = true
+		if cmd := m.chat.Focus(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	if target == tabGit {
+		m.refreshGitPanels()
+	}
+
+	m.updateAllComponents()
+
+	return tea.Batch(cmds...)
+}
+
+func (m *Model) refreshGitPanels() {
+	if m.gitPanels == nil {
+		return
+	}
+
+	status := m.runGitCommand("status", "--short", "--branch")
+	commits := m.runGitCommand("log", "--oneline", "-n", "5")
+
+	m.gitPanels.SetStatus(status)
+	m.gitPanels.SetCommits(commits)
+}
+
+func (m *Model) runGitCommand(args ...string) []string {
+	cmd := exec.Command("git", args...)
+	output, err := cmd.CombinedOutput()
+	trimmed := strings.TrimSpace(string(output))
+	if err != nil {
+		if trimmed == "" {
+			return []string{fmt.Sprintf("Error: %v", err)}
+		}
+		lines := strings.Split(trimmed, "\n")
+		lines = append(lines, fmt.Sprintf("Error: %v", err))
+		return lines
+	}
+	if trimmed == "" {
+		return []string{"(no output)"}
+	}
+	return strings.Split(trimmed, "\n")
 }
 
 // executeCommand executes the given command
@@ -403,34 +689,26 @@ func (m *Model) View() string {
 
 	theme := styles.CurrentTheme()
 
-	// Main content (chat + separator + sidebar)
-	separator := lipgloss.NewStyle().
-		Width(1).
-		Height(m.height).
-		Background(theme.Background).
-		Foreground(theme.Border).
-		Render("│")
+	tabBar := m.renderTabs()
+	content := m.renderActiveTab(theme)
 
-	mainContent := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		m.chat.View(),
-		separator,
-		m.sidebar.View(),
+	view := lipgloss.JoinVertical(
+		lipgloss.Left,
+		tabBar,
+		content,
 	)
 
-	// Full view with help bar and guaranteed background fill
-	fullView := lipgloss.JoinVertical(
-		lipgloss.Left,
-		mainContent,
-		lipgloss.NewStyle().
+	if m.helpBarHeight() > 0 {
+		help := lipgloss.NewStyle().
 			Width(m.width).
 			Background(theme.Background).
-			Render(m.helpBar.View()),
-	)
+			Render(m.helpBar.View())
+		view = lipgloss.JoinVertical(lipgloss.Left, view, help)
+	}
 
-	return lipgloss.NewStyle().
+	return zone.Scan(lipgloss.NewStyle().
 		Width(m.width).
 		Height(m.height).
 		Background(theme.Background).
-		Render(fullView)
+		Render(view))
 }

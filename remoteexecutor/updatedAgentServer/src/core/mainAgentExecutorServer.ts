@@ -7,6 +7,7 @@ import { ChildAgentProcessManager } from '../utils/childAgentManager/childAgentP
 import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 import { RemoteProxyClient } from './remote/remoteProxyClient';
+import { logger } from '../utils/logger';
 
 /**
  * Main Docker Server class
@@ -43,13 +44,7 @@ export class AgentExecutorServer {
           reconnectDelay: this.config.reconnectDelay
         });
       } else {
-        console.warn(
-          formatLogMessage(
-            'warn',
-            'DockerServer',
-            'Remote proxy enabled without a URL. Skipping remote proxy initialization.'
-          )
-        );
+        logger.warn('Remote proxy enabled without a URL. Skipping remote proxy initialization.');
       }
     }
   }
@@ -60,16 +55,16 @@ export class AgentExecutorServer {
   public async start(): Promise<void> {
     return new Promise((resolve) => {
       this.server.listen(this.config.port, this.config.host, async () => {
-        console.log(formatLogMessage('info', 'DockerServer', `Console Agent Server is running on port ${this.config.port}`));
-        console.log(formatLogMessage('info', 'DockerServer', `WebSocket server is ready for connections`));
-        console.log(formatLogMessage('info', 'DockerServer', `Health check available at http://${this.config.host}:${this.config.port}/health`));
-        console.log(formatLogMessage('info', 'DockerServer', `Connection info available at http://${this.config.host}:${this.config.port}/connections`));
+        logger.info(`Console Agent Server is running on port ${this.config.port}`);
+        logger.info(`WebSocket server is ready for connections`);
+        logger.info(`Health check available at http://${this.config.host}:${this.config.port}/health`);
+        logger.info(`Connection info available at http://${this.config.host}:${this.config.port}/connections`);
         
         // Start agent if agent type and detail are provided
         if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
             const { agentType, agentDetail, prompt } = this.cliOptions!;
             
-            console.log(formatLogMessage('info', 'DockerServer', `Starting agent: type=${agentType}, detail=${agentDetail}`));
+            logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
             const success = await this.childAgentProcessManager.startAgentByType(
               agentType!,
               agentDetail!,
@@ -84,7 +79,7 @@ export class AgentExecutorServer {
                   this.sendMessageToAgent.sendInitialMessage(prompt);
               }
             } else {
-              console.error(formatLogMessage('error', 'DockerServer', 'Failed to start agent'));
+              logger.error('Failed to start agent');
             }
         }
         
@@ -92,7 +87,7 @@ export class AgentExecutorServer {
           try {
             this.remoteProxyClient.start();
           } catch (error) {
-            console.error(formatLogMessage('error', 'DockerServer', `Failed to start remote proxy client: ${error}`));
+            logger.logError(error as Error, 'Failed to start remote proxy client');
           }
         }
 
@@ -106,7 +101,7 @@ export class AgentExecutorServer {
    * Stop the server
    */
   public async stop(): Promise<void> {
-    console.log(formatLogMessage('info', 'DockerServer', 'Stopping Docker Server...'));
+    logger.info('Stopping Docker Server...');
     
     // Stop managed processes
     await this.childAgentProcessManager.stopAll();
@@ -121,7 +116,7 @@ export class AgentExecutorServer {
     // Close HTTP server
     this.server.close();
     
-    console.log(formatLogMessage('info', 'DockerServer', 'Docker Server stopped'));
+    logger.info('Docker Server stopped');
   }
 
   /**

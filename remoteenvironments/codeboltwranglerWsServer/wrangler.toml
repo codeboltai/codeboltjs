@@ -1,12 +1,32 @@
 name = "codebolt-wrangler-ws"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
+[vars]
+# Environment variables
+ENVIRONMENT = "development"
+
+# Durable Objects configuration
 [durable_objects]
 bindings = [
   { name = "PROXY_HUB", class_name = "ProxyHub" }
 ]
 
+# Migration configuration
 [[migrations]]
 tag = "v1"
 new_classes = ["ProxyHub"]
+
+# Environment-specific configurations
+[env.staging]
+name = "codebolt-wrangler-ws-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "codebolt-wrangler-ws-production"
+vars = { ENVIRONMENT = "production" }
+
+# Limits and configuration
+[limits]
+cpu_ms = 50000

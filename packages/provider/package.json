@@ -35,19 +35,18 @@
   },
   "dependencies": {
     "@codebolt/types": "workspace:*",
-    "ws": "^8.18.0"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
     "@types/ws": "^8.5.13",
     "eslint": "^9.9.0",
     "typescript": "^5.4.5",
-    "jest": "^29.7.0",
+    "jest": "^30.2.0",
     "@codebolt/codeboltjs": "workspace:*"
   },
   "peerDependencies": {
     "@codebolt/codeboltjs": "workspace:*"
-   
   },
   "exports": {
     ".": {

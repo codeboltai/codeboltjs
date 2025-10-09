@@ -2,17 +2,17 @@ import {
   ClientConnection,
   formatLogMessage,
   isValidFilePath
-} from './../../types';
-import { NotificationService } from '../../services/NotificationService.js';
+} from '../types';
+import { NotificationService } from '../services/NotificationService.js';
 import type { McpEvent, McpNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
-import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
+import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 // import { listFiles, parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
-import { detectLanguage } from '../../utils/detectLanguage.js';
+import { detectLanguage } from '../utils/detectLanguage.js'; 
 
 // Import handlers statically instead of using dynamic imports
 import { CodebaseSearchHandler } from './codebaseSearchHandler.js';

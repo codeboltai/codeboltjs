@@ -5,6 +5,8 @@ import { spawn, ChildProcess } from 'child_process';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { Command } from 'commander';
+import { logger, LogLevel, Logger } from './utils/logger';
+import { resolve } from 'path';
 
 /**
  * Setup CLI with commander
@@ -18,7 +20,7 @@ function setupCLI(): AgentCliOptions {
     .version('1.0.0')
     .option('--noui', 'start server only (no TUI interface)')
     .option('--host <host>', 'server host', 'localhost')
-    .option('--port <port>', 'server port', (value) => parseInt(value), 3001)
+    .option('--port <port>', 'server port', (value) => Number(value), 3001)
     .option('-v, --verbose', 'enable verbose logging', false)
     .option('--remote', 'enable remote wrangler proxy connection')
     .option('--remote-url <url>', 'wrangler proxy WebSocket URL')
@@ -67,6 +69,19 @@ function setupCLI(): AgentCliOptions {
 async function main(): Promise<void> {
   const options = setupCLI();
   try {
+    // Initialize logger with system /tmp path and appropriate log level
+    const loggerInstance = Logger.getInstance({
+      logFilePath: '/tmp/agent-server.log',
+      logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO
+    });
+    
+    // Test log file writing
+    if (!loggerInstance.testLogWrite()) {
+      console.warn('Warning: Could not write to log file. Console logging only.');
+    } else {
+      console.log(`Log file: ${loggerInstance.getLogFilePath()}`);
+    }
+    
     // Get configuration
     const config = getServerConfig();
     
@@ -74,52 +89,52 @@ async function main(): Promise<void> {
     if (options.host) config.host = options.host;
     if (options.port) config.port = options.port;
     
-    console.log(formatLogMessage('info', 'Main', 'Starting Codebolt Code...'));
+    logger.info('Starting Codebolt Code...');
     
     if (options.verbose) {
-      console.log(formatLogMessage('info', 'Main', `CLI Options: ${JSON.stringify(options, null, 2)}`));
-      console.log(formatLogMessage('info', 'Main', `Server Configuration: ${JSON.stringify(config, null, 2)}`));
+      logger.debug('CLI Options', options);
+      logger.debug('Server Configuration', config);
     }
     
-    console.log(formatLogMessage('info', 'Main', `UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`));
-    console.log(formatLogMessage('info', 'Main', `Server: ${config.host}:${config.port}`));
+    logger.info(`UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`);
+    logger.info(`Server: ${config.host}:${config.port}`);
 
     if (options.remote) {
-      console.log(formatLogMessage('info', 'Main', `Remote proxy enabled${options.remoteUrl ? ` -> ${options.remoteUrl}` : ''}`));
+      logger.info(`Remote proxy enabled${options.remoteUrl ? ` -> ${options.remoteUrl}` : ''}`);
       if (!options.remoteUrl) {
-        console.warn(formatLogMessage('warn', 'Main', 'Remote proxy enabled but no URL provided. Set --remote-url or WRANGLER_PROXY_URL.'));
+        logger.warn('Remote proxy enabled but no URL provided. Set --remote-url or WRANGLER_PROXY_URL.');
       }
       if (options.appToken) {
-        console.log(formatLogMessage('info', 'Main', `App token configured for remote proxy`));
+        logger.info('App token configured for remote proxy');
       }
     }
     
     // Log agent configuration if provided
     if (options.agentType && options.agentDetail) {
-      console.log(formatLogMessage('info', 'Main', `Agent Type: ${options.agentType}`));
-      console.log(formatLogMessage('info', 'Main', `Agent Detail: ${options.agentDetail}`));
+      logger.info(`Agent Type: ${options.agentType}`);
+      logger.info(`Agent Detail: ${options.agentDetail}`);
       
       // Validate agent type
       const validTypes = ['marketplace', 'local-zip', 'local-path', 'server-zip'];
       if (!validTypes.includes(options.agentType)) {
-        console.error(formatLogMessage('error', 'Main', `Invalid agent type: ${options.agentType}. Valid types: ${validTypes.join(', ')}`));
+        logger.error(`Invalid agent type: ${options.agentType}. Valid types: ${validTypes.join(', ')}`);
         process.exit(1);
       }
     } else if (options.agentType || options.agentDetail) {
-      console.error(formatLogMessage('error', 'Main', 'Both --agent-type and --agent-detail must be provided together'));
+      logger.error('Both --agent-type and --agent-detail must be provided together');
       process.exit(1);
     }
     
     // Log prompt if provided
     if (options.prompt) {
-      console.log(formatLogMessage('info', 'Main', `Initial Prompt: ${options.prompt}`));
+      logger.info(`Initial Prompt: ${options.prompt}`);
     }
     
     // Create and start server
     const server = new AgentExecutorServer(config, options);
     await server.start();
     
-    console.log(formatLogMessage('info', 'Server', `Server started successfully on ${config.host}:${config.port}`));
+    logger.info(`Server started successfully on ${config.host}:${config.port}`);
 
     // Start TUI if not disabled
     let tuiProcess: ChildProcess | null = null;
@@ -129,7 +144,7 @@ async function main(): Promise<void> {
       const gotuiPath = resolve(process.cwd(), '../../tui/gotui/gotui');
       
       if (existsSync(gotuiPath)) {
-        console.log(formatLogMessage('info', 'Main', `Starting TUI from: ${gotuiPath}`));
+        logger.info(`Starting TUI from: ${gotuiPath}`);
 
         if (process.stdout.isTTY) {
           process.stdout.write('\x1b[2J\x1b[3J\x1b[H');
@@ -142,24 +157,24 @@ async function main(): Promise<void> {
         
         if (tuiProcess) {
           tuiProcess.on('error', (error) => {
-            console.error(formatLogMessage('error', 'Main', `Failed to start TUI: ${error.message}`));
+            logger.error(`Failed to start TUI: ${error.message}`, error);
           });
           
           tuiProcess.on('exit', (code, signal) => {
             if (signal === 'SIGINT' || signal === 'SIGTERM') {
-              console.log(formatLogMessage('info', 'Main', 'TUI terminated by signal, shutting down server...'));
+              logger.info('TUI terminated by signal, shutting down server...');
               if (!isShuttingDown) {
                 shutdown();
               }
             } else if (code !== 0) {
-              console.error(formatLogMessage('error', 'Main', `TUI exited with code: ${code}`));
+              logger.error(`TUI exited with code: ${code}`);
             } else {
-              console.log(formatLogMessage('info', 'Main', 'TUI exited successfully'));
+              logger.info('TUI exited successfully');
             }
           });
         }
       } else {
-        console.error(formatLogMessage('error', 'Main', `TUI executable not found at: ${gotuiPath}`));
+        logger.error(`TUI executable not found at: ${gotuiPath}`);
       }
     }
     
@@ -170,11 +185,11 @@ async function main(): Promise<void> {
       }
       isShuttingDown = true;
       
-      console.log(formatLogMessage('info', 'Main', 'Received shutdown signal, shutting down gracefully...'));
+      logger.info('Received shutdown signal, shutting down gracefully...');
       
       // Kill TUI process if running
       if (tuiProcess && !tuiProcess.killed) {
-        console.log(formatLogMessage('info', 'Main', 'Stopping TUI process...'));
+        logger.info('Stopping TUI process...');
         tuiProcess.kill('SIGTERM');
         tuiProcess = null;
       }
@@ -189,19 +204,19 @@ async function main(): Promise<void> {
     
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error: Error): Promise<void> => {
-      console.error(formatLogMessage('error', 'Main', `Uncaught Exception: ${error}`));
+      logger.logError(error, 'Uncaught Exception');
       await server.stop();
       process.exit(1);
     });
 
     process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>): Promise<void> => {
-      console.error(formatLogMessage('error', 'Main', `Unhandled Rejection at: ${promise}, reason: ${reason}`));
+      logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, { promise, reason });
       await server.stop();
       process.exit(1);
     });
     
   } catch (error) {
-    console.error(formatLogMessage('error', 'Main', `Failed to start server: ${error}`));
+    logger.logError(error as Error, 'Failed to start server');
     process.exit(1);
   }
 }
