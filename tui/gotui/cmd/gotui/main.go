@@ -10,6 +10,7 @@ import (
 	"gotui/internal/app"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 func main() {
@@ -33,6 +34,9 @@ func main() {
 	}
 
 	log.Printf("Config: host=%s, port=%d (client mode)", cfg.Host, cfg.Port)
+
+	zone.NewGlobal()
+	defer zone.Close()
 
 	log.Printf("Creating model...")
 	m := app.NewModel(cfg)

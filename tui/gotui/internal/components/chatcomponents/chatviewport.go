@@ -61,6 +61,11 @@ func (cv *ChatViewport) SetSize(width, height int) {
 	cv.updateContent()
 }
 
+// Width returns the current viewport width.
+func (cv *ChatViewport) Width() int {
+	return cv.width
+}
+
 // AddMessage adds a message to the viewport.
 // The message type determines which template will be used for rendering.
 // Template resolution is handled automatically by the template manager.
@@ -71,7 +76,51 @@ func (cv *ChatViewport) AddMessage(msgType, content string) {
 		Timestamp: time.Now(),
 		Raw:       false,
 		Width:     cv.width,
+		Metadata:  nil,
 	})
+	cv.updateContent()
+}
+
+// AddMessageWithMetadata adds a message with metadata to the viewport.
+// The message type determines which template will be used for rendering.
+// Template resolution is handled automatically by the template manager.
+func (cv *ChatViewport) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}) {
+	cv.messages = append(cv.messages, chattemplates.MessageTemplateData{
+		Type:      msgType,
+		Content:   content,
+		Timestamp: time.Now(),
+		Raw:       false,
+		Width:     cv.width,
+		Metadata:  metadata,
+	})
+	cv.updateContent()
+}
+
+// SetMessages replaces the entire message collection shown in the viewport.
+// The provided slice is copied to avoid accidental external modification.
+func (cv *ChatViewport) SetMessages(messages []chattemplates.MessageTemplateData) {
+	if messages == nil {
+		cv.messages = nil
+	} else {
+		cv.messages = make([]chattemplates.MessageTemplateData, len(messages))
+		copy(cv.messages, messages)
+	}
+	cv.updateContent()
+}
+
+// Messages returns a copy of the currently rendered messages.
+func (cv *ChatViewport) Messages() []chattemplates.MessageTemplateData {
+	if len(cv.messages) == 0 {
+		return nil
+	}
+	result := make([]chattemplates.MessageTemplateData, len(cv.messages))
+	copy(result, cv.messages)
+	return result
+}
+
+// Clear removes all messages from the viewport.
+func (cv *ChatViewport) Clear() {
+	cv.messages = nil
 	cv.updateContent()
 }
 
@@ -120,15 +169,11 @@ func (cv *ChatViewport) View() string {
 
 	theme := styles.CurrentTheme()
 
-	// Render the viewport with proper background
 	return lipgloss.NewStyle().
 		Width(cv.width).
 		Height(cv.height).
 		Background(theme.Background).
-		Render(lipgloss.NewStyle().
-			Width(cv.width).
-			Background(theme.Background).
-			Render(cv.viewport.View()))
+		Render(cv.viewport.View())
 }
 
 // updateContent updates the viewport content with formatted messages

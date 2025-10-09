@@ -22,8 +22,14 @@ type KeyMap struct {
 	Quit         key.Binding
 	Retry        key.Binding
 	FocusChat    key.Binding
+	ShowCommands key.Binding
 	ScrollUp     key.Binding
 	ScrollDown   key.Binding
+	NextTab      key.Binding
+	PrevTab      key.Binding
+	TabChat      key.Binding
+	TabLogs      key.Binding
+	TabGit       key.Binding
 	ToggleStatus key.Binding
 	ToggleLogs   key.Binding
 	ToggleServer key.Binding
@@ -54,6 +60,30 @@ func DefaultKeyMap() KeyMap {
 		FocusChat: key.NewBinding(
 			key.WithKeys("tab"),
 			key.WithHelp("tab", "focus chat/scroll"),
+		),
+		ShowCommands: key.NewBinding(
+			key.WithKeys("ctrl+k"),
+			key.WithHelp("ctrl+k", "commands"),
+		),
+		NextTab: key.NewBinding(
+			key.WithKeys("ctrl+]"),
+			key.WithHelp("ctrl+]", "next tab"),
+		),
+		PrevTab: key.NewBinding(
+			key.WithKeys("ctrl+["),
+			key.WithHelp("ctrl+[", "prev tab"),
+		),
+		TabChat: key.NewBinding(
+			key.WithKeys("ctrl+1", "shift+1"),
+			key.WithHelp("ctrl+1/shift+1", "chat tab"),
+		),
+		TabLogs: key.NewBinding(
+			key.WithKeys("ctrl+2", "shift+2"),
+			key.WithHelp("ctrl+2/shift+2", "logs tab"),
+		),
+		TabGit: key.NewBinding(
+			key.WithKeys("ctrl+3", "shift+3"),
+			key.WithHelp("ctrl+3/shift+3", "git tab"),
 		),
 		ScrollUp: key.NewBinding(
 			key.WithKeys("up", "k"),
@@ -126,6 +156,12 @@ func (h *HelpBar) KeyBindings() []key.Binding {
 		h.keyMap.Submit,
 		h.keyMap.Newline,
 		h.keyMap.FocusChat,
+		h.keyMap.ShowCommands,
+		h.keyMap.NextTab,
+		h.keyMap.PrevTab,
+		h.keyMap.TabChat,
+		h.keyMap.TabLogs,
+		h.keyMap.TabGit,
 		h.keyMap.ScrollUp,
 		h.keyMap.ScrollDown,
 		h.keyMap.Retry,
@@ -149,8 +185,9 @@ func (h *HelpBar) View() string {
 
 	// Define help sections
 	helpSections := [][]key.Binding{
-		{h.keyMap.Submit, h.keyMap.Newline, h.keyMap.FocusChat},
+		{h.keyMap.Submit, h.keyMap.Newline, h.keyMap.FocusChat, h.keyMap.ShowCommands},
 		{h.keyMap.ScrollUp, h.keyMap.ScrollDown},
+		{h.keyMap.NextTab, h.keyMap.PrevTab, h.keyMap.TabChat, h.keyMap.TabLogs, h.keyMap.TabGit},
 		{h.keyMap.ToggleStatus, h.keyMap.ToggleLogs, h.keyMap.ToggleServer},
 		{h.keyMap.ToggleAgent, h.keyMap.ToggleNotifs},
 		{h.keyMap.Retry, h.keyMap.Help, h.keyMap.Quit},

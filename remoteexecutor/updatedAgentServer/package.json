@@ -64,16 +64,17 @@
     "cbvectordb": "^1.0.0",
     "commander": "^12.1.0",
     "express": "^5.1.0",
+    "react-devtools-core": "^7.0.0",
     "simple-git": "^3.28.0",
     "uuid": "^10.0.0",
     "web-tree-sitter": "^0.25.8",
-    "ws": "^8.18.3",
-    "react-devtools-core": "^7.0.0"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
     "@types/axios": "^0.9.36",
     "@types/express": "^5.0.0",
+    "@types/node": "^24.7.0",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^8.46.0",

@@ -14,6 +14,7 @@ import { NotificationService } from '../../services/NotificationService';
 import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
 import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';
 import { TuiMessageRouter } from '../../handlers/tuiMessaging/routerforMessageReceivedFromTui';
+import { logger } from '../../utils/logger';
 
 // Import types and constants
 import { 
@@ -96,8 +97,7 @@ export class WebSocketServer {
       }
 
       // All registration happens on connection, so just handle the message normally
-      console.log(formatLogMessage('info', 'WebSocketServer', 
-        `Processing message from ${clientId}: ${JSON.stringify(message)}`));
+      logger.logWebSocketMessage('incoming', connection.type || 'unknown', message);
   
       const connection = this.connectionManager.getConnection(clientId);
       if (!connection) {
@@ -118,15 +118,13 @@ export class WebSocketServer {
             this.tuiMessageRouter.handleTuiMessage(connection, messageWithConnection);
             break;
           default:
-            console.warn(formatLogMessage('warn', 'WebSocketServer', 
-              `Unknown connection type: ${connection.type} for ${connection.id}`));
+            logger.warn(`Unknown connection type: ${connection.type} for ${connection.id}`);
         }
       } catch (error) {
-        console.error(formatLogMessage('error', 'WebSocketServer', 
-          `Error routing message for ${connection.id}: ${error}`));
+        logger.logError(error as Error, `Error routing message for ${connection.id}`);
       }
     } catch (error) {
-      console.error(formatLogMessage('error', 'WebSocketServer', `Error parsing message: ${error}`));
+      logger.logError(error as Error, 'Error parsing message');
       this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.INVALID_MESSAGE_FORMAT);
     }
   }
@@ -146,15 +144,14 @@ export class WebSocketServer {
       });
     }
     this.connectionManager.removeConnection(clientId);
-    console.log(formatLogMessage('info', 'WebSocketServer', `Connection closed: ${clientId}`));
+    logger.logConnection('client', 'disconnected', { clientId });
   }
 
   /**
    * Handle connection error event
    */
   private handleConnectionError(clientId: string, error: Error): void {
-    console.error(formatLogMessage('error', 'WebSocketServer', 
-      `WebSocket error for client ${clientId}: ${error.message}`));
+    logger.logError(error, `WebSocket error for client ${clientId}`);
     this.connectionManager.removeConnection(clientId);
   }
 

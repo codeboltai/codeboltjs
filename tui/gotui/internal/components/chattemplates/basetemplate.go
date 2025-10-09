@@ -15,7 +15,8 @@ type MessageTemplateData struct {
 	Content   string
 	Timestamp time.Time
 	Raw       bool
-	Width     int // Available width for the message
+	Width     int                    // Available width for the message
+	Metadata  map[string]interface{} // Additional metadata for specific template types
 }
 
 // RenderedMessage represents a fully rendered message
@@ -63,11 +64,16 @@ func (bt *BaseTemplate) RenderHeader(prefix string, timestamp time.Time, width i
 
 // RenderContent processes and styles message content with proper line wrapping
 func (bt *BaseTemplate) RenderContent(content string, style lipgloss.Style, width int, theme styles.Theme) []string {
+	return bt.RenderContentWithIndent(content, style, width, theme, "  ")
+}
+
+// RenderContentWithIndent processes and styles message content with custom indentation
+func (bt *BaseTemplate) RenderContentWithIndent(content string, style lipgloss.Style, width int, theme styles.Theme, indent string) []string {
 	var lines []string
 
 	// Split content into lines and apply styling
 	contentLines := strings.Split(content, "\n")
-	maxLineWidth := width - 4
+	maxLineWidth := width - len(indent)
 
 	for _, line := range contentLines {
 		if line == "" {
@@ -87,12 +93,12 @@ func (bt *BaseTemplate) RenderContent(content string, style lipgloss.Style, widt
 			for _, word := range words {
 				if len(currentLine)+len(word)+1 > maxLineWidth {
 					if currentLine != "" {
-						styled := style.Render("  " + currentLine)
+						styled := style.Render(indent + currentLine)
 						filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
 						lines = append(lines, filled)
 						currentLine = word
 					} else {
-						styled := style.Render("  " + word)
+						styled := style.Render(indent + word)
 						filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
 						lines = append(lines, filled)
 					}
@@ -105,15 +111,47 @@ func (bt *BaseTemplate) RenderContent(content string, style lipgloss.Style, widt
 				}
 			}
 			if currentLine != "" {
-				styled := style.Render("  " + currentLine)
+				styled := style.Render(indent + currentLine)
 				filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
 				lines = append(lines, filled)
 			}
 		} else {
-			styled := style.Render("  " + line)
+			styled := style.Render(indent + line)
 			filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
 			lines = append(lines, filled)
 		}
+	}
+
+	return lines
+}
+
+// RenderCodeBlock renders content as a code block with syntax highlighting appearance
+func (bt *BaseTemplate) RenderCodeBlock(content string, language string, width int, theme styles.Theme) []string {
+	var lines []string
+
+	// Create code block style
+	codeStyle := lipgloss.NewStyle().
+		Foreground(theme.Foreground).
+		Background(theme.Surface).
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(theme.Muted)
+
+	// Split content into lines
+	contentLines := strings.Split(content, "\n")
+	maxContentWidth := width - 6 // Account for padding and borders
+
+	for _, line := range contentLines {
+		var styled string
+		if len(line) > maxContentWidth {
+			// Truncate long lines
+			truncated := line[:maxContentWidth-3] + "..."
+			styled = codeStyle.Render(" " + truncated + " ")
+		} else {
+			styled = codeStyle.Render(" " + line + " ")
+		}
+		filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+		lines = append(lines, filled)
 	}
 
 	return lines

@@ -102,6 +102,25 @@ func (ci *ChatInput) GetValue() string {
 	return strings.TrimSpace(ci.textarea.Value())
 }
 
+// RawValue returns the raw textarea content without trimming.
+func (ci *ChatInput) RawValue() string {
+	return ci.textarea.Value()
+}
+
+// SetValue replaces the current textarea content.
+func (ci *ChatInput) SetValue(value string) {
+	ci.textarea.SetValue(value)
+}
+
+// SetValueAndCursor sets the textarea value and moves the cursor to the given column.
+func (ci *ChatInput) SetValueAndCursor(value string, cursor int) {
+	ci.textarea.SetValue(value)
+	if cursor < 0 {
+		cursor = len([]rune(value))
+	}
+	ci.textarea.SetCursorColumn(cursor)
+}
+
 // Clear clears the input
 func (ci *ChatInput) Clear() {
 	ci.textarea.Reset()
