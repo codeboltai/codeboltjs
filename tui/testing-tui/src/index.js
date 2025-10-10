@@ -78,7 +78,9 @@ function sendSampleUserMessage() {
     uploadedImages: [],
     selectedAgent: {
       id: process.env.SELECTED_AGENT_ID || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9',
-      name: process.env.SELECTED_AGENT_NAME || 'Default Agent'
+      name: process.env.SELECTED_AGENT_NAME || 'Default Agent',
+      agentType: 'local-path',
+      agentDetail:'/Users/ravirawat/Documents/codeboltai/CodeBolt/.codebolt/c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9/index.js'
     },
     messageId: uuidv4(),
     threadId: uuidv4()

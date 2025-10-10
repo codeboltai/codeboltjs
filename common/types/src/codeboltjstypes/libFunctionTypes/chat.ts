@@ -46,7 +46,7 @@ export interface UserMessage {
 // Flattened UserMessage structure as used in SDK functions
 export interface FlatUserMessage {
   userMessage: string;
-  currentFile: string;
+  currentFile?: string;
   selectedAgent: {
     id: string;
     name: string;
@@ -65,7 +65,7 @@ export interface FlatUserMessage {
   mentionedDocs?: any[];
   links?: any[];
   universalAgentLastMessage?: string;
-  selection: any | null;
+  selection?: any | null;
   controlFiles?: any[];
   feedbackMessage?: string;
   terminalMessage?: string;
@@ -75,8 +75,8 @@ export interface FlatUserMessage {
   processId?: string;
   shadowGitHash?: string;
   remixPrompt?: any;
-  activeFile: string;
-  openedFiles: string[]
+  activeFile?: string;
+  openedFiles?: string[]
 
 }
 

@@ -74,9 +74,6 @@ export class SendMessageToAgent {
   sendInitialMessage(message: UserMessage): void {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: ${prompt}`));
-      
-    
-      
       // Broadcast the message to all connected agents
       if (this.websocketServer) {
         this.websocketServer.broadcast(message);

@@ -8,6 +8,7 @@ import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 import { RemoteProxyClient } from './remote/remoteProxyClient';
 import { logger } from '../utils/logger';
+import { UserMessage } from '@codebolt/types/sdk-types';
 
 /**
  * Main Docker Server class
@@ -59,37 +60,72 @@ export class AgentExecutorServer {
         logger.info(`WebSocket server is ready for connections`);
         logger.info(`Health check available at http://${this.config.host}:${this.config.port}/health`);
         logger.info(`Connection info available at http://${this.config.host}:${this.config.port}/connections`);
-        
-        // Start agent if agent type and detail are provided
-        if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
-            const { agentType, agentDetail, prompt } = this.cliOptions!;
-            
-            logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
-            const success = await this.childAgentProcessManager.startAgentByType(
-              agentType!,
-              agentDetail!,
-              'codebolt-server' // application ID
-            );
-            
-            if (success) {
-              console.log(formatLogMessage('info', 'DockerServer', 'Agent started successfully'));
-              
-              // Send initial prompt if provided
-              if (prompt) {
-                  this.sendMessageToAgent.sendInitialMessage(prompt);
-              }
-            } else {
-              logger.error('Failed to start agent');
-            }
-        }
-        
         if (this.remoteProxyClient) {
           try {
-            this.remoteProxyClient.start();
+            this.remoteProxyClient.startConnection();
           } catch (error) {
             logger.logError(error as Error, 'Failed to start remote proxy client');
           }
         }
+        // Start agent if agent type and detail are provided
+        if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
+          const { agentType, agentDetail, prompt } = this.cliOptions!;
+          if (prompt) {
+            let messageFromTui: UserMessage = {
+              type: 'user',
+              message: {
+                userMessage: prompt ,
+
+                selectedAgent: {
+                  id:  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+                  name: "string", // Get agent name from path/codeboltagent.yaml file key title
+                  agentType: agentType,
+                  agentDetails: agentDetail
+                },
+                mentionedFiles: [],
+                mentionedFullPaths: [],
+                mentionedFolders: [],
+                mentionedMCPs: [],
+                uploadedImages: [],
+                mentionedAgents: [],
+                messageId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+                threadId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+              },
+              sender: {
+                senderType: "user",
+                senderInfo: {
+                  name: "user",
+                }
+              },
+              templateType: '',
+              data: {
+                text: ''
+              },
+              messageId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+              timestamp:  Date.now().toString(),
+            }
+            this.sendMessageToAgent.sendInitialMessage(messageFromTui);
+          }
+
+
+          // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
+          // const success = await this.childAgentProcessManager.startAgentByType(
+          //   agentType!,
+          //   agentDetail!,
+          //   'codebolt-server' // application ID
+          // );
+
+          // if (success) {
+          // console.log(formatLogMessage('info', 'DockerServer', 'Agent started successfully'));
+
+          // Send initial prompt if provided
+
+          // } else {
+          //   logger.error('Failed to start agent');
+          // }
+        }
+
+
 
         resolve();
       });
@@ -102,20 +138,20 @@ export class AgentExecutorServer {
    */
   public async stop(): Promise<void> {
     logger.info('Stopping Docker Server...');
-    
+
     // Stop managed processes
     await this.childAgentProcessManager.stopAll();
-    
+
     // Close WebSocket connections
     this.websocketServer.close();
 
     if (this.remoteProxyClient) {
       this.remoteProxyClient.stop();
     }
-    
+
     // Close HTTP server
     this.server.close();
-    
+
     logger.info('Docker Server stopped');
   }
 
@@ -130,7 +166,7 @@ export class AgentExecutorServer {
   } {
     const connectionManager = ConnectionManager.getInstance();
     const connectionCounts = connectionManager.getConnectionCounts();
-    
+
     return {
       clients: connectionCounts.apps,
       agents: connectionCounts.agents,

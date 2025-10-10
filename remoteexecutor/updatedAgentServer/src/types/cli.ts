@@ -1,3 +1,10 @@
+export enum AgentTypeEnum {
+  marketplace = 'marketplace',
+  localZip = 'local-zip',
+  localPath = 'local-path',
+  serverZip = 'server-zip'
+}
+
 export interface AgentCliOptions {
   noui: boolean;
   host?: string;
@@ -6,7 +13,7 @@ export interface AgentCliOptions {
   remote?: boolean;
   remoteUrl?: string;
   appToken?: string;
-  agentType?: 'marketplace' | 'local-zip' | 'local-path' | 'server-zip';
+  agentType?: AgentTypeEnum;
   agentDetail?: string;
   prompt?: string;
 }

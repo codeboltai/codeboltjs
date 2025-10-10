@@ -74,7 +74,7 @@ export class RemoteProxyClient {
     return RemoteProxyClient.instance;
   }
 
-  public start(): void {
+  public startConnection(): void {
     if (this.websocket?.readyState === WebSocket.OPEN) {
       return;
     }

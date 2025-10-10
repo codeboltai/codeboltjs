@@ -8,6 +8,7 @@ import { createWriteStream, createReadStream } from 'fs';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
+import { AgentTypeEnum } from '../../types/cli';
 
 
 
@@ -339,21 +340,21 @@ export class ChildAgentProcessManager {
 /**
     * Start agent based on type and detail
     */
-  async startAgentByType(agentType: string, agentDetail: string, applicationId: string): Promise<boolean> {
+  async startAgentByType(agentType: AgentTypeEnum, agentDetail: string, applicationId: string): Promise<boolean> {
     console.log(formatLogMessage('info', 'ProcessManager', `Starting agent of type ${agentType} with detail: ${agentDetail}`));
     
     try {
       switch (agentType) {
-        case 'marketplace':
+        case AgentTypeEnum.marketplace:
           return await this.startAgent(agentDetail, applicationId);
           
-        case 'local-path':
+        case AgentTypeEnum.localPath:
           return await this.startLocalAgent(agentDetail, applicationId);
           
-        case 'local-zip':
+        case AgentTypeEnum.localZip:
           return await this.startAgentFromZip(agentDetail, applicationId);
           
-        case 'server-zip':
+        case AgentTypeEnum.serverZip:
           return await this.startAgentFromServerZip(agentDetail, applicationId);
           
         default:

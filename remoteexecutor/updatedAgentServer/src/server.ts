@@ -6,7 +6,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { Command } from 'commander';
 import { logger, LogLevel, Logger } from './utils/logger';
-import { resolve } from 'path';
+import { AgentTypeEnum } from './types/cli';
 
 /**
  * Setup CLI with commander
@@ -115,7 +115,7 @@ async function main(): Promise<void> {
       logger.info(`Agent Detail: ${options.agentDetail}`);
       
       // Validate agent type
-      const validTypes = ['marketplace', 'local-zip', 'local-path', 'server-zip'];
+      const validTypes = Object.values(AgentTypeEnum);
       if (!validTypes.includes(options.agentType)) {
         logger.error(`Invalid agent type: ${options.agentType}. Valid types: ${validTypes.join(', ')}`);
         process.exit(1);
