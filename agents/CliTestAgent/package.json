@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/taskTestAgent",
+  "name": "@codebolt/clitestagent",
   "version": "1.0.1",
   "description": "TestAgent",
   "main": "dist/index.js",
