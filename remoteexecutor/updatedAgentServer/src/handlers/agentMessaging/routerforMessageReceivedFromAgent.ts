@@ -219,7 +219,7 @@ export class AgentMessageRouter {
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const appManager = this.connectionManager.getAppConnectionManager();
     const processManager = this.connectionManager.getProcessManager();
-    
+
     if (message.id) {
       agentManager.cacheMessageToAgent(message.id, agent.id);
     }
@@ -227,7 +227,7 @@ export class AgentMessageRouter {
     // Get the client ID and client type for this agent
     let targetClientId: string | undefined;
     let clientType: 'app' | 'tui' | undefined;
-    
+
     // First try to get parent ID from agent connections manager
     const parentId = agentManager.getParentByAgent(agent.id);
     if (parentId) {
@@ -235,7 +235,7 @@ export class AgentMessageRouter {
       if (appManager.getApp(parentId)) {
         targetClientId = parentId;
         clientType = 'app';
-      } 
+      }
       // Check if parent is a tui
       else {
         const tuiManager = this.connectionManager.getTuiConnectionManager();
@@ -245,7 +245,7 @@ export class AgentMessageRouter {
         }
       }
     }
-    
+
     // Fallback to connectionId mapping if parent mapping not found
     if (!targetClientId && agent.connectionId) {
       targetClientId = processManager.getClientIdForConnection(agent.connectionId);
@@ -280,15 +280,11 @@ export class AgentMessageRouter {
       }
     }
 
-    // Fallback logic if no specific client or client not found
-    const apps = appManager.getAllApps();
+
     const tuiManager = this.connectionManager.getTuiConnectionManager();
     const tuis = tuiManager.getAllTuis();
 
-    if (apps.length > 0) {
-      // Try to send to first available app
-      this.sendMessageToApp.forwardToApp(agent, messageWithAgentId);
-    } else if (tuis.length > 0) {
+    if (tuis.length > 0) {
       // Try to send to first available tui
       const tui = tuis[0];
       this.sendMessageToTui.sendToTui(tui.id, messageWithAgentId);
