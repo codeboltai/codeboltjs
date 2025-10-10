@@ -48,7 +48,15 @@ type Chat struct {
 	textHeight        int
 	rightSidebarWidth int
 	contentWidth      int // effective content width for padding/fill
-	rightPanels       []infoPanel
+
+	// Right sidebar panels
+	subagentsPanel     *panels.InfoPanel
+	todoPanel          *panels.InfoPanel
+	mcpPanel           *panels.InfoPanel
+	modifiedFilesPanel *panels.InfoPanel
+	nextTasksPanel     *panels.InfoPanel
+	contextPanel       *panels.InfoPanel
+	rightPanels        []*panels.InfoPanel
 }
 
 // Conversation represents a single chat history thread.
@@ -71,11 +79,6 @@ type conversationRegion struct {
 type verticalRegion struct {
 	yStart int
 	yEnd   int
-}
-
-type infoPanel struct {
-	title string
-	lines []string
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -101,6 +104,13 @@ func New() *Chat {
 	// Initialize viewport
 	viewport := chatcomponents.NewChatViewport(templateManager)
 
+	subagentsPanel := panels.NewInfoPanel("Subagents")
+	todoPanel := panels.NewInfoPanel("Todo")
+	mcpPanel := panels.NewInfoPanel("MCP")
+	modifiedPanel := panels.NewInfoPanel("Modified Files")
+	nextTasksPanel := panels.NewInfoPanel("Next Scheduled Tasks")
+	contextPanel := panels.NewInfoPanel("Context")
+
 	chat := &Chat{
 		input:                 input,
 		viewport:              viewport,
@@ -113,15 +123,24 @@ func New() *Chat {
 		rightSidebarWidth:     28,
 		textHeight:            3, // Match input height exactly
 		conversationListWidth: 28,
-		rightPanels: []infoPanel{
-			{title: "Subagents", lines: []string{"• No subagents running"}},
-			{title: "Todo", lines: []string{"[ ] Draft plan", "[ ] Implement feature", "[ ] Review changes"}},
-			{title: "MCP", lines: []string{"weather: connected", "puppeteer: disconnected"}},
-			{title: "Modified Files", lines: []string{"(none)"}},
-			{title: "Next Scheduled Tasks", lines: []string{"No upcoming tasks"}},
-			{title: "Context", lines: []string{"Tokens: 0 / 128K", "Uptime: 0m"}},
-		},
+		subagentsPanel:        subagentsPanel,
+		todoPanel:             todoPanel,
+		mcpPanel:              mcpPanel,
+		modifiedFilesPanel:    modifiedPanel,
+		nextTasksPanel:        nextTasksPanel,
+		contextPanel:          contextPanel,
 	}
+
+	chat.rightPanels = []*panels.InfoPanel{
+		subagentsPanel,
+		todoPanel,
+		mcpPanel,
+		modifiedPanel,
+		nextTasksPanel,
+		contextPanel,
+	}
+
+	chat.seedRightSidebarDefaults()
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 
 	// Bootstrap conversations with an initial thread
@@ -129,6 +148,43 @@ func New() *Chat {
 	chat.loadActiveConversation()
 
 	return chat
+}
+
+func (c *Chat) seedRightSidebarDefaults() {
+	if c == nil {
+		return
+	}
+
+	theme := styles.CurrentTheme()
+	muted := lipgloss.NewStyle().Foreground(theme.Muted)
+	success := lipgloss.NewStyle().Foreground(theme.Success)
+	errorStyle := lipgloss.NewStyle().Foreground(theme.Error)
+
+	if c.subagentsPanel != nil {
+		c.subagentsPanel.SetLines([]string{muted.Render("• No subagents running")})
+	}
+	if c.todoPanel != nil {
+		c.todoPanel.SetLines([]string{
+			"[ ] Draft plan",
+			"[ ] Implement feature",
+			"[ ] Review changes",
+		})
+	}
+	if c.mcpPanel != nil {
+		c.mcpPanel.SetLines([]string{
+			success.Render("weather: connected"),
+			errorStyle.Render("puppeteer: disconnected"),
+		})
+	}
+	if c.modifiedFilesPanel != nil {
+		c.modifiedFilesPanel.SetLines([]string{muted.Render("(none)")})
+	}
+	if c.nextTasksPanel != nil {
+		c.nextTasksPanel.SetLines([]string{muted.Render("No upcoming tasks")})
+	}
+	if c.contextPanel != nil {
+		c.contextPanel.SetLines([]string{"Tokens: 0 / 128K", "Uptime: 0m"})
+	}
 }
 
 // AddMessage adds a message to the chat
@@ -250,6 +306,46 @@ func (c *Chat) SetSize(width, height int) {
 
 	c.rightSidebarWidth = rightWidth
 	c.contentWidth = availableForMain
+
+	if len(c.rightPanels) > 0 {
+		visible := rightWidth > 0
+		remainingHeight := c.chatHeight
+		if remainingHeight < 0 {
+			remainingHeight = 0
+		}
+		for i, panel := range c.rightPanels {
+			if panel == nil {
+				continue
+			}
+			panel.SetVisible(visible)
+			if !visible {
+				continue
+			}
+			panelsLeft := len(c.rightPanels) - i
+			if panelsLeft <= 0 {
+				panelsLeft = 1
+			}
+			height := 0
+			if panelsLeft > 0 {
+				height = remainingHeight / panelsLeft
+			}
+			if height < 3 && remainingHeight > 0 {
+				if remainingHeight < 3 {
+					height = remainingHeight
+				} else {
+					height = 3
+				}
+			}
+			if height < 0 {
+				height = 0
+			}
+			panel.SetSize(rightWidth, height)
+			remainingHeight -= height
+			if remainingHeight < 0 {
+				remainingHeight = 0
+			}
+		}
+	}
 
 	// Update input (exact size, no internal padding)
 	c.input.SetSize(c.contentWidth, c.textHeight)
@@ -708,6 +804,15 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		c.refreshSlashMenu()
 	}
 
+	for _, panel := range c.rightPanels {
+		if panel == nil {
+			continue
+		}
+		if panelCmd := panel.Update(msg); panelCmd != nil {
+			cmds = append(cmds, panelCmd)
+		}
+	}
+
 	return c, tea.Batch(cmds...)
 }
 
@@ -912,56 +1017,26 @@ func (c *Chat) renderRightSidebar(theme styles.Theme) string {
 		return ""
 	}
 
-	panelWidth := c.rightSidebarWidth
-	base := lipgloss.NewStyle().
-		Width(panelWidth).
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(theme.Border).
-		Background(theme.Surface).
-		Padding(0, 1)
-
-	titleStyle := lipgloss.NewStyle().
-		Foreground(theme.Primary).
-		Bold(true)
-
-	contentStyle := lipgloss.NewStyle().
-		Foreground(theme.Foreground)
-
-	mutedStyle := lipgloss.NewStyle().
-		Foreground(theme.Muted)
-
-	successStyle := lipgloss.NewStyle().
-		Foreground(theme.Success)
-
-	errorStyle := lipgloss.NewStyle().
-		Foreground(theme.Error)
-
 	var sections []string
 	for _, panel := range c.rightPanels {
-		lines := make([]string, 0, len(panel.lines)+1)
-		lines = append(lines, titleStyle.Render(panel.title))
-		for _, line := range panel.lines {
-			trimmed := strings.TrimSpace(line)
-			lower := strings.ToLower(trimmed)
-			styled := contentStyle.Render(line)
-			switch {
-			case trimmed == "":
-				styled = mutedStyle.Render(line)
-			case strings.Contains(lower, "disconnected") || strings.Contains(lower, "missing") || strings.Contains(lower, "error"):
-				styled = errorStyle.Render(line)
-			case strings.Contains(lower, "connected"):
-				styled = successStyle.Render(line)
-			}
-			lines = append(lines, styled)
+		if panel == nil {
+			continue
 		}
-		sectionView := base.Render(lipgloss.JoinVertical(lipgloss.Left, lines...))
-		sections = append(sections, sectionView)
+		view := panel.View()
+		if strings.TrimSpace(view) == "" {
+			continue
+		}
+		sections = append(sections, view)
+	}
+
+	if len(sections) == 0 {
+		return ""
 	}
 
 	sidebar := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
 	return lipgloss.NewStyle().
-		Width(panelWidth).
+		Width(c.rightSidebarWidth).
 		Height(c.chatHeight).
 		Background(theme.Background).
 		Render(sidebar)
