@@ -176,6 +176,7 @@ export class AgentConnectionsManager {
 
   sendToAgent(message: unknown): boolean {
     const agents = this.getAllAgents();
+    console.log(formatLogMessage('info', 'AgentConnectionsManager', `Sending message to ${agents.length} agent(s)`));
 
     if (agents.length === 0) {
       console.warn(formatLogMessage('warn', 'AgentConnectionsManager', 'No agents available'));

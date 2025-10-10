@@ -9,6 +9,7 @@ import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgen
 import { RemoteProxyClient } from './remote/remoteProxyClient';
 import { logger } from '../utils/logger';
 import { UserMessage } from '@codebolt/types/sdk-types';
+import e from 'express';
 
 /**
  * Main Docker Server class
@@ -70,10 +71,12 @@ export class AgentExecutorServer {
         // Start agent if agent type and detail are provided
         if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
           const { agentType, agentDetail, prompt } = this.cliOptions!;
+          
           if (prompt) {
             let messageFromTui: UserMessage = {
-              type: 'user',
+              type: 'messageResponse',
               message: {
+                
                 userMessage: prompt ,
 
                 selectedAgent: {
@@ -123,6 +126,9 @@ export class AgentExecutorServer {
           // } else {
           //   logger.error('Failed to start agent');
           // }
+        }
+        else{
+          logger.info('No agent type or detail provided. Skipping agent startup.');
         }
 
 
