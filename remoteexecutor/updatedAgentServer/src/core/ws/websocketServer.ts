@@ -1,12 +1,12 @@
 import WebSocket, { WebSocketServer as WSServer } from 'ws';
 import { Server } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  formatLogMessage, 
-  isMessageWithType, 
-  createErrorResponse, 
+import {
+  formatLogMessage,
+  isMessageWithType,
+  createErrorResponse,
   Message,
-  ProjectInfo 
+  ProjectInfo
 } from '../../types';
 
 import { ConnectionManager } from '../connectionManagers/connectionManager';
@@ -17,7 +17,7 @@ import { TuiMessageRouter } from '../../handlers/tuiMessaging/routerforMessageRe
 import { logger } from '../../utils/logger';
 
 // Import types and constants
-import { 
+import {
   ConnectionParams,
   RegistrationResult,
   ConnectionRegistrationResult,
@@ -54,12 +54,12 @@ export class WebSocketServer {
     this.wss.on(WEBSOCKET_CONSTANTS.EVENTS.CONNECTION, (ws: WebSocket, request) => {
       const initialClientId = uuidv4();
       let actualClientId = initialClientId;
-      
+
       console.log(formatLogMessage('info', 'WebSocketServer', `New WebSocket connection: ${initialClientId}`));
 
       const connectionParams = this.parseConnectionParams(request);
       const registrationResult = this.handleConnectionRegistration(ws, connectionParams, initialClientId);
-      
+
       // All connections are now registered during connection establishment
       actualClientId = registrationResult.clientId;
 
@@ -84,8 +84,8 @@ export class WebSocketServer {
    * Process incoming WebSocket message
    */
   private processIncomingMessage(
-    ws: WebSocket, 
-    data: WebSocket.Data, 
+    ws: WebSocket,
+    data: WebSocket.Data,
     clientId: string
   ): RegistrationResult {
     try {
@@ -97,14 +97,15 @@ export class WebSocketServer {
       }
 
       // All registration happens on connection, so just handle the message normally
-      logger.logWebSocketMessage('incoming', connection.type || 'unknown', message);
-  
+
       const connection = this.connectionManager.getConnection(clientId);
+      logger.logWebSocketMessage('incoming', connection?.type || 'unknown', message);
+
       if (!connection) {
         this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.CONNECTION_NOT_REGISTERED);
         return;
       }
-  
+
       const messageWithConnection = this.enrichMessageWithConnection(message, clientId);
       try {
         switch (connection.type) {
@@ -161,7 +162,7 @@ export class WebSocketServer {
   private parseConnectionParams(request: any): ConnectionParams {
     const url = new URL(request.url || '', `http://${request.headers.host}`);
     const queryParams = url.searchParams;
-    
+
     return {
       agentId: queryParams.get('agentId') || undefined,
       parentId: queryParams.get('parentId') || undefined,
@@ -194,8 +195,8 @@ export class WebSocketServer {
    * ALL connections are registered - no connection is left unregistered
    */
   private handleConnectionRegistration(
-    ws: WebSocket, 
-    params: ConnectionParams, 
+    ws: WebSocket,
+    params: ConnectionParams,
     fallbackClientId: string
   ): ConnectionRegistrationResult {
     const projectInfo = this.createProjectInfo(params);
@@ -206,21 +207,21 @@ export class WebSocketServer {
       this.registerAgent(ws, params.agentId, params.parentId, 'auto', projectInfo, instanceId);
       return { clientId: params.agentId };
     }
-    
+
     // Priority 2: Auto-register app if clientType is 'app'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP) {
       const connectionId = params.appId || fallbackClientId;
       this.registerApp(ws, connectionId, 'auto', projectInfo, instanceId);
       return { clientId: connectionId };
     }
-    
+
     // Priority 3: Auto-register TUI if clientType is 'tui'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI) {
       const connectionId = params.tuiId || fallbackClientId;
       this.registerTui(ws, connectionId, 'auto', projectInfo, instanceId);
       return { clientId: connectionId };
     }
-    
+
     // Default: Register as app if no specific parameters provided
     this.registerApp(ws, fallbackClientId, 'auto', projectInfo, instanceId);
     return { clientId: fallbackClientId };
@@ -230,30 +231,30 @@ export class WebSocketServer {
    * Register an agent connection
    */
   private registerAgent(
-    ws: WebSocket, 
-    agentId: string, 
-    parentId?: string, 
+    ws: WebSocket,
+    agentId: string,
+    parentId?: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
     agentInstanceId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer', 
+    console.log(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}${projectInfo ? ` and project: ${projectInfo.path}` : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
-    
+
     this.connectionManager.registerConnection(
-      agentId, 
-      ws, 
-      WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT, 
+      agentId,
+      ws,
+      WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
       parentId,
       projectInfo,
       agentInstanceId
     );
-    
+
     this.sendRegistrationConfirmation(
-      ws, 
-      agentId, 
-      WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT, 
-      parentId, 
+      ws,
+      agentId,
+      WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
+      parentId,
       registrationType,
       projectInfo,
       { agentInstanceId }
@@ -264,15 +265,15 @@ export class WebSocketServer {
    * Register an app connection
    */
   private registerApp(
-    ws: WebSocket, 
-    appId: string, 
+    ws: WebSocket,
+    appId: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
     appInstanceId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer', 
+    console.log(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
-    
+
     this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, projectInfo, appInstanceId);
     this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType, projectInfo, { appInstanceId });
   }
@@ -281,15 +282,15 @@ export class WebSocketServer {
    * Register a TUI connection
    */
   private registerTui(
-    ws: WebSocket, 
-    tuiId: string, 
+    ws: WebSocket,
+    tuiId: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
     tuiInstanceId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer', 
+    console.log(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
-    
+
     this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, projectInfo, tuiInstanceId);
     this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, registrationType, projectInfo, { tuiInstanceId });
   }
@@ -298,9 +299,9 @@ export class WebSocketServer {
    * Send registration confirmation message
    */
   private sendRegistrationConfirmation(
-    ws: WebSocket, 
-    connectionId: string, 
-    connectionType: string, 
+    ws: WebSocket,
+    connectionId: string,
+    connectionType: string,
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
@@ -310,8 +311,8 @@ export class WebSocketServer {
       type: WEBSOCKET_CONSTANTS.MESSAGE_TYPES.REGISTERED,
       connectionId,
       connectionType,
-      message: registrationType === 'auto' ? 
-        WEBSOCKET_CONSTANTS.MESSAGES.AUTO_REGISTRATION_SUCCESS : 
+      message: registrationType === 'auto' ?
+        WEBSOCKET_CONSTANTS.MESSAGES.AUTO_REGISTRATION_SUCCESS :
         WEBSOCKET_CONSTANTS.MESSAGES.REGISTRATION_SUCCESS,
       registrationType,
       ...(parentId && { parentId }),
@@ -320,7 +321,7 @@ export class WebSocketServer {
       ...(instanceIds?.appInstanceId && { appInstanceId: instanceIds.appInstanceId }),
       ...(instanceIds?.tuiInstanceId && { tuiInstanceId: instanceIds.tuiInstanceId })
     };
-    
+
     this.sendMessage(ws, message);
   }
 
@@ -332,7 +333,7 @@ export class WebSocketServer {
     try {
       ws.send(JSON.stringify(message));
     } catch (error) {
-      console.error(formatLogMessage('error', 'WebSocketServer', 
+      console.error(formatLogMessage('error', 'WebSocketServer',
         `Error sending message: ${error}`));
     }
   }
@@ -406,13 +407,13 @@ export class WebSocketServer {
           successCount++;
         } catch (error) {
           errorCount++;
-          console.error(formatLogMessage('error', 'WebSocketServer', 
+          console.error(formatLogMessage('error', 'WebSocketServer',
             `Error broadcasting message to client: ${error}`));
         }
       }
     });
 
-    console.log(formatLogMessage('info', 'WebSocketServer', 
+    console.log(formatLogMessage('info', 'WebSocketServer',
       `Broadcast completed: ${successCount} successful, ${errorCount} failed`));
   }
 }
