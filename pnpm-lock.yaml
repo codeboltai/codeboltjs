@@ -551,7 +551,7 @@ importers:
         specifier: ^5.0.0
         version: 5.4.20(@types/node@22.18.8)(terser@5.44.0)
 
-  providers/gitWorkTreeProvider:
+  providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -796,6 +796,15 @@ importers:
         version: 5.9.3
 
   tui/codebolt-code: {}
+
+  tui/dummytui:
+    dependencies:
+      uuid:
+        specifier: ^9.0.1
+        version: 9.0.1
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
 
   tui/inkbasedtui:
     dependencies:

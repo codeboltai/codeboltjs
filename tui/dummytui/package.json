@@ -1,0 +1,16 @@
+{
+  "name": "codebolt-dummytui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Simple TUI client for testing Codebolt AgentServer WebSocket integration",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "ws": "^8.18.0"
+  }
+}
+
