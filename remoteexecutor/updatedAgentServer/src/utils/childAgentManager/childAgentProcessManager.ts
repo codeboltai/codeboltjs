@@ -371,8 +371,9 @@ export class ChildAgentProcessManager {
     * Start a local agent from directory path
     */
   private async startLocalAgent(agentPath: string, applicationId: string): Promise<boolean> {
-    const agentId = path.basename(agentPath);
-    const indexPath = path.join(agentPath, 'index.js');
+    const agentId = path.resolve(agentPath);
+    const indexPath = path.resolve(agentPath, 'index.js');
+    console.log(formatLogMessage('info', 'ProcessManager', `Starting local agent from path: ${agentPath}`));
     
     if (!fs.existsSync(indexPath)) {
       console.error(formatLogMessage('error', 'ProcessManager', `index.js not found in agent path: ${indexPath}`));
@@ -528,7 +529,7 @@ export class ChildAgentProcessManager {
     
     // Fallback to legacy paths if OS-specific path doesn't exist
     const finalAgentPath = agentIndexPath;
-    const finalWorkingDir = agentWorkingDir;
+    const finalWorkingDir =  agentWorkingDir;
     
    
     

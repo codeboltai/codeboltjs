@@ -65,30 +65,63 @@ function sendPing() {
 }
 
 function sendSampleUserMessage() {
-  const sampleMessage = {
-    id: uuidv4(),
+  // const sampleMessage = {
+  //   id: uuidv4(),
+  //   type: 'messageResponse',
+  //   clientId: DEFAULT_TUI_ID,
+  //   userMessage: 'Hello from dummy TUI',
+  //   currentFile: '',
+  //   mentionedFiles: [],
+  //   mentionedFullPaths: [],
+  //   mentionedMCPs: [],
+  //   mentionedFolders: [],
+  //   uploadedImages: [],
+  //   selectedAgent: {
+  //     id: process.env.SELECTED_AGENT_ID || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9',
+  //     name: process.env.SELECTED_AGENT_NAME || 'Default Agent',
+  //     agentType: 'local-path',
+  //     agentDetail:'./../../agents/CliTestAgent/dist'
+  //   },
+  //   messageId: uuidv4(),
+  //   threadId: uuidv4()
+  // };
+  let messageFromTui = {
     type: 'messageResponse',
-    clientId: DEFAULT_TUI_ID,
-    userMessage: 'Hello from dummy TUI',
-    currentFile: '',
-    mentionedFiles: [],
-    mentionedFullPaths: [],
-    mentionedMCPs: [],
-    mentionedFolders: [],
-    uploadedImages: [],
-    selectedAgent: {
-      id: process.env.SELECTED_AGENT_ID || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9',
-      name: process.env.SELECTED_AGENT_NAME || 'Default Agent',
-      agentType: 'local-path',
-      agentDetail:'/Users/ravirawat/Documents/codeboltai/CodeBolt/.codebolt/c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9/index.js'
-    },
-    messageId: uuidv4(),
-    threadId: uuidv4()
-  };
+    message: {
 
-  console.log(`[dummytui -> server] ${safeJsonStringify(sampleMessage)}`);
+      userMessage: "Hello from dummy TUI",
+
+      selectedAgent: {
+        id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+        name: "string", // Get agent name from path/codeboltagent.yaml file key title
+        agentType: "local-path",
+        agentDetails: "./../../agents/CliTestAgent/dist"
+      },
+      mentionedFiles: [],
+      mentionedFullPaths: [],
+      mentionedFolders: [],
+      mentionedMCPs: [],
+      uploadedImages: [],
+      mentionedAgents: [],
+      messageId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+      threadId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+    },
+    sender: {
+      senderType: "user",
+      senderInfo: {
+        name: "user",
+      }
+    },
+    templateType: '',
+    data: {
+      text: ''
+    },
+    messageId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+    timestamp: Date.now().toString(),
+  }
+  console.log(`[dummytui -> server] ${safeJsonStringify(messageFromTui)}`);
   try {
-    socket.send(JSON.stringify(sampleMessage));
+    socket.send(JSON.stringify(messageFromTui));
   } catch (error) {
     console.error('[dummytui] failed to send sample message', error);
   }
