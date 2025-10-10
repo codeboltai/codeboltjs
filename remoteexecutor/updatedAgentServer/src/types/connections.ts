@@ -17,7 +17,8 @@ export interface ClientConnection {
   type: 'app' | 'agent' | 'client' | 'tui';
   connectedAt: Date;
   currentProject?: ProjectInfo;
-  instanceId?:string
+  instanceId?:string;
+  connectionId?: string;
 }
 
 /**

@@ -12,6 +12,7 @@ export type ConnectionParams = {
   currentProject?: string;
   projectName?: string;
   projectType?: string;
+  connectionId?: string;
 };
 
 export type RegistrationResult = {

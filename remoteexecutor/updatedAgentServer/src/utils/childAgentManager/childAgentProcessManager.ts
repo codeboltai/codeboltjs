@@ -34,7 +34,7 @@ interface AgentDetailResponse {
 export class ChildAgentProcessManager {
   private sampleClientProcess: ChildProcess | null = null;
   private agentProcesses: Map<string, ChildProcess> = new Map();
-  private agentToClientMap: Map<string, string> = new Map();
+  private connectionIdToClientMap: Map<string, string> = new Map();
 
   /**
    * Get OS-specific agent storage path
@@ -387,6 +387,7 @@ export class ChildAgentProcessManager {
     }
     
     try {
+      const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const agentProcess = spawn('node', [indexPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: agentPath,
@@ -394,12 +395,13 @@ export class ChildAgentProcessManager {
           ...process.env,
           parentId: applicationId,
           agentId: agentId,
+          connectionId: connectionId,
           SOCKET_PORT: '3001'
         }
       });
 
       this.agentProcesses.set(agentId, agentProcess);
-      this.agentToClientMap.set(agentId, applicationId);
+      this.connectionIdToClientMap.set(connectionId, applicationId);
       this.setupAgentProcessHandlers(agentId, agentProcess);
       
       console.log(formatLogMessage('info', 'ProcessManager', `Local agent ${agentId} started successfully from ${agentPath}`));
@@ -499,6 +501,7 @@ export class ChildAgentProcessManager {
     agentProcess.on('error', (error) => {
       console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
       this.agentProcesses.delete(agentId);
+      this.connectionIdToClientMap.delete(agentId);
     });
 
     agentProcess.on('exit', (code, signal) => {
@@ -537,6 +540,7 @@ export class ChildAgentProcessManager {
     
     try {
       // Start the agent process
+      const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const agentProcess = spawn('node', [finalAgentPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: finalWorkingDir, // Set working directory to agent's directory
@@ -544,12 +548,14 @@ export class ChildAgentProcessManager {
           ...process.env,
           parentId: applicationId,
           agentId: agentId,
+          connectionId: connectionId,
           SOCKET_PORT: '3001'
         }
       });
 
       // Store the process
       this.agentProcesses.set(agentId, agentProcess);
+      this.connectionIdToClientMap.set(connectionId, applicationId);
 
       // Set up process event handlers
       agentProcess.stdout?.on('data', (data) => {
@@ -569,11 +575,13 @@ export class ChildAgentProcessManager {
       agentProcess.on('error', (error) => {
         console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
         this.agentProcesses.delete(agentId);
+      this.connectionIdToClientMap.delete(agentId);
       });
 
       agentProcess.on('exit', (code, signal) => {
         console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
         this.agentProcesses.delete(agentId);
+      this.connectionIdToClientMap.delete(agentId);
       });
 
       console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));
@@ -608,6 +616,7 @@ export class ChildAgentProcessManager {
     }
     
     this.agentProcesses.delete(agentId);
+      this.connectionIdToClientMap.delete(agentId);
     console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} stopped`));
   }
 
@@ -635,9 +644,23 @@ export class ChildAgentProcessManager {
     };
   }
 
+/**
+    * Get client ID for a specific connection ID
+    */
+  getClientIdForConnection(connectionId: string): string | undefined {
+    return this.connectionIdToClientMap.get(connectionId);
+  }
+
   /**
-   * Get agent metadata if it exists
-   */
+    * Remove connection mapping
+    */
+  removeConnectionMapping(connectionId: string): void {
+    this.connectionIdToClientMap.delete(connectionId);
+  }
+
+  /**
+    * Get agent metadata if it exists
+    */
   getAgentMetadata(agentId: string): any | null {
     try {
       const metadataPath = path.join(this.getAgentPath(agentId), 'agent-metadata.json');
