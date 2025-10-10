@@ -67,7 +67,7 @@ function sendPing() {
 function sendSampleUserMessage() {
   const sampleMessage = {
     id: uuidv4(),
-    type: 'user_message',
+    type: 'messageResponse',
     clientId: DEFAULT_TUI_ID,
     userMessage: 'Hello from dummy TUI',
     currentFile: '',
@@ -77,7 +77,7 @@ function sendSampleUserMessage() {
     mentionedFolders: [],
     uploadedImages: [],
     selectedAgent: {
-      id: process.env.SELECTED_AGENT_ID || 'default-agent',
+      id: process.env.SELECTED_AGENT_ID || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9',
       name: process.env.SELECTED_AGENT_NAME || 'Default Agent'
     },
     messageId: uuidv4(),

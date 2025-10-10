@@ -4,19 +4,26 @@
  */
 
 import { MessageObject } from "./llm";
+enum AgentTypeEnum {
+  marketplace = 'marketplace',
+  localZip = 'local-zip',
+  localPath = 'local-path',
+  serverZip = 'server-zip'
+
+}
 
 // Base response interface for chat operations
 export interface BaseChatSDKResponse {
   success?: boolean;
   message?: string;
   error?: string;
-  type:string
+  type: string
 }
 
 // Chat message interfaces
 export interface ChatMessage extends BaseChatSDKResponse {
   threadId: string,
-  messages: MessageObject []
+  messages: MessageObject[]
 }
 
 // Full UserMessage structure as received from WebSocket
@@ -44,6 +51,8 @@ export interface FlatUserMessage {
     id: string;
     name: string;
     lastMessage?: Record<string, any>;
+    agentType?: AgentTypeEnum;
+    agentDetails?:string
   };
   mentionedFiles: string[];
   mentionedFullPaths: string[];
