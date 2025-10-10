@@ -8,6 +8,49 @@ import { Command } from 'commander';
 import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 
+function parseFallbackArgs(args: string[]): Record<string, string | boolean> {
+  const result: Record<string, string | boolean> = {};
+
+  for (let index = 0; index < args.length; index++) {
+    const token = args[index];
+
+    if (typeof token !== 'string' || !token.startsWith('--')) {
+      continue;
+    }
+
+    const trimmed = token.slice(2);
+
+    if (!trimmed) {
+      continue;
+    }
+
+    if (trimmed.includes('=')) {
+      const [rawKey, ...rawValue] = trimmed.split('=');
+      const key = rawKey.trim();
+      const value = rawValue.join('=');
+
+      if (!key) {
+        continue;
+      }
+
+      result[key] = value === '' ? true : value;
+      continue;
+    }
+
+    const nextToken = args[index + 1];
+
+    if (typeof nextToken === 'string' && !nextToken.startsWith('--')) {
+      result[trimmed] = nextToken;
+      index += 1;
+      continue;
+    }
+
+    result[trimmed] = true;
+  }
+
+  return result;
+}
+
 /**
  * Setup CLI with commander
  */
@@ -44,21 +87,85 @@ function setupCLI(): AgentCliOptions {
 
   program.parse();
   const options = program.opts();
-  
-  const remoteUrl: string | undefined = options.remoteUrl || process.env.WRANGLER_PROXY_URL;
-  const appToken: string | undefined = options.appToken || process.env.APP_TOKEN;
+  const fallbackArgs = parseFallbackArgs(program.args as string[]);
+
+  const resolveStringOption = (primary?: string, fallbackKey?: string): string | undefined => {
+    if (primary) {
+      return primary;
+    }
+
+    if (!fallbackKey) {
+      return undefined;
+    }
+
+    const fallbackValue = fallbackArgs[fallbackKey];
+
+    return typeof fallbackValue === 'string' ? fallbackValue : undefined;
+  };
+
+  const resolveBooleanOption = (primary?: boolean, fallbackKey?: string): boolean => {
+    if (typeof primary === 'boolean') {
+      return primary;
+    }
+
+    if (!fallbackKey) {
+      return false;
+    }
+
+    const fallbackValue = fallbackArgs[fallbackKey];
+
+    if (typeof fallbackValue === 'boolean') {
+      return fallbackValue;
+    }
+
+    if (typeof fallbackValue === 'string') {
+      if (fallbackValue === 'false') {
+        return false;
+      }
+
+      if (fallbackValue === 'true') {
+        return true;
+      }
+
+      return true;
+    }
+
+    return false;
+  };
+
+  const resolveNumberOption = (primary?: number, fallbackKey?: string): number | undefined => {
+    if (typeof primary === 'number' && !Number.isNaN(primary)) {
+      return primary;
+    }
+
+    if (!fallbackKey) {
+      return undefined;
+    }
+
+    const fallbackValue = fallbackArgs[fallbackKey];
+
+    if (typeof fallbackValue === 'string') {
+      const parsed = Number(fallbackValue);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+
+    return undefined;
+  };
+
+  const remoteUrl: string | undefined = resolveStringOption(options.remoteUrl, 'remote-url') || process.env.WRANGLER_PROXY_URL;
+  const appToken: string | undefined = resolveStringOption(options.appToken, 'app-token') || process.env.APP_TOKEN;
 
   return {
-    noui: Boolean(options.noui),
-    host: options.host,
-    port: options.port,
-    verbose: options.verbose,
-    remote: Boolean(options.remote),
-    remoteUrl: remoteUrl || undefined,
-    appToken: appToken || undefined,
-    agentType: options.agentType,
-    agentDetail: options.agentDetail,
-    prompt: options.prompt
+    noui: resolveBooleanOption(typeof options.noui === 'boolean' ? options.noui : undefined, 'noui'),
+    host: resolveStringOption(options.host, 'host') ?? 'localhost',
+    port: resolveNumberOption(options.port, 'port') ?? 3001,
+    verbose: resolveBooleanOption(typeof options.verbose === 'boolean' ? options.verbose : undefined, 'verbose'),
+    remote: resolveBooleanOption(typeof options.remote === 'boolean' ? options.remote : undefined, 'remote'),
+    remoteUrl,
+    appToken,
+    agentType: resolveStringOption(options.agentType, 'agent-type'),
+    agentDetail: resolveStringOption(options.agentDetail, 'agent-detail'),
+    prompt: resolveStringOption(options.prompt, 'prompt')
   };
 }
 
