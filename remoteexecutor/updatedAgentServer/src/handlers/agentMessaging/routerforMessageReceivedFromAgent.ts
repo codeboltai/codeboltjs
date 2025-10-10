@@ -1,8 +1,8 @@
 import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '../../types';
-import { 
-  ReadFileHandler, 
-  WriteFileHandler, 
-  AskAIHandler, 
+import {
+  ReadFileHandler,
+  WriteFileHandler,
+  AskAIHandler,
   CreateFileHandler,
   CreateFolderHandler,
   UpdateFileHandler,
@@ -36,7 +36,7 @@ import {
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
-import type { 
+import type {
   ReadFileEvent,
   CreateFileEvent,
   CreateFolderEvent,
@@ -69,9 +69,9 @@ import type {
   UtilsEvent,
   CodeUtilsEvent
 } from '@codebolt/types/agent-to-app-ws-types';
-import type { 
-  FileReadRequestNotification, 
-  FileReadResponseNotification, 
+import type {
+  FileReadRequestNotification,
+  FileReadResponseNotification,
   FileCreateRequestNotification,
   FileCreateResponseNotification,
   FolderCreateRequestNotification,
@@ -150,7 +150,7 @@ export class AgentMessageRouter {
   private codeUtilsHandler: CodeUtilsHandler;
   private utilsHandler: UtilsHandler;
   private codebaseSearchHandler: CodebaseSearchHandler;
-  private sendMessageToApp:SendMessageToApp
+  private sendMessageToApp: SendMessageToApp
   private connectionManager: ConnectionManager;
   private notificationService: NotificationService;
 
@@ -158,7 +158,7 @@ export class AgentMessageRouter {
 
 
   constructor() {
- 
+
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
     this.askAIHandler = new AskAIHandler();
@@ -192,14 +192,14 @@ export class AgentMessageRouter {
     this.codeUtilsHandler = new CodeUtilsHandler();
     this.utilsHandler = new UtilsHandler();
     this.codebaseSearchHandler = new CodebaseSearchHandler();
-    this.sendMessageToApp= new SendMessageToApp()
+    this.sendMessageToApp = new SendMessageToApp()
     this.connectionManager = ConnectionManager.getInstance();
     this.notificationService = NotificationService.getInstance();
   }
 
- 
 
- 
+
+
 
   /**
    * Handle requests from agents (asking app to do file operations)
@@ -207,13 +207,45 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(agent: ClientConnection, message: Message | any) {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling agent request: ${message.type || message.action} from ${agent.id}`));
-    
+
     // Handle all typed events from agents
-   
+
     // Forward the message to the related app instead of sending back to client
+
+    // Cache the message ID -> agent ID mapping for response routing
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const appManager = this.connectionManager.getAppConnectionManager();
+    if (message.id) {
+      agentManager.cacheMessageToAgent(message.id, agent.id);
+    }
+
+    // Add agentId and agentInstanceId to the message so app knows where to send response back
+    const messageWithAgentId = {
+      ...message,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    const apps = appManager.getAllApps();
+    if (apps.length === 0) {
+      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps available, forwarding via remote proxy'));
+
+    }
+
+    // Send to first available app
+    const app = apps[0];
+    const success = appManager.sendToApp(app.id, messageWithAgentId);
+    if (!success) {
+      console.log(formatLogMessage('warn', 'MessageRouter', 'Failed to reach local app, forwarding via remote proxy'));
+
+
+      this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
+    }
     this.sendMessageToApp.forwardToApp(agent, message);
 
-    
+
+
+
     // switch (action) {
     //   // File System Events
     //   case 'readFile':

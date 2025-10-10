@@ -34,6 +34,7 @@ interface AgentDetailResponse {
 export class ChildAgentProcessManager {
   private sampleClientProcess: ChildProcess | null = null;
   private agentProcesses: Map<string, ChildProcess> = new Map();
+  private agentToClientMap: Map<string, string> = new Map();
 
   /**
    * Get OS-specific agent storage path
@@ -398,6 +399,7 @@ export class ChildAgentProcessManager {
       });
 
       this.agentProcesses.set(agentId, agentProcess);
+      this.agentToClientMap.set(agentId, applicationId);
       this.setupAgentProcessHandlers(agentId, agentProcess);
       
       console.log(formatLogMessage('info', 'ProcessManager', `Local agent ${agentId} started successfully from ${agentPath}`));
