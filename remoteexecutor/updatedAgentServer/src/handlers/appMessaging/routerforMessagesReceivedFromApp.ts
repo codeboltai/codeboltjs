@@ -51,7 +51,7 @@ export class AppMessageRouter {
   }
   handleInitialUserMessage(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${app.id}`));
-    this.sendMessageToAgent.sendInitialMessage(message);
+    this.sendMessageToAgent.sendInitialMessage(message,app.id);
   }
 
 

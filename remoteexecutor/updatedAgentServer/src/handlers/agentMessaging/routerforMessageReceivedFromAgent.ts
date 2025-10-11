@@ -269,7 +269,8 @@ export class AgentMessageRouter {
     const messageWithAgentId = {
       ...message,
       agentId: agent.id,
-      agentInstanceId: agent.instanceId
+      agentInstanceId: agent.instanceId,
+      
     };
 
     // If we have a specific client ID and type, send to that client using the appropriate messaging class
@@ -286,7 +287,7 @@ export class AgentMessageRouter {
 
     const tuiManager = this.connectionManager.getTuiConnectionManager();
     const tuis = tuiManager.getAllTuis();
-
+   
     if (tuis.length > 0) {
       // Try to send to first available tui
       const tui = tuis[0];

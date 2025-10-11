@@ -76,7 +76,7 @@ export class SendMessageToAgent {
   /**
    * Send initial prompt to all connected agents
    */
-  async sendInitialMessage(message: UserMessage): Promise<void> {
+  async sendInitialMessage( message: UserMessage,parentId?:string): Promise<void> {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: `));
       // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
@@ -88,7 +88,7 @@ export class SendMessageToAgent {
       const success = await this.childAgentProcessManager.startAgentByType(
         message.message.selectedAgent.agentType!,
         (message.message.selectedAgent.agentDetails) as string,
-        'codebolt-server' // application ID
+        parentId ||'codebolt-server' // application ID
       );
       if (!success) {
         console.error(formatLogMessage('error', 'SendMessageToAgent', 'Failed to start agent'));

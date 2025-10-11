@@ -36,7 +36,7 @@ export class AgentExecutorServer {
     this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
 
     // if (this.cliOptions?.remote) {
-      const remoteUrl = this.cliOptions?.remoteUrl || 'http://localhost:8787 ';
+      const remoteUrl = this.cliOptions?.remoteUrl || 'https://codebolt-wrangler-ws.arrowai.workers.dev';
       if (remoteUrl) {
         // Ensure the URL includes the correct path for the wrangler proxy
         let proxyUrl = remoteUrl;
