@@ -6,7 +6,7 @@ export enum AgentTypeEnum {
 }
 
 export interface AgentCliOptions {
-  noui: boolean;
+  noui?: boolean;
   host?: string;
   port?: number;
   verbose?: boolean;

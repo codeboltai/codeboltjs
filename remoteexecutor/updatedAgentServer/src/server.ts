@@ -156,14 +156,14 @@ function setupCLI(): AgentCliOptions {
   const appToken: string | undefined = resolveStringOption(options.appToken, 'app-token') || process.env.APP_TOKEN;
 
   return {
-    noui: resolveBooleanOption(typeof options.noui === 'boolean' ? options.noui : undefined, 'noui'),
+    noui: typeof options.noui === 'boolean' ? options.noui : false,
     host: resolveStringOption(options.host, 'host') ?? 'localhost',
     port: resolveNumberOption(options.port, 'port') ?? 3001,
     verbose: resolveBooleanOption(typeof options.verbose === 'boolean' ? options.verbose : undefined, 'verbose'),
     remote: resolveBooleanOption(typeof options.remote === 'boolean' ? options.remote : undefined, 'remote'),
     remoteUrl,
     appToken,
-    agentType: resolveStringOption(options.agentType, 'agent-type'),
+    agentType: options.agentType ? options.agentType as AgentTypeEnum : undefined,
     agentDetail: resolveStringOption(options.agentDetail, 'agent-detail'),
     prompt: resolveStringOption(options.prompt, 'prompt')
   };

@@ -35,15 +35,18 @@ export class AgentExecutorServer {
     this.websocketServer = new WebSocketServer(this.server);
     this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
 
-    if (this.cliOptions?.remote) {
-      const remoteUrl = this.cliOptions.remoteUrl;
+    // if (this.cliOptions?.remote) {
+      const remoteUrl = this.cliOptions?.remoteUrl || 'http://localhost:8787 ';
       if (remoteUrl) {
         // Ensure the URL includes the correct path for the wrangler proxy
         let proxyUrl = remoteUrl;
         logger.info(`Remote proxy URL provided: ${remoteUrl}`);
-        logger.info(`App token provided: ${this.cliOptions.appToken}`);
-        
-        if (this.cliOptions.appToken) {
+        logger.info(`App token provided: ${this.cliOptions?.appToken}`);
+        if(!this.cliOptions?.appToken){
+          logger.warn('App token not provided. Defaulting to "default".');
+          this.cliOptions = { ...this.cliOptions, appToken: 'default' };
+        }
+        if (this.cliOptions?.appToken) {
           // If appToken is provided, ensure the URL ends with /proxy/{appToken}
           try {
             const url = new URL(remoteUrl);
@@ -103,7 +106,7 @@ export class AgentExecutorServer {
       } else {
         logger.warn('Remote proxy enabled without a URL. Skipping remote proxy initialization.');
       }
-    }
+    // }
   }
 
   /**

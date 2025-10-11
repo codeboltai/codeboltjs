@@ -5,6 +5,7 @@ import { WebSocketServer } from '../../core/ws/websocketServer';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk';
 import { ChildAgentProcessManager } from '@/utils/childAgentManager/childAgentProcessManager';
+import { AgentTypeEnum } from '@/types/cli';
 
 
 /**
@@ -79,6 +80,11 @@ export class SendMessageToAgent {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: `));
       // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
+
+      if(!message.message.selectedAgent.agentType){
+        message.message.selectedAgent.agentType=AgentTypeEnum.marketplace;
+        message.message.selectedAgent.agentDetails=message.message.selectedAgent.id;
+      }
       const success = await this.childAgentProcessManager.startAgentByType(
         message.message.selectedAgent.agentType!,
         (message.message.selectedAgent.agentDetails) as string,
