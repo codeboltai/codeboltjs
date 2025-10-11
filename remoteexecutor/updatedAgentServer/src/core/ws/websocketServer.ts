@@ -106,17 +106,16 @@ export class WebSocketServer {
         return;
       }
 
-      const messageWithConnection = this.enrichMessageWithConnection(message, clientId);
       try {
         switch (connection.type) {
           case WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT:
-            this.agentMessageRouter.handleAgentRequestMessage(connection, messageWithConnection);
+            this.agentMessageRouter.handleAgentRequestMessage(connection, message as any);
             break;
           case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
-            this.appMessageRouter.handleAppResponse(connection, messageWithConnection);
+            this.appMessageRouter.handleAppResponse(connection, message as any);
             break;
           case WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI:
-            this.tuiMessageRouter.handleTuiMessage(connection, messageWithConnection);
+            this.tuiMessageRouter.handleTuiMessage(connection, message as any);
             break;
           default:
             logger.warn(`Unknown connection type: ${connection.type} for ${connection.id}`);
@@ -170,7 +169,8 @@ export class WebSocketServer {
       appId: queryParams.get('appId') || undefined,
       currentProject: queryParams.get('currentProject') || undefined,
       projectName: queryParams.get('projectName') || undefined,
-      projectType: queryParams.get('projectType') || undefined
+      projectType: queryParams.get('projectType') || undefined,
+      connectionId: queryParams.get('connectionId') || undefined
     };
   }
 
@@ -204,7 +204,7 @@ export class WebSocketServer {
 
     // Priority 1: Auto-register agent if agentId and parentId are provided
     if (params.agentId && params.parentId) {
-      this.registerAgent(ws, params.agentId, params.parentId, 'auto', projectInfo, instanceId);
+      this.registerAgent(ws, params.agentId, params.parentId, 'auto', projectInfo, instanceId, params.connectionId);
       return { clientId: params.agentId };
     }
 
@@ -236,7 +236,8 @@ export class WebSocketServer {
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     projectInfo?: ProjectInfo,
-    agentInstanceId?: string
+    agentInstanceId?: string,
+    connectionId?: string
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}${projectInfo ? ` and project: ${projectInfo.path}` : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
@@ -247,7 +248,8 @@ export class WebSocketServer {
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
       parentId,
       projectInfo,
-      agentInstanceId
+      agentInstanceId,
+      connectionId
     );
 
     this.sendRegistrationConfirmation(
@@ -339,14 +341,7 @@ export class WebSocketServer {
   }
 
 
-  /**
-   * Enrich message with connection information
-   */
-  private enrichMessageWithConnection(message: unknown, clientId: string): Message & { connectionId: string } {
-    const enrichedMessage = message as Message & { connectionId: string };
-    enrichedMessage.connectionId = clientId;
-    return enrichedMessage;
-  }
+  
 
   /**
    * Send error message to WebSocket

@@ -32,7 +32,8 @@ export class ConnectionManager {
     connectionType: 'app' | 'agent' | 'tui',
     parentId?: string,
     projectInfo?: ProjectInfo,
-    instanceId?: string
+    instanceId?: string,
+    connectionIdentifier?: string
   ): void {
     const connection: ClientConnection = {
       id: connectionId,
@@ -40,7 +41,8 @@ export class ConnectionManager {
       type: connectionType,
       connectedAt: new Date(),
       currentProject: projectInfo,
-      instanceId
+      instanceId,
+      connectionId: connectionIdentifier
     };
 
     if (connectionType === 'agent') {

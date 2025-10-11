@@ -1,8 +1,8 @@
 import { ClientConnection, Message, ReadFileMessage, WriteFileMessage, AskAIMessage, ResponseMessage, formatLogMessage } from '../../types';
-import { 
-  ReadFileHandler, 
-  WriteFileHandler, 
-  AskAIHandler, 
+import {
+  ReadFileHandler,
+  WriteFileHandler,
+  AskAIHandler,
   CreateFileHandler,
   CreateFolderHandler,
   UpdateFileHandler,
@@ -36,7 +36,8 @@ import {
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager.js';
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
-import type { 
+import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui.js';
+import type {
   ReadFileEvent,
   CreateFileEvent,
   CreateFolderEvent,
@@ -69,9 +70,9 @@ import type {
   UtilsEvent,
   CodeUtilsEvent
 } from '@codebolt/types/agent-to-app-ws-types';
-import type { 
-  FileReadRequestNotification, 
-  FileReadResponseNotification, 
+import type {
+  FileReadRequestNotification,
+  FileReadResponseNotification,
   FileCreateRequestNotification,
   FileCreateResponseNotification,
   FolderCreateRequestNotification,
@@ -150,7 +151,8 @@ export class AgentMessageRouter {
   private codeUtilsHandler: CodeUtilsHandler;
   private utilsHandler: UtilsHandler;
   private codebaseSearchHandler: CodebaseSearchHandler;
-  private sendMessageToApp:SendMessageToApp
+  private sendMessageToApp: SendMessageToApp;
+  private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
   private notificationService: NotificationService;
 
@@ -158,7 +160,7 @@ export class AgentMessageRouter {
 
 
   constructor() {
- 
+
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
     this.askAIHandler = new AskAIHandler();
@@ -192,14 +194,15 @@ export class AgentMessageRouter {
     this.codeUtilsHandler = new CodeUtilsHandler();
     this.utilsHandler = new UtilsHandler();
     this.codebaseSearchHandler = new CodebaseSearchHandler();
-    this.sendMessageToApp= new SendMessageToApp()
+    this.sendMessageToApp = new SendMessageToApp();
+    this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
     this.notificationService = NotificationService.getInstance();
   }
 
- 
 
- 
+
+
 
   /**
    * Handle requests from agents (asking app to do file operations)
@@ -207,13 +210,92 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(agent: ClientConnection, message: Message | any) {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling agent request: ${message.type || message.action} from ${agent.id}`));
-    
-    // Handle all typed events from agents
-   
-    // Forward the message to the related app instead of sending back to client
-    this.sendMessageToApp.forwardToApp(agent, message);
 
-    
+    // Handle all typed events from agents
+
+    // Forward the message to the related app instead of sending back to client
+
+    // Cache the message ID -> agent ID mapping for response routing
+    const agentManager = this.connectionManager.getAgentConnectionManager();
+    const appManager = this.connectionManager.getAppConnectionManager();
+    const processManager = this.connectionManager.getProcessManager();
+
+    if (message.id) {
+      agentManager.cacheMessageToAgent(message.id, agent.id);
+    }
+
+    // Get the client ID and client type for this agent
+    let targetClientId: string | undefined;
+    let clientType: 'app' | 'tui' | undefined;
+
+    // First try to get parent ID from agent connections manager
+    const parentId = agentManager.getParentByAgent(agent.id);
+    if (parentId) {
+      // Check if parent is an app
+      if (appManager.getApp(parentId)) {
+        targetClientId = parentId;
+        clientType = 'app';
+      }
+      // Check if parent is a tui
+      else {
+        const tuiManager = this.connectionManager.getTuiConnectionManager();
+        if (tuiManager.getTui(parentId)) {
+          targetClientId = parentId;
+          clientType = 'tui';
+        }
+      }
+    }
+
+    // Fallback to connectionId mapping if parent mapping not found
+    if (!targetClientId && agent.connectionId) {
+      targetClientId = processManager.getClientIdForConnection(agent.connectionId);
+      // If we have a client ID from connection mapping, determine its type
+      if (targetClientId) {
+        if (appManager.getApp(targetClientId)) {
+          clientType = 'app';
+        } else {
+          const tuiManager = this.connectionManager.getTuiConnectionManager();
+          if (tuiManager.getTui(targetClientId)) {
+            clientType = 'tui';
+          }
+        }
+      }
+    }
+
+    // Add agentId and agentInstanceId to the message so the client knows where to send response back
+    const messageWithAgentId = {
+      ...message,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    // If we have a specific client ID and type, send to that client using the appropriate messaging class
+    if (targetClientId && clientType) {
+      if (clientType === 'app') {
+        this.sendMessageToApp.forwardToApp(agent, messageWithAgentId);
+        return;
+      } else if (clientType === 'tui') {
+        this.sendMessageToTui.sendToTui(targetClientId, messageWithAgentId);
+        return;
+      }
+    }
+
+
+    const tuiManager = this.connectionManager.getTuiConnectionManager();
+    const tuis = tuiManager.getAllTuis();
+
+    if (tuis.length > 0) {
+      // Try to send to first available tui
+      const tui = tuis[0];
+      this.sendMessageToTui.sendToTui(tui.id, messageWithAgentId);
+    } else {
+      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps or tuis available'));
+      this.connectionManager.sendError(agent.id, 'No local clients available', message.id);
+    }
+
+
+
+
     // switch (action) {
     //   // File System Events
     //   case 'readFile':
