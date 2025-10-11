@@ -78,9 +78,6 @@ export class SendMessageToAgent {
   async sendInitialMessage(message: UserMessage): Promise<void> {
     try {
       console.log(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: `));
-
-
-     
       // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
       const success = await this.childAgentProcessManager.startAgentByType(
         message.message.selectedAgent.agentType!,

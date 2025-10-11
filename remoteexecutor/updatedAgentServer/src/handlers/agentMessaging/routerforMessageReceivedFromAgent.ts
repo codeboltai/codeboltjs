@@ -37,6 +37,7 @@ import { ConnectionManager } from '../../core/connectionManagers/connectionManag
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui.js';
+import { SendMessageToRemote } from '..//remoteMessaging/sendMessageToRemote'
 import type {
   ReadFileEvent,
   CreateFileEvent,
@@ -155,6 +156,7 @@ export class AgentMessageRouter {
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
   private notificationService: NotificationService;
+  private sendMessageToRemote: SendMessageToRemote;
 
 
 
@@ -198,6 +200,7 @@ export class AgentMessageRouter {
     this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
     this.notificationService = NotificationService.getInstance();
+    this.sendMessageToRemote = new SendMessageToRemote();
   }
 
 
@@ -292,6 +295,11 @@ export class AgentMessageRouter {
       console.log(formatLogMessage('info', 'MessageRouter', 'No local apps or tuis available'));
       this.connectionManager.sendError(agent.id, 'No local clients available', message.id);
     }
+
+    //TODO: send to remote
+
+      this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId);
+   
 
 
 

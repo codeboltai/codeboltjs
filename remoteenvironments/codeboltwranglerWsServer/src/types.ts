@@ -1,7 +1,7 @@
 export type ActorType = 'agent' | 'app';
 
 export interface RegisterMessage {
-  type: 'register';
+  type: 'registered';
   actor: ActorType;
   agentId?: string;
   appId?: string;

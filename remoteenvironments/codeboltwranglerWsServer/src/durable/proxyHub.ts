@@ -80,7 +80,7 @@ export class ProxyHub {
 
   private handleMessage(socket: WebSocket, message: ProxyIncomingMessage): void {
     switch (message.type) {
-      case 'register':
+      case 'registered':
         this.handleClientRegistration(socket, message);
         break;
       case 'forward':

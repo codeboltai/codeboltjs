@@ -110,7 +110,14 @@ export class RemoteProxyClient {
 
   private connect(): void {
     try {
-      const url = this.options.url;
+      // Ensure the URL uses the correct WebSocket scheme
+      let url = this.options.url;
+      if (url.startsWith('http://')) {
+        url = url.replace('http://', 'ws://');
+      } else if (url.startsWith('https://')) {
+        url = url.replace('https://', 'wss://');
+      }
+      
       console.log(formatLogMessage('info', 'WranglerProxyClient', `Connecting to remote proxy: ${url}`));
 
       this.websocket = new WebSocket(url);
@@ -208,13 +215,14 @@ export class RemoteProxyClient {
       return;
     }
 
-    const message = {
+    // Create a properly typed message object
+    const message: any = {
       ...(payload as Record<string, unknown>),
       target,
       agentId: extra.agentId,
       clientId: extra.clientId,
       tuiId: extra.tuiId
-    } as Message;
+    };
 
     this.remoteRouter.handleRemoteMessage(message);
   }

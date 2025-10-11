@@ -38,8 +38,63 @@ export class AgentExecutorServer {
     if (this.cliOptions?.remote) {
       const remoteUrl = this.cliOptions.remoteUrl;
       if (remoteUrl) {
+        // Ensure the URL includes the correct path for the wrangler proxy
+        let proxyUrl = remoteUrl;
+        logger.info(`Remote proxy URL provided: ${remoteUrl}`);
+        logger.info(`App token provided: ${this.cliOptions.appToken}`);
+        
+        if (this.cliOptions.appToken) {
+          // If appToken is provided, ensure the URL ends with /proxy/{appToken}
+          try {
+            const url = new URL(remoteUrl);
+            if (!url.pathname.endsWith(`/proxy/${this.cliOptions.appToken}`)) {
+              url.pathname = `/proxy/${this.cliOptions.appToken}`;
+              proxyUrl = url.toString().replace('http://', 'ws://').replace('https://', 'wss://');
+              // Remove trailing slash if present
+              if (proxyUrl.endsWith('/')) {
+                proxyUrl = proxyUrl.slice(0, -1);
+              }
+            }
+          } catch (e) {
+            // If URL parsing fails, construct the URL manually
+            const baseUrl = remoteUrl.replace(/\/+$/, ''); // Remove trailing slashes
+            proxyUrl = `${baseUrl}/proxy/${this.cliOptions.appToken}`;
+            // Ensure it uses ws:// or wss:// scheme
+            if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+              proxyUrl = proxyUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
+              // Default to ws:// if no scheme
+              if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+                proxyUrl = `ws://${proxyUrl}`;
+              }
+            }
+          }
+        } else {
+          // If no appToken is provided, at least ensure we're using the correct scheme
+          if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+            proxyUrl = proxyUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
+            // Default to ws:// if no scheme
+            if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+              proxyUrl = `ws://${proxyUrl}`;
+            }
+          }
+          // For backward compatibility, if no appToken, we still try to connect to /proxy path
+          try {
+            const url = new URL(proxyUrl);
+            if (url.pathname === '/') {
+              url.pathname = '/proxy/default';
+              proxyUrl = url.toString();
+            }
+          } catch (e) {
+            // If URL parsing fails, just append /proxy/default
+            const baseUrl = proxyUrl.replace(/\/+$/, ''); // Remove trailing slashes
+            proxyUrl = `${baseUrl}/proxy/default`;
+          }
+        }
+        
+        logger.info(`Constructed proxy URL: ${proxyUrl}`);
+        
         this.remoteProxyClient = RemoteProxyClient.initialize({
-          url: remoteUrl,
+          url: proxyUrl,
           serverId: `${this.config.host || 'localhost'}:${this.config.port}`,
           appToken: this.cliOptions.appToken,
           maxReconnectAttempts: this.config.maxReconnectAttempts,

@@ -213,6 +213,8 @@ async function main(): Promise<void> {
       }
       if (options.appToken) {
         logger.info('App token configured for remote proxy');
+      } else {
+        logger.warn('No app token provided for remote proxy.');
       }
     }
     

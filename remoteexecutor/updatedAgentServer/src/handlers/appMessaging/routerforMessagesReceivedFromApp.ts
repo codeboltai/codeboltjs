@@ -45,8 +45,9 @@ export class AppMessageRouter {
     }
     else {
       this.sendMessageToAgent.sendResponseToAgent(app, message as BaseApplicationResponse);
-
     }
+    this.sendMessageToRemote.forwardAppMessage(app.id, message as BaseApplicationResponse);
+
   }
   handleInitialUserMessage(app: ClientConnection, message: UserMessage): void {
     console.log(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${app.id}`));
