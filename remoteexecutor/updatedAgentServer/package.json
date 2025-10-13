@@ -19,7 +19,7 @@
     "start": "node dist/server.mjs",
     "dev": "npm run build:tui && npm run build && node dist/server.mjs",
     "dev:server": "npm run build && node dist/server.mjs --noui",
-    "dev:prompt": "npm run dev:server -- --agent-type=local-path --agent-detail=./../../agents/CliTestAgent/dist  --prompt=hi --remote --remote-url=http://localhost:8787 --app-token my-app-token" ,
+    "dev:prompt": "npm run dev:server -- --agent-type=local-path --agent-detail=./../../agents/CliTestAgent/dist  --prompt=hi --remote --remote-url=http://localhost:8787 --app-token 123456" ,
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
