@@ -8,17 +8,20 @@ export interface ProjectInfo {
   metadata?: Record<string, any>;
 }
 
-/**
- * Connection information for an app or agent
- */
-export interface ClientConnection {
+export interface BaseConnection {
   id: string;
   ws: any; // WebSocket type - avoiding direct ws import for better compatibility
   type: 'app' | 'agent' | 'client' | 'tui';
   connectedAt: Date;
-  currentProject?: ProjectInfo;
   instanceId?:string;
   connectionId?: string;
+}
+
+/**
+ * Connection information for an app or agent
+ */
+export interface ClientConnection extends BaseConnection {
+  currentProject?: ProjectInfo;
 }
 
 /**
