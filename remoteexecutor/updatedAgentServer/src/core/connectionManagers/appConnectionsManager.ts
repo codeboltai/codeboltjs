@@ -75,32 +75,4 @@ export class AppConnectionsManager {
       }
     });
   }
-
-  updateAppProject(appId: string, projectInfo: ProjectInfo): boolean {
-    const app = this.apps.get(appId);
-
-    if (!app) {
-      logger.warn(formatLogMessage('warn', 'AppConnectionsManager', `App ${appId} not found for project update`));
-      return false;
-    }
-
-    app.currentProject = projectInfo;
-    logger.info(formatLogMessage('info', 'AppConnectionsManager', `Updated project for app ${appId}: ${projectInfo.path}`));
-    return true;
-  }
-
-  getAppProject(appId: string): ProjectInfo | undefined {
-    return this.apps.get(appId)?.currentProject;
-  }
-
-  getAppsByProject(projectPath: string): ClientConnection[] {
-    return Array.from(this.apps.values()).filter((connection) => connection.currentProject?.path === projectPath);
-  }
-
-  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
-    return Array.from(this.apps.values()).map((connection) => ({
-      connection,
-      project: connection.currentProject
-    }));
-  }
 }
