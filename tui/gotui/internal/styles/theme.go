@@ -151,8 +151,8 @@ type Styles struct {
 func NewStyles(theme Theme) Styles {
 	return Styles{
 		Base: lipgloss.NewStyle().
-			Foreground(theme.Foreground).
-			Background(theme.Background),
+			Foreground(theme.Foreground),
+		// Background(theme.Background),
 
 		Title: lipgloss.NewStyle().
 			Foreground(theme.Primary).
@@ -168,14 +168,14 @@ func NewStyles(theme Theme) Styles {
 
 		Button: lipgloss.NewStyle().
 			Foreground(theme.Foreground).
-			Background(theme.Surface).
+			// Background(theme.Surface).
 			Padding(0, 2).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(theme.Border),
 
 		ButtonActive: lipgloss.NewStyle().
 			Foreground(theme.Background).
-			Background(theme.Primary).
+			// Background(theme.Primary).
 			Padding(0, 2).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(theme.Primary).
@@ -183,26 +183,26 @@ func NewStyles(theme Theme) Styles {
 
 		Input: lipgloss.NewStyle().
 			Foreground(theme.Foreground).
-			Background(theme.Surface).
+			// Background(theme.Surface).
 			Padding(0, 1).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(theme.Border),
 
 		InputFocused: lipgloss.NewStyle().
 			Foreground(theme.Foreground).
-			Background(theme.Surface).
+			// Background(theme.Surface).
 			Padding(0, 1).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(theme.Primary),
 
 		Panel: lipgloss.NewStyle().
 			Foreground(theme.Foreground).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Padding(1),
 
 		PanelActive: lipgloss.NewStyle().
 			Foreground(theme.Foreground).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Padding(1),
 
 		Border: lipgloss.NewStyle().

@@ -51,13 +51,13 @@ func (bt *BaseTemplate) RenderHeader(prefix string, timestamp time.Time, width i
 		prefix,
 		lipgloss.NewStyle().
 			Foreground(theme.Muted).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Render(" • "+timestampStr),
 	)
 
 	// Pad header to full width with background to avoid black gaps
 	return lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(maxInt(1, width)).
 		Render(header)
 }
@@ -79,7 +79,7 @@ func (bt *BaseTemplate) RenderContentWithIndent(content string, style lipgloss.S
 		if line == "" {
 			// Add a fully-background blank line
 			blank := lipgloss.NewStyle().
-				Background(theme.Background).
+				// Background(theme.Background).
 				Width(width).
 				Render(" ")
 			lines = append(lines, blank)
@@ -112,12 +112,16 @@ func (bt *BaseTemplate) RenderContentWithIndent(content string, style lipgloss.S
 			}
 			if currentLine != "" {
 				styled := style.Render(indent + currentLine)
-				filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+				filled := lipgloss.NewStyle().
+					// Background(theme.Background).
+					Width(width).Render(styled)
 				lines = append(lines, filled)
 			}
 		} else {
 			styled := style.Render(indent + line)
-			filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+			filled := lipgloss.NewStyle().
+				// Background(theme.Background).
+				Width(width).Render(styled)
 			lines = append(lines, filled)
 		}
 	}
@@ -150,7 +154,10 @@ func (bt *BaseTemplate) RenderCodeBlock(content string, language string, width i
 		} else {
 			styled = codeStyle.Render(" " + line + " ")
 		}
-		filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+		filled := lipgloss.NewStyle().
+			// Background(theme.Background).
+			Width(width).
+			Render(styled)
 		lines = append(lines, filled)
 	}
 
@@ -160,7 +167,7 @@ func (bt *BaseTemplate) RenderCodeBlock(content string, language string, width i
 // AddSpacer adds a spacer line between messages
 func (bt *BaseTemplate) AddSpacer(width int, theme styles.Theme) string {
 	return lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(width).
 		Render(" ")
 }

@@ -65,14 +65,14 @@ func (wft *WriteFileTemplate) Render(data MessageTemplateData, theme styles.Them
 
 	fileInfo := fileInfoStyle.Render(fmt.Sprintf("  📁 %s", filePath))
 	fileInfoFilled := lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(data.Width).
 		Render(fileInfo)
 	lines = append(lines, fileInfoFilled)
 
 	// Add spacer
 	spacer := lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(data.Width).
 		Render(" ")
 	lines = append(lines, spacer)
@@ -88,7 +88,7 @@ func (wft *WriteFileTemplate) Render(data MessageTemplateData, theme styles.Them
 			Italic(true)
 		emptyMsg := emptyStyle.Render("  (no content written)")
 		emptyFilled := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(data.Width).
 			Render(emptyMsg)
 		lines = append(lines, emptyFilled)

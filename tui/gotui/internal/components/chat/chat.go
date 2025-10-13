@@ -917,11 +917,11 @@ type ThemeSelectedMsg struct {
 // View renders the chat component
 func (c *Chat) View() string {
 	if c.width < 50 || c.height < 10 {
-		theme := styles.CurrentTheme()
+		// theme := styles.CurrentTheme()
 		return lipgloss.NewStyle().
 			Width(c.width).
 			Height(c.height).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Align(lipgloss.Center, lipgloss.Center).
 			Render("Chat area too small")
 	}
@@ -1060,7 +1060,7 @@ func (c *Chat) renderModelStatus() string {
 }
 
 func (c *Chat) renderChatArea(mainWidth int) string {
-	theme := styles.CurrentTheme()
+	// theme := styles.CurrentTheme()
 
 	if mainWidth <= 0 {
 		separatorCount := 0
@@ -1098,7 +1098,7 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 
 	return lipgloss.NewStyle().
 		Width(chatWidth).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(lipgloss.JoinVertical(lipgloss.Left, chatHistory, inputArea))
 }
 
@@ -1128,7 +1128,7 @@ func (c *Chat) renderRightSidebar(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(c.rightSidebarWidth).
 		Height(c.chatHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(sidebar)
 }
 
@@ -1150,14 +1150,14 @@ func (c *Chat) composeLayout(theme styles.Theme, leftSidebar, chatArea, rightSid
 	return lipgloss.NewStyle().
 		Width(c.width).
 		Height(c.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(lipgloss.JoinHorizontal(lipgloss.Top, segments...))
 }
 
 func layoutSeparator(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(1).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Foreground(theme.Border).
 		Render("│")
 }

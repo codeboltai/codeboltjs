@@ -149,7 +149,7 @@ func (s *Status) View() string {
 	return lipgloss.NewStyle().
 		Width(s.width).
 		Height(s.height).
-		Background(theme.Surface).
+		// Background(theme.Surface).
 		Foreground(theme.Foreground).
 		Padding(0, 1).
 		Render(statusLine)

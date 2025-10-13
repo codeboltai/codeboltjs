@@ -11,8 +11,8 @@ require (
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/lrstanley/bubblezone v1.0.0
+	github.com/lucasb-eyer/go-colorful v1.2.0
 	golang.org/x/term v0.31.0
 )
 

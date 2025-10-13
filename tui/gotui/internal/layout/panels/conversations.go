@@ -67,7 +67,7 @@ func (p *ConversationListPanel) View() string {
 	headStyle := lipgloss.NewStyle().
 		Width(p.width).
 		Foreground(theme.Primary).
-		Background(theme.SurfaceHigh).
+		// Background(theme.SurfaceHigh).
 		Bold(true).
 		Padding(0, 1)
 
@@ -92,9 +92,13 @@ func (p *ConversationListPanel) View() string {
 		style := itemBase
 		switch {
 		case item.IsActive:
-			style = style.Background(theme.Primary).Foreground(theme.Background)
+			style = style.
+				// Background(theme.Primary).
+				Foreground(theme.Background)
 		case item.IsHovered:
-			style = style.Background(theme.SurfaceHigh).Foreground(theme.Foreground)
+			style = style.
+				// Background(theme.SurfaceHigh).
+				Foreground(theme.Foreground)
 		default:
 			style = style.Foreground(theme.Foreground)
 		}
@@ -107,7 +111,9 @@ func (p *ConversationListPanel) View() string {
 		button := itemBase
 		title := "➕ New conversation"
 		if p.hoverNew {
-			button = button.Background(theme.Secondary).Foreground(theme.Background)
+			button = button.
+				// Background(theme.Secondary).
+				Foreground(theme.Background)
 		} else {
 			button = button.Foreground(theme.Secondary)
 		}
@@ -118,7 +124,7 @@ func (p *ConversationListPanel) View() string {
 	return lipgloss.NewStyle().
 		Width(p.width).
 		Height(p.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(panel)
 }
 

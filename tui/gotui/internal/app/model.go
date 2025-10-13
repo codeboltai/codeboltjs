@@ -628,7 +628,7 @@ func (m *Model) renderTabs() string {
 		BorderForeground(theme.Primary).
 		BorderBottom(false).
 		Padding(0, 2).
-		Background(theme.SurfaceHigh).
+		// Background(theme.SurfaceHigh).
 		Foreground(theme.Primary).
 		Bold(true)
 
@@ -637,7 +637,7 @@ func (m *Model) renderTabs() string {
 		BorderForeground(theme.Border).
 		BorderBottom(true).
 		Padding(0, 2).
-		Background(theme.Surface).
+		// Background(theme.Surface).
 		Foreground(theme.Muted)
 
 	var rendered []string
@@ -684,7 +684,7 @@ func (m *Model) renderTabs() string {
 	return lipgloss.NewStyle().
 		Width(m.width).
 		Height(tabBarHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(bar)
 }
 
@@ -719,7 +719,7 @@ func (m *Model) renderActiveTab(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(m.width).
 		Height(contentHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(view)
 }
 
@@ -950,7 +950,7 @@ func (m *Model) View() string {
 	if m.helpBarHeight() > 0 {
 		help := lipgloss.NewStyle().
 			Width(m.width).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Render(m.helpBar.View())
 		view = lipgloss.JoinVertical(lipgloss.Left, view, help)
 	}
@@ -958,6 +958,6 @@ func (m *Model) View() string {
 	return zone.Scan(lipgloss.NewStyle().
 		Width(m.width).
 		Height(m.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(view))
 }

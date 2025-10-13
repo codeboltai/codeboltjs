@@ -128,7 +128,7 @@ func (p *ThemePicker) View(width, height int) string {
 
 	headerTitle := lipgloss.NewStyle().
 		Foreground(baseTheme.Background).
-		Background(baseTheme.Primary).
+		// Background(baseTheme.Primary).
 		Bold(true).
 		Padding(0, 3).
 		Render("Theme Selector")
@@ -144,7 +144,7 @@ func (p *ThemePicker) View(width, height int) string {
 		Width(panelWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(baseTheme.Primary).
-		Background(baseTheme.SurfaceHigh).
+		// Background(baseTheme.SurfaceHigh).
 		Padding(1, paddingX).
 		Render(lipgloss.JoinVertical(lipgloss.Left, header, body))
 
@@ -152,7 +152,7 @@ func (p *ThemePicker) View(width, height int) string {
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Background(baseTheme.Surface.BlendLab(baseTheme.Background, 0.45)).
+		// Background(baseTheme.Surface.BlendLab(baseTheme.Background, 0.45)).
 		Render(overlay)
 }
 
@@ -162,7 +162,7 @@ func (p *ThemePicker) renderOptions(width int) []string {
 		empty := lipgloss.NewStyle().
 			Width(width).
 			Foreground(theme.Muted).
-			Background(theme.Surface).
+			// Background(theme.Surface).
 			Padding(1, 2).
 			Align(lipgloss.Center, lipgloss.Center).
 			Render("No themes available")
@@ -206,13 +206,13 @@ func (p *ThemePicker) renderOption(opt styles.ThemePreset, selected bool, width 
 	if selected {
 		indicator = lipgloss.NewStyle().Foreground(optTheme.Accent).Render("➤ ")
 		rowStyle = rowStyle.
-			Background(optTheme.SurfaceHigh).
+			// Background(optTheme.SurfaceHigh).
 			Foreground(optTheme.Foreground).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(optTheme.Primary)
 	} else {
 		rowStyle = rowStyle.
-			Background(theme.Surface).
+			// Background(theme.Surface).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(theme.SurfaceHigh)
 	}
@@ -227,7 +227,7 @@ func (p *ThemePicker) renderPalette(t styles.Theme) string {
 			Width(6).
 			Height(1).
 			MarginRight(1).
-			Background(color).
+			// Background(color).
 			Render("      ")
 	}
 

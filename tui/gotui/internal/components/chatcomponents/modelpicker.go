@@ -128,13 +128,12 @@ func (p *ModelPicker) View(width, height int) string {
 	}
 
 	headerTitle := lipgloss.NewStyle().
-		Foreground(theme.Foreground).
-		Background(theme.Primary.BlendLab(theme.SurfaceHigh, 0.2)).
+		Foreground(lipgloss.Color(theme.Primary.Hex())).
 		Bold(true).
 		Padding(0, 3).
 		Render("Model Palette")
 	headerHint := lipgloss.NewStyle().
-		Foreground(theme.Muted).
+		Foreground(lipgloss.Color(theme.Muted.Hex())).
 		Padding(0, 1).
 		Render("Use ↑ ↓ to navigate • Enter to select • Esc to cancel")
 	header := lipgloss.JoinVertical(lipgloss.Left, headerTitle, headerHint, "")
@@ -145,8 +144,7 @@ func (p *ModelPicker) View(width, height int) string {
 	panel := lipgloss.NewStyle().
 		Width(panelWidth).
 		BorderStyle(lipgloss.RoundedBorder()).
-		BorderForeground(theme.Border).
-		Background(theme.SurfaceHigh.BlendLab(theme.Background, 0.08)).
+		BorderForeground(lipgloss.Color(theme.Border.Hex())).
 		Padding(2, paddingX).
 		Render(lipgloss.JoinVertical(lipgloss.Left, header, body))
 
@@ -155,7 +153,6 @@ func (p *ModelPicker) View(width, height int) string {
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Background(theme.Background.BlendLab(theme.Surface, 0.6)).
 		Render(overlay)
 }
 
@@ -164,8 +161,7 @@ func (p *ModelPicker) renderOptions(width int) []string {
 	if len(p.options) == 0 {
 		empty := lipgloss.NewStyle().
 			Width(width).
-			Foreground(theme.Muted).
-			Background(theme.Surface).
+			Foreground(lipgloss.Color(theme.Muted.Hex())).
 			Padding(1, 2).
 			Align(lipgloss.Center, lipgloss.Center).
 			Render("No models available")
@@ -177,7 +173,7 @@ func (p *ModelPicker) renderOptions(width int) []string {
 		rows = append(rows, p.renderOption(opt, i == p.selected, width))
 		if i < len(p.options)-1 {
 			divider := lipgloss.NewStyle().
-				Foreground(theme.Border).
+				Foreground(lipgloss.Color(theme.Border.Hex())).
 				Width(width).
 				Render(strings.Repeat("─", max(12, width-2)))
 			rows = append(rows, divider)
@@ -189,24 +185,16 @@ func (p *ModelPicker) renderOptions(width int) []string {
 func (p *ModelPicker) renderOption(opt ModelOption, selected bool, width int) string {
 	theme := styles.CurrentTheme()
 	nameStyle := lipgloss.NewStyle().
-		Foreground(theme.Primary).
-		Bold(true).
-		UnsetBackground()
-	providerStyle := lipgloss.NewStyle().
-		Foreground(theme.Secondary).
-		UnsetBackground()
-	metaStyle := lipgloss.NewStyle().
-		Foreground(theme.Muted).
-		UnsetBackground()
+		Foreground(lipgloss.Color("#d7ffae")).
+		Bold(true)
+	// providerStyle := lipgloss.NewStyle().
+	// 	Foreground(lipgloss.Color("#d7ffae")).
+	// 	Bold(true)
 
-	segments := []string{nameStyle.Render(opt.Name)}
-	if strings.TrimSpace(opt.Provider) != "" {
-		segments = append(segments,
-			lipgloss.NewStyle().Foreground(theme.Muted).UnsetBackground().Render(" · "),
-			providerStyle.Render(opt.Provider),
-		)
-	}
-	head := lipgloss.JoinHorizontal(lipgloss.Left, segments...)
+	metaStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(theme.Muted.Hex()))
+
+	head := nameStyle.Render(opt.Name) + nameStyle.Render(opt.Provider)
 
 	contextLine := ""
 	if opt.Context != "" {
@@ -248,23 +236,23 @@ func (p *ModelPicker) renderOption(opt ModelOption, selected bool, width int) st
 		Width(cardWidth).
 		Padding(1, 2)
 
-	indicator := lipgloss.NewStyle().Foreground(theme.Muted).Render("  ")
+	indicator := lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Muted.Hex())).Render("  ")
 	container := lipgloss.NewStyle().Width(width).Padding(1, 1)
 
 	if selected {
-		indicator = lipgloss.NewStyle().Foreground(theme.Accent).Render("➤ ")
+		indicator = lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Accent.Hex())).Render("➤ ")
 		cardStyle = cardStyle.
-			Background(theme.SurfaceHighest.BlendLab(theme.SurfaceHigh, 0.35)).
 			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(theme.Primary).
-			Foreground(theme.Foreground)
-		container = container.Background(theme.SurfaceHigh.BlendLab(theme.Background, 0.12))
+			BorderForeground(lipgloss.Color(theme.Primary.Hex())).
+			Foreground(lipgloss.Color(theme.Foreground.Hex()))
+		// Removed background from cardStyle for selected state
+		// Removed background from container for selected state
 	} else {
 		cardStyle = cardStyle.
-			Background(theme.Surface).
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(theme.SurfaceHigh)
-		container = container.Background(theme.Surface.BlendLab(theme.Background, 0.08))
+			BorderForeground(lipgloss.Color(theme.SurfaceHigh.Hex()))
+		// Removed background from cardStyle for unselected state
+		// Removed background from container for unselected state
 	}
 
 	cardContent := lipgloss.JoinVertical(lipgloss.Left, sections...)
@@ -279,8 +267,8 @@ func (p *ModelPicker) renderCapabilityBadges(capabilities []string) string {
 	}
 	theme := styles.CurrentTheme()
 	badgeStyle := lipgloss.NewStyle().
-		Background(theme.SurfaceHighest).
-		Foreground(theme.Muted).
+		// Background(lipgloss.Color(theme.SurfaceHighest.Hex())).
+		Foreground(lipgloss.Color(theme.Muted.Hex())).
 		Padding(0, 1).
 		MarginRight(1)
 	badges := make([]string, 0, len(capabilities))
