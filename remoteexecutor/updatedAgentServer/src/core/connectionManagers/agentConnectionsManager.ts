@@ -258,33 +258,8 @@ export class AgentConnectionsManager {
     return result;
   }
 
-  getAgentProject(agentId: string): ProjectInfo | undefined {
-    return this.agents.get(agentId)?.currentProject;
-  }
 
-  getAgentsByProject(projectPath: string): ClientConnection[] {
-    return Array.from(this.agents.values()).filter((connection) => connection.currentProject?.path === projectPath);
-  }
 
-  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
-    return Array.from(this.agents.values()).map((connection) => ({
-      connection,
-      project: connection.currentProject
-    }));
-  }
-
-  updateAgentProject(agentId: string, projectInfo: ProjectInfo): boolean {
-    const agent = this.agents.get(agentId);
-
-    if (!agent) {
-      console.warn(formatLogMessage('warn', 'AgentConnectionsManager', `Agent ${agentId} not found for project update`));
-      return false;
-    }
-
-    agent.currentProject = projectInfo;
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', `Updated project for agent ${agentId}: ${projectInfo.path}`));
-    return true;
-  }
 
   private sendMessageToReadyAgent(agent: ClientConnection, agentId: string, message: unknown): boolean {
     try {

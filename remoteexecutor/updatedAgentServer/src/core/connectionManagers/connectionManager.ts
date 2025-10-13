@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
+import { BaseConnection, ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
 import { AgentConnectionsManager } from './agentConnectionsManager';
 import { AppConnectionsManager } from './appConnectionsManager';
 import { TuiConnectionsManager } from './tuiConnectionsManager';
@@ -31,16 +31,16 @@ export class ConnectionManager {
     ws: WebSocket,
     connectionType: 'app' | 'agent' | 'tui',
     parentId?: string,
-    projectInfo?: ProjectInfo,
+    // projectInfo?: ProjectInfo,
     instanceId?: string,
     connectionIdentifier?: string
   ): void {
-    const connection: ClientConnection = {
+    const connection: BaseConnection = {
       id: connectionId,
       ws,
       type: connectionType,
       connectedAt: new Date(),
-      currentProject: projectInfo,
+      // currentProject: projectInfo,
       instanceId,
       connectionId: connectionIdentifier
     };
@@ -145,42 +145,6 @@ export class ConnectionManager {
     };
   }
 
-  updateConnectionProject(connectionId: string, projectInfo: ProjectInfo): boolean {
-    if (this.appManager.getApp(connectionId)) {
-      return this.appManager.updateAppProject(connectionId, projectInfo);
-    }
-
-    if (this.agentManager.getAgent(connectionId)) {
-      return this.agentManager.updateAgentProject(connectionId, projectInfo);
-    }
-
-    if (this.tuiManager.getTui(connectionId)) {
-      return this.tuiManager.updateTuiProject(connectionId, projectInfo);
-    }
-
-    console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
-    return false;
-  }
-
-  getConnectionProject(connectionId: string): ProjectInfo | undefined {
-    return this.appManager.getAppProject(connectionId) || this.agentManager.getAgentProject(connectionId) || this.tuiManager.getTuiProject(connectionId);
-  }
-
-  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
-    return [
-      ...this.appManager.getAllConnectionsWithProjects(),
-      ...this.agentManager.getAllConnectionsWithProjects(),
-      ...this.tuiManager.getAllConnectionsWithProjects()
-    ];
-  }
-
-  getConnectionsByProject(projectPath: string): ClientConnection[] {
-    return [
-      ...this.appManager.getAppsByProject(projectPath),
-      ...this.agentManager.getAgentsByProject(projectPath),
-      ...this.tuiManager.getTuisByProject(projectPath)
-    ];
-  }
 
   private sendRegistrationConfirmation(
     ws: WebSocket,

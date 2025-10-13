@@ -199,31 +199,30 @@ export class WebSocketServer {
     params: ConnectionParams,
     fallbackClientId: string
   ): ConnectionRegistrationResult {
-    const projectInfo = this.createProjectInfo(params);
     const instanceId = fallbackClientId;
 
     // Priority 1: Auto-register agent if agentId and parentId are provided
     if (params.agentId && params.parentId) {
-      this.registerAgent(ws, params.agentId, params.parentId, 'auto', projectInfo, instanceId, params.connectionId);
+      this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId);
       return { clientId: params.agentId };
     }
 
     // Priority 2: Auto-register app if clientType is 'app'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP) {
       const connectionId = params.appId || fallbackClientId;
-      this.registerApp(ws, connectionId, 'auto', projectInfo, instanceId);
+      this.registerApp(ws, connectionId, 'auto', instanceId);
       return { clientId: connectionId };
     }
 
     // Priority 3: Auto-register TUI if clientType is 'tui'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI) {
       const connectionId = params.tuiId || fallbackClientId;
-      this.registerTui(ws, connectionId, 'auto', projectInfo, instanceId);
+      this.registerTui(ws, connectionId, 'auto', instanceId);
       return { clientId: connectionId };
     }
 
     // Default: Register as app if no specific parameters provided
-    this.registerApp(ws, fallbackClientId, 'auto', projectInfo, instanceId);
+    this.registerApp(ws, fallbackClientId, 'auto', instanceId);
     return { clientId: fallbackClientId };
   }
 
@@ -235,19 +234,17 @@ export class WebSocketServer {
     agentId: string,
     parentId?: string,
     registrationType: RegistrationType = 'auto',
-    projectInfo?: ProjectInfo,
     agentInstanceId?: string,
     connectionId?: string
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer',
-      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}${projectInfo ? ` and project: ${projectInfo.path}` : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''} : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
 
     this.connectionManager.registerConnection(
       agentId,
       ws,
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
       parentId,
-      projectInfo,
       agentInstanceId,
       connectionId
     );
@@ -258,7 +255,6 @@ export class WebSocketServer {
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
       parentId,
       registrationType,
-      projectInfo,
       { agentInstanceId }
     );
   }
@@ -270,14 +266,13 @@ export class WebSocketServer {
     ws: WebSocket,
     appId: string,
     registrationType: RegistrationType = 'auto',
-    projectInfo?: ProjectInfo,
     appInstanceId?: string
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer',
-      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId} : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
 
-    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, projectInfo, appInstanceId);
-    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType, projectInfo, { appInstanceId });
+    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, appInstanceId);
+    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType, { appInstanceId });
   }
 
   /**
@@ -287,14 +282,13 @@ export class WebSocketServer {
     ws: WebSocket,
     tuiId: string,
     registrationType: RegistrationType = 'auto',
-    projectInfo?: ProjectInfo,
     tuiInstanceId?: string
   ): void {
     console.log(formatLogMessage('info', 'WebSocketServer',
-      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
+      `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId} : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
 
-    this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, projectInfo, tuiInstanceId);
-    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, registrationType, projectInfo, { tuiInstanceId });
+    this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, tuiInstanceId);
+    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, registrationType, { tuiInstanceId });
   }
 
   /**
@@ -306,7 +300,7 @@ export class WebSocketServer {
     connectionType: string,
     parentId?: string,
     registrationType: RegistrationType = 'auto',
-    projectInfo?: ProjectInfo,
+    // projectInfo?: ProjectInfo,
     instanceIds?: { agentInstanceId?: string; appInstanceId?: string; tuiInstanceId?: string }
   ): void {
     const message = {
@@ -318,7 +312,7 @@ export class WebSocketServer {
         WEBSOCKET_CONSTANTS.MESSAGES.REGISTRATION_SUCCESS,
       registrationType,
       ...(parentId && { parentId }),
-      ...(projectInfo && { currentProject: projectInfo }),
+      // ...(projectInfo && { currentProject: projectInfo }),
       ...(instanceIds?.agentInstanceId && { agentInstanceId: instanceIds.agentInstanceId }),
       ...(instanceIds?.appInstanceId && { appInstanceId: instanceIds.appInstanceId }),
       ...(instanceIds?.tuiInstanceId && { tuiInstanceId: instanceIds.tuiInstanceId })

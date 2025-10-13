@@ -75,31 +75,9 @@ export class TuiConnectionsManager {
     });
   }
 
-  updateTuiProject(tuiId: string, projectInfo: ProjectInfo): boolean {
-    const tui = this.tuis.get(tuiId);
 
-    if (!tui) {
-      console.warn(formatLogMessage('warn', 'TuiConnectionsManager', `TUI ${tuiId} not found for project update`));
-      return false;
-    }
-
-    tui.currentProject = projectInfo;
-    console.log(formatLogMessage('info', 'TuiConnectionsManager', `Updated project for TUI ${tuiId}: ${projectInfo.path}`));
-    return true;
-  }
 
   getTuiProject(tuiId: string): ProjectInfo | undefined {
     return this.tuis.get(tuiId)?.currentProject;
-  }
-
-  getTuisByProject(projectPath: string): ClientConnection[] {
-    return Array.from(this.tuis.values()).filter((connection) => connection.currentProject?.path === projectPath);
-  }
-
-  getAllConnectionsWithProjects(): Array<{ connection: ClientConnection; project?: ProjectInfo }> {
-    return Array.from(this.tuis.values()).map((connection) => ({
-      connection,
-      project: connection.currentProject
-    }));
   }
 }
