@@ -16,6 +16,7 @@ type RemoteProxyEnvelope =
   | { type: 'pong'; timestamp: number }
   | { type: 'forward_from_agent'; agentId?: string; appToken?: string; payload: unknown }
   | { type: 'forward_from_app'; appId?: string; appToken?: string; payload: unknown }
+  | { type: 'forward_from_tui'; appId?: string; appToken?: string; payload: unknown }
   | { type: 'connections_snapshot'; data: unknown };
 
 type RemoteProxyIncomingMessage =
@@ -102,6 +103,14 @@ export class RemoteProxyClient {
   public forwardAppMessage(appId: string | undefined, payload: unknown): void {
     this.send({
       type: 'forward_from_app',
+      appId,
+      appToken: this.options.appToken,
+      payload
+    });
+  }
+  public forwardTUIMessage(appId: string | undefined, payload: unknown): void {
+    this.send({
+      type: 'forward_from_tui',
       appId,
       appToken: this.options.appToken,
       payload

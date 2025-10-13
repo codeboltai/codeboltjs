@@ -56,4 +56,24 @@ export class SendMessageToRemote {
 
     client.forwardAppMessage(appId, message);
   }
+  forwardTUIMessage(tuiId: string | undefined, message: BaseApplicationResponse, options?: { requireRemote?: boolean }): void {
+    const client = this.remoteClient;
+    if (!client) {
+      console.warn(formatLogMessage('warn', 'SendMessageToRemote', 'Remote proxy client not initialized'));
+      if (options?.requireRemote && tuiId) {
+        this.connectionManager.sendError(tuiId, 'Remote proxy not configured');
+      }
+      return;
+    }
+
+    console.log(
+      formatLogMessage(
+        'info',
+        'SendMessageToRemote',
+        `Forwarding ${message.type} from tui ${tuiId ?? 'unknown'} to remote proxy`
+      )
+    );
+
+    client.forwardAppMessage(tuiId, message);
+  }
 }
