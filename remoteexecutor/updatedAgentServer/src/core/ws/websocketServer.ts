@@ -14,7 +14,6 @@ import { NotificationService } from '../../services/NotificationService';
 import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
 import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';
 import { TuiMessageRouter } from '../../handlers/tuiMessaging/routerforMessageReceivedFromTui';
-import { logger } from '../../utils/logger';
 
 // Import types and constants
 import {
@@ -25,6 +24,7 @@ import {
   HealthStatus,
 } from '../../types';
 import { WEBSOCKET_CONSTANTS } from '../../constants';
+import { logger } from '../../utils/logger';
 
 /**
  * WebSocket server management
@@ -55,7 +55,7 @@ export class WebSocketServer {
       const initialClientId = uuidv4();
       let actualClientId = initialClientId;
 
-      console.log(formatLogMessage('info', 'WebSocketServer', `New WebSocket connection: ${initialClientId}`));
+      logger.info(formatLogMessage('info', 'WebSocketServer', `New WebSocket connection: ${initialClientId}`));
 
       const connectionParams = this.parseConnectionParams(request);
       const registrationResult = this.handleConnectionRegistration(ws, connectionParams, initialClientId);
@@ -128,7 +128,6 @@ export class WebSocketServer {
       this.sendError(ws, WEBSOCKET_CONSTANTS.MESSAGES.INVALID_MESSAGE_FORMAT);
     }
   }
-
 
   /**
    * Handle connection close event
@@ -239,7 +238,7 @@ export class WebSocketServer {
     agentInstanceId?: string,
     connectionId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer',
+    logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''}${projectInfo ? ` and project: ${projectInfo.path}` : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
 
     this.connectionManager.registerConnection(
@@ -273,7 +272,7 @@ export class WebSocketServer {
     projectInfo?: ProjectInfo,
     appInstanceId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer',
+    logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
 
     this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, projectInfo, appInstanceId);
@@ -290,7 +289,7 @@ export class WebSocketServer {
     projectInfo?: ProjectInfo,
     tuiInstanceId?: string
   ): void {
-    console.log(formatLogMessage('info', 'WebSocketServer',
+    logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId}${projectInfo ? ` with project: ${projectInfo.path}` : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
 
     this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, projectInfo, tuiInstanceId);
@@ -327,7 +326,6 @@ export class WebSocketServer {
     this.sendMessage(ws, message);
   }
 
-
   /**
    * Safely send message to WebSocket
    */
@@ -335,11 +333,10 @@ export class WebSocketServer {
     try {
       ws.send(JSON.stringify(message));
     } catch (error) {
-      console.error(formatLogMessage('error', 'WebSocketServer',
+      logger.error(formatLogMessage('error', 'WebSocketServer',
         `Error sending message: ${error}`));
     }
   }
-
 
   
 
@@ -357,10 +354,10 @@ export class WebSocketServer {
   public close(): void {
     try {
       this.wss.close(() => {
-        console.log(formatLogMessage('info', 'WebSocketServer', 'WebSocket server closed gracefully'));
+        logger.info(formatLogMessage('info', 'WebSocketServer', 'WebSocket server closed gracefully'));
       });
     } catch (error) {
-      console.error(formatLogMessage('error', 'WebSocketServer', `Error closing WebSocket server: ${error}`));
+      logger.error(formatLogMessage('error', 'WebSocketServer', `Error closing WebSocket server: ${error}`));
     }
   }
 
@@ -387,7 +384,7 @@ export class WebSocketServer {
    */
   public broadcast(message: unknown): void {
     if (this.wss.clients.size === 0) {
-      console.warn(formatLogMessage('warn', 'WebSocketServer', 'No clients connected for broadcast'));
+      logger.warn(formatLogMessage('warn', 'WebSocketServer', 'No clients connected for broadcast'));
       return;
     }
 
@@ -402,13 +399,13 @@ export class WebSocketServer {
           successCount++;
         } catch (error) {
           errorCount++;
-          console.error(formatLogMessage('error', 'WebSocketServer',
+          logger.error(formatLogMessage('error', 'WebSocketServer',
             `Error broadcasting message to client: ${error}`));
         }
       }
     });
 
-    console.log(formatLogMessage('info', 'WebSocketServer',
+    logger.info(formatLogMessage('info', 'WebSocketServer',
       `Broadcast completed: ${successCount} successful, ${errorCount} failed`));
   }
 }

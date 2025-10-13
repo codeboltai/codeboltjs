@@ -14,6 +14,7 @@ import type {
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { spawn } from 'child_process';
 import * as os from 'os';
+import { logger } from '../utils/logger';
 
 /**
  * Handles terminal events with notifications (following readFileHandler pattern)
@@ -32,13 +33,13 @@ export class TerminalHandler {
    */
   handleTerminalEvent(agent: ClientConnection, terminalEvent: TerminalEvent) {
     const { requestId, type } = terminalEvent;
-    console.log(formatLogMessage('info', 'TerminalHandler', `Handling terminal event: ${type} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'TerminalHandler', `Handling terminal event: ${type} from ${agent.id}`));
 
     // Execute actual Terminal operations
     switch (type) {
       case 'executeCommand':
         {
-          console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommand request notification`));
+          logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommand request notification`));
           
           (async () => {
             try {
@@ -74,7 +75,7 @@ export class TerminalHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommand response notification`));
+              logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommand response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -105,7 +106,7 @@ export class TerminalHandler {
 
       case 'executeCommandRunUntilError':
         {
-          console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandRunUntilError request notification`));
+          logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandRunUntilError request notification`));
           
           (async () => {
             try {
@@ -141,7 +142,7 @@ export class TerminalHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandRunUntilError response notification`));
+              logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandRunUntilError response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -172,7 +173,7 @@ export class TerminalHandler {
 
       case 'executeCommandWithStream':
         {
-          console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandWithStream request notification`));
+          logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandWithStream request notification`));
           
           (async () => {
             try {
@@ -208,7 +209,7 @@ export class TerminalHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandWithStream response notification`));
+              logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal executeCommandWithStream response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -239,7 +240,7 @@ export class TerminalHandler {
 
       case 'sendInterruptToTerminal':
         {
-          console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal sendInterruptToTerminal request notification`));
+          logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal sendInterruptToTerminal request notification`));
           
           (async () => {
             try {
@@ -267,7 +268,7 @@ export class TerminalHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TerminalHandler', `Sent terminal sendInterruptToTerminal response notification`));
+              logger.info(formatLogMessage('info', 'TerminalHandler', `Sent terminal sendInterruptToTerminal response notification`));
 
             } catch (error) {
               const errorResponse = {

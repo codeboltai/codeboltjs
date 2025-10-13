@@ -1,9 +1,6 @@
 import { ClientConnection, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-
-
-
-
+import { logger } from '../../utils/logger';
 
 export class SendMessageToTui {
   private readonly connectionManager = ConnectionManager.getInstance();
@@ -13,7 +10,7 @@ export class SendMessageToTui {
     const delivered = tuiManager.sendToTui(tuiId, message);
 
     if (!delivered) {
-      console.warn(formatLogMessage('warn', 'SendMessageToTui', `Failed to send message to TUI ${tuiId}`));
+      logger.warn(formatLogMessage('warn', 'SendMessageToTui', `Failed to send message to TUI ${tuiId}`));
     }
 
     return delivered;
@@ -24,7 +21,7 @@ export class SendMessageToTui {
     const tuis = tuiManager.getAllTuis();
 
     if (tuis.length === 0) {
-      console.warn(formatLogMessage('warn', 'SendMessageToTui', 'No TUI connections available for broadcast'));
+      logger.warn(formatLogMessage('warn', 'SendMessageToTui', 'No TUI connections available for broadcast'));
       return false;
     }
 

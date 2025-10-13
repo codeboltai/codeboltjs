@@ -5,6 +5,7 @@ import { AgentConnectionsManager } from './agentConnectionsManager';
 import { AppConnectionsManager } from './appConnectionsManager';
 import { TuiConnectionsManager } from './tuiConnectionsManager';
 import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
+import { logger } from '../../utils/logger';
 
 /**
  * Coordinates operations across agent and app connection managers.
@@ -97,7 +98,7 @@ export class ConnectionManager {
     const connection = this.getConnection(connectionId);
 
     if (!connection) {
-      console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found`));
+      logger.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found`));
       return false;
     }
 
@@ -105,7 +106,7 @@ export class ConnectionManager {
       connection.ws.send(JSON.stringify(message));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'ConnectionManager', `Error sending message to ${connectionId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ConnectionManager', `Error sending message to ${connectionId}: ${error}`));
       return false;
     }
   }
@@ -121,7 +122,7 @@ export class ConnectionManager {
     try {
       ws.send(JSON.stringify(error));
     } catch (sendError) {
-      console.error(formatLogMessage('error', 'ConnectionManager', `Error sending error message: ${sendError}`));
+      logger.error(formatLogMessage('error', 'ConnectionManager', `Error sending error message: ${sendError}`));
     }
   }
 
@@ -158,7 +159,7 @@ export class ConnectionManager {
       return this.tuiManager.updateTuiProject(connectionId, projectInfo);
     }
 
-    console.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
+    logger.warn(formatLogMessage('warn', 'ConnectionManager', `Connection ${connectionId} not found for project update`));
     return false;
   }
 
@@ -199,7 +200,7 @@ export class ConnectionManager {
     try {
       ws.send(JSON.stringify(payload));
     } catch (error) {
-      console.error(formatLogMessage('error', 'ConnectionManager', `Error sending registration response: ${error}`));
+      logger.error(formatLogMessage('error', 'ConnectionManager', `Error sending registration response: ${error}`));
     }
   }
 }

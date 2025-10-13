@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { CrawlerEvent, CrawlerNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles crawler events with notifications
@@ -26,7 +27,7 @@ export class CrawlerHandler {
    */
   handleCrawlerEvent(agent: ClientConnection, crawlerEvent: CrawlerEvent): void {
     const { requestId, action } = crawlerEvent;
-    console.log(formatLogMessage('info', 'CrawlerHandler', `Handling crawler event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'CrawlerHandler', `Handling crawler event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: CrawlerNotificationBase = {
@@ -38,7 +39,7 @@ export class CrawlerHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'CrawlerHandler', `Sent crawler request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'CrawlerHandler', `Sent crawler request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, crawlerEvent as any);

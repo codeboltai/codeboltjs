@@ -7,6 +7,7 @@ import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
 import { createTuiProcessManager } from './utils/tuiProcessManager/tuiProcessManager';
+import { logger } from './utils/logger';
 
 /**
  * Setup CLI with commander
@@ -72,7 +73,6 @@ function setupCLI(): AgentCliOptions {
   };
 }
 
-
 /**
  * Main server entry point
  */
@@ -87,9 +87,9 @@ async function main(): Promise<void> {
     
     // Test log file writing
     if (!loggerInstance.testLogWrite()) {
-      console.warn('Warning: Could not write to log file. Console logging only.');
+      logger.warn('Warning: Could not write to log file. Console logging only.');
     } else {
-      console.log(`Log file: ${loggerInstance.getLogFilePath()}`);
+      logger.info(`Log file: ${loggerInstance.getLogFilePath()}`);
     }
     
     // Get configuration

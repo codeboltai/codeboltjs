@@ -8,6 +8,7 @@ import {
 import { NotificationService } from '../services/NotificationService';
 import type { WriteToFileEvent, WriteToFileRequestNotification, WriteToFileResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 /**
  * Handles write file messages with notifications
@@ -41,7 +42,7 @@ export class WriteFileHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent write to file request notification for: ${relPath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent write to file request notification for: ${relPath}`));
 
     try {
       // Security check
@@ -80,7 +81,7 @@ export class WriteFileHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent write to file response notification for: ${relPath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent write to file response notification for: ${relPath}`));
 
     } catch (error) {
       const errorResponse = {

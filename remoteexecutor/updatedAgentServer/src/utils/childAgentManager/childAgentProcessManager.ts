@@ -9,9 +9,7 @@ import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
 import { AgentTypeEnum } from '../../types/cli';
-
-
-
+import { logger } from '../logger';
 
 /**
  * Agent API response interface
@@ -124,7 +122,7 @@ export class ChildAgentProcessManager {
     try {
       const zip = new AdmZip(zipPath);
       zip.extractAllTo(extractPath, true);
-      console.log(formatLogMessage('info', 'ProcessManager', `Extracted agent to: ${extractPath}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Extracted agent to: ${extractPath}`));
     } catch (error) {
       throw new Error(`Failed to extract ZIP: ${error}`);
     }
@@ -135,7 +133,7 @@ export class ChildAgentProcessManager {
    */
   private async downloadAgent(agentId: string): Promise<boolean> {
     try {
-      console.log(formatLogMessage('info', 'ProcessManager', `Fetching agent details for ${agentId}...`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Fetching agent details for ${agentId}...`));
       
       // First, get agent details from API
       const agentDetailResponse = await axios.get<AgentDetailResponse>(
@@ -158,7 +156,7 @@ export class ChildAgentProcessManager {
         throw new Error(`No zipFilePath found for agent ${agentId}`);
       }
       
-      console.log(formatLogMessage('info', 'ProcessManager', `Found agent "${title}" (v${version}), downloading from: ${zipFilePath}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Found agent "${title}" (v${version}), downloading from: ${zipFilePath}`));
       
       const agentPath = this.getAgentPath(agentId);
       const zipPath = path.join(agentPath, 'agent.zip');
@@ -169,7 +167,7 @@ export class ChildAgentProcessManager {
       // Download the agent ZIP from the zipFilePath
       await this.downloadFile(zipFilePath, zipPath);
       
-      console.log(formatLogMessage('info', 'ProcessManager', `Downloaded agent ${agentId} to ${zipPath}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Downloaded agent ${agentId} to ${zipPath}`));
       
       // Extract the ZIP file
       await this.extractZip(zipPath, agentPath);
@@ -195,11 +193,11 @@ export class ChildAgentProcessManager {
       };
       fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
       
-      console.log(formatLogMessage('info', 'ProcessManager', `Agent "${title}" (${agentId}) v${version} downloaded and extracted successfully`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Agent "${title}" (${agentId}) v${version} downloaded and extracted successfully`));
       return true;
       
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to download agent ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to download agent ${agentId}: ${error}`));
       
       // Clean up on failure
       const agentPath = this.getAgentPath(agentId);
@@ -220,21 +218,21 @@ export class ChildAgentProcessManager {
     
     // Check if agent folder already exists
     if (fs.existsSync(agentPath)) {
-      console.log(formatLogMessage('info', 'ProcessManager', `Agent folder ${agentId} already exists at ${agentPath}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Agent folder ${agentId} already exists at ${agentPath}`));
       
       // Double-check that index.js exists in the folder
       if (fs.existsSync(agentIndexPath)) {
-        console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} found locally with valid index.js`));
+        logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} found locally with valid index.js`));
         return true;
       } else {
-        console.log(formatLogMessage('warn', 'ProcessManager', `Agent folder exists but index.js missing, removing folder and re-downloading...`));
+        logger.info(formatLogMessage('warn', 'ProcessManager', `Agent folder exists but index.js missing, removing folder and re-downloading...`));
         // Remove corrupted folder and re-download
         fs.rmSync(agentPath, { recursive: true, force: true });
       }
     }
     
     // Agent folder doesn't exist or was corrupted, try to download it
-    console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} not found locally, downloading...`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} not found locally, downloading...`));
     return await this.downloadAgent(agentId);
   }
 
@@ -243,11 +241,11 @@ export class ChildAgentProcessManager {
    */
   async startSampleClient(): Promise<void> {
     if (this.sampleClientProcess) {
-      console.log(formatLogMessage('warn', 'ProcessManager', 'Sample client already running'));
+      logger.info(formatLogMessage('warn', 'ProcessManager', 'Sample client already running'));
       return;
     }
 
-    console.log(formatLogMessage('info', 'ProcessManager', 'Starting Sample Codebolt Client...'));
+    logger.info(formatLogMessage('info', 'ProcessManager', 'Starting Sample Codebolt Client...'));
     
     // Check for bundled client in shared volume first
     const bundledClientPath = '/app/shared/client-bundles/sampleclient.js';
@@ -262,17 +260,17 @@ export class ChildAgentProcessManager {
       if (fs.existsSync(bundledClientPath)) {
         clientExists = true;
         useBundle = true;
-        console.log(formatLogMessage('info', 'ProcessManager', 'Using bundled client from shared volume'));
+        logger.info(formatLogMessage('info', 'ProcessManager', 'Using bundled client from shared volume'));
       } else if (fs.existsSync(legacyClientPath)) {
         clientExists = true;
-        console.log(formatLogMessage('info', 'ProcessManager', 'Using legacy client build'));
+        logger.info(formatLogMessage('info', 'ProcessManager', 'Using legacy client build'));
       }
     } catch (error) {
-      console.log(formatLogMessage('warn', 'ProcessManager', `Error checking client paths: ${error}`));
+      logger.info(formatLogMessage('warn', 'ProcessManager', `Error checking client paths: ${error}`));
     }
     
     if (!clientExists) {
-      console.log(formatLogMessage('warn', 'ProcessManager', 'No client found, skipping client startup'));
+      logger.info(formatLogMessage('warn', 'ProcessManager', 'No client found, skipping client startup'));
       return;
     }
     
@@ -294,23 +292,23 @@ export class ChildAgentProcessManager {
     this.sampleClientProcess.stdout?.on('data', (data) => {
       const output = data.toString().trim();
       if (output) {
-        console.log(formatLogMessage('info', 'SampleClient', output));
+        logger.info(formatLogMessage('info', 'SampleClient', output));
       }
     });
 
     this.sampleClientProcess.stderr?.on('data', (data) => {
       const error = data.toString().trim();
       if (error) {
-        console.error(formatLogMessage('error', 'SampleClient', error));
+        logger.error(formatLogMessage('error', 'SampleClient', error));
       }
     });
 
     this.sampleClientProcess.on('error', (error) => {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to start Sample Client: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start Sample Client: ${error}`));
     });
 
     this.sampleClientProcess.on('exit', (code, signal) => {
-      console.log(formatLogMessage('info', 'ProcessManager', `Sample Client process exited with code ${code}, signal ${signal}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Sample Client process exited with code ${code}, signal ${signal}`));
       this.sampleClientProcess = null;
     });
   }
@@ -323,7 +321,7 @@ export class ChildAgentProcessManager {
       return;
     }
 
-    console.log(formatLogMessage('info', 'ProcessManager', 'Stopping Sample Client...'));
+    logger.info(formatLogMessage('info', 'ProcessManager', 'Stopping Sample Client...'));
     
     this.sampleClientProcess.kill('SIGTERM');
     
@@ -342,7 +340,7 @@ export class ChildAgentProcessManager {
     * Start agent based on type and detail
     */
   async startAgentByType(agentType: AgentTypeEnum, agentDetail: string, applicationId: string): Promise<boolean> {
-    console.log(formatLogMessage('info', 'ProcessManager', `Starting agent of type ${agentType} with detail: ${agentDetail}`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Starting agent of type ${agentType} with detail: ${agentDetail}`));
     
     try {
       switch (agentType) {
@@ -359,11 +357,11 @@ export class ChildAgentProcessManager {
           return await this.startAgentFromServerZip(agentDetail, applicationId);
           
         default:
-          console.error(formatLogMessage('error', 'ProcessManager', `Unknown agent type: ${agentType}`));
+          logger.error(formatLogMessage('error', 'ProcessManager', `Unknown agent type: ${agentType}`));
           return false;
       }
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent of type ${agentType}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent of type ${agentType}: ${error}`));
       return false;
     }
   }
@@ -374,15 +372,15 @@ export class ChildAgentProcessManager {
   private async startLocalAgent(agentPath: string, applicationId: string): Promise<boolean> {
     const agentId = path.resolve(agentPath);
     const indexPath = path.resolve(agentPath, 'index.js');
-    console.log(formatLogMessage('info', 'ProcessManager', `Starting local agent from path: ${agentPath}`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Starting local agent from path: ${agentPath}`));
     
     if (!fs.existsSync(indexPath)) {
-      console.error(formatLogMessage('error', 'ProcessManager', `index.js not found in agent path: ${indexPath}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `index.js not found in agent path: ${indexPath}`));
       return false;
     }
     
     if (this.agentProcesses.has(agentId)) {
-      console.log(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
+      logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
       return true;
     }
     
@@ -404,10 +402,10 @@ export class ChildAgentProcessManager {
       this.connectionIdToClientMap.set(connectionId, applicationId);
       this.setupAgentProcessHandlers(agentId, agentProcess);
       
-      console.log(formatLogMessage('info', 'ProcessManager', `Local agent ${agentId} started successfully from ${agentPath}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Local agent ${agentId} started successfully from ${agentPath}`));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Error starting local agent ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Error starting local agent ${agentId}: ${error}`));
       return false;
     }
   }
@@ -417,7 +415,7 @@ export class ChildAgentProcessManager {
     */
   private async startAgentFromZip(zipPath: string, applicationId: string): Promise<boolean> {
     if (!fs.existsSync(zipPath)) {
-      console.error(formatLogMessage('error', 'ProcessManager', `ZIP file not found: ${zipPath}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `ZIP file not found: ${zipPath}`));
       return false;
     }
     
@@ -440,7 +438,7 @@ export class ChildAgentProcessManager {
       // Start the agent
       return await this.startLocalAgent(agentPath, applicationId);
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent from ZIP ${zipPath}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent from ZIP ${zipPath}: ${error}`));
       
       // Clean up on failure
       if (fs.existsSync(agentPath)) {
@@ -469,7 +467,7 @@ export class ChildAgentProcessManager {
       // Extract and start
       return await this.startAgentFromZip(zipPath, applicationId);
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent from server ZIP ${zipUrl}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent from server ZIP ${zipUrl}: ${error}`));
       
       // Clean up on failure
       if (fs.existsSync(agentPath)) {
@@ -487,25 +485,25 @@ export class ChildAgentProcessManager {
     agentProcess.stdout?.on('data', (data) => {
       const output = data.toString().trim();
       if (output) {
-        console.log(formatLogMessage('info', `Agent-${agentId}`, output));
+        logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
       }
     });
 
     agentProcess.stderr?.on('data', (data) => {
       const error = data.toString().trim();
       if (error) {
-        console.error(formatLogMessage('error', `Agent-${agentId}`, error));
+        logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
       }
     });
 
     agentProcess.on('error', (error) => {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
       this.agentProcesses.delete(agentId);
       this.connectionIdToClientMap.delete(agentId);
     });
 
     agentProcess.on('exit', (code, signal) => {
-      console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
       this.agentProcesses.delete(agentId);
     });
   }
@@ -515,16 +513,16 @@ export class ChildAgentProcessManager {
     */
   async startAgent(agentId: string, applicationId: string): Promise<boolean> {
     if (this.agentProcesses.has(agentId)) {
-      console.log(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
+      logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
       return true;
     }
 
-    console.log(formatLogMessage('info', 'ProcessManager', `Starting agent ${agentId}...`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Starting agent ${agentId}...`));
     
     // First, ensure the agent exists (download if necessary)
     const agentAvailable = await this.ensureAgentExists(agentId);
     if (!agentAvailable) {
-      console.log(formatLogMessage('error', 'ProcessManager', `Failed to ensure agent ${agentId} is available`));
+      logger.info(formatLogMessage('error', 'ProcessManager', `Failed to ensure agent ${agentId} is available`));
       return false;
     }
     
@@ -561,34 +559,34 @@ export class ChildAgentProcessManager {
       agentProcess.stdout?.on('data', (data) => {
         const output = data.toString().trim();
         if (output) {
-          console.log(formatLogMessage('info', `Agent-${agentId}`, output));
+          logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
         }
       });
 
       agentProcess.stderr?.on('data', (data) => {
         const error = data.toString().trim();
         if (error) {
-          console.error(formatLogMessage('error', `Agent-${agentId}`, error));
+          logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
         }
       });
 
       agentProcess.on('error', (error) => {
-        console.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
+        logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
         this.agentProcesses.delete(agentId);
       this.connectionIdToClientMap.delete(agentId);
       });
 
       agentProcess.on('exit', (code, signal) => {
-        console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
+        logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} process exited with code ${code}, signal ${signal}`));
         this.agentProcesses.delete(agentId);
       this.connectionIdToClientMap.delete(agentId);
       });
 
-      console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));
+      logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));
       return true;
       
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Error starting agent ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Error starting agent ${agentId}: ${error}`));
       return false;
     }
   }
@@ -599,11 +597,11 @@ export class ChildAgentProcessManager {
   async stopAgent(agentId: string): Promise<void> {
     const agentProcess = this.agentProcesses.get(agentId);
     if (!agentProcess) {
-      console.log(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} not found`));
+      logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} not found`));
       return;
     }
 
-    console.log(formatLogMessage('info', 'ProcessManager', `Stopping agent ${agentId}...`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Stopping agent ${agentId}...`));
     
     agentProcess.kill('SIGTERM');
     
@@ -617,7 +615,7 @@ export class ChildAgentProcessManager {
     
     this.agentProcesses.delete(agentId);
       this.connectionIdToClientMap.delete(agentId);
-    console.log(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} stopped`));
+    logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} stopped`));
   }
 
   /**
@@ -670,7 +668,7 @@ export class ChildAgentProcessManager {
       }
       return null;
     } catch (error) {
-      console.error(formatLogMessage('error', 'ProcessManager', `Failed to read agent metadata for ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'ProcessManager', `Failed to read agent metadata for ${agentId}: ${error}`));
       return null;
     }
   }

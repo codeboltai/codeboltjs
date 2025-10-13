@@ -1,4 +1,5 @@
 import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
+import { logger } from '../../utils/logger';
 
 /**
  * Manages lifecycle and operations for application WebSocket connections.
@@ -20,7 +21,7 @@ export class AppConnectionsManager {
 
   registerApp(connection: ClientConnection): void {
     this.apps.set(connection.id, connection);
-    console.log(
+    logger.info(
       formatLogMessage(
         'info',
         'AppConnectionsManager',
@@ -31,7 +32,7 @@ export class AppConnectionsManager {
 
   removeApp(appId: string): void {
     if (this.apps.delete(appId)) {
-      console.log(formatLogMessage('info', 'AppConnectionsManager', `App disconnected: ${appId}`));
+      logger.info(formatLogMessage('info', 'AppConnectionsManager', `App disconnected: ${appId}`));
     }
   }
 
@@ -51,16 +52,16 @@ export class AppConnectionsManager {
     const app = this.apps.get(appId);
 
     if (!app) {
-      console.warn(formatLogMessage('warn', 'AppConnectionsManager', `App ${appId} not found`));
+      logger.warn(formatLogMessage('warn', 'AppConnectionsManager', `App ${appId} not found`));
       return false;
     }
 
     try {
       app.ws.send(JSON.stringify(message));
-      console.log(formatLogMessage('info', 'AppConnectionsManager', `Message sent to app ${appId}`));
+      logger.info(formatLogMessage('info', 'AppConnectionsManager', `Message sent to app ${appId}`));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'AppConnectionsManager', `Error sending message to app ${appId}: ${error}`));
+      logger.error(formatLogMessage('error', 'AppConnectionsManager', `Error sending message to app ${appId}: ${error}`));
       return false;
     }
   }
@@ -70,7 +71,7 @@ export class AppConnectionsManager {
       try {
         app.ws.send(JSON.stringify(message));
       } catch (error) {
-        console.error(formatLogMessage('error', 'AppConnectionsManager', `Error broadcasting to app ${app.id}: ${error}`));
+        logger.error(formatLogMessage('error', 'AppConnectionsManager', `Error broadcasting to app ${app.id}: ${error}`));
       }
     });
   }
@@ -79,12 +80,12 @@ export class AppConnectionsManager {
     const app = this.apps.get(appId);
 
     if (!app) {
-      console.warn(formatLogMessage('warn', 'AppConnectionsManager', `App ${appId} not found for project update`));
+      logger.warn(formatLogMessage('warn', 'AppConnectionsManager', `App ${appId} not found for project update`));
       return false;
     }
 
     app.currentProject = projectInfo;
-    console.log(formatLogMessage('info', 'AppConnectionsManager', `Updated project for app ${appId}: ${projectInfo.path}`));
+    logger.info(formatLogMessage('info', 'AppConnectionsManager', `Updated project for app ${appId}: ${projectInfo.path}`));
     return true;
   }
 

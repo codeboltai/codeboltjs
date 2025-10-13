@@ -20,6 +20,7 @@ import { CodebaseSearchHandler } from './codebaseSearchHandler.js';
 import { ListCodeDefinitionNamesHandler } from './listCodeDefinitionNamesHandler.js';
 import { FileSearchHandler } from './fileSearchHandler.js';
 import { GrepSearchHandler } from './grepSearchHandler.js';
+import { logger } from '../utils/logger';
 
 const execPromise = promisify(exec);
 
@@ -34,7 +35,7 @@ const getEnabledMcpList = (): any => {
     : path.join('.codebolt', 'mcp_servers.json');
   
   if (!fs.existsSync(configFilePath)) {
-    console.error(formatLogMessage('error', 'McpHandler', `MCP configuration file not found: ${configFilePath}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `MCP configuration file not found: ${configFilePath}`));
     return {};
   }
 
@@ -50,7 +51,7 @@ const getEnabledMcpList = (): any => {
     }, {});
     return enabledServers;
   } catch (err) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error reading MCP list: ${err}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error reading MCP list: ${err}`));
     return {};
   }
 };
@@ -63,7 +64,7 @@ const getMcpList = (): any => {
     : path.join('.codebolt', 'mcp_servers.json');
     
   if (!fs.existsSync(configFilePath)) {
-    console.error(formatLogMessage('error', 'McpHandler', `MCP configuration file not found: ${configFilePath}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `MCP configuration file not found: ${configFilePath}`));
     return null;
   }
 
@@ -189,7 +190,7 @@ const getMcpList = (): any => {
     mcpServers.codeboltTools = codeboltTools;
     return mcpServers;
   } catch (err) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error reading MCP list: ${err}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error reading MCP list: ${err}`));
     return null;
   }
 };
@@ -236,7 +237,7 @@ const getLocalMCPConfigs = async () => {
             args: [path.join(codeboltAgentPath, folder, 'index.js')]
           };
         } catch (parseError) {
-          console.error(formatLogMessage('error', 'McpHandler', `Error parsing YAML for ${folder}: ${parseError}`));
+          logger.error(formatLogMessage('error', 'McpHandler', `Error parsing YAML for ${folder}: ${parseError}`));
           return null;
         }
       }).filter(data => data !== null);
@@ -254,7 +255,7 @@ const getLocalMCPConfigs = async () => {
       return {};
     }
   } catch (error) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error reading local project agents: ${error}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error reading local project agents: ${error}`));
     return {};
   }
 };
@@ -264,7 +265,7 @@ const getToolByServerName = async (mcpServers: any, serverName: string, isLocal 
   // Actual implementation that mimics CodeBolt's MCP manager behavior
   // In real CodeBolt, this spawns MCP server processes and queries for tools
   try {
-    console.log(formatLogMessage('info', 'McpHandler', `Getting tools for server: ${serverName} (isLocal: ${isLocal})`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Getting tools for server: ${serverName} (isLocal: ${isLocal})`));
     
     // Simulate the tool discovery process that CodeBolt does
     // In reality, this would spawn the MCP server process and call list_tools
@@ -379,11 +380,11 @@ const getToolByServerName = async (mcpServers: any, serverName: string, isLocal 
           }
         ];
       default:
-        console.log(formatLogMessage('warn', 'McpHandler', `No tools configured for server: ${serverName}`));
+        logger.info(formatLogMessage('warn', 'McpHandler', `No tools configured for server: ${serverName}`));
         return [];
     }
   } catch (error) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error getting tools for server ${serverName}: ${error}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error getting tools for server ${serverName}: ${error}`));
     return [];
   }
 };
@@ -395,7 +396,7 @@ const getAllMcpToolsForCli = (mcpName?: string): any => {
     const cacheFilePath = getMcpToolsCachePath();
     
     if (!fs.existsSync(cacheFilePath)) {
-      console.warn(formatLogMessage('warn', 'McpHandler', 'MCP tools cache file does not exist'));
+      logger.warn(formatLogMessage('warn', 'McpHandler', 'MCP tools cache file does not exist'));
       return mcpName ? { tools: [], lastUpdated: null } : {};
     }
 
@@ -410,7 +411,7 @@ const getAllMcpToolsForCli = (mcpName?: string): any => {
     return mcpToolsCache;
 
   } catch (error) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error reading MCP tools from cache: ${error}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error reading MCP tools from cache: ${error}`));
     return mcpName ? { tools: [], lastUpdated: null } : {};
   }
 };
@@ -426,15 +427,15 @@ const getMcpToolsCachePath = (): string => {
 const getToolByServerNameAndToolNameFormCache = (serverName: string, toolName: string): any => {
   // This is the exact implementation from CodeBolt/src/main/server/services/mcpService.ts (lines 1971-2024)
   try {
-    console.log(formatLogMessage('debug', 'McpHandler', `Getting tool '${toolName}' from MCP server '${serverName}'`));
+    logger.info(formatLogMessage('debug', 'McpHandler', `Getting tool '${toolName}' from MCP server '${serverName}'`));
     
     // Get tools for the specific server
     const mcpData = getAllMcpToolsForCli(serverName);
-    console.log(formatLogMessage('debug', 'McpHandler', `mcpData for ${serverName}: ${JSON.stringify(mcpData, null, 2)}`));
+    logger.info(formatLogMessage('debug', 'McpHandler', `mcpData for ${serverName}: ${JSON.stringify(mcpData, null, 2)}`));
     
     // Handle the case where mcpData might be null, undefined, or empty
     if (!mcpData) {
-      console.warn(formatLogMessage('warn', 'McpHandler', `No MCP data found for server '${serverName}'`));
+      logger.warn(formatLogMessage('warn', 'McpHandler', `No MCP data found for server '${serverName}'`));
       return null;
     }
 
@@ -447,12 +448,12 @@ const getToolByServerNameAndToolNameFormCache = (serverName: string, toolName: s
       // Object format with tools property
       tools = mcpData.tools;
     } else {
-      console.warn(formatLogMessage('warn', 'McpHandler', `Invalid tools format for MCP server '${serverName}': ${typeof mcpData}`));
+      logger.warn(formatLogMessage('warn', 'McpHandler', `Invalid tools format for MCP server '${serverName}': ${typeof mcpData}`));
       return null;
     }
 
     if (tools.length === 0) {
-      console.warn(formatLogMessage('warn', 'McpHandler', `No tools found for MCP server '${serverName}'`));
+      logger.warn(formatLogMessage('warn', 'McpHandler', `No tools found for MCP server '${serverName}'`));
       return null;
     }
 
@@ -466,15 +467,15 @@ const getToolByServerNameAndToolNameFormCache = (serverName: string, toolName: s
     });
 
     if (tool) {
-      console.log(formatLogMessage('debug', 'McpHandler', `Found tool '${toolName}' in MCP server '${serverName}'`));
+      logger.info(formatLogMessage('debug', 'McpHandler', `Found tool '${toolName}' in MCP server '${serverName}'`));
       return tool;
     } else {
-      console.warn(formatLogMessage('warn', 'McpHandler', `Tool '${toolName}' not found in MCP server '${serverName}'. Available tools: ${tools.map(t => t?.function?.name || 'unknown').join(', ')}`));
+      logger.warn(formatLogMessage('warn', 'McpHandler', `Tool '${toolName}' not found in MCP server '${serverName}'. Available tools: ${tools.map(t => t?.function?.name || 'unknown').join(', ')}`));
       return null;
     }
 
   } catch (error) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error getting tool '${toolName}' from MCP server '${serverName}': ${error}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error getting tool '${toolName}' from MCP server '${serverName}': ${error}`));
     return null;
   }
 };
@@ -499,7 +500,7 @@ const storeMcpTools = async (mcpName: string, tools: any[]): Promise<void> => {
         const cacheContent = fs.readFileSync(cacheFilePath, 'utf8');
         mcpToolsCache = JSON.parse(cacheContent);
       } catch (parseError) {
-        console.warn(formatLogMessage('warn', 'McpHandler', `Error parsing existing MCP tools cache, creating new cache: ${parseError}`));
+        logger.warn(formatLogMessage('warn', 'McpHandler', `Error parsing existing MCP tools cache, creating new cache: ${parseError}`));
         mcpToolsCache = {};
       }
     }
@@ -512,10 +513,10 @@ const storeMcpTools = async (mcpName: string, tools: any[]): Promise<void> => {
 
     // Write updated cache to file
     fs.writeFileSync(cacheFilePath, JSON.stringify(mcpToolsCache, null, 2), 'utf8');
-    console.log(formatLogMessage('info', 'McpHandler', `Successfully stored tools for MCP '${mcpName}' in cache`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Successfully stored tools for MCP '${mcpName}' in cache`));
 
   } catch (error) {
-    console.error(formatLogMessage('error', 'McpHandler', `Error storing MCP tools in cache for '${mcpName}': ${error}`));
+    logger.error(formatLogMessage('error', 'McpHandler', `Error storing MCP tools in cache for '${mcpName}': ${error}`));
     throw error;
   }
 };
@@ -561,14 +562,14 @@ export class McpHandler {
    * Run Codebolt MCP similar to runCodeboltMcp in mcpService.cli.ts (COMPLETE IMPLEMENTATION)
    */
   private async runCodeboltMcp(serverName: string, primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `In runCodeboltMcp: primitive=${primitive}, serverName=${serverName}, payload=${JSON.stringify(payload)}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `In runCodeboltMcp: primitive=${primitive}, serverName=${serverName}, payload=${JSON.stringify(payload)}`));
 
     // Route to appropriate service based on tool category (same logic as mcpService.cli.ts)
     const toolCategory = primitive.split('_')[0] || primitive.split('.')[1];
     const toolName = primitive.split('_')[1] || primitive.split('.')[1];
 
     try {
-      console.log('toolCategory in runCodeboltMcp', toolCategory);
+      logger.info('toolCategory in runCodeboltMcp', toolCategory);
       switch (toolCategory) {
         case 'browser':
           return await this.handleBrowserToolForMcp(toolName, payload, finalMessage);
@@ -630,7 +631,7 @@ export class McpHandler {
           break;
       }
     } catch (error) {
-      console.error(formatLogMessage('error', 'McpHandler', `Error routing to service for ${primitive}: ${error}`));
+      logger.error(formatLogMessage('error', 'McpHandler', `Error routing to service for ${primitive}: ${error}`));
       // Fall through to legacy implementation
     }
 
@@ -643,7 +644,7 @@ export class McpHandler {
         try {
           return await this.handleReadFile(payload.path, finalMessage);
         } catch (error) {
-          console.error(formatLogMessage('error', 'McpHandler', `Error reading file: ${error}`));
+          logger.error(formatLogMessage('error', 'McpHandler', `Error reading file: ${error}`));
           return await this.handleReadFile(payload.path, finalMessage);
         }
       }
@@ -685,11 +686,11 @@ export class McpHandler {
         return await this.handleWriteToFile(payload.path, payload.content, finalMessage);
       }
       case 'edit_file_with_diff': {
-        console.log(formatLogMessage('info', 'McpHandler', `In edit_file_with_diff: target_file=${payload.target_file}`));
+        logger.info(formatLogMessage('info', 'McpHandler', `In edit_file_with_diff: target_file=${payload.target_file}`));
         return await this.handleEditFileWithDiff(payload.target_file, payload.code_edit, payload.diffIdentifier, payload.prompt, payload.applyModel, finalMessage);
       }
       case 'execute_command':
-        console.log(formatLogMessage('info', 'McpHandler', `In execute_command: command=${payload.command}`));
+        logger.info(formatLogMessage('info', 'McpHandler', `In execute_command: command=${payload.command}`));
         finalMessage.command = payload.command;
         return await this.handleExecuteCommand(payload.command, finalMessage);
       case "ask_followup_question":
@@ -703,7 +704,7 @@ export class McpHandler {
           const result = await this.handleCodebaseSearchTool(payload, finalMessage);
           return result;
         } catch (error) {
-          console.error(formatLogMessage('error', 'McpHandler', `Error executing codebase search: ${error}`));
+          logger.error(formatLogMessage('error', 'McpHandler', `Error executing codebase search: ${error}`));
           return [true, error instanceof Error ? error.message : "Error executing codebase search"];
         }
       }
@@ -712,7 +713,7 @@ export class McpHandler {
           const result = await this.handleSearchMcpTool(payload, finalMessage);
           return [false, JSON.stringify(result)];
         } catch (error) {
-          console.error(formatLogMessage('error', 'McpHandler', `Error searching MCP tools: ${error}`));
+          logger.error(formatLogMessage('error', 'McpHandler', `Error searching MCP tools: ${error}`));
           return [true, error instanceof Error ? error.message : "Error searching MCP tools"];
         }
       }
@@ -728,7 +729,7 @@ export class McpHandler {
    */
   private async executeGitTool(toolName: string, params: any): Promise<any> {
     // For agent server, we simulate Git tool execution
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating Git tool execution: ${toolName} with params: ${JSON.stringify(params)}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating Git tool execution: ${toolName} with params: ${JSON.stringify(params)}`));
     
     // Return a mock success response
     return { 
@@ -744,7 +745,7 @@ export class McpHandler {
   private async handleCodebaseSearchTool(payload: any, finalMessage: any): Promise<any> {
     try {
       const { query, target_directories } = payload;
-      console.log(formatLogMessage('info', 'McpHandler', `In handleCodebaseSearchTool: query=${query}, target_directories=${JSON.stringify(target_directories)}`));
+      logger.info(formatLogMessage('info', 'McpHandler', `In handleCodebaseSearchTool: query=${query}, target_directories=${JSON.stringify(target_directories)}`));
       
       // Use the existing codebase search logic
       const codebaseSearchHandler = new CodebaseSearchHandler();
@@ -756,7 +757,7 @@ export class McpHandler {
       await codebaseSearchHandler.handleCodebaseSearch(agentObj, searchEvent as any);
       return { success: true, query, target_directories };
     } catch (error) {
-      console.error(formatLogMessage('error', 'McpHandler', `Error handling codebase search tool: ${error}`));
+      logger.error(formatLogMessage('error', 'McpHandler', `Error handling codebase search tool: ${error}`));
       return {
         success: false,
         message: error instanceof Error ? error.message : String(error),
@@ -808,92 +809,92 @@ export class McpHandler {
 
   // Additional tool handlers for complete runCodeboltMcp implementation
   private async handleBrowserToolForMcp(toolName: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating browser tool: ${toolName}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating browser tool: ${toolName}`));
     return { success: true, message: `Browser tool '${toolName}' executed`, data: payload };
   }
 
   private async handleTerminalToolForMcp(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating terminal tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating terminal tool: ${primitive}`));
     return { success: true, message: `Terminal tool '${primitive}' executed`, data: payload };
   }
 
   private async handleFileSystemToolForMcp(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating filesystem tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating filesystem tool: ${primitive}`));
     return { success: true, message: `Filesystem tool '${primitive}' executed`, data: payload };
   }
 
   private async handleAgentTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating agent tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating agent tool: ${primitive}`));
     return { success: true, message: `Agent tool '${primitive}' executed`, data: payload };
   }
 
   private async handleMemoryTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating memory tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating memory tool: ${primitive}`));
     return { success: true, message: `Memory tool '${primitive}' executed`, data: payload };
   }
 
   private async handleVectorTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating vector tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating vector tool: ${primitive}`));
     return { success: true, message: `Vector tool '${primitive}' executed`, data: payload };
   }
 
   private async handleNotificationTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating notification tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating notification tool: ${primitive}`));
     return { success: true, message: `Notification tool '${primitive}' executed`, data: payload };
   }
 
   private async handleDebugTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating debug tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating debug tool: ${primitive}`));
     return { success: true, message: `Debug tool '${primitive}' executed`, data: payload };
   }
 
   private async handleStateTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating state tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating state tool: ${primitive}`));
     return { success: true, message: `State tool '${primitive}' executed`, data: payload };
   }
 
   private async handleTaskTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating task tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating task tool: ${primitive}`));
     return { success: true, message: `Task tool '${primitive}' executed`, data: payload };
   }
 
   private async handleTokenizerTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating tokenizer tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating tokenizer tool: ${primitive}`));
     return { success: true, message: `Tokenizer tool '${primitive}' executed`, data: payload };
   }
 
   private async handleChatTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating chat tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating chat tool: ${primitive}`));
     return { success: true, message: `Chat tool '${primitive}' executed`, data: payload };
   }
 
   private async handleProblemMatcherTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating problem matcher tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating problem matcher tool: ${primitive}`));
     return { success: true, message: `Problem matcher tool '${primitive}' executed`, data: payload };
   }
 
   private async handleMessageTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating message tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating message tool: ${primitive}`));
     return { success: true, message: `Message tool '${primitive}' executed`, data: payload };
   }
 
   private async handleCodeUtilsTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating code utils tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating code utils tool: ${primitive}`));
     return { success: true, message: `Code utils tool '${primitive}' executed`, data: payload };
   }
 
   private async handleApplicationTool(primitive: string, payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating application tool: ${primitive}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating application tool: ${primitive}`));
     return { success: true, message: `Application tool '${primitive}' executed`, data: payload };
   }
 
   private async handleConfigureMcpTool(payload: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating MCP configuration: ${JSON.stringify(payload)}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating MCP configuration: ${JSON.stringify(payload)}`));
     return { success: true, message: 'MCP configuration completed', data: payload };
   }
 
   private async handleSearchMcpTool(payload: any, finalMessage: any): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Simulating MCP search: ${JSON.stringify(payload)}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Simulating MCP search: ${JSON.stringify(payload)}`));
     return { success: true, message: 'MCP search completed', results: [] };
   }
 
@@ -961,7 +962,7 @@ export class McpHandler {
   private async handleEditFileWithDiff(targetFile: string, codeEdit: string, diffIdentifier?: string, prompt?: string, applyModel?: string, finalMessage?: any): Promise<any> {
     try {
       // For agent server, simulate diff application
-      console.log(formatLogMessage('info', 'McpHandler', `Simulating edit file with diff: ${targetFile}`));
+      logger.info(formatLogMessage('info', 'McpHandler', `Simulating edit file with diff: ${targetFile}`));
       return { success: true, message: `File '${targetFile}' edited successfully`, targetFile, codeEdit };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -974,7 +975,7 @@ export class McpHandler {
   async handleMcpEvent(agent: ClientConnection, mcpEvent: McpEvent) {
     const { requestId, action } = mcpEvent;
     const message = (mcpEvent as any).message || (mcpEvent as any).params || {};
-    console.log(formatLogMessage('info', 'McpHandler', `Handling mcp event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Handling mcp event: ${action} from ${agent.id}`));
     
     try {
       let result;
@@ -985,7 +986,7 @@ export class McpHandler {
       } else {
         // Route to appropriate service based on tool category
         const toolCategory = action.split('_')[0] || action.split('.')[1];
-        console.log(formatLogMessage('info', 'McpHandler', `Tool category: ${toolCategory} for action: ${action}`));
+        logger.info(formatLogMessage('info', 'McpHandler', `Tool category: ${toolCategory} for action: ${action}`));
 
         switch (toolCategory) {
           case 'fs':
@@ -1026,7 +1027,7 @@ export class McpHandler {
         };
 
         this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
-        console.log(formatLogMessage('info', 'McpHandler', `Successfully executed MCP tool: ${action}`));
+        logger.info(formatLogMessage('info', 'McpHandler', `Successfully executed MCP tool: ${action}`));
       }
 
     } catch (error) {
@@ -1040,7 +1041,7 @@ export class McpHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...errorResponse, clientId: agent.id });
-      console.error(formatLogMessage('error', 'McpHandler', `Error executing MCP tool ${action}: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'McpHandler', `Error executing MCP tool ${action}: ${errorMessage}`));
     }
   }
 
@@ -1048,7 +1049,7 @@ export class McpHandler {
    * Handle tool management events (similar to handleToolEvents in mcpService.cli.ts)
    */
   private async handleToolEvents(finalMessage: any, agent: ClientConnection): Promise<any> {
-    console.log(formatLogMessage('info', 'McpHandler', `Received tool event: ${finalMessage.action}`));
+    logger.info(formatLogMessage('info', 'McpHandler', `Received tool event: ${finalMessage.action}`));
     
     try {
       switch (finalMessage.action) {
@@ -1077,7 +1078,7 @@ export class McpHandler {
         case 'getLocalToolBoxes': {
           let localToolWithConfig = await getLocalMCPConfigs();
           let localToolBoxes: any[] = [];
-          console.log(formatLogMessage('info', 'McpHandler', `Local MCP servers: ${Object.keys(localToolWithConfig).join(', ')}`));
+          logger.info(formatLogMessage('info', 'McpHandler', `Local MCP servers: ${Object.keys(localToolWithConfig).join(', ')}`));
           for (const serverName in localToolWithConfig) {
             const tools = await getToolByServerName(localToolWithConfig, serverName, true);
             localToolBoxes.push(...tools);
@@ -1114,7 +1115,7 @@ export class McpHandler {
 
         case 'listToolsFromToolBoxes': {
           try {
-            console.log(formatLogMessage('info', 'McpHandler', `Listing tools from toolboxes: ${finalMessage.toolBoxes?.join(', ')}`));
+            logger.info(formatLogMessage('info', 'McpHandler', `Listing tools from toolboxes: ${finalMessage.toolBoxes?.join(', ')}`));
             let mcpServers = getMcpList();
             let allTools: any[] = [];
             for (const toolBox of finalMessage.toolBoxes) {
@@ -1134,7 +1135,7 @@ export class McpHandler {
                   storeMcpTools(toolBox, tools);
                   allTools.push(...tools);
                 } catch (error) {
-                  console.error(formatLogMessage('error', 'McpHandler', `Error listing tools from toolboxes: ${error}`));
+                  logger.error(formatLogMessage('error', 'McpHandler', `Error listing tools from toolboxes: ${error}`));
                 }
               }
             }
@@ -1146,7 +1147,7 @@ export class McpHandler {
             });
             return allTools;
           } catch (error) {
-            console.error(formatLogMessage('error', 'McpHandler', `Error listing tools from toolboxes: ${error}`));
+            logger.error(formatLogMessage('error', 'McpHandler', `Error listing tools from toolboxes: ${error}`));
             this.connectionManager.sendToConnection(agent.id, {
               error: error instanceof Error ? error.message : 'Failed to list tools from toolboxes',
               type: 'listToolsFromToolBoxesResponse',
@@ -1162,7 +1163,7 @@ export class McpHandler {
           const serverName = finalMessage.mcpName;
           const config = finalMessage.config;
           
-          console.log(formatLogMessage('info', 'McpHandler', `Configuring toolbox: ${serverName} with config: ${JSON.stringify(config)}`));
+          logger.info(formatLogMessage('info', 'McpHandler', `Configuring toolbox: ${serverName} with config: ${JSON.stringify(config)}`));
           
           const mockConfigResult = {
             [serverName]: {
@@ -1200,7 +1201,7 @@ export class McpHandler {
               }
             }
           }
-          console.log(formatLogMessage('info', 'McpHandler', `sending tools: ${JSON.stringify(allTools)}`));
+          logger.info(formatLogMessage('info', 'McpHandler', `sending tools: ${JSON.stringify(allTools)}`));
 
           this.connectionManager.sendToConnection(agent.id, { 
             data: allTools, 
@@ -1216,7 +1217,7 @@ export class McpHandler {
             let config = getMcpList();
             // Extract serverName (toolbox) and toolName from the format toolbox--toolName
             let [serverName, toolName] = finalMessage.toolName.split('--');
-            console.log(formatLogMessage('info', 'McpHandler', `Executing tool: serverName=${serverName}, toolName=${toolName} + ${JSON.stringify(finalMessage.params)}`));
+            logger.info(formatLogMessage('info', 'McpHandler', `Executing tool: serverName=${serverName}, toolName=${toolName} + ${JSON.stringify(finalMessage.params)}`));
             let server = config.mcpServers[serverName];
 
             // Create a message for UI confirmation (adapted for agent server)
@@ -1245,7 +1246,7 @@ export class McpHandler {
             if (toolName.startsWith('git_')) {
               try {
                 // For agent server, we skip user confirmation and go directly to execution
-                console.log(formatLogMessage('info', 'McpHandler', `Executing git tool: ${toolName}`));
+                logger.info(formatLogMessage('info', 'McpHandler', `Executing git tool: ${toolName}`));
                 
                 // Update state to executing
                 message.payload.stateEvent = "EXECUTING";
@@ -1267,7 +1268,7 @@ export class McpHandler {
                 });
                 return toolResponse;
               } catch (error) {
-                console.error(formatLogMessage('error', 'McpHandler', `Error executing Git tool: ${error}`));
+                logger.error(formatLogMessage('error', 'McpHandler', `Error executing Git tool: ${error}`));
 
                 // Update state to error
                 (message.payload as any).result = error instanceof Error ? error.message : String(error);
@@ -1287,10 +1288,10 @@ export class McpHandler {
             // Handle local MCP servers (same logic as mcpService.cli.ts)
             if (serverName.startsWith('local')) {
               const localMCPConfigs = await getLocalMCPConfigs();
-              console.log(formatLogMessage('info', 'McpHandler', `Local MCP configs found: ${Object.keys(localMCPConfigs).join(', ')}`));
+              logger.info(formatLogMessage('info', 'McpHandler', `Local MCP configs found: ${Object.keys(localMCPConfigs).join(', ')}`));
               const localServerName = serverName.replace('local/', '');
               serverName = localServerName;
-              console.log(formatLogMessage('info', 'McpHandler', `Processing local server: ${localServerName}`));
+              logger.info(formatLogMessage('info', 'McpHandler', `Processing local server: ${localServerName}`));
               if (localMCPConfigs.hasOwnProperty(localServerName)) {
                 server = localMCPConfigs[localServerName];
               } else {
@@ -1302,7 +1303,7 @@ export class McpHandler {
             if (server) {
               try {
                 // For agent server, we skip user confirmation and go directly to execution
-                console.log(formatLogMessage('info', 'McpHandler', `Executing MCP tool: ${toolName} from ${serverName}`));
+                logger.info(formatLogMessage('info', 'McpHandler', `Executing MCP tool: ${toolName} from ${serverName}`));
 
                 // Update state to executing
                 message.payload.stateEvent = "EXECUTING";
@@ -1315,12 +1316,12 @@ export class McpHandler {
                   payload: finalMessage.params,
                   messageId: finalMessage.messageId
                 });
-                console.log(formatLogMessage('info', 'McpHandler', `MCP tool response received for ${toolName}`));
+                logger.info(formatLogMessage('info', 'McpHandler', `MCP tool response received for ${toolName}`));
 
                 if (toolResponse.content && toolResponse.content.length > 0 && toolResponse.content[0].type === 'text') {
                   toolResponse = toolResponse.content[0].text;
                 }
-                console.log(formatLogMessage('info', 'McpHandler', `Processed MCP response for ${toolName}`));
+                logger.info(formatLogMessage('info', 'McpHandler', `Processed MCP response for ${toolName}`));
 
                 // Update state to success
                 (message.payload as any).result = toolResponse;
@@ -1337,7 +1338,7 @@ export class McpHandler {
                 });
                 return toolResponse;
               } catch (error) {
-                console.error(formatLogMessage('error', 'McpHandler', `Error executing MCP tool: ${error}`));
+                logger.error(formatLogMessage('error', 'McpHandler', `Error executing MCP tool: ${error}`));
 
                 // Update state to error
                 (message.payload as any).result = error instanceof Error ? error.message : String(error);
@@ -1353,7 +1354,7 @@ export class McpHandler {
                 return { error: error instanceof Error ? error.message : "Error executing MCP tool" };
               }
             } else {
-              console.warn(formatLogMessage('warn', 'McpHandler', `Server not found: ${serverName}`));
+              logger.warn(formatLogMessage('warn', 'McpHandler', `Server not found: ${serverName}`));
               try {
                 finalMessage.messageId = finalMessage.messageId || this.generateMessageId();
                 let response = await this.executeCodeboltMCPCommand({
@@ -1363,7 +1364,7 @@ export class McpHandler {
                   payload: finalMessage.params,
                   message: finalMessage,
                 });
-                console.log(formatLogMessage('info', 'McpHandler', `Response from codebolt MCP: ${JSON.stringify(response)}`));
+                logger.info(formatLogMessage('info', 'McpHandler', `Response from codebolt MCP: ${JSON.stringify(response)}`));
                 
                 // Match the client's expected response format
                 this.connectionManager.sendToConnection(agent.id, { 
@@ -1374,7 +1375,7 @@ export class McpHandler {
                 });
                 return response;
               } catch (error) {
-                console.error(formatLogMessage('error', 'McpHandler', "Error executing tool inner:" + serverName + toolName + error));
+                logger.error(formatLogMessage('error', 'McpHandler', "Error executing tool inner:" + serverName + toolName + error));
                 // For agent server, we still return an error response
                 this.connectionManager.sendToConnection(agent.id, {
                   data: [true, `Failed to start MCP server: ${error instanceof Error ? error.message : "Server configuration not found"}`],
@@ -1386,7 +1387,7 @@ export class McpHandler {
               }
             }
           } catch (error) {
-            console.error(formatLogMessage('error', 'McpHandler', "Error executing tool:" + error));
+            logger.error(formatLogMessage('error', 'McpHandler', "Error executing tool:" + error));
             this.connectionManager.sendToConnection(agent.id, {
               error: `Failed to start MCP server: ${error instanceof Error ? error.message : "Server configuration not found"}`,
               type: 'executeToolResponse',
@@ -1406,7 +1407,7 @@ export class McpHandler {
           let allTools: any[] = [];
           for (const key in mcpServers) {
             if (mcpServers.hasOwnProperty(key) && mentionedServerNames.includes(key)) {
-              console.log(formatLogMessage('info', 'McpHandler', `Getting tools for server: ${key}`));
+              logger.info(formatLogMessage('info', 'McpHandler', `Getting tools for server: ${key}`));
               let tools = await getToolByServerName(mcpServers, key);
               allTools.push(...tools);
             }
@@ -1482,7 +1483,7 @@ export class McpHandler {
               throw new Error(`MCP tool '${serverName}' not found`);
             }
           } catch (error) {
-            console.error(formatLogMessage('error', 'McpHandler', `Error configuring MCP tool: ${error}`));
+            logger.error(formatLogMessage('error', 'McpHandler', `Error configuring MCP tool: ${error}`));
             this.connectionManager.sendToConnection(agent.id, {
               type: 'configureMCPToolResponse',
               error: error instanceof Error ? error.message : 'Failed to configure MCP tool',
@@ -1520,7 +1521,7 @@ export class McpHandler {
 
         case 'getEnabledMCPS': {
           let mcpServers = getEnabledMcpList();
-          console.log(formatLogMessage('info', 'McpHandler', `Enabled MCP servers: ${Object.keys(mcpServers).join(', ')}`));
+          logger.info(formatLogMessage('info', 'McpHandler', `Enabled MCP servers: ${Object.keys(mcpServers).join(', ')}`));
           this.connectionManager.sendToConnection(agent.id, { 
             data: mcpServers, 
             type: 'getEnabledMCPSResponse', 
@@ -1535,7 +1536,7 @@ export class McpHandler {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(formatLogMessage('error', 'McpHandler', `Error handling tool event: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'McpHandler', `Error handling tool event: ${errorMessage}`));
       
       this.connectionManager.sendToConnection(agent.id, { 
         type: 'error', 

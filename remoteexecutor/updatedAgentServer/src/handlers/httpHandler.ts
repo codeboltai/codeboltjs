@@ -7,6 +7,7 @@ import {
   formatLogMessage 
 } from './../types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,7 +67,7 @@ export class HttpHandler {
     };
 
     res.json(response);
-    console.log(formatLogMessage('info', 'HttpHandler', `Health check requested from ${req.ip}`));
+    logger.info(formatLogMessage('info', 'HttpHandler', `Health check requested from ${req.ip}`));
   }
 
   /**
@@ -97,7 +98,7 @@ export class HttpHandler {
     };
 
     res.json(response);
-    console.log(formatLogMessage('info', 'HttpHandler', `Connections info requested from ${req.ip}`));
+    logger.info(formatLogMessage('info', 'HttpHandler', `Connections info requested from ${req.ip}`));
   }
 
   /**
@@ -131,10 +132,10 @@ export class HttpHandler {
     
     res.download(bundleFile, 'sampleagent.js', (err) => {
       if (err) {
-        console.error(formatLogMessage('error', 'HttpHandler', `Error downloading bundle: ${err}`));
+        logger.error(formatLogMessage('error', 'HttpHandler', `Error downloading bundle: ${err}`));
         res.status(404).json({ error: 'Bundle not found. Make sure sampleagent is built.' });
       } else {
-        console.log(formatLogMessage('info', 'HttpHandler', `Bundle downloaded by ${req.ip}`));
+        logger.info(formatLogMessage('info', 'HttpHandler', `Bundle downloaded by ${req.ip}`));
       }
     });
   }

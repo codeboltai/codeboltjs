@@ -9,6 +9,7 @@ import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../services/NotificationService.js';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
 import { detectLanguage } from '../utils/detectLanguage.js';
+import { logger } from '../utils/logger';
 
 // Interface for codebase search event (since it may not be defined in shared types)
 interface CodebaseSearchEvent {
@@ -52,7 +53,7 @@ export class CodebaseSearchHandler {
     const { requestId, message } = codebaseSearchEvent;
     const { query, target_directories } = message;
 
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Handling codebase search request for: ${query}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Handling codebase search request for: ${query}`));
 
     try {
       // Validate query parameter
@@ -98,7 +99,7 @@ export class CodebaseSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${searchResults.results?.length || 0} code snippets for: ${query}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${searchResults.results?.length || 0} code snippets for: ${query}`));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -110,7 +111,7 @@ export class CodebaseSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...errorResponse, clientId: agent.id });
-      console.error(formatLogMessage('error', 'AgentMessageRouter', `Error searching codebase: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'AgentMessageRouter', `Error searching codebase: ${errorMessage}`));
     }
   }
 
@@ -242,11 +243,11 @@ export class CodebaseSearchHandler {
             }
           }
         } catch (error) {
-          console.warn(`Error reading file ${filePath}:`, error);
+          logger.warn(`Error reading file ${filePath}:`, error);
         }
       }
     } catch (error) {
-      console.warn(`Error searching directory ${directoryPath}:`, error);
+      logger.warn(`Error searching directory ${directoryPath}:`, error);
     }
 
     return results;
@@ -293,17 +294,16 @@ export class CodebaseSearchHandler {
               }
             }
           } catch (error) {
-            console.warn(`Error stating ${itemPath}:`, error);
+            logger.warn(`Error stating ${itemPath}:`, error);
           }
         }
       } catch (error) {
-        console.warn(`Error reading directory ${currentPath}:`, error);
+        logger.warn(`Error reading directory ${currentPath}:`, error);
       }
     };
     
     traverseDirectory(dirPath);
     return files;
   }
-
 
 }

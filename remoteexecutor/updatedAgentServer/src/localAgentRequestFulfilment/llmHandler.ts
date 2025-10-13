@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { LLMEvent, LlmNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles LLM events with notifications
@@ -27,7 +28,7 @@ export class LlmHandler {
   async handleLlmEvent(agent: ClientConnection, llmEvent: LLMEvent) {
     const { requestId } = llmEvent;
     const eventAction = llmEvent.type || 'unknown';
-    console.log(formatLogMessage('info', 'LlmHandler', `Handling llm event: ${eventAction} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'LlmHandler', `Handling llm event: ${eventAction} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: LlmNotificationBase = {
@@ -41,7 +42,7 @@ export class LlmHandler {
    let data= await this.notificationService.sendToAppRelatedToAgentId(agent.id, llmEvent as any,true);
    this.connectionManager.sendToConnection(agent.id, { ...data, clientId: agent.id });
 
-    console.log(formatLogMessage('info', 'LlmHandler', `Sent llm request notification: ${eventAction}`));
+    logger.info(formatLogMessage('info', 'LlmHandler', `Sent llm request notification: ${eventAction}`));
 
     // Forward to app for processing
     // this.sendMessageToApp.forwardToApp(agent, llmEvent as any);

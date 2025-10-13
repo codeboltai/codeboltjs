@@ -7,6 +7,7 @@ import type { MemoryEvent, DbMemoryNotificationBase } from '@codebolt/types/agen
 import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
 import fs from 'fs';
 import path from 'path';
+import { logger } from '../utils/logger';
 
 // Extend the base interface to include data property and isError
 interface MemoryNotification extends DbMemoryNotificationBase {
@@ -55,7 +56,7 @@ export class MemoryHandler {
    */
   async handleMemoryEvent(agent: ClientConnection, memoryEvent: MemoryEvent): Promise<void> {
     const { requestId, action } = memoryEvent;
-    console.log(formatLogMessage('info', 'MemoryHandler', `Handling memory event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'MemoryHandler', `Handling memory event: ${action} from ${agent.id}`));
     
     try {
       // Send request notification to app
@@ -73,7 +74,7 @@ export class MemoryHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-      console.log(formatLogMessage('info', 'MemoryHandler', `Sent memory request notification: ${action}`));
+      logger.info(formatLogMessage('info', 'MemoryHandler', `Sent memory request notification: ${action}`));
 
       // Execute the actual Memory operation based on action
       let operationResult;
@@ -119,7 +120,7 @@ export class MemoryHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, successNotification as any);
-      console.log(formatLogMessage('info', 'MemoryHandler', `Sent memory success notification: ${action}`));
+      logger.info(formatLogMessage('info', 'MemoryHandler', `Sent memory success notification: ${action}`));
 
     } catch (error) {
       // Handle errors
@@ -150,7 +151,7 @@ export class MemoryHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, errorNotification as any);
-      console.log(formatLogMessage('error', 'MemoryHandler', `Error processing memory event: ${action} - ${error}`));
+      logger.info(formatLogMessage('error', 'MemoryHandler', `Error processing memory event: ${action} - ${error}`));
     }
   }
 
@@ -173,11 +174,11 @@ export class MemoryHandler {
         value: message.value
       };
 
-      console.log(formatLogMessage('info', 'MemoryHandler', `Set memory for key: ${message.key}`));
+      logger.info(formatLogMessage('info', 'MemoryHandler', `Set memory for key: ${message.key}`));
       return result;
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'MemoryHandler', `Error setting memory: ${error}`));
+      logger.info(formatLogMessage('error', 'MemoryHandler', `Error setting memory: ${error}`));
       throw error;
     }
   }
@@ -202,11 +203,11 @@ export class MemoryHandler {
         value: value
       };
 
-      console.log(formatLogMessage('info', 'MemoryHandler', `Retrieved memory for key: ${message.key}`));
+      logger.info(formatLogMessage('info', 'MemoryHandler', `Retrieved memory for key: ${message.key}`));
       return result;
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'MemoryHandler', `Error getting memory: ${error}`));
+      logger.info(formatLogMessage('error', 'MemoryHandler', `Error getting memory: ${error}`));
       throw error;
     }
   }
@@ -227,7 +228,7 @@ export class MemoryHandler {
       try {
         data = JSON.parse(fileContent);
       } catch (parseError) {
-        console.log(formatLogMessage('warn', 'MemoryHandler', `Failed to parse existing memory file, creating new: ${parseError}`));
+        logger.info(formatLogMessage('warn', 'MemoryHandler', `Failed to parse existing memory file, creating new: ${parseError}`));
         data = {};
       }
     }
@@ -254,7 +255,7 @@ export class MemoryHandler {
       const data = JSON.parse(fileContent);
       return data[key] || null;
     } catch (parseError) {
-      console.log(formatLogMessage('error', 'MemoryHandler', `Failed to parse memory file: ${parseError}`));
+      logger.info(formatLogMessage('error', 'MemoryHandler', `Failed to parse memory file: ${parseError}`));
       return null;
     }
   }

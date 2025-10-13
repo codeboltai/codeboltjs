@@ -20,6 +20,7 @@ import type {
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import simpleGit from 'simple-git';
 import path from 'path';
+import { logger } from '../utils/logger';
 
 /**
  * Handles git events with notifications (following readFileHandler pattern)
@@ -39,17 +40,17 @@ export class GitHandler {
   handleGitEvent(agent: ClientConnection, gitEvent: GitEvent) {
     const requestId = gitEvent.requestId;
     const action = (gitEvent as any).action as string;
-    console.log(formatLogMessage('info', 'GitHandler', `Handling git event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'GitHandler', `Handling git event: ${action} from ${agent.id}`));
     
     // Get working directory - default to current working directory or from event data
     const workingDir = this.getWorkingDirectory(gitEvent);
-    console.log(formatLogMessage('info', 'GitHandler', `Using working directory: ${workingDir}`));
+    logger.info(formatLogMessage('info', 'GitHandler', `Using working directory: ${workingDir}`));
 
     // Execute actual Git operations
     switch (action) {
       case 'Init':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git init request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git init request notification`));
           
           (async () => {
             try {
@@ -82,7 +83,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git init response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git init response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -115,7 +116,7 @@ export class GitHandler {
 
       case 'Pull':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git pull request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git pull request notification`));
           
           (async () => {
             try {
@@ -143,7 +144,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git pull response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git pull response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -173,7 +174,7 @@ export class GitHandler {
 
       case 'Push':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git push request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git push request notification`));
           
           (async () => {
             try {
@@ -201,7 +202,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git push response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git push response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -231,7 +232,7 @@ export class GitHandler {
 
       case 'Status':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git status request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git status request notification`));
           
           (async () => {
             try {
@@ -277,7 +278,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git status response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git status response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -325,7 +326,7 @@ export class GitHandler {
 
       case 'Add':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git add request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git add request notification`));
           
           (async () => {
             try {
@@ -353,7 +354,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git add response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git add response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -383,7 +384,7 @@ export class GitHandler {
 
       case 'Commit':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git commit request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git commit request notification`));
           
           (async () => {
             try {
@@ -417,7 +418,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git commit response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git commit response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -447,7 +448,7 @@ export class GitHandler {
 
       case 'Checkout':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git checkout request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git checkout request notification`));
           
           (async () => {
             try {
@@ -480,7 +481,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git checkout response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git checkout response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -510,7 +511,7 @@ export class GitHandler {
 
       case 'gitBranch':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git branch request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git branch request notification`));
           
           (async () => {
             try {
@@ -559,7 +560,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git branch response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git branch response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -592,7 +593,7 @@ export class GitHandler {
 
       case 'gitLogs':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git logs request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git logs request notification`));
           
           (async () => {
             try {
@@ -631,7 +632,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git logs response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git logs response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -669,7 +670,7 @@ export class GitHandler {
       case 'Diff':
       case 'gitDiff' as any:
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git diff request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git diff request notification`));
           
           (async () => {
             try {
@@ -704,7 +705,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git diff response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git diff response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -735,7 +736,7 @@ export class GitHandler {
       // Handle non-typed clone as a permissive branch
       case 'Clone':
         {
-          console.log(formatLogMessage('info', 'GitHandler', `Sent git clone request notification`));
+          logger.info(formatLogMessage('info', 'GitHandler', `Sent git clone request notification`));
           
           (async () => {
             try {
@@ -769,7 +770,7 @@ export class GitHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'GitHandler', `Sent git clone response notification`));
+              logger.info(formatLogMessage('info', 'GitHandler', `Sent git clone response notification`));
 
             } catch (error) {
               const errorResponse = {

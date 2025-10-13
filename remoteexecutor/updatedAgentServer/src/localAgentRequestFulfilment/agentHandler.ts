@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { AgentEvent, AgentNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles agent events with notifications
@@ -26,7 +27,7 @@ export class AgentHandler {
    */
   handleAgentEvent(agent: ClientConnection, agentEvent: AgentEvent): void {
     const { requestId, action } = agentEvent;
-    console.log(formatLogMessage('info', 'AgentHandler', `Handling agent event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'AgentHandler', `Handling agent event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: AgentNotificationBase = {
@@ -38,7 +39,7 @@ export class AgentHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentHandler', `Sent agent request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'AgentHandler', `Sent agent request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, agentEvent as any);

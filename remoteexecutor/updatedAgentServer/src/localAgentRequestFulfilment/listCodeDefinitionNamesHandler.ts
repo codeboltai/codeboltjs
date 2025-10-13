@@ -9,6 +9,8 @@ import type { ListCodeDefinitionNamesEvent } from '@codebolt/types/agent-to-app-
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../services/NotificationService.js';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
+import { logger } from '../utils/logger';
+
 // import { parseSourceCodeForDefinitionsTopLevel } from '../../utils/parse-source-code/index.js';
 
 /**
@@ -32,7 +34,7 @@ export class ListCodeDefinitionNamesHandler {
     const { requestId, message } = listCodeDefEvent;
     const { path: dirPath } = message;
 
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Handling list code definition names request for: ${dirPath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Handling list code definition names request for: ${dirPath}`));
 
     try {
       // Validate path parameter
@@ -87,7 +89,7 @@ export class ListCodeDefinitionNamesHandler {
       // };
 
       // this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Successfully extracted code definitions from: ${dirPath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Successfully extracted code definitions from: ${dirPath}`));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -99,9 +101,8 @@ export class ListCodeDefinitionNamesHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...errorResponse, clientId: agent.id });
-      console.error(formatLogMessage('error', 'AgentMessageRouter', `Error listing code definitions: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'AgentMessageRouter', `Error listing code definitions: ${errorMessage}`));
     }
   }
-
 
 }

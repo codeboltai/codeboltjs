@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { CodeUtilsEvent, CodeUtilsNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles code utils events with notifications
@@ -26,7 +27,7 @@ export class CodeUtilsHandler {
    */
   handleCodeUtilsEvent(agent: ClientConnection, codeUtilsEvent: CodeUtilsEvent): void {
     const { requestId, action } = codeUtilsEvent;
-    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Handling codeutils event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'CodeUtilsHandler', `Handling codeutils event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: CodeUtilsNotificationBase = {
@@ -38,7 +39,7 @@ export class CodeUtilsHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'CodeUtilsHandler', `Sent codeutils request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'CodeUtilsHandler', `Sent codeutils request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, codeUtilsEvent as any);

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -26,8 +27,14 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	Host string
-	Port int
+	Host        string
+	Port        int
+	Protocol    string
+	TuiID       string
+	ProjectPath string
+	ProjectName string
+	ProjectType string
+	Agent       wsclient.AgentSelection
 }
 
 const tabBarHeight = 2
@@ -53,6 +60,8 @@ type Model struct {
 
 	// Services
 	wsClient *wsclient.Client
+	agent    wsclient.AgentSelection
+	tuiID    string
 
 	// Components
 	chat      *chat.Chat
@@ -80,7 +89,15 @@ type Model struct {
 // NewModel creates a new application model
 func NewModel(cfg Config) *Model {
 	// Create services
-	wsClient := wsclient.New(cfg.Host, cfg.Port)
+	wsClient := wsclient.New(wsclient.Config{
+		Host:        cfg.Host,
+		Port:        cfg.Port,
+		Protocol:    cfg.Protocol,
+		TuiID:       cfg.TuiID,
+		ProjectPath: cfg.ProjectPath,
+		ProjectName: cfg.ProjectName,
+		ProjectType: cfg.ProjectType,
+	})
 
 	// Create components
 	chatComp := chat.New()
@@ -105,6 +122,8 @@ func NewModel(cfg Config) *Model {
 	m := &Model{
 		cfg:         cfg,
 		wsClient:    wsClient,
+		agent:       cfg.Agent,
+		tuiID:       cfg.TuiID,
 		chat:        chatComp,
 		sidebar:     sidebarComp,
 		helpBar:     helpBarComp,
@@ -136,6 +155,15 @@ func NewModel(cfg Config) *Model {
 	// TUI is now always in client-only mode (server is started by agentserver)
 	sidebarComp.LogsPanel().AddLine("📡 Client mode - connecting to server")
 	sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🔗 Target server: %s:%d", cfg.Host, cfg.Port))
+	if cfg.Protocol != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🌐 Protocol: %s", strings.ToUpper(cfg.Protocol)))
+	}
+	if m.tuiID != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🆔 TUI ID: %s", m.tuiID))
+	}
+	if cfg.ProjectPath != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("📁 Project: %s", cfg.ProjectPath))
+	}
 	sidebarComp.LogsPanel().AddLine("ℹ️  Server should be started by codebolt-code command")
 
 	m.refreshGitPanels()
@@ -150,10 +178,12 @@ type connectMsg struct {
 }
 
 // retryMsg represents a retry timer message
-type retryMsg struct{}
-
 // tryConnectMsg triggers a connection attempt
 type tryConnectMsg struct{}
+
+type sendUserMessageResult struct {
+	err error
+}
 
 // Removed agent manager; no local agent process lifecycle
 
@@ -257,6 +287,19 @@ func (m *Model) tryConnect() tea.Cmd {
 	}
 }
 
+func (m *Model) sendUserMessage(content string) tea.Cmd {
+	agent := m.agent
+	return func() tea.Msg {
+		if m.wsClient == nil {
+			return sendUserMessageResult{err: errors.New("websocket client not initialized")}
+		}
+		if err := m.wsClient.SendUserMessage(content, agent); err != nil {
+			return sendUserMessageResult{err: err}
+		}
+		return sendUserMessageResult{}
+	}
+}
+
 // toggleChatFocus toggles focus between chat and scroll mode
 func (m *Model) toggleChatFocus() {
 	m.chatFocused = !m.chatFocused
@@ -275,6 +318,70 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tryConnectMsg:
+		if m.wsClient == nil {
+			return m, nil
+		}
+		if m.wsClient.IsConnected() {
+			m.isRetrying = false
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			}
+			return m, nil
+		}
+		m.isRetrying = true
+		if m.sidebar != nil {
+			m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			if m.retryCount == 0 {
+				m.sidebar.LogsPanel().AddLine("🔌 Attempting to connect...")
+			} else {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🔄 Retry attempt %d", m.retryCount+1))
+			}
+		}
+		return m, m.tryConnect()
+
+	case connectMsg:
+		m.isRetrying = false
+		if msg.success {
+			m.retryCount = 0
+			m.lastError = ""
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("✅ Connected to agent server")
+			}
+			return m, nil
+		}
+
+		m.retryCount++
+		if msg.err != nil {
+			m.lastError = msg.err.Error()
+		} else {
+			m.lastError = "connection failed"
+		}
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("❌ Connection failed: %v", msg.err))
+		}
+
+		if m.retryCount >= 60 {
+			m.isRetrying = false
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("🚫 Max retry attempts reached. Press Ctrl+R to retry.")
+			}
+			return m, nil
+		}
+
+		delay := time.Duration(m.retryCount*2) * time.Second
+		if delay > 10*time.Second {
+			delay = 10 * time.Second
+		}
+		m.isRetrying = true
+		if m.sidebar != nil {
+			m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🔁 Retrying in %s", delay))
+		}
+		return m, tea.Tick(delay, func(time.Time) tea.Msg { return tryConnectMsg{} })
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -293,6 +400,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keyMap.Retry):
+			if m.wsClient == nil {
+				return m, nil
+			}
+			if m.wsClient.IsConnected() {
+				if m.sidebar != nil {
+					m.sidebar.LogsPanel().AddLine("ℹ️  Already connected to server")
+				}
+				return m, nil
+			}
+			m.retryCount = 0
+			m.lastError = ""
+			m.isRetrying = true
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("🔄 Manual retry triggered")
+			}
+			return m, m.tryConnect()
 		case key.Matches(msg, m.keyMap.NextTab):
 			if cmd := m.switchTab(m.nextTabID()); cmd != nil {
 				return m, cmd
@@ -342,6 +467,43 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case chat.ModelSelectedMsg:
 		m.sidebar.AgentPanel().AddLine(fmt.Sprintf("🤖 Model selected: %s", msg.Option.Name))
 		m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Active model set to %s (%s)", msg.Option.Name, msg.Option.Provider))
+
+	case chat.SubmitMsg:
+		content := msg.Content
+		trimmed := strings.TrimSpace(content)
+		if trimmed == "" {
+			return m, nil
+		}
+		if strings.HasPrefix(trimmed, "/") {
+			command := strings.TrimSpace(trimmed[1:])
+			if command == "" {
+				return m, nil
+			}
+			return m, m.executeCommand(command)
+		}
+		if m.wsClient == nil || !m.wsClient.IsConnected() {
+			errText := "❌ Not connected to server. Press Ctrl+R to retry."
+			m.chat.AddMessage("error", errText)
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(errText)
+			}
+			return m, nil
+		}
+		return m, m.sendUserMessage(content)
+
+	case sendUserMessageResult:
+		if msg.err != nil {
+			errText := fmt.Sprintf("❌ Failed to send message: %v", msg.err)
+			m.chat.AddMessage("error", errText)
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(errText)
+			}
+			return m, nil
+		}
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine("📨 Message sent to agent server")
+		}
+		return m, nil
 	}
 
 	// Pass messages to components

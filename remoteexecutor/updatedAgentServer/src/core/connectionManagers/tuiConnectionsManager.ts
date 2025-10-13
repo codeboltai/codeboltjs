@@ -1,4 +1,5 @@
 import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
+import { logger } from '../../utils/logger';
 
 /**
  * Manages lifecycle and operations for TUI WebSocket connections.
@@ -20,7 +21,7 @@ export class TuiConnectionsManager {
 
   registerTui(connection: ClientConnection): void {
     this.tuis.set(connection.id, connection);
-    console.log(
+    logger.info(
       formatLogMessage(
         'info',
         'TuiConnectionsManager',
@@ -31,7 +32,7 @@ export class TuiConnectionsManager {
 
   removeTui(tuiId: string): void {
     if (this.tuis.delete(tuiId)) {
-      console.log(formatLogMessage('info', 'TuiConnectionsManager', `TUI disconnected: ${tuiId}`));
+      logger.info(formatLogMessage('info', 'TuiConnectionsManager', `TUI disconnected: ${tuiId}`));
     }
   }
 
@@ -51,16 +52,16 @@ export class TuiConnectionsManager {
     const tui = this.tuis.get(tuiId);
 
     if (!tui) {
-      console.warn(formatLogMessage('warn', 'TuiConnectionsManager', `TUI ${tuiId} not found`));
+      logger.warn(formatLogMessage('warn', 'TuiConnectionsManager', `TUI ${tuiId} not found`));
       return false;
     }
 
     try {
       tui.ws.send(JSON.stringify(message));
-      console.log(formatLogMessage('info', 'TuiConnectionsManager', `Message sent to TUI ${tuiId}`));
+      logger.info(formatLogMessage('info', 'TuiConnectionsManager', `Message sent to TUI ${tuiId}`));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'TuiConnectionsManager', `Error sending message to TUI ${tuiId}: ${error}`));
+      logger.error(formatLogMessage('error', 'TuiConnectionsManager', `Error sending message to TUI ${tuiId}: ${error}`));
       return false;
     }
   }
@@ -70,7 +71,7 @@ export class TuiConnectionsManager {
       try {
         tui.ws.send(JSON.stringify(message));
       } catch (error) {
-        console.error(formatLogMessage('error', 'TuiConnectionsManager', `Error broadcasting to TUI ${tui.id}: ${error}`));
+        logger.error(formatLogMessage('error', 'TuiConnectionsManager', `Error broadcasting to TUI ${tui.id}: ${error}`));
       }
     });
   }
@@ -79,12 +80,12 @@ export class TuiConnectionsManager {
     const tui = this.tuis.get(tuiId);
 
     if (!tui) {
-      console.warn(formatLogMessage('warn', 'TuiConnectionsManager', `TUI ${tuiId} not found for project update`));
+      logger.warn(formatLogMessage('warn', 'TuiConnectionsManager', `TUI ${tuiId} not found for project update`));
       return false;
     }
 
     tui.currentProject = projectInfo;
-    console.log(formatLogMessage('info', 'TuiConnectionsManager', `Updated project for TUI ${tuiId}: ${projectInfo.path}`));
+    logger.info(formatLogMessage('info', 'TuiConnectionsManager', `Updated project for TUI ${tuiId}: ${projectInfo.path}`));
     return true;
   }
 
