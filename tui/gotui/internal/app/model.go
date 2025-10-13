@@ -2,9 +2,12 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -18,6 +21,7 @@ import (
 	"golang.org/x/term"
 
 	"gotui/internal/components/chat"
+	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/helpbar"
 	"gotui/internal/layout/panels"
 	"gotui/internal/layout/sidebar"
@@ -165,6 +169,7 @@ func NewModel(cfg Config) *Model {
 		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("📁 Project: %s", cfg.ProjectPath))
 	}
 	sidebarComp.LogsPanel().AddLine("ℹ️  Server should be started by codebolt-code command")
+	sidebarComp.LogsPanel().AddLine("🤖 Fetching available models from server...")
 
 	m.refreshGitPanels()
 
@@ -183,6 +188,11 @@ type tryConnectMsg struct{}
 
 type sendUserMessageResult struct {
 	err error
+}
+
+type modelFetchResult struct {
+	options []chatcomponents.ModelOption
+	err     error
 }
 
 // Removed agent manager; no local agent process lifecycle
@@ -259,6 +269,8 @@ func (m *Model) Init() tea.Cmd {
 		return tryConnectMsg{}
 	}))
 
+	cmds = append(cmds, m.fetchModelOptions())
+
 	// Detect actual terminal size and use it
 	termWidth, termHeight := getTerminalSize()
 	log.Printf("Init: Using terminal size: %dx%d", termWidth, termHeight)
@@ -284,6 +296,56 @@ func (m *Model) tryConnect() tea.Cmd {
 
 		err := m.wsClient.Connect(ctx)
 		return connectMsg{success: err == nil, err: err}
+	}
+}
+
+func (m *Model) fetchModelOptions() tea.Cmd {
+	return func() tea.Msg {
+		scheme := "http"
+		protocol := strings.ToLower(strings.TrimSpace(m.cfg.Protocol))
+		if protocol == "https" || protocol == "wss" {
+			scheme = "https"
+		}
+		host := strings.TrimSpace(m.cfg.Host)
+		if host == "" {
+			host = "localhost"
+		}
+		url := fmt.Sprintf("%s://%s:%d/models", scheme, host, m.cfg.Port)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return modelFetchResult{err: err}
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return modelFetchResult{err: err}
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+			snippet := strings.TrimSpace(string(body))
+			if snippet != "" {
+				err = fmt.Errorf("models request failed: %d %s", resp.StatusCode, snippet)
+			} else {
+				err = fmt.Errorf("models request failed with status %d", resp.StatusCode)
+			}
+			return modelFetchResult{err: err}
+		}
+
+		var payload struct {
+			Models []chatcomponents.ModelOption `json:"models"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+			return modelFetchResult{err: err}
+		}
+
+		return modelFetchResult{options: payload.Models}
 	}
 }
 
@@ -382,6 +444,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, tea.Tick(delay, func(time.Time) tea.Msg { return tryConnectMsg{} })
 
+	case modelFetchResult:
+		if msg.err != nil {
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("⚠️ Failed to load models: %v", msg.err))
+			}
+			return m, nil
+		}
+		if m.chat != nil {
+			m.chat.SetModelOptions(msg.options)
+		}
+		if m.sidebar != nil {
+			total := len(msg.options)
+			if total == 0 {
+				m.sidebar.LogsPanel().AddLine("ℹ️ Server returned no models")
+			} else {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Loaded %d models from server", total))
+			}
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -467,6 +549,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case chat.ModelSelectedMsg:
 		m.sidebar.AgentPanel().AddLine(fmt.Sprintf("🤖 Model selected: %s", msg.Option.Name))
 		m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Active model set to %s (%s)", msg.Option.Name, msg.Option.Provider))
+
+	case chat.ThemeSelectedMsg:
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🎨 Theme changed to %s", msg.Preset.Name))
+		}
 
 	case chat.SubmitMsg:
 		content := msg.Content

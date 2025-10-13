@@ -1,13 +1,14 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { 
-  ConnectionsResponse, 
+import {
+  ConnectionsResponse,
   HealthCheckResponse,
-  formatLogMessage 
+  formatLogMessage
 } from './../types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { logger } from '../utils/logger';
+import { getAvailableModels } from '../models/modelRegistry';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +43,9 @@ export class HttpHandler {
 
     // Bundle download endpoint
     this.app.get('/download/sampleagent', this.handleBundleDownload.bind(this));
+
+    // Available models endpoint
+    this.app.get('/models', this.handleModels.bind(this));
 
     // Basic root endpoint
     this.app.get('/', this.handleRoot.bind(this));
@@ -150,11 +154,26 @@ export class HttpHandler {
         health: '/health',
         connections: '/connections',
         info: '/info',
+        models: '/models',
         bundle: '/bundle/',
         download: '/download/sampleagent'
       },
       websocket: 'ws://localhost:3001',
       documentation: 'See README.md for API documentation'
     });
+  }
+
+  /**
+   * Handle model list requests
+   */
+  private handleModels(req: Request, res: Response): void {
+    try {
+      const models = getAvailableModels();
+      res.json({ models });
+      logger.info(formatLogMessage('info', 'HttpHandler', `Models requested from ${req.ip}`));
+    } catch (error) {
+      logger.error(formatLogMessage('error', 'HttpHandler', `Error retrieving models: ${error}`));
+      res.status(500).json({ error: 'Failed to retrieve models' });
+    }
   }
 }

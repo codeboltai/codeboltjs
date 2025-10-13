@@ -1,7 +1,6 @@
 package chatcomponents
 
 import (
-	"math"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -101,20 +100,36 @@ func (p *ModelPicker) View(width, height int) string {
 	}
 
 	theme := styles.CurrentTheme()
-	panelWidth := clamp(width-10, 42, int(math.Min(82, float64(width-4))))
+
+	minPanel := 44
+	maxPanel := width - 6
+	if maxPanel < minPanel {
+		maxPanel = minPanel
+	}
+	desiredPanel := width - 12
+	if desiredPanel < minPanel {
+		desiredPanel = minPanel
+	}
+	panelWidth := clamp(desiredPanel, minPanel, maxPanel)
+	if panelWidth >= width {
+		panelWidth = width - 4
+		if panelWidth < minPanel {
+			panelWidth = minPanel
+		}
+	}
 	if panelWidth <= 0 {
 		panelWidth = width
 	}
 
-	paddingX := 3
+	paddingX := 4
 	contentWidth := panelWidth - (paddingX * 2)
-	if contentWidth < 36 {
-		contentWidth = panelWidth - 4
+	if contentWidth < 32 {
+		contentWidth = panelWidth - 2
 	}
 
 	headerTitle := lipgloss.NewStyle().
-		Foreground(theme.Background).
-		Background(theme.Primary).
+		Foreground(theme.Foreground).
+		Background(theme.Primary.BlendLab(theme.SurfaceHigh, 0.2)).
 		Bold(true).
 		Padding(0, 3).
 		Render("Model Palette")
@@ -129,17 +144,18 @@ func (p *ModelPicker) View(width, height int) string {
 
 	panel := lipgloss.NewStyle().
 		Width(panelWidth).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(theme.Primary).
-		Background(theme.SurfaceHigh).
-		Padding(1, paddingX).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(theme.Border).
+		Background(theme.SurfaceHigh.BlendLab(theme.Background, 0.08)).
+		Padding(2, paddingX).
 		Render(lipgloss.JoinVertical(lipgloss.Left, header, body))
 
-	overlay := lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, panel, lipgloss.WithWhitespaceChars(" "))
+	overlay := lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, panel,
+		lipgloss.WithWhitespaceChars(" "))
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Background(theme.Surface.BlendLab(theme.Background, 0.45)).
+		Background(theme.Background.BlendLab(theme.Surface, 0.6)).
 		Render(overlay)
 }
 
@@ -156,69 +172,105 @@ func (p *ModelPicker) renderOptions(width int) []string {
 		return []string{empty}
 	}
 
-	rows := make([]string, 0, len(p.options))
+	rows := make([]string, 0, len(p.options)*2)
 	for i, opt := range p.options {
 		rows = append(rows, p.renderOption(opt, i == p.selected, width))
+		if i < len(p.options)-1 {
+			divider := lipgloss.NewStyle().
+				Foreground(theme.Border).
+				Width(width).
+				Render(strings.Repeat("─", max(12, width-2)))
+			rows = append(rows, divider)
+		}
 	}
 	return rows
 }
 
 func (p *ModelPicker) renderOption(opt ModelOption, selected bool, width int) string {
 	theme := styles.CurrentTheme()
-	nameStyle := lipgloss.NewStyle().Foreground(theme.Primary).Bold(true)
-	providerStyle := lipgloss.NewStyle().Foreground(theme.Secondary)
-	metaStyle := lipgloss.NewStyle().Foreground(theme.Muted)
-	headLine := lipgloss.JoinHorizontal(lipgloss.Left,
-		nameStyle.Render(opt.Name),
-		lipgloss.NewStyle().Render("  ·  "),
-		providerStyle.Render(opt.Provider),
-	)
-	contextInfo := ""
-	if opt.Context != "" {
-		contextInfo = metaStyle.Render(opt.Context + " ctx")
-	}
-	firstRow := headLine
-	if contextInfo != "" {
-		firstRow = lipgloss.JoinHorizontal(lipgloss.Left,
-			headLine,
-			lipgloss.NewStyle().Render("  •  "),
-			contextInfo,
+	nameStyle := lipgloss.NewStyle().
+		Foreground(theme.Primary).
+		Bold(true).
+		UnsetBackground()
+	providerStyle := lipgloss.NewStyle().
+		Foreground(theme.Secondary).
+		UnsetBackground()
+	metaStyle := lipgloss.NewStyle().
+		Foreground(theme.Muted).
+		UnsetBackground()
+
+	segments := []string{nameStyle.Render(opt.Name)}
+	if strings.TrimSpace(opt.Provider) != "" {
+		segments = append(segments,
+			lipgloss.NewStyle().Foreground(theme.Muted).UnsetBackground().Render(" · "),
+			providerStyle.Render(opt.Provider),
 		)
 	}
+	head := lipgloss.JoinHorizontal(lipgloss.Left, segments...)
 
-	descParts := []string{opt.Description}
+	contextLine := ""
 	if opt.Context != "" {
-		descParts = append(descParts, "Context: "+opt.Context)
+		contextLine = metaStyle.Render("Context: " + opt.Context)
+	}
+
+	descParts := []string{}
+	if strings.TrimSpace(opt.Description) != "" {
+		descParts = append(descParts, opt.Description)
 	}
 	if len(opt.Capabilities) > 0 {
 		descParts = append(descParts, "Capabilities: "+strings.Join(opt.Capabilities, ", "))
 	}
-	desc := metaStyle.Render(strings.Join(descParts, "  •  "))
+
+	cardWidth := width - 4
+	if cardWidth < 28 {
+		cardWidth = width - 2
+	}
+	wrapWidth := cardWidth - 6
+	if wrapWidth < 20 {
+		wrapWidth = max(20, width-10)
+	}
+	descText := metaStyle.Copy().Width(wrapWidth).Render(strings.Join(descParts, "\n"))
+
 	badges := p.renderCapabilityBadges(opt.Capabilities)
 
-	body := lipgloss.JoinVertical(lipgloss.Left, firstRow, desc, badges)
-	cardWidth := width - 3
-	if cardWidth < 24 {
-		cardWidth = width
+	sections := []string{head}
+	if contextLine != "" {
+		sections = append(sections, contextLine)
 	}
-	card := lipgloss.NewStyle().Width(cardWidth).Render(body)
+	if strings.TrimSpace(descText) != "" {
+		sections = append(sections, descText)
+	}
+	if strings.TrimSpace(badges) != "" {
+		sections = append(sections, badges)
+	}
+
+	cardStyle := lipgloss.NewStyle().
+		Width(cardWidth).
+		Padding(1, 2)
+
 	indicator := lipgloss.NewStyle().Foreground(theme.Muted).Render("  ")
-	rowStyle := lipgloss.NewStyle().Width(width).Padding(1, 1)
+	container := lipgloss.NewStyle().Width(width).Padding(1, 1)
+
 	if selected {
 		indicator = lipgloss.NewStyle().Foreground(theme.Accent).Render("➤ ")
-		rowStyle = rowStyle.
-			Background(theme.SurfaceHighest).
-			Foreground(theme.Foreground).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(theme.Primary)
+		cardStyle = cardStyle.
+			Background(theme.SurfaceHighest.BlendLab(theme.SurfaceHigh, 0.35)).
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(theme.Primary).
+			Foreground(theme.Foreground)
+		container = container.Background(theme.SurfaceHigh.BlendLab(theme.Background, 0.12))
 	} else {
-		rowStyle = rowStyle.
+		cardStyle = cardStyle.
 			Background(theme.Surface).
-			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(theme.SurfaceHigh)
+		container = container.Background(theme.Surface.BlendLab(theme.Background, 0.08))
 	}
-	row := lipgloss.JoinHorizontal(lipgloss.Left, indicator, card)
-	return rowStyle.Render(row)
+
+	cardContent := lipgloss.JoinVertical(lipgloss.Left, sections...)
+	card := cardStyle.Render(cardContent)
+	row := lipgloss.JoinHorizontal(lipgloss.Top, indicator, card)
+	return container.Render(row)
 }
 
 func (p *ModelPicker) renderCapabilityBadges(capabilities []string) string {
@@ -246,4 +298,11 @@ func clamp(value, minValue, maxValue int) int {
 		return maxValue
 	}
 	return value
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
