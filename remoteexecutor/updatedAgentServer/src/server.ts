@@ -1,55 +1,11 @@
 import { formatLogMessage, AgentCliOptions } from './types';
 import { AgentExecutorServer } from './core/mainAgentExecutorServer';
 import { getServerConfig } from './config';
-import { spawn, ChildProcess } from 'child_process';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
 import { Command } from 'commander';
 import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
-
-function parseFallbackArgs(args: string[]): Record<string, string | boolean> {
-  const result: Record<string, string | boolean> = {};
-
-  for (let index = 0; index < args.length; index++) {
-    const token = args[index];
-
-    if (typeof token !== 'string' || !token.startsWith('--')) {
-      continue;
-    }
-
-    const trimmed = token.slice(2);
-
-    if (!trimmed) {
-      continue;
-    }
-
-    if (trimmed.includes('=')) {
-      const [rawKey, ...rawValue] = trimmed.split('=');
-      const key = rawKey.trim();
-      const value = rawValue.join('=');
-
-      if (!key) {
-        continue;
-      }
-
-      result[key] = value === '' ? true : value;
-      continue;
-    }
-
-    const nextToken = args[index + 1];
-
-    if (typeof nextToken === 'string' && !nextToken.startsWith('--')) {
-      result[trimmed] = nextToken;
-      index += 1;
-      continue;
-    }
-
-    result[trimmed] = true;
-  }
-
-  return result;
-}
+import { createOptionResolvers, parseFallbackArgs } from './utils/options';
+import { createTuiProcessManager } from './utils/tuiProcessManager/tuiProcessManager';
 
 /**
  * Setup CLI with commander
@@ -88,69 +44,11 @@ function setupCLI(): AgentCliOptions {
   program.parse();
   const options = program.opts();
   const fallbackArgs = parseFallbackArgs(program.args as string[]);
-
-  const resolveStringOption = (primary?: string, fallbackKey?: string): string | undefined => {
-    if (primary) {
-      return primary;
-    }
-
-    if (!fallbackKey) {
-      return undefined;
-    }
-
-    const fallbackValue = fallbackArgs[fallbackKey];
-
-    return typeof fallbackValue === 'string' ? fallbackValue : undefined;
-  };
-
-  const resolveBooleanOption = (primary?: boolean, fallbackKey?: string): boolean => {
-    if (typeof primary === 'boolean') {
-      return primary;
-    }
-
-    if (!fallbackKey) {
-      return false;
-    }
-
-    const fallbackValue = fallbackArgs[fallbackKey];
-
-    if (typeof fallbackValue === 'boolean') {
-      return fallbackValue;
-    }
-
-    if (typeof fallbackValue === 'string') {
-      if (fallbackValue === 'false') {
-        return false;
-      }
-
-      if (fallbackValue === 'true') {
-        return true;
-      }
-
-      return true;
-    }
-
-    return false;
-  };
-
-  const resolveNumberOption = (primary?: number, fallbackKey?: string): number | undefined => {
-    if (typeof primary === 'number' && !Number.isNaN(primary)) {
-      return primary;
-    }
-
-    if (!fallbackKey) {
-      return undefined;
-    }
-
-    const fallbackValue = fallbackArgs[fallbackKey];
-
-    if (typeof fallbackValue === 'string') {
-      const parsed = Number(fallbackValue);
-      return Number.isNaN(parsed) ? undefined : parsed;
-    }
-
-    return undefined;
-  };
+  const {
+    resolveStringOption,
+    resolveBooleanOption,
+    resolveNumberOption
+  } = createOptionResolvers(fallbackArgs);
 
   const remoteUrl: string | undefined = resolveStringOption(options.remoteUrl, 'remote-url') || process.env.WRANGLER_PROXY_URL;
   const appToken: string | undefined = resolveStringOption(options.appToken, 'app-token') || process.env.APP_TOKEN;
@@ -245,81 +143,25 @@ async function main(): Promise<void> {
     
     logger.info(`Server started successfully on ${config.host}:${config.port}`);
 
-    // Start TUI if not disabled
-    let tuiProcess: ChildProcess | null = null;
-    let isShuttingDown = false;
-    
-    if (!options.noui) {
-      const gotuiPath = resolve(process.cwd(), '../../tui/gotui/gotui');
-      
-      if (existsSync(gotuiPath)) {
-        logger.info(`Starting TUI from: ${gotuiPath}`);
+    const tuiManager = createTuiProcessManager({
+      server,
+      config,
+      options
+    });
 
-        if (process.stdout.isTTY) {
-          process.stdout.write('\x1b[2J\x1b[3J\x1b[H');
-        }
-        
-        tuiProcess = spawn(gotuiPath, ['-host', config.host || 'localhost', '-port', (config.port || 3001).toString()], {
-          stdio: 'inherit',
-          cwd: process.cwd()
-        });
-        
-        if (tuiProcess) {
-          tuiProcess.on('error', (error) => {
-            logger.error(`Failed to start TUI: ${error.message}`, error);
-          });
-          
-          tuiProcess.on('exit', (code, signal) => {
-            if (signal === 'SIGINT' || signal === 'SIGTERM') {
-              logger.info('TUI terminated by signal, shutting down server...');
-              if (!isShuttingDown) {
-                shutdown();
-              }
-            } else if (code !== 0) {
-              logger.error(`TUI exited with code: ${code}`);
-            } else {
-              logger.info('TUI exited successfully');
-            }
-          });
-        }
-      } else {
-        logger.error(`TUI executable not found at: ${gotuiPath}`);
-      }
-    }
-    
-    // Handle graceful shutdown
-    const shutdown = async (): Promise<void> => {
-      if (isShuttingDown) {
-        return; // Prevent multiple shutdown calls
-      }
-      isShuttingDown = true;
-      
-      logger.info('Received shutdown signal, shutting down gracefully...');
-      
-      // Kill TUI process if running
-      if (tuiProcess && !tuiProcess.killed) {
-        logger.info('Stopping TUI process...');
-        tuiProcess.kill('SIGTERM');
-        tuiProcess = null;
-      }
-      
-      // Stop server
-      await server.stop();
-      process.exit(0);
-    };
-
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+    tuiManager.initialize();
     
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error: Error): Promise<void> => {
       logger.logError(error, 'Uncaught Exception');
+      await tuiManager.stopTuiProcess();
       await server.stop();
       process.exit(1);
     });
 
     process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>): Promise<void> => {
       logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, { promise, reason });
+      await tuiManager.stopTuiProcess();
       await server.stop();
       process.exit(1);
     });

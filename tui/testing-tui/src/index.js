@@ -3,11 +3,15 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
+// App Params
 const DEFAULT_HOST = process.env.AGENT_SERVER_HOST || 'localhost';
 const DEFAULT_PORT = process.env.AGENT_SERVER_PORT ? Number(process.env.AGENT_SERVER_PORT) : 3001;
 const DEFAULT_PROTOCOL = process.env.AGENT_SERVER_PROTOCOL || 'ws';
+
+// UID
 const DEFAULT_TUI_ID = process.env.TUI_ID || `dummytui-${uuidv4()}`;
 
+// ?????
 const projectPath = process.env.CURRENT_PROJECT_PATH;
 const projectName = process.env.CURRENT_PROJECT_NAME;
 const projectType = process.env.CURRENT_PROJECT_TYPE;
