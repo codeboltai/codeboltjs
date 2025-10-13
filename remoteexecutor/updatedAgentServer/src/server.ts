@@ -1,4 +1,4 @@
-import { formatLogMessage, AgentCliOptions } from './types';
+import { AgentCliOptions } from './types';
 import { AgentExecutorServer } from './core/mainAgentExecutorServer';
 import { getServerConfig } from './config';
 import { Command } from 'commander';
@@ -7,7 +7,6 @@ import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
 import { createTuiProcessManager } from './utils/tuiProcessManager/tuiProcessManager';
-import { logger } from './utils/logger';
 
 /**
  * Setup CLI with commander
@@ -82,7 +81,8 @@ async function main(): Promise<void> {
     // Initialize logger with system /tmp path and appropriate log level
     const loggerInstance = Logger.getInstance({
       logFilePath: '/tmp/agent-server.log',
-      logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO
+      logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO,
+      enableConsole: options.noui ?? false
     });
     
     // Test log file writing

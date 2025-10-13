@@ -5,7 +5,6 @@ import {
   formatLogMessage,
   isMessageWithType,
   createErrorResponse,
-  Message,
   ProjectInfo
 } from '../../types';
 
