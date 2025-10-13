@@ -2,6 +2,7 @@ import { formatLogMessage, AgentCliOptions } from './types';
 import { AgentExecutorServer } from './core/mainAgentExecutorServer';
 import { getServerConfig } from './config';
 import { Command } from 'commander';
+import { v4 as uuidv4 } from 'uuid';
 import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
@@ -51,7 +52,11 @@ function setupCLI(): AgentCliOptions {
   } = createOptionResolvers(fallbackArgs);
 
   const remoteUrl: string | undefined = resolveStringOption(options.remoteUrl, 'remote-url') || process.env.WRANGLER_PROXY_URL;
-  const appToken: string | undefined = resolveStringOption(options.appToken, 'app-token') || process.env.APP_TOKEN;
+  let appToken: string | undefined = resolveStringOption(options.appToken, 'app-token') || process.env.APP_TOKEN;
+
+  if (!appToken) {
+    appToken = uuidv4();
+  }
 
   return {
     noui: typeof options.noui === 'boolean' ? options.noui : false,
