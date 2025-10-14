@@ -11,21 +11,24 @@ export type {
 } from '@codebolt/provider';
 
 export interface DiffFile {
-  file: string;
-  changes: number;
-  insertions: number;
-  deletions: number;
-  binary: boolean;
-  status?: "added" | "modified" | "deleted" | "renamed" | "copied";
-  oldFile?: string;
+  path: string;
+  status: "added" | "modified" | "deleted" | "renamed";
+  changes?: {
+    additions: number;
+    deletions: number;
+    changes: number;
+  };
   diff?: string;
 }
 
 export interface DiffResult {
   files: DiffFile[];
-  insertions: number;
-  deletions: number;
-  changed: number;
+  summary?: {
+    totalFiles: number;
+    totalAdditions: number;
+    totalDeletions: number;
+    totalChanges: number;
+  };
   rawDiff?: string;
 }
 
@@ -62,6 +65,7 @@ export interface ProviderConfig {
 export interface IProviderService {
   onProviderStart(initvars: ProviderInitVars): Promise<ProviderStartResult>;
   onProviderAgentStart(initvars: AgentStartMessage): Promise<void>;
+  onProviderStop(initvars: ProviderInitVars): Promise<void>;
   onGetDiffFiles(): Promise<DiffResult>;
   onCloseSignal(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
@@ -77,3 +81,7 @@ export interface IProviderService {
   getAgentServerConnection(): AgentServerConnection;
   isInitialized(): boolean;
 }
+
+
+
+
