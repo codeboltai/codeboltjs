@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 
+	"gotui/internal/components/dialogs"
 	"gotui/internal/styles"
 )
 
@@ -95,8 +96,31 @@ func (p *ModelPicker) move(delta int) {
 }
 
 func (p *ModelPicker) View(width, height int) string {
-	if !p.visible || width <= 0 || height <= 0 {
+	panel, ok := p.dialogPanel(width)
+	if !ok || height <= 0 {
 		return ""
+	}
+
+	overlay := lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, panel,
+		lipgloss.WithWhitespaceChars(" "))
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Render(overlay)
+}
+
+// Layer returns the picker rendered as a dialog layer so the background remains visible.
+func (p *ModelPicker) Layer(width, height int) *lipgloss.Layer {
+	panel, ok := p.dialogPanel(width)
+	if !ok || height <= 0 {
+		return nil
+	}
+	return dialogs.WrapLayer(panel, width, height)
+}
+
+func (p *ModelPicker) dialogPanel(width int) (string, bool) {
+	if !p.visible || width <= 0 {
+		return "", false
 	}
 
 	theme := styles.CurrentTheme()
@@ -148,12 +172,7 @@ func (p *ModelPicker) View(width, height int) string {
 		Padding(2, paddingX).
 		Render(lipgloss.JoinVertical(lipgloss.Left, header, body))
 
-	overlay := lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, panel,
-		lipgloss.WithWhitespaceChars(" "))
-	return lipgloss.NewStyle().
-		Width(width).
-		Height(height).
-		Render(overlay)
+	return panel, true
 }
 
 func (p *ModelPicker) renderOptions(width int) []string {

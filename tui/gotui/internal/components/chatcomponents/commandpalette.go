@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 
+	"gotui/internal/components/dialogs"
 	"gotui/internal/styles"
 )
 
@@ -137,8 +138,25 @@ func (p *CommandPalette) filtered() []CommandPaletteItem {
 }
 
 func (p *CommandPalette) View(width, height int) string {
-	if !p.visible || width <= 0 || height <= 0 {
+	panel, ok := p.dialogPanel(width)
+	if !ok || height <= 0 {
 		return ""
+	}
+	return dialogs.Wrap(panel, width, height)
+}
+
+// Layer returns the palette rendered as a dialog layer so the background remains visible.
+func (p *CommandPalette) Layer(width, height int) *lipgloss.Layer {
+	panel, ok := p.dialogPanel(width)
+	if !ok || height <= 0 {
+		return nil
+	}
+	return dialogs.WrapLayer(panel, width, height)
+}
+
+func (p *CommandPalette) dialogPanel(width int) (string, bool) {
+	if !p.visible || width <= 0 {
+		return "", false
 	}
 
 	theme := styles.CurrentTheme()
@@ -146,7 +164,6 @@ func (p *CommandPalette) View(width, height int) string {
 	panelWidth := clamp(width/2, 50, width-10)
 	inputStyle := lipgloss.NewStyle().
 		Foreground(theme.Foreground).
-		// Background(theme.Surface).
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(theme.SurfaceHigh).
 		Padding(0, 1).
@@ -166,23 +183,9 @@ func (p *CommandPalette) View(width, height int) string {
 		rows = append(rows, lipgloss.NewStyle().Foreground(theme.Muted).Padding(1, 0).Render("No commands"))
 	}
 
-	list := lipgloss.JoinVertical(lipgloss.Left, rows...)
-	content := lipgloss.JoinVertical(lipgloss.Left, input, list)
-
-	panel := lipgloss.NewStyle().
-		Width(panelWidth).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(theme.Primary).
-		// Background(theme.SurfaceHigh).
-		Padding(1, 2).
-		Render(content)
-
-	overlay := lipgloss.Place(width, height, lipgloss.Top, lipgloss.Center, panel)
-	return lipgloss.NewStyle().
-		Width(width).
-		Height(height).
-		// Background(theme.Surface.BlendLab(theme.Background, 0.35)).
-		Render(overlay)
+	content := lipgloss.JoinVertical(lipgloss.Left, input, lipgloss.JoinVertical(lipgloss.Left, rows...))
+	panel := lipgloss.NewStyle().Width(panelWidth).Render(content)
+	return panel, true
 }
 
 func (p *CommandPalette) renderItem(cmd SlashCommand, selected bool, width int) string {

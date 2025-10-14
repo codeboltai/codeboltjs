@@ -47,6 +47,14 @@ func (m *SlashMenu) Close() {
 	m.selected = 0
 }
 
+// SetMaxItems limits how many commands are rendered at once (0 means no limit).
+func (m *SlashMenu) SetMaxItems(max int) {
+	if max < 0 {
+		max = 0
+	}
+	m.maxItems = max
+}
+
 func (m *SlashMenu) SetFilter(filter string) {
 	filter = strings.ToLower(filter)
 	if m.filter == filter {

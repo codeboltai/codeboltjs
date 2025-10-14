@@ -961,16 +961,27 @@ func (c *Chat) View() string {
 
 	layout := c.composeLayout(theme, leftSidebar, chatArea, rightSidebar)
 
-	if c.commandPalette.IsVisible() {
-		return c.commandPalette.View(mainWidth, c.height)
-	}
-
 	if c.themePicker.IsVisible() {
 		return c.themePicker.View(mainWidth, c.height)
 	}
 
+	var overlayLayers []*lipgloss.Layer
+	if c.commandPalette.IsVisible() {
+		if layer := c.commandPalette.Layer(mainWidth, c.height); layer != nil {
+			overlayLayers = append(overlayLayers, layer)
+		}
+	}
+
 	if c.modelPicker.IsVisible() {
-		return c.modelPicker.View(mainWidth, c.height)
+		if layer := c.modelPicker.Layer(mainWidth, c.height); layer != nil {
+			overlayLayers = append(overlayLayers, layer)
+		}
+	}
+
+	if len(overlayLayers) > 0 {
+		canvas := lipgloss.NewCanvas(lipgloss.NewLayer(layout))
+		canvas.AddLayers(overlayLayers...)
+		return canvas.Render()
 	}
 
 	return layout
@@ -1092,6 +1103,7 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 			inputArea,
 		)
 	}
+
 	if c.slashMenu.IsVisible() {
 		menu := c.slashMenu.View(chatWidth)
 		inputArea = lipgloss.JoinVertical(lipgloss.Left, menu, inputArea)
