@@ -1,6 +1,8 @@
 package helpbar
 
 import (
+	"strings"
+
 	"gotui/internal/styles"
 
 	"github.com/charmbracelet/bubbles/v2/key"
@@ -233,6 +235,37 @@ func (h *HelpBar) View() string {
 	}
 
 	helpContent := lipgloss.JoinHorizontal(lipgloss.Center, finalItems...)
+
+	if strings.TrimSpace(helpContent) == "" {
+		essential := []string{
+			lipgloss.JoinHorizontal(lipgloss.Center,
+				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("enter"),
+				lipgloss.NewStyle().Foreground(theme.Muted).Render(" send"),
+			),
+			lipgloss.JoinHorizontal(lipgloss.Center,
+				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("tab"),
+				lipgloss.NewStyle().Foreground(theme.Muted).Render(" focus"),
+			),
+			lipgloss.JoinHorizontal(lipgloss.Center,
+				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("ctrl+c"),
+				lipgloss.NewStyle().Foreground(theme.Muted).Render(" quit"),
+			),
+			lipgloss.JoinHorizontal(lipgloss.Center,
+				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("?"),
+				lipgloss.NewStyle().Foreground(theme.Muted).Render(" help"),
+			),
+		}
+
+		var essentials []string
+		for i, item := range essential {
+			essentials = append(essentials, item)
+			if i < len(essential)-1 {
+				essentials = append(essentials, lipgloss.NewStyle().Foreground(theme.Border).Render(" • "))
+			}
+		}
+
+		helpContent = lipgloss.JoinHorizontal(lipgloss.Center, essentials...)
+	}
 
 	// Truncate if too long
 	if lipgloss.Width(helpContent) > h.width-4 {

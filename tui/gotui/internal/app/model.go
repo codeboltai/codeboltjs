@@ -67,7 +67,7 @@ type Model struct {
 	tuiID    string
 
 	// Components
-	chat     *chat.Chat
+	chatPage *tabpages.ChatPage
 	helpBar  *helpbar.HelpBar
 	logsPage *tabpages.LogsPage
 	gitPage  *tabpages.GitPage
@@ -89,6 +89,13 @@ type Model struct {
 	keyMap helpbar.KeyMap
 }
 
+func (m *Model) chatComponent() *chat.Chat {
+	if m == nil || m.chatPage == nil {
+		return nil
+	}
+	return m.chatPage.Chat()
+}
+
 // NewModel creates a new application model
 func NewModel(cfg Config) *Model {
 	// Create services
@@ -103,7 +110,8 @@ func NewModel(cfg Config) *Model {
 	})
 
 	// Create components
-	chatComp := chat.New()
+	chatPage := tabpages.NewChatPage()
+	chatComp := chatPage.Chat()
 	helpBarComp := helpbar.New()
 	logsPage := tabpages.NewLogsPage(wsClient, cfg.Host, cfg.Port)
 	gitPage := tabpages.NewGitPage()
@@ -127,7 +135,7 @@ func NewModel(cfg Config) *Model {
 		wsClient:    wsClient,
 		agent:       cfg.Agent,
 		tuiID:       cfg.TuiID,
-		chat:        chatComp,
+		chatPage:    chatPage,
 		helpBar:     helpBarComp,
 		logsPage:    logsPage,
 		gitPage:     gitPage,
@@ -138,7 +146,9 @@ func NewModel(cfg Config) *Model {
 	}
 
 	// Focus chat initially
-	m.chat.Focus()
+	if chatComp != nil {
+		chatComp.Focus()
+	}
 
 	// Add initial status information
 	logsPage.LogsPanel().AddLine("═══ SYSTEM STARTUP ═══")
@@ -237,7 +247,9 @@ func (m *Model) updateAllComponents() {
 			contentHeight = 1
 		}
 
-		m.chat.SetSize(m.width, contentHeight)
+		if chat := m.chatComponent(); chat != nil {
+			chat.SetSize(m.width, contentHeight)
+		}
 		m.logsPage.SetSize(m.width, contentHeight)
 		m.gitPage.SetSize(m.width, contentHeight)
 
@@ -362,11 +374,15 @@ func (m *Model) sendUserMessage(content string) tea.Cmd {
 // toggleChatFocus toggles focus between chat and scroll mode
 func (m *Model) toggleChatFocus() {
 	m.chatFocused = !m.chatFocused
+	chat := m.chatComponent()
+	if chat == nil {
+		return
+	}
 	if m.chatFocused {
-		m.chat.Focus()
+		chat.Focus()
 		m.logsPage.LogsPanel().AddLine("🎯 Chat focused - type to send messages")
 	} else {
-		m.chat.Blur()
+		chat.Blur()
 		m.logsPage.LogsPanel().AddLine("🎯 Chat unfocused - use scroll keys to navigate")
 	}
 }
@@ -448,8 +464,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
-		if m.chat != nil {
-			m.chat.SetModelOptions(msg.options)
+		if chat := m.chatComponent(); chat != nil {
+			chat.SetModelOptions(msg.options)
 		}
 		if m.logsPage != nil {
 			total := len(msg.options)
@@ -524,9 +540,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		if m.chat != nil && m.activeTab == tabChat {
+		if chat := m.chatComponent(); chat != nil && m.activeTab == tabChat {
 			if key.Matches(msg, m.keyMap.ShowCommands) {
-				m.chat.ToggleCommandPalette()
+				chat.ToggleCommandPalette()
 				return m, nil
 			}
 		}
@@ -567,7 +583,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.wsClient == nil || !m.wsClient.IsConnected() {
 			errText := "❌ Not connected to server. Press Ctrl+R to retry."
-			m.chat.AddMessage("error", errText)
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("error", errText)
+			}
 			if m.logsPage != nil {
 				m.logsPage.LogsPanel().AddLine(errText)
 			}
@@ -578,7 +596,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case sendUserMessageResult:
 		if msg.err != nil {
 			errText := fmt.Sprintf("❌ Failed to send message: %v", msg.err)
-			m.chat.AddMessage("error", errText)
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("error", errText)
+			}
 			if m.logsPage != nil {
 				m.logsPage.LogsPanel().AddLine(errText)
 			}
@@ -591,8 +611,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Pass messages to components
-	m.chat, cmd = m.chat.Update(msg)
-	cmds = append(cmds, cmd)
+	if updateCmd := m.chatPage.Update(msg); updateCmd != nil {
+		cmds = append(cmds, updateCmd)
+	}
 
 	cmd = m.logsPage.Update(msg)
 	cmds = append(cmds, cmd)
@@ -692,7 +713,9 @@ func (m *Model) renderActiveTab(theme styles.Theme) string {
 	var view string
 	switch m.activeTab {
 	case tabChat:
-		view = m.chat.View()
+		if chat := m.chatComponent(); chat != nil {
+			view = chat.View()
+		}
 	case tabLogs:
 		view = m.logsPage.View()
 	case tabGit:
@@ -751,15 +774,19 @@ func (m *Model) switchTab(target tabID) tea.Cmd {
 
 	if m.activeTab == tabChat && target != tabChat {
 		m.chatFocused = false
-		m.chat.Blur()
+		if chat := m.chatComponent(); chat != nil {
+			chat.Blur()
+		}
 	}
 
 	m.activeTab = target
 
 	if target == tabChat {
 		m.chatFocused = true
-		if cmd := m.chat.Focus(); cmd != nil {
-			cmds = append(cmds, cmd)
+		if chat := m.chatComponent(); chat != nil {
+			if cmd := chat.Focus(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		}
 	}
 
@@ -815,7 +842,9 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 		switch command {
 		case "read", "r":
 			if len(args) == 0 {
-				m.chat.AddMessage("error", "Usage: read <filepath>")
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", "Usage: read <filepath>")
+				}
 				return nil
 			}
 			filepath := strings.Join(args, " ")
@@ -825,7 +854,9 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 
 			content, err := m.wsClient.ReadFile(ctx, filepath)
 			if err != nil {
-				m.chat.AddMessage("error", fmt.Sprintf("Error reading file: %v", err))
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", fmt.Sprintf("Error reading file: %v", err))
+				}
 				return nil
 			}
 
@@ -834,11 +865,15 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 			if len(content) > 500 {
 				preview = content[:500] + "\n... (truncated)"
 			}
-			m.chat.AddMessage("ai", fmt.Sprintf("📄 **File: %s** (%d chars)\n\n```\n%s\n```", filepath, len(content), preview))
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("ai", fmt.Sprintf("📄 **File: %s** (%d chars)\n\n```\n%s\n```", filepath, len(content), preview))
+			}
 
 		case "write", "w":
 			if len(args) < 2 {
-				m.chat.AddMessage("error", "Usage: write <filepath> <content>")
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", "Usage: write <filepath> <content>")
+				}
 				return nil
 			}
 			filepath := args[0]
@@ -848,14 +883,20 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 			defer cancel()
 
 			if err := m.wsClient.WriteFile(ctx, filepath, content); err != nil {
-				m.chat.AddMessage("error", fmt.Sprintf("Error writing file: %v", err))
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", fmt.Sprintf("Error writing file: %v", err))
+				}
 				return nil
 			}
-			m.chat.AddMessage("system", fmt.Sprintf("✅ File written successfully: %s", filepath))
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("system", fmt.Sprintf("✅ File written successfully: %s", filepath))
+			}
 
 		case "ask", "ai":
 			if len(args) == 0 {
-				m.chat.AddMessage("error", "Usage: ask <prompt>")
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", "Usage: ask <prompt>")
+				}
 				return nil
 			}
 			prompt := strings.Join(args, " ")
@@ -865,18 +906,24 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 
 			response, err := m.wsClient.AskAI(ctx, prompt)
 			if err != nil {
-				m.chat.AddMessage("error", fmt.Sprintf("Error asking AI: %v", err))
+				if chat := m.chatComponent(); chat != nil {
+					chat.AddMessage("error", fmt.Sprintf("Error asking AI: %v", err))
+				}
 				return nil
 			}
 
-			m.chat.AddMessage("ai", response)
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("ai", response)
+			}
 
 		case "test":
 			_ = m.wsClient.Send("test", map[string]any{
 				"message":   "Hello from Go TUI!",
 				"timestamp": time.Now().UnixMilli(),
 			})
-			m.chat.AddMessage("system", "🔧 Test message sent to server")
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("system", "🔧 Test message sent to server")
+			}
 
 		case "help", "h":
 			help := []string{
@@ -898,14 +945,20 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 				"- **?** - Toggle help bar",
 				"- **Ctrl+C** - Quit",
 			}
-			m.chat.AddMessage("system", strings.Join(help, "\n"))
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("system", strings.Join(help, "\n"))
+			}
 
 		case "clear":
 			// Could implement clear chat history here
-			m.chat.AddMessage("system", "💡 Tip: Use Ctrl+S/L/V/A/N to toggle sidebar panels")
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("system", "💡 Tip: Use Ctrl+S/L/V/A/N to toggle sidebar panels")
+			}
 
 		default:
-			m.chat.AddMessage("error", fmt.Sprintf("❌ Unknown command: %s. Type 'help' for available commands.", command))
+			if chat := m.chatComponent(); chat != nil {
+				chat.AddMessage("error", fmt.Sprintf("❌ Unknown command: %s. Type 'help' for available commands.", command))
+			}
 		}
 
 		return nil

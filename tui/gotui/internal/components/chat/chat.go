@@ -9,7 +9,7 @@ import (
 
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
-	"gotui/internal/components/settings"
+	"gotui/internal/components/dialogs"
 	"gotui/internal/components/uicomponents/diffview"
 	"gotui/internal/layout/panels"
 	"gotui/internal/styles"
@@ -26,7 +26,7 @@ type Chat struct {
 	templateManager   *chattemplates.TemplateManager
 	slashMenu         *chatcomponents.SlashMenu
 	modelPicker       *chatcomponents.ModelPicker
-	themePicker       *settings.ThemePicker
+	themePicker       *dialogs.ThemePicker
 	commandPalette    *chatcomponents.CommandPalette
 	selectedModel     *chatcomponents.ModelOption
 	modelOptions      []chatcomponents.ModelOption
@@ -54,13 +54,7 @@ type Chat struct {
 	contentWidth      int // effective content width for padding/fill
 
 	// Right sidebar panels
-	subagentsPanel     *panels.InfoPanel
-	todoPanel          *panels.InfoPanel
-	mcpPanel           *panels.InfoPanel
-	modifiedFilesPanel *panels.InfoPanel
-	nextTasksPanel     *panels.InfoPanel
-	contextPanel       *panels.InfoPanel
-	rightPanels        []*panels.InfoPanel
+	rightPanels []*panels.InfoPanel
 }
 
 // Conversation represents a single chat history thread.
@@ -109,44 +103,20 @@ func New() *Chat {
 	// Initialize viewport
 	viewport := chatcomponents.NewChatViewport(templateManager)
 
-	subagentsPanel := panels.NewInfoPanel("Subagents")
-	todoPanel := panels.NewInfoPanel("Todo")
-	mcpPanel := panels.NewInfoPanel("MCP")
-	modifiedPanel := panels.NewInfoPanel("Modified Files")
-	nextTasksPanel := panels.NewInfoPanel("Next Scheduled Tasks")
-	contextPanel := panels.NewInfoPanel("Context")
-
 	chat := &Chat{
 		input:                 input,
 		viewport:              viewport,
 		templateManager:       templateManager,
 		slashMenu:             chatcomponents.NewSlashMenu(defaultSlashCommands()),
 		modelPicker:           chatcomponents.NewModelPicker(nil),
-		themePicker:           settings.NewThemePicker(styles.PresetThemes()),
+		themePicker:           dialogs.NewThemePicker(styles.PresetThemes()),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
 		focused:               true,
 		rightSidebarWidth:     28,
 		textHeight:            3, // Match input height exactly
 		conversationListWidth: 28,
-		subagentsPanel:        subagentsPanel,
-		todoPanel:             todoPanel,
-		mcpPanel:              mcpPanel,
-		modifiedFilesPanel:    modifiedPanel,
-		nextTasksPanel:        nextTasksPanel,
-		contextPanel:          contextPanel,
 	}
-
-	chat.rightPanels = []*panels.InfoPanel{
-		subagentsPanel,
-		todoPanel,
-		mcpPanel,
-		modifiedPanel,
-		nextTasksPanel,
-		contextPanel,
-	}
-
-	chat.seedRightSidebarDefaults()
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 
 	// Bootstrap conversations with an initial thread
@@ -156,41 +126,18 @@ func New() *Chat {
 	return chat
 }
 
-func (c *Chat) seedRightSidebarDefaults() {
+// SetRightSidebarPanels assigns the info panels rendered in the right sidebar.
+func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 	if c == nil {
 		return
 	}
 
-	theme := styles.CurrentTheme()
-	muted := lipgloss.NewStyle().Foreground(theme.Muted)
-	success := lipgloss.NewStyle().Foreground(theme.Success)
-	errorStyle := lipgloss.NewStyle().Foreground(theme.Error)
+	if len(infos) == 0 {
+		c.rightPanels = nil
+		return
+	}
 
-	if c.subagentsPanel != nil {
-		c.subagentsPanel.SetLines([]string{muted.Render("• No subagents running")})
-	}
-	if c.todoPanel != nil {
-		c.todoPanel.SetLines([]string{
-			"[ ] Draft plan",
-			"[ ] Implement feature",
-			"[ ] Review changes",
-		})
-	}
-	if c.mcpPanel != nil {
-		c.mcpPanel.SetLines([]string{
-			success.Render("weather: connected"),
-			errorStyle.Render("puppeteer: disconnected"),
-		})
-	}
-	if c.modifiedFilesPanel != nil {
-		c.modifiedFilesPanel.SetLines([]string{muted.Render("(none)")})
-	}
-	if c.nextTasksPanel != nil {
-		c.nextTasksPanel.SetLines([]string{muted.Render("No upcoming tasks")})
-	}
-	if c.contextPanel != nil {
-		c.contextPanel.SetLines([]string{"Tokens: 0 / 128K", "Uptime: 0m"})
-	}
+	c.rightPanels = append([]*panels.InfoPanel(nil), infos...)
 }
 
 // AddMessage adds a message to the chat
