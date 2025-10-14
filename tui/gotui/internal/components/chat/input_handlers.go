@@ -332,6 +332,9 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		if clickCmd, handled := c.handleMouseClick(msg); handled {
 			return c, clickCmd
 		}
+		if c.handleContextPanelClick(msg) {
+			return c, nil
+		}
 
 	case tea.MouseWheelMsg:
 		mouse := msg.Mouse()
@@ -595,6 +598,34 @@ func (c *Chat) handleMouseClick(msg tea.MouseClickMsg) (tea.Cmd, bool) {
 	}
 
 	return nil, false
+}
+
+func (c *Chat) handleContextPanelClick(msg tea.MouseClickMsg) bool {
+	if !c.contextDrawerVisible || c.contextHeight <= 0 || len(c.rightPanels) == 0 {
+		return false
+	}
+
+	m := msg.Mouse()
+	if m.Button != tea.MouseLeft {
+		return false
+	}
+
+	for _, panel := range c.rightPanels {
+		if panel == nil {
+			continue
+		}
+		zoneID := panel.TitleZoneID()
+		if zoneID == "" {
+			continue
+		}
+		if mouseInZone(m, zone.Get(zoneID)) {
+			panel.ToggleCollapsed()
+			c.SetSize(c.width, c.height)
+			return true
+		}
+	}
+
+	return false
 }
 
 func mouseInZone(mouse tea.Mouse, info *zone.ZoneInfo) bool {

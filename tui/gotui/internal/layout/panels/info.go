@@ -52,6 +52,46 @@ func (p *InfoPanel) ContentLineCount() int {
 	return p.panel.ContentLineCount()
 }
 
+// DesiredHeight estimates the height the panel would like for the given width.
+func (p *InfoPanel) DesiredHeight(width int) int {
+	if p == nil || p.panel == nil {
+		return 0
+	}
+	return p.panel.DesiredHeight(width)
+}
+
+// ToggleCollapsed toggles the collapsed state.
+func (p *InfoPanel) ToggleCollapsed() {
+	if p == nil || p.panel == nil {
+		return
+	}
+	p.panel.ToggleCollapsed()
+}
+
+// SetCollapsed sets the collapsed state.
+func (p *InfoPanel) SetCollapsed(collapsed bool) {
+	if p == nil || p.panel == nil {
+		return
+	}
+	p.panel.SetCollapsed(collapsed)
+}
+
+// IsCollapsed reports the current collapsed state.
+func (p *InfoPanel) IsCollapsed() bool {
+	if p == nil || p.panel == nil {
+		return false
+	}
+	return p.panel.IsCollapsed()
+}
+
+// TitleZoneID returns the bubblezone identifier for the panel title.
+func (p *InfoPanel) TitleZoneID() string {
+	if p == nil || p.panel == nil {
+		return ""
+	}
+	return p.panel.TitleZoneID()
+}
+
 // Update forwards updates to the underlying panel.
 func (p *InfoPanel) Update(msg tea.Msg) tea.Cmd {
 	if p.panel == nil {

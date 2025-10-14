@@ -101,7 +101,14 @@ func (c *Chat) configureSingleColumn(width, availableHeight int) {
 	if c.contextDrawerVisible && remaining > 0 {
 		desired := c.desiredContextHeight(width)
 		if desired > 0 {
-			contextHeight = clampInt(desired, contextMinimumHeight, remaining)
+			lower := contextMinimumHeight
+			if desired < lower {
+				lower = desired
+			}
+			if lower > remaining {
+				lower = remaining
+			}
+			contextHeight = clampInt(desired, lower, remaining)
 		}
 	}
 
@@ -204,7 +211,14 @@ func (c *Chat) configureTwoColumn(width, availableHeight int) {
 		desired := c.desiredContextHeight(c.conversationListWidth)
 		maxContext := maxInt(0, availableHeight-twoColumnMinConversationHeight)
 		if maxContext > 0 && desired > 0 {
-			contextHeight = clampInt(desired, contextMinimumHeight, maxContext)
+			lower := contextMinimumHeight
+			if desired < lower {
+				lower = desired
+			}
+			if lower > maxContext {
+				lower = maxContext
+			}
+			contextHeight = clampInt(desired, lower, maxContext)
 		}
 		if contextHeight > maxContext {
 			contextHeight = maxContext
@@ -357,31 +371,33 @@ func (c *Chat) buildContextDrawerContent(width int) string {
 		return ""
 	}
 
-	var sections []string
-	separator := strings.Repeat("\n", contextPanelSpacing)
+	var builder strings.Builder
+	first := true
 
 	for _, panel := range c.rightPanels {
 		if panel == nil {
 			continue
 		}
-		panel.SetVisible(true)
-		height := panel.ContentLineCount() + 1
-		if height < 3 {
-			height = 3
+		height := panel.DesiredHeight(width)
+		if height <= 0 {
+			continue
 		}
+		panel.SetVisible(true)
 		panel.SetSize(width, height)
 		view := strings.TrimRight(panel.View(), "\n")
 		if strings.TrimSpace(view) == "" {
 			continue
 		}
-		sections = append(sections, view)
+		if !first {
+			for i := 0; i < contextPanelSpacing; i++ {
+				builder.WriteByte('\n')
+			}
+		}
+		builder.WriteString(view)
+		first = false
 	}
 
-	if len(sections) == 0 {
-		return ""
-	}
-
-	return strings.Join(sections, separator)
+	return builder.String()
 }
 
 func (c *Chat) desiredContextHeight(width int) int {
@@ -390,21 +406,20 @@ func (c *Chat) desiredContextHeight(width int) int {
 	}
 
 	total := 0
-	count := 0
+	prev := false
 	for _, panel := range c.rightPanels {
 		if panel == nil {
 			continue
 		}
-		height := panel.ContentLineCount() + 1
-		if height < 3 {
-			height = 3
+		height := panel.DesiredHeight(width)
+		if height <= 0 {
+			continue
+		}
+		if prev {
+			total += contextPanelSpacing
 		}
 		total += height
-		count++
-	}
-
-	if count > 1 {
-		total += (count - 1) * contextPanelSpacing
+		prev = true
 	}
 
 	return total
