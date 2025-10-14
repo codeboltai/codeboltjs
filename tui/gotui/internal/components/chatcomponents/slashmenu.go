@@ -6,14 +6,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 
+	"gotui/internal/components/dialogs"
 	"gotui/internal/styles"
 )
-
-type SlashCommand struct {
-	Name        string
-	Description string
-	Usage       string
-}
 
 type SlashMenu struct {
 	commands []SlashCommand
@@ -136,14 +131,38 @@ func (m *SlashMenu) HandleKey(msg tea.KeyPressMsg) (handled bool, selected Slash
 }
 
 func (m *SlashMenu) View(width int) string {
-	if !m.visible {
+	panel, ok := m.dialogPanel(width)
+	if !ok {
 		return ""
+	}
+	return panel
+}
+
+// Layer renders the slash menu as an overlay layer so the background remains visible.
+func (m *SlashMenu) Layer(width, height int) *lipgloss.Layer {
+	panel, ok := m.dialogPanel(width)
+	if !ok || height <= 0 {
+		return nil
+	}
+	return dialogs.WrapLayer(panel, width, height)
+}
+
+func (m *SlashMenu) dialogPanel(width int) (string, bool) {
+	if !m.visible || width <= 0 {
+		return "", false
+	}
+
+	panelWidth := width
+	if panelWidth > 80 {
+		panelWidth = 80
 	}
 
 	items := m.filtered()
+	inner := innerWidth(panelWidth)
+
 	if len(items) == 0 {
-		inner := innerWidth(width)
-		return m.renderContainer(width, []string{m.renderMessage("No matching commands", inner)})
+		panel := m.renderContainer(panelWidth, []string{m.renderMessage("No matching commands", inner)})
+		return panel, true
 	}
 
 	limit := len(items)
@@ -151,13 +170,12 @@ func (m *SlashMenu) View(width int) string {
 		limit = m.maxItems
 	}
 
-	inner := innerWidth(width)
 	rows := make([]string, 0, limit)
 	for i := 0; i < limit; i++ {
 		rows = append(rows, m.renderItem(items[i], i == m.selected, inner))
 	}
 
-	return m.renderContainer(width, rows)
+	return m.renderContainer(panelWidth, rows), true
 }
 
 func (m *SlashMenu) renderContainer(width int, rows []string) string {

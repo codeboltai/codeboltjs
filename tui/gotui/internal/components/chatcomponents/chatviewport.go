@@ -30,19 +30,18 @@ type ChatViewport struct {
 
 // NewChatViewport creates a new ChatViewport component
 func NewChatViewport(templateManager *chattemplates.TemplateManager) *ChatViewport {
-	theme := styles.CurrentTheme()
-
 	// Initialize viewport
 	vp := viewport.New(viewport.WithWidth(80), viewport.WithHeight(20))
-	vp.Style = lipgloss.NewStyle().
-		// Background(theme.Background).
-		Foreground(theme.Foreground)
 
-	return &ChatViewport{
+	cv := &ChatViewport{
 		viewport:        vp,
 		messages:        make([]chattemplates.MessageTemplateData, 0),
 		templateManager: templateManager,
 	}
+
+	cv.configureViewport()
+
+	return cv
 }
 
 // SetSize sets the viewport component dimensions
@@ -52,13 +51,36 @@ func (cv *ChatViewport) SetSize(width, height int) {
 
 	// Update viewport - create new one with updated size
 	cv.viewport = viewport.New(viewport.WithWidth(width), viewport.WithHeight(height))
-	// Re-apply styling after recreating viewport to avoid background gaps
+
+	cv.configureViewport()
+
+	cv.updateContent()
+}
+
+func (cv *ChatViewport) configureViewport() {
 	theme := styles.CurrentTheme()
+
+	// Ensure styling stays consistent when the viewport is recreated.
 	cv.viewport.Style = lipgloss.NewStyle().
 		// Background(theme.Background).
 		Foreground(theme.Foreground)
 
-	cv.updateContent()
+	// Prefer explicit key bindings that won't conflict with text input.
+	cv.viewport.KeyMap.PageDown.SetKeys("pgdown")
+	cv.viewport.KeyMap.PageDown.SetHelp("pgdn", "page down")
+	cv.viewport.KeyMap.PageUp.SetKeys("pgup")
+	cv.viewport.KeyMap.PageUp.SetHelp("pgup", "page up")
+	cv.viewport.KeyMap.HalfPageDown.SetKeys("ctrl+d")
+	cv.viewport.KeyMap.HalfPageDown.SetHelp("ctrl+d", "½ page down")
+	cv.viewport.KeyMap.HalfPageUp.SetKeys("ctrl+u")
+	cv.viewport.KeyMap.HalfPageUp.SetHelp("ctrl+u", "½ page up")
+	cv.viewport.KeyMap.Down.SetEnabled(false)
+	cv.viewport.KeyMap.Up.SetEnabled(false)
+	cv.viewport.KeyMap.Left.SetEnabled(false)
+	cv.viewport.KeyMap.Right.SetEnabled(false)
+
+	// Always allow mouse wheel scrolling.
+	cv.viewport.MouseWheelEnabled = true
 }
 
 // Width returns the current viewport width.

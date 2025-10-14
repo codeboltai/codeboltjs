@@ -9,8 +9,8 @@ import (
 
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
-	"gotui/internal/components/diffview"
 	"gotui/internal/components/settings"
+	"gotui/internal/components/uicomponents/diffview"
 	"gotui/internal/layout/panels"
 	"gotui/internal/styles"
 
@@ -874,7 +874,7 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 	}
 
 	// Update input
-	if !(c.modelPicker.IsVisible() && isKeyPress(msg)) {
+	if !c.shouldSkipInputUpdate(msg) {
 		c.input, cmd = c.input.Update(msg)
 		cmds = append(cmds, cmd)
 	}
@@ -892,12 +892,42 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		}
 	}
 
+	if c.viewport != nil {
+		var viewportCmd tea.Cmd
+		c.viewport, viewportCmd = c.viewport.Update(msg)
+		if viewportCmd != nil {
+			cmds = append(cmds, viewportCmd)
+		}
+	}
+
 	return c, tea.Batch(cmds...)
 }
 
 func isKeyPress(msg tea.Msg) bool {
 	_, ok := msg.(tea.KeyPressMsg)
 	return ok
+}
+
+func (c *Chat) shouldSkipInputUpdate(msg tea.Msg) bool {
+	if c.modelPicker.IsVisible() && isKeyPress(msg) {
+		return true
+	}
+	return isMouseEvent(msg)
+}
+
+func isMouseEvent(msg tea.Msg) bool {
+	if msg == nil {
+		return false
+	}
+	if _, ok := msg.(tea.MouseMsg); ok {
+		return true
+	}
+	switch msg.(type) {
+	case tea.MouseClickMsg, tea.MouseWheelMsg, tea.MouseMotionMsg, tea.MouseReleaseMsg:
+		return true
+	default:
+		return false
+	}
 }
 
 // SubmitMsg is sent when a message is submitted
@@ -968,13 +998,24 @@ func (c *Chat) View() string {
 	var overlayLayers []*lipgloss.Layer
 	if c.commandPalette.IsVisible() {
 		if layer := c.commandPalette.Layer(mainWidth, c.height); layer != nil {
-			overlayLayers = append(overlayLayers, layer)
+			overlayLayers = append(overlayLayers, layer.Z(30))
 		}
 	}
 
 	if c.modelPicker.IsVisible() {
 		if layer := c.modelPicker.Layer(mainWidth, c.height); layer != nil {
-			overlayLayers = append(overlayLayers, layer)
+			overlayLayers = append(overlayLayers, layer.Z(20))
+		}
+	}
+
+	if c.slashMenu.IsVisible() {
+		maxMenuItems := c.chatHeight / 3
+		if maxMenuItems < 3 {
+			maxMenuItems = 3
+		}
+		c.slashMenu.SetMaxItems(maxMenuItems)
+		if layer := c.slashMenu.Layer(mainWidth, c.height); layer != nil {
+			overlayLayers = append(overlayLayers, layer.Z(10))
 		}
 	}
 
@@ -1102,11 +1143,6 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 			c.renderModelStatus(),
 			inputArea,
 		)
-	}
-
-	if c.slashMenu.IsVisible() {
-		menu := c.slashMenu.View(chatWidth)
-		inputArea = lipgloss.JoinVertical(lipgloss.Left, menu, inputArea)
 	}
 
 	return lipgloss.NewStyle().

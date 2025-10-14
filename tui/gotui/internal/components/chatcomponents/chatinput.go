@@ -124,6 +124,9 @@ func (ci *ChatInput) InsertRune(r rune) {
 
 // Update handles messages for the input component
 func (ci *ChatInput) Update(msg tea.Msg) (*ChatInput, tea.Cmd) {
+	if isMouseMsg(msg) {
+		return ci, nil
+	}
 	var cmd tea.Cmd
 	ci.textarea, cmd = ci.textarea.Update(msg)
 	return ci, cmd
@@ -137,4 +140,19 @@ func (ci *ChatInput) View() string {
 
 	// Simple approach like Bubble Tea chat example
 	return ci.textarea.View()
+}
+
+func isMouseMsg(msg tea.Msg) bool {
+	if msg == nil {
+		return false
+	}
+	if _, ok := msg.(tea.MouseMsg); ok {
+		return true
+	}
+	switch msg.(type) {
+	case tea.MouseClickMsg, tea.MouseWheelMsg, tea.MouseMotionMsg, tea.MouseReleaseMsg:
+		return true
+	default:
+		return false
+	}
 }
