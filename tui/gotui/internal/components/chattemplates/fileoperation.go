@@ -2,8 +2,9 @@ package chattemplates
 
 import (
 	"fmt"
-	"github.com/lucasb-eyer/go-colorful"
 	"gotui/internal/styles"
+
+	"github.com/lucasb-eyer/go-colorful"
 
 	"github.com/charmbracelet/lipgloss/v2"
 )
@@ -97,7 +98,7 @@ func (fot *FileOperationTemplate) Render(data MessageTemplateData, theme styles.
 
 	fileInfoStyled := fileInfoStyle.Render(fileInfo)
 	fileInfoFilled := lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(data.Width).
 		Render(fileInfoStyled)
 	lines = append(lines, fileInfoFilled)
@@ -106,7 +107,7 @@ func (fot *FileOperationTemplate) Render(data MessageTemplateData, theme styles.
 	if data.Content != "" {
 		// Add spacer
 		spacer := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(data.Width).
 			Render(" ")
 		lines = append(lines, spacer)

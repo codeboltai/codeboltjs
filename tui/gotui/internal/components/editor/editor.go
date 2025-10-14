@@ -76,8 +76,8 @@ func New(wsClient *wsclient.Client) *Editor {
 
 	// Style the textarea with v2 API
 	ta.Styles.Focused.Base = lipgloss.NewStyle().
-		Foreground(theme.Foreground).
-		// Background(theme.Surface)
+		Foreground(theme.Foreground)
+	//	.Background(theme.Surface)
 	ta.Styles.Focused.Prompt = lipgloss.NewStyle().
 		Foreground(theme.Primary).
 		Bold(true)
@@ -87,8 +87,8 @@ func New(wsClient *wsclient.Client) *Editor {
 		Foreground(theme.Muted)
 
 	ta.Styles.Blurred.Base = lipgloss.NewStyle().
-		Foreground(theme.Muted).
-		// Background(theme.Surface)
+		Foreground(theme.Muted)
+	//	.Background(theme.Surface)
 	ta.Styles.Blurred.Prompt = lipgloss.NewStyle().
 		Foreground(theme.Muted)
 	ta.Styles.Blurred.Text = lipgloss.NewStyle().

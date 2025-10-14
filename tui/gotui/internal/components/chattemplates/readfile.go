@@ -49,14 +49,14 @@ func (rft *ReadFileTemplate) Render(data MessageTemplateData, theme styles.Theme
 
 	fileInfo := fileInfoStyle.Render(fmt.Sprintf("  📁 %s", filePath))
 	fileInfoFilled := lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(data.Width).
 		Render(fileInfo)
 	lines = append(lines, fileInfoFilled)
 
 	// Add spacer
 	spacer := lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Width(data.Width).
 		Render(" ")
 	lines = append(lines, spacer)
@@ -72,7 +72,7 @@ func (rft *ReadFileTemplate) Render(data MessageTemplateData, theme styles.Theme
 			Italic(true)
 		emptyMsg := emptyStyle.Render("  (empty file)")
 		emptyFilled := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(data.Width).
 			Render(emptyMsg)
 		lines = append(lines, emptyFilled)

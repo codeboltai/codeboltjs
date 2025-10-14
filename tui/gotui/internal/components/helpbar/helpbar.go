@@ -283,7 +283,7 @@ func (h *HelpBar) View() string {
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Foreground(theme.Foreground).
 		Align(lipgloss.Center).
 		Padding(0, 1).

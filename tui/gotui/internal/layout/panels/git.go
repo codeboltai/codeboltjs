@@ -2,7 +2,6 @@ package panels
 
 import (
 	"gotui/internal/components/panel"
-	"gotui/internal/styles"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -93,7 +92,7 @@ func (g *GitPanels) Update(msg tea.Msg) tea.Cmd {
 
 // View renders the git panels stacked vertically.
 func (g *GitPanels) View() string {
-	theme := styles.CurrentTheme()
+	// theme := styles.CurrentTheme()
 
 	content := lipgloss.JoinVertical(
 		lipgloss.Left,
