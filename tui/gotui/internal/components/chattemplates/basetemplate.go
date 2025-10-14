@@ -94,12 +94,16 @@ func (bt *BaseTemplate) RenderContentWithIndent(content string, style lipgloss.S
 				if len(currentLine)+len(word)+1 > maxLineWidth {
 					if currentLine != "" {
 						styled := style.Render(indent + currentLine)
-						filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+						filled := lipgloss.NewStyle().
+							// Background(theme.Background).
+							Width(width).Render(styled)
 						lines = append(lines, filled)
 						currentLine = word
 					} else {
 						styled := style.Render(indent + word)
-						filled := lipgloss.NewStyle().Background(theme.Background).Width(width).Render(styled)
+						filled := lipgloss.NewStyle().
+							// Background(theme.Background).
+							Width(width).Render(styled)
 						lines = append(lines, filled)
 					}
 				} else {
