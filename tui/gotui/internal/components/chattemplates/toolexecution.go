@@ -2,9 +2,10 @@ package chattemplates
 
 import (
 	"fmt"
-	"github.com/lucasb-eyer/go-colorful"
 	"gotui/internal/styles"
 	"strings"
+
+	"github.com/lucasb-eyer/go-colorful"
 
 	"github.com/charmbracelet/lipgloss/v2"
 )
@@ -81,14 +82,14 @@ func (tet *ToolExecutionTemplate) Render(data MessageTemplateData, theme styles.
 
 		commandLine := commandStyle.Render(fmt.Sprintf("  $ %s", command))
 		commandFilled := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(data.Width).
 			Render(commandLine)
 		lines = append(lines, commandFilled)
 
 		// Add spacer
 		spacer := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(data.Width).
 			Render(" ")
 		lines = append(lines, spacer)

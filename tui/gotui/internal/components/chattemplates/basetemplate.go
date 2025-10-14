@@ -133,34 +133,68 @@ func (bt *BaseTemplate) RenderContentWithIndent(content string, style lipgloss.S
 func (bt *BaseTemplate) RenderCodeBlock(content string, language string, width int, theme styles.Theme) []string {
 	var lines []string
 
-	// Create code block style
-	codeStyle := lipgloss.NewStyle().
-		Foreground(theme.Foreground).
-		Background(theme.Surface).
-		Padding(0, 1).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(theme.Muted)
-
-	// Split content into lines
-	contentLines := strings.Split(content, "\n")
-	maxContentWidth := width - 6 // Account for padding and borders
-
-	for _, line := range contentLines {
-		var styled string
-		if len(line) > maxContentWidth {
-			// Truncate long lines
-			truncated := line[:maxContentWidth-3] + "..."
-			styled = codeStyle.Render(" " + truncated + " ")
-		} else {
-			styled = codeStyle.Render(" " + line + " ")
-		}
-		filled := lipgloss.NewStyle().
-			// Background(theme.Background).
-			Width(width).
-			Render(styled)
-		lines = append(lines, filled)
+	if width <= 0 {
+		width = 40
 	}
 
+	outerPadding := 1
+	innerWidth := width - (outerPadding * 2) - 2 // account for borders
+	if innerWidth < 10 {
+		innerWidth = maxInt(10, width-2)
+	}
+
+	contentLines := strings.Split(content, "\n")
+	if len(contentLines) == 0 {
+		contentLines = []string{""}
+	}
+
+	var wrappedLines []string
+	for _, line := range contentLines {
+		clean := strings.ReplaceAll(line, "\t", "    ")
+		wrapped := wrapCodeLine(clean, innerWidth)
+		if len(wrapped) == 0 {
+			wrapped = []string{""}
+		}
+		for _, segment := range wrapped {
+			padded := padRight(segment, innerWidth)
+			wrappedLines = append(wrappedLines, " "+padded+" ")
+		}
+	}
+
+	codeBodyLines := make([]string, 0, len(wrappedLines))
+	lineStyle := lipgloss.NewStyle().
+		Foreground(theme.Foreground)
+		// Background(theme.Surface)
+
+	for _, entry := range wrappedLines {
+		codeBodyLines = append(codeBodyLines, lineStyle.Render(entry))
+	}
+
+	body := lipgloss.JoinVertical(lipgloss.Left, codeBodyLines...)
+
+	if language != "" {
+		label := strings.ToUpper(strings.TrimSpace(language))
+		headerContent := " " + label + " "
+		header := lipgloss.NewStyle().
+			Foreground(theme.Muted).
+			// Background(theme.SurfaceHigh.BlendLab(theme.Surface, 0.2)).
+			Width(innerWidth + 2).
+			Render(padRight(headerContent, innerWidth+2))
+		body = lipgloss.JoinVertical(lipgloss.Left, header, body)
+	}
+
+	codeBlock := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(theme.Border).
+		// Background(theme.SurfaceHigh).
+		Padding(0, outerPadding).
+		Render(body)
+
+	filled := lipgloss.NewStyle().
+		Width(width).
+		Render(codeBlock)
+
+	lines = append(lines, filled)
 	return lines
 }
 
@@ -177,4 +211,29 @@ func maxInt(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func wrapCodeLine(line string, width int) []string {
+	if width <= 0 {
+		return []string{line}
+	}
+	runes := []rune(line)
+	if len(runes) == 0 {
+		return []string{""}
+	}
+	var result []string
+	for len(runes) > width {
+		result = append(result, string(runes[:width]))
+		runes = runes[width:]
+	}
+	result = append(result, string(runes))
+	return result
+}
+
+func padRight(s string, width int) string {
+	delta := width - lipgloss.Width(s)
+	if delta <= 0 {
+		return s
+	}
+	return s + strings.Repeat(" ", delta)
 }
