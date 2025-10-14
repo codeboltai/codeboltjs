@@ -157,7 +157,7 @@ export class RemoteProxyClient {
   }
 
   private onOpen(): void {
-    logger.info(formatLogMessage('info', 'WranglerProxyClient', 'Remote proxy connection established'));
+    logger.info(formatLogMessage('info', 'WranglerProxyClient', `Remote proxy connection established with appToken ${this.options.appToken}`));
     this.send({
       type: 'register_gateway',
       serverId: this.options.serverId || 'codebolt-agent-executor',
