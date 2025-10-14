@@ -582,7 +582,35 @@ importers:
         specifier: ^5.0.0
         version: 5.4.20(@types/node@22.18.8)(terser@5.44.0)
 
-  providers/gitworktreeprovider:
+  providers/git-worktree-production:
+    dependencies:
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.19
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
+  providers/gitWorkTreeProvider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -10931,17 +10959,17 @@ snapshots:
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@xtuc/ieee754@1.2.0': {}
@@ -14757,7 +14785,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-merge@5.10.0:

@@ -1,0 +1,15 @@
+name: git-worktree-production
+version: 1.0.0
+description: Production-ready Git Worktree Provider for CodeBolt
+type: provider
+entrypoint: dist/index.js
+runtime: node
+config:
+  agentServerPort: 3001
+  agentServerHost: localhost
+  worktreeBaseDir: .worktree
+  timeouts:
+    agentServerStartup: 30000
+    wsConnection: 10000
+    gitOperations: 30000
+    cleanup: 15000
