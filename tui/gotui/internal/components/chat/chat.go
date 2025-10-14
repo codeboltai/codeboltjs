@@ -9,6 +9,7 @@ import (
 
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
+	"gotui/internal/components/diffview"
 	"gotui/internal/components/settings"
 	"gotui/internal/layout/panels"
 	"gotui/internal/styles"
@@ -1234,8 +1235,43 @@ func (c *Chat) createInitialConversation() {
 	}, "\n")
 	conv.Messages = append(conv.Messages, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}))
 
+	if unifiedPreview, splitPreview := sampleDiffPreviews(); unifiedPreview != "" || splitPreview != "" {
+		if unifiedPreview != "" {
+			conv.Messages = append(conv.Messages, c.newMessageData("system", unifiedPreview, nil))
+		}
+		if splitPreview != "" {
+			conv.Messages = append(conv.Messages, c.newMessageData("system", splitPreview, nil))
+		}
+	}
+
 	c.conversations = []*Conversation{conv}
 	c.activeConversationID = conv.ID
+}
+
+func sampleDiffPreviews() (string, string) {
+	theme := styles.CurrentTheme()
+	lines := sampleDiffLines()
+	unified := diffview.RenderUnified(lines, 72, diffview.UnifiedOptions{ShowLineNumbers: true}, theme)
+	split := diffview.RenderSplit(lines, 72, diffview.SplitOptions{ShowHeaders: true, ShowLineNumbers: true, Divider: "│"}, theme)
+
+	unifiedLines := append([]string{"🧪 Unified diff preview:"}, unified.Lines...)
+	splitLines := append([]string{"🧪 Split diff preview:"}, split.Lines...)
+
+	return strings.Join(unifiedLines, "\n"), strings.Join(splitLines, "\n")
+}
+
+func sampleDiffLines() []diffview.DiffLine {
+	return []diffview.DiffLine{
+		{Kind: diffview.DiffLineHeader, Header: "@@ -14,5 +14,8 @@"},
+		{Kind: diffview.DiffLineUnchanged, OldLine: "14", NewLine: "14", OldText: "func greet(name string) error {", NewText: "func greet(name string) error {"},
+		{Kind: diffview.DiffLineRemoved, OldLine: "15", OldText: "\treturn errors.New(\"missing name\")"},
+		{Kind: diffview.DiffLineAdded, NewLine: "15", NewText: "\tif name == \"\" {"},
+		{Kind: diffview.DiffLineAdded, NewLine: "16", NewText: "\t\treturn errors.New(\"missing name\")"},
+		{Kind: diffview.DiffLineAdded, NewLine: "17", NewText: "\t}"},
+		{Kind: diffview.DiffLineAdded, NewLine: "18", NewText: "\tfmt.Printf(\"Hello, %s!\\n\", name)"},
+		{Kind: diffview.DiffLineUnchanged, OldLine: "19", NewLine: "19", OldText: "\treturn nil", NewText: "\treturn nil"},
+		{Kind: diffview.DiffLineUnchanged, OldLine: "20", NewLine: "20", OldText: "}", NewText: "}"},
+	}
 }
 
 func (c *Chat) newConversation(title string) *Conversation {

@@ -11,9 +11,12 @@ import (
 
 // DiffLine represents a single line within a diff result.
 type DiffLine struct {
-	Kind DiffLineKind
-	A    string
-	B    string
+	Kind    DiffLineKind
+	OldLine string
+	NewLine string
+	OldText string
+	NewText string
+	Header  string
 }
 
 // DiffLineKind identifies the type of diff line.
@@ -34,7 +37,6 @@ type DiffView struct {
 // UnifiedOptions configures unified diff rendering.
 type UnifiedOptions struct {
 	ShowLineNumbers bool
-	ContextPadding  int
 }
 
 // SplitOptions configures split diff rendering.
@@ -46,55 +48,58 @@ type SplitOptions struct {
 
 // RenderUnified renders diff lines in a single column.
 func RenderUnified(lines []DiffLine, width int, opts UnifiedOptions, theme styles.Theme) DiffView {
-	if opts.ContextPadding < 0 {
-		opts.ContextPadding = 0
+	if width <= 0 {
+		width = 80
 	}
 
-	leftPad := 0
+	padWidth := 0
 	if opts.ShowLineNumbers {
-		leftPad = 4
+		for _, line := range lines {
+			if l := len(line.OldLine); l > padWidth {
+				padWidth = l
+			}
+			if l := len(line.NewLine); l > padWidth {
+				padWidth = l
+			}
+		}
 	}
 
-	lineWidth := width
-	if lineWidth <= 0 {
-		lineWidth = 80
-	}
-
-	styleBase := lipgloss.NewStyle().Foreground(theme.Foreground)
-	styleAdd := lipgloss.NewStyle().Foreground(theme.Success)
-	styleRemove := lipgloss.NewStyle().Foreground(theme.Error)
-	styleHeader := lipgloss.NewStyle().Foreground(theme.Muted).Bold(true)
+	base := lipgloss.NewStyle().Foreground(theme.Foreground)
+	added := base.Foreground(theme.Success)
+	removed := base.Foreground(theme.Error)
+	header := lipgloss.NewStyle().Foreground(theme.Muted).Bold(true)
 
 	var rendered []string
-
 	for _, line := range lines {
-		var styled string
 		switch line.Kind {
-		case DiffLineAdded:
-			left := ""
-			if opts.ShowLineNumbers {
-				left = pad(line.A, leftPad)
-			}
-			text := trimCode(line.B, lineWidth-leftPad-2)
-			styled = styleAdd.Render(joinUnified("+", left, text))
-		case DiffLineRemoved:
-			left := ""
-			if opts.ShowLineNumbers {
-				left = pad(line.A, leftPad)
-			}
-			text := trimCode(line.B, lineWidth-leftPad-2)
-			styled = styleRemove.Render(joinUnified("-", left, text))
 		case DiffLineHeader:
-			styled = styleHeader.Render(trimWidth(line.A, lineWidth))
-		default:
-			left := ""
-			if opts.ShowLineNumbers {
-				left = pad(line.A, leftPad)
+			text := line.Header
+			if text == "" {
+				text = line.NewText
 			}
-			text := trimCode(line.B, lineWidth-leftPad-2)
-			styled = styleBase.Render(joinUnified(" ", left, text))
+			rendered = append(rendered, header.Render(trimWidth(text, width)))
+		case DiffLineAdded:
+			number := ""
+			if opts.ShowLineNumbers {
+				number = pad(line.NewLine, padWidth)
+			}
+			content := trimCode(line.NewText, width-padWidth-2)
+			rendered = append(rendered, added.Render(joinUnified("+", number, content)))
+		case DiffLineRemoved:
+			number := ""
+			if opts.ShowLineNumbers {
+				number = pad(line.OldLine, padWidth)
+			}
+			content := trimCode(line.OldText, width-padWidth-2)
+			rendered = append(rendered, removed.Render(joinUnified("-", number, content)))
+		default:
+			number := ""
+			if opts.ShowLineNumbers {
+				number = pad(defaultLine(line), padWidth)
+			}
+			content := trimCode(lineDisplayText(line), width-padWidth-2)
+			rendered = append(rendered, base.Render(joinUnified(" ", number, content)))
 		}
-		rendered = append(rendered, styled)
 	}
 
 	return DiffView{Lines: rendered}
@@ -111,38 +116,54 @@ func RenderSplit(lines []DiffLine, width int, opts SplitOptions, theme styles.Th
 	}
 
 	dividerWidth := lipgloss.Width(opts.Divider)
-	colWidth := (width - dividerWidth - 1) / 2
+	colWidth := (width - dividerWidth - 2) / 2
 	if colWidth < 20 {
 		colWidth = 20
 	}
 
+	oldPad := 0
+	newPad := 0
+	if opts.ShowLineNumbers {
+		for _, line := range lines {
+			if l := len(line.OldLine); l > oldPad {
+				oldPad = l
+			}
+			if l := len(line.NewLine); l > newPad {
+				newPad = l
+			}
+		}
+	}
+
 	leftStyle := lipgloss.NewStyle().Foreground(theme.Foreground)
-	leftRemove := leftStyle.Copy().Foreground(theme.Error)
+	leftRemove := leftStyle.Foreground(theme.Error)
 	rightStyle := lipgloss.NewStyle().Foreground(theme.Foreground)
-	rightAdd := rightStyle.Copy().Foreground(theme.Success)
+	rightAdd := rightStyle.Foreground(theme.Success)
 	headerStyle := lipgloss.NewStyle().Foreground(theme.Muted).Bold(true)
 
 	var rendered []string
-
 	for _, line := range lines {
 		switch line.Kind {
 		case DiffLineHeader:
 			if opts.ShowHeaders {
-				rendered = append(rendered, headerStyle.Render(trimWidth(line.A, width)))
+				text := line.Header
+				if text == "" {
+					text = line.NewText
+				}
+				rendered = append(rendered, headerStyle.Render(trimWidth(text, width)))
 			}
 		case DiffLineAdded:
-			left := leftStyle.Render(pad("", colWidth))
-			right := rightAdd.Render(trimWidth(line.B, colWidth))
+			left := leftStyle.Render(padRight("", colWidth))
+			right := rightAdd.Render(buildColumn(line.NewLine, line.NewText, newPad, colWidth, opts.ShowLineNumbers))
 			row := lipgloss.JoinHorizontal(lipgloss.Top, left, " ", opts.Divider, " ", right)
 			rendered = append(rendered, row)
 		case DiffLineRemoved:
-			left := leftRemove.Render(trimWidth(line.A, colWidth))
-			right := rightStyle.Render(pad("", colWidth))
+			left := leftRemove.Render(buildColumn(line.OldLine, line.OldText, oldPad, colWidth, opts.ShowLineNumbers))
+			right := rightStyle.Render(padRight("", colWidth))
 			row := lipgloss.JoinHorizontal(lipgloss.Top, left, " ", opts.Divider, " ", right)
 			rendered = append(rendered, row)
 		default:
-			left := leftStyle.Render(trimWidth(line.A, colWidth))
-			right := rightStyle.Render(trimWidth(line.B, colWidth))
+			left := leftStyle.Render(buildColumn(line.OldLine, line.OldText, oldPad, colWidth, opts.ShowLineNumbers))
+			right := rightStyle.Render(buildColumn(line.NewLine, line.NewText, newPad, colWidth, opts.ShowLineNumbers))
 			row := lipgloss.JoinHorizontal(lipgloss.Top, left, " ", opts.Divider, " ", right)
 			rendered = append(rendered, row)
 		}
@@ -183,10 +204,10 @@ func trimCode(text string, width int) string {
 	return string(r[:limit]) + "..."
 }
 
-func joinUnified(prefix, left, text string) string {
+func joinUnified(prefix, lineNumber, text string) string {
 	parts := []string{prefix}
-	if left != "" {
-		parts = append(parts, left)
+	if lineNumber != "" {
+		parts = append(parts, lineNumber)
 	}
 	if text != "" {
 		parts = append(parts, text)
@@ -194,9 +215,46 @@ func joinUnified(prefix, left, text string) string {
 	return strings.Join(parts, " ")
 }
 
-func abs(a int) int {
-	if a < 0 {
-		return -a
+func buildColumn(lineNumber, text string, padWidth, colWidth int, showNumbers bool) string {
+	if colWidth <= 0 {
+		return ""
 	}
-	return a
+	var components []string
+	available := colWidth
+	if showNumbers && padWidth > 0 && lineNumber != "" {
+		num := pad(lineNumber, padWidth)
+		components = append(components, num)
+		available -= ansi.StringWidth(num)
+		if available > 0 {
+			components = append(components, "")
+			available--
+		}
+	}
+	if available < 0 {
+		available = 0
+	}
+	trimmed := trimCode(text, available)
+	if trimmed != "" {
+		if len(components) > 0 && components[len(components)-1] == "" {
+			components[len(components)-1] = trimmed
+		} else {
+			components = append(components, trimmed)
+		}
+	}
+	joined := strings.Join(components, " ")
+	return padRight(joined, colWidth)
+}
+
+func defaultLine(line DiffLine) string {
+	if line.NewLine != "" {
+		return line.NewLine
+	}
+	return line.OldLine
+}
+
+func lineDisplayText(line DiffLine) string {
+	if line.NewText != "" {
+		return line.NewText
+	}
+	return line.OldText
 }

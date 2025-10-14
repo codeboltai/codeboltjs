@@ -34,3 +34,11 @@ func ternary[T any](cond bool, t, f T) T {
 	}
 	return f
 }
+
+func padRight(s string, width int) string {
+	w := ansi.StringWidth(s)
+	if w >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-w)
+}
