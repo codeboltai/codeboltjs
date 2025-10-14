@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { ProjectEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles project events with notifications
@@ -27,7 +28,7 @@ export class ProjectHandler {
   async handleProjectEvent(agent: ClientConnection, projectEvent: ProjectEvent) {
     const { requestId } = projectEvent;
     const eventAction = (projectEvent as any).action || projectEvent.type || 'unknown';
-    console.log(formatLogMessage('info', 'ProjectHandler', `Handling project event: ${eventAction} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'ProjectHandler', `Handling project event: ${eventAction} from ${agent.id}`));
     
     // Send properly typed request notification to app (using SystemNotificationBase for project events)
     // const requestNotification: SystemNotificationBase = {
@@ -41,7 +42,7 @@ export class ProjectHandler {
    let data= await this.notificationService.sendToAppRelatedToAgentId(agent.id, projectEvent as any,true);
     this.connectionManager.sendToConnection(agent.id, { ...data, clientId: agent.id });
 
-    console.log(formatLogMessage('info', 'ProjectHandler', `Sent project request notification: ${eventAction}`));
+    logger.info(formatLogMessage('info', 'ProjectHandler', `Sent project request notification: ${eventAction}`));
 
     // Forward to app for processing
     // this.sendMessageToApp.forwardToApp(agent, projectEvent as any);

@@ -2,8 +2,12 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
@@ -17,6 +21,7 @@ import (
 	"golang.org/x/term"
 
 	"gotui/internal/components/chat"
+	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/helpbar"
 	"gotui/internal/layout/panels"
 	"gotui/internal/layout/sidebar"
@@ -26,8 +31,14 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	Host string
-	Port int
+	Host        string
+	Port        int
+	Protocol    string
+	TuiID       string
+	ProjectPath string
+	ProjectName string
+	ProjectType string
+	Agent       wsclient.AgentSelection
 }
 
 const tabBarHeight = 2
@@ -53,6 +64,8 @@ type Model struct {
 
 	// Services
 	wsClient *wsclient.Client
+	agent    wsclient.AgentSelection
+	tuiID    string
 
 	// Components
 	chat      *chat.Chat
@@ -80,7 +93,15 @@ type Model struct {
 // NewModel creates a new application model
 func NewModel(cfg Config) *Model {
 	// Create services
-	wsClient := wsclient.New(cfg.Host, cfg.Port)
+	wsClient := wsclient.New(wsclient.Config{
+		Host:        cfg.Host,
+		Port:        cfg.Port,
+		Protocol:    cfg.Protocol,
+		TuiID:       cfg.TuiID,
+		ProjectPath: cfg.ProjectPath,
+		ProjectName: cfg.ProjectName,
+		ProjectType: cfg.ProjectType,
+	})
 
 	// Create components
 	chatComp := chat.New()
@@ -105,6 +126,8 @@ func NewModel(cfg Config) *Model {
 	m := &Model{
 		cfg:         cfg,
 		wsClient:    wsClient,
+		agent:       cfg.Agent,
+		tuiID:       cfg.TuiID,
 		chat:        chatComp,
 		sidebar:     sidebarComp,
 		helpBar:     helpBarComp,
@@ -136,7 +159,17 @@ func NewModel(cfg Config) *Model {
 	// TUI is now always in client-only mode (server is started by agentserver)
 	sidebarComp.LogsPanel().AddLine("📡 Client mode - connecting to server")
 	sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🔗 Target server: %s:%d", cfg.Host, cfg.Port))
+	if cfg.Protocol != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🌐 Protocol: %s", strings.ToUpper(cfg.Protocol)))
+	}
+	if m.tuiID != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("🆔 TUI ID: %s", m.tuiID))
+	}
+	if cfg.ProjectPath != "" {
+		sidebarComp.LogsPanel().AddLine(fmt.Sprintf("📁 Project: %s", cfg.ProjectPath))
+	}
 	sidebarComp.LogsPanel().AddLine("ℹ️  Server should be started by codebolt-code command")
+	sidebarComp.LogsPanel().AddLine("🤖 Fetching available models from server...")
 
 	m.refreshGitPanels()
 
@@ -150,10 +183,17 @@ type connectMsg struct {
 }
 
 // retryMsg represents a retry timer message
-type retryMsg struct{}
-
 // tryConnectMsg triggers a connection attempt
 type tryConnectMsg struct{}
+
+type sendUserMessageResult struct {
+	err error
+}
+
+type modelFetchResult struct {
+	options []chatcomponents.ModelOption
+	err     error
+}
 
 // Removed agent manager; no local agent process lifecycle
 
@@ -229,6 +269,8 @@ func (m *Model) Init() tea.Cmd {
 		return tryConnectMsg{}
 	}))
 
+	cmds = append(cmds, m.fetchModelOptions())
+
 	// Detect actual terminal size and use it
 	termWidth, termHeight := getTerminalSize()
 	log.Printf("Init: Using terminal size: %dx%d", termWidth, termHeight)
@@ -257,6 +299,69 @@ func (m *Model) tryConnect() tea.Cmd {
 	}
 }
 
+func (m *Model) fetchModelOptions() tea.Cmd {
+	return func() tea.Msg {
+		scheme := "http"
+		protocol := strings.ToLower(strings.TrimSpace(m.cfg.Protocol))
+		if protocol == "https" || protocol == "wss" {
+			scheme = "https"
+		}
+		host := strings.TrimSpace(m.cfg.Host)
+		if host == "" {
+			host = "localhost"
+		}
+		url := fmt.Sprintf("%s://%s:%d/models", scheme, host, m.cfg.Port)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return modelFetchResult{err: err}
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return modelFetchResult{err: err}
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+			snippet := strings.TrimSpace(string(body))
+			if snippet != "" {
+				err = fmt.Errorf("models request failed: %d %s", resp.StatusCode, snippet)
+			} else {
+				err = fmt.Errorf("models request failed with status %d", resp.StatusCode)
+			}
+			return modelFetchResult{err: err}
+		}
+
+		var payload struct {
+			Models []chatcomponents.ModelOption `json:"models"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+			return modelFetchResult{err: err}
+		}
+
+		return modelFetchResult{options: payload.Models}
+	}
+}
+
+func (m *Model) sendUserMessage(content string) tea.Cmd {
+	agent := m.agent
+	return func() tea.Msg {
+		if m.wsClient == nil {
+			return sendUserMessageResult{err: errors.New("websocket client not initialized")}
+		}
+		if err := m.wsClient.SendUserMessage(content, agent); err != nil {
+			return sendUserMessageResult{err: err}
+		}
+		return sendUserMessageResult{}
+	}
+}
+
 // toggleChatFocus toggles focus between chat and scroll mode
 func (m *Model) toggleChatFocus() {
 	m.chatFocused = !m.chatFocused
@@ -275,6 +380,90 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tryConnectMsg:
+		if m.wsClient == nil {
+			return m, nil
+		}
+		if m.wsClient.IsConnected() {
+			m.isRetrying = false
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			}
+			return m, nil
+		}
+		m.isRetrying = true
+		if m.sidebar != nil {
+			m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			if m.retryCount == 0 {
+				m.sidebar.LogsPanel().AddLine("🔌 Attempting to connect...")
+			} else {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🔄 Retry attempt %d", m.retryCount+1))
+			}
+		}
+		return m, m.tryConnect()
+
+	case connectMsg:
+		m.isRetrying = false
+		if msg.success {
+			m.retryCount = 0
+			m.lastError = ""
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("✅ Connected to agent server")
+			}
+			return m, nil
+		}
+
+		m.retryCount++
+		if msg.err != nil {
+			m.lastError = msg.err.Error()
+		} else {
+			m.lastError = "connection failed"
+		}
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("❌ Connection failed: %v", msg.err))
+		}
+
+		if m.retryCount >= 60 {
+			m.isRetrying = false
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("🚫 Max retry attempts reached. Press Ctrl+R to retry.")
+			}
+			return m, nil
+		}
+
+		delay := time.Duration(m.retryCount*2) * time.Second
+		if delay > 10*time.Second {
+			delay = 10 * time.Second
+		}
+		m.isRetrying = true
+		if m.sidebar != nil {
+			m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🔁 Retrying in %s", delay))
+		}
+		return m, tea.Tick(delay, func(time.Time) tea.Msg { return tryConnectMsg{} })
+
+	case modelFetchResult:
+		if msg.err != nil {
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("⚠️ Failed to load models: %v", msg.err))
+			}
+			return m, nil
+		}
+		if m.chat != nil {
+			m.chat.SetModelOptions(msg.options)
+		}
+		if m.sidebar != nil {
+			total := len(msg.options)
+			if total == 0 {
+				m.sidebar.LogsPanel().AddLine("ℹ️ Server returned no models")
+			} else {
+				m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Loaded %d models from server", total))
+			}
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -293,6 +482,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keyMap.Retry):
+			if m.wsClient == nil {
+				return m, nil
+			}
+			if m.wsClient.IsConnected() {
+				if m.sidebar != nil {
+					m.sidebar.LogsPanel().AddLine("ℹ️  Already connected to server")
+				}
+				return m, nil
+			}
+			m.retryCount = 0
+			m.lastError = ""
+			m.isRetrying = true
+			if m.sidebar != nil {
+				m.sidebar.SetRetryInfo(m.retryCount, m.isRetrying, m.lastError)
+				m.sidebar.LogsPanel().AddLine("🔄 Manual retry triggered")
+			}
+			return m, m.tryConnect()
 		case key.Matches(msg, m.keyMap.NextTab):
 			if cmd := m.switchTab(m.nextTabID()); cmd != nil {
 				return m, cmd
@@ -342,6 +549,48 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case chat.ModelSelectedMsg:
 		m.sidebar.AgentPanel().AddLine(fmt.Sprintf("🤖 Model selected: %s", msg.Option.Name))
 		m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🤖 Active model set to %s (%s)", msg.Option.Name, msg.Option.Provider))
+
+	case chat.ThemeSelectedMsg:
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine(fmt.Sprintf("🎨 Theme changed to %s", msg.Preset.Name))
+		}
+
+	case chat.SubmitMsg:
+		content := msg.Content
+		trimmed := strings.TrimSpace(content)
+		if trimmed == "" {
+			return m, nil
+		}
+		if strings.HasPrefix(trimmed, "/") {
+			command := strings.TrimSpace(trimmed[1:])
+			if command == "" {
+				return m, nil
+			}
+			return m, m.executeCommand(command)
+		}
+		if m.wsClient == nil || !m.wsClient.IsConnected() {
+			errText := "❌ Not connected to server. Press Ctrl+R to retry."
+			m.chat.AddMessage("error", errText)
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(errText)
+			}
+			return m, nil
+		}
+		return m, m.sendUserMessage(content)
+
+	case sendUserMessageResult:
+		if msg.err != nil {
+			errText := fmt.Sprintf("❌ Failed to send message: %v", msg.err)
+			m.chat.AddMessage("error", errText)
+			if m.sidebar != nil {
+				m.sidebar.LogsPanel().AddLine(errText)
+			}
+			return m, nil
+		}
+		if m.sidebar != nil {
+			m.sidebar.LogsPanel().AddLine("📨 Message sent to agent server")
+		}
+		return m, nil
 	}
 
 	// Pass messages to components
@@ -379,7 +628,7 @@ func (m *Model) renderTabs() string {
 		BorderForeground(theme.Primary).
 		BorderBottom(false).
 		Padding(0, 2).
-		Background(theme.SurfaceHigh).
+		// Background(theme.SurfaceHigh).
 		Foreground(theme.Primary).
 		Bold(true)
 
@@ -388,7 +637,7 @@ func (m *Model) renderTabs() string {
 		BorderForeground(theme.Border).
 		BorderBottom(true).
 		Padding(0, 2).
-		Background(theme.Surface).
+		// Background(theme.Surface).
 		Foreground(theme.Muted)
 
 	var rendered []string
@@ -435,7 +684,7 @@ func (m *Model) renderTabs() string {
 	return lipgloss.NewStyle().
 		Width(m.width).
 		Height(tabBarHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(bar)
 }
 
@@ -470,7 +719,7 @@ func (m *Model) renderActiveTab(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(m.width).
 		Height(contentHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(view)
 }
 
@@ -701,7 +950,7 @@ func (m *Model) View() string {
 	if m.helpBarHeight() > 0 {
 		help := lipgloss.NewStyle().
 			Width(m.width).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Render(m.helpBar.View())
 		view = lipgloss.JoinVertical(lipgloss.Left, view, help)
 	}
@@ -709,6 +958,6 @@ func (m *Model) View() string {
 	return zone.Scan(lipgloss.NewStyle().
 		Width(m.width).
 		Height(m.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(view))
 }

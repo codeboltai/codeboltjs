@@ -7,9 +7,10 @@ import { ChildAgentProcessManager } from '../utils/childAgentManager/childAgentP
 import { ConnectionManager } from './connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 import { RemoteProxyClient } from './remote/remoteProxyClient';
-import { logger } from '../utils/logger';
+
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
+import { logger } from '../utils/logger';
 
 /**
  * Main Docker Server class
@@ -119,6 +120,10 @@ export class AgentExecutorServer {
         logger.info(`WebSocket server is ready for connections`);
         logger.info(`Health check available at http://${this.config.host}:${this.config.port}/health`);
         logger.info(`Connection info available at http://${this.config.host}:${this.config.port}/connections`);
+        const liveMonitoringUrl = this.getLiveMonitoringUrl(this.cliOptions?.remoteUrl, this.cliOptions?.appToken);
+        if (liveMonitoringUrl) {
+          logger.info(`Remote live monitoring available at ${liveMonitoringUrl}`);
+        }
         if (this.remoteProxyClient) {
           try {
             this.remoteProxyClient.startConnection();
@@ -168,7 +173,6 @@ export class AgentExecutorServer {
             this.sendMessageToAgent.sendInitialMessage(messageFromTui);
           }
 
-
           // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
           // const success = await this.childAgentProcessManager.startAgentByType(
           //   agentType!,
@@ -177,7 +181,7 @@ export class AgentExecutorServer {
           // );
 
           // if (success) {
-          // console.log(formatLogMessage('info', 'DockerServer', 'Agent started successfully'));
+          // logger.info(formatLogMessage('info', 'DockerServer', 'Agent started successfully'));
 
           // Send initial prompt if provided
 
@@ -189,13 +193,10 @@ export class AgentExecutorServer {
           logger.info('No agent type or detail provided. Skipping agent startup.');
         }
 
-
-
         resolve();
       });
     });
   }
-
 
   /**
    * Stop the server
@@ -251,5 +252,34 @@ export class AgentExecutorServer {
    */
   public broadcast(message: unknown): void {
     this.websocketServer.broadcast(message);
+  }
+
+  private getLiveMonitoringUrl(remoteUrl?: string, appToken?: string): string | null {
+    if (!remoteUrl || !appToken) {
+      return null;
+    }
+
+    try {
+      const parsedUrl = new URL(remoteUrl);
+      let protocol = parsedUrl.protocol;
+
+      if (protocol === 'ws:') {
+        protocol = 'http:';
+      } else if (protocol === 'wss:') {
+        protocol = 'https:';
+      }
+
+      const origin = `${protocol}//${parsedUrl.host}`;
+      return new URL(`/live/${appToken}`, origin).toString();
+    } catch (error) {
+      let normalized = remoteUrl.replace(/^ws:\/\//, 'http://').replace(/^wss:\/\//, 'https://');
+
+      if (!/^https?:\/\//.test(normalized)) {
+        normalized = `https://${normalized.replace(/^\/+/, '')}`;
+      }
+
+      const trimmed = normalized.replace(/\/+$/, '');
+      return `${trimmed}/live/${appToken}`;
+    }
   }
 }

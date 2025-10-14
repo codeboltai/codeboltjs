@@ -4,6 +4,7 @@ import {
 } from '../types';
 import type { SearchFilesEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles search files messages - forwards to app for processing
@@ -22,7 +23,7 @@ export class SearchFilesHandler {
     const { requestId, message } = searchFilesEvent;
     const { path, regex, filePattern } = message;
 
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Handling search files request in: ${path} with pattern: ${filePattern}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Handling search files request in: ${path} with pattern: ${filePattern}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, searchFilesEvent as any);

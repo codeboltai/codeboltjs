@@ -197,7 +197,7 @@ func (s *Sidebar) View() string {
 		return lipgloss.NewStyle().
 			Width(s.width).
 			Height(s.height).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(theme.Border).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -251,6 +251,6 @@ func (s *Sidebar) View() string {
 	return lipgloss.NewStyle().
 		Width(s.width).
 		Height(s.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(sidebarContent)
 }

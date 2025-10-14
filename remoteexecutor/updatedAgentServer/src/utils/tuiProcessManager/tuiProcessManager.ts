@@ -49,12 +49,22 @@ export class TuiProcessManager {
       process.stdout.write('\x1b[2J\x1b[3J\x1b[H');
     }
 
+    const host = this.config.host || 'localhost';
+    const port = this.config.port || 3001;
+    const protocol = this.options.remote ? 'wss' : 'ws';
+
     this.tuiProcess = spawn(
       gotuiPath,
-      ['-host', this.config.host || 'localhost', '-port', (this.config.port || 3001).toString()],
+      ['-host', host, '-port', port.toString()],
       {
         stdio: 'inherit',
-        cwd: process.cwd()
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          AGENT_SERVER_HOST: host,
+          AGENT_SERVER_PORT: port.toString(),
+          AGENT_SERVER_PROTOCOL: protocol
+        }
       }
     );
 

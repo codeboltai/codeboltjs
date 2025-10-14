@@ -1,12 +1,66 @@
-import { formatLogMessage, AgentCliOptions } from './types';
-import { AgentExecutorServer } from './core/mainAgentExecutorServer';
-import { getServerConfig } from './config';
 import { Command } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
+import { createServer as createNetServer, AddressInfo } from 'net';
+
+import { AgentCliOptions } from './types';
+import { AgentExecutorServer } from './core/mainAgentExecutorServer';
+import { getServerConfig } from './config';
 import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
 import { createTuiProcessManager } from './utils/tuiProcessManager/tuiProcessManager';
+
+const SAFE_PORT_MIN = 20000;
+const SAFE_PORT_MAX = 55000;
+const MAX_PORT_ATTEMPTS = 20;
+
+async function isPortAvailable(port: number, host: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const tester = createNetServer()
+      .once('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'EADDRINUSE' || error.code === 'EACCES') {
+          resolve(false);
+        } else {
+          reject(error);
+        }
+      })
+      .once('listening', () => {
+        tester.close(() => resolve(true));
+      });
+
+    tester.listen(port, host);
+  });
+}
+
+async function findAvailablePort(host?: string): Promise<number> {
+  const bindHost = host ?? '127.0.0.1';
+
+  for (let attempt = 0; attempt < MAX_PORT_ATTEMPTS; attempt++) {
+    const candidate = Math.floor(Math.random() * (SAFE_PORT_MAX - SAFE_PORT_MIN + 1)) + SAFE_PORT_MIN;
+
+    try {
+      const available = await isPortAvailable(candidate, bindHost);
+      if (available) {
+        return candidate;
+      }
+    } catch (error) {
+      logger.debug('Port availability check failed', {
+        error: error instanceof Error ? error.message : error,
+        port: candidate
+      });
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const fallbackServer = createNetServer();
+
+    fallbackServer.once('error', reject);
+    fallbackServer.listen(0, bindHost, () => {
+      const address = fallbackServer.address() as AddressInfo;
+      fallbackServer.close(() => resolve(address.port));
+    });
+  });
+}
 
 /**
  * Setup CLI with commander
@@ -20,7 +74,7 @@ function setupCLI(): AgentCliOptions {
     .version('1.0.0')
     .option('--noui', 'start server only (no TUI interface)')
     .option('--host <host>', 'server host', 'localhost')
-    .option('--port <port>', 'server port', (value) => Number(value), 3001)
+    .option('--port <port>', 'server port', (value) => Number(value))
     .option('-v, --verbose', 'enable verbose logging', false)
     .option('--remote', 'enable remote wrangler proxy connection')
     .option('--remote-url <url>', 'wrangler proxy WebSocket URL')
@@ -61,7 +115,7 @@ function setupCLI(): AgentCliOptions {
   return {
     noui: typeof options.noui === 'boolean' ? options.noui : false,
     host: resolveStringOption(options.host, 'host') ?? 'localhost',
-    port: resolveNumberOption(options.port, 'port') ?? 3001,
+    port: resolveNumberOption(options.port, 'port'),
     verbose: resolveBooleanOption(typeof options.verbose === 'boolean' ? options.verbose : undefined, 'verbose'),
     remote: resolveBooleanOption(typeof options.remote === 'boolean' ? options.remote : undefined, 'remote'),
     remoteUrl,
@@ -72,7 +126,6 @@ function setupCLI(): AgentCliOptions {
   };
 }
 
-
 /**
  * Main server entry point
  */
@@ -82,14 +135,15 @@ async function main(): Promise<void> {
     // Initialize logger with system /tmp path and appropriate log level
     const loggerInstance = Logger.getInstance({
       logFilePath: '/tmp/agent-server.log',
-      logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO
+      logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO,
+      enableConsole: options.noui ?? false
     });
     
     // Test log file writing
     if (!loggerInstance.testLogWrite()) {
-      console.warn('Warning: Could not write to log file. Console logging only.');
+      logger.warn('Warning: Could not write to log file. Console logging only.');
     } else {
-      console.log(`Log file: ${loggerInstance.getLogFilePath()}`);
+      logger.info(`Log file: ${loggerInstance.getLogFilePath()}`);
     }
     
     // Get configuration
@@ -97,7 +151,16 @@ async function main(): Promise<void> {
     
     // Override config with CLI options
     if (options.host) config.host = options.host;
-    if (options.port) config.port = options.port;
+
+    const portProvidedViaCli = options.port !== undefined;
+    const portProvidedViaEnv = process.env.PORT !== undefined;
+
+    if (portProvidedViaCli) {
+      config.port = options.port!;
+    } else if (!portProvidedViaEnv) {
+      config.port = await findAvailablePort(config.host);
+      logger.info(`No port provided. Selected available port ${config.port}`);
+    }
     
     logger.info('Starting Codebolt Code...');
     

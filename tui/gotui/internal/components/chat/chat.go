@@ -9,6 +9,7 @@ import (
 
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
+	"gotui/internal/components/settings"
 	"gotui/internal/layout/panels"
 	"gotui/internal/styles"
 
@@ -24,8 +25,10 @@ type Chat struct {
 	templateManager   *chattemplates.TemplateManager
 	slashMenu         *chatcomponents.SlashMenu
 	modelPicker       *chatcomponents.ModelPicker
+	themePicker       *settings.ThemePicker
 	commandPalette    *chatcomponents.CommandPalette
 	selectedModel     *chatcomponents.ModelOption
+	modelOptions      []chatcomponents.ModelOption
 	conversationPanel *panels.ConversationListPanel
 	width             int
 	height            int
@@ -84,6 +87,7 @@ type verticalRegion struct {
 func defaultSlashCommands() []chatcomponents.SlashCommand {
 	return []chatcomponents.SlashCommand{
 		{Name: "models", Description: "Switch active AI model", Usage: "/models"},
+		{Name: "theme", Description: "Switch TUI color theme", Usage: "/theme"},
 		{Name: "ask", Description: "Ask the AI assistant", Usage: "/ask <prompt>"},
 		{Name: "read", Description: "Read a file from the project", Usage: "/read <filepath>"},
 		{Name: "write", Description: "Write content to a file", Usage: "/write <filepath> <content>"},
@@ -116,7 +120,8 @@ func New() *Chat {
 		viewport:              viewport,
 		templateManager:       templateManager,
 		slashMenu:             chatcomponents.NewSlashMenu(defaultSlashCommands()),
-		modelPicker:           chatcomponents.NewModelPicker(defaultModelOptions()),
+		modelPicker:           chatcomponents.NewModelPicker(nil),
+		themePicker:           settings.NewThemePicker(styles.PresetThemes()),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
 		focused:               true,
@@ -229,6 +234,37 @@ func (c *Chat) AddToolExecutionMessage(toolName, command, status, output, conten
 		"output":    output,
 	}
 	c.appendMessageToActiveConversation("tool_execution", content, metadata)
+}
+
+// SetModelOptions updates the available model selections sourced from the server
+func (c *Chat) SetModelOptions(options []chatcomponents.ModelOption) {
+	if c == nil {
+		return
+	}
+
+	if options == nil {
+		options = []chatcomponents.ModelOption{}
+	}
+
+	c.modelOptions = make([]chatcomponents.ModelOption, len(options))
+	copy(c.modelOptions, options)
+
+	if c.modelPicker != nil {
+		c.modelPicker.SetOptions(c.modelOptions)
+	}
+
+	if c.selectedModel != nil {
+		found := false
+		for _, option := range c.modelOptions {
+			if option.Name == c.selectedModel.Name && option.Provider == c.selectedModel.Provider {
+				found = true
+				break
+			}
+		}
+		if !found {
+			c.selectedModel = nil
+		}
+	}
 }
 
 // SetSize sets the chat component dimensions
@@ -400,7 +436,7 @@ func (c *Chat) ClearInput() {
 }
 
 func (c *Chat) refreshSlashMenu() {
-	if !c.focused || c.modelPicker.IsVisible() || c.commandPalette.IsVisible() {
+	if !c.focused || c.modelPicker.IsVisible() || c.themePicker.IsVisible() || c.commandPalette.IsVisible() {
 		c.slashMenu.Close()
 		return
 	}
@@ -443,6 +479,16 @@ func (c *Chat) applySlashCommand(cmd chatcomponents.SlashCommand) tea.Cmd {
 		c.slashMenu.Close()
 		c.commandPalette.Close()
 		c.modelPicker.Open()
+		return nil
+	}
+
+	if cmd.Name == "theme" {
+		c.input.SetValueAndCursor("", 0)
+		c.slashMenu.Close()
+		c.commandPalette.Close()
+		c.modelPicker.Close()
+		c.themePicker.SetOptions(styles.PresetThemes())
+		c.themePicker.Open(styles.CurrentThemeName())
 		return nil
 	}
 
@@ -750,6 +796,16 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 			}
 		}
 
+		if c.themePicker.IsVisible() {
+			handled, preset, ok := c.themePicker.HandleKey(msg)
+			if handled {
+				if ok {
+					return c, c.handleThemeSelection(preset)
+				}
+				return c, nil
+			}
+		}
+
 		if c.modelPicker.IsVisible() {
 			handled, selection, ok := c.modelPicker.HandleKey(msg)
 			if handled {
@@ -782,14 +838,36 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 			case "enter":
 				// Submit message
 				input := c.GetInput()
-				if input != "" {
-					c.AddMessage("user", input)
+				trimmed := strings.TrimSpace(input)
+				if trimmed == "" {
 					c.ClearInput()
-					return c, tea.Cmd(func() tea.Msg {
-						return SubmitMsg{Content: input}
-					})
+					return c, nil
 				}
-				return c, nil
+
+				if strings.EqualFold(trimmed, "/models") {
+					c.ClearInput()
+					c.slashMenu.Close()
+					c.commandPalette.Close()
+					c.themePicker.Close()
+					c.modelPicker.Open()
+					return c, nil
+				}
+
+				if strings.EqualFold(trimmed, "/theme") {
+					c.ClearInput()
+					c.slashMenu.Close()
+					c.commandPalette.Close()
+					c.modelPicker.Close()
+					c.themePicker.SetOptions(styles.PresetThemes())
+					c.themePicker.Open(styles.CurrentThemeName())
+					return c, nil
+				}
+
+				c.AddMessage("user", input)
+				c.ClearInput()
+				return c, tea.Cmd(func() tea.Msg {
+					return SubmitMsg{Content: input}
+				})
 			}
 		}
 	}
@@ -831,14 +909,19 @@ type ModelSelectedMsg struct {
 	Option chatcomponents.ModelOption
 }
 
+// ThemeSelectedMsg is emitted when a theme preset is chosen.
+type ThemeSelectedMsg struct {
+	Preset styles.ThemePreset
+}
+
 // View renders the chat component
 func (c *Chat) View() string {
 	if c.width < 50 || c.height < 10 {
-		theme := styles.CurrentTheme()
+		// theme := styles.CurrentTheme()
 		return lipgloss.NewStyle().
 			Width(c.width).
 			Height(c.height).
-			Background(theme.Background).
+			// Background(theme.Background).
 			Align(lipgloss.Center, lipgloss.Center).
 			Render("Chat area too small")
 	}
@@ -879,6 +962,10 @@ func (c *Chat) View() string {
 
 	if c.commandPalette.IsVisible() {
 		return c.commandPalette.View(mainWidth, c.height)
+	}
+
+	if c.themePicker.IsVisible() {
+		return c.themePicker.View(mainWidth, c.height)
 	}
 
 	if c.modelPicker.IsVisible() {
@@ -922,6 +1009,20 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 	})
 }
 
+func (c *Chat) handleThemeSelection(preset styles.ThemePreset) tea.Cmd {
+	c.themePicker.Close()
+	c.commandPalette.Close()
+	c.modelPicker.Close()
+	c.slashMenu.Close()
+	if !styles.SetThemeByName(preset.Name) {
+		styles.SetTheme(preset.Theme)
+	}
+	c.AddMessage("system", fmt.Sprintf("🎨 Theme set to %s", preset.Name))
+	return tea.Cmd(func() tea.Msg {
+		return ThemeSelectedMsg{Preset: preset}
+	})
+}
+
 // ToggleCommandPalette toggles the global command picker overlay
 func (c *Chat) ToggleCommandPalette() {
 	if c.commandPalette == nil {
@@ -958,19 +1059,8 @@ func (c *Chat) renderModelStatus() string {
 		Render(model)
 }
 
-func defaultModelOptions() []chatcomponents.ModelOption {
-	return []chatcomponents.ModelOption{
-		{Name: "gpt-4.1-mini", Provider: "OpenAI", Description: "Fast GPT-4.1 family model ideal for iterative coding and chats", Capabilities: []string{"Text", "Code"}, Context: "128K"},
-		{Name: "gpt-4o", Provider: "OpenAI", Description: "High-quality reasoning with strong coding abilities", Capabilities: []string{"Text", "Code", "Vision"}, Context: "128K"},
-		{Name: "claude-3.5-sonnet", Provider: "Anthropic", Description: "Balanced reasoning with low hallucination rates", Capabilities: []string{"Text", "Analysis"}, Context: "200K"},
-		{Name: "claude-3.5-haiku", Provider: "Anthropic", Description: "Fast lightweight Claude model great for agent workflows", Capabilities: []string{"Text"}, Context: "200K"},
-		{Name: "gemini-1.5-pro", Provider: "Google", Description: "Long-context multimodal model for complex tasks", Capabilities: []string{"Text", "Vision", "Audio"}, Context: "1M"},
-		{Name: "mistral-large-latest", Provider: "Mistral", Description: "European-hosted model optimized for structured coding", Capabilities: []string{"Text", "Code"}, Context: "64K"},
-	}
-}
-
 func (c *Chat) renderChatArea(mainWidth int) string {
-	theme := styles.CurrentTheme()
+	// theme := styles.CurrentTheme()
 
 	if mainWidth <= 0 {
 		separatorCount := 0
@@ -1008,7 +1098,7 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 
 	return lipgloss.NewStyle().
 		Width(chatWidth).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(lipgloss.JoinVertical(lipgloss.Left, chatHistory, inputArea))
 }
 
@@ -1038,7 +1128,7 @@ func (c *Chat) renderRightSidebar(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(c.rightSidebarWidth).
 		Height(c.chatHeight).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(sidebar)
 }
 
@@ -1060,14 +1150,14 @@ func (c *Chat) composeLayout(theme styles.Theme, leftSidebar, chatArea, rightSid
 	return lipgloss.NewStyle().
 		Width(c.width).
 		Height(c.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(lipgloss.JoinHorizontal(lipgloss.Top, segments...))
 }
 
 func layoutSeparator(theme styles.Theme) string {
 	return lipgloss.NewStyle().
 		Width(1).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Foreground(theme.Border).
 		Render("│")
 }

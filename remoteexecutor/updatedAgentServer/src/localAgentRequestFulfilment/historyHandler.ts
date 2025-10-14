@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { HistoryEvent, HistoryNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles history events with notifications
@@ -26,7 +27,7 @@ export class HistoryHandler {
    */
   handleHistoryEvent(agent: ClientConnection, historyEvent: HistoryEvent): void {
     const { requestId, action } = historyEvent;
-    console.log(formatLogMessage('info', 'HistoryHandler', `Handling history event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'HistoryHandler', `Handling history event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: HistoryNotificationBase = {
@@ -38,7 +39,7 @@ export class HistoryHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'HistoryHandler', `Sent history request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'HistoryHandler', `Sent history request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, historyEvent as any);

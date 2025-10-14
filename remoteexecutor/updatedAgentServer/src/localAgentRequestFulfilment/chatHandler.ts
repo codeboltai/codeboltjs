@@ -11,6 +11,7 @@ import type {
 } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles chat events with notifications
@@ -32,7 +33,7 @@ export class ChatHandler {
   handleChatEvent(agent: ClientConnection, chatEvent: ChatEvent): void {
     const { requestId } = chatEvent;
     const eventAction = chatEvent.type || 'unknown';
-    console.log(formatLogMessage('info', 'ChatHandler', `Handling chat event: ${eventAction} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'ChatHandler', `Handling chat event: ${eventAction} from ${agent.id}`));
     
     // Handle specific chat event types
     switch (eventAction) {
@@ -65,7 +66,7 @@ export class ChatHandler {
         break;
     }
 
-    console.log(formatLogMessage('info', 'ChatHandler', `Sent chat request notification: ${eventAction}`));
+    logger.info(formatLogMessage('info', 'ChatHandler', `Sent chat request notification: ${eventAction}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, chatEvent as any);
@@ -75,7 +76,7 @@ export class ChatHandler {
    * Send agent text response notification
    */
   sendAgentResponse(agentId: string, requestId: string, message: string, conversationId?: string): void {
-    console.log(formatLogMessage('info', 'ChatHandler', `Sending agent text response from ${agentId}`));
+    logger.info(formatLogMessage('info', 'ChatHandler', `Sending agent text response from ${agentId}`));
     this.notificationService.sendAgentTextResponse(agentId, requestId, message, conversationId);
   }
 
@@ -83,7 +84,7 @@ export class ChatHandler {
    * Send user message request notification
    */
   sendUserMessageRequest(agentId: string, requestId: string, message: string, payload?: any): void {
-    console.log(formatLogMessage('info', 'ChatHandler', `Sending user message request to ${agentId}`));
+    logger.info(formatLogMessage('info', 'ChatHandler', `Sending user message request to ${agentId}`));
     this.notificationService.sendUserMessageRequest(agentId, requestId, message, payload);
   }
 

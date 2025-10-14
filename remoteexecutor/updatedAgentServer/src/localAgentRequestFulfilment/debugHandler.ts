@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { DebugEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles debug events with notifications
@@ -26,7 +27,7 @@ export class DebugHandler {
    */
   handleDebugEvent(agent: ClientConnection, debugEvent: DebugEvent): void {
     const { requestId, action } = debugEvent;
-    console.log(formatLogMessage('info', 'DebugHandler', `Handling debug event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'DebugHandler', `Handling debug event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app
     const requestNotification: SystemNotificationBase = {
@@ -38,7 +39,7 @@ export class DebugHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'DebugHandler', `Sent debug request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'DebugHandler', `Sent debug request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, debugEvent as any);

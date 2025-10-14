@@ -2,14 +2,16 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"gotui/internal/app"
+	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/google/uuid"
 	zone "github.com/lrstanley/bubblezone"
 )
 
@@ -28,12 +30,56 @@ func main() {
 	port := flag.Int("port", 3001, "Server port")
 	flag.Parse()
 
-	cfg := app.Config{
-		Host: *host,
-		Port: *port,
+	hostValue := *host
+	if envHost := os.Getenv("AGENT_SERVER_HOST"); envHost != "" {
+		hostValue = envHost
 	}
 
-	log.Printf("Config: host=%s, port=%d (client mode)", cfg.Host, cfg.Port)
+	portValue := *port
+	if envPort := os.Getenv("AGENT_SERVER_PORT"); envPort != "" {
+		if parsed, err := strconv.Atoi(envPort); err == nil {
+			portValue = parsed
+		}
+	}
+
+	protocol := os.Getenv("AGENT_SERVER_PROTOCOL")
+	tuiID := os.Getenv("TUI_ID")
+	if tuiID == "" {
+		tuiID = uuid.NewString()
+	}
+
+	projectPath := os.Getenv("CURRENT_PROJECT_PATH")
+	projectName := os.Getenv("CURRENT_PROJECT_NAME")
+	projectType := os.Getenv("CURRENT_PROJECT_TYPE")
+
+	agentSelection := wsclient.AgentSelection{
+		ID:           os.Getenv("SELECTED_AGENT_ID"),
+		Name:         os.Getenv("SELECTED_AGENT_NAME"),
+		AgentType:    os.Getenv("SELECTED_AGENT_TYPE"),
+		AgentDetails: os.Getenv("SELECTED_AGENT_DETAIL"),
+	}
+	if agentSelection.Name == "" {
+		agentSelection.Name = "Default Agent"
+	}
+	if agentSelection.AgentType == "" {
+		agentSelection.AgentType = "local-path"
+	}
+	if agentSelection.AgentDetails == "" {
+		agentSelection.AgentDetails = "./../../agents/CliTestAgent/dist"
+	}
+
+	cfg := app.Config{
+		Host:        hostValue,
+		Port:        portValue,
+		Protocol:    protocol,
+		TuiID:       tuiID,
+		ProjectPath: projectPath,
+		ProjectName: projectName,
+		ProjectType: projectType,
+		Agent:       agentSelection,
+	}
+
+	log.Printf("Config: host=%s, port=%d, protocol=%s, tuiID=%s (client mode)", cfg.Host, cfg.Port, cfg.Protocol, cfg.TuiID)
 
 	zone.NewGlobal()
 	defer zone.Close()
@@ -62,11 +108,11 @@ func main() {
 		p = tea.NewProgram(m)
 		if _, err := p.Run(); err != nil {
 			log.Printf("Tea program error in fallback mode: %v", err)
-			fmt.Printf("Terminal error: %v\n", err)
-			fmt.Println("Troubleshooting:")
-			fmt.Println("1. Try: TERM=xterm-256color ./gotui")
-			fmt.Println("2. Check terminal size: echo $COLUMNS x $LINES")
-			fmt.Println("3. See debug logs: tail -f /tmp/gotui-debug.log")
+			log.Printf("Terminal error: %v", err)
+			log.Printf("Troubleshooting instructions:")
+			log.Printf("1. Try: TERM=xterm-256color ./gotui")
+			log.Printf("2. Check terminal size: echo $COLUMNS x $LINES")
+			log.Printf("3. See debug logs: tail -f /tmp/gotui-debug.log")
 			os.Exit(1)
 		}
 	}

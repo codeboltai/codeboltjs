@@ -22,6 +22,31 @@ export class Logger {
   private enableConsole: boolean;
   private enableFile: boolean;
 
+  private applyRuntimeOptions(options?: {
+    logFilePath?: string;
+    logLevel?: LogLevel;
+    enableConsole?: boolean;
+    enableFile?: boolean;
+  }): void {
+    if (!options) {
+      return;
+    }
+
+    if (options.logFilePath && options.logFilePath !== this.logFilePath) {
+      this.logFilePath = options.logFilePath;
+      this.ensureLogDirectory();
+    }
+    if (options.logLevel !== undefined) {
+      this.logLevel = options.logLevel;
+    }
+    if (options.enableConsole !== undefined) {
+      this.enableConsole = options.enableConsole;
+    }
+    if (options.enableFile !== undefined) {
+      this.enableFile = options.enableFile;
+    }
+  }
+
   private constructor(options: {
     logFilePath?: string;
     logLevel?: LogLevel;
@@ -43,6 +68,7 @@ export class Logger {
 
     // Ensure temp directory exists
     this.ensureLogDirectory();
+    this.applyRuntimeOptions(options);
     
     // Log initialization
     if (this.enableFile) {
@@ -58,6 +84,8 @@ export class Logger {
   }): Logger {
     if (!Logger.instance) {
       Logger.instance = new Logger(options);
+    } else if (options) {
+      Logger.instance.applyRuntimeOptions(options);
     }
     return Logger.instance;
   }

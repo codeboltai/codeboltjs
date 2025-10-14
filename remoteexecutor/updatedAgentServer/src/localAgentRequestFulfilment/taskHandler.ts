@@ -10,6 +10,7 @@ import type {
   EditTodoTaskResponseNotification
 } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 // Simple in-memory task management
 interface Task {
@@ -59,13 +60,13 @@ export class TaskHandler {
    */
   handleTaskEvent(agent: ClientConnection, taskEvent: TaskEvent) {
     const { requestId, action } = taskEvent;
-    console.log(formatLogMessage('info', 'TaskHandler', `Handling task event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'TaskHandler', `Handling task event: ${action} from ${agent.id}`));
 
     // Execute actual Task operations
     switch (action) {
       case 'createTask':
         {
-          console.log(formatLogMessage('info', 'TaskHandler', `Sent task addTask request notification`));
+          logger.info(formatLogMessage('info', 'TaskHandler', `Sent task addTask request notification`));
           
           (async () => {
             try {
@@ -109,7 +110,7 @@ export class TaskHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TaskHandler', `Sent task addTask response notification`));
+              logger.info(formatLogMessage('info', 'TaskHandler', `Sent task addTask response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -139,7 +140,7 @@ export class TaskHandler {
 
       case 'getTaskList':
         {
-          console.log(formatLogMessage('info', 'TaskHandler', `Sent task getTasks request notification`));
+          logger.info(formatLogMessage('info', 'TaskHandler', `Sent task getTasks request notification`));
           
           (async () => {
             try {
@@ -169,7 +170,7 @@ export class TaskHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TaskHandler', `Sent task getTasks response notification`));
+              logger.info(formatLogMessage('info', 'TaskHandler', `Sent task getTasks response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -199,7 +200,7 @@ export class TaskHandler {
 
       case 'updateTask':
         {
-          console.log(formatLogMessage('info', 'TaskHandler', `Sent task updateTask request notification`));
+          logger.info(formatLogMessage('info', 'TaskHandler', `Sent task updateTask request notification`));
           
           (async () => {
             try {
@@ -233,7 +234,7 @@ export class TaskHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TaskHandler', `Sent task updateTask response notification`));
+              logger.info(formatLogMessage('info', 'TaskHandler', `Sent task updateTask response notification`));
 
             } catch (error) {
               const errorResponse = {
@@ -263,7 +264,7 @@ export class TaskHandler {
 
       case 'deleteTask':
         {
-          console.log(formatLogMessage('info', 'TaskHandler', `Sent task deleteTask request notification`));
+          logger.info(formatLogMessage('info', 'TaskHandler', `Sent task deleteTask request notification`));
           
           (async () => {
             try {
@@ -293,7 +294,7 @@ export class TaskHandler {
               };
 
               this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-              console.log(formatLogMessage('info', 'TaskHandler', `Sent task deleteTask response notification`));
+              logger.info(formatLogMessage('info', 'TaskHandler', `Sent task deleteTask response notification`));
 
             } catch (error) {
               const errorResponse = {

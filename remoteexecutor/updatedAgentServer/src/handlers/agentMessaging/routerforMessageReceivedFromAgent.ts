@@ -72,6 +72,7 @@ import type {
   CodeUtilsEvent
 } from '@codebolt/types/agent-to-app-ws-types';
 import type {
+
   FileReadRequestNotification,
   FileReadResponseNotification,
   FileCreateRequestNotification,
@@ -113,6 +114,7 @@ import type {
   // MCP Notifications
   McpNotificationBase
 } from '@codebolt/types/agent-to-app-ws-types';
+import { logger } from '../../utils/logger';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -158,9 +160,6 @@ export class AgentMessageRouter {
   private notificationService: NotificationService;
   private sendMessageToRemote: SendMessageToRemote;
 
-
-
-
   constructor() {
 
     this.readFileHandler = new ReadFileHandler();
@@ -203,16 +202,12 @@ export class AgentMessageRouter {
     this.sendMessageToRemote = new SendMessageToRemote();
   }
 
-
-
-
-
   /**
    * Handle requests from agents (asking app to do file operations)
    * This method implements the functionality of fsService.handleFsEvents within the switch cases
    */
   async handleAgentRequestMessage(agent: ClientConnection, message: Message | any) {
-    console.log(formatLogMessage('info', 'MessageRouter', `Handling agent request: ${message.type || message.action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'MessageRouter', `Handling agent request: ${message.type || message.action} from ${agent.id}`));
 
     // Handle all typed events from agents
 
@@ -284,7 +279,6 @@ export class AgentMessageRouter {
       }
     }
 
-
     const tuiManager = this.connectionManager.getTuiConnectionManager();
     const tuis = tuiManager.getAllTuis();
    
@@ -293,7 +287,7 @@ export class AgentMessageRouter {
       const tui = tuis[0];
       this.sendMessageToTui.sendToTui(tui.id, messageWithAgentId);
     } else {
-      console.log(formatLogMessage('info', 'MessageRouter', 'No local apps or tuis available'));
+      logger.info(formatLogMessage('info', 'MessageRouter', 'No local apps or tuis available'));
       this.connectionManager.sendError(agent.id, 'No local clients available', message.id);
     }
 
@@ -301,9 +295,6 @@ export class AgentMessageRouter {
 
       this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId);
    
-
-
-
 
     // switch (action) {
     //   // File System Events
@@ -355,7 +346,7 @@ export class AgentMessageRouter {
     //   default: 
     //   let data= await this.notificationService.sendToAppRelatedToAgentId(agent.id,message,true);
     //   this.connectionManager.sendToConnection(agent.id, { ...data, clientId: agent.id });
-    //     // console.warn(formatLogMessage('warn', 'MessageRouter', `Unhandled action: ${action} from ${agent.id}`));
+    //     // logger.warn(formatLogMessage('warn', 'MessageRouter', `Unhandled action: ${action} from ${agent.id}`));
     //     break;
     // }
   }

@@ -156,7 +156,7 @@ func (p *Panel) View() string {
 		return ""
 	}
 
-	theme := styles.CurrentTheme()
+	// theme := styles.CurrentTheme()
 	s := styles.CurrentStyles()
 
 	// Choose border style based on active state
@@ -250,7 +250,7 @@ func (p *Panel) View() string {
 
 	// Create the full panel view
 	titleStyle := s.Title.Copy().
-		Background(theme.SurfaceHigh).
+		// Background(lipgloss.Color(theme.SurfaceHigh.Hex())).
 		Width(p.width).
 		Padding(0, 1)
 

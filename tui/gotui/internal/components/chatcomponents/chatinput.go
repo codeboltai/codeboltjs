@@ -1,7 +1,6 @@
 package chatcomponents
 
 import (
-	"gotui/internal/styles"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/v2/textarea"
@@ -19,8 +18,6 @@ type ChatInput struct {
 
 // NewChatInput creates a new ChatInput component
 func NewChatInput() *ChatInput {
-	theme := styles.CurrentTheme()
-
 	// Initialize textarea
 	ta := textarea.New()
 	ta.Placeholder = "Type your message here... (e.g., read package.json, ask \"What is Go?\")"
@@ -29,41 +26,35 @@ func NewChatInput() *ChatInput {
 	ta.SetHeight(3)
 	ta.ShowLineNumbers = false
 
-	ta.Styles.Blurred.Base = lipgloss.NewStyle().Background(theme.Background)
-	ta.Styles.Focused.Base = lipgloss.NewStyle().Background(theme.Background)
-	ta.Styles.Focused.CursorLine = lipgloss.NewStyle().Background(theme.Background)
-
-	// // Style textarea - clean, consistent with theme
-	// ta.Styles.Focused.Base = lipgloss.NewStyle().
-	// 	Background(theme.Background).
-	// 	Foreground(theme.Foreground)
-
-	// ta.Styles.Focused.CursorLine = lipgloss.NewStyle().
-	// 	Background(theme.Background)
-	// ta.Styles.Blurred.CursorLine = lipgloss.NewStyle().
-	// 	Background(theme.Background)
-	// ta.Styles.Focused.EndOfBuffer = lipgloss.NewStyle().
-	// 	Background(theme.Background)
-	// ta.Styles.Blurred.EndOfBuffer = lipgloss.NewStyle().
-	// 	Background(theme.Background)
-
-	// ta.Styles.Focused.Prompt = lipgloss.NewStyle().
-	// 	Foreground(theme.Primary).
-	// 	Bold(true)
-	// ta.Styles.Focused.Text = lipgloss.NewStyle().
-	// 	Foreground(theme.Foreground)
-	// ta.Styles.Focused.Placeholder = lipgloss.NewStyle().
-	// 	Foreground(theme.Muted)
-
-	// ta.Styles.Blurred.Base = lipgloss.NewStyle().
-	// 	Background(theme.Background).
-	// 	Foreground(theme.Muted)
-	// ta.Styles.Blurred.Prompt = lipgloss.NewStyle().
-	// 	Foreground(theme.Muted)
-	// ta.Styles.Blurred.Text = lipgloss.NewStyle().
-	// 	Foreground(theme.Muted)
-	// ta.Styles.Blurred.Placeholder = lipgloss.NewStyle().
-	// 	Foreground(theme.Muted)
+	// Completely reset all styles to remove any default backgrounds
+	// This ensures no background colors are inherited from defaults
+	ta.Styles = textarea.Styles{
+		Focused: textarea.StyleState{
+			Base:             lipgloss.NewStyle(),
+			CursorLine:       lipgloss.NewStyle(),
+			CursorLineNumber: lipgloss.NewStyle(),
+			EndOfBuffer:      lipgloss.NewStyle(),
+			LineNumber:       lipgloss.NewStyle(),
+			Placeholder:      lipgloss.NewStyle(),
+			Prompt:           lipgloss.NewStyle(),
+			Text:             lipgloss.NewStyle(),
+		},
+		Blurred: textarea.StyleState{
+			Base:             lipgloss.NewStyle(),
+			CursorLine:       lipgloss.NewStyle(),
+			CursorLineNumber: lipgloss.NewStyle(),
+			EndOfBuffer:      lipgloss.NewStyle(),
+			LineNumber:       lipgloss.NewStyle(),
+			Placeholder:      lipgloss.NewStyle(),
+			Prompt:           lipgloss.NewStyle(),
+			Text:             lipgloss.NewStyle(),
+		},
+		Cursor: textarea.CursorStyle{
+			Color: lipgloss.Color("7"),
+			Shape: tea.CursorBar,
+			Blink: true,
+		},
+	}
 
 	return &ChatInput{
 		textarea: ta,
@@ -144,13 +135,6 @@ func (ci *ChatInput) View() string {
 		return ""
 	}
 
-	// theme := styles.CurrentTheme()
-
-	// // Simply render the textarea with proper background
-	// return lipgloss.NewStyle().
-	// 	Width(ci.width).
-	// 	Height(ci.height).
-	// 	Background(theme.Background).
-	// 	Render(ci.textarea.View())
+	// Simple approach like Bubble Tea chat example
 	return ci.textarea.View()
 }

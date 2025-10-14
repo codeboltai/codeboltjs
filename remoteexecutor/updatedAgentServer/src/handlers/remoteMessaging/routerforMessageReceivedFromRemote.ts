@@ -1,6 +1,7 @@
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui';
+import { logger } from '../../utils/logger';
 
 /**
  * Routes inbound messages arriving from the remote proxy to local recipients.
@@ -10,7 +11,7 @@ export class RemoteMessageRouter {
   private readonly sendMessageToTui = new SendMessageToTui();
 
   handleRemoteMessage(message: Message): void {
-    console.log(formatLogMessage('info', 'RemoteMessageRouter', `Handling remote message of type ${message.type}`));
+    logger.info(formatLogMessage('info', 'RemoteMessageRouter', `Handling remote message of type ${message.type}`));
 
     const { target, agentId, clientId, tuiId } = message as Message & {
       target?: 'agent' | 'app' | 'tui';
@@ -40,7 +41,7 @@ export class RemoteMessageRouter {
       agentManager
         .sendToSpecificAgent(agentId, 'remote-proxy', message)
         .catch((error) =>
-          console.error(
+          logger.error(
             formatLogMessage('error', 'RemoteMessageRouter', `Failed to send remote message to agent ${agentId}: ${error}`)
           )
         );
@@ -56,7 +57,7 @@ export class RemoteMessageRouter {
     if (clientId) {
       const delivered = appManager.sendToApp(clientId, message);
       if (!delivered) {
-        console.warn(
+        logger.warn(
           formatLogMessage('warn', 'RemoteMessageRouter', `Remote message failed to reach local app ${clientId}`)
         );
       }
@@ -70,7 +71,7 @@ export class RemoteMessageRouter {
     if (tuiId) {
       const delivered = this.sendMessageToTui.sendToTui(tuiId, message);
       if (!delivered) {
-        console.warn(
+        logger.warn(
           formatLogMessage('warn', 'RemoteMessageRouter', `Remote message failed to reach local TUI ${tuiId}`)
         );
       }

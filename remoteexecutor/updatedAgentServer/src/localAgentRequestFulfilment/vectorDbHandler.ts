@@ -10,6 +10,7 @@ import { LocalIndex } from 'cbvectordb';
 // @ts-ignore - External dependency, type declarations may not be available  
 import Multillm from '@arrowai/multillm';
 import path from 'path';
+import { logger } from '../utils/logger';
 
 // Extend the base interface to include data property and isError
 interface VectorDbNotification extends DbMemoryNotificationBase {
@@ -57,7 +58,7 @@ export class VectorDbHandler {
         await this.index.createIndex();
       }
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error creating index: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error creating index: ${error}`));
       throw error;
     }
   }
@@ -77,7 +78,7 @@ export class VectorDbHandler {
         embeddingModel: 'text-embedding-ada-002'
       };
 
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Getting vector for text using: ${defaultConfig.provider}, ${defaultConfig.embeddingModel}`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Getting vector for text using: ${defaultConfig.provider}, ${defaultConfig.embeddingModel}`));
       
       // Create Multillm instance
       const api = new Multillm(
@@ -99,11 +100,11 @@ export class VectorDbHandler {
         
         return response;
       } catch (error) {
-        console.log(formatLogMessage('error', 'VectorDbHandler', `Error calling embedding API: ${error}`));
+        logger.info(formatLogMessage('error', 'VectorDbHandler', `Error calling embedding API: ${error}`));
         throw error;
       }
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error in getVector: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error in getVector: ${error}`));
       throw error;
     }
   }
@@ -113,7 +114,7 @@ export class VectorDbHandler {
    */
   async handleVectorDbEvent(agent: ClientConnection, vectorDbEvent: VectordbEvent): Promise<void> {
     const { requestId, action, message } = vectorDbEvent;
-    console.log(formatLogMessage('info', 'VectorDbHandler', `Handling vectordb event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'VectorDbHandler', `Handling vectordb event: ${action} from ${agent.id}`));
     
     try {
       // Send request notification to app
@@ -130,7 +131,7 @@ export class VectorDbHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Sent vectordb request notification: ${action}`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Sent vectordb request notification: ${action}`));
 
       // Execute the actual VectorDB operation based on action
       let operationResult;
@@ -183,7 +184,7 @@ export class VectorDbHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, successNotification as any);
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Sent vectordb success notification: ${action}`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Sent vectordb success notification: ${action}`));
 
     } catch (error) {
       // Handle errors
@@ -213,7 +214,7 @@ export class VectorDbHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, errorNotification as any);
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error processing vectordb event: ${action} - ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error processing vectordb event: ${action} - ${error}`));
     }
   }
 
@@ -248,7 +249,7 @@ export class VectorDbHandler {
         metadata: { text: message.item }
       });
 
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Added item to vector database: ${result}`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Added item to vector database: ${result}`));
       
       return {
         success: true,
@@ -258,7 +259,7 @@ export class VectorDbHandler {
       };
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error adding item to vector database: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error adding item to vector database: ${error}`));
       throw error;
     }
   }
@@ -276,7 +277,7 @@ export class VectorDbHandler {
       // Get vector embeddings for the text using LLM
       const vectorResponse = await this.getVector(message.item);
 
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Retrieved vector for item: ${message.item}`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Retrieved vector for item: ${message.item}`));
       
       return {
         success: true,
@@ -286,7 +287,7 @@ export class VectorDbHandler {
       };
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error getting vector: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error getting vector: ${error}`));
       throw error;
     }
   }
@@ -323,10 +324,10 @@ export class VectorDbHandler {
       
       if (results.length > 0) {
         results.forEach((result: any) => {
-          console.log(formatLogMessage('info', 'VectorDbHandler', `[${result.score}] ${result.item.metadata.text}`));
+          logger.info(formatLogMessage('info', 'VectorDbHandler', `[${result.score}] ${result.item.metadata.text}`));
         });
       } else {
-        console.log(formatLogMessage('info', 'VectorDbHandler', `No results found for query: ${queryText}`));
+        logger.info(formatLogMessage('info', 'VectorDbHandler', `No results found for query: ${queryText}`));
       }
 
       return {
@@ -338,7 +339,7 @@ export class VectorDbHandler {
       };
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error querying vector database: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error querying vector database: ${error}`));
       throw error;
     }
   }
@@ -382,7 +383,7 @@ export class VectorDbHandler {
               resultCount: retrieved.length
             };
           } catch (itemError) {
-            console.log(formatLogMessage('error', 'VectorDbHandler', `Error processing item ${item}: ${itemError}`));
+            logger.info(formatLogMessage('error', 'VectorDbHandler', `Error processing item ${item}: ${itemError}`));
             return {
               icon: item,
               retrieved: [],
@@ -394,7 +395,7 @@ export class VectorDbHandler {
         })
       );
 
-      console.log(formatLogMessage('info', 'VectorDbHandler', `Queried vector database with ${message.items.length} items`));
+      logger.info(formatLogMessage('info', 'VectorDbHandler', `Queried vector database with ${message.items.length} items`));
       
       return {
         success: true,
@@ -406,7 +407,7 @@ export class VectorDbHandler {
       };
 
     } catch (error) {
-      console.log(formatLogMessage('error', 'VectorDbHandler', `Error querying vector database items: ${error}`));
+      logger.info(formatLogMessage('error', 'VectorDbHandler', `Error querying vector database items: ${error}`));
       throw error;
     }
   }

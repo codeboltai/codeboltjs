@@ -6,6 +6,7 @@ import { NotificationService } from '../services/NotificationService';
 import type { UtilsEvent, SystemNotificationBase } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp';
+import { logger } from '../utils/logger';
 
 /**
  * Handles utils events with notifications
@@ -26,7 +27,7 @@ export class UtilsHandler {
    */
   handleUtilsEvent(agent: ClientConnection, utilsEvent: UtilsEvent): void {
     const { requestId, action } = utilsEvent;
-    console.log(formatLogMessage('info', 'UtilsHandler', `Handling utils event: ${action} from ${agent.id}`));
+    logger.info(formatLogMessage('info', 'UtilsHandler', `Handling utils event: ${action} from ${agent.id}`));
     
     // Send properly typed request notification to app (using SystemNotificationBase for utils events)
     const requestNotification: SystemNotificationBase = {
@@ -38,7 +39,7 @@ export class UtilsHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'UtilsHandler', `Sent utils request notification: ${action}`));
+    logger.info(formatLogMessage('info', 'UtilsHandler', `Sent utils request notification: ${action}`));
 
     // Forward to app for processing
     this.sendMessageToApp.forwardToApp(agent, utilsEvent as any);

@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
 import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
+import { logger } from '../../utils/logger';
 
 /**
  * Manages lifecycle and operations for agent WebSocket connections.
@@ -37,7 +38,7 @@ export class AgentConnectionsManager {
 
       this.parentToAgentsMapping.get(parentId)!.add({ connectionId: connection.id, instanceId: connection.instanceId });
 
-      console.log(
+      logger.info(
         formatLogMessage(
           'info',
           'AgentConnectionsManager',
@@ -45,7 +46,7 @@ export class AgentConnectionsManager {
         )
       );
     } else {
-      console.log(
+      logger.info(
         formatLogMessage(
           'info',
           'AgentConnectionsManager',
@@ -82,7 +83,7 @@ export class AgentConnectionsManager {
       }
     }
 
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', `Agent disconnected: ${agentId}`));
+    logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent disconnected: ${agentId}`));
   }
 
   clearParentMappings(parentId: string): void {
@@ -143,24 +144,24 @@ export class AgentConnectionsManager {
   }
 
   logAllParentMappings(): void {
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', '=== Parent-Child Mappings ==='));
+    logger.info(formatLogMessage('info', 'AgentConnectionsManager', '=== Parent-Child Mappings ==='));
 
     if (this.parentToAgentsMapping.size === 0) {
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', 'No parent-child mappings found'));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', 'No parent-child mappings found'));
       return;
     }
 
     this.parentToAgentsMapping.forEach((agentData, parentId) => {
       const agentInfo = Array.from(agentData).map((agent) => `${agent.connectionId}${agent.instanceId ? ` (instanceId: ${agent.instanceId})` : ''}`);
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', `Parent ${parentId} -> Agents: [${agentInfo.join(', ')}]`));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Parent ${parentId} -> Agents: [${agentInfo.join(', ')}]`));
     });
 
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', '=============================='));
+    logger.info(formatLogMessage('info', 'AgentConnectionsManager', '=============================='));
   }
 
   cacheMessageToAgent(messageId: string, agentId: string): void {
     this.messageToAgentCache.set(messageId, agentId);
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', `Cached message ${messageId} for agent ${agentId}`));
+    logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Cached message ${messageId} for agent ${agentId}`));
   }
 
   getAndRemoveAgentForMessage(messageId: string): string | undefined {
@@ -168,7 +169,7 @@ export class AgentConnectionsManager {
 
     if (agentId) {
       this.messageToAgentCache.delete(messageId);
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', `Retrieved cached agent ${agentId} for message ${messageId}`));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Retrieved cached agent ${agentId} for message ${messageId}`));
     }
 
     return agentId;
@@ -176,10 +177,10 @@ export class AgentConnectionsManager {
 
   sendToAgent(message: unknown): boolean {
     const agents = this.getAllAgents();
-    console.log(formatLogMessage('info', 'AgentConnectionsManager', `Sending message to ${agents.length} agent(s)`));
+    logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Sending message to ${agents.length} agent(s)`));
 
     if (agents.length === 0) {
-      console.warn(formatLogMessage('warn', 'AgentConnectionsManager', 'No agents available'));
+      logger.warn(formatLogMessage('warn', 'AgentConnectionsManager', 'No agents available'));
       return false;
     }
 
@@ -187,10 +188,10 @@ export class AgentConnectionsManager {
 
     try {
       agent.ws.send(JSON.stringify(message));
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', `Message sent to agent ${agent.id}`));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Message sent to agent ${agent.id}`));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending message to agent: ${error}`));
+      logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending message to agent: ${error}`));
       return false;
     }
   }
@@ -202,7 +203,7 @@ export class AgentConnectionsManager {
       const started = await this.childAgentProcessManager.startAgent(agentId, applicationId);
 
       if (!started) {
-        console.error(formatLogMessage('error', 'AgentConnectionsManager', `Failed to start agent ${agentId}`));
+        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Failed to start agent ${agentId}`));
         return false;
       }
 
@@ -212,7 +213,7 @@ export class AgentConnectionsManager {
     }
 
     if (!this.isWebSocketReady(agent.ws)) {
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} WebSocket not ready, waiting...`));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} WebSocket not ready, waiting...`));
       await this.waitForWebSocketReady(agent.ws);
     }
 
@@ -223,7 +224,7 @@ export class AgentConnectionsManager {
     const agent = this.agents.get(agentId);
 
     if (!agent) {
-      console.warn(formatLogMessage('warn', 'AgentConnectionsManager', `Agent ${agentId} not found when sending error`));
+      logger.warn(formatLogMessage('warn', 'AgentConnectionsManager', `Agent ${agentId} not found when sending error`));
       return false;
     }
 
@@ -233,7 +234,7 @@ export class AgentConnectionsManager {
       agent.ws.send(JSON.stringify(error));
       return true;
     } catch (sendError) {
-      console.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending error message to ${agentId}: ${sendError}`));
+      logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending error message to ${agentId}: ${sendError}`));
       return false;
     }
   }
@@ -243,7 +244,7 @@ export class AgentConnectionsManager {
   }
 
   cleanupOldCacheEntries(): void {
-    console.log(
+    logger.info(
       formatLogMessage('info', 'AgentConnectionsManager', `Cache cleanup completed. Current cache size: ${this.messageToAgentCache.size}`)
     );
   }
@@ -264,10 +265,10 @@ export class AgentConnectionsManager {
   private sendMessageToReadyAgent(agent: ClientConnection, agentId: string, message: unknown): boolean {
     try {
       agent.ws.send(JSON.stringify(message));
-      console.log(formatLogMessage('info', 'AgentConnectionsManager', `Message sent to agent ${agentId}`));
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Message sent to agent ${agentId}`));
       return true;
     } catch (error) {
-      console.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending message to agent ${agentId}: ${error}`));
+      logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Error sending message to agent ${agentId}: ${error}`));
       return false;
     }
   }
@@ -278,7 +279,7 @@ export class AgentConnectionsManager {
     while (true) {
       const agent = this.agents.get(agentId);
       if (agent && this.isWebSocketReady(agent.ws)) {
-        console.log(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} is connected and ready`));
+        logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} is connected and ready`));
         return;
       }
 
@@ -300,7 +301,7 @@ export class AgentConnectionsManager {
 
       const checkReady = (): void => {
         if (this.isWebSocketReady(ws)) {
-          console.log(formatLogMessage('info', 'AgentConnectionsManager', 'WebSocket is now ready'));
+          logger.info(formatLogMessage('info', 'AgentConnectionsManager', 'WebSocket is now ready'));
           resolve();
           return;
         }

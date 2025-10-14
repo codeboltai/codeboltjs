@@ -9,6 +9,8 @@ import { NotificationService } from '../services/NotificationService';
 import type { ReadFileEvent, FileReadRequestNotification, FileReadResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { response } from 'express';
+import { logger } from '../utils/logger';
+
 /**
  * Handles read file messages with notifications
  */
@@ -17,11 +19,9 @@ export class ReadFileHandler  {
   private notificationService: NotificationService;
   private connectionManager: ConnectionManager;
 
-
   constructor() {
     this.notificationService = NotificationService.getInstance();
     this.connectionManager = ConnectionManager.getInstance();
-
 
   }
   /**
@@ -43,7 +43,7 @@ export class ReadFileHandler  {
     // };
 
     // this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent read file request notification for: ${filePath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent read file request notification for: ${filePath}`));
     try {
 
       const filepath = readFileEvent.message.filePath;
@@ -85,7 +85,7 @@ export class ReadFileHandler  {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent read file response notification for: ${filePath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent read file response notification for: ${filePath}`));
 
     } catch (error) {
       const errorResponse = {

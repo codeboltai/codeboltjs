@@ -7,6 +7,7 @@ import {
 import { NotificationService } from '../services/NotificationService';
 import type { CreateFolderEvent, FolderCreateRequestNotification, FolderCreateResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 /**
  * Handles create folder messages with notifications
@@ -40,7 +41,7 @@ export class CreateFolderHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent create folder request notification for: ${folderPath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent create folder request notification for: ${folderPath}`));
 
     try {
       // Security check
@@ -96,7 +97,7 @@ export class CreateFolderHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent create folder response notification for: ${folderPath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent create folder response notification for: ${folderPath}`));
 
     } catch (error) {
       const errorResponse = {

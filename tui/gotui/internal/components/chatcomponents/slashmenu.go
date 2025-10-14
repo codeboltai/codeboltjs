@@ -158,8 +158,8 @@ func (m *SlashMenu) renderContainer(width int, rows []string) string {
 	style := lipgloss.NewStyle().
 		Padding(1, 1).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(theme.Primary).
-		Background(theme.SurfaceHigh)
+		BorderForeground(theme.Primary)
+		// Background(theme.SurfaceHigh)
 	if width > 0 {
 		style = style.Width(width)
 	}
@@ -194,17 +194,17 @@ func (m *SlashMenu) renderItem(cmd SlashCommand, selected bool, width int) strin
 	if selected {
 		arrow = lipgloss.NewStyle().
 			Foreground(theme.Background).
-			Background(theme.Accent).
+			// Background(theme.Accent).
 			Padding(0, 1).
 			Render("➤")
 		rowPadding = rowPadding.
-			Foreground(theme.Background).
-			Background(theme.Primary)
+			Foreground(theme.Background)
+		// Background(theme.Primary)
 	} else {
 		arrow = lipgloss.NewStyle().Foreground(theme.Muted).Render("  ")
 		rowPadding = rowPadding.
-			Foreground(theme.Foreground).
-			Background(theme.Surface)
+			Foreground(theme.Foreground)
+		// Background(theme.Surface)
 	}
 	row := lipgloss.JoinHorizontal(lipgloss.Left, arrow, content)
 	return rowPadding.Render(row)

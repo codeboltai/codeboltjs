@@ -11,6 +11,7 @@ import type { GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../services/NotificationService.js';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
+import { logger } from '../utils/logger';
 
 const execPromise = promisify(exec);
 
@@ -52,7 +53,7 @@ export class GrepSearchHandler {
     const { requestId, message } = grepSearchEvent;
     const { path: searchPath, query, includePattern, excludePattern, caseSensitive } = message;
 
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Handling grep search request in: ${searchPath} for: ${query}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Handling grep search request in: ${searchPath} for: ${query}`));
 
     try {
       // Validate required parameters
@@ -126,7 +127,7 @@ export class GrepSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${searchResults.files.length} files with matches for: ${query}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${searchResults.files.length} files with matches for: ${query}`));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -138,7 +139,7 @@ export class GrepSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...errorResponse, clientId: agent.id });
-      console.error(formatLogMessage('error', 'AgentMessageRouter', `Error performing grep search: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'AgentMessageRouter', `Error performing grep search: ${errorMessage}`));
     }
   }
 
@@ -163,7 +164,7 @@ export class GrepSearchHandler {
         return await this.grepSearch(cwd, directoryPath, regex, filePattern, excludePattern);
       }
     } catch (error) {
-      console.warn('Grep search failed, returning empty results:', error);
+      logger.warn('Grep search failed, returning empty results:', error);
       return { files: [], result: "No results found" };
     }
   }
@@ -279,7 +280,7 @@ export class GrepSearchHandler {
             }
           }
         } catch (error) {
-          console.error("Error parsing ripgrep output:", error);
+          logger.error("Error parsing ripgrep output:", error);
         }
       }
     });

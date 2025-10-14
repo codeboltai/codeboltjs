@@ -104,6 +104,6 @@ func (g *GitPanels) View() string {
 	return lipgloss.NewStyle().
 		Width(g.width).
 		Height(g.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(content)
 }

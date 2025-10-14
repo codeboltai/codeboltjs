@@ -146,7 +146,7 @@ func (p *CommandPalette) View(width, height int) string {
 	panelWidth := clamp(width/2, 50, width-10)
 	inputStyle := lipgloss.NewStyle().
 		Foreground(theme.Foreground).
-		Background(theme.Surface).
+		// Background(theme.Surface).
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(theme.SurfaceHigh).
 		Padding(0, 1).
@@ -173,7 +173,7 @@ func (p *CommandPalette) View(width, height int) string {
 		Width(panelWidth).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(theme.Primary).
-		Background(theme.SurfaceHigh).
+		// Background(theme.SurfaceHigh).
 		Padding(1, 2).
 		Render(content)
 
@@ -181,7 +181,7 @@ func (p *CommandPalette) View(width, height int) string {
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Background(theme.Surface.BlendLab(theme.Background, 0.35)).
+		// Background(theme.Surface.BlendLab(theme.Background, 0.35)).
 		Render(overlay)
 }
 
@@ -197,7 +197,8 @@ func (p *CommandPalette) renderItem(cmd SlashCommand, selected bool, width int) 
 		base = base.Width(width)
 	}
 	if selected {
-		base = base.Background(theme.Primary).Foreground(theme.Background)
+		base = base.Foreground(theme.Background)
+		// base = base.Background(theme.Primary).Foreground(theme.Background)
 	}
 	return base.Render(line)
 }

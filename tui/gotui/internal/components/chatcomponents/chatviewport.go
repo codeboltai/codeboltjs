@@ -35,7 +35,7 @@ func NewChatViewport(templateManager *chattemplates.TemplateManager) *ChatViewpo
 	// Initialize viewport
 	vp := viewport.New(viewport.WithWidth(80), viewport.WithHeight(20))
 	vp.Style = lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Foreground(theme.Foreground)
 
 	return &ChatViewport{
@@ -55,7 +55,7 @@ func (cv *ChatViewport) SetSize(width, height int) {
 	// Re-apply styling after recreating viewport to avoid background gaps
 	theme := styles.CurrentTheme()
 	cv.viewport.Style = lipgloss.NewStyle().
-		Background(theme.Background).
+		// Background(theme.Background).
 		Foreground(theme.Foreground)
 
 	cv.updateContent()
@@ -167,12 +167,12 @@ func (cv *ChatViewport) View() string {
 		return ""
 	}
 
-	theme := styles.CurrentTheme()
+	// theme := styles.CurrentTheme()
 
 	return lipgloss.NewStyle().
 		Width(cv.width).
 		Height(cv.height).
-		Background(theme.Background).
+		// Background(theme.Background).
 		Render(cv.viewport.View())
 }
 
@@ -184,9 +184,9 @@ func (cv *ChatViewport) updateContent() {
 
 	if len(cv.messages) == 0 {
 		// Ensure background fills even when no content
-		theme := styles.CurrentTheme()
+		// theme := styles.CurrentTheme()
 		pad := lipgloss.NewStyle().
-			Background(theme.Background).
+			// Background(theme.Background).
 			Width(maxInt(1, cv.width)).
 			Render(" ")
 		cv.viewport.SetContent(pad)

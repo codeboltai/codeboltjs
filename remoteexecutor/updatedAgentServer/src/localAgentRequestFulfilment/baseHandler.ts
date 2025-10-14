@@ -6,6 +6,7 @@ import {
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToRemote } from '../handlers/remoteMessaging/sendMessageToRemote';
 import { SendMessageToTui } from '../handlers/tuiMessaging/sendMessageToTui';
+import { logger } from '../utils/logger';
 
 /**
  * Base handler interface that all message handlers implement
@@ -45,7 +46,7 @@ export abstract class BaseHandler implements IMessageHandler {
     const success = agentManager.sendToAgent(message);
 
     if (!success) {
-      console.log(
+      logger.info(
         formatLogMessage('warn', 'BaseHandler', 'No local agents available, forwarding request via remote proxy')
       );
       this.sendMessageToRemote.forwardAppMessage(client.id, message, { requireRemote: true });
@@ -68,7 +69,7 @@ export abstract class BaseHandler implements IMessageHandler {
       const deliveredToTui = this.sendMessageToTui.sendToTui(messageWithClientId.clientId, message);
 
       if (!deliveredToApp && !deliveredToTui) {
-        console.log(
+        logger.info(
           formatLogMessage('warn', 'BaseHandler', 'Failed to reach client locally, forwarding via remote proxy')
         );
         this.sendMessageToRemote.forwardAgentMessage(agent, message as Message, { requireRemote: true });

@@ -7,6 +7,7 @@ import {
 import { NotificationService } from '../services/NotificationService';
 import type { DeleteFolderEvent, FolderDeleteRequestNotification, FolderDeleteResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 /**
  * Handles delete folder messages with notifications
@@ -40,7 +41,7 @@ export class DeleteFolderHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent delete folder request notification for: ${folderpath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent delete folder request notification for: ${folderpath}`));
 
     try {
       // Security check
@@ -110,7 +111,7 @@ export class DeleteFolderHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent delete folder response notification for: ${folderpath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent delete folder response notification for: ${folderpath}`));
 
     } catch (error) {
       const errorResponse = {

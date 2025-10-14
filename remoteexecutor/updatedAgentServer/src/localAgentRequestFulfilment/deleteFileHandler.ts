@@ -7,6 +7,7 @@ import {
 import { NotificationService } from '../services/NotificationService';
 import type { DeleteFileEvent, FileDeleteRequestNotification, FileDeleteResponseNotification } from '@codebolt/types/agent-to-app-ws-types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
+import { logger } from '../utils/logger';
 
 /**
  * Handles delete file messages with notifications
@@ -40,7 +41,7 @@ export class DeleteFileHandler {
     };
 
     this.notificationService.sendToAppRelatedToAgentId(agent.id, requestNotification as any);
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent delete file request notification for: ${filePath}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent delete file request notification for: ${filePath}`));
 
     try {
       // Security check
@@ -96,7 +97,7 @@ export class DeleteFileHandler {
       };
 
       this.notificationService.sendToAppRelatedToAgentId(agent.id, responseNotification as any);
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Sent delete file response notification for: ${filePath}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Sent delete file response notification for: ${filePath}`));
 
     } catch (error) {
       const errorResponse = {

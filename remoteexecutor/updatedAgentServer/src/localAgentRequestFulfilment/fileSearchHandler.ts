@@ -12,6 +12,7 @@ import { SendMessageToApp } from '../handlers/appMessaging/sendMessageToApp.js';
 import { NotificationService } from '../services/NotificationService.js';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager.js';
 import { detectLanguage } from '../utils/detectLanguage.js';
+import { logger } from '../utils/logger';
 
 const execPromise = promisify(exec);
 
@@ -36,7 +37,7 @@ export class FileSearchHandler {
     const { requestId, message } = fileSearchEvent;
     const { query } = message;
 
-    console.log(formatLogMessage('info', 'AgentMessageRouter', `Handling file search request for: ${query}`));
+    logger.info(formatLogMessage('info', 'AgentMessageRouter', `Handling file search request for: ${query}`));
 
     try {
       // Validate query parameter
@@ -76,7 +77,7 @@ export class FileSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...response, clientId: agent.id });
-      console.log(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${limitedResults.length} files for query: ${query}`));
+      logger.info(formatLogMessage('info', 'AgentMessageRouter', `Successfully found ${limitedResults.length} files for query: ${query}`));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -88,7 +89,7 @@ export class FileSearchHandler {
       };
 
       this.connectionManager.sendToConnection(agent.id, { ...errorResponse, clientId: agent.id });
-      console.error(formatLogMessage('error', 'AgentMessageRouter', `Error searching files: ${errorMessage}`));
+      logger.error(formatLogMessage('error', 'AgentMessageRouter', `Error searching files: ${errorMessage}`));
     }
   }
 
@@ -98,18 +99,18 @@ export class FileSearchHandler {
    */
   private async fastFileFuzzySearch(rootDir: string, query: string): Promise<string[]> {
     try {
-      console.log("Starting file search with rootDir:", rootDir, "query:", query);
+      logger.info("Starting file search with rootDir:", rootDir, "query:", query);
       
       // Clean up the query to prepare for search
       const sanitizedQuery = query.replace(/[\\/:*?"<>|]/g, '');
-      console.log("sanitizedQuery:", sanitizedQuery);
+      logger.info("sanitizedQuery:", sanitizedQuery);
       
       // Try using find command with grep (most reliable)
       try {
-        console.log("Trying direct file search...");
+        logger.info("Trying direct file search...");
         // Search for the file directly using find and grep
         const findGrepCmd = `find "${rootDir}" -type f | grep -i "${sanitizedQuery}" | grep -v "node_modules" | head -10`;
-        console.log("Running find+grep command:", findGrepCmd);
+        logger.info("Running find+grep command:", findGrepCmd);
         
         const { stdout } = await execPromise(findGrepCmd);
         
@@ -121,24 +122,24 @@ export class FileSearchHandler {
               : file;
           });
           
-          console.log("Find+grep results:", results);
+          logger.info("Find+grep results:", results);
           
           if (results.length > 0) {
             // Score and sort the results
             return this.scoreAndSortResults(results, sanitizedQuery);
           }
         } else {
-          console.log("Find+grep command returned no results");
+          logger.info("Find+grep command returned no results");
         }
       } catch (findGrepError) {
-        console.error("Error using find+grep command:", findGrepError);
+        logger.error("Error using find+grep command:", findGrepError);
       }
       
       // Try searching for exact filename
       try {
-        console.log("Trying exact filename search...");
+        logger.info("Trying exact filename search...");
         const exactCmd = `find "${rootDir}" -type f -name "*${sanitizedQuery}*" | grep -v "node_modules" | head -10`;
-        console.log("Running exact search command:", exactCmd);
+        logger.info("Running exact search command:", exactCmd);
         
         const { stdout } = await execPromise(exactCmd);
         
@@ -149,23 +150,23 @@ export class FileSearchHandler {
               : file;
           });
           
-          console.log("Exact search results:", results);
+          logger.info("Exact search results:", results);
           
           if (results.length > 0) {
             return this.scoreAndSortResults(results, sanitizedQuery);
           }
         } else {
-          console.log("Exact search command returned no results");
+          logger.info("Exact search command returned no results");
         }
       } catch (exactError) {
-        console.error("Error using exact search command:", exactError);
+        logger.error("Error using exact search command:", exactError);
       }
       
       // If all else fails, return empty results
-      console.log("All search methods failed, returning empty results");
+      logger.info("All search methods failed, returning empty results");
       return [];
     } catch (error) {
-      console.error('Error during fuzzy file search:', error);
+      logger.error('Error during fuzzy file search:', error);
       return [];
     }
   }

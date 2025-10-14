@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../connectionManagers/connectionManager';
 import { RemoteMessageRouter } from '../../handlers/remoteMessaging/routerforMessageReceivedFromRemote';
+import { logger } from '../../utils/logger';
 
 export interface RemoteProxyClientOptions {
   url: string;
@@ -127,7 +128,7 @@ export class RemoteProxyClient {
         url = url.replace('https://', 'wss://');
       }
       
-      console.log(formatLogMessage('info', 'WranglerProxyClient', `Connecting to remote proxy: ${url}`));
+      logger.info(formatLogMessage('info', 'WranglerProxyClient', `Connecting to remote proxy: ${url}`));
 
       this.websocket = new WebSocket(url);
 
@@ -147,16 +148,16 @@ export class RemoteProxyClient {
       });
 
       this.websocket.on('error', (error) => {
-        console.error(formatLogMessage('error', 'WranglerProxyClient', `WebSocket error: ${error}`));
+        logger.error(formatLogMessage('error', 'WranglerProxyClient', `WebSocket error: ${error}`));
       });
     } catch (error) {
-      console.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to connect: ${error}`));
+      logger.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to connect: ${error}`));
       this.scheduleReconnect();
     }
   }
 
   private onOpen(): void {
-    console.log(formatLogMessage('info', 'WranglerProxyClient', 'Remote proxy connection established'));
+    logger.info(formatLogMessage('info', 'WranglerProxyClient', 'Remote proxy connection established'));
     this.send({
       type: 'register_gateway',
       serverId: this.options.serverId || 'codebolt-agent-executor',
@@ -170,7 +171,7 @@ export class RemoteProxyClient {
       const message = JSON.parse(data) as RemoteProxyIncomingMessage;
       this.handleIncomingMessage(message);
     } catch (error) {
-      console.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to parse message: ${error}`));
+      logger.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to parse message: ${error}`));
     }
   }
 
@@ -209,7 +210,7 @@ export class RemoteProxyClient {
       }
       default: {
         const unknownType = (message as { type?: string }).type ?? 'unknown';
-        console.warn(formatLogMessage('warn', 'WranglerProxyClient', `Unknown message type: ${unknownType}`));
+        logger.warn(formatLogMessage('warn', 'WranglerProxyClient', `Unknown message type: ${unknownType}`));
       }
     }
   }
@@ -220,7 +221,7 @@ export class RemoteProxyClient {
     extra: { agentId?: string; clientId?: string; tuiId?: string }
   ): void {
     if (!payload || typeof payload !== 'object') {
-      console.warn(formatLogMessage('warn', 'WranglerProxyClient', 'Ignoring non-object payload from remote proxy'));
+      logger.warn(formatLogMessage('warn', 'WranglerProxyClient', 'Ignoring non-object payload from remote proxy'));
       return;
     }
 
@@ -237,7 +238,7 @@ export class RemoteProxyClient {
   }
 
   private onClose(): void {
-    console.log(formatLogMessage('info', 'WranglerProxyClient', 'Remote proxy connection closed'));
+    logger.info(formatLogMessage('info', 'WranglerProxyClient', 'Remote proxy connection closed'));
     if (!this.manualClose) {
       this.scheduleReconnect();
     }
@@ -247,7 +248,7 @@ export class RemoteProxyClient {
     const maxAttempts = this.options.maxReconnectAttempts ?? 5;
     if (this.manualClose || this.reconnectAttempts >= maxAttempts) {
       if (!this.manualClose) {
-        console.warn(
+        logger.warn(
           formatLogMessage('warn', 'WranglerProxyClient', 'Max reconnect attempts reached; giving up on remote proxy')
         );
       }
@@ -256,7 +257,7 @@ export class RemoteProxyClient {
 
     this.reconnectAttempts += 1;
     const delay = this.options.reconnectDelay ?? 2000;
-    console.log(
+    logger.info(
       formatLogMessage(
         'info',
         'WranglerProxyClient',
@@ -274,7 +275,7 @@ export class RemoteProxyClient {
       try {
         this.websocket.send(JSON.stringify(message));
       } catch (error) {
-        console.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to send message: ${error}`));
+        logger.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to send message: ${error}`));
       }
     }
   }

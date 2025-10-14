@@ -15,6 +15,7 @@ export * from './errors';
 
 // Configuration types
 export * from './config';
+export * from './models';
 
 // Utility functions and type guards
 export * from './utils';
