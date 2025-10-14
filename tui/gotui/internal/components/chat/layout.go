@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	"github.com/charmbracelet/lipgloss/v2"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 const (
@@ -305,10 +306,12 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
-	return lipgloss.NewStyle().
+	rendered := lipgloss.NewStyle().
 		Width(chatWidth).
 		Height(c.chatHeight).
 		Render(content)
+
+	return zone.Mark(c.chatZoneID, rendered)
 }
 
 func (c *Chat) renderHelpBar(width int) string {
@@ -341,10 +344,12 @@ func (c *Chat) renderContextDrawer(width, height int) string {
 	content := c.buildContextDrawerContent(width)
 	c.contextViewport.SetContent(content)
 
-	return lipgloss.NewStyle().
+	rendered := lipgloss.NewStyle().
 		Width(width).
 		Height(height).
 		Render(c.contextViewport.View())
+
+	return zone.Mark(c.contextZoneID, rendered)
 }
 
 func (c *Chat) buildContextDrawerContent(width int) string {

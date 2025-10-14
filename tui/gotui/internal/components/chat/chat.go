@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	"github.com/charmbracelet/lipgloss/v2"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 // Chat represents the main chat interface.
@@ -51,6 +52,9 @@ type Chat struct {
 	singleColumn         bool
 	conversationHeight   int
 	contextHeight        int
+	zonePrefix           string
+	chatZoneID           string
+	contextZoneID        string
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -67,6 +71,8 @@ func New() *Chat {
 	input := chatcomponents.NewChatInput()
 	viewport := chatcomponents.NewChatViewport(templateManager)
 
+	zonePrefix := zone.NewPrefix()
+
 	chat := &Chat{
 		input:                 input,
 		viewport:              viewport,
@@ -82,6 +88,9 @@ func New() *Chat {
 		conversationListWidth: 28,
 		contextDrawerVisible:  true,
 		contextViewport:       newContextViewport(1, 1),
+		zonePrefix:            zonePrefix,
+		chatZoneID:            zonePrefix + "chat_area",
+		contextZoneID:         zonePrefix + "context_drawer",
 	}
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 	chat.createInitialConversation()

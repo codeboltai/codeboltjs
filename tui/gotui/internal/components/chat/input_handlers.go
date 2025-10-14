@@ -324,11 +324,53 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	refreshMenu := false
+	skipChatViewport := false
+	skipContextViewport := false
 
 	switch msg := msg.(type) {
 	case tea.MouseClickMsg:
 		if clickCmd, handled := c.handleMouseClick(msg); handled {
 			return c, clickCmd
+		}
+
+	case tea.MouseWheelMsg:
+		mouse := msg.Mouse()
+		handled := false
+
+		if c.contextDrawerVisible && c.contextHeight > 0 {
+			if info := zone.Get(c.contextZoneID); mouseInZone(mouse, info) {
+				var contextCmd tea.Cmd
+				c.contextViewport, contextCmd = c.contextViewport.Update(msg)
+				if contextCmd != nil {
+					cmds = append(cmds, contextCmd)
+				}
+				skipContextViewport = true
+				skipChatViewport = true
+				handled = true
+			}
+		}
+
+		if !handled {
+			if info := zone.Get(c.chatZoneID); mouseInZone(mouse, info) {
+				var viewportCmd tea.Cmd
+				c.viewport, viewportCmd = c.viewport.Update(msg)
+				if viewportCmd != nil {
+					cmds = append(cmds, viewportCmd)
+				}
+				skipChatViewport = true
+				skipContextViewport = true
+				handled = true
+			}
+		}
+
+		if !handled {
+			var viewportCmd tea.Cmd
+			c.viewport, viewportCmd = c.viewport.Update(msg)
+			if viewportCmd != nil {
+				cmds = append(cmds, viewportCmd)
+			}
+			skipChatViewport = true
+			skipContextViewport = true
 		}
 
 	case tea.KeyPressMsg:
@@ -479,7 +521,7 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		}
 	}
 
-	if c.viewport != nil {
+	if c.viewport != nil && !skipChatViewport {
 		var viewportCmd tea.Cmd
 		c.viewport, viewportCmd = c.viewport.Update(msg)
 		if viewportCmd != nil {
@@ -487,7 +529,7 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		}
 	}
 
-	if c.contextDrawerVisible && c.contextHeight > 0 {
+	if c.contextDrawerVisible && c.contextHeight > 0 && !skipContextViewport {
 		var contextCmd tea.Cmd
 		c.contextViewport, contextCmd = c.contextViewport.Update(msg)
 		if contextCmd != nil {
