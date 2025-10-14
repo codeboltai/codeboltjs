@@ -4,7 +4,7 @@ import { createServer as createNetServer, AddressInfo } from 'net';
 
 import { AgentCliOptions } from './types';
 import { AgentExecutorServer } from './core/mainAgentExecutorServer';
-import { getServerConfig } from './config';
+import { getServerConfig,setServerPort } from './config';
 import { logger, LogLevel, Logger } from './utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
@@ -159,6 +159,8 @@ async function main(): Promise<void> {
       config.port = options.port!;
     } else if (!portProvidedViaEnv) {
       config.port = await findAvailablePort(config.host);
+      setServerPort(config.port)
+
       logger.info(`No port provided. Selected available port ${config.port}`);
     }
     

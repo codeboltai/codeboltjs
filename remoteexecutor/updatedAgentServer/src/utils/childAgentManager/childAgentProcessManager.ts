@@ -10,6 +10,7 @@ import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
 import { AgentTypeEnum } from '../../types/cli';
 import { logger } from '../logger';
+import { getServerConfig } from '@/config';
 
 /**
  * Agent API response interface
@@ -386,6 +387,7 @@ export class ChildAgentProcessManager {
     
     try {
       const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const config = getServerConfig();
       const agentProcess = spawn('node', [indexPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: agentPath,
@@ -394,7 +396,7 @@ export class ChildAgentProcessManager {
           parentId: applicationId,
           agentId: agentId,
           connectionId: connectionId,
-          SOCKET_PORT: '3001'
+          SOCKET_PORT: config.port.toString() 
         }
       });
 
@@ -539,6 +541,7 @@ export class ChildAgentProcessManager {
     try {
       // Start the agent process
       const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const config = getServerConfig();
       const agentProcess = spawn('node', [finalAgentPath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: finalWorkingDir, // Set working directory to agent's directory
@@ -547,7 +550,8 @@ export class ChildAgentProcessManager {
           parentId: applicationId,
           agentId: agentId,
           connectionId: connectionId,
-          SOCKET_PORT: '3001'
+          // SOCKET_PORT: '3001'
+           SOCKET_PORT: config.port.toString() 
         }
       });
 
