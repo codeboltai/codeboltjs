@@ -22,7 +22,7 @@ func New(width int) (*Renderer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create glamour renderer: %w", err)
 	}
-	
+
 	return &Renderer{
 		renderer: renderer,
 		width:    width,
@@ -34,9 +34,9 @@ func (r *Renderer) SetWidth(width int) error {
 	if width == r.width {
 		return nil
 	}
-	
+
 	r.width = width
-	
+
 	// Recreate renderer with new width
 	renderer, err := glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),
@@ -45,7 +45,7 @@ func (r *Renderer) SetWidth(width int) error {
 	if err != nil {
 		return fmt.Errorf("failed to recreate glamour renderer: %w", err)
 	}
-	
+
 	r.renderer = renderer
 	return nil
 }
@@ -55,12 +55,12 @@ func (r *Renderer) Render(markdown string) (string, error) {
 	if strings.TrimSpace(markdown) == "" {
 		return "", nil
 	}
-	
+
 	rendered, err := r.renderer.Render(markdown)
 	if err != nil {
 		return "", fmt.Errorf("failed to render markdown: %w", err)
 	}
-	
+
 	// Clean up any trailing whitespace
 	return strings.TrimRight(rendered, "\n\r \t"), nil
 }
@@ -71,11 +71,11 @@ func (r *Renderer) RenderLines(markdown string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if rendered == "" {
 		return []string{}, nil
 	}
-	
+
 	return strings.Split(rendered, "\n"), nil
 }
 
@@ -85,7 +85,7 @@ func IsMarkdown(content string) bool {
 	if content == "" {
 		return false
 	}
-	
+
 	// Check for common markdown patterns
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
@@ -93,7 +93,7 @@ func IsMarkdown(content string) bool {
 		if line == "" {
 			continue
 		}
-		
+
 		// Headers
 		if strings.HasPrefix(line, "#") {
 			return true
@@ -123,6 +123,6 @@ func IsMarkdown(content string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }

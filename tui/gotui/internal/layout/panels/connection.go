@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"gotui/internal/components/panel"
+	"gotui/internal/components/uicomponents/panel"
 	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"

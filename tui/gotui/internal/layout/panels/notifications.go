@@ -3,7 +3,7 @@ package panels
 import (
 	"time"
 
-	"gotui/internal/components/panel"
+	"gotui/internal/components/uicomponents/panel"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )

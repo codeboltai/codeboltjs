@@ -1,7 +1,7 @@
 package chattemplates
 
 import (
-	"gotui/internal/markdown"
+	"gotui/internal/components/uicomponents/markdown"
 	"gotui/internal/styles"
 
 	"github.com/charmbracelet/lipgloss/v2"
