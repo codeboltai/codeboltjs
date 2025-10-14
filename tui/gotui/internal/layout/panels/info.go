@@ -44,6 +44,14 @@ func (p *InfoPanel) SetLines(lines []string) {
 	}
 }
 
+// ContentLineCount reports the number of content lines currently stored.
+func (p *InfoPanel) ContentLineCount() int {
+	if p == nil || p.panel == nil {
+		return 0
+	}
+	return p.panel.ContentLineCount()
+}
+
 // Update forwards updates to the underlying panel.
 func (p *InfoPanel) Update(msg tea.Msg) tea.Cmd {
 	if p.panel == nil {

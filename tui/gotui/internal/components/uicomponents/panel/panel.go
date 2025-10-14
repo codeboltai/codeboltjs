@@ -89,6 +89,14 @@ func (p *Panel) SetSize(width, height int) {
 	}
 }
 
+// ContentLineCount returns the number of content lines stored in the panel.
+func (p *Panel) ContentLineCount() int {
+	if p == nil {
+		return 0
+	}
+	return len(p.content)
+}
+
 // ScrollUp scrolls the panel content up
 func (p *Panel) ScrollUp() {
 	if p.scrollPos > 0 {

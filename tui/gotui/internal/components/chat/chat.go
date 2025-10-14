@@ -8,6 +8,7 @@ import (
 	"gotui/internal/layout/panels"
 	"gotui/internal/styles"
 
+	"github.com/charmbracelet/bubbles/v2/viewport"
 	"github.com/charmbracelet/lipgloss/v2"
 )
 
@@ -44,6 +45,12 @@ type Chat struct {
 
 	rightPanels []*panels.InfoPanel
 	helpBar     *helpbar.HelpBar
+
+	contextViewport      viewport.Model
+	contextDrawerVisible bool
+	singleColumn         bool
+	conversationHeight   int
+	contextHeight        int
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -70,9 +77,11 @@ func New() *Chat {
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
 		focused:               true,
-		rightSidebarWidth:     28,
+		rightSidebarWidth:     0,
 		textHeight:            3,
 		conversationListWidth: 28,
+		contextDrawerVisible:  true,
+		contextViewport:       newContextViewport(1, 1),
 	}
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 	chat.createInitialConversation()
@@ -89,7 +98,7 @@ func (c *Chat) SetHelpBar(bar *helpbar.HelpBar) {
 	c.helpBar = bar
 }
 
-// SetRightSidebarPanels assigns the info panels rendered in the right sidebar.
+// SetRightSidebarPanels assigns the info panels rendered in the context drawer.
 func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 	if c == nil {
 		return
@@ -97,10 +106,12 @@ func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 
 	if len(infos) == 0 {
 		c.rightPanels = nil
+		c.contextDrawerVisible = false
 		return
 	}
 
 	c.rightPanels = append([]*panels.InfoPanel(nil), infos...)
+	c.contextDrawerVisible = true
 }
 
 // AddMessage adds a message to the chat.
@@ -165,51 +176,34 @@ func (c *Chat) View() string {
 	}
 
 	theme := styles.CurrentTheme()
-	mainWidth := c.width
 
-	convoWidth := c.conversationListWidth
 	if c.conversationPanel != nil {
-		c.conversationPanel.SetSize(convoWidth, c.chatHeight)
+		c.conversationPanel.SetHorizontalLayout(c.singleColumn)
+		c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
 	}
 
-	separatorCount := 0
-	if convoWidth > 0 {
-		separatorCount++
-	}
-	rightSidebar := ""
-	rightWidth := c.rightSidebarWidth
-	if rightWidth > 0 {
-		separatorCount++
-		rightSidebar = c.renderRightSidebar(theme)
-	}
-	chatWidth := c.contentWidth
-	if chatWidth <= 0 {
-		chatWidth = mainWidth - convoWidth - rightWidth - separatorCount
-	}
-	if chatWidth < 0 {
-		chatWidth = 0
-	}
-	chatArea := c.renderChatArea(chatWidth)
-	leftSidebar := ""
-	if convoWidth > 0 {
-		leftSidebar = c.renderConversationList()
-	}
+	chatArea := c.renderChatArea(c.contentWidth)
 
-	layout := c.composeLayout(theme, leftSidebar, chatArea, rightSidebar)
+	var layout string
+	if c.singleColumn {
+		layout = c.renderSingleColumnLayout(theme, chatArea)
+	} else {
+		layout = c.renderTwoColumnLayout(theme, chatArea)
+	}
 
 	if c.themePicker.IsVisible() {
-		return c.themePicker.View(mainWidth, c.height)
+		return c.themePicker.View(c.width, c.height)
 	}
 
 	var overlayLayers []*lipgloss.Layer
 	if c.commandPalette.IsVisible() {
-		if layer := c.commandPalette.Layer(mainWidth, c.height); layer != nil {
+		if layer := c.commandPalette.Layer(c.width, c.height); layer != nil {
 			overlayLayers = append(overlayLayers, layer.Z(30))
 		}
 	}
 
 	if c.modelPicker.IsVisible() {
-		if layer := c.modelPicker.Layer(mainWidth, c.height); layer != nil {
+		if layer := c.modelPicker.Layer(c.width, c.height); layer != nil {
 			overlayLayers = append(overlayLayers, layer.Z(20))
 		}
 	}
@@ -220,7 +214,7 @@ func (c *Chat) View() string {
 			maxMenuItems = 3
 		}
 		c.slashMenu.SetMaxItems(maxMenuItems)
-		if layer := c.slashMenu.Layer(mainWidth, c.height); layer != nil {
+		if layer := c.slashMenu.Layer(c.width, c.height); layer != nil {
 			overlayLayers = append(overlayLayers, layer.Z(10))
 		}
 	}

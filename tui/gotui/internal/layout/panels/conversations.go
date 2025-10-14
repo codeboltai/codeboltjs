@@ -28,6 +28,7 @@ type ConversationListPanel struct {
 	showHoverNew bool
 	hoverNew     bool
 	zonePrefix   string
+	horizontal   bool
 }
 
 // NewConversationListPanel constructs a new conversation list panel.
@@ -52,6 +53,11 @@ func (p *ConversationListPanel) SetNewButtonState(show bool, hover bool) {
 	p.hoverNew = hover
 }
 
+// SetHorizontalLayout toggles horizontal rendering mode.
+func (p *ConversationListPanel) SetHorizontalLayout(horizontal bool) {
+	p.horizontal = horizontal
+}
+
 // View renders the panel.
 func (p *ConversationListPanel) View() string {
 	if p.width <= 0 || p.height <= 0 {
@@ -62,12 +68,18 @@ func (p *ConversationListPanel) View() string {
 		p.zonePrefix = zone.NewPrefix()
 	}
 
+	if p.horizontal {
+		return p.viewHorizontal()
+	}
+	return p.viewVertical()
+}
+
+func (p *ConversationListPanel) viewVertical() string {
 	theme := styles.CurrentTheme()
 
 	headStyle := lipgloss.NewStyle().
 		Width(p.width).
 		Foreground(theme.Primary).
-		// Background(theme.SurfaceHigh).
 		Bold(true).
 		Padding(0, 1)
 
@@ -89,18 +101,14 @@ func (p *ConversationListPanel) View() string {
 		timestamp := muted.Render(item.UpdatedAt.Format("15:04"))
 		meta := lipgloss.JoinHorizontal(lipgloss.Left, title, lipgloss.NewStyle().Render("  "), timestamp)
 
-		style := itemBase
+		style := itemBase.Foreground(theme.Foreground)
 		switch {
 		case item.IsActive:
 			style = style.
-				// Background(theme.Primary).
-				Foreground(theme.Background)
+				Foreground(theme.Background).
+				Background(theme.Primary)
 		case item.IsHovered:
-			style = style.
-				// Background(theme.SurfaceHigh).
-				Foreground(theme.Foreground)
-		default:
-			style = style.Foreground(theme.Foreground)
+			style = style.Foreground(theme.Primary)
 		}
 
 		zoneID := p.conversationZoneID(item.ID)
@@ -108,14 +116,12 @@ func (p *ConversationListPanel) View() string {
 	}
 
 	if p.showNew {
-		button := itemBase
+		button := itemBase.Foreground(theme.Secondary)
 		title := "➕ New conversation"
 		if p.hoverNew {
 			button = button.
-				// Background(theme.Secondary).
-				Foreground(theme.Background)
-		} else {
-			button = button.Foreground(theme.Secondary)
+				Foreground(theme.Background).
+				Background(theme.Secondary)
 		}
 		rows = append(rows, zone.Mark(p.newConversationZoneID(), button.Render(title)))
 	}
@@ -124,8 +130,98 @@ func (p *ConversationListPanel) View() string {
 	return lipgloss.NewStyle().
 		Width(p.width).
 		Height(p.height).
-		// Background(theme.Background).
 		Render(panel)
+}
+
+func (p *ConversationListPanel) viewHorizontal() string {
+	theme := styles.CurrentTheme()
+
+	headStyle := lipgloss.NewStyle().
+		Width(p.width).
+		Foreground(theme.Primary).
+		Bold(true).
+		Padding(0, 1)
+
+	chipBase := lipgloss.NewStyle().
+		Padding(0, 1).
+		MarginRight(1)
+
+	var chips []string
+	for _, item := range p.items {
+		title := item.Title
+		if title == "" {
+			title = "(untitled)"
+		}
+
+		style := chipBase.Foreground(theme.Foreground)
+		switch {
+		case item.IsActive:
+			style = style.
+				Foreground(theme.Background).
+				Background(theme.Primary)
+		case item.IsHovered:
+			style = style.Foreground(theme.Primary)
+		default:
+			style = style.Foreground(theme.Foreground)
+		}
+
+		chips = append(chips, zone.Mark(p.conversationZoneID(item.ID), style.Render(title)))
+	}
+
+	if p.showNew {
+		label := "➕ New"
+		style := chipBase.Foreground(theme.Secondary)
+		if p.hoverNew {
+			style = style.
+				Foreground(theme.Background).
+				Background(theme.Secondary)
+		}
+		chips = append(chips, zone.Mark(p.newConversationZoneID(), style.Render(label)))
+	}
+
+	bodyLines := p.wrapChips(chips)
+
+	rows := []string{headStyle.Render("Conversations")}
+	rows = append(rows, bodyLines...)
+
+	if len(rows) < p.height {
+		muted := lipgloss.NewStyle().Foreground(theme.Muted).Padding(0, 1)
+		rows = append(rows, muted.Render("(use ←/→ to navigate)"))
+	}
+
+	panel := lipgloss.JoinVertical(lipgloss.Left, rows...)
+	return lipgloss.NewStyle().
+		Width(p.width).
+		Height(p.height).
+		Render(panel)
+}
+
+func (p *ConversationListPanel) wrapChips(chips []string) []string {
+	if len(chips) == 0 {
+		return []string{lipgloss.NewStyle().Width(p.width).Render("(none)")}
+	}
+
+	var rows []string
+	var current []string
+	currentWidth := 0
+
+	for _, chip := range chips {
+		chipWidth := lipgloss.Width(chip)
+		if currentWidth > 0 && currentWidth+chipWidth > p.width {
+			rows = append(rows, lipgloss.NewStyle().Width(p.width).Render(lipgloss.JoinHorizontal(lipgloss.Left, current...)))
+			current = nil
+			currentWidth = 0
+		}
+
+		current = append(current, chip)
+		currentWidth += chipWidth
+	}
+
+	if len(current) > 0 {
+		rows = append(rows, lipgloss.NewStyle().Width(p.width).Render(lipgloss.JoinHorizontal(lipgloss.Left, current...)))
+	}
+
+	return rows
 }
 
 func (p *ConversationListPanel) conversationZoneID(id string) string {

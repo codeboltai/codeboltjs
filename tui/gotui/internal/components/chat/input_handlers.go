@@ -487,6 +487,14 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		}
 	}
 
+	if c.contextDrawerVisible && c.contextHeight > 0 {
+		var contextCmd tea.Cmd
+		c.contextViewport, contextCmd = c.contextViewport.Update(msg)
+		if contextCmd != nil {
+			cmds = append(cmds, contextCmd)
+		}
+	}
+
 	return c, tea.Batch(cmds...)
 }
 
