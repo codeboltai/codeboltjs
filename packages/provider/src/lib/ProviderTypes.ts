@@ -51,6 +51,8 @@ export interface BaseProviderConfig {
 export interface ProviderLifecycleHandlers {
   onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
   onProviderAgentStart(message: AgentStartMessage): Promise<void>;
+  onProviderStop(initVars: ProviderInitVars): Promise<void>;
+  onGetDiffFiles(): Promise<any>;
   onCloseSignal(): Promise<void>;
   onRawMessage(message: RawMessageForAgent): Promise<void>;
 }
@@ -63,6 +65,8 @@ export interface ProviderTransport {
 export interface ProviderEventHandlers {
   onProviderStart: (vars: ProviderInitVars) => Promise<ProviderStartResult>;
   onProviderAgentStart: (message: AgentStartMessage) => Promise<void>;
+  onProviderStop: (vars: ProviderInitVars) => Promise<void>;
+  onGetDiffFiles: () => Promise<any>;
   onCloseSignal: () => Promise<void>;
   onRawMessage: (message: RawMessageForAgent) => Promise<void>;
 }

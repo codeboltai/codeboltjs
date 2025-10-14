@@ -79,6 +79,34 @@ export class GitWorktreeProviderService
     await super.onProviderAgentStart(agentMessage);
   }
 
+  /**
+   * Provider stop handler - stops the agent server and cleans up resources
+   */
+  async onProviderStop(initVars: ProviderInitVars): Promise<void> {
+    this.logger.log('Provider stop requested for environment:', initVars.environmentName);
+    
+    try {
+      // Stop the agent server
+      await this.stopAgentServer();
+      
+      // Remove the worktree
+      if (this.state.projectPath) {
+        await this.removeWorktree(this.state.projectPath);
+      }
+      
+      // Disconnect transport
+      await this.disconnectTransport();
+      
+      // Reset state
+      this.resetState();
+      
+      this.logger.log('Provider stopped successfully for environment:', initVars.environmentName);
+    } catch (error) {
+      this.logger.error('Error stopping provider for environment:', initVars.environmentName, error);
+      throw error;
+    }
+  }
+
   async onGetDiffFiles(): Promise<DiffResult> {
     this.logger.log('Getting diff files from worktree');
 

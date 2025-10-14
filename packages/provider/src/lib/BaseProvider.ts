@@ -101,6 +101,28 @@ export abstract class BaseProvider
   }
 
   /**
+   * Provider stop handler - stops the provider and cleans up resources
+   */
+  async onProviderStop(initVars: ProviderInitVars): Promise<void> {
+    this.resetState();
+    this.state.environmentName = initVars.environmentName;
+
+    try {
+      await this.beforeClose();
+    } finally {
+      await this.disconnectTransport();
+      await this.teardownEnvironment();
+      this.state.initialized = false;
+    }
+  }
+
+  /**
+   * Get diff files handler - returns diff information for changed files
+   * Must be implemented by subclasses.
+   */
+  abstract onGetDiffFiles(): Promise<any>;
+
+  /**
    * Graceful shutdown and cleanup entry point.
    */
   async onCloseSignal(): Promise<void> {
@@ -136,6 +158,8 @@ export abstract class BaseProvider
     return {
       onProviderStart: (vars) => this.onProviderStart(vars),
       onProviderAgentStart: (msg) => this.onProviderAgentStart(msg),
+      onProviderStop: (vars) => this.onProviderStop(vars),
+      onGetDiffFiles: () => this.onGetDiffFiles(),
       onCloseSignal: () => this.onCloseSignal(),
       onRawMessage: (msg) => this.onRawMessage(msg),
     };

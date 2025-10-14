@@ -27,7 +27,7 @@ import { notificationFunctions, type NotificationFunctions } from '../notificati
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
-import {RawMessageForAgent,AgentStartMessage,ProviderInitVars} from '@codebolt/types/provider'
+import { RawMessageForAgent, AgentStartMessage, ProviderInitVars } from '@codebolt/types/provider'
 
 /**
  * @class Codebolt
@@ -59,7 +59,7 @@ class Codebolt {
             this.websocket = cbws.getWebsocket;
             this.isReady = true;
             console.log("Codebolt WebSocket connection established");
-            
+
             // Execute all registered ready handlers
             for (const handler of this.readyHandlers) {
                 try {
@@ -116,7 +116,7 @@ class Codebolt {
     agent = cbagent;
     utils = cbutils;
     notify = notificationFunctions;
-    
+
     /**
      * User message utilities for accessing current user message and context
      */
@@ -156,7 +156,7 @@ class Codebolt {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
-                console.log("Message received By Agent Library Starting Custom Agent Handler Logic",response);
+                console.log("Message received By Agent Library Starting Custom Agent Handler Logic", response);
                 if (response.type === "messageResponse") {
                     try {
                         // Extract user-facing message from internal socket message
@@ -175,7 +175,7 @@ class Codebolt {
                             messageId: response.message.messageId,
                             threadId: response.message.threadId,
                             selection: response.message.selection,
-                            remixPrompt:response.message.remixPrompt,
+                            remixPrompt: response.message.remixPrompt,
                             mentionedAgents: response.message.mentionedAgents || [],
                             activeFile: response.message.activeFile,
                             openedFiles: response.message.activeFile
@@ -189,12 +189,12 @@ class Codebolt {
                         const message: any = {
                             "type": "processStoped"
                         };
-                        
+
                         // If handler returned data, include it as message
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in user message handler:', error);
@@ -216,8 +216,8 @@ class Codebolt {
     onRawMessage(handler: (userMessage: RawMessageForAgent) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleRawUserMessage = async (response: any) => {
-                if (response.type != "messageResponse" &&  response.type!="providerStart" && response.type!="providerAgentStart") {
-                   handler(response);
+                if (response.type != "messageResponse" && response.type != "providerStart" && response.type != "providerAgentStart") {
+                    handler(response);
                 }
             };
             cbws.messageManager.on('message', handleRawUserMessage);
@@ -236,16 +236,17 @@ class Codebolt {
             const handleProviderStart = async (response: { type: string; environmentName: string }) => {
                 if (response.type === "providerStart") {
                     try {
-                        const result = await handler(response|| {});
-                        
+                        const result = await handler(response || {});
+
                         const message: any = {
-                            "type": "providerStartResponse"
+                            "type": "remoteProviderEvent",
+                            "action": "providerStartResponse"
                         };
-                        
+
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in provider start handler:', error);
@@ -274,22 +275,24 @@ class Codebolt {
                 console.log("Provider agent start event received");
                 if (response.type === "providerAgentStart") {
                     try {
-                       
+
                         const result = await handler(response.userMessage);
-                        
+
                         const message: any = {
-                            "type": "providerAgentStartResponse"
+                            "type": "remoteProviderEvent",
+                            "action": "providerAgentStartResponse"
                         };
-                        
+
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in provider agent start handler:', error);
                         cbws.messageManager.send({
-                            "type": "providerAgentStartResponse",
+                            "type": "remoteProviderEvent",
+                            "action": "providerAgentStartResponse",
                             "error": error instanceof Error ? error.message : "Unknown error occurred"
                         });
                     }
@@ -303,6 +306,45 @@ class Codebolt {
     }
 
     /**
+     * Sets up a listener for provider stop events.
+     * @param {Function} handler - The handler function to call when provider stops.
+     * @returns {void}
+     */
+    onProviderStop(handler: (initvars: ProviderInitVars) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleProviderStop = async (response: { type: string; environmentName: string }) => {
+                if (response.type === "providerStop") {
+                    try {
+                        const result = await handler(response || {});
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerStopResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in provider stop handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerStopResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleProviderStop);
+        }).catch(error => {
+            console.error('Failed to set up provider stop handler:', error);
+        });
+    }
+
+    /**
      * Sets up a listener for get diff files events.
      * @param {Function} handler - The handler function to call when diff files are requested.
      * @returns {void}
@@ -311,13 +353,20 @@ class Codebolt {
         this.waitForReady().then(() => {
             const handleGetDiffFiles = async (response: any) => {
                 console.log("Get diff files event received");
-                if (response.type === "getDiffFiles") {
+                if (response.type === "providerGetDiffFiles") {
                     try {
                         const result = await handler();
-                        
-                        
-                        
-                        cbws.messageManager.send(result);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerDiffFilesResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in get diff files handler:', error);
                         cbws.messageManager.send({
@@ -346,15 +395,15 @@ class Codebolt {
                 if (response.type === "closeSignal") {
                     try {
                         const result = await handler();
-                        
+
                         const message: any = {
                             "type": "closeSignalResponse"
                         };
-                        
+
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in close signal handler:', error);
@@ -384,15 +433,15 @@ class Codebolt {
                 if (response.type === "createPatchRequest") {
                     try {
                         const result = await handler();
-                        
+
                         const message: any = {
                             "type": "createPatchRequestResponse"
                         };
-                        
+
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in create patch request handler:', error);
@@ -422,15 +471,15 @@ class Codebolt {
                 if (response.type === "createPullRequestRequest") {
                     try {
                         const result = await handler();
-                        
+
                         const message: any = {
                             "type": "createPullRequestRequestResponse"
                         };
-                        
+
                         if (result !== undefined && result !== null) {
                             message.message = result;
                         }
-                        
+
                         cbws.messageManager.send(message);
                     } catch (error) {
                         console.error('Error in create pull request handler:', error);

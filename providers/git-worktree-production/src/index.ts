@@ -6,5 +6,7 @@ const handlers = providerService.getEventHandlers();
 
 codebolt.onProviderStart(handlers.onProviderStart);
 codebolt.onProviderAgentStart(handlers.onProviderAgentStart);
+codebolt.onProviderStop(handlers.onProviderStop);
 codebolt.onCloseSignal(handlers.onCloseSignal);
 codebolt.onRawMessage(handlers.onRawMessage);
+codebolt.onGetDiffFiles(handlers.onGetDiffFiles);

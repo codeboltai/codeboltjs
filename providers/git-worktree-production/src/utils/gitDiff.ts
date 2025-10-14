@@ -56,27 +56,33 @@ export async function getDiff(options: GetDiffOptions): Promise<DiffResult> {
     const deletions = (fileDiff.match(/^-(?!--)/gm) ?? []).length;
 
     files.push({
-      file: filename,
-      changes: insertions + deletions,
-      insertions,
-      deletions,
-      binary: false,
+      path: filename,
       status: fileStatus,
+      changes: {
+        additions: insertions,
+        deletions: deletions,
+        changes: insertions + deletions,
+      },
       diff: fileDiff,
     });
   }
 
+  const summary = {
+    totalFiles: files.length,
+    totalAdditions: files.reduce((sum, file) => sum + (file.changes?.additions ?? 0), 0),
+    totalDeletions: files.reduce((sum, file) => sum + (file.changes?.deletions ?? 0), 0),
+    totalChanges: files.reduce((sum, file) => sum + (file.changes?.changes ?? 0), 0),
+  };
+
   const result: DiffResult = {
     files,
-    insertions: files.reduce((sum, file) => sum + file.insertions, 0),
-    deletions: files.reduce((sum, file) => sum + file.deletions, 0),
-    changed: files.length,
+    summary,
     rawDiff,
   };
 
-  logger.log('Found', result.changed, 'changed files');
-  logger.log('Total insertions:', result.insertions);
-  logger.log('Total deletions:', result.deletions);
+  logger.log('Found', files.length, 'changed files');
+  logger.log('Total insertions:', summary.totalAdditions);
+  logger.log('Total deletions:', summary.totalDeletions);
 
   return result;
 }
