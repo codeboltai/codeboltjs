@@ -1,6 +1,7 @@
 package helpbar
 
 import (
+	"regexp"
 	"strings"
 
 	"gotui/internal/styles"
@@ -127,7 +128,7 @@ func New() *HelpBar {
 	return &HelpBar{
 		keyMap:  DefaultKeyMap(),
 		visible: true,
-		height:  3, // Allow for more vertical space
+		height:  3,
 	}
 }
 
@@ -185,7 +186,6 @@ func (h *HelpBar) View() string {
 
 	theme := styles.CurrentTheme()
 
-	// Define help sections
 	helpSections := [][]key.Binding{
 		{h.keyMap.Submit, h.keyMap.Newline, h.keyMap.FocusChat, h.keyMap.ShowCommands},
 		{h.keyMap.ScrollUp, h.keyMap.ScrollDown},
@@ -196,113 +196,43 @@ func (h *HelpBar) View() string {
 	}
 
 	var helpItems []string
-
 	for _, section := range helpSections {
 		var sectionItems []string
 		for _, binding := range section {
 			help := binding.Help()
-			if help.Key != "" && help.Desc != "" {
-				item := lipgloss.JoinHorizontal(
-					lipgloss.Center,
-					lipgloss.NewStyle().
-						Foreground(theme.Primary).
-						Bold(true).
-						Render(help.Key),
-					lipgloss.NewStyle().
-						Foreground(theme.Muted).
-						Render(" "+help.Desc),
-				)
-				sectionItems = append(sectionItems, item)
+			if help.Key == "" || help.Desc == "" {
+				continue
 			}
+			item := lipgloss.JoinHorizontal(
+				lipgloss.Center,
+				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render(help.Key),
+				lipgloss.NewStyle().Foreground(theme.Muted).Render(" "+help.Desc),
+			)
+			sectionItems = append(sectionItems, item)
 		}
 		if len(sectionItems) > 0 {
-			helpItems = append(helpItems, lipgloss.JoinHorizontal(
-				lipgloss.Center,
-				sectionItems...,
-			))
+			helpItems = append(helpItems, lipgloss.JoinHorizontal(lipgloss.Center, sectionItems...))
 		}
 	}
 
-	// Join sections with separators
 	var finalItems []string
 	for i, item := range helpItems {
 		finalItems = append(finalItems, item)
 		if i < len(helpItems)-1 {
-			finalItems = append(finalItems, lipgloss.NewStyle().
-				Foreground(theme.Border).
-				Render(" • "))
+			finalItems = append(finalItems, lipgloss.NewStyle().Foreground(theme.Border).Render(" • "))
 		}
 	}
 
 	helpContent := lipgloss.JoinHorizontal(lipgloss.Center, finalItems...)
 
-	if strings.TrimSpace(helpContent) == "" {
-		essential := []string{
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("enter"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" send"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("tab"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" focus"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("ctrl+c"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" quit"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("?"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" help"),
-			),
-		}
-
-		var essentials []string
-		for i, item := range essential {
-			essentials = append(essentials, item)
-			if i < len(essential)-1 {
-				essentials = append(essentials, lipgloss.NewStyle().Foreground(theme.Border).Render(" • "))
-			}
-		}
-
-		helpContent = lipgloss.JoinHorizontal(lipgloss.Center, essentials...)
+	if strings.TrimSpace(stripANSI(helpContent)) == "" {
+		helpContent = defaultHelpContent(theme)
 	}
 
-	// Truncate if too long
 	if lipgloss.Width(helpContent) > h.width-4 {
-		// Show only essential bindings
-		essential := []string{
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("enter"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" send"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("tab"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" focus"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("ctrl+c"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" quit"),
-			),
-			lipgloss.JoinHorizontal(lipgloss.Center,
-				lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render("?"),
-				lipgloss.NewStyle().Foreground(theme.Muted).Render(" help"),
-			),
-		}
-
-		var essentialContent []string
-		for i, item := range essential {
-			essentialContent = append(essentialContent, item)
-			if i < len(essential)-1 {
-				essentialContent = append(essentialContent, lipgloss.NewStyle().
-					Foreground(theme.Border).
-					Render(" • "))
-			}
-		}
-
-		helpContent = lipgloss.JoinHorizontal(lipgloss.Center, essentialContent...)
+		helpContent = defaultHelpContent(theme)
 	}
 
-	// Ensure minimum dimensions
 	width := h.width
 	height := h.height
 	if width <= 0 {
@@ -312,13 +242,43 @@ func (h *HelpBar) View() string {
 		height = 3
 	}
 
-	// Ensure full-width background to avoid black strip at bottom
 	return lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		// Background(theme.Background).
 		Foreground(theme.Foreground).
 		Align(lipgloss.Center).
 		Padding(0, 1).
 		Render(helpContent)
+}
+
+var ansiEscapeCodes = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func stripANSI(s string) string {
+	return ansiEscapeCodes.ReplaceAllString(s, "")
+}
+
+func defaultHelpContent(theme styles.Theme) string {
+	entries := []struct {
+		key  string
+		desc string
+	}{
+		{"enter", "send"},
+		{"tab", "focus"},
+		{"ctrl+c", "quit"},
+		{"?", "help"},
+	}
+
+	var parts []string
+	for i, entry := range entries {
+		part := lipgloss.JoinHorizontal(lipgloss.Center,
+			lipgloss.NewStyle().Foreground(theme.Primary).Bold(true).Render(entry.key),
+			lipgloss.NewStyle().Foreground(theme.Muted).Render(" "+entry.desc),
+		)
+		parts = append(parts, part)
+		if i < len(entries)-1 {
+			parts = append(parts, lipgloss.NewStyle().Foreground(theme.Border).Render(" • "))
+		}
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Center, parts...)
 }

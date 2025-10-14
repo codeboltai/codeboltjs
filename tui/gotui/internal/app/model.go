@@ -24,6 +24,8 @@ import (
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/helpbar"
 	"gotui/internal/layout/tabpages"
+	"gotui/internal/messaging/messagehandler"
+	"gotui/internal/messaging/messagesender"
 	"gotui/internal/styles"
 	"gotui/internal/wsclient"
 )
@@ -71,6 +73,9 @@ type Model struct {
 	helpBar  *helpbar.HelpBar
 	logsPage *tabpages.LogsPage
 	gitPage  *tabpages.GitPage
+
+	messageSender  *messagesender.Sender
+	messageHandler *messagehandler.Handler
 
 	// State
 	retryCount  int
@@ -130,19 +135,34 @@ func NewModel(cfg Config) *Model {
 		logsPage.NotificationsPanel().AddLine(notifLine)
 	})
 
+	sender := messagesender.New(wsClient, cfg.Agent)
+
+	var handler *messagehandler.Handler
+	if chatComp != nil {
+		handler = messagehandler.New(chatComp, func(entry string) {
+			if strings.TrimSpace(entry) == "" {
+				return
+			}
+			logsPage.LogsPanel().AddLine(entry)
+		})
+		wsClient.OnMessage(handler.HandleRaw)
+	}
+
 	m := &Model{
-		cfg:         cfg,
-		wsClient:    wsClient,
-		agent:       cfg.Agent,
-		tuiID:       cfg.TuiID,
-		chatPage:    chatPage,
-		helpBar:     helpBarComp,
-		logsPage:    logsPage,
-		gitPage:     gitPage,
-		tabs:        tabs,
-		activeTab:   tabChat,
-		chatFocused: true,
-		keyMap:      helpbar.DefaultKeyMap(),
+		cfg:            cfg,
+		wsClient:       wsClient,
+		agent:          cfg.Agent,
+		tuiID:          cfg.TuiID,
+		chatPage:       chatPage,
+		helpBar:        helpBarComp,
+		logsPage:       logsPage,
+		gitPage:        gitPage,
+		tabs:           tabs,
+		activeTab:      tabChat,
+		chatFocused:    true,
+		keyMap:         helpbar.DefaultKeyMap(),
+		messageSender:  sender,
+		messageHandler: handler,
 	}
 
 	// Focus chat initially
@@ -359,12 +379,11 @@ func (m *Model) fetchModelOptions() tea.Cmd {
 }
 
 func (m *Model) sendUserMessage(content string) tea.Cmd {
-	agent := m.agent
 	return func() tea.Msg {
-		if m.wsClient == nil {
-			return sendUserMessageResult{err: errors.New("websocket client not initialized")}
+		if m.messageSender == nil {
+			return sendUserMessageResult{err: errors.New("message sender not initialized")}
 		}
-		if err := m.wsClient.SendUserMessage(content, agent); err != nil {
+		if err := m.messageSender.Send(content); err != nil {
 			return sendUserMessageResult{err: err}
 		}
 		return sendUserMessageResult{}
@@ -573,13 +592,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		trimmed := strings.TrimSpace(content)
 		if trimmed == "" {
 			return m, nil
-		}
-		if strings.HasPrefix(trimmed, "/") {
-			command := strings.TrimSpace(trimmed[1:])
-			if command == "" {
-				return m, nil
-			}
-			return m, m.executeCommand(command)
 		}
 		if m.wsClient == nil || !m.wsClient.IsConnected() {
 			errText := "❌ Not connected to server. Press Ctrl+R to retry."
@@ -829,7 +841,10 @@ func (m *Model) runGitCommand(args ...string) []string {
 }
 
 // executeCommand executes the given command
-func (m *Model) executeCommand(input string) tea.Cmd {
+func (m *Model) executeCommand(string) tea.Cmd { return nil }
+
+/*
+func (m *Model) legacyExecuteCommand(input string) tea.Cmd {
 	parts := strings.Fields(input)
 	if len(parts) == 0 {
 		return nil
@@ -964,6 +979,7 @@ func (m *Model) executeCommand(input string) tea.Cmd {
 		return nil
 	}
 }
+*/
 
 // updateLayout updates component sizes based on window dimensions
 func (m *Model) updateLayout() {

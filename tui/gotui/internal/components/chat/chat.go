@@ -83,12 +83,12 @@ func defaultSlashCommands() []chatcomponents.SlashCommand {
 	return []chatcomponents.SlashCommand{
 		{Name: "models", Description: "Switch active AI model", Usage: "/models"},
 		{Name: "theme", Description: "Switch TUI color theme", Usage: "/theme"},
-		{Name: "ask", Description: "Ask the AI assistant", Usage: "/ask <prompt>"},
-		{Name: "read", Description: "Read a file from the project", Usage: "/read <filepath>"},
-		{Name: "write", Description: "Write content to a file", Usage: "/write <filepath> <content>"},
-		{Name: "test", Description: "Send a test message to the server", Usage: "/test"},
+		// {Name: "ask", Description: "Ask the AI assistant", Usage: "/ask <prompt>"},
+		// {Name: "read", Description: "Read a file from the project", Usage: "/read <filepath>"},
+		// {Name: "write", Description: "Write content to a file", Usage: "/write <filepath> <content>"},
+		// {Name: "test", Description: "Send a test message to the server", Usage: "/test"},
 		{Name: "help", Description: "Show available commands", Usage: "/help"},
-		{Name: "clear", Description: "Show a tip for managing panels", Usage: "/clear"},
+		// {Name: "clear", Description: "Show a tip for managing panels", Usage: "/clear"},
 	}
 }
 
@@ -143,45 +143,6 @@ func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 // AddMessage adds a message to the chat
 func (c *Chat) AddMessage(msgType, content string) {
 	c.appendMessageToActiveConversation(msgType, content, nil)
-}
-
-// AddFileReadMessage adds a file read message with metadata
-func (c *Chat) AddFileReadMessage(filePath, content string) {
-	c.appendMessageToActiveConversation("read_file", content, map[string]interface{}{
-		"file_path": filePath,
-	})
-}
-
-// AddFileWriteMessage adds a file write message with metadata
-func (c *Chat) AddFileWriteMessage(filePath, content, operation string) {
-	c.appendMessageToActiveConversation("write_file", content, map[string]interface{}{
-		"file_path": filePath,
-		"operation": operation,
-	})
-}
-
-// AddFileOperationMessage adds a general file operation message with metadata
-func (c *Chat) AddFileOperationMessage(operation, filePath, content string, success bool, targetPath string) {
-	metadata := map[string]interface{}{
-		"operation": operation,
-		"file_path": filePath,
-		"success":   success,
-	}
-	if targetPath != "" {
-		metadata["target_path"] = targetPath
-	}
-	c.appendMessageToActiveConversation("file_operation", content, metadata)
-}
-
-// AddToolExecutionMessage adds a tool execution message with metadata
-func (c *Chat) AddToolExecutionMessage(toolName, command, status, output, content string) {
-	metadata := map[string]interface{}{
-		"tool_name": toolName,
-		"command":   command,
-		"status":    status,
-		"output":    output,
-	}
-	c.appendMessageToActiveConversation("tool_execution", content, metadata)
 }
 
 // SetModelOptions updates the available model selections sourced from the server

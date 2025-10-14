@@ -63,6 +63,7 @@ type Client struct {
 	pending    map[string]chan Response
 	logf       func(string)
 	onNotif    func(Notification)
+	onMessage  func([]byte)
 	config     Config
 	tuiID      string
 	pingTicker *time.Ticker
@@ -105,6 +106,7 @@ func New(cfg Config) *Client {
 		pending:    make(map[string]chan Response),
 		logf:       func(string) {},
 		onNotif:    func(Notification) {},
+		onMessage:  func([]byte) {},
 		config:     cfg,
 		tuiID:      tuiID,
 		stopPingCh: make(chan struct{}),
@@ -113,6 +115,7 @@ func New(cfg Config) *Client {
 
 func (c *Client) SetLogger(logf func(string))          { c.logf = logf }
 func (c *Client) OnNotification(fn func(Notification)) { c.onNotif = fn }
+func (c *Client) OnMessage(fn func([]byte))            { c.onMessage = fn }
 
 func (c *Client) Connect(ctx context.Context) error {
 	c.mu.RLock()
@@ -211,6 +214,7 @@ func (c *Client) readLoop() {
 			continue
 		}
 		c.logf(fmt.Sprintf("WS recv: %s", string(data)))
+		c.onMessage(data)
 	}
 }
 
@@ -287,105 +291,6 @@ func (c *Client) Request(ctx context.Context, msgType string, fields map[string]
 		c.mu.Unlock()
 		return Response{}, errors.New("request timeout")
 	}
-}
-
-func (c *Client) SendUserMessage(content string, agent AgentSelection) error {
-	if strings.TrimSpace(content) == "" {
-		return errors.New("message content cannot be empty")
-	}
-	if agent.ID == "" {
-		agent.ID = uuid.NewString()
-	}
-	if agent.Name == "" {
-		agent.Name = "Default Agent"
-	}
-
-	messageID := uuid.NewString()
-	threadID := uuid.NewString()
-	selectedAgent := map[string]any{
-		"id":   agent.ID,
-		"name": agent.Name,
-	}
-	if agent.AgentType != "" {
-		selectedAgent["agentType"] = agent.AgentType
-	}
-	if agent.AgentDetails != "" {
-		selectedAgent["agentDetails"] = agent.AgentDetails
-	}
-
-	payload := map[string]any{
-		"type": "messageResponse",
-		"message": map[string]any{
-			"userMessage":        content,
-			"selectedAgent":      selectedAgent,
-			"mentionedFiles":     []string{},
-			"mentionedFullPaths": []string{},
-			"mentionedFolders":   []string{},
-			"mentionedMCPs":      []string{},
-			"uploadedImages":     []string{},
-			"mentionedAgents":    []any{},
-			"mentionedDocs":      []any{},
-			"links":              []any{},
-			"messageId":          messageID,
-			"threadId":           threadID,
-		},
-		"sender": map[string]any{
-			"senderType": "user",
-			"senderInfo": map[string]any{"name": "user"},
-		},
-		"templateType": "",
-		"data": map[string]any{
-			"text": "",
-		},
-		"messageId": messageID,
-		"timestamp": fmt.Sprintf("%d", time.Now().UnixMilli()),
-	}
-
-	return c.sendRaw(payload)
-}
-
-func (c *Client) ReadFile(ctx context.Context, filepath string) (string, error) {
-	resp, err := c.Request(ctx, "readFile", map[string]any{"filePath": filepath})
-	if err != nil {
-		return "", err
-	}
-	if !resp.Success {
-		return "", fmt.Errorf(resp.Error)
-	}
-	if s, ok := resp.Data.(string); ok {
-		return s, nil
-	}
-	if m, ok := resp.Data.(map[string]any); ok {
-		if content, ok := m["content"].(string); ok {
-			return content, nil
-		}
-	}
-	return "", nil
-}
-
-func (c *Client) WriteFile(ctx context.Context, filepath, content string) error {
-	resp, err := c.Request(ctx, "writeFile", map[string]any{"filePath": filepath, "content": content})
-	if err != nil {
-		return err
-	}
-	if !resp.Success {
-		return fmt.Errorf(resp.Error)
-	}
-	return nil
-}
-
-func (c *Client) AskAI(ctx context.Context, prompt string) (string, error) {
-	resp, err := c.Request(ctx, "askAI", map[string]any{"prompt": prompt})
-	if err != nil {
-		return "", err
-	}
-	if !resp.Success {
-		return "", fmt.Errorf(resp.Error)
-	}
-	if s, ok := resp.Data.(string); ok {
-		return s, nil
-	}
-	return "", nil
 }
 
 func (c *Client) startPing() {

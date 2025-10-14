@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 )
 
-// ChatInput represents the chat input component
+// ChatInput represents the chat input component used for composing messages.
 type ChatInput struct {
 	textarea textarea.Model
 	width    int
@@ -16,18 +16,15 @@ type ChatInput struct {
 	focused  bool
 }
 
-// NewChatInput creates a new ChatInput component
+// NewChatInput creates a new ChatInput component with default styling and behavior.
 func NewChatInput() *ChatInput {
-	// Initialize textarea
 	ta := textarea.New()
-	ta.Placeholder = "Type your message here... (e.g., read package.json, ask \"What is Go?\")"
+	ta.Placeholder = "Type your message here... (e.g., ask \"What is Go?\")"
 	ta.Focus()
 	ta.CharLimit = 0
 	ta.SetHeight(3)
 	ta.ShowLineNumbers = false
 
-	// Completely reset all styles to remove any default backgrounds
-	// This ensures no background colors are inherited from defaults
 	ta.Styles = textarea.Styles{
 		Focused: textarea.StyleState{
 			Base:             lipgloss.NewStyle(),
@@ -63,7 +60,7 @@ func NewChatInput() *ChatInput {
 	}
 }
 
-// SetSize sets the input component dimensions
+// SetSize updates the component dimensions.
 func (ci *ChatInput) SetSize(width, height int) {
 	ci.width = width
 	ci.height = height
@@ -71,29 +68,29 @@ func (ci *ChatInput) SetSize(width, height int) {
 	ci.textarea.SetHeight(height)
 }
 
-// Focus focuses the input
+// Focus sets focus on the textarea and returns any command emitted by Bubble Tea.
 func (ci *ChatInput) Focus() tea.Cmd {
 	ci.focused = true
 	return ci.textarea.Focus()
 }
 
-// Blur blurs the input
+// Blur removes focus from the textarea.
 func (ci *ChatInput) Blur() {
 	ci.focused = false
 	ci.textarea.Blur()
 }
 
-// IsFocused returns whether the input is focused
+// IsFocused reports whether the textarea currently has focus.
 func (ci *ChatInput) IsFocused() bool {
 	return ci.focused
 }
 
-// GetValue returns the current input value
+// GetValue returns the trimmed input value.
 func (ci *ChatInput) GetValue() string {
 	return strings.TrimSpace(ci.textarea.Value())
 }
 
-// RawValue returns the raw textarea content without trimming.
+// RawValue returns the untrimmed textarea content.
 func (ci *ChatInput) RawValue() string {
 	return ci.textarea.Value()
 }
@@ -103,7 +100,7 @@ func (ci *ChatInput) SetValue(value string) {
 	ci.textarea.SetValue(value)
 }
 
-// SetValueAndCursor sets the textarea value and moves the cursor to the given column.
+// SetValueAndCursor replaces the content and positions the cursor.
 func (ci *ChatInput) SetValueAndCursor(value string, cursor int) {
 	ci.textarea.SetValue(value)
 	if cursor < 0 {
@@ -112,17 +109,17 @@ func (ci *ChatInput) SetValueAndCursor(value string, cursor int) {
 	ci.textarea.SetCursorColumn(cursor)
 }
 
-// Clear clears the input
+// Clear removes all content from the textarea.
 func (ci *ChatInput) Clear() {
 	ci.textarea.Reset()
 }
 
-// InsertRune inserts a rune at the cursor position
+// InsertRune inserts a rune at the current cursor position.
 func (ci *ChatInput) InsertRune(r rune) {
 	ci.textarea.InsertRune(r)
 }
 
-// Update handles messages for the input component
+// Update processes incoming Bubble Tea messages.
 func (ci *ChatInput) Update(msg tea.Msg) (*ChatInput, tea.Cmd) {
 	if isMouseMsg(msg) {
 		return ci, nil
@@ -132,13 +129,11 @@ func (ci *ChatInput) Update(msg tea.Msg) (*ChatInput, tea.Cmd) {
 	return ci, cmd
 }
 
-// View renders the input component
+// View renders the textarea.
 func (ci *ChatInput) View() string {
 	if ci.width <= 0 || ci.height <= 0 {
 		return ""
 	}
-
-	// Simple approach like Bubble Tea chat example
 	return ci.textarea.View()
 }
 
