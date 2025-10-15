@@ -32,7 +32,10 @@ export class AgentExecutorServer {
     this.app = express();
     this.server = createServer(this.app);
     this.childAgentProcessManager = new ChildAgentProcessManager();
+    
+    // Create HttpHandler without project path
     this.httpHandler = new HttpHandler(this.app);
+    
     this.websocketServer = new WebSocketServer(this.server);
     this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
 

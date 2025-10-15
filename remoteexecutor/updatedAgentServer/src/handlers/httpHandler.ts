@@ -9,6 +9,8 @@ import {
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { logger } from '../utils/logger';
 import { getAvailableModels } from '../models/modelRegistry';
+import { McpRoutes } from '../routes/mcpRoutes';
+import { TodoRoutes } from '../routes/todoRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,10 +21,14 @@ const __dirname = path.dirname(__filename);
 export class HttpHandler {
   private startTime: Date;
   private connectionManager: ConnectionManager;
+  private mcpRoutes: McpRoutes;
+  private todoRoutes: TodoRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
     this.connectionManager = ConnectionManager.getInstance();
+    this.mcpRoutes = new McpRoutes();
+    this.todoRoutes = new TodoRoutes();
     this.setupRoutes();
   }
 
@@ -31,6 +37,12 @@ export class HttpHandler {
    */
   private setupRoutes(): void {
     this.app.use(express.json());
+    
+    // Mount MCP routes
+    this.app.use('/mcp', this.mcpRoutes.router);
+    
+    // Mount Todo routes
+    this.app.use('/todos', this.todoRoutes.router);
     
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
@@ -156,7 +168,9 @@ export class HttpHandler {
         info: '/info',
         models: '/models',
         bundle: '/bundle/',
-        download: '/download/sampleagent'
+        download: '/download/sampleagent',
+        mcp: '/mcp/',
+        todos: '/todos/'
       },
       websocket: 'ws://localhost:3001',
       documentation: 'See README.md for API documentation'

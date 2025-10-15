@@ -1,5 +1,30 @@
 import { ServerConfig, DEFAULT_SERVER_CONFIG } from './types';
 
+
+import path from "path"; 
+import os from "os";
+ 
+
+ export function CodeboltApplicationPath(): string {
+    // For testing purposes, return the specified test path
+    // return '/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/remote-agent';
+    
+    const platform = os.platform();
+    
+    switch (platform) {
+      case 'darwin': // macOS
+        return path.join(os.homedir(), 'Library', 'Application Support', 'codebolt', '.codebolt');
+      case 'win32': // Windows
+        return path.join(os.homedir(), 'AppData', 'Local', 'codebolt', '.codebolt');
+      case 'linux':
+        return path.join(os.homedir(), '.local', 'share', 'codebolt', '.codebolt');
+      default:
+        // Fallback to a generic path
+        return path.join(os.homedir(), '.codebolt');
+    }
+    
+  }
+
 // Store the custom port if set
 let customPort: number | null = null;
 

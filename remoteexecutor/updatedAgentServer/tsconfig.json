@@ -18,7 +18,7 @@
       "@codebolt/types/sdk": ["../../../common/types/dist/sdk-types"],
       "@/*": ["./*"]
     },
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": [
     "src/**/*.ts"
