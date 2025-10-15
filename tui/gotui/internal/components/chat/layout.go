@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"fmt"
 	"strings"
 
 	"gotui/internal/styles"
@@ -270,27 +269,6 @@ func (c *Chat) estimateHorizontalConversationHeight(width int) int {
 	return maxInt(singleColumnMinConversationHeight, height)
 }
 
-func (c *Chat) renderModelStatus() string {
-	if c.selectedModel == nil {
-		return ""
-	}
-	theme := styles.CurrentTheme()
-	model := fmt.Sprintf("Model: %s", c.selectedModel.Name)
-	provider := c.selectedModel.Provider
-	if provider != "" {
-		model += fmt.Sprintf("  •  %s", provider)
-	}
-	if c.selectedModel.Context != "" {
-		model += fmt.Sprintf("  •  %s context", c.selectedModel.Context)
-	}
-	return lipgloss.NewStyle().
-		Foreground(theme.Primary).
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(theme.Primary).
-		Padding(0, 1).
-		Render(model)
-}
-
 func (c *Chat) renderChatArea(mainWidth int) string {
 	chatWidth := mainWidth
 	if chatWidth <= 0 {
@@ -305,10 +283,14 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 
 	chatHistory := c.viewport.View()
 	inputArea := c.input.View()
-	if c.selectedModel != nil {
+	statusView := ""
+	if c.modelStatusWidget != nil {
+		statusView = c.modelStatusWidget.View()
+	}
+	if statusView != "" {
 		inputArea = lipgloss.JoinVertical(
 			lipgloss.Left,
-			c.renderModelStatus(),
+			statusView,
 			inputArea,
 		)
 	}

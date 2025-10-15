@@ -2,18 +2,15 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 
 	"gotui/internal/components/chatcomponents"
+	"gotui/internal/stores"
 )
 
 type connectMsg struct {
@@ -73,51 +70,19 @@ func (m *Model) tryConnect() tea.Cmd {
 
 func (m *Model) fetchModelOptions() tea.Cmd {
 	return func() tea.Msg {
-		scheme := "http"
-		protocol := strings.ToLower(strings.TrimSpace(m.cfg.Protocol))
-		if protocol == "https" || protocol == "wss" {
-			scheme = "https"
-		}
-		host := strings.TrimSpace(m.cfg.Host)
-		if host == "" {
-			host = "localhost"
-		}
-		url := fmt.Sprintf("%s://%s:%d/models", scheme, host, m.cfg.Port)
-
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if m.modelStore == nil {
+			m.modelStore = stores.SharedAIModelStore()
+		}
+
+		options, err := m.modelStore.Fetch(ctx, m.cfg.Protocol, m.cfg.Host, m.cfg.Port)
 		if err != nil {
 			return modelFetchResult{err: err}
 		}
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return modelFetchResult{err: err}
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-			snippet := strings.TrimSpace(string(body))
-			if snippet != "" {
-				err = fmt.Errorf("models request failed: %d %s", resp.StatusCode, snippet)
-			} else {
-				err = fmt.Errorf("models request failed with status %d", resp.StatusCode)
-			}
-			return modelFetchResult{err: err}
-		}
-
-		var payload struct {
-			Models []chatcomponents.ModelOption `json:"models"`
-		}
-
-		if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-			return modelFetchResult{err: err}
-		}
-
-		return modelFetchResult{options: payload.Models}
+		return modelFetchResult{options: options}
 	}
 }
 

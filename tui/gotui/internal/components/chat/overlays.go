@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"gotui/internal/components/chatcomponents"
+	"gotui/internal/stores"
 	"gotui/internal/styles"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -16,6 +17,17 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 	c.slashMenu.Close()
 	opt := option
 	c.selectedModel = &opt
+	if c.modelStatusWidget != nil {
+		c.modelStatusWidget.SetModel(c.selectedModel)
+	}
+	if store := c.ensureConversationStore(); store != nil {
+		activeID := store.ActiveID()
+		if activeID != "" {
+			copy := stores.ModelOption(option)
+			store.SetSelectedModel(activeID, &copy)
+		}
+	}
+	c.refreshConversationsFromStore(true)
 	c.AddMessage("system", fmt.Sprintf("🤖 Model set to %s (%s)", option.Name, option.Provider))
 	return tea.Cmd(func() tea.Msg {
 		return ModelSelectedMsg{Option: option}

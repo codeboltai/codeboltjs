@@ -1,26 +1,20 @@
 package chat
 
 import (
-	"fmt"
-	"sort"
 	"strings"
 	"time"
 
+	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/components/uicomponents/diffview"
+	"gotui/internal/stores"
 	"gotui/internal/styles"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
-// Conversation represents a single chat history thread.
-type Conversation struct {
-	ID        string
-	Title     string
-	Messages  []chattemplates.MessageTemplateData
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+// Conversation mirrors the shared conversation model stored in the central store.
+type Conversation = stores.Conversation
 
 // conversationRegion tracks screen coordinates for hover & click handling.
 type conversationRegion struct {
@@ -35,13 +29,127 @@ type verticalRegion struct {
 	yEnd   int
 }
 
+func (c *Chat) ensureConversationStore() *stores.ConversationStore {
+	if c == nil {
+		return nil
+	}
+	if c.conversationStore == nil {
+		c.conversationStore = stores.SharedConversationStore()
+	}
+	return c.conversationStore
+}
+
+func (c *Chat) defaultModelOption() *stores.ModelOption {
+	if c == nil {
+		return nil
+	}
+	if c.selectedModel != nil {
+		copy := stores.ModelOption(*c.selectedModel)
+		return &copy
+	}
+	if c.modelStore != nil {
+		if models := c.modelStore.Models(); len(models) > 0 {
+			copy := models[0]
+			return &copy
+		}
+	}
+	if len(c.modelOptions) > 0 {
+		copy := stores.ModelOption(c.modelOptions[0])
+		return &copy
+	}
+	return nil
+}
+
+func (c *Chat) applyDefaultModelIfMissing(conversationID string) {
+	store := c.ensureConversationStore()
+	if store == nil || conversationID == "" {
+		return
+	}
+	conv := store.Conversation(conversationID)
+	if conv == nil || conv.Options.SelectedModel != nil {
+		return
+	}
+	if model := c.defaultModelOption(); model != nil {
+		copy := *model
+		store.SetSelectedModel(conversationID, &copy)
+	}
+}
+
+func (c *Chat) applyDefaultModelToAllConversations() {
+	store := c.ensureConversationStore()
+	if store == nil {
+		return
+	}
+	convs := store.Conversations()
+	for _, conv := range convs {
+		if conv.Options.SelectedModel == nil {
+			if model := c.defaultModelOption(); model != nil {
+				copy := *model
+				store.SetSelectedModel(conv.ID, &copy)
+			}
+		}
+	}
+}
+
+func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
+	if c == nil {
+		return
+	}
+	store := c.ensureConversationStore()
+	if store == nil {
+		c.conversations = nil
+		c.activeConversationID = ""
+		c.selectedModel = nil
+		if c.modelStatusWidget != nil {
+			c.modelStatusWidget.SetModel(nil)
+		}
+		if syncPanels {
+			c.syncConversationPanelItems()
+		}
+		return
+	}
+	activeID := store.ActiveID()
+	if activeID != "" {
+		c.applyDefaultModelIfMissing(activeID)
+	}
+
+	c.conversations = store.Conversations()
+	c.activeConversationID = activeID
+
+	c.selectedModel = nil
+	if activeID != "" {
+		for _, conv := range c.conversations {
+			if conv != nil && conv.ID == activeID {
+				if conv.Options.SelectedModel != nil {
+					copy := chatcomponents.ModelOption(*conv.Options.SelectedModel)
+					c.selectedModel = &copy
+				}
+				break
+			}
+		}
+	}
+	if c.modelStatusWidget != nil {
+		c.modelStatusWidget.SetModel(c.selectedModel)
+	}
+
+	if syncPanels {
+		c.syncConversationPanelItems()
+	}
+}
+
 func (c *Chat) createInitialConversation() {
-	if len(c.conversations) > 0 {
+	store := c.ensureConversationStore()
+	if store.Count() > 0 {
+		c.refreshConversationsFromStore(true)
 		return
 	}
 
-	conv := c.newConversation("Conversation 1")
-	conv.Messages = append(conv.Messages, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil))
+	conv := store.CreateConversation("Conversation 1", stores.ConversationOptions{})
+	if conv == nil {
+		return
+	}
+
+	store.AppendMessage(conv.ID, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil))
 
 	sampleReadContent := strings.Join([]string{
 		"// Preview of the read file template",
@@ -51,19 +159,19 @@ func (c *Chat) createInitialConversation() {
 		"\treturn \"Hello from the read file template!\"",
 		"}",
 	}, "\n")
-	conv.Messages = append(conv.Messages, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}))
+	store.AppendMessage(conv.ID, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}))
 
 	if unifiedPreview, splitPreview := sampleDiffPreviews(); unifiedPreview != "" || splitPreview != "" {
 		if unifiedPreview != "" {
-			conv.Messages = append(conv.Messages, c.newMessageData("system", unifiedPreview, nil))
+			store.AppendMessage(conv.ID, c.newMessageData("system", unifiedPreview, nil))
 		}
 		if splitPreview != "" {
-			conv.Messages = append(conv.Messages, c.newMessageData("system", splitPreview, nil))
+			store.AppendMessage(conv.ID, c.newMessageData("system", splitPreview, nil))
 		}
 	}
 
-	c.conversations = []*Conversation{conv}
-	c.activeConversationID = conv.ID
+	c.applyDefaultModelIfMissing(conv.ID)
+	c.refreshConversationsFromStore(true)
 }
 
 func sampleDiffPreviews() (string, string) {
@@ -92,26 +200,17 @@ func sampleDiffLines() []diffview.DiffLine {
 	}
 }
 
-func (c *Chat) newConversation(title string) *Conversation {
-	c.conversationCounter++
-	now := time.Now()
-	return &Conversation{
-		ID:        fmt.Sprintf("conversation-%d", c.conversationCounter),
-		Title:     title,
-		Messages:  make([]chattemplates.MessageTemplateData, 0, 16),
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-}
-
 func (c *Chat) createNewConversation() tea.Cmd {
-	title := fmt.Sprintf("Conversation %d", c.conversationCounter+1)
-	conv := c.newConversation(title)
-	conv.Messages = append(conv.Messages, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil))
+	store := c.ensureConversationStore()
+	conv := store.CreateConversation("", stores.ConversationOptions{})
+	if conv == nil {
+		return nil
+	}
 
-	c.conversations = append(c.conversations, conv)
-	c.activeConversationID = conv.ID
-	c.resortConversations()
+	store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil))
+
+	c.applyDefaultModelIfMissing(conv.ID)
+	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 	c.hoverButton = false
 	c.hoverConversationID = conv.ID
@@ -120,6 +219,7 @@ func (c *Chat) createNewConversation() tea.Cmd {
 }
 
 func (c *Chat) loadActiveConversation() {
+	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 }
 
@@ -135,18 +235,19 @@ func (c *Chat) refreshActiveConversationView() {
 }
 
 func (c *Chat) appendMessageToActiveConversation(msgType, content string, metadata map[string]interface{}) {
-	conv := c.getActiveConversation()
+	store := c.ensureConversationStore()
+	conv := store.ActiveConversation()
 	if conv == nil {
 		c.createNewConversation()
-		conv = c.getActiveConversation()
+		conv = store.ActiveConversation()
 	}
 	if conv == nil {
 		return
 	}
 
-	conv.Messages = append(conv.Messages, c.newMessageData(msgType, content, metadata))
-	conv.UpdatedAt = time.Now()
-	c.resortConversations()
+	store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata))
+	c.applyDefaultModelIfMissing(conv.ID)
+	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 	c.ensureHoverSelection()
 }
@@ -155,11 +256,12 @@ func (c *Chat) switchConversation(conversationID string) {
 	if conversationID == "" || conversationID == c.activeConversationID {
 		return
 	}
-	if c.getConversationByID(conversationID) == nil {
+	store := c.ensureConversationStore()
+	if !store.SetActive(conversationID) {
 		return
 	}
 
-	c.activeConversationID = conversationID
+	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 	c.hoverButton = false
 	c.hoverConversationID = conversationID
@@ -167,26 +269,19 @@ func (c *Chat) switchConversation(conversationID string) {
 }
 
 func (c *Chat) getActiveConversation() *Conversation {
-	return c.getConversationByID(c.activeConversationID)
+	store := c.ensureConversationStore()
+	conv := store.ActiveConversation()
+	if conv != nil {
+		c.activeConversationID = conv.ID
+	} else {
+		c.activeConversationID = ""
+	}
+	return conv
 }
 
 func (c *Chat) getConversationByID(id string) *Conversation {
-	for _, conv := range c.conversations {
-		if conv.ID == id {
-			return conv
-		}
-	}
-	return nil
-}
-
-func (c *Chat) resortConversations() {
-	sort.SliceStable(c.conversations, func(i, j int) bool {
-		if c.conversations[i].UpdatedAt.Equal(c.conversations[j].UpdatedAt) {
-			return c.conversations[i].CreatedAt.After(c.conversations[j].CreatedAt)
-		}
-		return c.conversations[i].UpdatedAt.After(c.conversations[j].UpdatedAt)
-	})
-	c.syncConversationPanelItems()
+	store := c.ensureConversationStore()
+	return store.Conversation(id)
 }
 
 func (c *Chat) newMessageData(msgType, content string, metadata map[string]interface{}) chattemplates.MessageTemplateData {

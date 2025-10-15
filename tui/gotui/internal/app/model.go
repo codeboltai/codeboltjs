@@ -5,11 +5,12 @@ import (
 	"strings"
 
 	"gotui/internal/components/chat"
-	"gotui/internal/components/helpbar"
+	"gotui/internal/components/widgets"
 	"gotui/internal/keybindings"
 	"gotui/internal/layout/tabpages"
 	"gotui/internal/messaging/messagehandler"
 	"gotui/internal/messaging/messagesender"
+	"gotui/internal/stores"
 	"gotui/internal/wsclient"
 )
 
@@ -48,7 +49,7 @@ type Model struct {
 	tuiID    string
 
 	chatPage *tabpages.ChatPage
-	helpBar  *helpbar.HelpBar
+	helpBar  *widgets.HelpBar
 	logsPage *tabpages.LogsPage
 	gitPage  *tabpages.GitPage
 
@@ -67,6 +68,8 @@ type Model struct {
 	tabRegions []tabRegion
 
 	keyMap keybindings.KeyMap
+
+	modelStore *stores.AIModelStore
 }
 
 func (m *Model) chatComponent() *chat.Chat {
@@ -89,7 +92,7 @@ func NewModel(cfg Config) *Model {
 
 	chatPage := tabpages.NewChatPage()
 	chatComp := chatPage.Chat()
-	helpBarComp := helpbar.New()
+	helpBarComp := widgets.New()
 	if chatComp != nil {
 		chatComp.SetHelpBar(helpBarComp)
 	}
@@ -122,6 +125,8 @@ func NewModel(cfg Config) *Model {
 		wsClient.OnMessage(handler.HandleRaw)
 	}
 
+	modelStore := stores.SharedAIModelStore()
+
 	m := &Model{
 		cfg:            cfg,
 		wsClient:       wsClient,
@@ -137,9 +142,11 @@ func NewModel(cfg Config) *Model {
 		keyMap:         keybindings.DefaultKeyMap(),
 		messageSender:  sender,
 		messageHandler: handler,
+		modelStore:     modelStore,
 	}
 
 	if chatComp != nil {
+		chatComp.SetModelStore(modelStore)
 		chatComp.Focus()
 	}
 

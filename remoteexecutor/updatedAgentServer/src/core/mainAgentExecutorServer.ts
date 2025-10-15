@@ -11,6 +11,7 @@ import { RemoteProxyClient } from './remote/remoteProxyClient';
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
 import { logger } from '../utils/logger';
+import { AgentService } from '../services/AgentService';
 
 /**
  * Main Docker Server class
@@ -32,7 +33,9 @@ export class AgentExecutorServer {
     this.app = express();
     this.server = createServer(this.app);
     this.childAgentProcessManager = new ChildAgentProcessManager();
-    
+
+    AgentService.getInstance().setCliAgent(this.cliOptions);
+
     // Create HttpHandler without project path
     this.httpHandler = new HttpHandler(this.app);
     

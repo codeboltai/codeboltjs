@@ -1,10 +1,13 @@
 package chatcomponents
 
-import "gotui/internal/components/dialogs"
+import (
+	"gotui/internal/components/dialogs"
+	"gotui/internal/stores"
+)
 
 type (
 	SlashCommand       = dialogs.SlashCommand
-	ModelOption        = dialogs.ModelOption
+	ModelOption        = stores.ModelOption
 	ModelPicker        = dialogs.ModelPicker
 	CommandPaletteItem = dialogs.CommandPaletteItem
 	CommandPalette     = dialogs.CommandPalette

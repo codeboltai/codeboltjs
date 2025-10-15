@@ -8,9 +8,10 @@ import {
 } from './../types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { logger } from '../utils/logger';
-import { getAvailableModels } from '../models/modelRegistry';
 import { McpRoutes } from '../routes/mcpRoutes';
 import { TodoRoutes } from '../routes/todoRoutes';
+import { ModelRoutes } from '../routes/modelRoutes';
+import { AgentRoutes } from '../routes/agentRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,12 +24,16 @@ export class HttpHandler {
   private connectionManager: ConnectionManager;
   private mcpRoutes: McpRoutes;
   private todoRoutes: TodoRoutes;
+  private modelRoutes: ModelRoutes;
+  private agentRoutes: AgentRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
     this.connectionManager = ConnectionManager.getInstance();
     this.mcpRoutes = new McpRoutes();
     this.todoRoutes = new TodoRoutes();
+    this.modelRoutes = new ModelRoutes();
+    this.agentRoutes = new AgentRoutes();
     this.setupRoutes();
   }
 
@@ -43,6 +48,12 @@ export class HttpHandler {
     
     // Mount Todo routes
     this.app.use('/todos', this.todoRoutes.router);
+
+    // Mount Model routes
+    this.app.use('/models', this.modelRoutes.router);
+
+    // Mount Agent routes
+    this.app.use('/agents', this.agentRoutes.router);
     
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
@@ -55,9 +66,6 @@ export class HttpHandler {
 
     // Bundle download endpoint
     this.app.get('/download/sampleagent', this.handleBundleDownload.bind(this));
-
-    // Available models endpoint
-    this.app.get('/models', this.handleModels.bind(this));
 
     // Basic root endpoint
     this.app.get('/', this.handleRoot.bind(this));
@@ -167,6 +175,7 @@ export class HttpHandler {
         connections: '/connections',
         info: '/info',
         models: '/models',
+        agents: '/agents',
         bundle: '/bundle/',
         download: '/download/sampleagent',
         mcp: '/mcp/',
@@ -177,17 +186,4 @@ export class HttpHandler {
     });
   }
 
-  /**
-   * Handle model list requests
-   */
-  private handleModels(req: Request, res: Response): void {
-    try {
-      const models = getAvailableModels();
-      res.json({ models });
-      logger.info(formatLogMessage('info', 'HttpHandler', `Models requested from ${req.ip}`));
-    } catch (error) {
-      logger.error(formatLogMessage('error', 'HttpHandler', `Error retrieving models: ${error}`));
-      res.status(500).json({ error: 'Failed to retrieve models' });
-    }
-  }
 }

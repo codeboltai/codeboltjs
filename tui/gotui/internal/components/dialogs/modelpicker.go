@@ -6,29 +6,54 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 
+	"gotui/internal/stores"
 	"gotui/internal/styles"
 )
 
-type ModelOption struct {
-	Name         string
-	Provider     string
-	Capabilities []string
-	Description  string
-	Context      string
-}
-
 type ModelPicker struct {
-	options  []ModelOption
-	visible  bool
-	selected int
+	store       *stores.AIModelStore
+	unsubscribe func()
+	options     []stores.ModelOption
+	visible     bool
+	selected    int
 }
 
-func NewModelPicker(options []ModelOption) *ModelPicker {
-	return &ModelPicker{options: options}
+func NewModelPicker(store *stores.AIModelStore) *ModelPicker {
+	picker := &ModelPicker{}
+	picker.BindStore(store)
+	return picker
 }
 
-func (p *ModelPicker) SetOptions(options []ModelOption) {
-	p.options = options
+// BindStore attaches the picker to the shared model store so it stays in sync with updates.
+func (p *ModelPicker) BindStore(store *stores.AIModelStore) {
+	if p == nil {
+		return
+	}
+	if p.unsubscribe != nil {
+		p.unsubscribe()
+		p.unsubscribe = nil
+	}
+	p.store = store
+	if store != nil {
+		p.options = store.Models()
+		p.unsubscribe = store.Subscribe(func(models []stores.ModelOption) {
+			p.SetOptions(models)
+		})
+	} else {
+		p.options = nil
+	}
+	if p.selected >= len(p.options) {
+		p.selected = 0
+	}
+}
+
+func (p *ModelPicker) SetOptions(options []stores.ModelOption) {
+	if p == nil {
+		return
+	}
+	copySlice := make([]stores.ModelOption, len(options))
+	copy(copySlice, options)
+	p.options = copySlice
 	if p.selected >= len(p.options) {
 		p.selected = 0
 	}
@@ -49,41 +74,41 @@ func (p *ModelPicker) IsVisible() bool {
 	return p.visible
 }
 
-func (p *ModelPicker) HandleKey(msg tea.KeyPressMsg) (handled bool, option ModelOption, ok bool) {
+func (p *ModelPicker) HandleKey(msg tea.KeyPressMsg) (handled bool, option stores.ModelOption, ok bool) {
 	if !p.visible {
-		return false, ModelOption{}, false
+		return false, stores.ModelOption{}, false
 	}
 
 	switch msg.String() {
 	case "esc":
 		p.Close()
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	case "enter", "tab":
 		if len(p.options) == 0 {
 			p.Close()
-			return true, ModelOption{}, false
+			return true, stores.ModelOption{}, false
 		}
 		opt := p.options[p.selected]
 		p.Close()
 		return true, opt, true
 	case "down", "ctrl+n":
 		p.move(1)
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	case "up", "ctrl+p":
 		p.move(-1)
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	case "pgdown":
 		p.move(3)
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	case "pgup":
 		p.move(-3)
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	case "shift+tab":
 		p.move(-1)
-		return true, ModelOption{}, false
+		return true, stores.ModelOption{}, false
 	}
 
-	return false, ModelOption{}, false
+	return false, stores.ModelOption{}, false
 }
 
 func (p *ModelPicker) move(delta int) {
@@ -200,7 +225,7 @@ func (p *ModelPicker) renderOptions(width int) []string {
 	return rows
 }
 
-func (p *ModelPicker) renderOption(opt ModelOption, selected bool, width int) string {
+func (p *ModelPicker) renderOption(opt stores.ModelOption, selected bool, width int) string {
 	theme := styles.CurrentTheme()
 	nameStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#d7ffae")).

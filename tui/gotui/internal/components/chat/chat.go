@@ -4,8 +4,9 @@ import (
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/components/dialogs"
-	"gotui/internal/components/helpbar"
+	"gotui/internal/components/widgets"
 	"gotui/internal/layout/panels"
+	"gotui/internal/stores"
 	"gotui/internal/styles"
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
@@ -31,7 +32,6 @@ type Chat struct {
 
 	conversations        []*Conversation
 	activeConversationID string
-	conversationCounter  int
 
 	conversationListWidth int
 	buttonRegion          verticalRegion
@@ -44,8 +44,11 @@ type Chat struct {
 	rightSidebarWidth int
 	contentWidth      int
 
-	rightPanels []*panels.InfoPanel
-	helpBar     *helpbar.HelpBar
+	rightPanels       []*panels.InfoPanel
+	helpBar           *widgets.HelpBar
+	modelStatusWidget *widgets.ModelStatusWidget
+	modelStore        *stores.AIModelStore
+	conversationStore *stores.ConversationStore
 
 	contextViewport      viewport.Model
 	contextDrawerVisible bool
@@ -88,6 +91,8 @@ func New() *Chat {
 		conversationListWidth: 28,
 		contextDrawerVisible:  true,
 		contextViewport:       newContextViewport(1, 1),
+		modelStatusWidget:     widgets.NewModelStatusWidget(nil),
+		conversationStore:     stores.SharedConversationStore(),
 		zonePrefix:            zonePrefix,
 		chatZoneID:            zonePrefix + "chat_area",
 		contextZoneID:         zonePrefix + "context_drawer",
@@ -99,8 +104,27 @@ func New() *Chat {
 	return chat
 }
 
+// SetModelStore binds the chat component to the centralized AI model store.
+func (c *Chat) SetModelStore(store *stores.AIModelStore) {
+	if c == nil {
+		return
+	}
+	c.modelStore = store
+	if c.modelPicker != nil {
+		c.modelPicker.BindStore(store)
+	}
+	if c.modelStatusWidget != nil {
+		c.modelStatusWidget.SetStore(store)
+	}
+	if store != nil {
+		c.SetModelOptions(nil)
+	} else {
+		c.SetModelOptions([]chatcomponents.ModelOption{})
+	}
+}
+
 // SetHelpBar attaches a help bar to be rendered beneath the input.
-func (c *Chat) SetHelpBar(bar *helpbar.HelpBar) {
+func (c *Chat) SetHelpBar(bar *widgets.HelpBar) {
 	if c == nil {
 		return
 	}
@@ -134,6 +158,14 @@ func (c *Chat) SetModelOptions(options []chatcomponents.ModelOption) {
 		return
 	}
 
+	if c.modelStore != nil {
+		storeModels := c.modelStore.Models()
+		options = make([]chatcomponents.ModelOption, len(storeModels))
+		for i, opt := range storeModels {
+			options[i] = chatcomponents.ModelOption(opt)
+		}
+	}
+
 	if options == nil {
 		options = []chatcomponents.ModelOption{}
 	}
@@ -142,21 +174,15 @@ func (c *Chat) SetModelOptions(options []chatcomponents.ModelOption) {
 	copy(c.modelOptions, options)
 
 	if c.modelPicker != nil {
-		c.modelPicker.SetOptions(c.modelOptions)
+		pickerOptions := make([]stores.ModelOption, len(c.modelOptions))
+		for i, opt := range c.modelOptions {
+			pickerOptions[i] = stores.ModelOption(opt)
+		}
+		c.modelPicker.SetOptions(pickerOptions)
 	}
 
-	if c.selectedModel != nil {
-		found := false
-		for _, option := range c.modelOptions {
-			if option.Name == c.selectedModel.Name && option.Provider == c.selectedModel.Provider {
-				found = true
-				break
-			}
-		}
-		if !found {
-			c.selectedModel = nil
-		}
-	}
+	c.applyDefaultModelToAllConversations()
+	c.refreshConversationsFromStore(true)
 }
 
 // SubmitMsg is sent when a message is submitted.
