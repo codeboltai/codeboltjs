@@ -128,6 +128,11 @@ func NewModel(cfg Config) *Model {
 
 	modelStore := stores.SharedAIModelStore()
 	agentStore := stores.SharedAgentStore()
+	conversationStore := stores.SharedConversationStore()
+	conversationStore.ConfigureRemoteSync(cfg.Protocol, cfg.Host, cfg.Port, cfg.ProjectPath)
+	if activeID := conversationStore.ActiveID(); activeID != "" {
+		conversationStore.SyncConversation(activeID)
+	}
 
 	m := &Model{
 		cfg:            cfg,

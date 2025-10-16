@@ -262,6 +262,8 @@ func (c *Chat) syncConversationPanelItems() {
 		return
 	}
 
+	store := c.ensureConversationStore()
+
 	items := make([]panels.ConversationListItem, len(c.conversations))
 	activeID := c.activeConversationID
 	for i, conv := range c.conversations {
@@ -270,6 +272,7 @@ func (c *Chat) syncConversationPanelItems() {
 			Title:     conv.Title,
 			UpdatedAt: conv.UpdatedAt,
 			IsActive:  conv.ID == activeID,
+			IsSyncing: store != nil && store.IsSyncing(conv.ID),
 		}
 	}
 
@@ -282,6 +285,8 @@ func (c *Chat) syncConversationPanelHover(conversationID string) {
 		return
 	}
 
+	store := c.ensureConversationStore()
+
 	hoverNew := c.hoverButton && conversationID == ""
 	c.conversationPanel.SetNewButtonState(true, hoverNew)
 
@@ -293,6 +298,7 @@ func (c *Chat) syncConversationPanelHover(conversationID string) {
 			UpdatedAt: conv.UpdatedAt,
 			IsActive:  conv.ID == c.activeConversationID,
 			IsHovered: conv.ID == conversationID && !c.hoverButton,
+			IsSyncing: store != nil && store.IsSyncing(conv.ID),
 		}
 	}
 	c.conversationPanel.SetItems(items)
@@ -322,7 +328,7 @@ func (c *Chat) handleSidebarKeys(msg tea.KeyPressMsg) bool {
 			return true
 		}
 		if c.hoverConversationID != "" {
-			c.switchConversation(c.hoverConversationID)
+			_ = c.switchConversation(c.hoverConversationID)
 			return true
 		}
 	case "esc":
@@ -636,7 +642,7 @@ func (c *Chat) handleMouseClick(msg tea.MouseClickMsg) (tea.Cmd, bool) {
 			continue
 		}
 		if mouseInZone(mouse, zone.Get(zoneID)) {
-			c.switchConversation(conv.ID)
+			_ = c.switchConversation(conv.ID)
 			return nil, true
 		}
 	}
