@@ -50,7 +50,7 @@ export class AgentService {
     this.agents = new Map();
     // Load agents from JSON file during initialization
     this.getMarketplaceAgents();
-    this.getLocalAgents();
+    // this.getLocalAgents();
   }
   public static getInstance(): AgentService {
     if (!AgentService.instance) {
@@ -77,7 +77,13 @@ export class AgentService {
         
         // If we have agents in the file, return them
         if (config.agents && config.agents.length > 0) {
-          return config.agents;
+        config.agents.forEach((agent: any) => {
+        const key = agent.agentId || agent.unique_id;
+        if (key) {
+          this.agents.set(key, agent);
+        }
+      });
+         
         }
       }
       
