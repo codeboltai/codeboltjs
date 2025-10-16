@@ -72,8 +72,8 @@ export class AgentService {
       }
       
       // If no local agents, fetch from API
-      const response: AxiosResponse<{ agents: MarketplaceAgent[] }> = await axios.get<{ agents: MarketplaceAgent[] }>('https://api.codebolt.ai/api/agents/list');
-      const marketplaceAgents = response.data.agents;
+      const response: AxiosResponse<MarketplaceAgent[]> = await axios.get<MarketplaceAgent[]>('https://api.codebolt.ai/api/agents/list');
+      const marketplaceAgents = response.data;
       
       // Update local agents.json with the fetched data
       const updatedConfig = {
