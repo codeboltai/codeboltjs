@@ -17,9 +17,9 @@
       "types": "./dist/agent-schema.d.ts",
       "default": "./dist/agent/agent-schema.js"
     },
-    "./agent/*": {
-      "types": "./dist/agent/*/index.d.ts",
-      "default": "./dist/agent/*/index.js"
+    "./apis/*": {
+      "types": "./dist/apis/*/index.d.ts",
+      "default": "./dist/apis/*/index.js"
     },
     "./sdk": {
       "types": "./dist/sdk-types.d.ts",

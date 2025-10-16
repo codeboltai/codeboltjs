@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import axios, { AxiosResponse } from 'axios';
-import { MarketplaceAgent } from '@codebolt/types/agent';
+import { MarketplaceAgent } from '@codebolt/types/apis/agents';
 
 export interface AgentInfo {
   agentId: string;

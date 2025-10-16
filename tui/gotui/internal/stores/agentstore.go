@@ -14,7 +14,7 @@ import (
 // AgentOption represents a single agent entry exposed by the agent server.
 type AgentOption struct {
 	ID          string `json:"agentId"`
-	Name        string `json:"agentName"`
+	Name        string `json:"title"`
 	Description string `json:"agentDescription"`
 }
 
