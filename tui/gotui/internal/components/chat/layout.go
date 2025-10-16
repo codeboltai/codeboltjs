@@ -269,7 +269,7 @@ func (c *Chat) estimateHorizontalConversationHeight(width int) int {
 	return maxInt(singleColumnMinConversationHeight, height)
 }
 
-func (c *Chat) renderChatArea(mainWidth int) string {
+func (c *Chat) renderChatArea(mainWidth int) (string, int) {
 	chatWidth := mainWidth
 	if chatWidth <= 0 {
 		chatWidth = c.contentWidth
@@ -281,38 +281,58 @@ func (c *Chat) renderChatArea(mainWidth int) string {
 		chatWidth = 40
 	}
 
-	chatHistory := c.viewport.View()
-	inputArea := c.input.View()
 	statusView := ""
+	statusHeight := 0
 	if c.modelStatusWidget != nil {
 		statusView = c.modelStatusWidget.View()
-	}
-	if statusView != "" {
-		inputArea = lipgloss.JoinVertical(
-			lipgloss.Left,
-			statusView,
-			inputArea,
-		)
+		if statusView != "" {
+			statusHeight = lipgloss.Height(statusView)
+		}
 	}
 
-	sections := []string{chatHistory, inputArea}
-	if helpbarView := c.renderHelpBar(chatWidth); helpbarView != "" {
+	helpbarView, helpbarHeight := c.renderHelpBar(chatWidth)
+
+	viewportHeight := c.chatHeight - statusHeight
+	if viewportHeight < 1 {
+		viewportHeight = 1
+	}
+
+	if c.viewport != nil {
+		if c.viewport.Width() != chatWidth || c.viewport.Height() != viewportHeight {
+			c.viewport.SetSize(chatWidth, viewportHeight)
+		}
+	}
+
+	chatHistory := c.viewport.View()
+	inputArea := c.input.View()
+
+	sections := []string{chatHistory}
+	if statusView != "" {
+		sections = append(sections, statusView)
+	}
+	sections = append(sections, inputArea)
+	if helpbarView != "" {
 		sections = append(sections, helpbarView)
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 
+	totalHeight := c.chatHeight + helpbarHeight
+	if totalHeight < 0 {
+		totalHeight = c.chatHeight
+	}
+
 	rendered := lipgloss.NewStyle().
 		Width(chatWidth).
-		Height(c.chatHeight).
+		Height(totalHeight).
 		Render(content)
 
-	return zone.Mark(c.chatZoneID, rendered)
+	return zone.Mark(c.chatZoneID, rendered), totalHeight
 }
 
-func (c *Chat) renderHelpBar(width int) string {
+func (c *Chat) renderHelpBar(width int) (string, int) {
 	if c.helpBar == nil {
-		return ""
+		return "", 0
 	}
 	if width <= 0 {
 		width = c.contentWidth
@@ -321,7 +341,15 @@ func (c *Chat) renderHelpBar(width int) string {
 		width = c.width
 	}
 	c.helpBar.SetSize(width, c.helpBar.VisibleHeight())
-	return c.helpBar.View()
+	view := c.helpBar.View()
+	if strings.TrimSpace(view) == "" {
+		return "", 0
+	}
+	height := c.helpBar.VisibleHeight()
+	if height <= 0 {
+		height = lipgloss.Height(view)
+	}
+	return view, height
 }
 
 func (c *Chat) renderContextDrawer(width, height int) string {
@@ -407,7 +435,7 @@ func (c *Chat) desiredContextHeight(width int) int {
 	return total
 }
 
-func (c *Chat) renderSingleColumnLayout(theme styles.Theme, chatArea string) string {
+func (c *Chat) renderSingleColumnLayout(theme styles.Theme, chatArea string, chatAreaHeight int) string {
 	var sections []string
 
 	if c.conversationHeight > 0 {
@@ -423,7 +451,7 @@ func (c *Chat) renderSingleColumnLayout(theme styles.Theme, chatArea string) str
 
 	chatView := lipgloss.NewStyle().
 		Width(c.contentWidth).
-		Height(c.chatHeight).
+		Height(chatAreaHeight).
 		Render(chatArea)
 
 	if len(sections) > 0 && strings.TrimSpace(chatView) != "" {
@@ -450,7 +478,7 @@ func (c *Chat) renderSingleColumnLayout(theme styles.Theme, chatArea string) str
 		Render(content)
 }
 
-func (c *Chat) renderTwoColumnLayout(theme styles.Theme, chatArea string) string {
+func (c *Chat) renderTwoColumnLayout(theme styles.Theme, chatArea string, chatAreaHeight int) string {
 	var leftSections []string
 
 	if c.conversationListWidth > 0 && c.conversationHeight > 0 {
@@ -482,18 +510,18 @@ func (c *Chat) renderTwoColumnLayout(theme styles.Theme, chatArea string) string
 		leftColumn = lipgloss.JoinVertical(lipgloss.Left, leftSections...)
 		leftColumn = lipgloss.NewStyle().
 			Width(c.conversationListWidth).
-			Height(c.chatHeight).
+			Height(chatAreaHeight).
 			Render(leftColumn)
 	}
 
 	chatView := lipgloss.NewStyle().
 		Width(c.contentWidth).
-		Height(c.chatHeight).
+		Height(chatAreaHeight).
 		Render(chatArea)
 
 	segments := []string{}
 	if leftColumn != "" {
-		segments = append(segments, leftColumn, verticalSeparator(theme, c.chatHeight))
+		segments = append(segments, leftColumn, verticalSeparator(theme, chatAreaHeight))
 	}
 	segments = append(segments, chatView)
 

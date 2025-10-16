@@ -88,6 +88,11 @@ func (cv *ChatViewport) Width() int {
 	return cv.width
 }
 
+// Height returns the current viewport height.
+func (cv *ChatViewport) Height() int {
+	return cv.height
+}
+
 // AddMessage adds a message to the viewport.
 // The message type determines which template will be used for rendering.
 // Template resolution is handled automatically by the template manager.

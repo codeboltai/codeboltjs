@@ -217,13 +217,13 @@ func (c *Chat) View() string {
 		c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
 	}
 
-	chatArea := c.renderChatArea(c.contentWidth)
+	chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)
 
 	var layout string
 	if c.singleColumn {
-		layout = c.renderSingleColumnLayout(theme, chatArea)
+		layout = c.renderSingleColumnLayout(theme, chatArea, chatAreaHeight)
 	} else {
-		layout = c.renderTwoColumnLayout(theme, chatArea)
+		layout = c.renderTwoColumnLayout(theme, chatArea, chatAreaHeight)
 	}
 
 	if c.themePicker.IsVisible() {
