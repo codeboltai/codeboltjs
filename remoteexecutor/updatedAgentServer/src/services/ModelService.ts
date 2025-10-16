@@ -1,7 +1,6 @@
 import { Model } from '@codebolt/types/apis/models';
 import { CodeboltApplicationPath } from '../config';
 import { LLMProviderService } from './LLMProviderService'; // Added import
-
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
@@ -27,7 +26,7 @@ export class ModelService {
    * @returns Promise resolving to array of LLM providers
    */
   public async loadModels(): Promise<Model[]> {
-    console.log('Loading models...');
+
     try {
       const configPath = path.join(CodeboltApplicationPath(), 'models.json');
 
@@ -37,12 +36,32 @@ export class ModelService {
         console.log('models.json not found, fetching models from API');
         try {
           const response = await axios.get('https://codebolt-edge-api.arrowai.workers.dev/getllmpricing');
-          const models: any = response.data.data;
+          const modelsFromApi: any = response.data.data;
 
           // Process and store the models
-          if (models && Array.isArray(models)) {
-            models.forEach((model: Model) => {
-              this.Models.set(model.llm_id, model);
+          let models: Model[] = [];
+          if (modelsFromApi && Array.isArray(modelsFromApi)) {
+            modelsFromApi.forEach((model: any) => {
+              // Transform API response to Model format
+              const transformedModel: Model = {
+                llm_id: model.llm_id,
+                display_name: model.model_name,
+                model: model.model_name,
+                max_tokens: model.max_tokens,
+                max_output_tokens: model.max_output_tokens,
+                cached_token: model.cached_token,
+                input_cost_per_token: model.input_cost_per_token,
+                output_cost_per_token: model.output_cost_per_token,
+                provider: model.litellm_provider,
+                mode: model.mode,
+                supports_function_calling: model.supports_function_calling === 1 ? true : false,
+                supports_parallel_function_calling: model.supports_parallel_function_calling === 1 ? true : false,
+                supports_vision: model.supports_vision === 1 ? true : false,
+                source: model.source,
+                max_input_tokens: model.max_input_tokens,
+              };
+              this.Models.set(model.llm_id, transformedModel);
+              models.push(transformedModel);
             });
          
           }
@@ -51,7 +70,6 @@ export class ModelService {
           if (!fs.existsSync(dirPath)) {
             fs.mkdirSync(dirPath, { recursive: true });
           }
-
           // Write to models.json
           fs.writeFileSync(configPath, JSON.stringify(models, null, 2));
           console.log('Models written to models.json');
@@ -101,12 +119,11 @@ export class ModelService {
     // Create a set of provider keys that have been added
     const validProviderKeys = new Set(
       providers
-        .filter(provider => provider.keyAdded)
         .map(provider => provider.name.replace(/\s+/g, '').toLowerCase())
     );
 
     // Filter models to only include those with valid providers
-    return allModels.filter(model => validProviderKeys.has(model.litellm_provider.replace(/\s+/g, '').toLowerCase()));
+    return allModels.filter(model => validProviderKeys.has(model.provider.replace(/\s+/g, '').toLowerCase()));
   }
 
   /**

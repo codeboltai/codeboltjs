@@ -51,6 +51,22 @@ export function getServerConfig(): ServerConfig {
   return config;
 }
 
+export function getUserHomePath(): string {
+  const platform = os.platform();
+  
+  switch (platform) {
+    case 'darwin': // macOS
+      return path.join(os.homedir(), 'codebolt');
+    case 'win32': // Windows
+  return path.join(os.homedir(), 'codebolt');
+    case 'linux':
+    return path.join(os.homedir(), 'codebolt');
+    default:
+      // Fallback to a generic path
+      return path.join(os.homedir(), '.codebolt');
+  }
+}
+
 /**
  * Sets a custom port for the server configuration
  * @param port - The port number to set
