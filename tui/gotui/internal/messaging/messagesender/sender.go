@@ -84,7 +84,8 @@ func (s *Sender) Send(content string) error {
 		},
 		"messageId": messageID,
 		"timestamp": fmt.Sprintf("%d", time.Now().UnixMilli()),
+		"type":"messageResponse",
 	}
 
-	return s.client.Send("userMessage", payload)
+	return s.client.Send("messageResponse", payload)
 }

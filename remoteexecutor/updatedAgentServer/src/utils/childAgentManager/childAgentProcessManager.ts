@@ -290,19 +290,20 @@ export class ChildAgentProcessManager {
       });
     }
 
-    this.sampleClientProcess.stdout?.on('data', (data) => {
-      const output = data.toString().trim();
-      if (output) {
-        logger.info(formatLogMessage('info', 'SampleClient', output));
-      }
-    });
+    // Ignore child process console logs - stdout and stderr handlers removed
+    // this.sampleClientProcess.stdout?.on('data', (data) => {
+    //   const output = data.toString().trim();
+    //   if (output) {
+    //     logger.info(formatLogMessage('info', 'SampleClient', output));
+    //   }
+    // });
 
-    this.sampleClientProcess.stderr?.on('data', (data) => {
-      const error = data.toString().trim();
-      if (error) {
-        logger.error(formatLogMessage('error', 'SampleClient', error));
-      }
-    });
+    // this.sampleClientProcess.stderr?.on('data', (data) => {
+    //   const error = data.toString().trim();
+    //   if (error) {
+    //     logger.error(formatLogMessage('error', 'SampleClient', error));
+    //   }
+    // });
 
     this.sampleClientProcess.on('error', (error) => {
       logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start Sample Client: ${error}`));
@@ -484,19 +485,20 @@ export class ChildAgentProcessManager {
     * Setup common process event handlers for agents
     */
   private setupAgentProcessHandlers(agentId: string, agentProcess: ChildProcess): void {
-    agentProcess.stdout?.on('data', (data) => {
-      const output = data.toString().trim();
-      if (output) {
-        logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
-      }
-    });
+    // Ignore child process console logs - stdout and stderr handlers removed
+    // agentProcess.stdout?.on('data', (data) => {
+    //   const output = data.toString().trim();
+    //   if (output) {
+    //     logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
+    //   }
+    // });
 
-    agentProcess.stderr?.on('data', (data) => {
-      const error = data.toString().trim();
-      if (error) {
-        logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
-      }
-    });
+    // agentProcess.stderr?.on('data', (data) => {
+    //   const error = data.toString().trim();
+    //   if (error) {
+    //     logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
+    //   }
+    // });
 
     agentProcess.on('error', (error) => {
       logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));
@@ -559,20 +561,21 @@ export class ChildAgentProcessManager {
       this.agentProcesses.set(agentId, agentProcess);
       this.connectionIdToClientMap.set(connectionId, applicationId);
 
+      // Ignore child process console logs - stdout and stderr handlers removed
       // Set up process event handlers
-      agentProcess.stdout?.on('data', (data) => {
-        const output = data.toString().trim();
-        if (output) {
-          logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
-        }
-      });
+      // agentProcess.stdout?.on('data', (data) => {
+      //   const output = data.toString().trim();
+      //   if (output) {
+      //     logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
+      //   }
+      // });
 
-      agentProcess.stderr?.on('data', (data) => {
-        const error = data.toString().trim();
-        if (error) {
-          logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
-        }
-      });
+      // agentProcess.stderr?.on('data', (data) => {
+      //   const error = data.toString().trim();
+      //   if (error) {
+      //     logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
+      //   }
+      // });
 
       agentProcess.on('error', (error) => {
         logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));

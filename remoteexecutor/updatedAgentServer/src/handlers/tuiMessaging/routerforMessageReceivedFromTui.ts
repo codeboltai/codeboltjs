@@ -16,13 +16,19 @@ export class TuiMessageRouter {
   }
 
   handleTuiMessage(tui: ClientConnection, message: UserMessage | BaseApplicationResponse): void {
+    logger.info('TuiMessageRouter', `Processing TUI message: ${JSON.stringify(message)} from ${tui.id}`)
     logger.info(formatLogMessage('info', 'TuiMessageRouter', `Handling TUI message: ${message.type} from ${tui.id}`));
     //check if its initial message
+    if (!message.type ) {
+     return
+
+    }
     if (message.type == 'messageResponse') {
+    
       this.handleInitialUserMessage(tui, message as UserMessage)
     }
     else {
-      this.sendMessageToAgent.sendResponseToAgent(tui, message as BaseApplicationResponse);
+      // this.sendMessageToAgent.sendResponseToAgent(tui, message as BaseApplicationResponse);
     }
     this.sendMessageToRemote.forwardAppMessage(tui.id, message as BaseApplicationResponse);
   }

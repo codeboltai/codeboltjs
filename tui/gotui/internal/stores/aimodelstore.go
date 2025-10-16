@@ -13,7 +13,7 @@ import (
 
 // ModelOption represents a single AI model entry exposed by the agent server.
 type ModelOption struct {
-	Name         string   `json:"name"`
+	Name         string   `json:"display_name"`
 	Provider     string   `json:"provider"`
 	Capabilities []string `json:"capabilities"`
 	Description  string   `json:"description"`
