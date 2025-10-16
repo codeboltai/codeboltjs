@@ -748,6 +748,9 @@ importers:
       '@codebolt/types':
         specifier: workspace:*
         version: link:../../common/types
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
       adm-zip:
         specifier: ^0.5.16
         version: 0.5.16
@@ -763,6 +766,9 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
       react-devtools-core:
         specifier: ^7.0.0
         version: 7.0.0(bufferutil@4.0.9)
