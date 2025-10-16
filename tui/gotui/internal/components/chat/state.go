@@ -67,6 +67,19 @@ func (c *Chat) syncApplicationState() {
 	store.Update(state)
 }
 
+func (c *Chat) syncActiveConversationWithServer() {
+	store := c.ensureConversationStore()
+	if store == nil {
+		return
+	}
+	activeID := store.ActiveID()
+	if activeID == "" {
+		return
+	}
+	store.SyncConversation(activeID)
+	c.syncConversationPanelItems()
+}
+
 func (c *Chat) defaultModelOption() *stores.ModelOption {
 	if c == nil {
 		return nil
@@ -228,6 +241,7 @@ func (c *Chat) createInitialConversation() {
 	store := c.ensureConversationStore()
 	if store.Count() > 0 {
 		c.refreshConversationsFromStore(true)
+		c.syncActiveConversationWithServer()
 		return
 	}
 
@@ -260,6 +274,7 @@ func (c *Chat) createInitialConversation() {
 	c.applyDefaultModelIfMissing(conv.ID)
 	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)
+	c.syncActiveConversationWithServer()
 }
 
 func sampleDiffPreviews() (string, string) {
@@ -304,6 +319,8 @@ func (c *Chat) createNewConversation() tea.Cmd {
 	c.hoverButton = false
 	c.hoverConversationID = conv.ID
 
+	c.syncActiveConversationWithServer()
+
 	return c.Focus()
 }
 
@@ -342,13 +359,13 @@ func (c *Chat) appendMessageToActiveConversation(msgType, content string, metada
 	c.ensureHoverSelection()
 }
 
-func (c *Chat) switchConversation(conversationID string) {
+func (c *Chat) switchConversation(conversationID string) bool {
 	if conversationID == "" || conversationID == c.activeConversationID {
-		return
+		return false
 	}
 	store := c.ensureConversationStore()
 	if !store.SetActive(conversationID) {
-		return
+		return false
 	}
 
 	c.refreshConversationsFromStore(true)
@@ -356,6 +373,8 @@ func (c *Chat) switchConversation(conversationID string) {
 	c.hoverButton = false
 	c.hoverConversationID = conversationID
 	c.syncConversationPanelHover(conversationID)
+	c.syncActiveConversationWithServer()
+	return true
 }
 
 func (c *Chat) getActiveConversation() *Conversation {

@@ -12,6 +12,7 @@ import { McpRoutes } from '../routes/mcpRoutes';
 import { TodoRoutes } from '../routes/todoRoutes';
 import { ModelRoutes } from '../routes/modelRoutes';
 import { AgentRoutes } from '../routes/agentRoutes';
+import { ConversationRoutes } from '../routes/conversationRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,7 @@ export class HttpHandler {
   private todoRoutes: TodoRoutes;
   private modelRoutes: ModelRoutes;
   private agentRoutes: AgentRoutes;
+  private conversationRoutes: ConversationRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
@@ -34,6 +36,7 @@ export class HttpHandler {
     this.todoRoutes = new TodoRoutes();
     this.modelRoutes = new ModelRoutes();
     this.agentRoutes = new AgentRoutes();
+    this.conversationRoutes = new ConversationRoutes();
     this.setupRoutes();
   }
 
@@ -54,6 +57,9 @@ export class HttpHandler {
 
     // Mount Agent routes
     this.app.use('/agents', this.agentRoutes.router);
+
+    // Mount Conversation routes
+    this.app.use('/conversations', this.conversationRoutes.router);
     
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
@@ -176,6 +182,7 @@ export class HttpHandler {
         info: '/info',
         models: '/models',
         agents: '/agents',
+        conversations: '/conversations',
         bundle: '/bundle/',
         download: '/download/sampleagent',
         mcp: '/mcp/',

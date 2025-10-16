@@ -17,6 +17,7 @@ type ConversationListItem struct {
 	UpdatedAt time.Time
 	IsActive  bool
 	IsHovered bool
+	IsSyncing bool
 }
 
 // ConversationListPanel renders the collection of conversations and a new button.
@@ -98,8 +99,14 @@ func (p *ConversationListPanel) viewVertical() string {
 			title = "(untitled)"
 		}
 
+		titleDisplay := title
+		if item.IsSyncing {
+			indicator := lipgloss.NewStyle().Foreground(theme.Warning).Render(" ⏳")
+			titleDisplay = lipgloss.JoinHorizontal(lipgloss.Left, titleDisplay, indicator)
+		}
+
 		timestamp := muted.Render(item.UpdatedAt.Format("15:04"))
-		meta := lipgloss.JoinHorizontal(lipgloss.Left, title, lipgloss.NewStyle().Render("  "), timestamp)
+		meta := lipgloss.JoinHorizontal(lipgloss.Left, titleDisplay, lipgloss.NewStyle().Render("  "), timestamp)
 
 		style := itemBase.Foreground(theme.Foreground)
 		switch {
@@ -151,6 +158,11 @@ func (p *ConversationListPanel) viewHorizontal() string {
 		title := item.Title
 		if title == "" {
 			title = "(untitled)"
+		}
+
+		if item.IsSyncing {
+			indicator := lipgloss.NewStyle().Foreground(theme.Warning).Render("⏳ ")
+			title = lipgloss.JoinHorizontal(lipgloss.Left, indicator, title)
 		}
 
 		style := chipBase.Foreground(theme.Foreground)

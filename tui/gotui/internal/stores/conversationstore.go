@@ -1,7 +1,12 @@
 package stores
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -58,6 +63,9 @@ type ConversationStore struct {
 	conversations  []*Conversation
 	activeID       string
 	sequenceNumber int
+	httpClient     *http.Client
+	remoteConfig   remoteSyncConfig
+	syncStatus     map[string]bool
 }
 
 var (
@@ -75,7 +83,93 @@ func SharedConversationStore() *ConversationStore {
 
 // NewConversationStore constructs an empty conversation store.
 func NewConversationStore() *ConversationStore {
-	return &ConversationStore{}
+	return &ConversationStore{
+		syncStatus: make(map[string]bool),
+	}
+}
+
+// ConfigureRemoteSync enables remote persistence of conversations via the agent server API.
+func (s *ConversationStore) ConfigureRemoteSync(protocol, host string, port int, projectPath string) {
+	if s == nil {
+		return
+	}
+	scheme := "http"
+	protocol = strings.ToLower(strings.TrimSpace(protocol))
+	if protocol == "https" || protocol == "wss" {
+		scheme = "https"
+	}
+
+	host = strings.TrimSpace(host)
+	if host == "" {
+		host = "localhost"
+	}
+
+	enabled := port > 0
+
+	s.mu.Lock()
+	s.remoteConfig = remoteSyncConfig{
+		enabled:     enabled,
+		scheme:      scheme,
+		host:        host,
+		port:        port,
+		projectPath: strings.TrimSpace(projectPath),
+	}
+	if enabled && s.httpClient == nil {
+		s.httpClient = &http.Client{Timeout: 5 * time.Second}
+	}
+	s.mu.Unlock()
+}
+
+// SyncConversation pushes the specified conversation to the remote server.
+func (s *ConversationStore) SyncConversation(id string) {
+	if s == nil || strings.TrimSpace(id) == "" {
+		return
+	}
+
+	cfg, client := s.remoteConfigSnapshot()
+	if !cfg.enabled || client == nil {
+		return
+	}
+
+	conv := s.Conversation(id)
+	if conv == nil {
+		return
+	}
+
+	s.setSyncing(id, true)
+
+	go func(copy *Conversation) {
+		defer s.setSyncing(copy.ID, false)
+		if err := s.postConversation(cfg, client, copy); err != nil {
+			log.Printf("conversation sync failed: %v", err)
+		}
+	}(conv)
+}
+
+// IsSyncing reports whether the conversation is currently being persisted remotely.
+func (s *ConversationStore) IsSyncing(id string) bool {
+	if s == nil || strings.TrimSpace(id) == "" {
+		return false
+	}
+	s.mu.RLock()
+	syncing := s.syncStatus[id]
+	s.mu.RUnlock()
+	return syncing
+}
+
+type remoteSyncConfig struct {
+	enabled     bool
+	scheme      string
+	host        string
+	port        int
+	projectPath string
+}
+
+func (c remoteSyncConfig) endpoint() string {
+	if !c.enabled {
+		return ""
+	}
+	return fmt.Sprintf("%s://%s:%d/conversations", c.scheme, c.host, c.port)
 }
 
 // Count returns the number of stored conversations.
@@ -292,4 +386,181 @@ func cloneMessages(messages []chattemplates.MessageTemplateData) []chattemplates
 	copyMessages := make([]chattemplates.MessageTemplateData, len(messages))
 	copy(copyMessages, messages)
 	return copyMessages
+}
+
+func (s *ConversationStore) remoteConfigSnapshot() (remoteSyncConfig, *http.Client) {
+	s.mu.RLock()
+	cfg := s.remoteConfig
+	client := s.httpClient
+	s.mu.RUnlock()
+	return cfg, client
+}
+
+func (s *ConversationStore) setSyncing(id string, syncing bool) {
+	s.mu.Lock()
+	if s.syncStatus == nil {
+		s.syncStatus = make(map[string]bool)
+	}
+	if !syncing {
+		delete(s.syncStatus, id)
+	} else {
+		s.syncStatus[id] = true
+	}
+	s.mu.Unlock()
+}
+
+func (s *ConversationStore) postConversation(cfg remoteSyncConfig, client *http.Client, conv *Conversation) error {
+	endpoint := cfg.endpoint()
+	if endpoint == "" {
+		return nil
+	}
+
+	payload := remoteConversationPayload{
+		ProjectPath:  cfg.projectPath,
+		Conversation: buildRemoteConversation(conv),
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		snippet := ""
+		if data, readErr := io.ReadAll(io.LimitReader(resp.Body, 2048)); readErr == nil {
+			snippet = strings.TrimSpace(string(data))
+		}
+		if snippet != "" {
+			return fmt.Errorf("conversation sync failed: %d %s", resp.StatusCode, snippet)
+		}
+		return fmt.Errorf("conversation sync failed with status %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+type remoteConversationPayload struct {
+	ProjectPath  string             `json:"projectPath,omitempty"`
+	Conversation remoteConversation `json:"conversation"`
+}
+
+type remoteConversation struct {
+	ID        string                      `json:"id"`
+	Title     string                      `json:"title"`
+	CreatedAt string                      `json:"createdAt"`
+	UpdatedAt string                      `json:"updatedAt"`
+	Messages  []remoteConversationMessage `json:"messages"`
+	Options   *remoteConversationOptions  `json:"options,omitempty"`
+}
+
+type remoteConversationOptions struct {
+	SelectedModel *ModelOption          `json:"selectedModel,omitempty"`
+	SelectedAgent *remoteAgentSelection `json:"selectedAgent,omitempty"`
+}
+
+type remoteAgentSelection struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	AgentType    string `json:"agentType,omitempty"`
+	AgentDetails string `json:"agentDetails,omitempty"`
+}
+
+type remoteConversationMessage struct {
+	Type      string                 `json:"type"`
+	Content   string                 `json:"content"`
+	Timestamp string                 `json:"timestamp,omitempty"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+}
+
+func buildRemoteConversation(conv *Conversation) remoteConversation {
+	createdAt := conv.CreatedAt.UTC().Format(time.RFC3339)
+	updatedAt := conv.UpdatedAt.UTC().Format(time.RFC3339)
+
+	options := conv.Options.Clone()
+	remoteOpts := remoteConversationOptions{}
+	if options.SelectedModel != nil {
+		remoteOpts.SelectedModel = convertModelOption(options.SelectedModel)
+	}
+	if options.SelectedAgent != nil {
+		remoteOpts.SelectedAgent = convertAgentSelection(options.SelectedAgent)
+	}
+
+	var optsPtr *remoteConversationOptions
+	if remoteOpts.SelectedModel != nil || remoteOpts.SelectedAgent != nil {
+		optsPtr = &remoteOpts
+	}
+
+	return remoteConversation{
+		ID:        conv.ID,
+		Title:     conv.Title,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+		Messages:  convertMessages(conv.Messages),
+		Options:   optsPtr,
+	}
+}
+
+func convertModelOption(model *ModelOption) *ModelOption {
+	if model == nil {
+		return nil
+	}
+	copy := *model
+	return &copy
+}
+
+func convertAgentSelection(agent *wsclient.AgentSelection) *remoteAgentSelection {
+	if agent == nil {
+		return nil
+	}
+	return &remoteAgentSelection{
+		ID:           agent.ID,
+		Name:         agent.Name,
+		AgentType:    agent.AgentType,
+		AgentDetails: agent.AgentDetails,
+	}
+}
+
+func convertMessages(messages []chattemplates.MessageTemplateData) []remoteConversationMessage {
+	if len(messages) == 0 {
+		return []remoteConversationMessage{}
+	}
+
+	out := make([]remoteConversationMessage, 0, len(messages))
+	for _, msg := range messages {
+		entry := remoteConversationMessage{
+			Type:    msg.Type,
+			Content: msg.Content,
+		}
+		if !msg.Timestamp.IsZero() {
+			entry.Timestamp = msg.Timestamp.UTC().Format(time.RFC3339)
+		}
+		if len(msg.Metadata) > 0 {
+			entry.Metadata = copyMetadata(msg.Metadata)
+		}
+		out = append(out, entry)
+	}
+	return out
+}
+
+func copyMetadata(input map[string]interface{}) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make(map[string]interface{}, len(input))
+	for k, v := range input {
+		out[k] = v
+	}
+	return out
 }
