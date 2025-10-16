@@ -10,9 +10,9 @@ export class ModelController {
     this.modelService = ModelService.getInstance();
   }
 
-  public getModels(req: Request, res: Response): void {
+  public async getModels(req: Request, res: Response): Promise<void> {
     try {
-      const models = this.modelService.getModels  ();
+      const models = await this.modelService.getModels();
       res.json({ models });
       logger.info(formatLogMessage('info', 'ModelController', `Models requested from ${req.ip}`));
     } catch (error) {

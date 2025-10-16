@@ -12,7 +12,7 @@ export class LLMProviderController {
 
   public getLLMProviders(req: Request, res: Response): void {
     try {
-      const providers  = this.llmProviderService.getLLMProviders();
+      const providers  = this.llmProviderService.getLLMProvidersList();
       logger.info(formatLogMessage('info', 'LLMProviderController', `LLM Providers requested from ${req.ip}`));
       res.json({ providers });
       logger.info(formatLogMessage('info', 'LLMProviderController', `Providers requested from ${req.ip}`));

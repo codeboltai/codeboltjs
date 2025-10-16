@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { LLMProviderController } from '../controllers/LLMProviderController';
 
-export class LLMProviderRoutes {
+export class ProviderRoutes {
   public router: express.Router;
   private llmProviderController: LLMProviderController;
 

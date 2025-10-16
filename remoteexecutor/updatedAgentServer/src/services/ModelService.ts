@@ -1,5 +1,6 @@
 import { Model } from '@codebolt/types/apis/models';
 import { CodeboltApplicationPath } from '../config';
+import { LLMProviderService } from './LLMProviderService'; // Added import
 
 import fs from 'fs';
 import path from 'path';
@@ -20,9 +21,6 @@ export class ModelService {
     }
     return ModelService.instance;
   }
-  public getModels(): Model[] {
-    return Array.from(this.Models.values());
-  }
 
   /**
    * Get LLM providers from local file
@@ -32,7 +30,7 @@ export class ModelService {
     console.log('Loading models...');
     try {
       const configPath = path.join(CodeboltApplicationPath(), 'models.json');
-      
+
       // Check if models.json exists
       if (!fs.existsSync(configPath)) {
         // If file doesn't exist, fetch models from API
@@ -40,26 +38,36 @@ export class ModelService {
         try {
           const response = await axios.get('https://codebolt-edge-api.arrowai.workers.dev/getllmpricing');
           const models: any = response.data.data;
-          
+
           // Process and store the models
           if (models && Array.isArray(models)) {
             models.forEach((model: Model) => {
               this.Models.set(model.llm_id, model);
             });
-            return models;
+         
           }
+          // Ensure the directory exists
+          const dirPath = path.dirname(configPath);
+          if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+          }
+
+          // Write to models.json
+          fs.writeFileSync(configPath, JSON.stringify(models, null, 2));
+          console.log('Models written to models.json');
+             return models;
         } catch (error) {
           console.error('Error fetching models from API:', error);
         }
-        
+
         // Return empty array if no models found
         return [];
       }
-      
+
       // Read and parse the JSON file
       const configFile = fs.readFileSync(configPath, 'utf8');
       const models = JSON.parse(configFile);
-      
+
       // If we have models in the file, process them
       if (models && Array.isArray(models)) {
         models.forEach((model: Model) => {
@@ -67,7 +75,7 @@ export class ModelService {
         });
         return Array.from(this.Models.values());
       }
-      
+
       // Return empty array if no providers found
       return [];
     } catch (error) {
@@ -75,6 +83,30 @@ export class ModelService {
       // Return empty array in case of error
       return [];
     }
+  }
+
+  /**
+   * Get models with providers that have keys added
+   * @returns Array of models with valid providers
+   */
+  public async getModels(): Promise<Model[]> {
+    // Get all models
+    const allModels = Array.from(this.Models.values());
+
+    // Get LLM providers service instance
+    const providerService = LLMProviderService.getInstance();
+    const providers = await providerService.getLLMProviders();
+  
+
+    // Create a set of provider keys that have been added
+    const validProviderKeys = new Set(
+      providers
+        .filter(provider => provider.keyAdded)
+        .map(provider => provider.name.replace(/\s+/g, '').toLowerCase())
+    );
+
+    // Filter models to only include those with valid providers
+    return allModels.filter(model => validProviderKeys.has(model.litellm_provider.replace(/\s+/g, '').toLowerCase()));
   }
 
   /**
@@ -94,14 +126,3 @@ export class ModelService {
     return this.Models.get(key);
   }
 }
-
-
-
-
-
-
-
-
-
-
-

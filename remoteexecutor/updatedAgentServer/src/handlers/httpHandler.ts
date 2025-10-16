@@ -12,6 +12,7 @@ import { McpRoutes } from '../routes/mcpRoutes';
 import { TodoRoutes } from '../routes/todoRoutes';
 import { ModelRoutes } from '../routes/modelRoutes';
 import { AgentRoutes } from '../routes/agentRoutes';
+import { ProviderRoutes } from '../routes/llmProviderRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +27,7 @@ export class HttpHandler {
   private todoRoutes: TodoRoutes;
   private modelRoutes: ModelRoutes;
   private agentRoutes: AgentRoutes;
-
+  private providerRoutes: ProviderRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
@@ -35,7 +36,7 @@ export class HttpHandler {
     this.todoRoutes = new TodoRoutes();
     this.modelRoutes = new ModelRoutes();
     this.agentRoutes = new AgentRoutes();
-
+    this.providerRoutes = new ProviderRoutes();
     this.setupRoutes();
   }
 
@@ -57,7 +58,8 @@ export class HttpHandler {
     // Mount Agent routes
     this.app.use('/agents', this.agentRoutes.router);
     
-
+    // Mount Provider routes
+    this.app.use('/providers', this.providerRoutes.router);
     
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
