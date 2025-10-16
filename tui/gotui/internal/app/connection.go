@@ -29,6 +29,11 @@ type modelFetchResult struct {
 	err     error
 }
 
+type agentFetchResult struct {
+	options []stores.AgentOption
+	err     error
+}
+
 func (m *Model) Init() tea.Cmd {
 	log.Printf("Init() called")
 	m.logsPage.LogsPanel().AddLine("🚀 Initializing Codebolt Go TUI...")
@@ -44,7 +49,7 @@ func (m *Model) Init() tea.Cmd {
 		return tryConnectMsg{}
 	}))
 
-	cmds = append(cmds, m.fetchModelOptions())
+	cmds = append(cmds, m.fetchModelOptions(), m.fetchAgentOptions())
 
 	termWidth, termHeight := getTerminalSize()
 	log.Printf("Init: Using terminal size: %dx%d", termWidth, termHeight)
@@ -83,6 +88,24 @@ func (m *Model) fetchModelOptions() tea.Cmd {
 		}
 
 		return modelFetchResult{options: options}
+	}
+}
+
+func (m *Model) fetchAgentOptions() tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if m.agentStore == nil {
+			m.agentStore = stores.SharedAgentStore()
+		}
+
+		options, err := m.agentStore.Fetch(ctx, m.cfg.Protocol, m.cfg.Host, m.cfg.Port)
+		if err != nil {
+			return agentFetchResult{err: err}
+		}
+
+		return agentFetchResult{options: options}
 	}
 }
 

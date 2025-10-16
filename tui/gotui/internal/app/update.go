@@ -115,6 +115,26 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case agentFetchResult:
+		if msg.err != nil {
+			if m.logsPage != nil {
+				m.logsPage.AgentPanel().AddLine(fmt.Sprintf("⚠️ Failed to load agents: %v", msg.err))
+				m.logsPage.LogsPanel().AddLine(fmt.Sprintf("⚠️ Failed to load agents: %v", msg.err))
+			}
+			return m, nil
+		}
+		if m.logsPage != nil {
+			total := len(msg.options)
+			if total == 0 {
+				m.logsPage.AgentPanel().AddLine("ℹ️ Server returned no agents")
+				m.logsPage.LogsPanel().AddLine("ℹ️ Server returned no agents")
+			} else {
+				m.logsPage.AgentPanel().AddLine(fmt.Sprintf("🧭 Loaded %d agents from server", total))
+				m.logsPage.LogsPanel().AddLine(fmt.Sprintf("🧭 Loaded %d agents from server", total))
+			}
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -200,6 +220,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case chat.ModelSelectedMsg:
 		m.logsPage.AgentPanel().AddLine(fmt.Sprintf("🤖 Model selected: %s", msg.Option.Name))
 		m.logsPage.LogsPanel().AddLine(fmt.Sprintf("🤖 Active model set to %s (%s)", msg.Option.Name, msg.Option.Provider))
+
+	case chat.AgentSelectedMsg:
+		if m.logsPage != nil {
+			m.logsPage.AgentPanel().AddLine(fmt.Sprintf("🧭 Agent selected: %s", msg.Option.Name))
+			m.logsPage.LogsPanel().AddLine(fmt.Sprintf("🧭 Active agent set to %s", msg.Option.Name))
+		}
 
 	case chat.ThemeSelectedMsg:
 		if m.logsPage != nil {

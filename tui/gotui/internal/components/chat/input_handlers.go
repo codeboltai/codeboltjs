@@ -52,7 +52,7 @@ func (c *Chat) ClearInput() {
 }
 
 func (c *Chat) refreshSlashMenu() {
-	if !c.focused || c.modelPicker.IsVisible() || c.themePicker.IsVisible() || c.commandPalette.IsVisible() {
+	if !c.focused || c.modelPicker.IsVisible() || (c.agentPicker != nil && c.agentPicker.IsVisible()) || c.themePicker.IsVisible() || c.commandPalette.IsVisible() {
 		c.slashMenu.Close()
 		return
 	}
@@ -98,11 +98,25 @@ func (c *Chat) applySlashCommand(cmd chatcomponents.SlashCommand) tea.Cmd {
 		return nil
 	}
 
+	if cmd.Name == "agents" {
+		c.input.SetValueAndCursor("", 0)
+		c.slashMenu.Close()
+		c.commandPalette.Close()
+		c.modelPicker.Close()
+		if c.agentPicker != nil {
+			c.agentPicker.Open()
+		}
+		return nil
+	}
+
 	if cmd.Name == "theme" {
 		c.input.SetValueAndCursor("", 0)
 		c.slashMenu.Close()
 		c.commandPalette.Close()
 		c.modelPicker.Close()
+		if c.agentPicker != nil {
+			c.agentPicker.Close()
+		}
 		c.themePicker.SetOptions(styles.PresetThemes())
 		c.themePicker.Open(styles.CurrentThemeName())
 		return nil
@@ -443,6 +457,16 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 			}
 		}
 
+		if c.agentPicker != nil && c.agentPicker.IsVisible() {
+			handled, selection, ok := c.agentPicker.HandleKey(msg)
+			if handled {
+				if ok {
+					return c, c.handleAgentSelection(selection)
+				}
+				return c, nil
+			}
+		}
+
 		if c.modelPicker.IsVisible() {
 			handled, selection, ok := c.modelPicker.HandleKey(msg)
 			if handled {
@@ -484,6 +508,18 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 					c.commandPalette.Close()
 					c.themePicker.Close()
 					c.modelPicker.Open()
+					return c, nil
+				}
+
+				if strings.EqualFold(trimmed, "/agents") {
+					c.ClearInput()
+					c.slashMenu.Close()
+					c.commandPalette.Close()
+					c.modelPicker.Close()
+					c.themePicker.Close()
+					if c.agentPicker != nil {
+						c.agentPicker.Open()
+					}
 					return c, nil
 				}
 
@@ -549,7 +585,15 @@ func isKeyPress(msg tea.Msg) bool {
 }
 
 func (c *Chat) shouldSkipInputUpdate(msg tea.Msg) bool {
-	if c.modelPicker.IsVisible() && isKeyPress(msg) {
+	if isKeyPress(msg) {
+		if c.modelPicker.IsVisible() {
+			return true
+		}
+		if c.agentPicker != nil && c.agentPicker.IsVisible() {
+			return true
+		}
+	}
+	if c.themePicker.IsVisible() && isKeyPress(msg) {
 		return true
 	}
 	return isMouseEvent(msg)

@@ -70,6 +70,7 @@ type Model struct {
 	keyMap keybindings.KeyMap
 
 	modelStore *stores.AIModelStore
+	agentStore *stores.AgentStore
 }
 
 func (m *Model) chatComponent() *chat.Chat {
@@ -126,6 +127,7 @@ func NewModel(cfg Config) *Model {
 	}
 
 	modelStore := stores.SharedAIModelStore()
+	agentStore := stores.SharedAgentStore()
 
 	m := &Model{
 		cfg:            cfg,
@@ -143,10 +145,13 @@ func NewModel(cfg Config) *Model {
 		messageSender:  sender,
 		messageHandler: handler,
 		modelStore:     modelStore,
+		agentStore:     agentStore,
 	}
 
 	if chatComp != nil {
 		chatComp.SetModelStore(modelStore)
+		chatComp.SetAgentStore(agentStore)
+		chatComp.SetPreferredAgent(cfg.Agent)
 		chatComp.Focus()
 	}
 
@@ -175,6 +180,7 @@ func NewModel(cfg Config) *Model {
 	}
 	logsPage.LogsPanel().AddLine("ℹ️  Server should be started by codebolt-code command")
 	logsPage.LogsPanel().AddLine("🤖 Fetching available models from server...")
+	logsPage.LogsPanel().AddLine("🧭 Fetching available agents from server...")
 
 	m.refreshGitPanels()
 

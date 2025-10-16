@@ -9,6 +9,7 @@ import (
 	"gotui/internal/components/uicomponents/diffview"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
+	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -37,6 +38,33 @@ func (c *Chat) ensureConversationStore() *stores.ConversationStore {
 		c.conversationStore = stores.SharedConversationStore()
 	}
 	return c.conversationStore
+}
+
+func (c *Chat) ensureApplicationStateStore() *stores.ApplicationStateStore {
+	if c == nil {
+		return nil
+	}
+	if c.applicationState == nil {
+		c.applicationState = stores.SharedApplicationStateStore()
+	}
+	return c.applicationState
+}
+
+func (c *Chat) syncApplicationState() {
+	store := c.ensureApplicationStateStore()
+	if store == nil {
+		return
+	}
+	state := stores.ApplicationState{SelectedConversationID: c.activeConversationID}
+	if c.selectedModel != nil {
+		modelCopy := stores.ModelOption(*c.selectedModel)
+		state.SelectedModel = &modelCopy
+	}
+	if c.selectedAgent != nil {
+		agentCopy := *c.selectedAgent
+		state.SelectedAgent = &agentCopy
+	}
+	store.Update(state)
 }
 
 func (c *Chat) defaultModelOption() *stores.ModelOption {
@@ -91,6 +119,62 @@ func (c *Chat) applyDefaultModelToAllConversations() {
 	}
 }
 
+func (c *Chat) defaultAgentSelection() *wsclient.AgentSelection {
+	if c == nil {
+		return nil
+	}
+	if c.selectedAgent != nil {
+		copy := *c.selectedAgent
+		return &copy
+	}
+	if c.preferredAgent != nil && strings.TrimSpace(c.preferredAgent.ID) != "" {
+		copy := *c.preferredAgent
+		return &copy
+	}
+	if c.agentStore != nil {
+		if agents := c.agentStore.Agents(); len(agents) > 0 {
+			return &wsclient.AgentSelection{
+				ID:           agents[0].ID,
+				Name:         agents[0].Name,
+				AgentType:    "",
+				AgentDetails: agents[0].Description,
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Chat) applyDefaultAgentIfMissing(conversationID string) {
+	store := c.ensureConversationStore()
+	if store == nil || conversationID == "" {
+		return
+	}
+	conv := store.Conversation(conversationID)
+	if conv == nil || conv.Options.SelectedAgent != nil {
+		return
+	}
+	if agent := c.defaultAgentSelection(); agent != nil {
+		agentCopy := *agent
+		store.SetSelectedAgent(conversationID, &agentCopy)
+	}
+}
+
+func (c *Chat) applyDefaultAgentToAllConversations() {
+	store := c.ensureConversationStore()
+	if store == nil {
+		return
+	}
+	convs := store.Conversations()
+	for _, conv := range convs {
+		if conv.Options.SelectedAgent == nil {
+			if agent := c.defaultAgentSelection(); agent != nil {
+				agentCopy := *agent
+				store.SetSelectedAgent(conv.ID, &agentCopy)
+			}
+		}
+	}
+}
+
 func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 	if c == nil {
 		return
@@ -100,9 +184,8 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 		c.conversations = nil
 		c.activeConversationID = ""
 		c.selectedModel = nil
-		if c.modelStatusWidget != nil {
-			c.modelStatusWidget.SetModel(nil)
-		}
+		c.selectedAgent = nil
+		c.syncApplicationState()
 		if syncPanels {
 			c.syncConversationPanelItems()
 		}
@@ -111,12 +194,14 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 	activeID := store.ActiveID()
 	if activeID != "" {
 		c.applyDefaultModelIfMissing(activeID)
+		c.applyDefaultAgentIfMissing(activeID)
 	}
 
 	c.conversations = store.Conversations()
 	c.activeConversationID = activeID
 
 	c.selectedModel = nil
+	c.selectedAgent = nil
 	if activeID != "" {
 		for _, conv := range c.conversations {
 			if conv != nil && conv.ID == activeID {
@@ -124,13 +209,15 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 					copy := chatcomponents.ModelOption(*conv.Options.SelectedModel)
 					c.selectedModel = &copy
 				}
+				if conv.Options.SelectedAgent != nil {
+					agentCopy := *conv.Options.SelectedAgent
+					c.selectedAgent = &agentCopy
+				}
 				break
 			}
 		}
 	}
-	if c.modelStatusWidget != nil {
-		c.modelStatusWidget.SetModel(c.selectedModel)
-	}
+	c.syncApplicationState()
 
 	if syncPanels {
 		c.syncConversationPanelItems()
@@ -171,6 +258,7 @@ func (c *Chat) createInitialConversation() {
 	}
 
 	c.applyDefaultModelIfMissing(conv.ID)
+	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)
 }
 
@@ -210,6 +298,7 @@ func (c *Chat) createNewConversation() tea.Cmd {
 	store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil))
 
 	c.applyDefaultModelIfMissing(conv.ID)
+	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 	c.hoverButton = false
@@ -247,6 +336,7 @@ func (c *Chat) appendMessageToActiveConversation(msgType, content string, metada
 
 	store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata))
 	c.applyDefaultModelIfMissing(conv.ID)
+	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)
 	c.refreshActiveConversationView()
 	c.ensureHoverSelection()

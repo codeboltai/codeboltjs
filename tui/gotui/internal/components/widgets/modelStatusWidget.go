@@ -11,88 +11,151 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 )
 
-type modelKey struct {
-	Name     string
-	Provider string
-}
-
-// ModelStatusWidget renders the current model selection status.
+// ModelStatusWidget renders the current model and agent selection status.
 type ModelStatusWidget struct {
-	store       *stores.AIModelStore
-	unsubscribe func()
-	selected    *modelKey
+	modelStore       *stores.AIModelStore
+	agentStore       *stores.AgentStore
+	stateStore       *stores.ApplicationStateStore
+	modelUnsubscribe func()
+	agentUnsubscribe func()
+	stateUnsubscribe func()
+	currentState     stores.ApplicationState
 }
 
-// NewModelStatusWidget creates a widget instance bound to the provided store.
-func NewModelStatusWidget(store *stores.AIModelStore) *ModelStatusWidget {
+// NewModelStatusWidget creates a widget instance bound to the provided stores.
+func NewModelStatusWidget(modelStore *stores.AIModelStore, agentStore *stores.AgentStore) *ModelStatusWidget {
 	widget := &ModelStatusWidget{}
-	widget.SetStore(store)
+	widget.SetModelStore(modelStore)
+	widget.SetAgentStore(agentStore)
 	return widget
 }
 
-// SetStore binds the widget to the shared model store.
-func (w *ModelStatusWidget) SetStore(store *stores.AIModelStore) {
+// SetModelStore binds the widget to the shared model store.
+func (w *ModelStatusWidget) SetModelStore(store *stores.AIModelStore) {
 	if w == nil {
 		return
 	}
-	if w.unsubscribe != nil {
-		w.unsubscribe()
-		w.unsubscribe = nil
+	if w.modelUnsubscribe != nil {
+		w.modelUnsubscribe()
+		w.modelUnsubscribe = nil
 	}
-	w.store = store
+	w.modelStore = store
 	if store != nil {
-		w.unsubscribe = store.Subscribe(func(models []stores.ModelOption) {
-			// No additional work required; View pulls latest data when rendered.
+		w.modelUnsubscribe = store.Subscribe(func(models []stores.ModelOption) {
+			_ = models
 		})
 	}
 }
 
-// SetModel records the selected model using the shared store as the source of truth.
-func (w *ModelStatusWidget) SetModel(model *chatcomponents.ModelOption) {
+// SetAgentStore binds the widget to the shared agent store.
+func (w *ModelStatusWidget) SetAgentStore(store *stores.AgentStore) {
 	if w == nil {
 		return
 	}
-	if model == nil {
-		w.selected = nil
+	if w.agentUnsubscribe != nil {
+		w.agentUnsubscribe()
+		w.agentUnsubscribe = nil
+	}
+	w.agentStore = store
+	if store != nil {
+		w.agentUnsubscribe = store.Subscribe(func(options []stores.AgentOption) {
+			_ = options
+		})
+	}
+}
+
+// SetStateStore binds the widget to the shared application state store.
+func (w *ModelStatusWidget) SetStateStore(store *stores.ApplicationStateStore) {
+	if w == nil {
 		return
 	}
-	w.selected = &modelKey{Name: model.Name, Provider: model.Provider}
+	if w.stateUnsubscribe != nil {
+		w.stateUnsubscribe()
+		w.stateUnsubscribe = nil
+	}
+	w.stateStore = store
+	w.currentState = stores.ApplicationState{}
+	if store != nil {
+		w.stateUnsubscribe = store.Subscribe(func(state stores.ApplicationState) {
+			w.currentState = state
+		})
+	}
 }
 
 // Model returns a copy of the active model resolved from the store, if any.
 func (w *ModelStatusWidget) Model() *chatcomponents.ModelOption {
-	if w == nil || w.store == nil || w.selected == nil {
+	if w == nil {
 		return nil
 	}
-	model, ok := w.store.ModelByNameProvider(w.selected.Name, w.selected.Provider)
-	if !ok {
+	selected := w.currentState.SelectedModel
+	if selected == nil {
 		return nil
 	}
-	copy := chatcomponents.ModelOption(*model)
+	if w.modelStore != nil {
+		if model, ok := w.modelStore.ModelByNameProvider(selected.Name, selected.Provider); ok {
+			copy := chatcomponents.ModelOption(*model)
+			return &copy
+		}
+	}
+	copy := chatcomponents.ModelOption(*selected)
 	return &copy
 }
 
-// View renders the widget using the latest information from the store.
+// Agent returns a copy of the active agent resolved from the store, if any.
+func (w *ModelStatusWidget) Agent() *stores.AgentOption {
+	if w == nil {
+		return nil
+	}
+	selected := w.currentState.SelectedAgent
+	if selected == nil || strings.TrimSpace(selected.ID) == "" {
+		return nil
+	}
+	if w.agentStore != nil {
+		if agent, ok := w.agentStore.AgentByID(selected.ID); ok {
+			copy := *agent
+			return &copy
+		}
+	}
+	return &stores.AgentOption{ID: selected.ID, Name: selected.Name, Description: selected.AgentDetails}
+}
+
+// View renders the widget using the latest information from the stores.
 func (w *ModelStatusWidget) View() string {
+	if w == nil {
+		return ""
+	}
+
 	model := w.Model()
-	if w == nil || model == nil {
+	agent := w.Agent()
+	if model == nil && agent == nil {
 		return ""
 	}
 
 	theme := styles.CurrentTheme()
-	label := fmt.Sprintf("Model: %s", model.Name)
+	segments := []string{}
 
-	if provider := strings.TrimSpace(model.Provider); provider != "" {
-		label += fmt.Sprintf("  •  %s", provider)
+	if model != nil {
+		label := fmt.Sprintf("Model: %s", model.Name)
+		if provider := strings.TrimSpace(model.Provider); provider != "" {
+			label += fmt.Sprintf("  •  %s", provider)
+		}
+		if ctx := strings.TrimSpace(model.Context); ctx != "" {
+			label += fmt.Sprintf("  •  %s context", ctx)
+		}
+		segments = append(segments, label)
 	}
-	if ctx := strings.TrimSpace(model.Context); ctx != "" {
-		label += fmt.Sprintf("  •  %s context", ctx)
+
+	if agent != nil {
+		label := fmt.Sprintf("Agent: %s", agent.Name)
+		segments = append(segments, label)
 	}
+
+	content := strings.Join(segments, "  │  ")
 
 	return lipgloss.NewStyle().
 		Foreground(theme.Primary).
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(theme.Primary).
 		Padding(0, 1).
-		Render(label)
+		Render(content)
 }

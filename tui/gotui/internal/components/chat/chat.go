@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"strings"
+
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/components/dialogs"
@@ -8,6 +10,7 @@ import (
 	"gotui/internal/layout/panels"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
+	"gotui/internal/wsclient"
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -21,10 +24,12 @@ type Chat struct {
 	templateManager   *chattemplates.TemplateManager
 	slashMenu         *chatcomponents.SlashMenu
 	modelPicker       *chatcomponents.ModelPicker
+	agentPicker       *chatcomponents.AgentPicker
 	themePicker       *dialogs.ThemePicker
 	commandPalette    *chatcomponents.CommandPalette
 	selectedModel     *chatcomponents.ModelOption
 	modelOptions      []chatcomponents.ModelOption
+	selectedAgent     *wsclient.AgentSelection
 	conversationPanel *panels.ConversationListPanel
 	width             int
 	height            int
@@ -48,7 +53,10 @@ type Chat struct {
 	helpBar           *widgets.HelpBar
 	modelStatusWidget *widgets.ModelStatusWidget
 	modelStore        *stores.AIModelStore
+	agentStore        *stores.AgentStore
+	preferredAgent    *wsclient.AgentSelection
 	conversationStore *stores.ConversationStore
+	applicationState  *stores.ApplicationStateStore
 
 	contextViewport      viewport.Model
 	contextDrawerVisible bool
@@ -63,6 +71,7 @@ type Chat struct {
 func defaultSlashCommands() []chatcomponents.SlashCommand {
 	return []chatcomponents.SlashCommand{
 		{Name: "models", Description: "Switch active AI model", Usage: "/models"},
+		{Name: "agents", Description: "Switch active agent", Usage: "/agents"},
 		{Name: "theme", Description: "Switch TUI color theme", Usage: "/theme"},
 		{Name: "help", Description: "Show available commands", Usage: "/help"},
 	}
@@ -82,6 +91,7 @@ func New() *Chat {
 		templateManager:       templateManager,
 		slashMenu:             chatcomponents.NewSlashMenu(defaultSlashCommands()),
 		modelPicker:           chatcomponents.NewModelPicker(nil),
+		agentPicker:           chatcomponents.NewAgentPicker(nil),
 		themePicker:           dialogs.NewThemePicker(styles.PresetThemes()),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
@@ -91,12 +101,14 @@ func New() *Chat {
 		conversationListWidth: 28,
 		contextDrawerVisible:  true,
 		contextViewport:       newContextViewport(1, 1),
-		modelStatusWidget:     widgets.NewModelStatusWidget(nil),
 		conversationStore:     stores.SharedConversationStore(),
+		applicationState:      stores.SharedApplicationStateStore(),
 		zonePrefix:            zonePrefix,
 		chatZoneID:            zonePrefix + "chat_area",
 		contextZoneID:         zonePrefix + "context_drawer",
 	}
+	chat.modelStatusWidget = widgets.NewModelStatusWidget(nil, nil)
+	chat.modelStatusWidget.SetStateStore(chat.applicationState)
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 	chat.createInitialConversation()
 	chat.loadActiveConversation()
@@ -114,13 +126,46 @@ func (c *Chat) SetModelStore(store *stores.AIModelStore) {
 		c.modelPicker.BindStore(store)
 	}
 	if c.modelStatusWidget != nil {
-		c.modelStatusWidget.SetStore(store)
+		c.modelStatusWidget.SetModelStore(store)
 	}
 	if store != nil {
 		c.SetModelOptions(nil)
 	} else {
 		c.SetModelOptions([]chatcomponents.ModelOption{})
 	}
+}
+
+// SetAgentStore binds the chat component to the centralized agent store.
+func (c *Chat) SetAgentStore(store *stores.AgentStore) {
+	if c == nil {
+		return
+	}
+	c.agentStore = store
+	if c.agentPicker != nil {
+		c.agentPicker.BindStore(store)
+	}
+	if c.modelStatusWidget != nil {
+		c.modelStatusWidget.SetAgentStore(store)
+	}
+	c.applyDefaultAgentToAllConversations()
+	c.refreshConversationsFromStore(true)
+}
+
+// SetPreferredAgent records the agent provided via configuration to seed new conversations.
+func (c *Chat) SetPreferredAgent(agent wsclient.AgentSelection) {
+	if c == nil {
+		return
+	}
+	if strings.TrimSpace(agent.ID) == "" {
+		c.preferredAgent = nil
+		c.applyDefaultAgentToAllConversations()
+		c.refreshConversationsFromStore(true)
+		return
+	}
+	copy := agent
+	c.preferredAgent = &copy
+	c.applyDefaultAgentToAllConversations()
+	c.refreshConversationsFromStore(true)
 }
 
 // SetHelpBar attaches a help bar to be rendered beneath the input.
@@ -195,6 +240,11 @@ type ModelSelectedMsg struct {
 	Option chatcomponents.ModelOption
 }
 
+// AgentSelectedMsg is sent when the user selects an agent.
+type AgentSelectedMsg struct {
+	Option chatcomponents.AgentOption
+}
+
 // ThemeSelectedMsg is emitted when a theme preset is chosen.
 type ThemeSelectedMsg struct {
 	Preset styles.ThemePreset
@@ -240,6 +290,12 @@ func (c *Chat) View() string {
 	if c.modelPicker.IsVisible() {
 		if layer := c.modelPicker.Layer(c.width, c.height); layer != nil {
 			overlayLayers = append(overlayLayers, layer.Z(20))
+		}
+	}
+
+	if c.agentPicker != nil && c.agentPicker.IsVisible() {
+		if layer := c.agentPicker.Layer(c.width, c.height); layer != nil {
+			overlayLayers = append(overlayLayers, layer.Z(25))
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
+	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -17,9 +18,6 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 	c.slashMenu.Close()
 	opt := option
 	c.selectedModel = &opt
-	if c.modelStatusWidget != nil {
-		c.modelStatusWidget.SetModel(c.selectedModel)
-	}
 	if store := c.ensureConversationStore(); store != nil {
 		activeID := store.ActiveID()
 		if activeID != "" {
@@ -31,6 +29,34 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 	c.AddMessage("system", fmt.Sprintf("🤖 Model set to %s (%s)", option.Name, option.Provider))
 	return tea.Cmd(func() tea.Msg {
 		return ModelSelectedMsg{Option: option}
+	})
+}
+
+func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption) tea.Cmd {
+	if c.agentPicker != nil {
+		c.agentPicker.Close()
+	}
+	c.commandPalette.Close()
+	c.input.SetValueAndCursor("", 0)
+	c.slashMenu.Close()
+	selection := wsclient.AgentSelection{
+		ID:           option.ID,
+		Name:         option.Name,
+		AgentType:    "",
+		AgentDetails: option.Description,
+	}
+	c.selectedAgent = &selection
+	if store := c.ensureConversationStore(); store != nil {
+		activeID := store.ActiveID()
+		if activeID != "" {
+			copy := selection
+			store.SetSelectedAgent(activeID, &copy)
+		}
+	}
+	c.refreshConversationsFromStore(true)
+	c.AddMessage("system", fmt.Sprintf("🧭 Agent set to %s", option.Name))
+	return tea.Cmd(func() tea.Msg {
+		return AgentSelectedMsg{Option: option}
 	})
 }
 
@@ -58,6 +84,9 @@ func (c *Chat) ToggleCommandPalette() {
 		return
 	}
 	c.modelPicker.Close()
+	if c.agentPicker != nil {
+		c.agentPicker.Close()
+	}
 	c.slashMenu.Close()
 	c.commandPalette.UpdateCommands(c.slashMenu.Commands())
 	c.commandPalette.Open()
