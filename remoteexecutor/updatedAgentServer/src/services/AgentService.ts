@@ -3,7 +3,8 @@ import { CodeboltApplicationPath } from '../config';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
+import { MarketplaceAgent } from '@codebolt/types/agent';
 
 export interface AgentInfo {
   agentId: string;
@@ -21,24 +22,7 @@ interface ProjectSetting {
   [key: string]: any;
 }
 
-// Interface for the marketplace agent API response
-interface MarketplaceAgent {
-  id: number;
-  unique_id: string;
-  title: string;
-  description: string;
-  longDescription?: string;
-  zipFilePath?: string;
-  avatarSrc?: string;
-  metadata?: any;
-  initial_message?: string;
-  actions?: any[];
-  tags?: string[];
-  version?: string;
-  author?: string;
-  updatedAt?: string;
-  // ... other properties from the API response
-}
+// Using MarketplaceAgent type from @codebolt/types package
 
 
 
@@ -66,7 +50,7 @@ export class AgentService {
    * Get marketplace agents from local file or API
    * @returns Promise resolving to array of marketplace agents
    */
-  public async getMarketplaceAgents(): Promise<any[]> {
+  public async getMarketplaceAgents(): Promise<AgentInfo[]> {
     try {
       const configPath = path.join(CodeboltApplicationPath(), 'agents.json');
       
@@ -77,19 +61,19 @@ export class AgentService {
         
         // If we have agents in the file, return them
         if (config.agents && config.agents.length > 0) {
-        config.agents.forEach((agent: any) => {
-        const key = agent.agentId || agent.unique_id;
-        if (key) {
-          this.agents.set(key, agent);
-        }
-      });
-         
+          config.agents.forEach((agent: MarketplaceAgent) => {
+            const agentInfo = this.convertToAgentInfo(agent);
+            const key = agentInfo.agentId || agent.unique_id;
+            if (key) {
+              this.agents.set(key, agentInfo);
+            }
+          });
         }
       }
       
       // If no local agents, fetch from API
-      const response = await axios.get('https://api.codebolt.ai/api/agents/list');
-      const marketplaceAgents = response.data;
+      const response: AxiosResponse<{ agents: MarketplaceAgent[] }> = await axios.get<{ agents: MarketplaceAgent[] }>('https://api.codebolt.ai/api/agents/list');
+      const marketplaceAgents = response.data.agents;
       
       // Update local agents.json with the fetched data
       const updatedConfig = {
@@ -106,14 +90,15 @@ export class AgentService {
       fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2));
       
       // Update the agents map with the new marketplace agents
-      marketplaceAgents.forEach((agent: any) => {
-        const key = agent.agentId || agent.unique_id;
+      marketplaceAgents.forEach((agent: MarketplaceAgent) => {
+        const agentInfo = this.convertToAgentInfo(agent);
+        const key = agentInfo.agentId || agent.unique_id;
         if (key) {
-          this.agents.set(key, agent);
+          this.agents.set(key, agentInfo);
         }
       });
       
-      return marketplaceAgents;
+      return Array.from(this.agents.values()).filter(agent => !agent.isLocal);
     } catch (error) {
       console.error('Error fetching marketplace agents:', error);
       return [];
@@ -196,6 +181,21 @@ export class AgentService {
       agentId: 'cli-agent',
       agentName: 'CLI Provided Agent',
       agentDescription: descriptionParts.join(' ')
+    };
+  }
+
+  /**
+   * Convert MarketplaceAgent to AgentInfo
+   * @param marketplaceAgent The marketplace agent to convert
+   * @returns The converted AgentInfo
+   */
+  private convertToAgentInfo(marketplaceAgent: MarketplaceAgent): AgentInfo {
+    return {
+      agentId: marketplaceAgent.unique_id,
+      agentName: marketplaceAgent.title,
+      agentDescription: marketplaceAgent.description,
+      ...marketplaceAgent,
+      id: marketplaceAgent.unique_id
     };
   }
 
