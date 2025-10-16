@@ -27,6 +27,7 @@ export class HttpHandler {
   private modelRoutes: ModelRoutes;
   private agentRoutes: AgentRoutes;
 
+
   constructor(private app: express.Application) {
     this.startTime = new Date();
     this.connectionManager = ConnectionManager.getInstance();
@@ -34,6 +35,7 @@ export class HttpHandler {
     this.todoRoutes = new TodoRoutes();
     this.modelRoutes = new ModelRoutes();
     this.agentRoutes = new AgentRoutes();
+
     this.setupRoutes();
   }
 
@@ -54,6 +56,8 @@ export class HttpHandler {
 
     // Mount Agent routes
     this.app.use('/agents', this.agentRoutes.router);
+    
+
     
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
@@ -176,6 +180,7 @@ export class HttpHandler {
         info: '/info',
         models: '/models',
         agents: '/agents',
+        providers: '/providers',
         bundle: '/bundle/',
         download: '/download/sampleagent',
         mcp: '/mcp/',
@@ -185,5 +190,4 @@ export class HttpHandler {
       documentation: 'See README.md for API documentation'
     });
   }
-
 }
