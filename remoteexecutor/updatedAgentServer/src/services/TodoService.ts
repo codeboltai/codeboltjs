@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -36,7 +37,7 @@ export class TodoService {
             
             return todos;
         } catch (error) {
-            console.error('Error reading todo file:', error);
+            logger.error('Error reading todo file:', error);
             // Return empty object in case of error
             return {};
         }
@@ -57,7 +58,7 @@ export class TodoService {
             
             return [];
         } catch (error) {
-            console.error('Error getting todos by thread ID:', error);
+            logger.error('Error getting todos by thread ID:', error);
             return [];
         }
     }
@@ -71,7 +72,7 @@ export class TodoService {
             const allTodos = await this.getTodos();
             return Object.keys(allTodos);
         } catch (error) {
-            console.error('Error getting thread IDs:', error);
+            logger.error('Error getting thread IDs:', error);
             return [];
         }
     }

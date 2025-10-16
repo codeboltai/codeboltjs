@@ -4,6 +4,7 @@ import { getProviders } from "@arrowai/multillm";
 import fs from 'fs';
 import path from 'path';
 import { Model } from '@codebolt/types/apis/models';
+import { logger } from '@/utils/logger';
 
 export class LLMProviderService {
     private static instance: LLMProviderService | null = null;
@@ -46,7 +47,7 @@ export class LLMProviderService {
             // Return empty array if no providers found
             return [];
         } catch (error) {
-            console.error('Error reading LLM provider config:', error);
+            logger.error('Error reading LLM provider config:', error);
             // Return empty array in case of error
             return [];
         }
@@ -81,7 +82,7 @@ export class LLMProviderService {
             // Return empty array if no providers found
             return {providers: [],custom_model_config};
         } catch (error) {
-            console.error('Error reading LLM provider config:', error);
+            logger.error('Error reading LLM provider config:', error);
             // Return empty array in case of error
             return {providers: [],custom_model_config: null};
         }

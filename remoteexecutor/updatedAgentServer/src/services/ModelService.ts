@@ -4,6 +4,8 @@ import { LLMProviderService } from './LLMProviderService'; // Added import
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { logger } from '@/utils/logger';
+import { log } from 'console';
 
 export class ModelService {
   private static instance: ModelService | null = null;
@@ -33,7 +35,7 @@ export class ModelService {
       // Check if models.json exists
       if (!fs.existsSync(configPath)) {
         // If file doesn't exist, fetch models from API
-        console.log('models.json not found, fetching models from API');
+     
         try {
           const response = await axios.get('https://codebolt-edge-api.arrowai.workers.dev/getllmpricing');
           const modelsFromApi: any = response.data.data;
@@ -72,10 +74,10 @@ export class ModelService {
           }
           // Write to models.json
           fs.writeFileSync(configPath, JSON.stringify(models, null, 2));
-          console.log('Models written to models.json');
+          logger.info('Models written to models.json');
              return models;
         } catch (error) {
-          console.error('Error fetching models from API:', error);
+          logger.error('Error fetching models from API:', error);
         }
 
         // Return empty array if no models found
@@ -97,7 +99,7 @@ export class ModelService {
       // Return empty array if no providers found
       return [];
     } catch (error) {
-      console.error('Error reading LLM provider config:', error);
+      
       // Return empty array in case of error
       return [];
     }

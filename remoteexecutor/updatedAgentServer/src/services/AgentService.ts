@@ -5,6 +5,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import axios, { AxiosResponse } from 'axios';
 import { MarketplaceAgent } from '@codebolt/types/apis/agents';
+import { logger } from '@/utils/logger';
 
 export interface AgentInfo {
   agentId: string;
@@ -100,7 +101,7 @@ export class AgentService {
       
       return Array.from(this.agents.values()).filter(agent => !agent.isLocal);
     } catch (error) {
-      console.error('Error fetching marketplace agents:', error);
+      logger.error('Error fetching marketplace agents:', error);
       return [];
     }
   }
@@ -154,7 +155,7 @@ export class AgentService {
 
       return agentsData;
     } catch (error) {
-      console.error('Error getting local agents:', error);
+      logger.error('Error getting local agents:', error);
       return [];
     }
   }
