@@ -56,11 +56,11 @@ export function getUserHomePath(): string {
   
   switch (platform) {
     case 'darwin': // macOS
-      return path.join(os.homedir(), 'codebolt');
+      return path.join(os.homedir(), '.codebolt');
     case 'win32': // Windows
-  return path.join(os.homedir(), 'codebolt');
+  return path.join(os.homedir(), '.codebolt');
     case 'linux':
-    return path.join(os.homedir(), 'codebolt');
+    return path.join(os.homedir(), '.codebolt');
     default:
       // Fallback to a generic path
       return path.join(os.homedir(), '.codebolt');
