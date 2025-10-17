@@ -11,12 +11,20 @@ import (
 
 // MessageTemplateData contains the data needed to render a message
 type MessageTemplateData struct {
-	Type      string
-	Content   string
-	Timestamp time.Time
-	Raw       bool
-	Width     int                    // Available width for the message
-	Metadata  map[string]interface{} // Additional metadata for specific template types
+Type      string
+Content   string
+Timestamp time.Time
+Raw       bool
+Width     int                    // Available width for the message
+Metadata  map[string]interface{} // Additional metadata for specific template types
+Buttons   []MessageButton        // Optional buttons for interactive templates
+}
+
+// MessageButton represents a single interactive button rendered by a template.
+type MessageButton struct {
+    ID          string
+    Label       string
+    Description string
 }
 
 // RenderedMessage represents a fully rendered message

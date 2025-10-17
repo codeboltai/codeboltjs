@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"gotui/internal/components/chat"
+	"gotui/internal/components/chattemplates"
 )
 
 // Handler processes inbound websocket messages and routes them to the chat UI.
@@ -50,13 +51,13 @@ func (h *Handler) HandleRaw(data []byte) {
 
 	chatType := resolveChatMessageType(senderType, templateType, messageType)
 
-    metadata := extractMetadata(envelope)
+	metadata, buttons := extractMetadata(envelope)
 
-    if len(metadata) > 0 {
-        h.chat.AddMessageWithMetadata(chatType, content, metadata)
-    } else {
-        h.chat.AddMessage(chatType, content)
-    }
+	if len(metadata) > 0 || len(buttons) > 0 {
+		h.chat.AddMessageWithMetadata(chatType, content, metadata, buttons)
+	} else {
+		h.chat.AddMessage(chatType, content)
+	}
 }
 
 func resolveChatMessageType(senderType, templateType, messageType string) string {
@@ -96,7 +97,7 @@ func resolveChatMessageType(senderType, templateType, messageType string) string
 	return "ai"
 }
 
-func extractMetadata(envelope map[string]any) map[string]any {
+func extractMetadata(envelope map[string]any) (map[string]any, []chattemplates.MessageButton) {
 	metadata := map[string]any{}
 
 	if payload, ok := envelope["payload"].(map[string]any); ok {
@@ -128,7 +129,68 @@ func extractMetadata(envelope map[string]any) map[string]any {
 		metadata["state_event"] = payloadType
 	}
 
-	return metadata
+	buttons := collectButtons(envelope, metadata)
+
+	return metadata, buttons
+}
+
+func collectButtons(envelope map[string]any, metadata map[string]any) []chattemplates.MessageButton {
+	if rawButtons, ok := envelope["buttons"]; ok {
+		if buttons := parseButtons(rawButtons); len(buttons) > 0 {
+			return buttons
+		}
+	}
+
+	if rawButtons, ok := metadata["buttons"]; ok {
+		if buttons := parseButtons(rawButtons); len(buttons) > 0 {
+			return buttons
+		}
+	}
+
+	return nil
+}
+
+func parseButtons(raw any) []chattemplates.MessageButton {
+	arr, ok := raw.([]any)
+	if !ok || len(arr) == 0 {
+		return nil
+	}
+
+	buttons := make([]chattemplates.MessageButton, 0, len(arr))
+	for _, entry := range arr {
+		btnMap, ok := entry.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		button := chattemplates.MessageButton{}
+		button.ID = fallbackString(btnMap["id"], btnMap["value"], btnMap["text"])
+		button.Label = fallbackString(btnMap["label"], btnMap["text"], btnMap["value"])
+		button.Description = fallbackString(btnMap["description"], btnMap["buttonClickedText"])
+
+		if button.Label == "" {
+			continue
+		}
+		if button.ID == "" {
+			button.ID = button.Label
+		}
+
+		buttons = append(buttons, button)
+	}
+
+	if len(buttons) == 0 {
+		return nil
+	}
+	return buttons
+}
+
+func fallbackString(values ...any) string {
+	for _, v := range values {
+		if s := stringValue(v); s != "" {
+			return s
+		}
+	}
+	return ""
 }
 
 func getNestedString(m map[string]any, keys ...string) string {

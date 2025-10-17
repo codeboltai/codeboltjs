@@ -13,7 +13,7 @@ import (
 type ReadFileTemplate struct {
 	BaseTemplate
 	confirmation  *ReadFileConfirmationTemplate
-	errorTemplate *ReadFileErrorTemplate
+	errorTpl      *ReadFileErrorTemplate
 }
 
 // NewReadFileTemplate creates a new read file message template.
@@ -99,8 +99,8 @@ func (rft *ReadFileTemplate) confirmationTemplate() *ReadFileConfirmationTemplat
 }
 
 func (rft *ReadFileTemplate) errorTemplate() *ReadFileErrorTemplate {
-	if rft.errorTemplate == nil {
-		rft.errorTemplate = NewReadFileErrorTemplate()
+	if rft.errorTpl == nil {
+		rft.errorTpl = NewReadFileErrorTemplate()
 	}
-	return rft.errorTemplate
+	return rft.errorTpl
 }

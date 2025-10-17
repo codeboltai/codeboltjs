@@ -250,7 +250,7 @@ func (c *Chat) createInitialConversation() {
 		return
 	}
 
-	store.AppendMessage(conv.ID, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil))
+    store.AppendMessage(conv.ID, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil, nil))
 
 	sampleReadContent := strings.Join([]string{
 		"// Preview of the read file template",
@@ -260,14 +260,14 @@ func (c *Chat) createInitialConversation() {
 		"\treturn \"Hello from the read file template!\"",
 		"}",
 	}, "\n")
-	store.AppendMessage(conv.ID, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}))
+    store.AppendMessage(conv.ID, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}, nil))
 
 	if unifiedPreview, splitPreview := sampleDiffPreviews(); unifiedPreview != "" || splitPreview != "" {
 		if unifiedPreview != "" {
-			store.AppendMessage(conv.ID, c.newMessageData("system", unifiedPreview, nil))
-		}
-		if splitPreview != "" {
-			store.AppendMessage(conv.ID, c.newMessageData("system", splitPreview, nil))
+            store.AppendMessage(conv.ID, c.newMessageData("system", unifiedPreview, nil, nil))
+        }
+        if splitPreview != "" {
+            store.AppendMessage(conv.ID, c.newMessageData("system", splitPreview, nil, nil))
 		}
 	}
 
@@ -310,7 +310,7 @@ func (c *Chat) createNewConversation() tea.Cmd {
 		return nil
 	}
 
-	store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil))
+    store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil, nil))
 
 	c.applyDefaultModelIfMissing(conv.ID)
 	c.applyDefaultAgentIfMissing(conv.ID)
@@ -340,7 +340,7 @@ func (c *Chat) refreshActiveConversationView() {
 	c.viewport.SetMessages(messages)
 }
 
-func (c *Chat) appendMessageToActiveConversation(msgType, content string, metadata map[string]interface{}) {
+func (c *Chat) appendMessageToActiveConversation(msgType, content string, metadata map[string]interface{}, buttons []chattemplates.MessageButton) {
 	store := c.ensureConversationStore()
 	conv := store.ActiveConversation()
 	if conv == nil {
@@ -351,7 +351,7 @@ func (c *Chat) appendMessageToActiveConversation(msgType, content string, metada
 		return
 	}
 
-	store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata))
+    store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata, buttons))
 	c.applyDefaultModelIfMissing(conv.ID)
 	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)
@@ -393,7 +393,7 @@ func (c *Chat) getConversationByID(id string) *Conversation {
 	return store.Conversation(id)
 }
 
-func (c *Chat) newMessageData(msgType, content string, metadata map[string]interface{}) chattemplates.MessageTemplateData {
+func (c *Chat) newMessageData(msgType, content string, metadata map[string]interface{}, buttons []chattemplates.MessageButton) chattemplates.MessageTemplateData {
 	width := c.messageWidth()
 	if metadata == nil {
 		metadata = make(map[string]interface{})
@@ -405,6 +405,7 @@ func (c *Chat) newMessageData(msgType, content string, metadata map[string]inter
 		Raw:       false,
 		Width:     width,
 		Metadata:  metadata,
+		Buttons:   buttons,
 	}
 }
 

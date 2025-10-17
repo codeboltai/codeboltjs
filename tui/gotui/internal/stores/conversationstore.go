@@ -393,11 +393,11 @@ func cloneMessages(messages []chattemplates.MessageTemplateData) []chattemplates
 			}
 			clone.Metadata = metaCopy
 		}
-		if len(msg.Buttons) > 0 {
-			buttons := make([]chattemplates.MessageButton, len(msg.Buttons))
-			copy(buttons, msg.Buttons)
-			clone.Buttons = buttons
-		}
+	if len(msg.Buttons) > 0 {
+		buttons := make([]chattemplates.MessageButton, len(msg.Buttons))
+		copy(buttons, msg.Buttons)
+		clone.Buttons = buttons
+	}
 		copyMessages[i] = clone
 	}
 	return copyMessages

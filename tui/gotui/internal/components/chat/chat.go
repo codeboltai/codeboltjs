@@ -194,12 +194,12 @@ func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 
 // AddMessage adds a message to the chat.
 func (c *Chat) AddMessage(msgType, content string) {
-	c.appendMessageToActiveConversation(msgType, content, nil)
+    c.appendMessageToActiveConversation(msgType, content, nil, nil)
 }
 
 // AddMessageWithMetadata adds a message with associated metadata to the chat.
-func (c *Chat) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}) {
-	c.appendMessageToActiveConversation(msgType, content, metadata)
+func (c *Chat) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}, buttons []chattemplates.MessageButton) {
+	c.appendMessageToActiveConversation(msgType, content, metadata, buttons)
 }
 
 // SetModelOptions updates the available model selections sourced from the server.

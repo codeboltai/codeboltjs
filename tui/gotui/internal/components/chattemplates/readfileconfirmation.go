@@ -46,10 +46,9 @@ func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme
 
 	spacer := rfct.AddSpacer(width, theme)
 
-	var body []string
-	body = append(body, header, fileLine, stateLine)
+	body := []string{header, fileLine, stateLine}
 
-	if content != "" {
+	if strings.TrimSpace(content) != "" {
 		body = append(body, spacer)
 		previewHeader := lipgloss.NewStyle().Foreground(theme.Info).Bold(true).Render("  Preview")
 		body = append(body, lipgloss.NewStyle().Width(width).Render(previewHeader))
@@ -57,23 +56,22 @@ func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme
 	}
 
 if len(data.Buttons) > 0 {
-	body = append(body, spacer)
-	body = append(body, renderButtonRow(width, theme, data.Buttons)...)
+    body = append(body, spacer)
+    body = append(body, renderButtonRow(width, theme, data.Buttons)...)
 }
 
-body = append(body, rfct.AddSpacer(width, theme))
-return RenderedMessage{Lines: body}
+	body = append(body, rfct.AddSpacer(width, theme))
+	return RenderedMessage{Lines: body}
 }
 
-func (rfct *ReadFileConfirmationTemplate) renderButtons(buttons []MessageButton, width int, theme styles.Theme) []string {
+func renderButtonRow(width int, theme styles.Theme, buttons []MessageButton) []string {
 	if len(buttons) == 0 {
 		return nil
 	}
 
-	buttonStyle := lipgloss.NewStyle().Bold(true).Padding(0, 2).Border(lipgloss.RoundedBorder())
+	buttonStyle := lipgloss.NewStyle().Padding(0, 2).Border(lipgloss.RoundedBorder()).Bold(true)
 	descriptionStyle := lipgloss.NewStyle().Foreground(theme.Muted)
 	gap := lipgloss.NewStyle().Render("  ")
-	rowWidth := width
 
 	segments := make([]string, len(buttons))
 	for i, btn := range buttons {
@@ -97,17 +95,16 @@ func (rfct *ReadFileConfirmationTemplate) renderButtons(buttons []MessageButton,
 		segments[i] = label
 	}
 
-    row := make([]string, 0, len(segments)*2)
-    for i, segment := range segments {
-        if i > 0 {
-            row = append(row, gap)
-        }
-        row = append(row, segment)
-    }
+	rowSegments := make([]string, 0, len(segments)*2)
+	for i, segment := range segments {
+		if i > 0 {
+			rowSegments = append(rowSegments, gap)
+		}
+		rowSegments = append(rowSegments, segment)
+	}
 
-    joined := lipgloss.JoinHorizontal(lipgloss.Left, row...)
-
-    return []string{lipgloss.NewStyle().Width(rowWidth).Render(joined)}
+	joined := lipgloss.JoinHorizontal(lipgloss.Left, rowSegments...)
+	return []string{lipgloss.NewStyle().Width(width).Render(joined)}
 }
 
 func stringFromAny(value interface{}) (string, bool) {

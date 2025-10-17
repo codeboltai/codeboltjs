@@ -7,7 +7,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     console.log('Received message:', reqMessage);
     
     try {
-        codebolt.chat.sendMessage("started task agent",{})
+        codebolt.fs.readFile('/Users/ravirawat/Documents/codeboltai/codeboltjs/common/types/src/wstypes/app-to-agent-ws/fsServiceResponses.ts')
+        // codebolt.chat.sendMessage("started task agent",{})
         return {
             success: true,
             message: 'Task agent stop '

@@ -111,7 +111,7 @@ func (cv *ChatViewport) AddMessage(msgType, content string) {
 // AddMessageWithMetadata adds a message with metadata to the viewport.
 // The message type determines which template will be used for rendering.
 // Template resolution is handled automatically by the template manager.
-func (cv *ChatViewport) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}) {
+func (cv *ChatViewport) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}, buttons []chattemplates.MessageButton) {
 	cv.messages = append(cv.messages, chattemplates.MessageTemplateData{
 		Type:      msgType,
 		Content:   content,
@@ -119,6 +119,7 @@ func (cv *ChatViewport) AddMessageWithMetadata(msgType, content string, metadata
 		Raw:       false,
 		Width:     cv.width,
 		Metadata:  metadata,
+		Buttons:   buttons,
 	})
 	cv.updateContent()
 }
