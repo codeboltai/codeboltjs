@@ -61,3 +61,17 @@ Similarly for Failure Message will be in format of @codebolt/types/agent-to-app-
 
 The Failure Message Template Will Have A Text saying File Write Failed and then the path of the file that was written.
 
+
+When the user Approves or rejects the Request then a message will be sent to the UpdatedAgentServer using websocket.
+The Format of the Message will be in the format of:
+- Approval Message Schema:
+    {
+        "type": "confirmationResponse",
+        "path": "path/to/file",
+        "action": "WRITEFILE",
+        "agentId": "123",
+        "userMessage": "approve",
+        "threadId": "123",
+        "processId": "123",
+        "messageId": "123"
+    }
