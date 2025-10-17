@@ -33,7 +33,7 @@ export class LLMProviderService {
             const configFile = fs.readFileSync(configPath, 'utf8');
             const {providers} = JSON.parse(configFile);
 
-            logger.info("list of configured providers",JSON.stringify(providers)
+            logger.info("list of configured providers",JSON.stringify(providers))
 
             // If we have providers in the file, process them
             if (providers && Array.isArray(providers)) {
