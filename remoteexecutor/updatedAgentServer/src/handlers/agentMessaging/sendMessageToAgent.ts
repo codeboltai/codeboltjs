@@ -32,7 +32,7 @@ export class SendMessageToAgent {
     logger.info(formatLogMessage('info', 'MessageRouter', `Sending response from app ${app.id} to agent`));
 
     // First try to find the agent using cached message ID
-    const targetAgentId = message?.data?.agentId || 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9';
+    const targetAgentId = message?.data?.agentId ;
     const agentManager = this.connectionManager.getAgentConnectionManager();
 
     if (targetAgentId) {
@@ -59,18 +59,23 @@ export class SendMessageToAgent {
           this.sendMessageToRemote.forwardAppMessage(app.id, message, { requireRemote: true });
         }
       });
-    } else {
-      logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - using fallback`));
-      // Fallback to any available agent
-      const success = agentManager.sendToAgent(message);
-      if (!success) {
-        logger.warn(formatLogMessage('warn', 'MessageRouter', `No agents available for app response`));
-        logger.info(
-          formatLogMessage('info', 'MessageRouter', 'No local agents available, forwarding app response via remote proxy')
-        );
-        this.sendMessageToRemote.forwardAppMessage(app.id, message, { requireRemote: true });
-      }
     }
+    else{
+      logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - ignoring`));
+
+    }
+    //  else {
+    //   logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - using fallback`));
+    //   // Fallback to any available agent
+    //   const success = agentManager.sendToAgent(message);
+    //   if (!success) {
+    //     logger.warn(formatLogMessage('warn', 'MessageRouter', `No agents available for app response`));
+    //     logger.info(
+    //       formatLogMessage('info', 'MessageRouter', 'No local agents available, forwarding app response via remote proxy')
+    //     );
+    //     this.sendMessageToRemote.forwardAppMessage(app.id, message, { requireRemote: true });
+    //   }
+    // }
   }
 
   /**

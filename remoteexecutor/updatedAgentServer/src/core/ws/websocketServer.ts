@@ -201,6 +201,27 @@ export class WebSocketServer {
 
     // Priority 1: Auto-register agent if agentId and parentId are provided
     if (params.agentId && params.parentId) {
+      let message = {
+        type: 'agentStarted',
+        agentId: params.agentId,
+        parentId: params.parentId,
+        instanceId,
+        projectInfo: this.createProjectInfo(params)
+      };
+      
+      // Create a temporary connection object for the router
+      const tempConnection: any = {
+        id: params.agentId,
+        ws: ws,
+        type: WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
+        parentId: params.parentId,
+        agentInstanceId: instanceId,
+        connectionId: params.connectionId,
+        connectedAt: new Date()
+      };
+      
+      this.agentMessageRouter.handleAgentRequestMessage(tempConnection, message as any);
+
       this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId);
       return { clientId: params.agentId };
     }

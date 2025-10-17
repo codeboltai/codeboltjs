@@ -1,4 +1,4 @@
-import { ClientConnection, formatLogMessage } from '../../types';
+import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 import { BaseApplicationResponse, UserMessage } from '@codebolt/types/sdk';
@@ -15,7 +15,7 @@ export class TuiMessageRouter {
     this.sendMessageToRemote = new SendMessageToRemote();
   }
 
-  handleTuiMessage(tui: ClientConnection, message: UserMessage | BaseApplicationResponse): void {
+  handleTuiMessage(tui: ClientConnection, message: Message): void {
     logger.info('TuiMessageRouter', `Processing TUI message: ${JSON.stringify(message)} from ${tui.id}`)
     logger.info(formatLogMessage('info', 'TuiMessageRouter', `Handling TUI message: ${message.type} from ${tui.id}`));
     //check if its initial message
@@ -24,16 +24,15 @@ export class TuiMessageRouter {
 
     }
     if (message.type == 'messageResponse') {
-    
-      this.handleInitialUserMessage(tui, message as UserMessage)
+      this.handleInitialUserMessage(tui, message as any)
     }
     else {
-      // this.sendMessageToAgent.sendResponseToAgent(tui, message as BaseApplicationResponse);
+      this.sendMessageToAgent.sendResponseToAgent(tui, message as any);
     }
-    this.sendMessageToRemote.forwardAppMessage(tui.id, message as BaseApplicationResponse);
+    this.sendMessageToRemote.forwardAppMessage(tui.id, message as any);
   }
 
-  handleInitialUserMessage(tui: ClientConnection, message: UserMessage): void {
+  handleInitialUserMessage(tui: ClientConnection, message: any): void {
     logger.info(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${tui.id}`));
     this.sendMessageToAgent.sendInitialMessage(message);
   }

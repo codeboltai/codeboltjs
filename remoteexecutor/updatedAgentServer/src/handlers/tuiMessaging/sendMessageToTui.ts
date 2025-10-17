@@ -1,4 +1,4 @@
-import { ClientConnection, formatLogMessage } from '../../types';
+import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { logger } from '../../utils/logger';
 
@@ -28,7 +28,7 @@ export class SendMessageToTui {
     tuis.forEach((tui) => tuiManager.sendToTui(tui.id, message));
     return true;
   }
-//
+
   sendResponseToTuis(agent: ClientConnection, message: Message): void {
     const payload = {
       ...message,
