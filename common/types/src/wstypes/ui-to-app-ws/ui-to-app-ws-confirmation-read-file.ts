@@ -19,7 +19,7 @@ export const confirmationResponseSchema = z.object({
   path: z.string(),
   messageId: z.string(),
   threadId: z.string(),
-  processId: z.string(),
+  processId: z.string().optional(),
   agentInstanceId: z.string(),
   agentId: z.string(),
 });

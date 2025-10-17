@@ -197,6 +197,11 @@ func (c *Chat) AddMessage(msgType, content string) {
 	c.appendMessageToActiveConversation(msgType, content, nil)
 }
 
+// AddMessageWithMetadata adds a message with associated metadata to the chat.
+func (c *Chat) AddMessageWithMetadata(msgType, content string, metadata map[string]interface{}) {
+	c.appendMessageToActiveConversation(msgType, content, metadata)
+}
+
 // SetModelOptions updates the available model selections sourced from the server.
 func (c *Chat) SetModelOptions(options []chatcomponents.ModelOption) {
 	if c == nil {

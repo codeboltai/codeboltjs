@@ -1,37 +1,50 @@
-import { ClientConnection, Message, ResponseMessage, formatLogMessage } from '../../types';
+import { ClientConnection, formatLogMessage } from "../../types";
 
-import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk'
+import { UserMessage, BaseApplicationResponse } from "@codebolt/types/sdk";
 
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { NotificationService } from '../../services/NotificationService';
-import { SendMessageToAgent } from '../agentMessaging/sendMessageToAgent';
-import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
-import { logger } from '../../utils/logger';
+import { ConnectionManager } from "../../core/connectionManagers/connectionManager";
+import { NotificationService } from "../../services/NotificationService";
+import { SendMessageToAgent } from "../agentMessaging/sendMessageToAgent";
+import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
+import { logger } from "../../utils/logger";
+import {
+  ReadFileHandler,
+  type ReadFileConfirmation,
+} from "../../localAgentRequestFulfilment/readFileHandler.js";
 
 /**
  * Routes messages with explicit workflow visibility
  * Shows the complete message flow and notifications
  */
 export class AppMessageRouter {
-
   private connectionManager: ConnectionManager;
   private sendMessageToAgent: SendMessageToAgent;
   private notificationService: NotificationService;
   private sendMessageToRemote: SendMessageToRemote;
+  private readFileHandler: ReadFileHandler;
 
   constructor() {
-
     this.connectionManager = ConnectionManager.getInstance();
     this.sendMessageToAgent = new SendMessageToAgent();
     this.sendMessageToRemote = new SendMessageToRemote();
     this.notificationService = NotificationService.getInstance();
+    this.readFileHandler = new ReadFileHandler();
   }
 
   /**
    * Handle responses from apps (responding back to agent requests)
    */
-  handleAppResponse(app: ClientConnection, message: UserMessage | BaseApplicationResponse): void {
-    logger.info(formatLogMessage('info', 'MessageRouter', `Handling app response: ${message.type} from ${app.id}`));
+  handleAppResponse(
+    app: ClientConnection,
+    message: UserMessage | BaseApplicationResponse
+  ): void {
+    logger.info(
+      formatLogMessage(
+        "info",
+        "MessageRouter",
+        `Handling app response: ${message.type} from ${app.id}`
+      )
+    );
 
     // Check if this message has a requestId and could be a response to a pending request
     // const messageWithRequestId = message as Message & { requestId?: string };
@@ -41,18 +54,33 @@ export class AppMessageRouter {
     //   return
     // }
     //check if its initial message
-    if (message.type == 'messageResponse') {
-      this.handleInitialUserMessage(app, message as UserMessage)
+    if (message.type === "confirmationResponse") {
+      this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
+      return;
     }
-    else {
-      this.sendMessageToAgent.sendResponseToAgent(app, message as BaseApplicationResponse);
-    }
-    this.sendMessageToRemote.forwardAppMessage(app.id, message as BaseApplicationResponse);
 
+    if (message.type == "messageResponse") {
+      this.handleInitialUserMessage(app, message as UserMessage);
+    } else {
+      this.sendMessageToAgent.sendResponseToAgent(
+        app,
+        message as BaseApplicationResponse
+      );
+    }
+    this.sendMessageToRemote.forwardAppMessage(
+      app.id,
+      message as BaseApplicationResponse
+    );
   }
   handleInitialUserMessage(app: ClientConnection, message: UserMessage): void {
-    logger.info(formatLogMessage('info', 'MessageRouter', `Handling initial user message: ${message.type} from ${app.id}`));
-    this.sendMessageToAgent.sendInitialMessage(message,app.id);
+    logger.info(
+      formatLogMessage(
+        "info",
+        "MessageRouter",
+        `Handling initial user message: ${message.type} from ${app.id}`
+      )
+    );
+    this.sendMessageToAgent.sendInitialMessage(message, app.id);
   }
 
   /**
@@ -92,5 +120,4 @@ export class AppMessageRouter {
   //     this.connectionManager.sendError(agent.id, 'Failed to forward request to app', message.id);
   //   }
   // }
-
 }

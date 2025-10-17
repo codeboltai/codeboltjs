@@ -24,6 +24,8 @@ func NewTemplateManager() *TemplateManager {
 
 	// Register file operation templates
 	tm.RegisterTemplate(NewReadFileTemplate())
+	tm.RegisterTemplate(NewReadFileConfirmationTemplate())
+	tm.RegisterTemplate(NewReadFileErrorTemplate())
 	tm.RegisterTemplate(NewWriteFileTemplate())
 	tm.RegisterTemplate(NewFileOperationTemplate())
 

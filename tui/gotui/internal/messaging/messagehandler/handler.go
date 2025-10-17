@@ -49,7 +49,14 @@ func (h *Handler) HandleRaw(data []byte) {
 	}
 
 	chatType := resolveChatMessageType(senderType, templateType, messageType)
-	h.chat.AddMessage(chatType, content)
+
+    metadata := extractMetadata(envelope)
+
+    if len(metadata) > 0 {
+        h.chat.AddMessageWithMetadata(chatType, content, metadata)
+    } else {
+        h.chat.AddMessage(chatType, content)
+    }
 }
 
 func resolveChatMessageType(senderType, templateType, messageType string) string {
@@ -87,6 +94,41 @@ func resolveChatMessageType(senderType, templateType, messageType string) string
 	}
 
 	return "ai"
+}
+
+func extractMetadata(envelope map[string]any) map[string]any {
+	metadata := map[string]any{}
+
+	if payload, ok := envelope["payload"].(map[string]any); ok {
+		for k, v := range payload {
+			metadata[k] = v
+		}
+	}
+
+	if dataPayload, ok := envelope["data"].(map[string]any); ok {
+		if payload, ok := dataPayload["payload"].(map[string]any); ok {
+			for k, v := range payload {
+				if _, exists := metadata[k]; !exists {
+					metadata[k] = v
+				}
+			}
+		}
+	}
+
+	for k, target := range map[string]string{
+		"messageId": "message_id",
+		"threadId":  "thread_id",
+	} {
+		if val := stringValue(envelope[k]); val != "" {
+			metadata[target] = val
+		}
+	}
+
+	if payloadType, ok := metadata["stateEvent"].(string); ok {
+		metadata["state_event"] = payloadType
+	}
+
+	return metadata
 }
 
 func getNestedString(m map[string]any, keys ...string) string {

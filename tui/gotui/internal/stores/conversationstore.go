@@ -384,7 +384,22 @@ func cloneMessages(messages []chattemplates.MessageTemplateData) []chattemplates
 		return nil
 	}
 	copyMessages := make([]chattemplates.MessageTemplateData, len(messages))
-	copy(copyMessages, messages)
+	for i, msg := range messages {
+		clone := msg
+		if msg.Metadata != nil {
+			metaCopy := make(map[string]interface{}, len(msg.Metadata))
+			for k, v := range msg.Metadata {
+				metaCopy[k] = v
+			}
+			clone.Metadata = metaCopy
+		}
+		if len(msg.Buttons) > 0 {
+			buttons := make([]chattemplates.MessageButton, len(msg.Buttons))
+			copy(buttons, msg.Buttons)
+			clone.Buttons = buttons
+		}
+		copyMessages[i] = clone
+	}
 	return copyMessages
 }
 

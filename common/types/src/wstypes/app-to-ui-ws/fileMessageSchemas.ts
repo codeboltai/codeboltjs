@@ -71,7 +71,7 @@ export const fileReadSuccessSchema = baseFileMessageSchema.extend({
 // File read error schema
 export const fileReadErrorSchema = baseFileMessageSchema.extend({
   actionType: z.literal('READFILE'),
-  templateType: z.literal('FILEREAD'),
+  templateType: z.literal('READFILE'),
   payload: filePayloadSchema.extend({
     stateEvent: z.literal('FILE_READ_ERROR'),
   }),
