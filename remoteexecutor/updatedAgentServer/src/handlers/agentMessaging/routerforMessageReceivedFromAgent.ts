@@ -37,7 +37,7 @@ import { ConnectionManager } from '../../core/connectionManagers/connectionManag
 import { NotificationService } from '../../services/NotificationService.js';
 import { SendMessageToApp } from '../appMessaging/sendMessageToApp.js';
 import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui.js';
-import { SendMessageToRemote } from '..//remoteMessaging/sendMessageToRemote'
+import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote'
 import type {
   ReadFileEvent,
   CreateFileEvent,
