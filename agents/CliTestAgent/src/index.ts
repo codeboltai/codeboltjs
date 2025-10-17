@@ -10,7 +10,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         codebolt.chat.sendMessage("started task agent",{})
         return {
             success: true,
-            message: 'Task agent started successfully'
+            message: 'Task agent stop '
         };
         
     } catch (error) {
