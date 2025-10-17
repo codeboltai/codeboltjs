@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant Agent
+    participant Router
+    participant HandleCreateFile
+    participant PerformCreateFile
+    participant HandleFileCreationApproval
+    participant TUI
+    participant App
+    participant Remote
+ 
+    Agent->>HandleCreateFile: Agent Message Received (function: RouterForMessageReceivedByAgent)
+    alt Needs Approval
+        alt Agent Started by TUI
+            HandleCreateFile->>TUI: Send for Approval (function: SendToTUI)
+            TUI->>HandleFileCreationApproval: Approval/Rejection
+            alt Approved
+                HandleFileCreationApproval->>PerformCreateFile: Perform Create File
+                PerformCreateFile->>Agent: Success/Fail
+                PerformCreateFile->>TUI: Send to TUI (Success/Fail)
+                PerformCreateFile->>Remote: Success/Fail
+            else Rejected
+                HandleFileCreationApproval->>Agent: Rejected
+                HandleFileCreationApproval->>Remote: Rejected
+            end
+        else Agent Started by App
+            HandleCreateFile->>App: Send for Approval
+            App->>HandleFileCreationApproval: Approval/Rejection
+            alt Approved
+                HandleFileCreationApproval->>PerformCreateFile: Perform Create File
+                PerformCreateFile->>Agent: Success/Fail
+                PerformCreateFile->>App: Send to App (Success/Fail)
+                PerformCreateFile->>Remote: Success/Fail
+            else Rejected
+                HandleFileCreationApproval->>Agent: Rejected
+                HandleFileCreationApproval->>Remote: Rejected
+            end
+        end
+    else No Approval Needed
+        HandleCreateFile->>PerformCreateFile: Perform Create File
+        PerformCreateFile->>Agent: Success/Fail
+        PerformCreateFile->>Remote: Success/Fail
+        alt Agent Started by TUI
+            PerformCreateFile->>TUI: Send to TUI (Success/Fail)
+        else Agent Started by App
+            PerformCreateFile->>App: Send to App (Success/Fail)
+ 
+        end
+ 
+    end

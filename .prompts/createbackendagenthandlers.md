@@ -1,3 +1,5 @@
+```
+createbackendagenthandlers.md
 In @updatedAgentServer/src/handlers/agentMessaging/routerforMessageReceivedFromAgent.ts, create a new handler for handling Create File. 
 
 The Agent will send a message to this router for Create File in the Format as in [text](../common/types/src/wstypes/agent-to-app-ws/actions/fsEventSchemas.ts) as CreateFileEvent 
@@ -14,9 +16,9 @@ Details:
 - Message Format of Message Received from Agent is in [text](../common/types/src/wstypes/agent-to-app-ws/actions/fsEventSchemas.ts)
     * Typing:
     ```ts
-    export interface CreateFileEvent {
+    export interface ReadFileEvent {
       type: 'fsEvent';
-      action: 'createFile';
+      action: 'readFile';
       requestId: string;
       message: {
         filePath: string;
@@ -24,11 +26,9 @@ Details:
     }
     ```
 
-
-        
  - Message format of 
 
- Message Format of Message Received to TUI form agent server  for confirmation of file read request
+ ### Message Format of Message Received to TUI form agent server  for confirmation of file read request
  ```ts
 interface FileReadConfirmation {
   // Base message properties
@@ -59,7 +59,73 @@ interface FileReadConfirmation {
   };
 }
 ```
-Message Format of Message Received from Agent for successful file read
+
+
+in [text](../remoteexecutor/updatedAgentServer/src/handlers/tuiMessaging/routerforMessageReceivedFromTui.ts)
+
+## Handling Confirmation Responses from TUI
+
+When receiving a confirmation response from the TUI, we need to:
+
+1. Check if a message with the same `messageId` is waiting for approval in the readFileHandler
+2. Verify that the message type is `confirmationResponse`
+3. Process the request based on the user's approval decision is `userMessage` is `"approve"` or `"reject"` and call the respective function in readFileHandler
+
+### Message Format for Confirmation Response from TUI
+```ts
+type ConfirmationResponse = {
+    type: "confirmationResponse";
+    path?: string;
+    action?: string;
+    agentId: string;
+    userMessage: string;
+    threadId: string;
+    processId?: string;
+    messageId: string;
+    agentInstanceId: string;
+}
+```
+
+### If User Approves the Request
+
+When the user approves the request and the content is successfully retrieved from readFileHandler, send the following success message to the Agent:
+
+#### Success Message Format
+```
+{
+  "type": "readFileResponse";
+  "requestId": string;
+  "content": string;
+  "success": boolean;
+  "message": string;
+  "data"?: any,
+  "error"?: string
+}
+```
+
+### If User Rejects the Request or an Error Occurs
+
+When the user rejects the request or an error occurs in readFileHandler, send the following error message to the Agent:
+
+#### Error Message Format
+```
+{
+  "type": "readFileResponse";
+  "requestId": string;
+  "success": boolean;
+  "message": string;
+  "data"?: any,
+  "error"?: string
+}
+```
+
+### Notification to Remote
+
+In both accept and reject cases, the remote should also be notified. This ensures that remote clients are aware of the user's decision regarding file operations.
+
+### Message Format for Successful File Read Event
+
+When a file is successfully read, the Agent receives the following message format:
 
 ```ts
 interface FileReadSuccess {
@@ -78,12 +144,6 @@ interface FileReadSuccess {
   parentAgentId?: string;
   
   // Payload properties
-  payloadType?: string;
-  payloadPath?: string;
-  payloadContent?: string;
-  payloadCommand?: string;
-  payloadActionType?: string;
-  payloadProcessId?: number;
   stateEvent: 'FILE_READ';
   payloadToolName?: string;
   payloadServerName?: string;
@@ -97,6 +157,6 @@ interface FileReadSuccess {
   language?: string;
   size?: number;
   encoding?: string;
-
 }
+```
 ```
