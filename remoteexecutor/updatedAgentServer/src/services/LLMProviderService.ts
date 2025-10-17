@@ -38,6 +38,7 @@ export class LLMProviderService {
             // If we have providers in the file, process them
             if (providers && Array.isArray(providers)) {
                 providers.forEach((provider) => {
+                    logger.info("current provider is ",provider)
                     const key = provider.name.replace(/\s+/g, '').toLowerCase();
                     if (key) {
                         this.llmProviders.set(key, provider);
