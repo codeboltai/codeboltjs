@@ -1,30 +1,46 @@
-In @tui/gotui we have a bubbletea based TUI. This is getting the messages from Updated Agent Server and it shows them in Chat. We have various types of Messages coming, and we need to create templates for displaying each of them.
+In [text](../tui/gotui) we have a bubbletea based TUI. This is getting the messages from Updated Agent Server and it shows them in Chat. We have various types of Messages coming, and we need to create templates for displaying each of them.
 
-The Templates are present in @tui/gotui/internal/components/chattemplates.
+The Templates are present in  [text](../tui/gotui/internal/components/chattemplates)
 
 We need to create a new template for File Write. There Will be multiple types of messages:
-1. File Write Request Confirmation Message
-2. File Write Success Message
-3. File Write Failure Message
+1. File Read Request Confirmation Message
+2. File Read Success Message
+3. File Read Failure Message
 
-The Message Rendering is handeled by @manager.go and the main chat is Controlled by @chat.go
+The Message Rendering is handeled by [text](../tui/gotui/internal/components/chattemplates/manager.go) and the main chat is Controlled by [text](../tui/gotui/internal/components/chat/chat.go)
 
-The REquest Confirmation Message will be in the Format of @codebolt/types/agent-to-app-ws-types.ts
+The Request Confirmation Message will be in the Format of [text](../common/types/src/wstypes/app-to-ui-ws/fileMessageSchemas.ts)
 - Request Confirmation Message Schema:
-    {
-        "type": "message",
-        "actionType": "WRITEFILE",
-        "sender": "agent",
-        "messageId": "123",
-        "threadId": "123",
-        "templateType": "WRITEFILE",
-        "timestamp": "123",
-        "payload": {
-            "type": "file",
-            "path": "path/to/file",
-            "content": "content of the file"
-        }
-    }
+   ```ts
+   interface FileReadConfirmation {
+  // Base message properties
+  type: 'message';
+  actionType: 'READFILE';
+  sender: 'agent';
+  messageId: string;
+  threadId: string;
+  templateType: 'READFILE';
+  timestamp: string | number;
+  agentInstanceId?: string;
+  agentId?: string;
+  parentAgentInstanceId?: string;
+  parentId?: string;
+  parentAgentId?: string;
+  
+  // Payload properties
+  payload: {
+    type: 'file';
+    path: string;
+    content: string;
+    originalContent?: string;
+    stateEvent: 'ASK_FOR_CONFIRMATION';
+    diff?: string;
+    language?: string;
+    size?: number;
+    encoding?: string;
+  };
+}
+   ```
 
 The Please note that Request Confirmation Message will be of type confirmation Messagae. The Confirmation Messages will show the message and also give the user options to approve or reject the request or always allow. Also when the Confirmation Messages are shown then the chatInput is not visible. That allows the user to focus on the confirmation message. 
 
