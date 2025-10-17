@@ -1,15 +1,15 @@
-```
+
 createbackendagenthandlers.md
-In @updatedAgentServer/src/handlers/agentMessaging/routerforMessageReceivedFromAgent.ts, create a new handler for handling Create File. 
+In [text](../remoteexecutor/updatedAgentServer/src/handlers/agentMessaging/routerforMessageReceivedFromAgent.ts), create a new handler for handling ReadFile File. 
 
-The Agent will send a message to this router for Create File in the Format as in [text](../common/types/src/wstypes/agent-to-app-ws/actions/fsEventSchemas.ts) as CreateFileEvent 
+The Agent will send a message to this router for Read File in the Format as in [text](../common/types/src/wstypes/agent-to-app-ws/actions/fsEventSchemas.ts) as ReadFileEvent 
 
-Please create the file handler in  @  remoteexecutor/updatedAgentServer/src/localAgentRequestFulfilment 
-This will check if the File Handling permission is present. If the Permission is not present then if TUi is enabled or app is enabled then it will send the REquest permission to the Tui or App in the format of /Users/ravirawat/Documents/codeboltai/codeboltjs/common/types/src/wstypes/app-to-ui-ws/fileMessageSchemas.ts fileReadConfirmationSchema
+Please create the file handler in  [text](../remoteexecutor/updatedAgentServer/src/localAgentRequestFulfilment) 
+This will check if the File Handling permission is present. If the Permission is not present then if TUi is enabled or app is enabled then it will send the REquest permission to the Tui or App in the format of [text](../codeboltjs/common/types/src/wstypes/app-to-ui-ws/fileMessageSchemas.ts) fileReadConfirmationSchema
 
-Also in @updatedAgentServer/src/handlers/agentMessaging/routerforMessageReceivedFromtui.ts we will have a router for Approval of file System Read Request in the format of @ 
+Also in @updatedAgentServer/src/handlers/agentMessaging/routerforMessageReceivedFromtui.ts we will have a router for Approval of file System Read Request in the format of [text](../codeboltjs/common/types/src/wstypes/app-to-ui-ws/fileMessageSchemas.ts)
 
-Once we get the Approval request then we should call the Read File Service. Create a Read File Service in @ . Once the create File Service is completed, then send the message back to Agent in the format of [text](../common/types/src/wstypes/app-to-agent-ws/fsServiceResponses.ts) ReadFileSuccessResultResponseSchema
+Once we get the Approval request then we should call the Read File Service. Create a Read File Service in [text](../codeboltjs/remoteexecutor/updatedAgentServer/src/agentRequestHandlers). Once the create File Service is completed, then send the message back to Agent in the format of [text](../common/types/src/wstypes/app-to-agent-ws/fsServiceResponses.ts) ReadFileSuccessResultResponseSchema
 
 
 Details:
