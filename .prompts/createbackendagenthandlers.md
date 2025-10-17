@@ -160,4 +160,57 @@ interface FileReadSuccess {
   encoding?: string;
 }
 ```
+
+### Scquence Mermaid Diangram
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant Router
+    participant HandleReadFile
+    participant PerformReadFile
+    participant HandleFileCreationApproval
+    participant TUI
+    participant App
+    participant Remote
+ 
+    Agent->>HandleReadFile: Agent Message Received (function: RouterForMessageReceivedByAgent)
+    alt Needs Approval
+        alt Agent Started by TUI
+            HandleReadFile->>TUI: Send for Approval (function: SendToTUI)
+            TUI->>HandleFileCreationApproval: Approval/Rejection
+            alt Approved
+                HandleFileCreationApproval->>PerformReadFile: Perform Read File
+                PerformReadFile->>Agent: Success/Fail
+                PerformReadFile->>TUI: Send to TUI (Success/Fail)
+                PerformReadFile->>Remote: Success/Fail
+            else Rejected
+                HandleFileCreationApproval->>Agent: Rejected
+                HandleFileCreationApproval->>Remote: Rejected
+            end
+        else Agent Started by App
+            HandleReadFile->>App: Send for Approval
+            App->>HandleFileCreationApproval: Approval/Rejection
+            alt Approved
+                HandleFileCreationApproval->>PerformReadFile: Perform Read File
+                PerformReadFile->>Agent: Success/Fail
+                PerformReadFile->>App: Send to App (Success/Fail)
+                PerformReadFile->>Remote: Success/Fail
+            else Rejected
+                HandleFileCreationApproval->>Agent: Rejected
+                HandleFileCreationApproval->>Remote: Rejected
+            end
+        end
+    else No Approval Needed
+        HandleReadFile->>PerformReadFile: Perform Read File
+        PerformReadFile->>Agent: Success/Fail
+        PerformReadFile->>Remote: Success/Fail
+        alt Agent Started by TUI
+            PerformReadFile->>TUI: Send to TUI (Success/Fail)
+        else Agent Started by App
+            PerformReadFile->>App: Send to App (Success/Fail)
+ 
+        end
+ 
+    end
 ```
