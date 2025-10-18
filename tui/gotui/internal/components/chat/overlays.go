@@ -22,6 +22,7 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 		if activeID != "" {
 			copy := stores.ModelOption(option)
 			store.SetSelectedModel(activeID, &copy)
+			stores.SharedConversationStateStore().SetSelectedModel(activeID, &copy)
 		}
 	}
 	c.refreshConversationsFromStore(true)
@@ -50,6 +51,7 @@ func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption) tea.Cmd {
 		if activeID != "" {
 			copy := selection
 			store.SetSelectedAgent(activeID, &copy)
+			stores.SharedConversationStateStore().SetSelectedAgent(activeID, &copy)
 		}
 	}
 	c.refreshConversationsFromStore(true)
