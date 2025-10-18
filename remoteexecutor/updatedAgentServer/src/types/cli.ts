@@ -16,4 +16,6 @@ export interface AgentCliOptions {
   agentType?: AgentTypeEnum;
   agentDetail?: string;
   prompt?: string;
+  modelName?: string;
+  modelProvider?: string;
 }

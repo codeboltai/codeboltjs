@@ -262,6 +262,7 @@ func (s *ConversationStore) CreateConversation(title string, opts ConversationOp
 	s.sortLocked()
 	clone := conv.Clone()
 	s.mu.Unlock()
+
 	return clone
 }
 
@@ -300,6 +301,16 @@ func (s *ConversationStore) UpdateOptions(id string, opts ConversationOptions) b
 	conv.UpdatedAt = time.Now()
 	s.sortLocked()
 	s.mu.Unlock()
+	state := ConversationState{}
+	if opts.SelectedModel != nil {
+		modelCopy := *opts.SelectedModel
+		state.SelectedModel = &modelCopy
+	}
+	if opts.SelectedAgent != nil {
+		agentCopy := *opts.SelectedAgent
+		state.SelectedAgent = &agentCopy
+	}
+	SharedConversationStateStore().Update(id, state)
 	return true
 }
 
@@ -323,6 +334,7 @@ func (s *ConversationStore) SetSelectedModel(id string, model *ModelOption) bool
 	conv.UpdatedAt = time.Now()
 	s.sortLocked()
 	s.mu.Unlock()
+	SharedConversationStateStore().SetSelectedModel(id, model)
 	return true
 }
 
@@ -346,6 +358,7 @@ func (s *ConversationStore) SetSelectedAgent(id string, agent *AgentSelection) b
 	conv.UpdatedAt = time.Now()
 	s.sortLocked()
 	s.mu.Unlock()
+	SharedConversationStateStore().SetSelectedAgent(id, agent)
 	return true
 }
 
