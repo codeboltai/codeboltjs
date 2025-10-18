@@ -22,7 +22,7 @@ type Config struct {
 	ProjectPath string
 	ProjectName string
 	ProjectType string
-	Agent       wsclient.AgentSelection
+	Agent       stores.AgentSelection
 }
 
 const tabBarHeight = 2
@@ -45,7 +45,7 @@ type Model struct {
 	cfg Config
 
 	wsClient *wsclient.Client
-	agent    wsclient.AgentSelection
+	agent    stores.AgentSelection
 	tuiID    string
 
 	chatPage *tabpages.ChatPage
@@ -79,7 +79,6 @@ func (m *Model) chatComponent() *chat.Chat {
 	}
 	return m.chatPage.Chat()
 }
-
 func NewModel(cfg Config) *Model {
 	wsClient := wsclient.New(wsclient.Config{
 		Host:        cfg.Host,
@@ -90,6 +89,12 @@ func NewModel(cfg Config) *Model {
 		ProjectName: cfg.ProjectName,
 		ProjectType: cfg.ProjectType,
 	})
+
+	stateStore := stores.SharedApplicationStateStore()
+	stateStore.SetConnectionInfo(cfg.Host, cfg.Port, cfg.Protocol)
+	stateStore.SetProjectDetails(cfg.ProjectPath, cfg.ProjectName, cfg.ProjectType)
+	stateStore.SetTuiID(cfg.TuiID)
+	stateStore.SetSelectedAgent(&cfg.Agent)
 
 	chatPage := tabpages.NewChatPage()
 	chatComp := chatPage.Chat()

@@ -10,7 +10,6 @@ import (
 	"gotui/internal/layout/panels"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
-	"gotui/internal/wsclient"
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -29,7 +28,7 @@ type Chat struct {
 	commandPalette    *chatcomponents.CommandPalette
 	selectedModel     *chatcomponents.ModelOption
 	modelOptions      []chatcomponents.ModelOption
-	selectedAgent     *wsclient.AgentSelection
+	selectedAgent     *stores.AgentSelection
 	conversationPanel *panels.ConversationListPanel
 	width             int
 	height            int
@@ -54,7 +53,7 @@ type Chat struct {
 	modelStatusWidget *widgets.ModelStatusWidget
 	modelStore        *stores.AIModelStore
 	agentStore        *stores.AgentStore
-	preferredAgent    *wsclient.AgentSelection
+	preferredAgent    *stores.AgentSelection
 	conversationStore *stores.ConversationStore
 	applicationState  *stores.ApplicationStateStore
 
@@ -152,7 +151,7 @@ func (c *Chat) SetAgentStore(store *stores.AgentStore) {
 }
 
 // SetPreferredAgent records the agent provided via configuration to seed new conversations.
-func (c *Chat) SetPreferredAgent(agent wsclient.AgentSelection) {
+func (c *Chat) SetPreferredAgent(agent stores.AgentSelection) {
 	if c == nil {
 		return
 	}

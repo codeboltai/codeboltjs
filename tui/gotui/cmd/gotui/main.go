@@ -8,7 +8,7 @@ import (
 
 	"gotui/internal/app"
 	"gotui/internal/logging"
-	"gotui/internal/wsclient"
+	"gotui/internal/stores"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/google/uuid"
@@ -51,20 +51,11 @@ func main() {
 	projectName := os.Getenv("CURRENT_PROJECT_NAME")
 	projectType := os.Getenv("CURRENT_PROJECT_TYPE")
 
-	agentSelection := wsclient.AgentSelection{
+	agentSelection := stores.AgentSelection{
 		ID:           os.Getenv("SELECTED_AGENT_ID"),
 		Name:         os.Getenv("SELECTED_AGENT_NAME"),
 		AgentType:    os.Getenv("SELECTED_AGENT_TYPE"),
 		AgentDetails: os.Getenv("SELECTED_AGENT_DETAIL"),
-	}
-	if agentSelection.Name == "" {
-		agentSelection.Name = "Default Agent"
-	}
-	if agentSelection.AgentType == "" {
-		agentSelection.AgentType = "local-path"
-	}
-	if agentSelection.AgentDetails == "" {
-		agentSelection.AgentDetails = "./../../agents/CliTestAgent/dist"
 	}
 
 	cfg := app.Config{

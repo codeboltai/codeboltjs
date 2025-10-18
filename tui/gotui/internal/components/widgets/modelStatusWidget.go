@@ -127,7 +127,8 @@ func (w *ModelStatusWidget) View() string {
 
 	model := w.Model()
 	agent := w.Agent()
-	if model == nil && agent == nil {
+	details := w.currentState
+	if model == nil && agent == nil && strings.TrimSpace(details.ProjectName) == "" && strings.TrimSpace(details.Host) == "" {
 		return ""
 	}
 
@@ -148,6 +149,26 @@ func (w *ModelStatusWidget) View() string {
 	if agent != nil {
 		label := fmt.Sprintf("Agent: %s", agent.Name)
 		segments = append(segments, label)
+	}
+
+	if host := strings.TrimSpace(details.Host); host != "" {
+		label := fmt.Sprintf("Server: %s:%d", host, details.Port)
+		if protocol := strings.TrimSpace(details.Protocol); protocol != "" {
+			label += fmt.Sprintf(" (%s)", strings.ToUpper(protocol))
+		}
+		segments = append(segments, label)
+	}
+
+	if project := strings.TrimSpace(details.ProjectName); project != "" {
+		label := fmt.Sprintf("Project: %s", project)
+		if path := strings.TrimSpace(details.ProjectPath); path != "" {
+			label += fmt.Sprintf("  •  %s", path)
+		}
+		segments = append(segments, label)
+	}
+
+	if tuiID := strings.TrimSpace(details.TuiID); tuiID != "" {
+		segments = append(segments, fmt.Sprintf("TUI ID: %s", tuiID))
 	}
 
 	content := strings.Join(segments, "  │  ")

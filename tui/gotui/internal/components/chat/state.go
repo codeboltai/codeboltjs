@@ -9,7 +9,6 @@ import (
 	"gotui/internal/components/uicomponents/diffview"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
-	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -132,7 +131,7 @@ func (c *Chat) applyDefaultModelToAllConversations() {
 	}
 }
 
-func (c *Chat) defaultAgentSelection() *wsclient.AgentSelection {
+func (c *Chat) defaultAgentSelection() *stores.AgentSelection {
 	if c == nil {
 		return nil
 	}
@@ -146,7 +145,7 @@ func (c *Chat) defaultAgentSelection() *wsclient.AgentSelection {
 	}
 	if c.agentStore != nil {
 		if agents := c.agentStore.Agents(); len(agents) > 0 {
-			return &wsclient.AgentSelection{
+			return &stores.AgentSelection{
 				ID:           agents[0].ID,
 				Name:         agents[0].Name,
 				AgentType:    "",
