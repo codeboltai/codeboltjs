@@ -96,6 +96,10 @@ func (c *Chat) defaultModelOption() *stores.ModelOption {
 		copy := stores.ModelOption(*c.preferredModel)
 		return &copy
 	}
+	if settings := stores.SharedApplicationSettingsStore().Settings(); settings.DefaultModel != nil {
+		modelCopy := *settings.DefaultModel
+		return &modelCopy
+	}
 	if c.modelStore != nil {
 		if models := c.modelStore.Models(); len(models) > 0 {
 			copy := models[0]
@@ -121,6 +125,10 @@ func (c *Chat) applyDefaultModelIfMissing(conversationID string) {
 	if model := c.defaultModelOption(); model != nil {
 		copy := *model
 		store.SetSelectedModel(conversationID, &copy)
+		stores.SharedConversationStateStore().SetSelectedModel(conversationID, &copy)
+		if stateStore := c.ensureApplicationStateStore(); stateStore != nil && conversationID == c.activeConversationID {
+			stateStore.SetSelectedModel(&copy)
+		}
 	}
 }
 
@@ -135,6 +143,7 @@ func (c *Chat) applyDefaultModelToAllConversations() {
 			if model := c.defaultModelOption(); model != nil {
 				copy := *model
 				store.SetSelectedModel(conv.ID, &copy)
+				stores.SharedConversationStateStore().SetSelectedModel(conv.ID, &copy)
 			}
 		}
 	}
@@ -151,6 +160,10 @@ func (c *Chat) defaultAgentSelection() *stores.AgentSelection {
 	if c.preferredAgent != nil && strings.TrimSpace(c.preferredAgent.ID) != "" {
 		copy := *c.preferredAgent
 		return &copy
+	}
+	if settings := stores.SharedApplicationSettingsStore().Settings(); settings.DefaultAgent != nil {
+		agentCopy := *settings.DefaultAgent
+		return &agentCopy
 	}
 	if c.agentStore != nil {
 		if agents := c.agentStore.Agents(); len(agents) > 0 {
@@ -177,6 +190,10 @@ func (c *Chat) applyDefaultAgentIfMissing(conversationID string) {
 	if agent := c.defaultAgentSelection(); agent != nil {
 		agentCopy := *agent
 		store.SetSelectedAgent(conversationID, &agentCopy)
+		stores.SharedConversationStateStore().SetSelectedAgent(conversationID, &agentCopy)
+		if stateStore := c.ensureApplicationStateStore(); stateStore != nil && conversationID == c.activeConversationID {
+			stateStore.SetSelectedAgent(&agentCopy)
+		}
 	}
 }
 
@@ -191,6 +208,7 @@ func (c *Chat) applyDefaultAgentToAllConversations() {
 			if agent := c.defaultAgentSelection(); agent != nil {
 				agentCopy := *agent
 				store.SetSelectedAgent(conv.ID, &agentCopy)
+				stores.SharedConversationStateStore().SetSelectedAgent(conv.ID, &agentCopy)
 			}
 		}
 	}
@@ -236,6 +254,21 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 				}
 				break
 			}
+		}
+	}
+	if stateStore := c.ensureApplicationStateStore(); stateStore != nil {
+		stateStore.SetSelectedConversation(activeID)
+		if c.selectedModel != nil {
+			modelCopy := stores.ModelOption(*c.selectedModel)
+			stateStore.SetSelectedModel(&modelCopy)
+		} else {
+			stateStore.SetSelectedModel(nil)
+		}
+		if c.selectedAgent != nil {
+			agentCopy := *c.selectedAgent
+			stateStore.SetSelectedAgent(&agentCopy)
+		} else {
+			stateStore.SetSelectedAgent(nil)
 		}
 	}
 	c.syncApplicationState()
@@ -316,6 +349,27 @@ func (c *Chat) createNewConversation() tea.Cmd {
 	conv := store.CreateConversation("", stores.ConversationOptions{})
 	if conv == nil {
 		return nil
+	}
+
+	settings := stores.SharedApplicationSettingsStore().Settings()
+	if stateStore := c.ensureApplicationStateStore(); stateStore != nil {
+		stateStore.SetSelectedConversation(conv.ID)
+	}
+	if settings.DefaultModel != nil {
+		modelCopy := *settings.DefaultModel
+		stores.SharedConversationStateStore().SetSelectedModel(conv.ID, &modelCopy)
+		store.SetSelectedModel(conv.ID, &modelCopy)
+		if stateStore := c.ensureApplicationStateStore(); stateStore != nil {
+			stateStore.SetSelectedModel(&modelCopy)
+		}
+	}
+	if settings.DefaultAgent != nil {
+		agentCopy := *settings.DefaultAgent
+		stores.SharedConversationStateStore().SetSelectedAgent(conv.ID, &agentCopy)
+		store.SetSelectedAgent(conv.ID, &agentCopy)
+		if stateStore := c.ensureApplicationStateStore(); stateStore != nil {
+			stateStore.SetSelectedAgent(&agentCopy)
+		}
 	}
 
 	store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil, nil))

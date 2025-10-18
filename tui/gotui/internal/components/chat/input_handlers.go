@@ -122,6 +122,18 @@ func (c *Chat) applySlashCommand(cmd chatcomponents.SlashCommand) tea.Cmd {
 		return nil
 	}
 
+	if cmd.Name == "settings" {
+		c.input.SetValueAndCursor("", 0)
+		c.slashMenu.Close()
+		c.commandPalette.Close()
+		c.modelPicker.Close()
+		if c.agentPicker != nil {
+			c.agentPicker.Close()
+		}
+		c.settingsDialog.Open()
+		return nil
+	}
+
 	newValue := leading + "/" + cmd.Name + remainder
 	cursor := runeLen(leading) + runeLen("/"+cmd.Name) + 1
 	c.input.SetValueAndCursor(newValue, cursor)
@@ -463,21 +475,53 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 			}
 		}
 
-		if c.agentPicker != nil && c.agentPicker.IsVisible() {
-			handled, selection, ok := c.agentPicker.HandleKey(msg)
+		if c.settingsDialog.IsVisible() {
+			handled, option, ok := c.settingsDialog.HandleKey(msg)
 			if handled {
 				if ok {
-					return c, c.handleAgentSelection(selection)
+					switch option.Key {
+					case "default_model":
+						c.pendingPreference = preferenceTargetDefaultModel
+						c.modelPicker.Open()
+					case "default_agent":
+						c.pendingPreference = preferenceTargetDefaultAgent
+						if c.agentPicker != nil {
+							c.agentPicker.Open()
+						}
+					}
+				}
+				if !ok {
+					c.pendingPreference = preferenceTargetNone
+				}
+				return c, nil
+			}
+		}
+
+		if c.agentPicker != nil && c.agentPicker.IsVisible() {
+			handled, selection, applyDefault, ok := c.agentPicker.HandleKey(msg)
+			if handled {
+				if ok {
+					if applyDefault || c.pendingPreference == preferenceTargetDefaultAgent {
+						applyDefault = true
+					}
+					cmd := c.handleAgentSelection(selection, applyDefault)
+					c.pendingPreference = preferenceTargetNone
+					return c, cmd
 				}
 				return c, nil
 			}
 		}
 
 		if c.modelPicker.IsVisible() {
-			handled, selection, ok := c.modelPicker.HandleKey(msg)
+			handled, selection, applyDefault, ok := c.modelPicker.HandleKey(msg)
 			if handled {
 				if ok {
-					return c, c.handleModelSelection(selection)
+					if applyDefault || c.pendingPreference == preferenceTargetDefaultModel {
+						applyDefault = true
+					}
+					cmd := c.handleModelSelection(selection, applyDefault)
+					c.pendingPreference = preferenceTargetNone
+					return c, cmd
 				}
 				return c, nil
 			}

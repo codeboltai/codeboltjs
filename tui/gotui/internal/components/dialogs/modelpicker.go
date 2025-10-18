@@ -10,6 +10,11 @@ import (
 	"gotui/internal/styles"
 )
 
+const (
+	modelPickerActionApply        = "Apply to this chat ↵"
+	modelPickerActionApplyDefault = "Apply as default ⌘↵ / Ctrl+↵"
+)
+
 type ModelPicker struct {
 	store       *stores.AIModelStore
 	unsubscribe func()
@@ -74,41 +79,49 @@ func (p *ModelPicker) IsVisible() bool {
 	return p.visible
 }
 
-func (p *ModelPicker) HandleKey(msg tea.KeyPressMsg) (handled bool, option stores.ModelOption, ok bool) {
+func (p *ModelPicker) HandleKey(msg tea.KeyPressMsg) (handled bool, option stores.ModelOption, applyDefault bool, ok bool) {
 	if !p.visible {
-		return false, stores.ModelOption{}, false
+		return false, stores.ModelOption{}, false, false
 	}
 
 	switch msg.String() {
 	case "esc":
 		p.Close()
-		return true, stores.ModelOption{}, false
-	case "enter", "tab":
+		return true, stores.ModelOption{}, false, false
+	case "cmd+enter", "ctrl+enter":
 		if len(p.options) == 0 {
 			p.Close()
-			return true, stores.ModelOption{}, false
+			return true, stores.ModelOption{}, false, false
 		}
 		opt := p.options[p.selected]
 		p.Close()
-		return true, opt, true
+		return true, opt, true, true
+	case "enter":
+		if len(p.options) == 0 {
+			p.Close()
+			return true, stores.ModelOption{}, false, false
+		}
+		opt := p.options[p.selected]
+		p.Close()
+		return true, opt, false, true
 	case "down", "ctrl+n":
 		p.move(1)
-		return true, stores.ModelOption{}, false
+		return true, stores.ModelOption{}, false, false
 	case "up", "ctrl+p":
 		p.move(-1)
-		return true, stores.ModelOption{}, false
+		return true, stores.ModelOption{}, false, false
 	case "pgdown":
 		p.move(3)
-		return true, stores.ModelOption{}, false
+		return true, stores.ModelOption{}, false, false
 	case "pgup":
 		p.move(-3)
-		return true, stores.ModelOption{}, false
+		return true, stores.ModelOption{}, false, false
 	case "shift+tab":
 		p.move(-1)
-		return true, stores.ModelOption{}, false
+		return true, stores.ModelOption{}, false, false
 	}
 
-	return false, stores.ModelOption{}, false
+	return false, stores.ModelOption{}, false, false
 }
 
 func (p *ModelPicker) move(delta int) {
@@ -183,11 +196,14 @@ func (p *ModelPicker) dialogPanel(width int) (string, bool) {
 	headerHint := lipgloss.NewStyle().
 		Foreground(lipgloss.Color(theme.Muted.Hex())).
 		Padding(0, 1).
-		Render("Use ↑ ↓ to navigate • Enter to select • Esc to cancel")
+		Render("Use ↑ ↓ to navigate • Enter to apply • Cmd/Ctrl+Enter default • Esc to cancel")
 	header := lipgloss.JoinVertical(lipgloss.Left, headerTitle, headerHint, "")
 
 	rows := p.renderOptions(contentWidth)
 	body := lipgloss.JoinVertical(lipgloss.Left, rows...)
+
+	actions := p.renderActions(contentWidth)
+	body = lipgloss.JoinVertical(lipgloss.Left, body, actions)
 
 	panel := lipgloss.NewStyle().
 		Width(panelWidth).
@@ -223,6 +239,30 @@ func (p *ModelPicker) renderOptions(width int) []string {
 		}
 	}
 	return rows
+}
+
+func (p *ModelPicker) renderActions(width int) string {
+	if width <= 0 {
+		return ""
+	}
+	theme := styles.CurrentTheme()
+	buttonStyle := lipgloss.NewStyle().
+		Padding(0, 2).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color(theme.SurfaceHigh.Hex())).
+		Foreground(lipgloss.Color(theme.Foreground.Hex()))
+
+	primary := buttonStyle.Copy().
+		BorderForeground(lipgloss.Color(theme.Primary.Hex())).
+		Foreground(lipgloss.Color(theme.Primary.Hex())).
+		Render(modelPickerActionApply)
+	secondary := buttonStyle.Render(modelPickerActionApplyDefault)
+
+	row := lipgloss.JoinHorizontal(lipgloss.Left, primary, "  ", secondary)
+	return lipgloss.NewStyle().
+		Width(width).
+		PaddingTop(1).
+		Render(row)
 }
 
 func (p *ModelPicker) renderOption(opt stores.ModelOption, selected bool, width int) string {

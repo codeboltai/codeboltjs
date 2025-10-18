@@ -67,7 +67,9 @@ func (m *SlashMenu) filtered() []SlashCommand {
 	}
 	var result []SlashCommand
 	for _, cmd := range m.commands {
-		if strings.HasPrefix(strings.ToLower(cmd.Name), m.filter) {
+		name := strings.ToLower(cmd.Name)
+		desc := strings.ToLower(cmd.Description)
+		if strings.HasPrefix(name, m.filter) || strings.Contains(desc, m.filter) {
 			result = append(result, cmd)
 		}
 	}

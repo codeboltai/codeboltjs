@@ -16,6 +16,14 @@ import (
 	zone "github.com/lrstanley/bubblezone"
 )
 
+type defaultPreferenceTarget int
+
+const (
+	preferenceTargetNone defaultPreferenceTarget = iota
+	preferenceTargetDefaultModel
+	preferenceTargetDefaultAgent
+)
+
 // Chat represents the main chat interface.
 type Chat struct {
 	input             *chatcomponents.ChatInput
@@ -25,6 +33,7 @@ type Chat struct {
 	modelPicker       *chatcomponents.ModelPicker
 	agentPicker       *chatcomponents.AgentPicker
 	themePicker       *dialogs.ThemePicker
+	settingsDialog    *chatcomponents.ApplicationSettingsDialog
 	commandPalette    *chatcomponents.CommandPalette
 	selectedModel     *chatcomponents.ModelOption
 	modelOptions      []chatcomponents.ModelOption
@@ -57,6 +66,7 @@ type Chat struct {
 	preferredModel    *stores.ModelOption
 	conversationStore *stores.ConversationStore
 	applicationState  *stores.ApplicationStateStore
+	pendingPreference defaultPreferenceTarget
 
 	contextViewport      viewport.Model
 	contextDrawerVisible bool
@@ -73,6 +83,7 @@ func defaultSlashCommands() []chatcomponents.SlashCommand {
 		{Name: "models", Description: "Switch active AI model", Usage: "/models"},
 		{Name: "agents", Description: "Switch active agent", Usage: "/agents"},
 		{Name: "theme", Description: "Switch TUI color theme", Usage: "/theme"},
+		{Name: "settings", Description: "Configure application defaults", Usage: "/settings"},
 		{Name: "help", Description: "Show available commands", Usage: "/help"},
 	}
 }
@@ -93,6 +104,7 @@ func New() *Chat {
 		modelPicker:           chatcomponents.NewModelPicker(nil),
 		agentPicker:           chatcomponents.NewAgentPicker(nil),
 		themePicker:           dialogs.NewThemePicker(styles.PresetThemes()),
+		settingsDialog:        chatcomponents.NewApplicationSettingsDialog(),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
 		conversationPanel:     panels.NewConversationListPanel(),
 		focused:               true,
@@ -318,6 +330,12 @@ func (c *Chat) View() string {
 	if c.agentPicker != nil && c.agentPicker.IsVisible() {
 		if layer := c.agentPicker.Layer(c.width, c.height); layer != nil {
 			overlayLayers = append(overlayLayers, layer.Z(25))
+		}
+	}
+
+	if c.settingsDialog != nil && c.settingsDialog.IsVisible() {
+		if layer := c.settingsDialog.Layer(c.width, c.height); layer != nil {
+			overlayLayers = append(overlayLayers, layer.Z(22))
 		}
 	}
 

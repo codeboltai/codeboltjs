@@ -10,9 +10,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
-func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
+func (c *Chat) handleModelSelection(option chatcomponents.ModelOption, applyDefault bool) tea.Cmd {
 	c.modelPicker.Close()
 	c.commandPalette.Close()
+	c.settingsDialog.Close()
 	c.input.SetValueAndCursor("", 0)
 	c.slashMenu.Close()
 	opt := option
@@ -27,16 +28,23 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption) tea.Cmd {
 	}
 	c.refreshConversationsFromStore(true)
 	c.AddMessage("system", fmt.Sprintf("🤖 Model set to %s (%s)", option.Name, option.Provider))
+	if applyDefault {
+		copy := stores.ModelOption(option)
+		stores.SharedApplicationSettingsStore().SetDefaultModel(&copy)
+		c.AddMessage("system", fmt.Sprintf("📌 Default model updated to %s", option.Name))
+	}
+	c.pendingPreference = preferenceTargetNone
 	return tea.Cmd(func() tea.Msg {
 		return ModelSelectedMsg{Option: option}
 	})
 }
 
-func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption) tea.Cmd {
+func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption, applyDefault bool) tea.Cmd {
 	if c.agentPicker != nil {
 		c.agentPicker.Close()
 	}
 	c.commandPalette.Close()
+	c.settingsDialog.Close()
 	c.input.SetValueAndCursor("", 0)
 	c.slashMenu.Close()
 	selection := stores.AgentSelection{
@@ -56,6 +64,12 @@ func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption) tea.Cmd {
 	}
 	c.refreshConversationsFromStore(true)
 	c.AddMessage("system", fmt.Sprintf("🧭 Agent set to %s", option.Name))
+	if applyDefault {
+		copy := selection
+		stores.SharedApplicationSettingsStore().SetDefaultAgent(&copy)
+		c.AddMessage("system", fmt.Sprintf("📌 Default agent updated to %s", option.Name))
+	}
+	c.pendingPreference = preferenceTargetNone
 	return tea.Cmd(func() tea.Msg {
 		return AgentSelectedMsg{Option: option}
 	})

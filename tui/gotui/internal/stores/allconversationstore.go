@@ -263,6 +263,17 @@ func (s *ConversationStore) CreateConversation(title string, opts ConversationOp
 	clone := conv.Clone()
 	s.mu.Unlock()
 
+	state := ConversationState{}
+	if clone.Options.SelectedModel != nil {
+		modelCopy := *clone.Options.SelectedModel
+		state.SelectedModel = &modelCopy
+	}
+	if clone.Options.SelectedAgent != nil {
+		agentCopy := *clone.Options.SelectedAgent
+		state.SelectedAgent = &agentCopy
+	}
+	SharedConversationStateStore().Update(clone.ID, state)
+
 	return clone
 }
 
