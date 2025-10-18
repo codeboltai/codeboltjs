@@ -6,11 +6,14 @@ import type { AgentExecutorServer } from '../../core/mainAgentExecutorServer';
 import type { AgentCliOptions, ServerConfig } from '../../types';
 import { logger } from '../logger';
 import { AgentService } from '../../services/AgentService';
+import { ModelService } from '../../services/ModelService';
 
 const DEFAULT_AGENT_ID = 'cli-agent';
 const DEFAULT_AGENT_NAME = 'Ask Agent';
 const DEFAULT_AGENT_TYPE = 'local-path';
 const DEFAULT_AGENT_DETAILS = './../../agents/CliTestAgent/dist';
+const DEFAULT_MODEL_NAME = 'gpt-4.1-mini';
+const DEFAULT_MODEL_PROVIDER = 'OpenAI';
 
 interface TuiProcessManagerDependencies {
   server: AgentExecutorServer;
@@ -60,6 +63,7 @@ export class TuiProcessManager {
     const protocol = this.options.remote ? 'wss' : 'ws';
 
     const selectedAgentEnv = this.getSelectedAgentEnv();
+    const selectedModelEnv = this.getSelectedModelEnv();
 
     this.tuiProcess = spawn(
       gotuiPath,
@@ -72,7 +76,8 @@ export class TuiProcessManager {
           AGENT_SERVER_HOST: host,
           AGENT_SERVER_PORT: port.toString(),
           AGENT_SERVER_PROTOCOL: protocol,
-          ...selectedAgentEnv
+          ...selectedAgentEnv,
+          ...selectedModelEnv
         }
       }
     );
@@ -110,6 +115,16 @@ export class TuiProcessManager {
       SELECTED_AGENT_NAME: agentName,
       SELECTED_AGENT_TYPE: agentType,
       SELECTED_AGENT_DETAIL: agentDetail
+    };
+  }
+
+  private getSelectedModelEnv(): Record<string, string> {
+    const models = ModelService.getInstance().getModelsList();
+    const model = models[0];
+
+    return {
+      SELECTED_MODEL_NAME: model?.display_name ?? DEFAULT_MODEL_NAME,
+      SELECTED_MODEL_PROVIDER: model?.provider ?? DEFAULT_MODEL_PROVIDER
     };
   }
 

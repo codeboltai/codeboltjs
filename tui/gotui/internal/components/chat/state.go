@@ -54,14 +54,19 @@ func (c *Chat) syncApplicationState() {
 	if store == nil {
 		return
 	}
-	state := stores.ApplicationState{SelectedConversationID: c.activeConversationID}
+	state := store.State()
+	state.SelectedConversationID = c.activeConversationID
 	if c.selectedModel != nil {
 		modelCopy := stores.ModelOption(*c.selectedModel)
 		state.SelectedModel = &modelCopy
+	} else {
+		state.SelectedModel = nil
 	}
 	if c.selectedAgent != nil {
 		agentCopy := *c.selectedAgent
 		state.SelectedAgent = &agentCopy
+	} else {
+		state.SelectedAgent = nil
 	}
 	store.Update(state)
 }

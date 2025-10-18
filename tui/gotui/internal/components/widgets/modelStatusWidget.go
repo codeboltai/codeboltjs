@@ -27,6 +27,7 @@ func NewModelStatusWidget(modelStore *stores.AIModelStore, agentStore *stores.Ag
 	widget := &ModelStatusWidget{}
 	widget.SetModelStore(modelStore)
 	widget.SetAgentStore(agentStore)
+	widget.SetStateStore(stores.SharedApplicationStateStore())
 	return widget
 }
 
@@ -69,6 +70,9 @@ func (w *ModelStatusWidget) SetStateStore(store *stores.ApplicationStateStore) {
 	if w == nil {
 		return
 	}
+	if store == w.stateStore {
+		return
+	}
 	if w.stateUnsubscribe != nil {
 		w.stateUnsubscribe()
 		w.stateUnsubscribe = nil
@@ -76,6 +80,7 @@ func (w *ModelStatusWidget) SetStateStore(store *stores.ApplicationStateStore) {
 	w.stateStore = store
 	w.currentState = stores.ApplicationState{}
 	if store != nil {
+		w.currentState = store.State()
 		w.stateUnsubscribe = store.Subscribe(func(state stores.ApplicationState) {
 			w.currentState = state
 		})
