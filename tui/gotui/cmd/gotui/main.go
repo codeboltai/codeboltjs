@@ -58,6 +58,17 @@ func main() {
 		AgentDetails: os.Getenv("SELECTED_AGENT_DETAIL"),
 	}
 
+	modelSelection := stores.ModelOption{
+		Name:     os.Getenv("SELECTED_MODEL_NAME"),
+		Provider: os.Getenv("SELECTED_MODEL_PROVIDER"),
+	}
+	if modelSelection.Name == "" {
+		modelSelection.Name = "gpt-4.1-mini"
+	}
+	if modelSelection.Provider == "" {
+		modelSelection.Provider = "OpenAI"
+	}
+
 	cfg := app.Config{
 		Host:        hostValue,
 		Port:        portValue,
@@ -67,6 +78,7 @@ func main() {
 		ProjectName: projectName,
 		ProjectType: projectType,
 		Agent:       agentSelection,
+		Model:       modelSelection,
 	}
 
 	logging.Printf("Config: host=%s, port=%d, protocol=%s, tuiID=%s (client mode)", cfg.Host, cfg.Port, cfg.Protocol, cfg.TuiID)

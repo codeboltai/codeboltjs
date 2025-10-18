@@ -119,6 +119,16 @@ export class TuiProcessManager {
   }
 
   private getSelectedModelEnv(): Record<string, string> {
+    const cliModelName = this.options.modelName;
+    const cliModelProvider = this.options.modelProvider;
+
+    if (cliModelName && cliModelProvider) {
+      return {
+        SELECTED_MODEL_NAME: cliModelName,
+        SELECTED_MODEL_PROVIDER: cliModelProvider
+      };
+    }
+
     const models = ModelService.getInstance().getModelsList();
     const model = models[0];
    
