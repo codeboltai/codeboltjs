@@ -50,13 +50,6 @@ type Config struct {
 	ProjectType string
 }
 
-type AgentSelection struct {
-	ID           string
-	Name         string
-	AgentType    string
-	AgentDetails string
-}
-
 type Client struct {
 	url       string
 	conn      *websocket.Conn

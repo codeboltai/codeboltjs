@@ -27,6 +27,7 @@ func NewModelStatusWidget(modelStore *stores.AIModelStore, agentStore *stores.Ag
 	widget := &ModelStatusWidget{}
 	widget.SetModelStore(modelStore)
 	widget.SetAgentStore(agentStore)
+	widget.SetStateStore(stores.SharedApplicationStateStore())
 	return widget
 }
 
@@ -69,6 +70,9 @@ func (w *ModelStatusWidget) SetStateStore(store *stores.ApplicationStateStore) {
 	if w == nil {
 		return
 	}
+	if store == w.stateStore {
+		return
+	}
 	if w.stateUnsubscribe != nil {
 		w.stateUnsubscribe()
 		w.stateUnsubscribe = nil
@@ -76,6 +80,7 @@ func (w *ModelStatusWidget) SetStateStore(store *stores.ApplicationStateStore) {
 	w.stateStore = store
 	w.currentState = stores.ApplicationState{}
 	if store != nil {
+		w.currentState = store.State()
 		w.stateUnsubscribe = store.Subscribe(func(state stores.ApplicationState) {
 			w.currentState = state
 		})
@@ -127,7 +132,8 @@ func (w *ModelStatusWidget) View() string {
 
 	model := w.Model()
 	agent := w.Agent()
-	if model == nil && agent == nil {
+	details := w.currentState
+	if model == nil && agent == nil && strings.TrimSpace(details.ProjectName) == "" && strings.TrimSpace(details.Host) == "" {
 		return ""
 	}
 
@@ -148,6 +154,26 @@ func (w *ModelStatusWidget) View() string {
 	if agent != nil {
 		label := fmt.Sprintf("Agent: %s", agent.Name)
 		segments = append(segments, label)
+	}
+
+	if host := strings.TrimSpace(details.Host); host != "" {
+		label := fmt.Sprintf("Server: %s:%d", host, details.Port)
+		if protocol := strings.TrimSpace(details.Protocol); protocol != "" {
+			label += fmt.Sprintf(" (%s)", strings.ToUpper(protocol))
+		}
+		segments = append(segments, label)
+	}
+
+	if project := strings.TrimSpace(details.ProjectName); project != "" {
+		label := fmt.Sprintf("Project: %s", project)
+		if path := strings.TrimSpace(details.ProjectPath); path != "" {
+			label += fmt.Sprintf("  •  %s", path)
+		}
+		segments = append(segments, label)
+	}
+
+	if tuiID := strings.TrimSpace(details.TuiID); tuiID != "" {
+		segments = append(segments, fmt.Sprintf("TUI ID: %s", tuiID))
 	}
 
 	content := strings.Join(segments, "  │  ")

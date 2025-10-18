@@ -9,7 +9,6 @@ import (
 	"gotui/internal/components/uicomponents/diffview"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
-	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -55,14 +54,19 @@ func (c *Chat) syncApplicationState() {
 	if store == nil {
 		return
 	}
-	state := stores.ApplicationState{SelectedConversationID: c.activeConversationID}
+	state := store.State()
+	state.SelectedConversationID = c.activeConversationID
 	if c.selectedModel != nil {
 		modelCopy := stores.ModelOption(*c.selectedModel)
 		state.SelectedModel = &modelCopy
+	} else {
+		state.SelectedModel = nil
 	}
 	if c.selectedAgent != nil {
 		agentCopy := *c.selectedAgent
 		state.SelectedAgent = &agentCopy
+	} else {
+		state.SelectedAgent = nil
 	}
 	store.Update(state)
 }
@@ -132,7 +136,7 @@ func (c *Chat) applyDefaultModelToAllConversations() {
 	}
 }
 
-func (c *Chat) defaultAgentSelection() *wsclient.AgentSelection {
+func (c *Chat) defaultAgentSelection() *stores.AgentSelection {
 	if c == nil {
 		return nil
 	}
@@ -146,7 +150,7 @@ func (c *Chat) defaultAgentSelection() *wsclient.AgentSelection {
 	}
 	if c.agentStore != nil {
 		if agents := c.agentStore.Agents(); len(agents) > 0 {
-			return &wsclient.AgentSelection{
+			return &stores.AgentSelection{
 				ID:           agents[0].ID,
 				Name:         agents[0].Name,
 				AgentType:    "",

@@ -30,7 +30,15 @@ interface ProjectSetting {
 export class AgentService {
   private static instance: AgentService | null = null;
   private agents: Map<string, AgentInfo>;
+  private cliAgentInfo?: AgentInfo;
 
+  private readonly defaultAgent: AgentInfo = {
+    agentId: 'cli-agent',
+    agentName: 'Ask Agent',
+    agentDescription: 'Default local path agent',
+    agentDetails: './../../agents/CliTestAgent/dist',
+    agentType: AgentTypeEnum.localPath
+  };
   private constructor() {
     this.agents = new Map();
     // Load agents from JSON file during initialization
@@ -164,10 +172,16 @@ export class AgentService {
     if (options?.agentType && options.agentDetail) {
       const agent = this.createCliAgentInfo(options.agentType, options.agentDetail, options.prompt);
       this.agents.set(agent.agentId, agent);
+      this.cliAgentInfo = agent;
       return;
     }
 
-    this.agents.delete('cli-agent');
+    this.agents.set(this.defaultAgent.agentId, this.defaultAgent);
+    this.cliAgentInfo = this.defaultAgent;
+  }
+
+  public getCliAgentInfo(): AgentInfo | undefined {
+    return this.cliAgentInfo ?? this.defaultAgent;
   }
 
   private createCliAgentInfo(agentType: AgentTypeEnum, agentDetail: string, prompt?: string | null): AgentInfo {

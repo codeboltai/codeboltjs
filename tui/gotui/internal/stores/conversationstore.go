@@ -13,13 +13,12 @@ import (
 
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/logging"
-	"gotui/internal/wsclient"
 )
 
 // ConversationOptions captures configurable per-conversation settings such as the selected model or agent.
 type ConversationOptions struct {
 	SelectedModel *ModelOption
-	SelectedAgent *wsclient.AgentSelection
+	SelectedAgent *AgentSelection
 }
 
 // Clone creates a deep copy of the options.
@@ -328,7 +327,7 @@ func (s *ConversationStore) SetSelectedModel(id string, model *ModelOption) bool
 }
 
 // SetSelectedAgent stores the selected agent information for the conversation.
-func (s *ConversationStore) SetSelectedAgent(id string, agent *wsclient.AgentSelection) bool {
+func (s *ConversationStore) SetSelectedAgent(id string, agent *AgentSelection) bool {
 	if s == nil {
 		return false
 	}
@@ -535,7 +534,7 @@ func convertModelOption(model *ModelOption) *ModelOption {
 	return &copy
 }
 
-func convertAgentSelection(agent *wsclient.AgentSelection) *remoteAgentSelection {
+func convertAgentSelection(agent *AgentSelection) *remoteAgentSelection {
 	if agent == nil {
 		return nil
 	}

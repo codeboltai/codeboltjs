@@ -3,14 +3,12 @@ package stores
 import (
 	"sync"
 	"sync/atomic"
-
-	"gotui/internal/wsclient"
 )
 
 // ApplicationSettings captures global configuration that should persist across conversations.
 type ApplicationSettings struct {
 	DefaultModel *ModelOption
-	DefaultAgent *wsclient.AgentSelection
+	DefaultAgent *AgentSelection
 }
 
 // Clone returns a deep copy of the settings structure to avoid external mutation.
@@ -105,7 +103,7 @@ func (s *ApplicationSettingsStore) SetDefaultModel(model *ModelOption) {
 }
 
 // SetDefaultAgent updates the globally configured default agent and notifies listeners.
-func (s *ApplicationSettingsStore) SetDefaultAgent(agent *wsclient.AgentSelection) {
+func (s *ApplicationSettingsStore) SetDefaultAgent(agent *AgentSelection) {
 	if s == nil {
 		return
 	}

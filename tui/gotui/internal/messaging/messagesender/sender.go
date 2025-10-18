@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"gotui/internal/stores"
 	"gotui/internal/wsclient"
 )
 
@@ -15,17 +16,17 @@ import (
 // them to the websocket client.
 type Sender struct {
 	client *wsclient.Client
-	agent  wsclient.AgentSelection
+	agent  stores.AgentSelection
 }
 
 // New creates a new message sender bound to the given websocket client and
 // default agent selection.
-func New(client *wsclient.Client, agent wsclient.AgentSelection) *Sender {
+func New(client *wsclient.Client, agent stores.AgentSelection) *Sender {
 	return &Sender{client: client, agent: agent}
 }
 
 // SetAgent updates the default agent selection used for outbound messages.
-func (s *Sender) SetAgent(agent wsclient.AgentSelection) {
+func (s *Sender) SetAgent(agent stores.AgentSelection) {
 	s.agent = agent
 }
 

@@ -4,16 +4,30 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-
-	"gotui/internal/wsclient"
 )
+
+// AgentSelection represents the agent chosen for handling conversation requests.
+type AgentSelection struct {
+	ID           string
+	Name         string
+	AgentType    string
+	AgentDetails string
+}
 
 // ApplicationState captures dynamic UI selections such as the active conversation,
 // model, and agent.
 type ApplicationState struct {
 	SelectedConversationID string
 	SelectedModel          *ModelOption
-	SelectedAgent          *wsclient.AgentSelection
+	SelectedAgent          *AgentSelection
+
+	Host        string
+	Port        int
+	Protocol    string
+	TuiID       string
+	ProjectPath string
+	ProjectName string
+	ProjectType string
 }
 
 // Clone returns a deep copy of the application state.
@@ -27,6 +41,13 @@ func (s ApplicationState) Clone() ApplicationState {
 		agentCopy := *s.SelectedAgent
 		copy.SelectedAgent = &agentCopy
 	}
+	copy.Host = s.Host
+	copy.Port = s.Port
+	copy.Protocol = s.Protocol
+	copy.TuiID = s.TuiID
+	copy.ProjectPath = s.ProjectPath
+	copy.ProjectName = s.ProjectName
+	copy.ProjectType = s.ProjectType
 	return copy
 }
 
@@ -126,7 +147,7 @@ func (s *ApplicationStateStore) SetSelectedModel(model *ModelOption) {
 }
 
 // SetSelectedAgent updates the active agent reference.
-func (s *ApplicationStateStore) SetSelectedAgent(agent *wsclient.AgentSelection) {
+func (s *ApplicationStateStore) SetSelectedAgent(agent *AgentSelection) {
 	if s == nil {
 		return
 	}
@@ -137,6 +158,64 @@ func (s *ApplicationStateStore) SetSelectedAgent(agent *wsclient.AgentSelection)
 	} else {
 		s.state.SelectedAgent = nil
 	}
+	listeners := s.snapshotListenersLocked()
+	current := s.state.Clone()
+	s.mu.Unlock()
+
+	for _, listener := range listeners {
+		listener(current)
+	}
+}
+
+// SetConnectionInfo records the current server connection details.
+func (s *ApplicationStateStore) SetConnectionInfo(host string, port int, protocol string) {
+	if s == nil {
+		return
+	}
+	host = strings.TrimSpace(host)
+	protocol = strings.TrimSpace(protocol)
+	s.mu.Lock()
+	s.state.Host = host
+	s.state.Port = port
+	s.state.Protocol = protocol
+	listeners := s.snapshotListenersLocked()
+	current := s.state.Clone()
+	s.mu.Unlock()
+
+	for _, listener := range listeners {
+		listener(current)
+	}
+}
+
+// SetProjectDetails updates project metadata in the shared state.
+func (s *ApplicationStateStore) SetProjectDetails(path, name, projectType string) {
+	if s == nil {
+		return
+	}
+	path = strings.TrimSpace(path)
+	name = strings.TrimSpace(name)
+	projectType = strings.TrimSpace(projectType)
+	s.mu.Lock()
+	s.state.ProjectPath = path
+	s.state.ProjectName = name
+	s.state.ProjectType = projectType
+	listeners := s.snapshotListenersLocked()
+	current := s.state.Clone()
+	s.mu.Unlock()
+
+	for _, listener := range listeners {
+		listener(current)
+	}
+}
+
+// SetTuiID records the current TUI identifier shared across components.
+func (s *ApplicationStateStore) SetTuiID(tuiID string) {
+	if s == nil {
+		return
+	}
+	tuiID = strings.TrimSpace(tuiID)
+	s.mu.Lock()
+	s.state.TuiID = tuiID
 	listeners := s.snapshotListenersLocked()
 	current := s.state.Clone()
 	s.mu.Unlock()

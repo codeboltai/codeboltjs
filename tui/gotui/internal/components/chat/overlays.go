@@ -6,7 +6,6 @@ import (
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/stores"
 	"gotui/internal/styles"
-	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -39,7 +38,7 @@ func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption) tea.Cmd {
 	c.commandPalette.Close()
 	c.input.SetValueAndCursor("", 0)
 	c.slashMenu.Close()
-	selection := wsclient.AgentSelection{
+	selection := stores.AgentSelection{
 		ID:           option.ID,
 		Name:         option.Name,
 		AgentType:    "",
