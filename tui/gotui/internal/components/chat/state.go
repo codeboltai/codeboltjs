@@ -92,6 +92,10 @@ func (c *Chat) defaultModelOption() *stores.ModelOption {
 		copy := stores.ModelOption(*c.selectedModel)
 		return &copy
 	}
+	if c.preferredModel != nil {
+		copy := stores.ModelOption(*c.preferredModel)
+		return &copy
+	}
 	if c.modelStore != nil {
 		if models := c.modelStore.Models(); len(models) > 0 {
 			copy := models[0]

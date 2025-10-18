@@ -82,6 +82,8 @@ function setupCLI(): AgentCliOptions {
     .option('--agent-type <type>', 'agent type: marketplace, local-zip, local-path, or server-zip')
     .option('--agent-detail <detail>', 'agent detail: marketplace ID, local path, zip file path, or server URL')
     .option('--prompt <prompt>', 'initial prompt to send to the agent')
+    .option('--model-name <name>', 'default model name to pass to TUI')
+    .option('--model-provider <provider>', 'default model provider to pass to TUI')
 .addHelpText('after', `
  Examples:
    $ codebolt-code                    # Start with TUI interface
@@ -122,7 +124,9 @@ function setupCLI(): AgentCliOptions {
     appToken,
     agentType: options.agentType ? options.agentType as AgentTypeEnum : undefined,
     agentDetail: resolveStringOption(options.agentDetail, 'agent-detail'),
-    prompt: resolveStringOption(options.prompt, 'prompt')
+    prompt: resolveStringOption(options.prompt, 'prompt'),
+    modelName: resolveStringOption(options.modelName, 'model-name') ?? process.env.SELECTED_MODEL_NAME,
+    modelProvider: resolveStringOption(options.modelProvider, 'model-provider') ?? process.env.SELECTED_MODEL_PROVIDER
   };
 }
 

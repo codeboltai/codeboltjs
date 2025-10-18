@@ -23,6 +23,7 @@ type Config struct {
 	ProjectName string
 	ProjectType string
 	Agent       stores.AgentSelection
+	Model       stores.ModelOption
 }
 
 const tabBarHeight = 2
@@ -95,6 +96,7 @@ func NewModel(cfg Config) *Model {
 	stateStore.SetProjectDetails(cfg.ProjectPath, cfg.ProjectName, cfg.ProjectType)
 	stateStore.SetTuiID(cfg.TuiID)
 	stateStore.SetSelectedAgent(&cfg.Agent)
+	stateStore.SetSelectedModel(&cfg.Model)
 
 	chatPage := tabpages.NewChatPage()
 	chatComp := chatPage.Chat()
@@ -162,6 +164,7 @@ func NewModel(cfg Config) *Model {
 		chatComp.SetModelStore(modelStore)
 		chatComp.SetAgentStore(agentStore)
 		chatComp.SetPreferredAgent(cfg.Agent)
+		chatComp.SetPreferredModel(cfg.Model)
 		chatComp.Focus()
 	}
 

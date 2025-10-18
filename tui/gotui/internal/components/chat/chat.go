@@ -54,6 +54,7 @@ type Chat struct {
 	modelStore        *stores.AIModelStore
 	agentStore        *stores.AgentStore
 	preferredAgent    *stores.AgentSelection
+	preferredModel    *stores.ModelOption
 	conversationStore *stores.ConversationStore
 	applicationState  *stores.ApplicationStateStore
 
@@ -164,6 +165,23 @@ func (c *Chat) SetPreferredAgent(agent stores.AgentSelection) {
 	copy := agent
 	c.preferredAgent = &copy
 	c.applyDefaultAgentToAllConversations()
+	c.refreshConversationsFromStore(true)
+}
+
+// SetPreferredModel records the model provided via configuration to seed new conversations.
+func (c *Chat) SetPreferredModel(model stores.ModelOption) {
+	if c == nil {
+		return
+	}
+	if strings.TrimSpace(model.Name) == "" || strings.TrimSpace(model.Provider) == "" {
+		c.preferredModel = nil
+		c.applyDefaultModelToAllConversations()
+		c.refreshConversationsFromStore(true)
+		return
+	}
+	copy := model
+	c.preferredModel = &copy
+	c.applyDefaultModelToAllConversations()
 	c.refreshConversationsFromStore(true)
 }
 
