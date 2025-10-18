@@ -21,7 +21,7 @@ export class TuiMessageRouter {
     this.readFileHandler = new ReadFileHandler();
   }
 
-  handleTuiMessage(tui: ClientConnection, message: Message): void {
+  handleTuiMessage(tui: ClientConnection, message: any): void {
     logger.info(
       "TuiMessageRouter",
       `Processing TUI message: ${JSON.stringify(message)} from ${tui.id}`
@@ -63,6 +63,6 @@ export class TuiMessageRouter {
         `Handling initial user message: ${message.type} from ${tui.id}`
       )
     );
-    this.sendMessageToAgent.sendInitialMessage(message);
+    this.sendMessageToAgent.sendInitialMessage(message,tui.id);
   }
 }

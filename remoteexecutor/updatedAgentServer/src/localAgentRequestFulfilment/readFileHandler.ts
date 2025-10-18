@@ -7,7 +7,7 @@ import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRe
 import { logger } from "../utils/logger";
 import { ReadFileService } from "./readFileService.js";
 
-import type { FileReadConfirmation ,FileReadSuccess} from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
+import type { FileReadConfirmation, FileReadSuccess } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
 export interface ReadFileEvent {
   type: "fsEvent";
@@ -44,8 +44,8 @@ export class ReadFileHandler {
   ): Promise<void> {
     const { requestId, message } = event;
     const { filePath } = message;
-
     const targetClient = this.resolveParent(agent);
+    logger.info("Handling ReadFile for ", targetClient)
 
     if (!targetClient) {
       await this.readFileService.performRead(agent, requestId, filePath);
@@ -174,6 +174,7 @@ export class ReadFileHandler {
     return undefined;
   }
 
+
   private requestApproval(
     agent: ClientConnection,
     targetClient: { id: string; type: "app" | "tui" },
@@ -198,6 +199,7 @@ export class ReadFileHandler {
         stateEvent: "ASK_FOR_CONFIRMATION" as const,
       },
     };
+    logger.info("sending readFile for approval", payload)
 
     if (targetClient.type === "app") {
       this.connectionManager
