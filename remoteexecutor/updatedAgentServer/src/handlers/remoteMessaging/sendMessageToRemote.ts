@@ -4,6 +4,7 @@ import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
 import { BaseApplicationResponse } from '@codebolt/types/sdk';
 import { logger } from '../../utils/logger';
 import { FileReadConfirmation, FileReadSuccess } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
+import { ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
 
 /**
  * Encapsulates outgoing traffic to the remote proxy.
@@ -15,7 +16,7 @@ export class SendMessageToRemote {
     return RemoteProxyClient.getInstance();
   }
 
-  forwardAgentMessage(agent: ClientConnection, message: Message | FileReadConfirmation | FileReadSuccess , options?: { requireRemote?: boolean }): void {
+  forwardAgentMessage(agent: ClientConnection, message: Message | FileReadConfirmation | FileReadSuccess  |ReadFileEvent , options?: { requireRemote?: boolean }): void {
     const client = this.remoteClient;
     if (!client) {
       logger.warn(formatLogMessage('warn', 'SendMessageToRemote', 'Remote proxy client not initialized'));

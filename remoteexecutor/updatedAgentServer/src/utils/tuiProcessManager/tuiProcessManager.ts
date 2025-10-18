@@ -121,7 +121,7 @@ export class TuiProcessManager {
   private getSelectedModelEnv(): Record<string, string> {
     const models = ModelService.getInstance().getModelsList();
     const model = models[0];
-
+   
     return {
       SELECTED_MODEL_NAME: model?.display_name ?? DEFAULT_MODEL_NAME,
       SELECTED_MODEL_PROVIDER: model?.provider ?? DEFAULT_MODEL_PROVIDER

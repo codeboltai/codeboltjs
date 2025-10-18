@@ -35,7 +35,7 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | ReadFileEvent | any
+    message: Message | ReadFileEvent 
   ) {
     logger.info(
       formatLogMessage(
@@ -60,9 +60,7 @@ export class AgentMessageRouter {
     const appManager = this.connectionManager.getAppConnectionManager();
     const processManager = this.connectionManager.getProcessManager();
 
-    if (message.id) {
-      agentManager.cacheMessageToAgent(message.id, agent.id);
-    }
+ 
 
     // Get the client ID and client type for this agent
     let targetClientId: string | undefined;
@@ -139,8 +137,7 @@ export class AgentMessageRouter {
       );
       this.connectionManager.sendError(
         agent.id,
-        "No local clients available",
-        message.id
+        "No local clients available"
       );
     }
 

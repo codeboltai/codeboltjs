@@ -2,6 +2,7 @@ import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { SendMessageToRemote } from '../remoteMessaging/sendMessageToRemote';
 import { logger } from '../../utils/logger';
+import { ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -17,7 +18,7 @@ export class SendMessageToApp {
   /**
    * Forward agent request to app
    */
-   forwardToApp(agent: ClientConnection, message: Message): void {
+   forwardToApp(agent: ClientConnection, message: Message |ReadFileEvent | any): void {
     logger.info(formatLogMessage('info', 'MessageRouter', `Forwarding request from agent ${agent.id} to app`));
     
     // Cache the message ID -> agent ID mapping for response routing
