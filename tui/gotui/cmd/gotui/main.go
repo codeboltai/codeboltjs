@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"gotui/internal/app"
+	"gotui/internal/logging"
 	"gotui/internal/wsclient"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -17,14 +17,13 @@ import (
 
 func main() {
 	// Enable debugging
-	debugFile, err := os.OpenFile("/tmp/gotui-debug.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err == nil {
-		log.SetOutput(debugFile)
-		defer debugFile.Close()
+	if err := logging.ConfigureFile("/tmp/gotui-debug.log", true); err != nil {
+		logging.Printf("Failed to configure debug log: %v", err)
 	}
+	defer logging.Close()
 
-	log.Printf("=== GOTUI DEBUG SESSION STARTED ===")
-	log.Printf("Time: %s", time.Now().Format("2006-01-02 15:04:05"))
+	logging.Printf("=== GOTUI DEBUG SESSION STARTED ===")
+	logging.Printf("Time: %s", time.Now().Format("2006-01-02 15:04:05"))
 
 	host := flag.String("host", "localhost", "Server host")
 	port := flag.Int("port", 3001, "Server port")
@@ -79,43 +78,43 @@ func main() {
 		Agent:       agentSelection,
 	}
 
-	log.Printf("Config: host=%s, port=%d, protocol=%s, tuiID=%s (client mode)", cfg.Host, cfg.Port, cfg.Protocol, cfg.TuiID)
+	logging.Printf("Config: host=%s, port=%d, protocol=%s, tuiID=%s (client mode)", cfg.Host, cfg.Port, cfg.Protocol, cfg.TuiID)
 
 	zone.NewGlobal()
 	defer zone.Close()
 
-	log.Printf("Creating model...")
+	logging.Printf("Creating model...")
 	m := app.NewModel(cfg)
 
-	log.Printf("Creating tea program...")
+	logging.Printf("Creating tea program...")
 
 	// Create program with full screen options for better terminal usage
 	var p *tea.Program
 
-	log.Printf("Creating program with full screen support...")
+	logging.Printf("Creating program with full screen support...")
 	// Use alt screen and mouse support for full terminal takeover
 	p = tea.NewProgram(m,
 		tea.WithAltScreen(),       // Use alternate screen buffer for full screen
 		tea.WithMouseCellMotion(), // Enable mouse support
 	)
 
-	log.Printf("Starting tea program with full screen...")
+	logging.Printf("Starting tea program with full screen...")
 	if _, err := p.Run(); err != nil {
-		log.Printf("Tea program error with full screen: %v", err)
+		logging.Printf("Tea program error with full screen: %v", err)
 
 		// Try minimal fallback without alt screen
-		log.Printf("Retrying with minimal options...")
+		logging.Printf("Retrying with minimal options...")
 		p = tea.NewProgram(m)
 		if _, err := p.Run(); err != nil {
-			log.Printf("Tea program error in fallback mode: %v", err)
-			log.Printf("Terminal error: %v", err)
-			log.Printf("Troubleshooting instructions:")
-			log.Printf("1. Try: TERM=xterm-256color ./gotui")
-			log.Printf("2. Check terminal size: echo $COLUMNS x $LINES")
-			log.Printf("3. See debug logs: tail -f /tmp/gotui-debug.log")
+			logging.Printf("Tea program error in fallback mode: %v", err)
+			logging.Printf("Terminal error: %v", err)
+			logging.Printf("Troubleshooting instructions:")
+			logging.Printf("1. Try: TERM=xterm-256color ./gotui")
+			logging.Printf("2. Check terminal size: echo $COLUMNS x $LINES")
+			logging.Printf("3. See debug logs: tail -f /tmp/gotui-debug.log")
 			os.Exit(1)
 		}
 	}
 
-	log.Printf("Tea program ended normally")
+	logging.Printf("Tea program ended normally")
 }

@@ -12,6 +12,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+
+	"gotui/internal/logging"
 )
 
 type Message struct {
@@ -56,19 +58,17 @@ type AgentSelection struct {
 }
 
 type Client struct {
-	url        string
-	conn       *websocket.Conn
-	mu         sync.RWMutex
-	connected  bool
-	pending    map[string]chan Response
-	logf       func(string)
-	onNotif    func(Notification)
-	onMessage  func([]byte)
-	config     Config
-	tuiID      string
-	pingTicker *time.Ticker
-	stopPingCh chan struct{}
-	writeMu    sync.Mutex
+	url       string
+	conn      *websocket.Conn
+	mu        sync.RWMutex
+	connected bool
+	pending   map[string]chan Response
+	logf      func(string)
+	onNotif   func(Notification)
+	onMessage func([]byte)
+	config    Config
+	tuiID     string
+	writeMu   sync.Mutex
 }
 
 func New(cfg Config) *Client {
@@ -102,14 +102,13 @@ func New(cfg Config) *Client {
 	}
 
 	return &Client{
-		url:        u.String(),
-		pending:    make(map[string]chan Response),
-		logf:       func(string) {},
-		onNotif:    func(Notification) {},
-		onMessage:  func([]byte) {},
-		config:     cfg,
-		tuiID:      tuiID,
-		stopPingCh: make(chan struct{}),
+		url:       u.String(),
+		pending:   make(map[string]chan Response),
+		logf:      func(msg string) { logging.Printf("%s", msg) },
+		onNotif:   func(Notification) {},
+		onMessage: func([]byte) {},
+		config:    cfg,
+		tuiID:     tuiID,
 	}
 }
 
@@ -146,7 +145,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	c.connected = true
 	c.mu.Unlock()
 
-	c.logf(fmt.Sprintf("Connected to %s", c.url))
+	logging.Printf("Connected to %s", c.url)
 
 	if err := c.sendRaw(map[string]any{
 		"id":         uuid.NewString(),
@@ -154,7 +153,7 @@ func (c *Client) Connect(ctx context.Context) error {
 		"clientType": "tui",
 		"clientId":   c.tuiID,
 	}); err != nil {
-		c.logf(fmt.Sprintf("Failed to send registration message: %v", err))
+		logging.Printf("Failed to send registration message: %v", err)
 		c.mu.Lock()
 		if c.conn != nil {
 			_ = c.conn.Close()
@@ -165,7 +164,6 @@ func (c *Client) Connect(ctx context.Context) error {
 		return err
 	}
 
-	c.startPing()
 	go c.readLoop()
 	return nil
 }
@@ -176,10 +174,8 @@ func (c *Client) Close() error {
 	if c.conn != nil {
 		err := c.conn.Close()
 		c.connected = false
-		c.stopPing()
 		return err
 	}
-	c.stopPing()
 	return nil
 }
 
@@ -193,11 +189,10 @@ func (c *Client) readLoop() {
 	for {
 		_, data, err := c.conn.ReadMessage()
 		if err != nil {
-			c.logf(fmt.Sprintf("WebSocket read error: %v", err))
+			logging.Printf("WebSocket read error: %v", err)
 			c.mu.Lock()
 			c.connected = false
 			c.mu.Unlock()
-			c.stopPing()
 			return
 		}
 		var resp Response
@@ -213,7 +208,7 @@ func (c *Client) readLoop() {
 			c.onNotif(notif)
 			continue
 		}
-		c.logf(fmt.Sprintf("WS recv: %s", string(data)))
+		logging.Printf("WS recv: %s", string(data))
 		c.onMessage(data)
 	}
 }
@@ -290,42 +285,5 @@ func (c *Client) Request(ctx context.Context, msgType string, fields map[string]
 		delete(c.pending, id)
 		c.mu.Unlock()
 		return Response{}, errors.New("request timeout")
-	}
-}
-
-func (c *Client) startPing() {
-	c.stopPing()
-	ticker := time.NewTicker(10 * time.Second)
-	c.pingTicker = ticker
-	stop := make(chan struct{})
-	c.stopPingCh = stop
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				if err := c.sendRaw(map[string]any{
-					"id":        uuid.NewString(),
-					"type":      "tui_ping",
-					"timestamp": time.Now().UnixMilli(),
-					"message":   "ping from Go TUI",
-					"clientId":  c.tuiID,
-				}); err != nil {
-					c.logf(fmt.Sprintf("Failed to send ping: %v", err))
-				}
-			case <-stop:
-				return
-			}
-		}
-	}()
-}
-
-func (c *Client) stopPing() {
-	if c.pingTicker != nil {
-		c.pingTicker.Stop()
-		c.pingTicker = nil
-	}
-	if c.stopPingCh != nil {
-		close(c.stopPingCh)
-		c.stopPingCh = nil
 	}
 }

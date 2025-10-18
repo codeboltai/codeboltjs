@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 
 	"gotui/internal/components/chatcomponents"
+	"gotui/internal/logging"
 	"gotui/internal/stores"
 )
 
@@ -35,7 +35,7 @@ type agentFetchResult struct {
 }
 
 func (m *Model) Init() tea.Cmd {
-	log.Printf("Init() called")
+	logging.Printf("Init() called")
 	m.logsPage.LogsPanel().AddLine("🚀 Initializing Codebolt Go TUI...")
 
 	var cmds []tea.Cmd
@@ -52,11 +52,11 @@ func (m *Model) Init() tea.Cmd {
 	cmds = append(cmds, m.fetchModelOptions(), m.fetchAgentOptions())
 
 	termWidth, termHeight := getTerminalSize()
-	log.Printf("Init: Using terminal size: %dx%d", termWidth, termHeight)
+	logging.Printf("Init: Using terminal size: %dx%d", termWidth, termHeight)
 
 	m.width = termWidth
 	m.height = termHeight
-	log.Printf("Init: Set model dimensions to %dx%d", m.width, m.height)
+	logging.Printf("Init: Set model dimensions to %dx%d", m.width, m.height)
 
 	m.updateAllComponents()
 

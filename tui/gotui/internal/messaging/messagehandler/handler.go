@@ -7,6 +7,7 @@ import (
 
 	"gotui/internal/components/chat"
 	"gotui/internal/components/chattemplates"
+	"gotui/internal/logging"
 )
 
 // Handler processes inbound websocket messages and routes them to the chat UI.
@@ -48,7 +49,7 @@ func (h *Handler) HandleRaw(data []byte) {
 	if content == "" {
 		content = string(data)
 	}
-
+	logging.Printf("messagehandler content: %s", content)
 	chatType := resolveChatMessageType(senderType, templateType, messageType)
 
 	metadata, buttons := extractMetadata(envelope)

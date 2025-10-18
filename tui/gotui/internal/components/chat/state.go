@@ -250,7 +250,7 @@ func (c *Chat) createInitialConversation() {
 		return
 	}
 
-    store.AppendMessage(conv.ID, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil, nil))
+	store.AppendMessage(conv.ID, c.newMessageData("system", "🚀 Welcome to Codebolt! Type 'help' to see available commands.", nil, nil))
 
 	sampleReadContent := strings.Join([]string{
 		"// Preview of the read file template",
@@ -260,14 +260,14 @@ func (c *Chat) createInitialConversation() {
 		"\treturn \"Hello from the read file template!\"",
 		"}",
 	}, "\n")
-    store.AppendMessage(conv.ID, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}, nil))
+	store.AppendMessage(conv.ID, c.newMessageData("read_file", sampleReadContent, map[string]interface{}{"file_path": "demo/hello.go"}, nil))
 
 	if unifiedPreview, splitPreview := sampleDiffPreviews(); unifiedPreview != "" || splitPreview != "" {
 		if unifiedPreview != "" {
-            store.AppendMessage(conv.ID, c.newMessageData("system", unifiedPreview, nil, nil))
-        }
-        if splitPreview != "" {
-            store.AppendMessage(conv.ID, c.newMessageData("system", splitPreview, nil, nil))
+			store.AppendMessage(conv.ID, c.newMessageData("system", unifiedPreview, nil, nil))
+		}
+		if splitPreview != "" {
+			store.AppendMessage(conv.ID, c.newMessageData("system", splitPreview, nil, nil))
 		}
 	}
 
@@ -310,7 +310,7 @@ func (c *Chat) createNewConversation() tea.Cmd {
 		return nil
 	}
 
-    store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil, nil))
+	store.AppendMessage(conv.ID, c.newMessageData("system", "✨ Started a new conversation. Ask a question or type 'help' to see available commands.", nil, nil))
 
 	c.applyDefaultModelIfMissing(conv.ID)
 	c.applyDefaultAgentIfMissing(conv.ID)
@@ -351,7 +351,7 @@ func (c *Chat) appendMessageToActiveConversation(msgType, content string, metada
 		return
 	}
 
-    store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata, buttons))
+	store.AppendMessage(conv.ID, c.newMessageData(msgType, content, metadata, buttons))
 	c.applyDefaultModelIfMissing(conv.ID)
 	c.applyDefaultAgentIfMissing(conv.ID)
 	c.refreshConversationsFromStore(true)

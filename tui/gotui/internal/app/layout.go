@@ -1,7 +1,6 @@
 package app
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -10,12 +9,13 @@ import (
 	zone "github.com/lrstanley/bubblezone"
 	"golang.org/x/term"
 
+	"gotui/internal/logging"
 	"gotui/internal/styles"
 )
 
 func getTerminalSize() (int, int) {
 	if width, height, err := term.GetSize(int(os.Stdout.Fd())); err == nil {
-		log.Printf("Terminal size detected: %dx%d", width, height)
+		logging.Printf("Terminal size detected: %dx%d", width, height)
 		return width, height
 	}
 
@@ -23,19 +23,19 @@ func getTerminalSize() (int, int) {
 		if width, err := strconv.Atoi(cols); err == nil {
 			if lines := os.Getenv("LINES"); lines != "" {
 				if height, err := strconv.Atoi(lines); err == nil {
-					log.Printf("Terminal size from env: %dx%d", width, height)
+					logging.Printf("Terminal size from env: %dx%d", width, height)
 					return width, height
 				}
 			}
 		}
 	}
 
-	log.Printf("Using fallback terminal size: 120x40")
+	logging.Printf("Using fallback terminal size: 120x40")
 	return 120, 40
 }
 
 func (m *Model) updateAllComponents() {
-	log.Printf("updateAllComponents: Updating components with %dx%d", m.width, m.height)
+	// logging.Printf("updateAllComponents: Updating components with %dx%d", m.width, m.height)
 
 	if m.width > 0 && m.height > 0 {
 		contentHeight := m.height - tabBarHeight
@@ -53,8 +53,8 @@ func (m *Model) updateAllComponents() {
 			m.helpBar.SetSize(m.width, m.helpBar.VisibleHeight())
 		}
 
-		log.Printf("updateAllComponents: contentHeight=%d tab=%d",
-			contentHeight, tabBarHeight)
+		// logging.Printf("updateAllComponents: contentHeight=%d tab=%d",
+		// 	contentHeight, tabBarHeight)
 	}
 }
 

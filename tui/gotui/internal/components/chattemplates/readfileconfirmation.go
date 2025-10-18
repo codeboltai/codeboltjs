@@ -55,10 +55,10 @@ func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme
 		body = append(body, rfct.RenderCodeBlock(content, "", width, theme)...)
 	}
 
-if len(data.Buttons) > 0 {
-    body = append(body, spacer)
-    body = append(body, renderButtonRow(width, theme, data.Buttons)...)
-}
+	if len(data.Buttons) > 0 {
+		body = append(body, spacer)
+		body = append(body, renderButtonRow(width, theme, data.Buttons)...)
+	}
 
 	body = append(body, rfct.AddSpacer(width, theme))
 	return RenderedMessage{Lines: body}

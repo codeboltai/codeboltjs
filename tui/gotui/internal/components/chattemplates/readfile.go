@@ -12,8 +12,8 @@ import (
 // ReadFileTemplate handles rendering of file read operations across states.
 type ReadFileTemplate struct {
 	BaseTemplate
-	confirmation  *ReadFileConfirmationTemplate
-	errorTpl      *ReadFileErrorTemplate
+	confirmation *ReadFileConfirmationTemplate
+	errorTpl     *ReadFileErrorTemplate
 }
 
 // NewReadFileTemplate creates a new read file message template.

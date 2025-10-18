@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"gotui/internal/components/chattemplates"
+	"gotui/internal/logging"
 	"gotui/internal/wsclient"
 )
 
@@ -141,7 +141,7 @@ func (s *ConversationStore) SyncConversation(id string) {
 	go func(copy *Conversation) {
 		defer s.setSyncing(copy.ID, false)
 		if err := s.postConversation(cfg, client, copy); err != nil {
-			log.Printf("conversation sync failed: %v", err)
+			logging.Printf("conversation sync failed: %v", err)
 		}
 	}(conv)
 }
@@ -393,11 +393,11 @@ func cloneMessages(messages []chattemplates.MessageTemplateData) []chattemplates
 			}
 			clone.Metadata = metaCopy
 		}
-	if len(msg.Buttons) > 0 {
-		buttons := make([]chattemplates.MessageButton, len(msg.Buttons))
-		copy(buttons, msg.Buttons)
-		clone.Buttons = buttons
-	}
+		if len(msg.Buttons) > 0 {
+			buttons := make([]chattemplates.MessageButton, len(msg.Buttons))
+			copy(buttons, msg.Buttons)
+			clone.Buttons = buttons
+		}
 		copyMessages[i] = clone
 	}
 	return copyMessages

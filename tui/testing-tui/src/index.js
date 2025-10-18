@@ -41,30 +41,11 @@ const socket = new WebSocket(url, {
   handshakeTimeout: 10000
 });
 
-let pingInterval;
-
 function safeJsonStringify(data) {
   try {
     return JSON.stringify(data);
   } catch (error) {
     return `unable to stringify payload: ${error}`;
-  }
-}
-
-function sendPing() {
-  const pingMessage = {
-    id: uuidv4(),
-    type: 'tui_ping',
-    timestamp: Date.now(),
-    message: 'ping from dummy TUI',
-    clientId: DEFAULT_TUI_ID
-  };
-
-  console.log(`[dummytui -> server] ${safeJsonStringify(pingMessage)}`);
-  try {
-    socket.send(JSON.stringify(pingMessage));
-  } catch (error) {
-    console.error('[dummytui] failed to send ping', error);
   }
 }
 
@@ -151,7 +132,6 @@ socket.on('open', () => {
 
   sendSampleUserMessage();
 
-  pingInterval = setInterval(sendPing, 10000);
 });
 
 socket.on('message', (data) => {
@@ -171,10 +151,6 @@ socket.on('message', (data) => {
 socket.on('close', (code, reason) => {
   console.log(`[dummytui] connection closed (code=${code}, reason=${reason.toString() || 'n/a'})`);
 
-  if (pingInterval) {
-    clearInterval(pingInterval);
-    pingInterval = undefined;
-  }
 });
 
 socket.on('error', (error) => {
