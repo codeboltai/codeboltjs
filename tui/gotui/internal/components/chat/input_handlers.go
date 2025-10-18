@@ -463,21 +463,21 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 			}
 		}
 
-		if c.agentPicker != nil && c.agentPicker.IsVisible() {
-			handled, selection, ok := c.agentPicker.HandleKey(msg)
+	if c.agentPicker != nil && c.agentPicker.IsVisible() {
+		handled, selection, applyDefault, ok := c.agentPicker.HandleKey(msg)
 			if handled {
 				if ok {
-					return c, c.handleAgentSelection(selection)
+				return c, c.handleAgentSelection(selection, applyDefault)
 				}
 				return c, nil
 			}
 		}
 
-		if c.modelPicker.IsVisible() {
-			handled, selection, ok := c.modelPicker.HandleKey(msg)
+	if c.modelPicker.IsVisible() {
+		handled, selection, applyDefault, ok := c.modelPicker.HandleKey(msg)
 			if handled {
 				if ok {
-					return c, c.handleModelSelection(selection)
+				return c, c.handleModelSelection(selection, applyDefault)
 				}
 				return c, nil
 			}
