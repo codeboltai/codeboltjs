@@ -6,6 +6,7 @@ import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
+import { ReadFileEvent } from "@codebolt/types/agent-to-app-ws-types";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -34,23 +35,20 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | any
+    message: Message | ReadFileEvent | any
   ) {
     logger.info(
       formatLogMessage(
         "info",
         "MessageRouter",
-        `Handling agent request: ${message.type || message.action} from ${
-          agent.id
+        `Handling agent request: ${message.type} from ${agent.id
         }`
       )
     );
 
     // Handle read file requests locally before forwarding
     if (
-      (message as any)?.type === "fsEvent" &&
-      (message as any)?.action === "readFile"
-    ) {
+      message.type === "fsEvent" && message.action === "readFile") {
       await this.readFileHandler.handleReadFile(agent, message as any);
       return;
     }
