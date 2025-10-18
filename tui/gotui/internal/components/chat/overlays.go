@@ -13,6 +13,7 @@ import (
 func (c *Chat) handleModelSelection(option chatcomponents.ModelOption, applyDefault bool) tea.Cmd {
 	c.modelPicker.Close()
 	c.commandPalette.Close()
+	c.settingsDialog.Close()
 	c.input.SetValueAndCursor("", 0)
 	c.slashMenu.Close()
 	opt := option
@@ -32,6 +33,7 @@ func (c *Chat) handleModelSelection(option chatcomponents.ModelOption, applyDefa
 		stores.SharedApplicationSettingsStore().SetDefaultModel(&copy)
 		c.AddMessage("system", fmt.Sprintf("📌 Default model updated to %s", option.Name))
 	}
+	c.pendingPreference = preferenceTargetNone
 	return tea.Cmd(func() tea.Msg {
 		return ModelSelectedMsg{Option: option}
 	})
@@ -42,6 +44,7 @@ func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption, applyDefa
 		c.agentPicker.Close()
 	}
 	c.commandPalette.Close()
+	c.settingsDialog.Close()
 	c.input.SetValueAndCursor("", 0)
 	c.slashMenu.Close()
 	selection := stores.AgentSelection{
@@ -66,6 +69,7 @@ func (c *Chat) handleAgentSelection(option chatcomponents.AgentOption, applyDefa
 		stores.SharedApplicationSettingsStore().SetDefaultAgent(&copy)
 		c.AddMessage("system", fmt.Sprintf("📌 Default agent updated to %s", option.Name))
 	}
+	c.pendingPreference = preferenceTargetNone
 	return tea.Cmd(func() tea.Msg {
 		return AgentSelectedMsg{Option: option}
 	})

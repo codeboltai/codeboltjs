@@ -10,6 +10,11 @@ import (
 	"gotui/internal/styles"
 )
 
+const (
+	agentPickerActionApply        = "Apply to this chat ↵"
+	agentPickerActionApplyDefault = "Apply as default ⌘↵ / Ctrl+↵"
+)
+
 // AgentPicker renders a dialog for selecting agents provided by the AgentStore.
 type AgentPicker struct {
 	store       *stores.AgentStore
@@ -265,8 +270,8 @@ func (p *AgentPicker) renderActions(width int) string {
 	primary := buttonStyle.Copy().
 		BorderForeground(lipgloss.Color(theme.Primary.Hex())).
 		Foreground(lipgloss.Color(theme.Primary.Hex())).
-		Render("Apply to this chat ↵")
-	secondary := buttonStyle.Render("Apply as default ⌘↵ / Ctrl+↵")
+		Render(agentPickerActionApply)
+	secondary := buttonStyle.Render(agentPickerActionApplyDefault)
 
 	row := lipgloss.JoinHorizontal(lipgloss.Left, primary, "  ", secondary)
 	return lipgloss.NewStyle().

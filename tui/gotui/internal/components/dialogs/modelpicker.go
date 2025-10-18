@@ -10,6 +10,11 @@ import (
 	"gotui/internal/styles"
 )
 
+const (
+	modelPickerActionApply        = "Apply to this chat ↵"
+	modelPickerActionApplyDefault = "Apply as default ⌘↵ / Ctrl+↵"
+)
+
 type ModelPicker struct {
 	store       *stores.AIModelStore
 	unsubscribe func()
@@ -250,8 +255,8 @@ func (p *ModelPicker) renderActions(width int) string {
 	primary := buttonStyle.Copy().
 		BorderForeground(lipgloss.Color(theme.Primary.Hex())).
 		Foreground(lipgloss.Color(theme.Primary.Hex())).
-		Render("Apply to this chat ↵")
-	secondary := buttonStyle.Render("Apply as default ⌘↵ / Ctrl+↵")
+		Render(modelPickerActionApply)
+	secondary := buttonStyle.Render(modelPickerActionApplyDefault)
 
 	row := lipgloss.JoinHorizontal(lipgloss.Left, primary, "  ", secondary)
 	return lipgloss.NewStyle().
