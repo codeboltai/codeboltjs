@@ -7,8 +7,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     console.log('Received message:', reqMessage);
     
     try {
-        codebolt.fs.readFile('/Users/utkarshshukla/Codebolt/codeboltjs/common/types/src/wstypes/app-to-agent-ws/fsServiceResponses.ts')
-        // codebolt.chat.sendMessage("started task agent",{})
+       await codebolt.fs.readFile('/Users/utkarshshukla/Codebolt/codeboltjs/common/types/src/wstypes/app-to-agent-ws/fsServiceResponses.ts')
+    //    await codebolt.fs.writeToFile('/Users/utkarshshukla/Codebolt/codeboltjs/test.ts','hellots')
+       
+       // codebolt.chat.sendMessage("started task agent",{})
         return {
             success: true,
             message: 'Task agent stop '

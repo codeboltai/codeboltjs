@@ -5,7 +5,7 @@ import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../utils/logger";
-import { ReadFileService } from "./readFileService.js";
+import { ReadFileService } from "../services/readFileService";
 
 import type { FileReadConfirmation, FileReadSuccess } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 

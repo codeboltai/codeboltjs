@@ -25,8 +25,9 @@ func NewReadFileConfirmationTemplate() *ReadFileConfirmationTemplate {
 func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme styles.Theme) RenderedMessage {
 	width := maxInt(40, data.Width)
 	filePath := "unknown file"
-	content := data.Content
-	stateEvent := "ASK_FOR_CONFIRMATION"
+    content := data.Content
+    stateEvent := "ASK_FOR_CONFIRMATION"
+    buttons := data.Buttons
 
 	if data.Metadata != nil {
 		if path, ok := stringFromAny(data.Metadata["file_path"]); ok {
@@ -35,6 +36,11 @@ func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme
 		if state, ok := stringFromAny(data.Metadata["state_event"]); ok {
 			stateEvent = state
 		}
+        if strings.TrimSpace(content) == "" {
+            if preview, ok := stringFromAny(data.Metadata["content"]); ok {
+                content = preview
+            }
+        }
 	}
 
 	prefix := lipgloss.NewStyle().Foreground(theme.Warning).Bold(true).Render("📝 Read File Request")
@@ -48,16 +54,24 @@ func (rfct *ReadFileConfirmationTemplate) Render(data MessageTemplateData, theme
 
 	body := []string{header, fileLine, stateLine}
 
-	if strings.TrimSpace(content) != "" {
+    if len(buttons) == 0 {
+        buttons = []MessageButton{
+            {ID: "approve", Label: "Approve", Description: "Allow this read"},
+            {ID: "always_allow", Label: "Always allow", Description: "Skip future prompts"},
+            {ID: "reject", Label: "Reject", Description: "Deny this request"},
+        }
+    }
+
+    if strings.TrimSpace(content) != "" {
 		body = append(body, spacer)
 		previewHeader := lipgloss.NewStyle().Foreground(theme.Info).Bold(true).Render("  Preview")
 		body = append(body, lipgloss.NewStyle().Width(width).Render(previewHeader))
 		body = append(body, rfct.RenderCodeBlock(content, "", width, theme)...)
 	}
 
-	if len(data.Buttons) > 0 {
+    if len(buttons) > 0 {
 		body = append(body, spacer)
-		body = append(body, renderButtonRow(width, theme, data.Buttons)...)
+        body = append(body, renderButtonRow(width, theme, buttons)...)
 	}
 
 	body = append(body, rfct.AddSpacer(width, theme))

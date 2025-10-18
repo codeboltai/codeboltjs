@@ -11,6 +11,10 @@ import {
   ReadFileHandler,
   type ReadFileConfirmation,
 } from "../../localAgentRequestFulfilment/readFileHandler.js";
+import {
+  WriteFileHandler,
+  type WriteFileConfirmation,
+} from "../../localAgentRequestFulfilment/writeFileHandler.js";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -22,6 +26,7 @@ export class AppMessageRouter {
   private notificationService: NotificationService;
   private sendMessageToRemote: SendMessageToRemote;
   private readFileHandler: ReadFileHandler;
+  private writeFileHandler: WriteFileHandler;
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
@@ -29,6 +34,7 @@ export class AppMessageRouter {
     this.sendMessageToRemote = new SendMessageToRemote();
     this.notificationService = NotificationService.getInstance();
     this.readFileHandler = new ReadFileHandler();
+    this.writeFileHandler = new WriteFileHandler();
   }
 
   /**
@@ -56,6 +62,7 @@ export class AppMessageRouter {
     //check if its initial message
     if (message.type === "confirmationResponse") {
       this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
+      this.writeFileHandler.handleConfirmation(message as WriteFileConfirmation);
       return;
     }
 

@@ -1,12 +1,12 @@
 import { ClientConnection, Message, formatLogMessage } from "../../types";
-import { ReadFileHandler } from "../../localAgentRequestFulfilment/index.js";
+import { ReadFileHandler, WriteFileHandler } from "../../localAgentRequestFulfilment/index.js";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
 import { NotificationService } from "../../services/NotificationService.js";
 import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
-import { ReadFileEvent } from "@codebolt/types/agent-to-app-ws-types";
+import { ReadFileEvent, WriteToFileEvent } from "@codebolt/types/agent-to-app-ws-types";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -14,6 +14,7 @@ import { ReadFileEvent } from "@codebolt/types/agent-to-app-ws-types";
  */
 export class AgentMessageRouter {
   private readFileHandler: ReadFileHandler;
+  private writeFileHandler: WriteFileHandler;
   private sendMessageToApp: SendMessageToApp;
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
@@ -22,6 +23,7 @@ export class AgentMessageRouter {
 
   constructor() {
     this.readFileHandler = new ReadFileHandler();
+    this.writeFileHandler = new WriteFileHandler();
     this.sendMessageToApp = new SendMessageToApp();
     this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
@@ -35,7 +37,7 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | ReadFileEvent 
+    message: Message | ReadFileEvent | WriteToFileEvent 
   ) {
     logger.info(
       formatLogMessage(
@@ -47,9 +49,13 @@ export class AgentMessageRouter {
     );
 
     // Handle read file requests locally before forwarding
-    if (
-      message.type === "fsEvent" && message.action === "readFile") {
+    if (message.type === "fsEvent" && message.action === "readFile") {
       await this.readFileHandler.handleReadFile(agent, message as any);
+      return;
+    }
+
+    if (message.type === "fsEvent" && message.action === "writeToFile") {
+      await this.writeFileHandler.handleWriteFile(agent, message as any);
       return;
     }
 

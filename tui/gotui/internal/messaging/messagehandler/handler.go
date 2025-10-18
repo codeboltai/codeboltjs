@@ -41,18 +41,29 @@ func (h *Handler) HandleRaw(data []byte) {
 	templateType := stringValue(envelope["templateType"])
 	messageType := stringValue(envelope["type"])
 
-	content := firstNonEmpty(
-		getNestedString(envelope, "data", "text"),
-		getNestedString(envelope, "message", "userMessage"),
-		getNestedString(envelope, "message", "assistantResponse"),
-	)
-	if content == "" {
-		content = string(data)
-	}
-	logging.Printf("messagehandler content: %s", content)
-	chatType := resolveChatMessageType(senderType, templateType, messageType)
+    content := firstNonEmpty(
+        getNestedString(envelope, "data", "text"),
+        getNestedString(envelope, "message", "userMessage"),
+        getNestedString(envelope, "message", "assistantResponse"),
+        getNestedString(envelope, "payload", "content"),
+        stringValue(envelope["content"]),
+    )
 
-	metadata, buttons := extractMetadata(envelope)
+    metadata, buttons := extractMetadata(envelope)
+
+    if strings.TrimSpace(content) == "" {
+        content = firstNonEmpty(
+            getNestedString(envelope, "payload", "path"),
+            stringValue(envelope["path"]),
+        )
+    }
+
+    if strings.TrimSpace(content) == "" && len(metadata) == 0 && len(buttons) == 0 {
+        content = string(data)
+    }
+
+    logging.Printf("messagehandler content: %s", content)
+    chatType := resolveChatMessageType(senderType, templateType, messageType)
 
 	if len(metadata) > 0 || len(buttons) > 0 {
 		h.chat.AddMessageWithMetadata(chatType, content, metadata, buttons)
