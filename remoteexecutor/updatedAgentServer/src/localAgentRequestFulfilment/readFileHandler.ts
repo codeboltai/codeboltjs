@@ -47,10 +47,10 @@ export class ReadFileHandler {
     const targetClient = this.resolveParent(agent);
     logger.info("Handling ReadFile for ", targetClient)
 
-    if (!targetClient) {
+    // if (!targetClient) {
       await this.readFileService.performRead(agent, requestId, filePath);
       return;
-    }
+    // }
 
     if (this.hasPermission(agent.id, filePath)) {
       await this.readFileService.performRead(

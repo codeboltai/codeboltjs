@@ -15,6 +15,7 @@ export interface BaseConnection {
   connectedAt: Date;
   instanceId?:string;
   connectionId?: string;
+  threadId?:string
 }
 
 /**

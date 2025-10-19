@@ -7,6 +7,7 @@ import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk';
 import { ChildAgentProcessManager } from '@/utils/childAgentManager/childAgentProcessManager';
 import { AgentTypeEnum } from '@/types/cli';
 import { logger } from '../../utils/logger';
+import { threadId } from 'worker_threads';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -85,7 +86,7 @@ export class SendMessageToAgent {
     try {
       logger.info(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: `));
       // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
-
+    
       if(!message.message.selectedAgent.agentType){
         message.message.selectedAgent.agentType=AgentTypeEnum.marketplace;
         message.message.selectedAgent.agentDetails=message.message.selectedAgent.id;
@@ -93,7 +94,8 @@ export class SendMessageToAgent {
       const success = await this.childAgentProcessManager.startAgentByType(
         message.message.selectedAgent.agentType!,
         (message.message.selectedAgent.agentDetails) as string,
-        parentId ||'codebolt-server' // application ID
+        parentId ||'codebolt-server',
+        message.threadId
       );
       if (!success) {
         logger.error(formatLogMessage('error', 'SendMessageToAgent', 'Failed to start agent'));

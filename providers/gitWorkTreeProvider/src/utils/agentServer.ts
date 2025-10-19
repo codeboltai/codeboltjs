@@ -30,7 +30,9 @@ export async function startAgentServer(options: StartAgentServerOptions): Promis
   logger.log('Starting agent server...');
 
   return await new Promise<ChildProcess>((resolve, reject) => {
-    const processRef = spawn('npx', ['--yes', '@codebolt/agentserver', '--noui'], {
+    // Using relative path from project root
+    const serverPath = '../../../remoteexecutor/updatedAgentServer/dist/server.js';
+    const processRef = spawn('node', [serverPath, '--noui'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: false,
     });

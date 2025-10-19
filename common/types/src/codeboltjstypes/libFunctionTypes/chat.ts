@@ -40,6 +40,7 @@ export interface UserMessage {
     [key: string]: any;
   };
   messageId: string;
+  threadId: string;
   timestamp: string;
 }
 

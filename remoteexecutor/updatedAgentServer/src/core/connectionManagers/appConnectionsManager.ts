@@ -1,7 +1,7 @@
 import { Message, ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
 import { logger } from '../../utils/logger';
-import { FileReadConfirmation, FileReadSuccess, FileWriteConfirmation, FileWriteError, FileWriteSuccess } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
+import { FileDeleteConfirmation, FileDeleteSuccess, FileReadConfirmation, FileReadSuccess, FileWriteConfirmation, FileWriteError, FileWriteSuccess } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
 
 /**
  * Manages lifecycle and operations for application WebSocket connections.
@@ -11,7 +11,7 @@ export class AppConnectionsManager {
 
   private readonly apps = new Map<string, ClientConnection>();
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): AppConnectionsManager {
     if (!AppConnectionsManager.instance) {
@@ -50,7 +50,7 @@ export class AppConnectionsManager {
     return this.apps.size;
   }
 
-  sendToApp(appId: string, message: Message |ReadFileEvent |FileReadConfirmation |FileReadSuccess | FileWriteConfirmation |FileWriteSuccess | FileWriteError ): boolean {
+  sendToApp(appId: string, message: Message | ReadFileEvent | FileReadConfirmation | FileReadSuccess | FileWriteConfirmation | FileWriteSuccess | FileWriteError | FileDeleteConfirmation | FileDeleteSuccess): boolean {
     const app = this.apps.get(appId);
 
     if (!app) {

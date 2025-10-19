@@ -12,9 +12,14 @@ import {
   type ReadFileConfirmation,
 } from "../../localAgentRequestFulfilment/readFileHandler.js";
 import {
+  DeleteFileHandler,
+  type DeleteFileConfirmation,
+} from "../../localAgentRequestFulfilment/deleteFileHandler.js";
+import {
   WriteFileHandler,
   type WriteFileConfirmation,
 } from "../../localAgentRequestFulfilment/writeFileHandler.js";
+import { AgentTypeEnum } from "@/types/cli";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -27,6 +32,7 @@ export class AppMessageRouter {
   private sendMessageToRemote: SendMessageToRemote;
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
+  private deleteFileHandler: DeleteFileHandler;
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
@@ -35,6 +41,7 @@ export class AppMessageRouter {
     this.notificationService = NotificationService.getInstance();
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
+    this.deleteFileHandler = new DeleteFileHandler();
   }
 
   /**
@@ -63,6 +70,7 @@ export class AppMessageRouter {
     if (message.type === "confirmationResponse") {
       this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
       this.writeFileHandler.handleConfirmation(message as WriteFileConfirmation);
+      this.deleteFileHandler.handleConfirmation(message as DeleteFileConfirmation);
       return;
     }
 
@@ -87,6 +95,12 @@ export class AppMessageRouter {
         `Handling initial user message: ${message.type} from ${app.id}`
       )
     );
+    message.message.selectedAgent={
+      "agentDetails": "./../../../agents/CliTestAgent/dist",
+      "agentType": AgentTypeEnum.localPath,
+      "id": "cli-agent",
+      "name": "Ask Agent"
+    }
     this.sendMessageToAgent.sendInitialMessage(message, app.id);
   }
 

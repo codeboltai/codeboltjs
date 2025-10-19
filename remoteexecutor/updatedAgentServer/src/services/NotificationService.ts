@@ -10,6 +10,7 @@ import type {
   UserMessageRequestNotification
 } from '@codebolt/types/agent-to-app-ws-types';
 import { logger } from '../utils/logger';
+import type  {FileReadResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification'
 
 // Legacy interface for backward compatibility
 export interface NotificationMessage {
@@ -37,7 +38,7 @@ export class NotificationService {
   /**
    * Broadcast notification to all apps (not agents)
    */
-  broadcast(notification: NotificationMessage): void {
+  broadcast(notification:any): void {
     logger.info(formatLogMessage('info', 'NotificationService', `Broadcasting notification: ${notification.action}`));
     
     const connections = this.connectionManager.getAllConnections();
@@ -129,13 +130,8 @@ export class NotificationService {
   /**
    * Notify about file operations
    */
-  notifyFileOperation(operation: 'readFileResult' | 'write' |'readFileRequest', filepath: string, success: boolean, error?: string): void {
-    this.broadcast({
-      type: 'fsnotify',
-      action: `${operation}`,
-      data: { filePath:filepath, success, error },
-      timestamp: Date.now()
-    });
+  notifyFileOperation(notification:FileReadResponseNotification): void {
+    this.broadcast(notification);
   }
 
   /**

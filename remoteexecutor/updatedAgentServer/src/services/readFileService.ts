@@ -6,7 +6,9 @@ import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRe
 import { SendMessageToApp } from "../handlers/appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../handlers/tuiMessaging/sendMessageToTui.js";
 import { formatLogMessage, isValidFilePath } from "../types/utils";
+import { NotificationService } from "./NotificationService"
 import { logger } from "../utils/logger";
+import type { FileReadResponseNotification } from "@codebolt/types/wstypes/agent-to-app-ws/notification/fsNotificationSchemas";
 
 interface ReadFileResult {
   success: boolean;
@@ -32,6 +34,7 @@ export class ReadFileService {
   private sendMessageToRemote = new SendMessageToRemote();
   private sendMessageToApp = new SendMessageToApp();
   private sendMessageToTui = new SendMessageToTui();
+  private notificationService = NotificationService.getInstance();
 
   static getInstance(): ReadFileService {
     if (!ReadFileService.instance) {
@@ -58,7 +61,24 @@ export class ReadFileService {
     if (context) {
       this.sendUiNotification(agent, context, filePath, result, requestId);
     }
-
+    
+    // Create proper notification object with required toolUseId
+    const notificationMessage: FileReadResponseNotification = {
+      toolUseId: requestId,
+      type: "fsnotify",
+      action: "readFileResult",
+      data: {
+        filePath: filePath,
+        content: result.content ?? ""
+      },
+      isError: !result.success,
+      requestId: requestId,
+      threadId: agent.threadId,
+      agentId:agent.id,
+      agentInstanceId:agent.instanceId || agent.id
+    };
+    
+    this.notificationService.notifyFileOperation(notificationMessage);
     this.sendRemoteNotification(agent, filePath, result, requestId);
   }
 
@@ -122,15 +142,15 @@ export class ReadFileService {
   ): void {
     const payload: ReadFilePayload = result.success
       ? {
-          path: filePath,
-          content: result.content ?? "",
-          stateEvent: "FILE_READ",
-        }
+        path: filePath,
+        content: result.content ?? "",
+        stateEvent: "FILE_READ",
+      }
       : {
-          path: filePath,
-          content: result.error ?? "Failed to read file",
-          stateEvent: "FILE_READ_ERROR",
-        };
+        path: filePath,
+        content: result.error ?? "Failed to read file",
+        stateEvent: "FILE_READ_ERROR",
+      };
 
     const notification = {
       type: "message",
@@ -160,15 +180,15 @@ export class ReadFileService {
   ): void {
     const payload: ReadFilePayload = result.success
       ? {
-          path: filePath,
-          content: result.content ?? "",
-          stateEvent: "FILE_READ",
-        }
+        path: filePath,
+        content: result.content ?? "",
+        stateEvent: "FILE_READ",
+      }
       : {
-          path: filePath,
-          content: result.error ?? "Failed to read file",
-          stateEvent: "FILE_READ_ERROR",
-        };
+        path: filePath,
+        content: result.error ?? "Failed to read file",
+        stateEvent: "FILE_READ_ERROR",
+      };
 
     const message = {
       type: "message",

@@ -9,6 +9,10 @@ import {
   type ReadFileConfirmation,
 } from "../../localAgentRequestFulfilment/readFileHandler.js";
 import {
+  DeleteFileHandler,
+  type DeleteFileConfirmation,
+} from "../../localAgentRequestFulfilment/deleteFileHandler.js";
+import {
   WriteFileHandler,
   type WriteFileConfirmation,
 } from "../../localAgentRequestFulfilment/writeFileHandler.js";
@@ -19,12 +23,14 @@ export class TuiMessageRouter {
   private sendMessageToRemote: SendMessageToRemote;
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
+  private deleteFileHandler: DeleteFileHandler;
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
     this.sendMessageToAgent = new SendMessageToAgent();
     this.sendMessageToRemote = new SendMessageToRemote();
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
+    this.deleteFileHandler = new DeleteFileHandler();
   }
 
   handleTuiMessage(tui: ClientConnection, message: any): void {
@@ -46,6 +52,7 @@ export class TuiMessageRouter {
     if (message.type === "confirmationResponse") {
       this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
       this.writeFileHandler.handleConfirmation(message as WriteFileConfirmation);
+      this.deleteFileHandler.handleConfirmation(message as DeleteFileConfirmation);
       return;
     }
     if (message.type === "messageResponse") {

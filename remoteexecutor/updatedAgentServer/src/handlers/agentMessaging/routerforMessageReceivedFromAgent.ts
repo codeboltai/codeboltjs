@@ -1,12 +1,16 @@
 import { ClientConnection, Message, formatLogMessage } from "../../types";
-import { ReadFileHandler, WriteFileHandler } from "../../localAgentRequestFulfilment/index.js";
+import {
+  DeleteFileHandler,
+  ReadFileHandler,
+  WriteFileHandler,
+} from "../../localAgentRequestFulfilment/index.js";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
 import { NotificationService } from "../../services/NotificationService.js";
 import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
-import { ReadFileEvent, WriteToFileEvent } from "@codebolt/types/agent-to-app-ws-types";
+import { ReadFileEvent, WriteToFileEvent,DeleteFileEvent } from "@codebolt/types/agent-to-app-ws-types";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -15,6 +19,7 @@ import { ReadFileEvent, WriteToFileEvent } from "@codebolt/types/agent-to-app-ws
 export class AgentMessageRouter {
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
+  private deleteFileHandler: DeleteFileHandler;
   private sendMessageToApp: SendMessageToApp;
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
@@ -24,6 +29,7 @@ export class AgentMessageRouter {
   constructor() {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
+    this.deleteFileHandler = new DeleteFileHandler();
     this.sendMessageToApp = new SendMessageToApp();
     this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
@@ -37,7 +43,7 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | ReadFileEvent | WriteToFileEvent 
+    message: Message | ReadFileEvent | WriteToFileEvent | DeleteFileEvent
   ) {
     logger.info(
       formatLogMessage(
@@ -50,12 +56,17 @@ export class AgentMessageRouter {
 
     // Handle read file requests locally before forwarding
     if (message.type === "fsEvent" && message.action === "readFile") {
-      await this.readFileHandler.handleReadFile(agent, message as any);
+      await this.readFileHandler.handleReadFile(agent, message as ReadFileEvent);
       return;
     }
 
     if (message.type === "fsEvent" && message.action === "writeToFile") {
-      await this.writeFileHandler.handleWriteFile(agent, message as any);
+      await this.writeFileHandler.handleWriteFile(agent, message as WriteToFileEvent);
+      return;
+    }
+
+    if (message.type === "fsEvent" && message.action === "deleteFile") {
+      await this.deleteFileHandler.handleDeleteFile(agent, message as DeleteFileEvent);
       return;
     }
 

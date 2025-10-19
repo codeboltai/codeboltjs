@@ -15,7 +15,8 @@ export const fileStateEnumSchema = z.enum([
   'SEARCHING',
   'PROCESSING_RESULTS',
   'SEARCH_COMPLETE',
-  'SEARCH_ERROR'
+  'SEARCH_ERROR',
+  'FILE_DELETE'
 ]);
 
 // File write state enum schema
@@ -123,6 +124,33 @@ export const fileWriteRejectedSchema = baseFileMessageSchema.extend({
   templateType: z.literal('WRITEFILE'),
   payload: filePayloadSchema.extend({
     stateEvent: z.literal('rejected'),
+  }),
+});
+
+// Delete file confirmation schema
+export const deleteFileConfirmationSchema = baseFileMessageSchema.extend({
+  actionType: z.literal('DELETEFILE'),
+  templateType: z.literal('DELETEFILE'),
+  payload: filePayloadSchema.extend({
+    stateEvent: z.literal('ASK_FOR_CONFIRMATION'),
+  }),
+});
+
+// File delete success schema
+export const fileDeleteSuccessSchema = baseFileMessageSchema.extend({
+  actionType: z.literal('DELETEFILE'),
+  templateType: z.literal('DELETEFILE'),
+  payload: filePayloadSchema.extend({
+    stateEvent: z.literal('FILE_DELETE'),
+  }),
+});
+
+// File delete error schema
+export const fileDeleteErrorSchema = baseFileMessageSchema.extend({
+  actionType: z.literal('DELETEFILE'),
+  templateType: z.literal('DELETEFILE'),
+  payload: filePayloadSchema.extend({
+    stateEvent: z.literal('FILE_READ_ERROR'),
   }),
 });
 
@@ -669,6 +697,9 @@ export const fileMessageSchema = z.union([
   fileWriteSuccessSchema,
   fileWriteErrorSchema,
   fileWriteRejectedSchema,
+  deleteFileConfirmationSchema,
+  fileDeleteSuccessSchema,
+  fileDeleteErrorSchema,
   fileCodeViewSchema,
   codebaseSearchMessageSchema,
   folderReadConfirmationSchema,
@@ -715,6 +746,9 @@ export type FileWriteConfirmation = z.infer<typeof fileWriteConfirmationSchema>;
 export type FileWriteSuccess = z.infer<typeof fileWriteSuccessSchema>;
 export type FileWriteError = z.infer<typeof fileWriteErrorSchema>;
 export type FileWriteRejected = z.infer<typeof fileWriteRejectedSchema>;
+export type FileDeleteConfirmation = z.infer<typeof deleteFileConfirmationSchema>;
+export type FileDeleteSuccess = z.infer<typeof fileDeleteSuccessSchema>;
+export type FileDeleteError = z.infer<typeof fileDeleteErrorSchema>;
 export type FileCodeView = z.infer<typeof fileCodeViewSchema>;
 export type CodebaseSearchMessage = z.infer<typeof codebaseSearchMessageSchema>;
 export type FileDataFormat = z.infer<typeof fileDataFormatSchema>;
