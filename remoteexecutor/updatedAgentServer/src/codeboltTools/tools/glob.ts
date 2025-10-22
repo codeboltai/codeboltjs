@@ -1,0 +1,657 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { glob, escape } from 'glob';
+import type { ToolInvocation, ToolResult } from '../types';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
+import { shortenPath, makeRelative } from '../utils/paths';
+import type { StandaloneToolConfig } from '../config';
+import { ToolErrorType } from '../types';
+
+export interface FileFilteringOptions {
+  respectGitIgnore: boolean;
+  respectCodeboltIgnore: boolean;
+}
+
+interface FilterReport {
+  filteredPaths: string[];
+  gitIgnoredCount: number;
+  geminiIgnoredCount: number;
+}
+
+// For memory files
+export const DEFAULT_MEMORY_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
+  respectGitIgnore: false,
+  respectCodeboltIgnore: true,
+};
+
+// For all other files
+export const DEFAULT_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
+  respectGitIgnore: true,
+  respectCodeboltIgnore: true,
+};
+// Subset of 'Path' interface provided by 'glob' that we can implement for testing
+export interface GlobPath {
+  fullpath(): string;
+  mtimeMs?: number;
+}
+
+/**
+ * Sorts file entries based on recency and then alphabetically.
+ * Recent files (modified within recencyThresholdMs) are listed first, newest to oldest.
+ * Older files are listed after recent ones, sorted alphabetically by path.
+ */
+export function sortFileEntries(
+  entries: GlobPath[],
+  nowTimestamp: number,
+  recencyThresholdMs: number,
+): GlobPath[] {
+  const sortedEntries = [...entries];
+  sortedEntries.sort((a, b) => {
+    const mtimeA = a.mtimeMs ?? 0;
+    const mtimeB = b.mtimeMs ?? 0;
+    const aIsRecent = nowTimestamp - mtimeA < recencyThresholdMs;
+    const bIsRecent = nowTimestamp - mtimeB < recencyThresholdMs;
+
+    if (aIsRecent && bIsRecent) {
+      return mtimeB - mtimeA;
+    } else if (aIsRecent) {
+      return -1;
+    } else if (bIsRecent) {
+      return 1;
+    } else {
+      return a.fullpath().localeCompare(b.fullpath());
+    }
+  });
+  return sortedEntries;
+}
+
+/**
+ * Parameters for the GlobTool
+ */
+export interface GlobToolParams {
+  /**
+   * The glob pattern to match files against
+   */
+  pattern: string;
+
+  /**
+   * The directory to search in (optional, defaults to current directory)
+   */
+  path?: string;
+
+  /**
+   * Whether the search should be case-sensitive (optional, defaults to false)
+   */
+  case_sensitive?: boolean;
+
+  /**
+   * Whether to respect .gitignore patterns (optional, defaults to true)
+   */
+  respect_git_ignore?: boolean;
+
+  /**
+   * Whether to respect .geminiignore patterns (optional, defaults to true)
+   */
+  respect_gemini_ignore?: boolean;
+}
+
+class GlobToolInvocation extends BaseToolInvocation<
+  GlobToolParams,
+  ToolResult
+> {
+  constructor(
+    private readonly config: StandaloneToolConfig,
+    params: GlobToolParams,
+  ) {
+    super(params);
+  }
+
+  getDescription(): string {
+    let description = `'${this.params.pattern}'`;
+    if (this.params.path) {
+      const searchDir = path.resolve(
+        this.config.targetDir,
+        this.params.path || '.',
+      );
+      const relativePath = makeRelative(searchDir, this.config.targetDir);
+      description += ` within ${shortenPath(relativePath)}`;
+    }
+    return description;
+  }
+
+  // async execute(signal: AbortSignal): Promise<ToolResult> {
+  //   try {
+  //     const workspaceContext = this.config.workspaceContext;
+  //     const workspaceDirectories = workspaceContext.getDirectories();
+
+  //     // If a specific path is provided, resolve it and check if it's within workspace
+  //     let searchDirectories: readonly string[];
+  //     if (this.params.path) {
+  //       const searchDirAbsolute = path.resolve(
+  //         this.config.targetDir,
+  //         this.params.path,
+  //       );
+  //       if (!workspaceContext.isPathWithinWorkspace(searchDirAbsolute)) {
+  //         const rawError = `Error: Path "${this.params.path}" is not within any workspace directory`;
+  //         return {
+  //           llmContent: rawError,
+  //           returnDisplay: `Path is not within workspace`,
+  //           error: {
+  //             message: rawError,
+  //             type: ToolErrorType.PATH_NOT_IN_WORKSPACE,
+  //           },
+  //         };
+  //       }
+  //       searchDirectories = [searchDirAbsolute];
+  //     } else {
+  //       // Search across all workspace directories
+  //       searchDirectories = workspaceDirectories;
+  //     }
+
+  //     // Collect entries from all search directories
+  //     const allEntries: GlobPath[] = [];
+  //     for (const searchDir of searchDirectories) {
+  //       let pattern = this.params.pattern;
+  //       const fullPath = path.join(searchDir, pattern);
+  //       if (fs.existsSync(fullPath)) {
+  //         pattern = escape(pattern);
+  //       }
+
+  //       // Use default ignore patterns instead of config.getFileExclusions()
+  //       const defaultIgnorePatterns = [
+  //         'node_modules/**',
+  //         '.git/**',
+  //         'dist/**',
+  //         'build/**',
+  //         'coverage/**',
+  //         '*.log',
+  //         '*.tmp',
+  //         '.DS_Store',
+  //         'Thumbs.db'
+  //       ];
+
+  //       const entries = (await glob(pattern, {
+  //         cwd: searchDir,
+  //         withFileTypes: true,
+  //         nodir: true,
+  //         stat: true,
+  //         nocase: !this.params.case_sensitive,
+  //         dot: true,
+  //         ignore: defaultIgnorePatterns,
+  //         follow: false,
+  //         signal,
+  //       })) as GlobPath[];
+
+  //       allEntries.push(...entries);
+  //     }
+
+  //     const relativePaths = allEntries.map((p) =>
+  //       path.relative(this.config.targetDir, p.fullpath()),
+  //     );
+
+  //     // Use our local filterFilesWithReport function instead of fileDiscovery
+  //     const { filteredPaths, gitIgnoredCount, geminiIgnoredCount } =
+  //       filterFilesWithReport(relativePaths, {
+  //         respectGitIgnore:
+  //           this.params?.respect_git_ignore ??
+  //           this.config.fileFilteringOptions?.respectGitIgnore ??
+  //           DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
+  //         respectCodeboltIgnore:
+  //           this.params?.respect_gemini_ignore ??
+  //           this.config.fileFilteringOptions?.respectCodeboltIgnore ??
+  //           DEFAULT_FILE_FILTERING_OPTIONS.respectCodeboltIgnore,
+  //       });
+
+  //     const filteredAbsolutePaths = new Set(
+  //       filteredPaths.map((p) => path.resolve(this.config.targetDir, p)),
+  //     );
+
+  //     const filteredEntries = allEntries.filter((entry) =>
+  //       filteredAbsolutePaths.has(entry.fullpath()),
+  //     );
+
+  //     if (!filteredEntries || filteredEntries.length === 0) {
+  //       let message = `No files found matching pattern "${this.params.pattern}"`;
+  //       if (searchDirectories.length === 1) {
+  //         message += ` within ${searchDirectories[0]}`;
+  //       } else {
+  //         message += ` within ${searchDirectories.length} workspace directories`;
+  //       }
+  //       if (gitIgnoredCount > 0) {
+  //         message += ` (${gitIgnoredCount} files were git-ignored)`;
+  //       }
+  //       if (geminiIgnoredCount > 0) {
+  //         message += ` (${geminiIgnoredCount} files were gemini-ignored)`;
+  //       }
+  //       return {
+  //         llmContent: message,
+  //         returnDisplay: `No files found`,
+  //       };
+  //     }
+
+  //     // Set filtering such that we first show the most recent files
+  //     const oneDayInMs = 24 * 60 * 60 * 1000;
+  //     const nowTimestamp = new Date().getTime();
+
+  //     // Sort the filtered entries using the new helper function
+  //     const sortedEntries = sortFileEntries(
+  //       filteredEntries,
+  //       nowTimestamp,
+  //       oneDayInMs,
+  //     );
+
+  //     const sortedAbsolutePaths = sortedEntries.map((entry) =>
+  //       entry.fullpath(),
+  //     );
+  //     const fileListDescription = sortedAbsolutePaths.join('\n');
+  //     const fileCount = sortedAbsolutePaths.length;
+
+  //     let resultMessage = `Found ${fileCount} file(s) matching "${this.params.pattern}"`;
+  //     if (searchDirectories.length === 1) {
+  //       resultMessage += ` within ${searchDirectories[0]}`;
+  //     } else {
+  //       resultMessage += ` across ${searchDirectories.length} workspace directories`;
+  //     }
+  //     if (gitIgnoredCount > 0) {
+  //       resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
+  //     }
+  //     if (geminiIgnoredCount > 0) {
+  //       resultMessage += ` (${geminiIgnoredCount} additional files were gemini-ignored)`;
+  //     }
+  //     resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
+
+  //     return {
+  //       llmContent: resultMessage,
+  //       returnDisplay: `Found ${fileCount} matching file(s)`,
+  //     };
+  //   } catch (error) {
+  //     const errorMessage =
+  //       error instanceof Error ? error.message : String(error);
+  //     console.error(`GlobLogic execute Error: ${errorMessage}`, error);
+  //     const rawError = `Error during glob search operation: ${errorMessage}`;
+  //     return {
+  //       llmContent: rawError,
+  //       returnDisplay: `Error: An unexpected error occurred.`,
+  //       error: {
+  //         message: rawError,
+  //         type: ToolErrorType.GLOB_EXECUTION_ERROR,
+  //       },
+  //     };
+  //   }
+  // }
+
+  getFileFilteringOptions(): FileFilteringOptions {
+    return {
+      respectGitIgnore: true,
+      respectCodeboltIgnore: true,
+    };
+  }
+  async execute(signal: AbortSignal): Promise<ToolResult> {
+    try {
+      const workspaceContext = this.config.workspaceContext;
+      const workspaceDirectories = workspaceContext.getDirectories();
+
+      // If a specific path is provided, resolve it and check if it's within workspace
+      let searchDirectories: readonly string[];
+      if (this.params.path) {
+        const searchDirAbsolute = path.resolve(
+          this.config.targetDir,
+          this.params.path,
+        );
+        if (!workspaceContext.isPathWithinWorkspace(searchDirAbsolute)) {
+          const rawError = `Error: Path "${this.params.path}" is not within any workspace directory`;
+          return {
+            llmContent: rawError,
+            returnDisplay: `Path is not within workspace`,
+            error: {
+              message: rawError,
+              type: ToolErrorType.PATH_NOT_IN_WORKSPACE,
+            },
+          };
+        }
+        searchDirectories = [searchDirAbsolute];
+      } else {
+        // Search across all workspace directories
+        searchDirectories = workspaceDirectories;
+      }
+
+      // Get centralized file discovery service
+      // const fileDiscovery = this.config.fileService;
+      const defaultIgnorePatterns = [
+        'node_modules/**',
+        '.git/**',
+        'dist/**',
+        'build/**',
+        'coverage/**',
+        '*.log',
+        '*.tmp',
+        '.DS_Store',
+        'Thumbs.db',
+      ];
+      // Collect entries from all search directories
+      const allEntries: GlobPath[] = [];
+      for (const searchDir of searchDirectories) {
+        let pattern = this.params.pattern;
+
+        // Debug logging
+        console.log(`Searching in directory: ${searchDir}`);
+        console.log(`Pattern: ${pattern}`);
+
+        // Check if the pattern is a direct file path
+        const fullPath = path.join(searchDir, pattern);
+        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+          pattern = escape(pattern);
+          console.log(`Pattern escaped to: ${pattern}`);
+        }
+
+        const entries = await glob(pattern, {
+          cwd: searchDir,
+          withFileTypes: true,
+          nodir: true,
+          stat: true,
+          nocase: !this.params.case_sensitive,
+          dot: true,
+          ignore: defaultIgnorePatterns,
+          follow: false,
+          signal,
+        });
+
+        console.log(
+          `Glob result type: ${typeof entries}, isArray: ${Array.isArray(entries)}`,
+        );
+
+        // The glob function should return an array when awaited
+        const entriesArray = Array.isArray(entries) ? entries : [];
+
+        console.log(
+          `Found ${entriesArray.length} entries for pattern "${pattern}"`,
+        );
+
+        allEntries.push(...entriesArray);
+      }
+
+      const relativePaths = allEntries.map((p) =>
+        path.relative(this.config.targetDir, p.fullpath()),
+      );
+
+      const { filteredPaths, gitIgnoredCount, geminiIgnoredCount } =
+        filterFilesWithReport(relativePaths, {
+          respectGitIgnore:
+            this.params?.respect_git_ignore ??
+            this.getFileFilteringOptions().respectGitIgnore ??
+            DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
+          respectCodeboltIgnore:
+            this.params?.respect_gemini_ignore ??
+            this.getFileFilteringOptions().respectCodeboltIgnore ??
+            DEFAULT_FILE_FILTERING_OPTIONS.respectCodeboltIgnore,
+        });
+
+      const filteredAbsolutePaths = new Set(
+        filteredPaths.map((p) => path.resolve(this.config.targetDir, p)),
+      );
+
+      const filteredEntries = allEntries.filter((entry) =>
+        filteredAbsolutePaths.has(entry.fullpath()),
+      );
+
+      if (!filteredEntries || filteredEntries.length === 0) {
+        let message = `No files found matching pattern "${this.params.pattern}"`;
+        if (searchDirectories.length === 1) {
+          message += ` within ${searchDirectories[0]}`;
+        } else {
+          message += ` within ${searchDirectories.length} workspace directories`;
+        }
+        if (gitIgnoredCount > 0) {
+          message += ` (${gitIgnoredCount} files were git-ignored)`;
+        }
+        if (geminiIgnoredCount > 0) {
+          message += ` (${geminiIgnoredCount} files were gemini-ignored)`;
+        }
+        return {
+          llmContent: message,
+          returnDisplay: `No files found`,
+        };
+      }
+
+      // Set filtering such that we first show the most recent files
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      const nowTimestamp = new Date().getTime();
+
+      // Sort the filtered entries using the new helper function
+      const sortedEntries = sortFileEntries(
+        filteredEntries,
+        nowTimestamp,
+        oneDayInMs,
+      );
+
+      const sortedAbsolutePaths = sortedEntries.map((entry) =>
+        entry.fullpath(),
+      );
+      const fileListDescription = sortedAbsolutePaths.join('\n');
+      const fileCount = sortedAbsolutePaths.length;
+
+      let resultMessage = `Found ${fileCount} file(s) matching "${this.params.pattern}"`;
+      if (searchDirectories.length === 1) {
+        resultMessage += ` within ${searchDirectories[0]}`;
+      } else {
+        resultMessage += ` across ${searchDirectories.length} workspace directories`;
+      }
+      if (gitIgnoredCount > 0) {
+        resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
+      }
+      if (geminiIgnoredCount > 0) {
+        resultMessage += ` (${geminiIgnoredCount} additional files were gemini-ignored)`;
+      }
+      resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
+
+      return {
+        llmContent: resultMessage,
+        returnDisplay: `Found ${fileCount} matching file(s)`,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`GlobLogic execute Error: ${errorMessage}`, error);
+      const rawError = `Error during glob search operation: ${errorMessage}`;
+      return {
+        llmContent: rawError,
+        returnDisplay: `Error: An unexpected error occurred.`,
+        error: {
+          message: rawError,
+          type: ToolErrorType.GLOB_EXECUTION_ERROR,
+        },
+      };
+    }
+  }
+}
+
+/**
+ * Implementation of the Glob tool logic
+ */
+export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
+  static readonly Name = 'glob';
+
+  constructor(private readonly config: StandaloneToolConfig) {
+    super(
+      GlobTool.Name,
+      'FindFiles',
+      'Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases.',
+      Kind.Search,
+      {
+        properties: {
+          pattern: {
+            description:
+              "The glob pattern to match against (e.g., '**/*.py', 'docs/*.md').",
+            type: 'string',
+          },
+          path: {
+            description:
+              'Optional: The absolute path to the directory to search within. If omitted, searches the root directory.',
+            type: 'string',
+          },
+          case_sensitive: {
+            description:
+              'Optional: Whether the search should be case-sensitive. Defaults to false.',
+            type: 'boolean',
+          },
+          respect_git_ignore: {
+            description:
+              'Optional: Whether to respect .gitignore patterns when finding files. Only available in git repositories. Defaults to true.',
+            type: 'boolean',
+          },
+          respect_gemini_ignore: {
+            description:
+              'Optional: Whether to respect .geminiignore patterns when finding files. Defaults to true.',
+            type: 'boolean',
+          },
+        },
+        required: ['pattern'],
+        type: 'object',
+      },
+    );
+  }
+
+  /**
+   * Validates the parameters for the tool.
+   */
+  protected override validateToolParamValues(
+    params: GlobToolParams,
+  ): string | null {
+    // Validate pattern
+    if (
+      !params.pattern ||
+      typeof params.pattern !== 'string' ||
+      params.pattern.trim() === ''
+    ) {
+      return "The 'pattern' parameter cannot be empty.";
+    }
+
+    // Only validate path if one is provided
+    if (params.path) {
+      try {
+        const searchDirAbsolute = path.resolve(
+          this.config.targetDir,
+          params.path,
+        );
+
+        // Security Check: Ensure the resolved path is within workspace boundaries
+        const workspaceDirectories =
+          this.config.workspaceContext?.getDirectories() || [
+            this.config.targetDir,
+          ];
+        const isWithinWorkspace = workspaceDirectories.some((dir: string) =>
+          searchDirAbsolute.startsWith(path.resolve(dir)),
+        );
+
+        if (!isWithinWorkspace) {
+          return `Search path ("${params.path}") resolves outside the allowed workspace directories: ${workspaceDirectories.join(', ')}`;
+        }
+
+        // Check existence and type after resolving
+        if (!fs.existsSync(searchDirAbsolute)) {
+          return `Search path does not exist ${searchDirAbsolute}`;
+        }
+
+        const stats = fs.statSync(searchDirAbsolute);
+        if (!stats.isDirectory()) {
+          return `Search path is not a directory: ${searchDirAbsolute}`;
+        }
+      } catch (e: unknown) {
+        return `Error accessing search path: ${e}`;
+      }
+    }
+
+    return null;
+  }
+
+  protected createInvocation(
+    params: GlobToolParams,
+  ): ToolInvocation<GlobToolParams, ToolResult> {
+    return new GlobToolInvocation(this.config, params);
+  }
+}
+
+/**
+ * Checks if a file should be ignored based on git ignore patterns
+ */
+function shouldGitIgnoreFile(filePath: string): boolean {
+  // Basic git ignore patterns
+  const gitIgnorePatterns = [
+    'node_modules/**',
+    '.git/**',
+    'dist/**',
+    'build/**',
+    'coverage/**',
+    '*.log',
+    '*.tmp',
+    '.DS_Store',
+    'Thumbs.db',
+  ];
+
+  const fileName = path.basename(filePath);
+  const dirPath = path.dirname(filePath);
+
+  return gitIgnorePatterns.some((pattern) => {
+    const regex = new RegExp(
+      pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'),
+    );
+    return regex.test(filePath) || regex.test(fileName) || regex.test(dirPath);
+  });
+}
+
+/**
+ * Checks if a file should be ignored based on gemini ignore patterns
+ */
+function shouldCodeboltIgnoreFile(filePath: string): boolean {
+  // Basic gemini ignore patterns (you may want to expand this)
+  const geminiIgnorePatterns = ['.gemini/**', '.geminiignore', '.codebolt/**'];
+
+  const fileName = path.basename(filePath);
+  const dirPath = path.dirname(filePath);
+
+  return geminiIgnorePatterns.some((pattern) => {
+    const regex = new RegExp(
+      pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'),
+    );
+    return regex.test(filePath) || regex.test(fileName) || regex.test(dirPath);
+  });
+}
+
+/**
+ * Filters a list of file paths based on git ignore and gemini ignore rules
+ * and returns a report with counts of ignored files.
+ */
+function filterFilesWithReport(
+  filePaths: string[],
+  opts: FileFilteringOptions = DEFAULT_FILE_FILTERING_OPTIONS,
+): FilterReport {
+  const filteredPaths: string[] = [];
+  let gitIgnoredCount = 0;
+  let geminiIgnoredCount = 0;
+
+  for (const filePath of filePaths) {
+    if (opts.respectGitIgnore && shouldGitIgnoreFile(filePath)) {
+      gitIgnoredCount++;
+      continue;
+    }
+
+    if (opts.respectCodeboltIgnore && shouldCodeboltIgnoreFile(filePath)) {
+      geminiIgnoredCount++;
+      continue;
+    }
+
+    filteredPaths.push(filePath);
+  }
+
+  return {
+    filteredPaths,
+    gitIgnoredCount,
+    geminiIgnoredCount,
+  };
+}
