@@ -47,33 +47,32 @@ class ListFilesToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import fsService to use existing logic
-            const { fsService } = await import('../../cliLib/fsService.cli');
+            // Import DirectoryService to use new service
+            const { createDirectoryService } = await import('../../services');
+            
+            const directoryService = createDirectoryService({
+                targetDir: this.config.getTargetDir(),
+                debugMode: this.config.getDebugMode(),
+            });
 
-            // Create finalMessage object similar to mcpService.cli.ts
-            const finalMessage = {
-                threadId: 'codebolt-tools',
-                agentInstanceId: 'codebolt-tools',
-                agentId: 'codebolt-tools',
-                parentAgentInstanceId: 'codebolt-tools',
-                parentId: 'codebolt-tools'
-            };
-
-            // Use the exact same logic as fsService
             const isRecursive = this.params.recursive === 'true';
-            const result = await fsService.listFiles(
+            const result = await directoryService.listFiles(
                 this.params.path,
-                finalMessage,
-                isRecursive,
-                false, // askForPermission = false for tool execution
-                false // notifyUser = false for tool execution
+                isRecursive
             );
 
-            if (result && result[0] === false) {
+            if (result.success) {
                 // Success case
+                const fileList = result.files || [];
+                const content = fileList.length > 0 
+                    ? fileList.join('\n')
+                    : 'No files found';
+                
+                const displayContent = `Found ${fileList.length} file(s):\n${content}`;
+                
                 return {
-                    llmContent: result[1] || 'Files listed successfully',
-                    returnDisplay: result[1] || 'Files listed successfully'
+                    llmContent: content,
+                    returnDisplay: displayContent
                 };
             } else {
                 // Error case
@@ -82,7 +81,7 @@ class ListFilesToolInvocation extends BaseToolInvocation<
                     returnDisplay: '',
                     error: {
                         type: ToolErrorType.LS_EXECUTION_ERROR,
-                        message: result[1] || 'Failed to list files'
+                        message: result.error || 'Failed to list files'
                     }
                 };
             }

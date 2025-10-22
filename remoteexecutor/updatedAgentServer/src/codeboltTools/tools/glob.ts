@@ -10,7 +10,7 @@ import { glob, escape } from 'glob';
 import type { ToolInvocation, ToolResult } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
 import { shortenPath, makeRelative } from '../utils/paths';
-import type { StandaloneToolConfig } from '../config';
+import type { ConfigManager } from '../config';
 import { ToolErrorType } from '../types';
 
 export interface FileFilteringOptions {
@@ -106,7 +106,7 @@ class GlobToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   constructor(
-    private readonly config: StandaloneToolConfig,
+    private readonly config: ConfigManager,
     params: GlobToolParams,
   ) {
     super(params);
@@ -116,175 +116,14 @@ class GlobToolInvocation extends BaseToolInvocation<
     let description = `'${this.params.pattern}'`;
     if (this.params.path) {
       const searchDir = path.resolve(
-        this.config.targetDir,
+        this.config.getTargetDir(),
         this.params.path || '.',
       );
-      const relativePath = makeRelative(searchDir, this.config.targetDir);
+      const relativePath = makeRelative(searchDir, this.config.getTargetDir());
       description += ` within ${shortenPath(relativePath)}`;
     }
     return description;
   }
-
-  // async execute(signal: AbortSignal): Promise<ToolResult> {
-  //   try {
-  //     const workspaceContext = this.config.workspaceContext;
-  //     const workspaceDirectories = workspaceContext.getDirectories();
-
-  //     // If a specific path is provided, resolve it and check if it's within workspace
-  //     let searchDirectories: readonly string[];
-  //     if (this.params.path) {
-  //       const searchDirAbsolute = path.resolve(
-  //         this.config.targetDir,
-  //         this.params.path,
-  //       );
-  //       if (!workspaceContext.isPathWithinWorkspace(searchDirAbsolute)) {
-  //         const rawError = `Error: Path "${this.params.path}" is not within any workspace directory`;
-  //         return {
-  //           llmContent: rawError,
-  //           returnDisplay: `Path is not within workspace`,
-  //           error: {
-  //             message: rawError,
-  //             type: ToolErrorType.PATH_NOT_IN_WORKSPACE,
-  //           },
-  //         };
-  //       }
-  //       searchDirectories = [searchDirAbsolute];
-  //     } else {
-  //       // Search across all workspace directories
-  //       searchDirectories = workspaceDirectories;
-  //     }
-
-  //     // Collect entries from all search directories
-  //     const allEntries: GlobPath[] = [];
-  //     for (const searchDir of searchDirectories) {
-  //       let pattern = this.params.pattern;
-  //       const fullPath = path.join(searchDir, pattern);
-  //       if (fs.existsSync(fullPath)) {
-  //         pattern = escape(pattern);
-  //       }
-
-  //       // Use default ignore patterns instead of config.getFileExclusions()
-  //       const defaultIgnorePatterns = [
-  //         'node_modules/**',
-  //         '.git/**',
-  //         'dist/**',
-  //         'build/**',
-  //         'coverage/**',
-  //         '*.log',
-  //         '*.tmp',
-  //         '.DS_Store',
-  //         'Thumbs.db'
-  //       ];
-
-  //       const entries = (await glob(pattern, {
-  //         cwd: searchDir,
-  //         withFileTypes: true,
-  //         nodir: true,
-  //         stat: true,
-  //         nocase: !this.params.case_sensitive,
-  //         dot: true,
-  //         ignore: defaultIgnorePatterns,
-  //         follow: false,
-  //         signal,
-  //       })) as GlobPath[];
-
-  //       allEntries.push(...entries);
-  //     }
-
-  //     const relativePaths = allEntries.map((p) =>
-  //       path.relative(this.config.targetDir, p.fullpath()),
-  //     );
-
-  //     // Use our local filterFilesWithReport function instead of fileDiscovery
-  //     const { filteredPaths, gitIgnoredCount, geminiIgnoredCount } =
-  //       filterFilesWithReport(relativePaths, {
-  //         respectGitIgnore:
-  //           this.params?.respect_git_ignore ??
-  //           this.config.fileFilteringOptions?.respectGitIgnore ??
-  //           DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-  //         respectCodeboltIgnore:
-  //           this.params?.respect_gemini_ignore ??
-  //           this.config.fileFilteringOptions?.respectCodeboltIgnore ??
-  //           DEFAULT_FILE_FILTERING_OPTIONS.respectCodeboltIgnore,
-  //       });
-
-  //     const filteredAbsolutePaths = new Set(
-  //       filteredPaths.map((p) => path.resolve(this.config.targetDir, p)),
-  //     );
-
-  //     const filteredEntries = allEntries.filter((entry) =>
-  //       filteredAbsolutePaths.has(entry.fullpath()),
-  //     );
-
-  //     if (!filteredEntries || filteredEntries.length === 0) {
-  //       let message = `No files found matching pattern "${this.params.pattern}"`;
-  //       if (searchDirectories.length === 1) {
-  //         message += ` within ${searchDirectories[0]}`;
-  //       } else {
-  //         message += ` within ${searchDirectories.length} workspace directories`;
-  //       }
-  //       if (gitIgnoredCount > 0) {
-  //         message += ` (${gitIgnoredCount} files were git-ignored)`;
-  //       }
-  //       if (geminiIgnoredCount > 0) {
-  //         message += ` (${geminiIgnoredCount} files were gemini-ignored)`;
-  //       }
-  //       return {
-  //         llmContent: message,
-  //         returnDisplay: `No files found`,
-  //       };
-  //     }
-
-  //     // Set filtering such that we first show the most recent files
-  //     const oneDayInMs = 24 * 60 * 60 * 1000;
-  //     const nowTimestamp = new Date().getTime();
-
-  //     // Sort the filtered entries using the new helper function
-  //     const sortedEntries = sortFileEntries(
-  //       filteredEntries,
-  //       nowTimestamp,
-  //       oneDayInMs,
-  //     );
-
-  //     const sortedAbsolutePaths = sortedEntries.map((entry) =>
-  //       entry.fullpath(),
-  //     );
-  //     const fileListDescription = sortedAbsolutePaths.join('\n');
-  //     const fileCount = sortedAbsolutePaths.length;
-
-  //     let resultMessage = `Found ${fileCount} file(s) matching "${this.params.pattern}"`;
-  //     if (searchDirectories.length === 1) {
-  //       resultMessage += ` within ${searchDirectories[0]}`;
-  //     } else {
-  //       resultMessage += ` across ${searchDirectories.length} workspace directories`;
-  //     }
-  //     if (gitIgnoredCount > 0) {
-  //       resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
-  //     }
-  //     if (geminiIgnoredCount > 0) {
-  //       resultMessage += ` (${geminiIgnoredCount} additional files were gemini-ignored)`;
-  //     }
-  //     resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
-
-  //     return {
-  //       llmContent: resultMessage,
-  //       returnDisplay: `Found ${fileCount} matching file(s)`,
-  //     };
-  //   } catch (error) {
-  //     const errorMessage =
-  //       error instanceof Error ? error.message : String(error);
-  //     console.error(`GlobLogic execute Error: ${errorMessage}`, error);
-  //     const rawError = `Error during glob search operation: ${errorMessage}`;
-  //     return {
-  //       llmContent: rawError,
-  //       returnDisplay: `Error: An unexpected error occurred.`,
-  //       error: {
-  //         message: rawError,
-  //         type: ToolErrorType.GLOB_EXECUTION_ERROR,
-  //       },
-  //     };
-  //   }
-  // }
 
   getFileFilteringOptions(): FileFilteringOptions {
     return {
@@ -292,126 +131,48 @@ class GlobToolInvocation extends BaseToolInvocation<
       respectCodeboltIgnore: true,
     };
   }
+  
   async execute(signal: AbortSignal): Promise<ToolResult> {
     try {
-      const workspaceContext = this.config.workspaceContext;
-      const workspaceDirectories = workspaceContext.getDirectories();
-
-      // If a specific path is provided, resolve it and check if it's within workspace
-      let searchDirectories: readonly string[];
-      if (this.params.path) {
-        const searchDirAbsolute = path.resolve(
-          this.config.targetDir,
-          this.params.path,
-        );
-        if (!workspaceContext.isPathWithinWorkspace(searchDirAbsolute)) {
-          const rawError = `Error: Path "${this.params.path}" is not within any workspace directory`;
-          return {
-            llmContent: rawError,
-            returnDisplay: `Path is not within workspace`,
-            error: {
-              message: rawError,
-              type: ToolErrorType.PATH_NOT_IN_WORKSPACE,
-            },
-          };
-        }
-        searchDirectories = [searchDirAbsolute];
-      } else {
-        // Search across all workspace directories
-        searchDirectories = workspaceDirectories;
+      const fileServices = this.config.getFileServices();
+      if (!fileServices) {
+        return {
+          llmContent: 'Error: FileServices not available',
+          returnDisplay: 'Error: FileServices not available',
+          error: {
+            message: 'FileServices not available',
+            type: ToolErrorType.GLOB_EXECUTION_ERROR,
+          },
+        };
       }
 
-      // Get centralized file discovery service
-      // const fileDiscovery = this.config.fileService;
-      const defaultIgnorePatterns = [
-        'node_modules/**',
-        '.git/**',
-        'dist/**',
-        'build/**',
-        'coverage/**',
-        '*.log',
-        '*.tmp',
-        '.DS_Store',
-        'Thumbs.db',
-      ];
-      // Collect entries from all search directories
-      const allEntries: GlobPath[] = [];
-      for (const searchDir of searchDirectories) {
-        let pattern = this.params.pattern;
+      const result = await fileServices.globSearch(this.params.pattern, this.params.path, {
+        caseSensitive: this.params.case_sensitive,
+        respectGitIgnore: this.params.respect_git_ignore,
+        respectGeminiIgnore: this.params.respect_gemini_ignore,
+      });
 
-        // Debug logging
-        console.log(`Searching in directory: ${searchDir}`);
-        console.log(`Pattern: ${pattern}`);
-
-        // Check if the pattern is a direct file path
-        const fullPath = path.join(searchDir, pattern);
-        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-          pattern = escape(pattern);
-          console.log(`Pattern escaped to: ${pattern}`);
-        }
-
-        const entries = await glob(pattern, {
-          cwd: searchDir,
-          withFileTypes: true,
-          nodir: true,
-          stat: true,
-          nocase: !this.params.case_sensitive,
-          dot: true,
-          ignore: defaultIgnorePatterns,
-          follow: false,
-          signal,
-        });
-
-        console.log(
-          `Glob result type: ${typeof entries}, isArray: ${Array.isArray(entries)}`,
-        );
-
-        // The glob function should return an array when awaited
-        const entriesArray = Array.isArray(entries) ? entries : [];
-
-        console.log(
-          `Found ${entriesArray.length} entries for pattern "${pattern}"`,
-        );
-
-        allEntries.push(...entriesArray);
+      if (!result.success) {
+        return {
+          llmContent: `Error during glob search: ${result.error}`,
+          returnDisplay: `Error: ${result.error}`,
+          error: {
+            message: result.error || 'Unknown error',
+            type: ToolErrorType.GLOB_EXECUTION_ERROR,
+          },
+        };
       }
 
-      const relativePaths = allEntries.map((p) =>
-        path.relative(this.config.targetDir, p.fullpath()),
-      );
-
-      const { filteredPaths, gitIgnoredCount, geminiIgnoredCount } =
-        filterFilesWithReport(relativePaths, {
-          respectGitIgnore:
-            this.params?.respect_git_ignore ??
-            this.getFileFilteringOptions().respectGitIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-          respectCodeboltIgnore:
-            this.params?.respect_gemini_ignore ??
-            this.getFileFilteringOptions().respectCodeboltIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectCodeboltIgnore,
-        });
-
-      const filteredAbsolutePaths = new Set(
-        filteredPaths.map((p) => path.resolve(this.config.targetDir, p)),
-      );
-
-      const filteredEntries = allEntries.filter((entry) =>
-        filteredAbsolutePaths.has(entry.fullpath()),
-      );
-
-      if (!filteredEntries || filteredEntries.length === 0) {
+      if (!result.files || result.files.length === 0) {
         let message = `No files found matching pattern "${this.params.pattern}"`;
-        if (searchDirectories.length === 1) {
-          message += ` within ${searchDirectories[0]}`;
-        } else {
-          message += ` within ${searchDirectories.length} workspace directories`;
+        if (this.params.path) {
+          message += ` within ${this.params.path}`;
         }
-        if (gitIgnoredCount > 0) {
-          message += ` (${gitIgnoredCount} files were git-ignored)`;
+        if (result.gitIgnoredCount && result.gitIgnoredCount > 0) {
+          message += ` (${result.gitIgnoredCount} files were git-ignored)`;
         }
-        if (geminiIgnoredCount > 0) {
-          message += ` (${geminiIgnoredCount} files were gemini-ignored)`;
+        if (result.geminiIgnoredCount && result.geminiIgnoredCount > 0) {
+          message += ` (${result.geminiIgnoredCount} files were gemini-ignored)`;
         }
         return {
           llmContent: message,
@@ -419,34 +180,18 @@ class GlobToolInvocation extends BaseToolInvocation<
         };
       }
 
-      // Set filtering such that we first show the most recent files
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const nowTimestamp = new Date().getTime();
-
-      // Sort the filtered entries using the new helper function
-      const sortedEntries = sortFileEntries(
-        filteredEntries,
-        nowTimestamp,
-        oneDayInMs,
-      );
-
-      const sortedAbsolutePaths = sortedEntries.map((entry) =>
-        entry.fullpath(),
-      );
-      const fileListDescription = sortedAbsolutePaths.join('\n');
-      const fileCount = sortedAbsolutePaths.length;
+      const fileListDescription = result.files.join('\n');
+      const fileCount = result.files.length;
 
       let resultMessage = `Found ${fileCount} file(s) matching "${this.params.pattern}"`;
-      if (searchDirectories.length === 1) {
-        resultMessage += ` within ${searchDirectories[0]}`;
-      } else {
-        resultMessage += ` across ${searchDirectories.length} workspace directories`;
+      if (this.params.path) {
+        resultMessage += ` within ${this.params.path}`;
       }
-      if (gitIgnoredCount > 0) {
-        resultMessage += ` (${gitIgnoredCount} additional files were git-ignored)`;
+      if (result.gitIgnoredCount && result.gitIgnoredCount > 0) {
+        resultMessage += ` (${result.gitIgnoredCount} additional files were git-ignored)`;
       }
-      if (geminiIgnoredCount > 0) {
-        resultMessage += ` (${geminiIgnoredCount} additional files were gemini-ignored)`;
+      if (result.geminiIgnoredCount && result.geminiIgnoredCount > 0) {
+        resultMessage += ` (${result.geminiIgnoredCount} additional files were gemini-ignored)`;
       }
       resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
 
@@ -477,7 +222,7 @@ class GlobToolInvocation extends BaseToolInvocation<
 export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
   static readonly Name = 'glob';
 
-  constructor(private readonly config: StandaloneToolConfig) {
+  constructor(private readonly config: ConfigManager) {
     super(
       GlobTool.Name,
       'FindFiles',
@@ -536,14 +281,14 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
     if (params.path) {
       try {
         const searchDirAbsolute = path.resolve(
-          this.config.targetDir,
+          this.config.getTargetDir(),
           params.path,
         );
 
         // Security Check: Ensure the resolved path is within workspace boundaries
         const workspaceDirectories =
-          this.config.workspaceContext?.getDirectories() || [
-            this.config.targetDir,
+          this.config.getWorkspaceContext()?.getDirectories() || [
+            this.config.getTargetDir(),
           ];
         const isWithinWorkspace = workspaceDirectories.some((dir: string) =>
           searchDirAbsolute.startsWith(path.resolve(dir)),

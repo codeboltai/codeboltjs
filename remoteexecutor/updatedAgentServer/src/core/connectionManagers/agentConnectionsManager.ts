@@ -200,7 +200,7 @@ export class AgentConnectionsManager {
     const agent = this.agents.get(agentId);
 
     if (!agent) {
-      const started = await this.childAgentProcessManager.startAgent(agentId, applicationId);
+      const started = await this.childAgentProcessManager.startAgent(agentId, applicationId, agentId);
 
       if (!started) {
         logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Failed to start agent ${agentId}`));

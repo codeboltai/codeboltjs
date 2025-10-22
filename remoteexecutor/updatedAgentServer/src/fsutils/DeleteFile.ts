@@ -27,8 +27,8 @@ interface DeleteFilePayload {
   stateEvent: NotificationState;
 }
 
-export class DeleteFileService {
-  private static instance: DeleteFileService;
+export class DeleteFile {
+  private static instance: DeleteFile;
 
   private connectionManager = ConnectionManager.getInstance();
 
@@ -38,12 +38,12 @@ export class DeleteFileService {
 
   private sendMessageToTui = new SendMessageToTui();
 
-  static getInstance(): DeleteFileService {
-    if (!DeleteFileService.instance) {
-      DeleteFileService.instance = new DeleteFileService();
+  static getInstance(): DeleteFile {
+    if (!DeleteFile.instance) {
+      DeleteFile.instance = new DeleteFile();
     }
 
-    return DeleteFileService.instance;
+    return DeleteFile.instance;
   }
 
   async performDelete(
@@ -144,7 +144,7 @@ export class DeleteFileService {
       logger.error(
         formatLogMessage(
           "error",
-          "DeleteFileService",
+          "DeleteFile",
           `Failed to delete file ${filePath}: ${message}`
         )
       );

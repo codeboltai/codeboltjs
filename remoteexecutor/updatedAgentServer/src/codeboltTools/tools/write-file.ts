@@ -76,18 +76,21 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       return false;
     }
 
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return false;
+    }
+
     // Read current content if file exists
     let originalContent = '';
     try {
-      originalContent = await this.config
-        .getFileSystemService()
-        .readTextFile(this.params.file_path);
-    } catch (err) {
-      if (!isNodeError(err) || err.code !== 'ENOENT') {
-        // If file exists but couldn't be read, we can't show a diff for confirmation.
-        return false;
+      const readResult = await fileServices.readFile(this.params.file_path);
+      if (readResult.success && readResult.content) {
+        originalContent = readResult.content;
       }
-      // File doesn't exist, originalContent remains empty
+    } catch (err) {
+      // If file exists but couldn't be read, we can't show a diff for confirmation.
+      return false;
     }
 
     const relativePath = makeRelative(
@@ -123,66 +126,58 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(_abortSignal: AbortSignal): Promise<ToolResult> {
-    const { file_path, content, ai_proposed_content, modified_by_user } =
-      this.params;
-
-    let originalContent = '';
-    let fileExists = false;
+    const { file_path, content, ai_proposed_content, modified_by_user } = this.params;
+    
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return {
+        llmContent: 'Error: FileServices not available',
+        returnDisplay: 'Error: FileServices not available',
+        error: {
+          message: 'FileServices not available',
+          type: 'file_write_failure' as ToolErrorType,
+        },
+      };
+    }
 
     try {
-      originalContent = await this.config
-        .getFileSystemService()
-        .readTextFile(file_path);
-      fileExists = true;
-    } catch (err) {
-      if (isNodeError(err) && err.code === 'ENOENT') {
-        fileExists = false;
-      } else {
-        const errorMsg = `Error checking existing file '${file_path}': ${getErrorMessage(err)}`;
+      const result = await fileServices.writeFile(file_path, content, {
+        createDirectories: true,
+      });
+
+      if (!result.success) {
+        let errorType: ToolErrorType = 'file_write_failure' as ToolErrorType;
+        if (result.error?.includes('permission')) {
+          errorType = 'permission_denied' as ToolErrorType;
+        } else if (result.error?.includes('space')) {
+          errorType = 'no_space_left' as ToolErrorType;
+        } else if (result.error?.includes('directory')) {
+          errorType = 'target_is_directory' as ToolErrorType;
+        }
+
         return {
-          llmContent: errorMsg,
-          returnDisplay: errorMsg,
+          llmContent: `Error writing file: ${result.error}`,
+          returnDisplay: `Error writing file: ${result.error}`,
           error: {
-            message: errorMsg,
-            type: 'file_write_failure' as ToolErrorType,
+            message: result.error || 'Unknown error',
+            type: errorType,
           },
         };
       }
-    }
 
-    const isNewFile = !fileExists;
-
-    try {
-      const dirName = path.dirname(file_path);
-      if (!fs.existsSync(dirName)) {
-        fs.mkdirSync(dirName, { recursive: true });
-      }
-
-      await this.config
-        .getFileSystemService()
-        .writeTextFile(file_path, content);
-
-      // Generate diff for display result
+      // Generate diff for display result using FileServices result
       const fileName = path.basename(file_path);
-      const fileDiff = Diff.createPatch(
-        fileName,
-        originalContent,
-        content,
-        'Original',
-        'Written',
-        DEFAULT_DIFF_OPTIONS,
-      );
-
+      const fileDiff = result.diff || '';
+      const originalContent = result.originalContent || '';
+      const newContent = result.newContent || content;
+      
       const originallyProposedContent = ai_proposed_content || content;
-      const diffStat = getDiffStat(
-        fileName,
-        originalContent,
-        originallyProposedContent,
-        content,
-      );
+      const diffStat = result.isNewFile ? 
+        getDiffStat(fileName, '', originallyProposedContent, newContent) :
+        getDiffStat(fileName, originalContent, originallyProposedContent, newContent);
 
       const llmSuccessMessageParts = [
-        isNewFile
+        result.isNewFile
           ? `Successfully created and wrote to new file: ${file_path}.`
           : `Successfully overwrote file: ${file_path}.`,
       ];
@@ -196,7 +191,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         fileDiff,
         fileName,
         originalContent,
-        newContent: content,
+        newContent,
         diffStat,
       };
 
@@ -205,34 +200,13 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         returnDisplay: displayResult,
       };
     } catch (error) {
-      let errorMsg: string;
-      let errorType: ToolErrorType = 'file_write_failure' as ToolErrorType;
-
-      if (isNodeError(error)) {
-        errorMsg = `Error writing to file '${file_path}': ${error.message} (${error.code})`;
-
-        if (error.code === 'EACCES') {
-          errorMsg = `Permission denied writing to file: ${file_path} (${error.code})`;
-          errorType = 'permission_denied' as ToolErrorType;
-        } else if (error.code === 'ENOSPC') {
-          errorMsg = `No space left on device: ${file_path} (${error.code})`;
-          errorType = 'no_space_left' as ToolErrorType;
-        } else if (error.code === 'EISDIR') {
-          errorMsg = `Target is a directory, not a file: ${file_path} (${error.code})`;
-          errorType = 'target_is_directory' as ToolErrorType;
-        }
-      } else if (error instanceof Error) {
-        errorMsg = `Error writing to file: ${error.message}`;
-      } else {
-        errorMsg = `Error writing to file: ${String(error)}`;
-      }
-
+      const errorMsg = error instanceof Error ? error.message : String(error);
       return {
-        llmContent: errorMsg,
-        returnDisplay: errorMsg,
+        llmContent: `Error writing file: ${errorMsg}`,
+        returnDisplay: `Error writing file: ${errorMsg}`,
         error: {
           message: errorMsg,
-          type: errorType,
+          type: 'file_write_failure' as ToolErrorType,
         },
       };
     }

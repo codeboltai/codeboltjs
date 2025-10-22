@@ -79,13 +79,13 @@ export class StandaloneToolsFramework {
    */
   private initializeDefaultTools(): void {
     // Core file operations
-    this.registry.registerTool(new ReadFileTool());
+    this.registry.registerTool(new ReadFileTool(this.config));
     this.registry.registerTool(new WriteFileTool(this.config));
     this.registry.registerTool(new EditTool(this.config));
     this.registry.registerTool(new LSTool(this.config));
 
     // Advanced file operations
-    this.registry.registerTool(new ReadManyFilesTool());
+    this.registry.registerTool(new ReadManyFilesTool(this.config));
     this.registry.registerTool(new SmartEditTool());
 
     // Shell operations

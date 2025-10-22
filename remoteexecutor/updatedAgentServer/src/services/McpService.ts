@@ -1,4 +1,4 @@
-import { logger } from "@/utils/logger";
+import { logger } from "../utils/logger";
 import {CodeboltApplicationPath} from "./../config";
 import fs from 'fs';
 import path from 'path';
@@ -37,8 +37,9 @@ export class McpService {
             const configFile = fs.readFileSync(configPath, 'utf8');
             const config = JSON.parse(configFile);
             
-            // Return servers array or empty array if not found
-            return config.mcpServers || [];
+            // Return servers array or empty array if not found or not an array
+            const servers = config.mcpServers;
+            return Array.isArray(servers) ? servers : [];
         } catch (error) {
             logger.error('Error reading MCP server config:', error);
             // Return empty array in case of error

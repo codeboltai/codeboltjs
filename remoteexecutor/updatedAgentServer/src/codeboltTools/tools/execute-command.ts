@@ -41,38 +41,35 @@ class ExecuteCommandToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import terminalCliService to use existing logic
-            const { terminalCliService } = await import('../../cliLib/terminalService.cli');
+            // Import TerminalService to use new service
+            const { createTerminalService } = await import('../../services');
+            
+            const terminalService = createTerminalService({
+                targetDir: this.config.getTargetDir(),
+                debugMode: this.config.getDebugMode(),
+            });
 
-            // Create finalMessage object similar to mcpService.cli.ts
-            const finalMessage = {
-                command: this.params.command,
-                // Add other required properties that might be needed
-                threadId: 'codebolt-tools',
-                agentInstanceId: 'codebolt-tools',
-                agentId: 'codebolt-tools',
-                parentAgentInstanceId: 'codebolt-tools',
-                parentId: 'codebolt-tools'
-            };
+            const result = await terminalService.executeCommand(this.params.command, {
+                updateOutput,
+            });
 
-            // Use the exact same logic as mcpService.cli.ts
-            const result = await terminalCliService.executeCommand(finalMessage);
-
-            if (result && result[0] === false) {
-                // Success case
-                return {
-                    llmContent: result[1] || 'Command executed successfully',
-                    returnDisplay: result[1] || 'Command executed successfully'
-                };
-            } else {
+            if (result.error || (result.exitCode !== null && result.exitCode !== 0)) {
                 // Error case
+                const errorMessage = result.error?.message || 
+                    (result.exitCode !== null ? `Command exited with code ${result.exitCode}` : 'Unknown error');
                 return {
-                    llmContent: '',
-                    returnDisplay: '',
+                    llmContent: `Command failed: ${errorMessage}\nOutput: ${result.output}`,
+                    returnDisplay: `Error: ${errorMessage}`,
                     error: {
                         type: ToolErrorType.SHELL_EXECUTE_ERROR,
-                        message: result[1] || 'Command execution failed'
+                        message: errorMessage
                     }
+                };
+            } else {
+                // Success case
+                return {
+                    llmContent: result.output || 'Command executed successfully',
+                    returnDisplay: result.output || 'Command executed successfully'
                 };
             }
         } catch (error) {

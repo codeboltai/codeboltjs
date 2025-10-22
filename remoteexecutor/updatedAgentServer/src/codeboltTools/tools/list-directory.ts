@@ -2,7 +2,6 @@
  * List Directory Tool - Lists files and directories in a specified path
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ToolInvocation, ToolResult, ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
@@ -113,70 +112,57 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
   }
 
   async execute(_signal: AbortSignal): Promise<ToolResult> {
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return this.errorResult(
+        'Error: FileServices not available',
+        'FileServices not available',
+        'ls_execution_error' as ToolErrorType,
+      );
+    }
+
     try {
-      const stats = fs.statSync(this.params.path);
-      if (!stats) {
+      const result = await fileServices.listDirectory(this.params.path, {
+        ignore: this.params.ignore,
+        respectGitIgnore: this.params.respect_git_ignore,
+      });
+
+      if (!result.success) {
+        let errorType: ToolErrorType = 'ls_execution_error' as ToolErrorType;
+        if (result.error?.includes('not found')) {
+          errorType = 'file_not_found' as ToolErrorType;
+        } else if (result.error?.includes('directory')) {
+          errorType = 'path_is_not_a_directory' as ToolErrorType;
+        }
+
         return this.errorResult(
-          `Error: Directory not found or inaccessible: ${this.params.path}`,
-          `Directory not found or inaccessible.`,
-          'file_not_found' as ToolErrorType,
+          `Error listing directory: ${result.error}`,
+          result.error || 'Failed to list directory',
+          errorType,
         );
       }
-      if (!stats.isDirectory()) {
-        return this.errorResult(
-          `Error: Path is not a directory: ${this.params.path}`,
-          `Path is not a directory.`,
-          'path_is_not_a_directory' as ToolErrorType,
-        );
-      }
 
-      const files = fs.readdirSync(this.params.path);
-
-      const entries: FileEntry[] = [];
-
-      if (files.length === 0) {
+      if (!result.entries || result.entries.length === 0) {
         return {
           llmContent: `Directory ${this.params.path} is empty.`,
           returnDisplay: `Directory is empty.`,
         };
       }
 
-      for (const file of files) {
-        if (this.shouldIgnore(file, this.params.ignore)) {
-          continue;
-        }
-
-        const fullPath = path.join(this.params.path, file);
-
-        try {
-          const stats = fs.statSync(fullPath);
-          const isDir = stats.isDirectory();
-          entries.push({
-            name: file,
-            path: fullPath,
-            isDirectory: isDir,
-            size: isDir ? 0 : stats.size,
-            modifiedTime: stats.mtime,
-          });
-        } catch (error) {
-          console.error(`Error accessing ${fullPath}: ${error}`);
-        }
-      }
-
       // Sort entries (directories first, then alphabetically)
-      entries.sort((a, b) => {
+      const sortedEntries = result.entries.sort((a, b) => {
         if (a.isDirectory && !b.isDirectory) return -1;
         if (!a.isDirectory && b.isDirectory) return 1;
         return a.name.localeCompare(b.name);
       });
 
       // Create formatted content for LLM
-      const directoryContent = entries
+      const directoryContent = sortedEntries
         .map((entry) => `${entry.isDirectory ? '[DIR] ' : ''}${entry.name}`)
         .join('\n');
 
       const resultMessage = `Directory listing for ${this.params.path}:\n${directoryContent}`;
-      const displayMessage = `Listed ${entries.length} item(s).`;
+      const displayMessage = `Listed ${sortedEntries.length} item(s).`;
 
       return {
         llmContent: resultMessage,

@@ -4,15 +4,15 @@ import { getProviders } from "@arrowai/multillm";
 import fs from 'fs';
 import path from 'path';
 import { Model } from '@codebolt/types/apis/models';
-import { logger } from '@/utils/logger';
+import { logger } from '../utils/logger';
 
 export class LLMProviderService {
     private static instance: LLMProviderService | null = null;
     private llmProviders: Map<string, LLMProvider>;
+    private providersLoaded: boolean = false;
 
     private constructor() {
         this.llmProviders = new Map();
-        // this.getLLMProviders()
     }
 
     public static getInstance(): LLMProviderService {
@@ -27,6 +27,11 @@ export class LLMProviderService {
      * @returns Promise resolving to array of LLM providers
      */
     public async getLLMProviders(): Promise<LLMProvider[]> {
+        // If providers are already loaded, return them
+        if (this.providersLoaded) {
+            return Array.from(this.llmProviders.values());
+        }
+
         try {
             const configPath = path.join(getUserHomePath(), 'config.json');
             // Read and parse the JSON file
@@ -37,6 +42,9 @@ export class LLMProviderService {
 
             // If we have providers in the file, process them
             if (providers && Array.isArray(providers)) {
+                // Clear existing providers
+                this.llmProviders.clear();
+                
                 providers.forEach((provider) => {
                     logger.info("current provider is ",provider)
                     const key = provider.name.replace(/\s+/g, '').toLowerCase();
@@ -44,9 +52,16 @@ export class LLMProviderService {
                         this.llmProviders.set(key, provider);
                     }
                 });
+                
+                // Mark providers as loaded
+                this.providersLoaded = true;
+                
                 return Array.from(this.llmProviders.values());
             }
 
+            // Mark providers as loaded even if empty
+            this.providersLoaded = true;
+            
             // Return empty array if no providers found
             return [];
         } catch (error) {

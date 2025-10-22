@@ -10,7 +10,7 @@ import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
 import { AgentTypeEnum } from '../../types/cli';
 import { logger } from '../logger';
-import { getServerConfig } from '@/config';
+import { getServerConfig } from '../../config';
 
 /**
  * Agent API response interface

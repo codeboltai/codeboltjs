@@ -52,31 +52,54 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import fsService to use existing logic
-            const { fsService } = await import('../../cliLib/fsService.cli');
+            // Import SearchService to use new service
+            const { createSearchService } = await import('../../services');
+            
+            const searchService = createSearchService({
+                targetDir: this.config.getTargetDir(),
+                debugMode: this.config.getDebugMode(),
+            });
 
-            // Create finalMessage object similar to mcpService.cli.ts
-            const finalMessage = {
-                threadId: 'codebolt-tools',
-                agentInstanceId: 'codebolt-tools',
-                agentId: 'codebolt-tools',
-                parentAgentInstanceId: 'codebolt-tools',
-                parentId: 'codebolt-tools'
-            };
-
-            // Use the exact same logic as fsService
-            const result = await fsService.searchFiles(
+            const result = await searchService.searchFiles(
                 this.params.path,
-                finalMessage,
                 this.params.regex,
-                this.params.filePattern
+                {
+                    filePattern: this.params.filePattern,
+                    recursive: true,
+                    ignoreCase: true
+                }
             );
 
-            if (result && result[0] === false) {
+            if (result.success) {
                 // Success case
+                const matches = result.matches || [];
+                let content = '';
+                
+                if (matches.length === 0) {
+                    content = 'No matches found';
+                } else {
+                    // Group matches by file
+                    const matchesByFile = matches.reduce((acc, match) => {
+                        if (!acc[match.filePath]) {
+                            acc[match.filePath] = [];
+                        }
+                        acc[match.filePath].push(match);
+                        return acc;
+                    }, {} as Record<string, typeof matches>);
+
+                    content = `Found ${matches.length} match(es):\n\n`;
+                    for (const [filePath, fileMatches] of Object.entries(matchesByFile)) {
+                        content += `File: ${filePath}\n`;
+                        fileMatches.forEach(match => {
+                            content += `L${match.lineNumber}: ${match.line.trim()}\n`;
+                        });
+                        content += '\n';
+                    }
+                }
+                
                 return {
-                    llmContent: result[1] || 'File search completed successfully',
-                    returnDisplay: result[1] || 'File search completed successfully'
+                    llmContent: content,
+                    returnDisplay: `Found ${matches.length} match(es)`
                 };
             } else {
                 // Error case
@@ -85,7 +108,7 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
                     returnDisplay: '',
                     error: {
                         type: ToolErrorType.EXECUTION_FAILED,
-                        message: result[1] || 'File search failed'
+                        message: result.error || 'File search failed'
                     }
                 };
             }

@@ -182,57 +182,37 @@ class ShellToolInvocation extends BaseToolInvocation<ShellToolParams, ToolResult
     signal: AbortSignal,
     updateOutput?: (output: string) => void,
   ): Promise<ShellResult> {
-    return new Promise((resolve) => {
-      const isWindows = os.platform() === 'win32';
-      const shell = isWindows ? 'cmd.exe' : 'bash';
-      const shellArgs = isWindows ? ['/c', command] : ['-c', command];
-
-      const child = spawn(shell, shellArgs, {
-        cwd,
-        stdio: 'pipe',
-        windowsHide: true,
-      });
-
-      let output = '';
-      let error: Error | null = null;
-      let aborted = false;
-
-      const cleanup = () => {
-        if (signal.aborted && !aborted) {
-          aborted = true;
-          child.kill('SIGTERM');
-        }
-      };
-
-      signal.addEventListener('abort', cleanup, { once: true });
-
-      child.stdout?.on('data', (data) => {
-        const chunk = data.toString();
-        output += chunk;
-        updateOutput?.(output);
-      });
-
-      child.stderr?.on('data', (data) => {
-        const chunk = data.toString();
-        output += chunk;
-        updateOutput?.(output);
-      });
-
-      child.on('error', (err) => {
-        error = err;
-      });
-
-      child.on('close', (code, sig) => {
-        signal.removeEventListener('abort', cleanup);
-        resolve({
-          output,
-          error,
-          exitCode: code,
-          signal: sig,
-          aborted,
-        });
-      });
+    // Import TerminalService
+    const { createTerminalService } = await import('../../services');
+    
+    const terminalService = createTerminalService({
+      targetDir: this.config.getTargetDir(),
+      debugMode: this.config.getDebugMode(),
     });
+
+    try {
+      const result = await terminalService.executeCommand(command, {
+        directory: path.relative(this.config.getTargetDir(), cwd),
+        updateOutput,
+      });
+
+      // Convert CommandResult to ShellResult format
+      return {
+        output: result.output,
+        error: result.error,
+        exitCode: result.exitCode,
+        signal: result.signal,
+        aborted: result.aborted,
+      };
+    } catch (error) {
+      return {
+        output: '',
+        error: error instanceof Error ? error : new Error(String(error)),
+        exitCode: null,
+        signal: null,
+        aborted: false,
+      };
+    }
   }
 }
 

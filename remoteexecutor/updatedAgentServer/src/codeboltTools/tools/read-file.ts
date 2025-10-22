@@ -2,7 +2,6 @@
  * Read File Tool - Reads and returns the content of a specified file
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { makeRelative, shortenPath } from '../utils/paths';
 import type {
@@ -13,7 +12,7 @@ import type {
 } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
-import { getErrorMessage, isNodeError } from '../utils/errors';
+import type { ConfigManager } from '../config';
 
 /**
  * Parameters for the ReadFile tool
@@ -40,6 +39,7 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   constructor(
+    private readonly config: ConfigManager,
     params: ReadFileToolParams,
   ) {
     super(params);
@@ -58,55 +58,57 @@ class ReadFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(): Promise<ToolResult> {
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return {
+        llmContent: 'Error: FileServices not available',
+        returnDisplay: 'Error: FileServices not available',
+        error: {
+          message: 'FileServices not available',
+          type: 'unknown' as ToolErrorType,
+        },
+      };
+    }
+
     try {
-      let content = await fs.promises.readFile(this.params.absolute_path, 'utf8');
+      const result = await fileServices.readFile(this.params.absolute_path, {
+        offset: this.params.offset,
+        limit: this.params.limit,
+      });
 
-      let isTruncated = false;
-      let linesShown: [number, number] | undefined;
-      let originalLineCount: number | undefined;
-
-      // Handle offset and limit
-      if (this.params.offset !== undefined || this.params.limit !== undefined) {
-        const lines = content.split('\n');
-        originalLineCount = lines.length;
-
-        const startLine = this.params.offset || 0;
-        const endLine = this.params.limit
-          ? Math.min(startLine + this.params.limit, lines.length)
-          : lines.length;
-
-        if (startLine >= lines.length) {
-          return {
-            llmContent: `Error: Offset ${startLine} is beyond the file length (${lines.length} lines)`,
-            returnDisplay: `Error: Offset out of range`,
-            error: {
-              message: `Offset ${startLine} is beyond file length`,
-              type: 'invalid_tool_params' as ToolErrorType,
-            },
-          };
+      if (!result.success) {
+        let errorType: ToolErrorType = 'unknown' as ToolErrorType;
+        if (result.error?.includes('not found')) {
+          errorType = 'file_not_found' as ToolErrorType;
+        } else if (result.error?.includes('permission')) {
+          errorType = 'permission_denied' as ToolErrorType;
         }
 
-        const selectedLines = lines.slice(startLine, endLine);
-        content = selectedLines.join('\n');
-        linesShown = [startLine + 1, endLine]; // 1-based for display
-        isTruncated = endLine < lines.length;
+        return {
+          llmContent: `Error reading file: ${result.error}`,
+          returnDisplay: `Error reading file: ${result.error}`,
+          error: {
+            message: result.error || 'Unknown error',
+            type: errorType,
+          },
+        };
       }
 
       let llmContent: string;
-      if (isTruncated && linesShown && originalLineCount) {
-        const [start, end] = linesShown;
+      if (result.isTruncated && result.linesShown && result.originalLineCount) {
+        const [start, end] = result.linesShown;
         const nextOffset = this.params.offset
           ? this.params.offset + end - start + 1
           : end;
         llmContent = `
 IMPORTANT: The file content has been truncated.
-Status: Showing lines ${start}-${end} of ${originalLineCount} total lines.
+Status: Showing lines ${start}-${end} of ${result.originalLineCount} total lines.
 Action: To read more of the file, you can use the 'offset' and 'limit' parameters in a subsequent 'read_file' call. For example, to read the next section of the file, use offset: ${nextOffset}.
 
 --- FILE CONTENT (truncated) ---
-${content}`;
+${result.content}`;
       } else {
-        llmContent = content;
+        llmContent = result.content || '';
       }
 
       return {
@@ -114,23 +116,13 @@ ${content}`;
         returnDisplay: `Successfully read ${shortenPath(this.params.absolute_path)}`,
       };
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      let errorType: ToolErrorType = 'unknown' as ToolErrorType;
-
-      if (isNodeError(error)) {
-        if (error.code === 'ENOENT') {
-          errorType = 'file_not_found' as ToolErrorType;
-        } else if (error.code === 'EACCES') {
-          errorType = 'permission_denied' as ToolErrorType;
-        }
-      }
-
+      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         llmContent: `Error reading file: ${errorMessage}`,
         returnDisplay: `Error reading file: ${errorMessage}`,
         error: {
           message: errorMessage,
-          type: errorType,
+          type: 'unknown' as ToolErrorType,
         },
       };
     }
@@ -146,7 +138,7 @@ export class ReadFileTool extends BaseDeclarativeTool<
 > {
   static readonly Name: string = 'read_file';
 
-  constructor() {
+  constructor(private readonly config: ConfigManager) {
     super(
       ReadFileTool.Name,
       'ReadFile',
@@ -202,6 +194,6 @@ export class ReadFileTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: ReadFileToolParams,
   ): ToolInvocation<ReadFileToolParams, ToolResult> {
-    return new ReadFileToolInvocation(params);
+    return new ReadFileToolInvocation(this.config, params);
   }
 }

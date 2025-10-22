@@ -10,10 +10,10 @@ import { log } from 'console';
 export class ModelService {
   private static instance: ModelService | null = null;
   private Models: Map<string, Model>;
+  private modelsLoaded: boolean = false;
 
   private constructor() {
     this.Models = new Map();
-    this.loadModels(); // Load models when the service is initialized
   }
 
   public static getInstance(): ModelService {
@@ -28,6 +28,10 @@ export class ModelService {
    * @returns Promise resolving to array of LLM providers
    */
   public async loadModels(): Promise<Model[]> {
+    // If models are already loaded, return them
+    if (this.modelsLoaded) {
+      return Array.from(this.Models.values());
+    }
 
     try {
       const configPath = path.join(CodeboltApplicationPath(), 'models.json');
@@ -43,6 +47,9 @@ export class ModelService {
           // Process and store the models
           let models: Model[] = [];
           if (modelsFromApi && Array.isArray(modelsFromApi)) {
+            // Clear existing models
+            this.Models.clear();
+            
             modelsFromApi.forEach((model: any) => {
               // Transform API response to Model format
               const transformedModel: Model = {
@@ -75,11 +82,18 @@ export class ModelService {
           // Write to models.json
           fs.writeFileSync(configPath, JSON.stringify(models, null, 2));
           logger.info('Models written to models.json');
-             return models;
+          
+          // Mark models as loaded
+          this.modelsLoaded = true;
+          
+          return models;
         } catch (error) {
           logger.error('Error fetching models from API:', error);
         }
 
+        // Mark models as loaded even if empty
+        this.modelsLoaded = true;
+        
         // Return empty array if no models found
         return [];
       }
@@ -88,18 +102,27 @@ export class ModelService {
       const configFile = fs.readFileSync(configPath, 'utf8');
       const models = JSON.parse(configFile);
 
+      // Clear existing models
+      this.Models.clear();
+      
       // If we have models in the file, process them
       if (models && Array.isArray(models)) {
         models.forEach((model: Model) => {
           this.Models.set(model.llm_id, model);
         });
+        
+        // Mark models as loaded
+        this.modelsLoaded = true;
+        
         return Array.from(this.Models.values());
       }
 
+      // Mark models as loaded even if empty
+      this.modelsLoaded = true;
+      
       // Return empty array if no providers found
       return [];
     } catch (error) {
-      
       // Return empty array in case of error
       return [];
     }

@@ -67,7 +67,9 @@
     "axios": "^1.11.0",
     "cbvectordb": "^1.0.0",
     "commander": "^12.1.0",
+    "diff": "^7.0.0",
     "express": "^5.1.0",
+    "glob": "^11.0.0",
     "js-yaml": "^4.1.0",
     "react-devtools-core": "^7.0.0",
     "simple-git": "^3.28.0",
@@ -78,6 +80,7 @@
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
     "@types/axios": "^0.9.36",
+    "@types/diff": "^7.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.7.0",
@@ -92,6 +95,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.2"
   }
 }

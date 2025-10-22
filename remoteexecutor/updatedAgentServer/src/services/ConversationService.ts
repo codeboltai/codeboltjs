@@ -28,9 +28,14 @@ export class ConversationService {
 
   public upsertConversation(conversation: Conversation): Conversation {
     const now = new Date().toISOString();
+    
+    // Get existing conversation if it exists
+    const existing = this.conversations.get(conversation.id);
+    
     const sanitized: Conversation = {
       ...conversation,
-      createdAt: conversation.createdAt || now,
+      // Preserve createdAt from existing conversation or use now if new
+      createdAt: existing?.createdAt || conversation.createdAt || now,
       updatedAt: now,
       messages: Array.isArray(conversation.messages) ? conversation.messages : [],
     };
@@ -64,12 +69,15 @@ export class ConversationService {
 
       for (const entry of list) {
         if (entry && entry.id) {
-          this.conversations.set(entry.id, {
+          // Preserve all original properties and only add missing timestamps
+          const conversationWithTimestamps: Conversation = {
             ...entry,
             createdAt: entry.createdAt || new Date().toISOString(),
             updatedAt: entry.updatedAt || new Date().toISOString(),
             messages: Array.isArray(entry.messages) ? entry.messages : [],
-          });
+          };
+          
+          this.conversations.set(entry.id, conversationWithTimestamps);
         }
       }
     } catch (error) {

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
-import { DeleteFileService } from "../services/deleteFileService.js";
+import { DeleteFile } from "../fsutils/DeleteFile.js";
 import { logger } from "../utils/logger";
 
 import type {
@@ -37,7 +37,7 @@ export class DeleteFileHandler {
 
   private sendMessageToRemote = new SendMessageToRemote();
 
-  private deleteFileService = DeleteFileService.getInstance();
+  private deleteFileService = DeleteFile.getInstance();
 
   private pendingRequests = new Map<string, PendingRequest>();
 

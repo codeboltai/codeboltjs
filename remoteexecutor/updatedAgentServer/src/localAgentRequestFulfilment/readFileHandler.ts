@@ -5,7 +5,10 @@ import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../utils/logger";
-import { ReadFileService } from "../services/readFileService";
+// Import FileServices instead of the missing ReadFileService
+import { FileServices, createFileServices } from "../services/FileServices";
+import { DefaultFileSystem } from "../fsutils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../fsutils/DefaultWorkspaceContext";
 
 import type { FileReadConfirmation, FileReadSuccess } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
@@ -33,10 +36,21 @@ export interface ReadFileConfirmation {
 export class ReadFileHandler {
   private connectionManager = ConnectionManager.getInstance();
   private sendMessageToRemote = new SendMessageToRemote();
-  private readFileService = ReadFileService.getInstance();
+  // Use FileServices instead of the missing ReadFileService
+  private fileServices: FileServices;
 
   private pendingRequests = new Map<string, PendingRequest>();
   private grantedPermissions = new Set<string>();
+
+  constructor() {
+    // Initialize FileServices with default configuration
+    const config = {
+      targetDir: process.cwd(), // Use current working directory as target
+      workspaceContext: new DefaultWorkspaceContext(),
+      fileSystemService: new DefaultFileSystem(),
+    };
+    this.fileServices = createFileServices(config);
+  }
 
   async handleReadFile(
     agent: ClientConnection,
@@ -47,18 +61,17 @@ export class ReadFileHandler {
     const targetClient = this.resolveParent(agent);
     logger.info("Handling ReadFile for ", targetClient)
 
-    // if (!targetClient) {
-      await this.readFileService.performRead(agent, requestId, filePath);
+     if (!targetClient) {
+      // Use FileServices to read the file instead of the missing performRead method
+      const result = await this.fileServices.readFile(filePath);
+      await this.sendReadResponse(agent, requestId, filePath, result);
       return;
-    // }
+    }
 
     if (this.hasPermission(agent.id, filePath)) {
-      await this.readFileService.performRead(
-        agent,
-        requestId,
-        filePath,
-        targetClient
-      );
+      // Use FileServices to read the file instead of the missing performRead method
+      const result = await this.fileServices.readFile(filePath);
+      await this.sendReadResponse(agent, requestId, filePath, result);
       return;
     }
 
@@ -68,7 +81,12 @@ export class ReadFileHandler {
       request: event,
       targetClient,
     });
-    this.requestApproval(agent, targetClient, messageId, filePath, requestId);
+    if (targetClient) {
+      this.requestApproval(agent, targetClient, messageId, filePath, requestId);
+    } else {
+      // Handle the case where targetClient is undefined
+      logger.warn("No target client found for approval request");
+    }
   }
 
   async handleConfirmation(message: ReadFileConfirmation): Promise<void> {
@@ -102,12 +120,12 @@ export class ReadFileHandler {
     }
 
     this.grantPermission(agent.id, filePath);
-    await this.readFileService.performRead(
-      agent,
-      requestId,
-      filePath,
-      targetClient
-    );
+    // Use FileServices to read the file instead of the missing performRead method
+    this.fileServices.readFile(filePath).then(result => {
+      void this.sendReadResponse(agent, requestId, filePath, result);
+    }).catch(error => {
+      logger.error("Error reading file:", error);
+    });
   }
 
   handleRemoteNotification(message: {
@@ -143,12 +161,100 @@ export class ReadFileHandler {
     }
 
     this.grantPermission(agent.id, filePath);
-    void this.readFileService.performRead(
-      agent,
-      requestId,
-      filePath,
-      targetClient
-    );
+    // Use FileServices to read the file instead of the missing performRead method
+    this.fileServices.readFile(filePath).then(result => {
+      void this.sendReadResponse(agent, requestId, filePath, result);
+    }).catch(error => {
+      logger.error("Error reading file:", error);
+    });
+  }
+
+  // New method to send read response
+  private async sendReadResponse(
+    agent: ClientConnection,
+    requestId: string,
+    filePath: string,
+    result: any
+  ): Promise<void> {
+    if (result.success) {
+      // Send success response
+      const response = {
+        type: "readFileResponse",
+        requestId,
+        success: true,
+        content: result.content,
+        isTruncated: result.isTruncated,
+        linesShown: result.linesShown,
+        originalLineCount: result.originalLineCount,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      const notification: FileReadSuccess = {
+        type: "message" as const,
+        actionType: "READFILE" as const,
+        templateType: "READFILE" as const,
+        sender: "agent" as const,
+        messageId: requestId,
+        threadId: requestId,
+        timestamp: Date.now().toString(),
+        agentId: agent.id,
+        agentInstanceId: agent.instanceId,
+        payload: {
+          type: "file" as const,
+          path: filePath,
+          content: result.content || "",
+          stateEvent: "FILE_READ" as const,
+        },
+      };
+
+      const appManager = this.connectionManager.getAppConnectionManager();
+      const tuiManager = this.connectionManager.getTuiConnectionManager();
+      appManager.broadcast(notification);
+      tuiManager.broadcast(notification);
+      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+    } else {
+      // Send error response
+      const response = {
+        type: "readFileResponse",
+        requestId,
+        success: false,
+        message: result.error || "Error reading file",
+        error: result.error || "Error reading file",
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      const notification: FileReadSuccess = {
+        type: "message" as const,
+        actionType: "READFILE" as const,
+        templateType: "READFILE" as const,
+        sender: "agent" as const,
+        messageId: requestId,
+        threadId: requestId,
+        timestamp: Date.now().toString(),
+        agentId: agent.id,
+        agentInstanceId: agent.instanceId,
+        payload: {
+          type: "file" as const,
+          path: filePath,
+          content: result.error || "Error",
+          stateEvent: "FILE_READ" as const,
+        },
+      };
+
+      const appManager = this.connectionManager.getAppConnectionManager();
+      const tuiManager = this.connectionManager.getTuiConnectionManager();
+      appManager.broadcast(notification);
+      tuiManager.broadcast(notification);
+      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+    }
   }
 
   private resolveParent(
@@ -173,7 +279,6 @@ export class ReadFileHandler {
 
     return undefined;
   }
-
 
   private requestApproval(
     agent: ClientConnection,

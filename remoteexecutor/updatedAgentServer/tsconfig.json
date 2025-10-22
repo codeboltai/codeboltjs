@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2021",
     "module": "ESNext",
     "moduleResolution": "node",
     "declaration": true,
@@ -12,21 +12,20 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2021", "DOM"],
+    "types": ["node", "jest"],
     "paths": {
       "@codebolt/codeboltjs": ["../../../packages/codeboltjs/dist"],
       "@codebolt/types/*": ["../../../common/types/dist/*"],
       "@codebolt/types/sdk": ["../../../common/types/dist/sdk-types"],
       "@/*": ["./*"]
-    },
-    "types": ["node", "jest"]
+    }
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "dist"
   ]
 }

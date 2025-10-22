@@ -98,6 +98,21 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
     params: EditToolParams,
     _abortSignal: AbortSignal,
   ): Promise<CalculatedEdit> {
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return {
+        currentContent: null,
+        newContent: '',
+        occurrences: 0,
+        isNewFile: false,
+        error: {
+          display: 'FileServices not available',
+          raw: 'FileServices not available',
+          type: 'edit_preparation_failure' as ToolErrorType,
+        },
+      };
+    }
+
     const expectedReplacements = params.expected_replacements ?? 1;
     let currentContent: string | null = null;
     let fileExists = false;
@@ -108,15 +123,12 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
       | undefined = undefined;
 
     try {
-      currentContent = await this.config
-        .getFileSystemService()
-        .readTextFile(params.file_path);
-      currentContent = currentContent.replace(/\r\n/g, '\n');
-      fileExists = true;
-    } catch (err: unknown) {
-      if (!isNodeError(err) || err.code !== 'ENOENT') {
-        throw err;
+      const readResult = await fileServices.readFile(params.file_path);
+      if (readResult.success && readResult.content) {
+        currentContent = readResult.content.replace(/\r\n/g, '\n');
+        fileExists = true;
       }
+    } catch (err: unknown) {
       fileExists = false;
     }
 
@@ -270,6 +282,18 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
   }
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
+    const fileServices = this.config.getFileServices();
+    if (!fileServices) {
+      return {
+        llmContent: 'Error: FileServices not available',
+        returnDisplay: 'Error: FileServices not available',
+        error: {
+          message: 'FileServices not available',
+          type: 'edit_preparation_failure' as ToolErrorType,
+        },
+      };
+    }
+
     let editData: CalculatedEdit;
     try {
       editData = await this.calculateEdit(this.params, signal);
@@ -297,29 +321,38 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
     }
 
     try {
-      const dirName = path.dirname(this.params.file_path);
-      if (!fs.existsSync(dirName)) {
-        fs.mkdirSync(dirName, { recursive: true });
-      }
+      const result = await fileServices.replaceInFile(
+        this.params.file_path,
+        this.params.old_string,
+        this.params.new_string,
+        this.params.expected_replacements,
+      );
 
-      await this.config
-        .getFileSystemService()
-        .writeTextFile(this.params.file_path, editData.newContent);
+      if (!result.success) {
+        return {
+          llmContent: `Error editing file: ${result.error}`,
+          returnDisplay: `Error editing file: ${result.error}`,
+          error: {
+            message: result.error || 'Unknown error',
+            type: 'edit_preparation_failure' as ToolErrorType,
+          },
+        };
+      }
 
       const fileName = path.basename(this.params.file_path);
       const originallyProposedContent =
         this.params.ai_proposed_content || editData.newContent;
       const diffStat = getDiffStat(
         fileName,
-        editData.currentContent ?? '',
+        result.originalContent ?? '',
         originallyProposedContent,
-        editData.newContent,
+        result.newContent || editData.newContent,
       );
 
-      const fileDiff = Diff.createPatch(
+      const fileDiff = result.diff || Diff.createPatch(
         fileName,
-        editData.currentContent ?? '',
-        editData.newContent,
+        result.originalContent ?? '',
+        result.newContent || editData.newContent,
         'Current',
         'Proposed',
         DEFAULT_DIFF_OPTIONS,
@@ -328,15 +361,15 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
       const displayResult = {
         fileDiff,
         fileName,
-        originalContent: editData.currentContent,
-        newContent: editData.newContent,
+        originalContent: result.originalContent,
+        newContent: result.newContent || editData.newContent,
         diffStat,
       };
 
       const llmSuccessMessageParts = [
-        editData.isNewFile
+        result.isNewFile
           ? `Created new file: ${this.params.file_path} with provided content.`
-          : `Successfully modified file: ${this.params.file_path} (${editData.occurrences} replacements).`,
+          : `Successfully modified file: ${this.params.file_path} (${result.replacements || editData.occurrences} replacements).`,
       ];
       if (this.params.modified_by_user) {
         llmSuccessMessageParts.push(
