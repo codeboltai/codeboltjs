@@ -20,6 +20,7 @@ import { makeRelative, shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from '../utils/diff';
 import type { ConfigManager } from '../config';
+import { executeWriteFile, type WriteFileParams } from '../../utils/fileSystem/WriteFile';
 
 /**
  * Parameters for the WriteFile tool
@@ -123,102 +124,93 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   }
 
   async execute(_abortSignal: AbortSignal): Promise<ToolResult> {
-    const { file_path, content, ai_proposed_content, modified_by_user } =
-      this.params;
-
-    let originalContent = '';
-    let fileExists = false;
-
     try {
-      originalContent = await this.config
-        .getFileSystemService()
-        .readTextFile(file_path);
-      fileExists = true;
-    } catch (err) {
-      if (isNodeError(err) && err.code === 'ENOENT') {
-        fileExists = false;
-      } else {
-        const errorMsg = `Error checking existing file '${file_path}': ${getErrorMessage(err)}`;
+      // Convert tool params to utility params
+      const utilParams: WriteFileParams = {
+        file_path: this.params.file_path,
+        content: this.params.content,
+        modified_by_user: this.params.modified_by_user,
+        ai_proposed_content: this.params.ai_proposed_content
+      };
+
+      // Use the utility function
+      const result = await executeWriteFile(utilParams, () => this.config.getFileSystemService());
+
+      // Handle errors from utility
+      if (result.error) {
         return {
-          llmContent: errorMsg,
-          returnDisplay: errorMsg,
+          llmContent: `Error writing to file: ${result.error.message}`,
+          returnDisplay: `Error writing to file: ${result.error.message}`,
           error: {
-            message: errorMsg,
-            type: 'file_write_failure' as ToolErrorType,
+            message: result.error.message,
+            type: result.error.type as ToolErrorType,
           },
         };
       }
-    }
 
-    const isNewFile = !fileExists;
-
-    try {
-      const dirName = path.dirname(file_path);
-      if (!fs.existsSync(dirName)) {
-        fs.mkdirSync(dirName, { recursive: true });
-      }
-
-      await this.config
-        .getFileSystemService()
-        .writeTextFile(file_path, content);
-
-      // Generate diff for display result
-      const fileName = path.basename(file_path);
-      const fileDiff = Diff.createPatch(
-        fileName,
-        originalContent,
-        content,
-        'Original',
-        'Written',
-        DEFAULT_DIFF_OPTIONS,
-      );
-
-      const originallyProposedContent = ai_proposed_content || content;
-      const diffStat = getDiffStat(
-        fileName,
-        originalContent,
-        originallyProposedContent,
-        content,
-      );
-
-      const llmSuccessMessageParts = [
-        isNewFile
-          ? `Successfully created and wrote to new file: ${file_path}.`
-          : `Successfully overwrote file: ${file_path}.`,
-      ];
-      if (modified_by_user) {
-        llmSuccessMessageParts.push(
-          `User modified the \`content\` to be: ${content}`,
+      // Handle successful result from utility
+      if (result.success && result.newContent !== undefined) {
+        const fileName = path.basename(this.params.file_path);
+        const fileDiff = result.diff || '';
+        
+        const originallyProposedContent = this.params.ai_proposed_content || this.params.content;
+        const diffStat = getDiffStat(
+          fileName,
+          result.originalContent || '',
+          originallyProposedContent,
+          result.newContent,
         );
+
+        const llmSuccessMessageParts = [
+          result.isNewFile
+            ? `Successfully created and wrote to new file: ${this.params.file_path}.`
+            : `Successfully overwrote file: ${this.params.file_path}.`,
+        ];
+        if (this.params.modified_by_user) {
+          llmSuccessMessageParts.push(
+            `User modified the \`content\` to be: ${this.params.content}`,
+          );
+        }
+
+        const displayResult = {
+          fileDiff,
+          fileName,
+          originalContent: result.originalContent ?? null,
+          newContent: result.newContent,
+          diffStat,
+        };
+
+        return {
+          llmContent: llmSuccessMessageParts.join(' '),
+          returnDisplay: displayResult,
+        };
       }
 
-      const displayResult = {
-        fileDiff,
-        fileName,
-        originalContent,
-        newContent: content,
-        diffStat,
-      };
-
+      // Fallback error case
+      const errorMsg = 'Unknown error occurred during file write operation';
       return {
-        llmContent: llmSuccessMessageParts.join(' '),
-        returnDisplay: displayResult,
+        llmContent: errorMsg,
+        returnDisplay: errorMsg,
+        error: {
+          message: errorMsg,
+          type: 'file_write_failure' as ToolErrorType,
+        },
       };
     } catch (error) {
       let errorMsg: string;
       let errorType: ToolErrorType = 'file_write_failure' as ToolErrorType;
 
       if (isNodeError(error)) {
-        errorMsg = `Error writing to file '${file_path}': ${error.message} (${error.code})`;
+        errorMsg = `Error writing to file '${this.params.file_path}': ${error.message} (${error.code})`;
 
         if (error.code === 'EACCES') {
-          errorMsg = `Permission denied writing to file: ${file_path} (${error.code})`;
+          errorMsg = `Permission denied writing to file: ${this.params.file_path} (${error.code})`;
           errorType = 'permission_denied' as ToolErrorType;
         } else if (error.code === 'ENOSPC') {
-          errorMsg = `No space left on device: ${file_path} (${error.code})`;
+          errorMsg = `No space left on device: ${this.params.file_path} (${error.code})`;
           errorType = 'no_space_left' as ToolErrorType;
         } else if (error.code === 'EISDIR') {
-          errorMsg = `Target is a directory, not a file: ${file_path} (${error.code})`;
+          errorMsg = `Target is a directory, not a file: ${this.params.file_path} (${error.code})`;
           errorType = 'target_is_directory' as ToolErrorType;
         }
       } else if (error instanceof Error) {

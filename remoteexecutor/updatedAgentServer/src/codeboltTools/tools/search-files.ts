@@ -10,6 +10,7 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
+import { executeSearchFiles, type SearchFilesParams, type SearchFilesResult } from '../../utils/search/SearchFiles';
 
 /**
  * Parameters for the SearchFiles tool
@@ -52,50 +53,76 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import fsService to use existing logic
-            const { fsService } = await import('../../cliLib/fsService.cli');
-
-            // Create finalMessage object similar to mcpService.cli.ts
-            const finalMessage = {
-                threadId: 'codebolt-tools',
-                agentInstanceId: 'codebolt-tools',
-                agentId: 'codebolt-tools',
-                parentAgentInstanceId: 'codebolt-tools',
-                parentId: 'codebolt-tools'
+            // Convert tool params to utility params
+            const utilParams: SearchFilesParams = {
+                path: this.params.path,
+                regex: this.params.regex,
+                filePattern: this.params.filePattern
             };
 
-            // Use the exact same logic as fsService
-            const result = await fsService.searchFiles(
-                this.params.path,
-                finalMessage,
-                this.params.regex,
-                this.params.filePattern
+            // Use the utility function
+            const result: SearchFilesResult = await executeSearchFiles(
+                utilParams,
+                this.config.getTargetDir(),
+                this.config.getWorkspaceContext(),
+                signal
             );
 
-            if (result && result[0] === false) {
-                // Success case
-                return {
-                    llmContent: result[1] || 'File search completed successfully',
-                    returnDisplay: result[1] || 'File search completed successfully'
-                };
-            } else {
-                // Error case
+            // Handle errors from utility
+            if (result.error) {
                 return {
                     llmContent: '',
                     returnDisplay: '',
                     error: {
                         type: ToolErrorType.EXECUTION_FAILED,
-                        message: result[1] || 'File search failed'
+                        message: result.error.message
                     }
                 };
             }
+
+            // Handle successful result from utility
+            const matches = result.matches || [];
+            
+            if (matches.length === 0) {
+                return {
+                    llmContent: 'No matches found',
+                    returnDisplay: 'No matches found'
+                };
+            }
+
+            // Format the results similar to the original implementation
+            let content = `Found ${matches.length} match${matches.length === 1 ? '' : 'es'}:\n\n`;
+            
+            // Group matches by file
+            const matchesByFile: Record<string, typeof matches> = {};
+            for (const match of matches) {
+                if (!matchesByFile[match.filePath]) {
+                    matchesByFile[match.filePath] = [];
+                }
+                matchesByFile[match.filePath].push(match);
+            }
+            
+            // Format each file's matches
+            for (const [filePath, fileMatches] of Object.entries(matchesByFile)) {
+                content += `File: ${filePath}\n`;
+                for (const match of fileMatches) {
+                    content += `  Line ${match.lineNumber}: ${match.line.trim()}\n`;
+                }
+                content += '\n';
+            }
+
+            return {
+                llmContent: content.trim(),
+                returnDisplay: `Found ${matches.length} match${matches.length === 1 ? '' : 'es'}`
+            };
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             return {
                 llmContent: '',
                 returnDisplay: '',
                 error: {
                     type: ToolErrorType.EXECUTION_FAILED,
-                    message: `Failed to search files: ${error.message || error}`
+                    message: `Failed to search files: ${errorMessage}`
                 }
             };
         }
@@ -144,7 +171,13 @@ export class SearchFilesTool extends BaseDeclarativeTool<
         if (!params.regex || params.regex.trim() === '') {
             return 'Parameter "regex" must be a non-empty string.';
         }
-        return null;
+        // Validate regex pattern
+        try {
+            new RegExp(params.regex);
+            return null;
+        } catch (e) {
+            return `Invalid regex pattern: ${e instanceof Error ? e.message : String(e)}`;
+        }
     }
 
     protected createInvocation(params: SearchFilesToolParams) {

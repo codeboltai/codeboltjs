@@ -9,6 +9,7 @@ import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import { makeRelative, shortenPath } from '../utils/paths';
 import type { ConfigManager } from '../config';
+import { executeListDirectory, type LSParams, type FileEntry } from '../../utils/fileSystem/ListDirectory';
 
 /**
  * Parameters for the LS tool
@@ -30,63 +31,12 @@ export interface LSToolParams {
   respect_git_ignore?: boolean;
 }
 
-/**
- * File entry returned by LS tool
- */
-export interface FileEntry {
-  /**
-   * Name of the file or directory
-   */
-  name: string;
-
-  /**
-   * Absolute path to the file or directory
-   */
-  path: string;
-
-  /**
-   * Whether this entry is a directory
-   */
-  isDirectory: boolean;
-
-  /**
-   * Size of the file in bytes (0 for directories)
-   */
-  size: number;
-
-  /**
-   * Last modified timestamp
-   */
-  modifiedTime: Date;
-}
-
 class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
   constructor(
     private readonly config: ConfigManager,
     params: LSToolParams,
   ) {
     super(params);
-  }
-
-  /**
-   * Checks if a filename matches any of the ignore patterns
-   */
-  private shouldIgnore(filename: string, patterns?: string[]): boolean {
-    if (!patterns || patterns.length === 0) {
-      return false;
-    }
-    for (const pattern of patterns) {
-      // Convert glob pattern to RegExp
-      const regexPattern = pattern
-        .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '.*')
-        .replace(/\?/g, '.');
-      const regex = new RegExp(`^${regexPattern}$`);
-      if (regex.test(filename)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   getDescription(): string {
@@ -114,61 +64,38 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
 
   async execute(_signal: AbortSignal): Promise<ToolResult> {
     try {
-      const stats = fs.statSync(this.params.path);
-      if (!stats) {
+      // Convert tool params to utility params
+      const utilParams: LSParams = {
+        path: this.params.path,
+        ignore: this.params.ignore,
+        respect_git_ignore: this.params.respect_git_ignore,
+      };
+
+      // Use the utility function
+      const result = executeListDirectory(
+        utilParams,
+        this.config.getTargetDir(),
+        this.config.getWorkspaceContext()
+      );
+
+      // Handle errors from utility
+      if (result.error) {
         return this.errorResult(
-          `Error: Directory not found or inaccessible: ${this.params.path}`,
-          `Directory not found or inaccessible.`,
-          'file_not_found' as ToolErrorType,
+          result.error.message,
+          'Failed to list directory.',
+          result.error.type as ToolErrorType,
         );
       }
-      if (!stats.isDirectory()) {
-        return this.errorResult(
-          `Error: Path is not a directory: ${this.params.path}`,
-          `Path is not a directory.`,
-          'path_is_not_a_directory' as ToolErrorType,
-        );
-      }
 
-      const files = fs.readdirSync(this.params.path);
+      // Handle successful result from utility
+      const entries = result.entries || [];
 
-      const entries: FileEntry[] = [];
-
-      if (files.length === 0) {
+      if (entries.length === 0) {
         return {
           llmContent: `Directory ${this.params.path} is empty.`,
           returnDisplay: `Directory is empty.`,
         };
       }
-
-      for (const file of files) {
-        if (this.shouldIgnore(file, this.params.ignore)) {
-          continue;
-        }
-
-        const fullPath = path.join(this.params.path, file);
-
-        try {
-          const stats = fs.statSync(fullPath);
-          const isDir = stats.isDirectory();
-          entries.push({
-            name: file,
-            path: fullPath,
-            isDirectory: isDir,
-            size: isDir ? 0 : stats.size,
-            modifiedTime: stats.mtime,
-          });
-        } catch (error) {
-          console.error(`Error accessing ${fullPath}: ${error}`);
-        }
-      }
-
-      // Sort entries (directories first, then alphabetically)
-      entries.sort((a, b) => {
-        if (a.isDirectory && !b.isDirectory) return -1;
-        if (!a.isDirectory && b.isDirectory) return 1;
-        return a.name.localeCompare(b.name);
-      });
 
       // Create formatted content for LLM
       const directoryContent = entries

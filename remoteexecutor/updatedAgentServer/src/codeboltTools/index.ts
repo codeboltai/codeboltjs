@@ -34,22 +34,19 @@ import {
   ReadFileTool,
   WriteFileTool,
   EditTool,
-  ShellTool,
+ 
   LSTool,
   ReadManyFilesTool,
   GrepTool,
   GlobTool,
   SmartEditTool,
   ExecuteCommandTool,
-  AskFollowupQuestionTool,
+
   AttemptCompletionTool,
-  ConfigureMcpTool,
-  CodebaseSearchTool,
-  SearchMcpToolTool,
-  ListCodeDefinitionNamesTool,
+
   SearchFilesTool,
   ListFilesTool,
-  BrowserActionTool,
+
   GitActionTool,
   WriteTodosTool,
   ExplainNextActionTool,
@@ -99,10 +96,7 @@ export class StandaloneToolsFramework {
     this.registry.registerTool(new ExecuteCommandTool(this.config));
     // this.registry.registerTool(new AskFollowupQuestionTool(this.config));
     this.registry.registerTool(new AttemptCompletionTool(this.config));
-    this.registry.registerTool(new ConfigureMcpTool(this.config));
-    this.registry.registerTool(new CodebaseSearchTool(this.config));
-    this.registry.registerTool(new SearchMcpToolTool(this.config));
-    this.registry.registerTool(new ListCodeDefinitionNamesTool(this.config));
+
     this.registry.registerTool(new SearchFilesTool(this.config));
     this.registry.registerTool(new ListFilesTool(this.config));
 

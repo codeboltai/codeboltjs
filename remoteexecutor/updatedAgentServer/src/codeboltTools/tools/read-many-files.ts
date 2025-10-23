@@ -1,7 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier:Apache-2.0
  */
 
 import type { ToolInvocation, ToolResult } from '../types';
@@ -14,6 +14,7 @@ import { glob, escape } from 'glob';
 type PartListUnion = string;
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
+import { executeReadManyFiles, type ReadManyFilesParams as UtilReadManyFilesParams, type ReadManyFilesResult } from '../../utils/fileSystem/ReadManyFiles';
 
 /**
  * Parameters for the ReadManyFilesTool.
@@ -62,77 +63,9 @@ export interface ReadManyFilesParams {
   };
 }
 
-/**
- * Result type for file processing operations
- */
-type FileProcessingResult =
-  | {
-    success: true;
-    filePath: string;
-    relativePathForDisplay: string;
-    content: string;
-    reason?: undefined;
-  }
-  | {
-    success: false;
-    filePath: string;
-    relativePathForDisplay: string;
-    content?: undefined;
-    reason: string;
-  };
-
-/**
- * Creates the default exclusion patterns including dynamic patterns.
- */
-function getDefaultExcludes(): string[] {
-  return [
-    'node_modules/**',
-    '.git/**',
-    'dist/**',
-    'build/**',
-    'coverage/**',
-    '*.log',
-    '*.tmp',
-    '.DS_Store',
-    'Thumbs.db',
-    '*.exe',
-    '*.bin',
-    '*.dll',
-    '*.so',
-    '*.dylib',
-    '*.zip',
-    '*.tar.gz',
-    '*.tar.bz2',
-    '*.rar',
-    '*.7z'
-  ];
-}
-
 const DEFAULT_OUTPUT_SEPARATOR_FORMAT = '--- {filePath} ---';
 const DEFAULT_OUTPUT_TERMINATOR = '\n--- End of content ---';
 const DEFAULT_ENCODING = 'utf-8';
-
-/**
- * Detects the file type based on file extension
- */
-function detectFileType(filePath: string): 'text' | 'image' | 'pdf' | 'binary' {
-  const ext = path.extname(filePath).toLowerCase();
-
-  if (['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg'].includes(ext)) {
-    return 'image';
-  }
-
-  if (ext === '.pdf') {
-    return 'pdf';
-  }
-
-  if (['.exe', '.bin', '.dll', '.so', '.dylib', '.zip', '.tar', '.gz', '.rar', '.7z'].includes(ext)) {
-    return 'binary';
-  }
-
-  return 'text';
-}
-
 
 class ReadManyFilesToolInvocation extends BaseToolInvocation<
   ReadManyFilesParams,
@@ -174,114 +107,113 @@ ${finalExclusionPatternsForDescription
   }
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
-    const {
-      paths: inputPatterns,
-      include = [],
-      exclude = [],
-      useDefaultExcludes = true,
-    } = this.params;
-
-    const fileFilteringOptions = {
-      respectGitIgnore:
-        this.params.file_filtering_options?.respect_git_ignore ?? true,
-      respectCodeboltIgnore:
-        this.params.file_filtering_options?.respect_gemini_ignore ?? true,
-    };
-
-    const filesToConsider = new Set<string>();
-    const skippedFiles: Array<{ path: string; reason: string }> = [];
-    const processedFilesRelativePaths: string[] = [];
-    let contentString = '';
-
-    const effectiveExcludes = useDefaultExcludes
-      ? [...getDefaultExcludes(), ...exclude]
-      : [...exclude];
-
-    const searchPatterns = [...inputPatterns, ...include];
-
     try {
-      const allEntries = new Set<string>();
+      // Convert tool params to utility params
+      const utilParams: UtilReadManyFilesParams = {
+        paths: this.params.paths,
+        include: this.params.include,
+        exclude: this.params.exclude,
+        recursive: this.params.recursive,
+        useDefaultExcludes: this.params.useDefaultExcludes,
+        file_filtering_options: this.params.file_filtering_options
+      };
 
-      // Process all search patterns
-      for (const p of searchPatterns) {
-        const normalizedP = p.replace(/\\/g, '/');
+      // Use the utility function
+      const result: ReadManyFilesResult = await executeReadManyFiles(
+        utilParams,
+        signal,
+        this.params.paths // Pass inputPatterns for explicit file checking
+      );
 
-        // Check if the pattern is an absolute path
-        if (path.isAbsolute(normalizedP)) {
-          // For absolute paths, check if they exist directly
-          if (fs.existsSync(normalizedP)) {
-            allEntries.add(normalizedP);
-          } else {
-            // If absolute path doesn't exist, treat as glob pattern
-            const entriesFromAbsolutePattern = await glob([normalizedP], {
-              ignore: effectiveExcludes,
-              nodir: true,
-              dot: true,
-              absolute: true,
-              nocase: true,
-              signal,
-            });
-            for (const entry of entriesFromAbsolutePattern) {
-              allEntries.add(entry);
-            }
-          }
+      // Handle errors from utility
+      if (result.error) {
+        return {
+          llmContent: result.error.message,
+          returnDisplay: `## File Search Error
+
+An error occurred while searching for files:
+\`\`\`
+${result.error.message}
+\`\`\``,
+          error: {
+            message: result.error.message,
+            type: result.error.type as ToolErrorType,
+          },
+        };
+      }
+
+      // Handle successful result from utility
+      const { processedFiles, skippedFiles } = result;
+
+      let contentString = '';
+      const processedFilesRelativePaths: string[] = [];
+
+      // Process the files that were successfully read
+      for (const file of processedFiles) {
+        const separator = DEFAULT_OUTPUT_SEPARATOR_FORMAT.replace(
+          '{filePath}',
+          file.filePath,
+        );
+        const fileContentForLlm = file.content;
+        contentString += `${separator}
+
+${fileContentForLlm}
+
+`;
+        processedFilesRelativePaths.push(file.relativePathForDisplay);
+      }
+
+      let displayMessage = `### ReadManyFiles Result\n\n`;
+      if (processedFilesRelativePaths.length > 0) {
+        displayMessage += `Successfully read and concatenated content from **${processedFilesRelativePaths.length} file(s)**.\n`;
+        if (processedFilesRelativePaths.length <= 10) {
+          displayMessage += `\n**Processed Files:**\n`;
+          processedFilesRelativePaths.forEach(
+            (p) => (displayMessage += `- \`${p}\`\n`),
+          );
         } else {
-          // For relative patterns, we can't process them without a base directory
-          skippedFiles.push({
-            path: normalizedP,
-            reason: 'Relative paths are not supported. Please provide absolute paths.',
-          });
+          displayMessage += `\n**Processed Files (first 10 shown):**\n`;
+          processedFilesRelativePaths
+            .slice(0, 10)
+            .forEach((p) => (displayMessage += `- \`${p}\`\n`));
+          displayMessage += `- ...and ${processedFilesRelativePaths.length - 10} more.\n`;
         }
       }
 
-      const entries = Array.from(allEntries);
-
-      // Apply filtering if enabled
-      let filteredEntries = entries;
-      let gitIgnoredCount = 0;
-      const geminiIgnoredCount = 0;
-
-      // Simple git ignore filtering (basic implementation)
-      if (fileFilteringOptions.respectGitIgnore) {
-        // This is a simplified implementation - in a real scenario you'd use a proper git ignore parser
-        const gitIgnorePatterns = ['node_modules/**', '.git/**', 'dist/**', 'build/**'];
-        const beforeCount = filteredEntries.length;
-        filteredEntries = filteredEntries.filter(filePath => {
-          // Use the filename and directory structure for pattern matching
-          const fileName = path.basename(filePath);
-          const dirPath = path.dirname(filePath);
-          return !gitIgnorePatterns.some(pattern => {
-            const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
-            return regex.test(filePath) || regex.test(fileName) || regex.test(dirPath);
-          });
-        });
-        gitIgnoredCount = beforeCount - filteredEntries.length;
-      }
-
-      for (const absoluteFilePath of entries) {
-        // Check if this file was filtered out by git ignore
-        if (!filteredEntries.includes(absoluteFilePath)) {
-          continue;
+      if (skippedFiles.length > 0) {
+        if (processedFilesRelativePaths.length === 0) {
+          displayMessage += `No files were read and concatenated based on the criteria.\n`;
         }
-
-        filesToConsider.add(absoluteFilePath);
+        if (skippedFiles.length <= 5) {
+          displayMessage += `\n**Skipped ${skippedFiles.length} item(s):**\n`;
+        } else {
+          displayMessage += `\n**Skipped ${skippedFiles.length} item(s) (first 5 shown):**\n`;
+        }
+        skippedFiles
+          .slice(0, 5)
+          .forEach(
+            (f) => (displayMessage += `- \`${f.path}\` (Reason: ${f.reason})\n`),
+          );
+        if (skippedFiles.length > 5) {
+          displayMessage += `- ...and ${skippedFiles.length - 5} more.\n`;
+        }
+      } else if (
+        processedFilesRelativePaths.length === 0 &&
+        skippedFiles.length === 0
+      ) {
+        displayMessage += `No files were read and concatenated based on the criteria.\n`;
       }
 
-      // Add info about git-ignored files if any were filtered
-      if (gitIgnoredCount > 0) {
-        skippedFiles.push({
-          path: `${gitIgnoredCount} file(s)`,
-          reason: 'git ignored',
-        });
+      if (contentString.length > 0) {
+        contentString += DEFAULT_OUTPUT_TERMINATOR;
+      } else {
+        contentString = 'No files matching the criteria were found or all were skipped.';
       }
 
-      // Add info about gemini-ignored files if any were filtered
-      if (geminiIgnoredCount > 0) {
-        skippedFiles.push({
-          path: `${geminiIgnoredCount} file(s)`,
-          reason: 'gemini ignored',
-        });
-      }
+      return {
+        llmContent: contentString,
+        returnDisplay: displayMessage.trim(),
+      };
     } catch (error) {
       const errorMessage = `Error during file search: ${getErrorMessage(error)}`;
       return {
@@ -298,150 +230,34 @@ ${getErrorMessage(error)}
         },
       };
     }
-
-    const sortedFiles = Array.from(filesToConsider).sort();
-
-    const fileProcessingPromises = sortedFiles.map(
-      async (filePath): Promise<FileProcessingResult> => {
-        try {
-          const relativePathForDisplay = path.basename(filePath);
-
-          const fileType = detectFileType(filePath);
-
-          if (fileType === 'image' || fileType === 'pdf' || fileType === 'binary') {
-            const fileExtension = path.extname(filePath).toLowerCase();
-            const fileNameWithoutExtension = path.basename(
-              filePath,
-              fileExtension,
-            );
-            const requestedExplicitly = inputPatterns.some(
-              (pattern: string) =>
-                pattern.toLowerCase().includes(fileExtension) ||
-                pattern.includes(fileNameWithoutExtension),
-            );
-
-            if (!requestedExplicitly) {
-              return {
-                success: false,
-                filePath,
-                relativePathForDisplay,
-                reason:
-                  `${fileType} file was not explicitly requested by name or extension`,
-              };
-            }
-          }
-
-          // Read file content using Node.js fs API directly
-          const content = await fs.promises.readFile(filePath, 'utf8');
-
-          return {
-            success: true,
-            filePath,
-            relativePathForDisplay,
-            content,
-          };
-        } catch (error) {
-          const relativePathForDisplay = path.basename(filePath);
-
-          return {
-            success: false,
-            filePath,
-            relativePathForDisplay,
-            reason: `Read error: ${error instanceof Error ? error.message : String(error)}`,
-          };
-        }
-      },
-    );
-
-    const results = await Promise.allSettled(fileProcessingPromises);
-
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const fileResult = result.value;
-
-        if (!fileResult.success) {
-          // Handle skipped files (images/PDFs not requested or read errors)
-          skippedFiles.push({
-            path: fileResult.relativePathForDisplay,
-            reason: fileResult.reason,
-          });
-        } else {
-          // Handle successfully processed files
-          const { filePath, relativePathForDisplay, content } = fileResult;
-
-          const separator = DEFAULT_OUTPUT_SEPARATOR_FORMAT.replace(
-            '{filePath}',
-            filePath,
-          );
-          const fileContentForLlm = content;
-          contentString += `${separator}
-
-${fileContentForLlm}
-
-`;
-
-          processedFilesRelativePaths.push(relativePathForDisplay);
-        }
-      } else {
-        // Handle Promise rejection (unexpected errors)
-        skippedFiles.push({
-          path: 'unknown',
-          reason: `Unexpected error: ${result.reason}`,
-        });
-      }
-    }
-
-    let displayMessage = `### ReadManyFiles Result\n\n`;
-    if (processedFilesRelativePaths.length > 0) {
-      displayMessage += `Successfully read and concatenated content from **${processedFilesRelativePaths.length} file(s)**.\n`;
-      if (processedFilesRelativePaths.length <= 10) {
-        displayMessage += `\n**Processed Files:**\n`;
-        processedFilesRelativePaths.forEach(
-          (p) => (displayMessage += `- \`${p}\`\n`),
-        );
-      } else {
-        displayMessage += `\n**Processed Files (first 10 shown):**\n`;
-        processedFilesRelativePaths
-          .slice(0, 10)
-          .forEach((p) => (displayMessage += `- \`${p}\`\n`));
-        displayMessage += `- ...and ${processedFilesRelativePaths.length - 10} more.\n`;
-      }
-    }
-
-    if (skippedFiles.length > 0) {
-      if (processedFilesRelativePaths.length === 0) {
-        displayMessage += `No files were read and concatenated based on the criteria.\n`;
-      }
-      if (skippedFiles.length <= 5) {
-        displayMessage += `\n**Skipped ${skippedFiles.length} item(s):**\n`;
-      } else {
-        displayMessage += `\n**Skipped ${skippedFiles.length} item(s) (first 5 shown):**\n`;
-      }
-      skippedFiles
-        .slice(0, 5)
-        .forEach(
-          (f) => (displayMessage += `- \`${f.path}\` (Reason: ${f.reason})\n`),
-        );
-      if (skippedFiles.length > 5) {
-        displayMessage += `- ...and ${skippedFiles.length - 5} more.\n`;
-      }
-    } else if (
-      processedFilesRelativePaths.length === 0 &&
-      skippedFiles.length === 0
-    ) {
-      displayMessage += `No files were read and concatenated based on the criteria.\n`;
-    }
-
-    if (contentString.length > 0) {
-      contentString += DEFAULT_OUTPUT_TERMINATOR;
-    } else {
-      contentString = 'No files matching the criteria were found or all were skipped.';
-    }
-    return {
-      llmContent: contentString,
-      returnDisplay: displayMessage.trim(),
-    };
   }
+}
+
+/**
+ * Creates the default exclusion patterns including dynamic patterns.
+ */
+function getDefaultExcludes(): string[] {
+  return [
+    'node_modules/**',
+    '.git/**',
+    'dist/**',
+    'build/**',
+    'coverage/**',
+    '*.log',
+    '*.tmp',
+    '.DS_Store',
+    'Thumbs.db',
+    '*.exe',
+    '*.bin',
+    '*.dll',
+    '*.so',
+    '*.dylib',
+    '*.zip',
+    '*.tar.gz',
+    '*.tar.bz2',
+    '*.rar',
+    '*.7z'
+  ];
 }
 
 /**

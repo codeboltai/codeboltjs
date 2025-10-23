@@ -1,77 +1,17 @@
 /**
  * @license
  * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier:Apache-2.0
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { glob, escape } from 'glob';
 import type { ToolInvocation, ToolResult } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
 import { shortenPath, makeRelative } from '../utils/paths';
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
-
-export interface FileFilteringOptions {
-  respectGitIgnore: boolean;
-  respectCodeboltIgnore: boolean;
-}
-
-interface FilterReport {
-  filteredPaths: string[];
-  gitIgnoredCount: number;
-  geminiIgnoredCount: number;
-  ignoredCount: number;
-}
-
-// For memory files
-export const DEFAULT_MEMORY_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
-  respectGitIgnore: false,
-  respectCodeboltIgnore: true,
-};
-
-// For all other files
-export const DEFAULT_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
-  respectGitIgnore: true,
-  respectCodeboltIgnore: true,
-};
-// Subset of 'Path' interface provided by 'glob' that we can implement for testing
-// Subset of 'Path' interface provided by 'glob' that we can implement for testing
-export interface GlobPath {
-  fullpath(): string;
-  mtimeMs?: number;
-}
-
-/**
- * Sorts file entries based on recency and then alphabetically.
- * Recent files (modified within recencyThresholdMs) are listed first, newest to oldest.
- * Older files are listed after recent ones, sorted alphabetically by path.
- */
-export function sortFileEntries(
-  entries: GlobPath[],
-  nowTimestamp: number,
-  recencyThresholdMs: number,
-): GlobPath[] {
-  const sortedEntries = [...entries];
-  sortedEntries.sort((a, b) => {
-    const mtimeA = a.mtimeMs ?? 0;
-    const mtimeB = b.mtimeMs ?? 0;
-    const aIsRecent = nowTimestamp - mtimeA < recencyThresholdMs;
-    const bIsRecent = nowTimestamp - mtimeB < recencyThresholdMs;
-
-    if (aIsRecent && bIsRecent) {
-      return mtimeB - mtimeA;
-    } else if (aIsRecent) {
-      return -1;
-    } else if (bIsRecent) {
-      return 1;
-    } else {
-      return a.fullpath().localeCompare(b.fullpath());
-    }
-  });
-  return sortedEntries;
-}
+import { executeGlobSearch, type GlobSearchParams, type GlobSearchResult } from '../../utils/search/GlobSearch';
 
 /**
  * Parameters for the GlobTool
@@ -100,7 +40,7 @@ export interface GlobToolParams {
   /**
    * Whether to respect .geminiignore patterns (optional, defaults to true)
    */
-  respect_codebolt_ignore?: boolean;
+  respect_gemini_ignore?: boolean;
 }
 
 class GlobToolInvocation extends BaseToolInvocation<
@@ -129,94 +69,58 @@ class GlobToolInvocation extends BaseToolInvocation<
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
     try {
-      const workspaceContext = this.config.workspaceContext;
-      const workspaceDirectories = workspaceContext.getDirectories();
+      // Convert tool params to utility params
+      const utilParams: GlobSearchParams = {
+        pattern: this.params.pattern,
+        path: this.params.path,
+        case_sensitive: this.params.case_sensitive,
+        respect_git_ignore: this.params.respect_git_ignore,
+        respect_codebolt_ignore: this.params.respect_gemini_ignore
+      };
 
-      // If a specific path is provided, resolve it and check if it's within workspace
-      let searchDirectories: readonly string[];
-      if (this.params.path) {
-        const searchDirAbsolute = path.resolve(
-          this.config.targetDir,
-          this.params.path,
-        );
-        if (!workspaceContext.isPathWithinWorkspace(searchDirAbsolute)) {
-          const rawError = `Error: Path "${this.params.path}" is not within any workspace directory`;
-          return {
-            llmContent: rawError,
-            returnDisplay: `Path is not within workspace`,
-            error: {
-              message: rawError,
-              type: ToolErrorType.PATH_NOT_IN_WORKSPACE,
-            },
-          };
-        }
-        searchDirectories = [searchDirAbsolute];
-      } else {
-        // Search across all workspace directories
-        searchDirectories = workspaceDirectories;
+      // Use the utility function
+      const result: GlobSearchResult = await executeGlobSearch(
+        utilParams,
+        this.config.targetDir,
+        this.config.workspaceContext,
+        () => this.config.getFileService ? this.config.getFileService() : undefined,
+        () => this.config.getFileExclusions ? this.config.getFileExclusions() : undefined,
+        () => {
+          const options = this.config.getFileFilteringOptions ? this.config.getFileFilteringOptions() : undefined;
+          if (options) {
+            return {
+              respectGitIgnore: options.respectGitIgnore ?? true,
+              respectCodeboltIgnore: options.respectCodeboltIgnore ?? true
+            };
+          }
+          return undefined;
+        },
+        signal
+      );
+
+      // Handle errors from utility
+      if (result.error) {
+        const rawError = `Error during glob search operation: ${result.error.message}`;
+        return {
+          llmContent: rawError,
+          returnDisplay: `Error: An unexpected error occurred.`,
+          error: {
+            message: rawError,
+            type: result.error.type as ToolErrorType,
+          },
+        };
       }
 
-      // Get centralized file discovery service
-      const fileDiscovery = this.config.getFileService();
+      // Handle successful result from utility
+      const matches = result.matches || [];
+      const ignoredCount = result.ignoredCount || 0;
 
-      // Collect entries from all search directories
-      const allEntries: GlobPath[] = [];
-      for (const searchDir of searchDirectories) {
-        let pattern = this.params.pattern;
-        const fullPath = path.join(searchDir, pattern);
-        if (fs.existsSync(fullPath)) {
-          pattern = escape(pattern);
-        }
-
-        const entries = (await glob(pattern, {
-          cwd: searchDir,
-          withFileTypes: true,
-          nodir: true,
-          stat: true,
-          nocase: !this.params.case_sensitive,
-          dot: true,
-          ignore: this.config.getFileExclusions().getGlobExcludes(),
-          follow: false,
-          signal,
-        })) as GlobPath[];
-
-        // Ensure entries is iterable before spreading
-        if (Array.isArray(entries)) {
-          allEntries.push(...entries);
-        } else if (entries && typeof (entries as any)[Symbol.iterator] === 'function') {
-          allEntries.push(...(entries as GlobPath[]));
-        } else {
-          // Handle case where glob returns non-iterable result
-          console.warn(`Glob returned non-iterable result for pattern "${pattern}" in directory "${searchDir}":`, entries);
-        }
-      }
-
-      const relativePaths = allEntries.map((p) =>
-        path.relative(this.config.targetDir, p.fullpath()),
-      );
-
-      const { filteredPaths, ignoredCount } =
-        fileDiscovery.filterFilesWithReport(relativePaths, {
-          respectGitIgnore:
-            this.params?.respect_git_ignore ??
-            this.config.getFileFilteringOptions()?.respectGitIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-          respectCodeboltIgnore:
-            this.params?.respect_codebolt_ignore ??
-            this.config.getFileFilteringOptions()?.respectCodeboltIgnore ??
-            DEFAULT_FILE_FILTERING_OPTIONS.respectCodeboltIgnore,
-        });
-
-      const filteredAbsolutePaths = new Set(
-        filteredPaths.map((p) => path.resolve(this.config.targetDir, p)),
-      );
-
-      const filteredEntries = allEntries.filter((entry) =>
-        filteredAbsolutePaths.has(entry.fullpath()),
-      );
-
-      if (!filteredEntries || filteredEntries.length === 0) {
+      if (matches.length === 0) {
         let message = `No files found matching pattern "${this.params.pattern}"`;
+        const searchDirectories = this.params.path 
+          ? [path.resolve(this.config.targetDir, this.params.path)]
+          : this.config.workspaceContext.getDirectories();
+          
         if (searchDirectories.length === 1) {
           message += ` within ${searchDirectories[0]}`;
         } else {
@@ -231,24 +135,14 @@ class GlobToolInvocation extends BaseToolInvocation<
         };
       }
 
-      // Set filtering such that we first show the most recent files
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const nowTimestamp = new Date().getTime();
-
-      // Sort the filtered entries using the new helper function
-      const sortedEntries = sortFileEntries(
-        filteredEntries,
-        nowTimestamp,
-        oneDayInMs,
-      );
-
-      const sortedAbsolutePaths = sortedEntries.map((entry) =>
-        entry.fullpath(),
-      );
-      const fileListDescription = sortedAbsolutePaths.join('\n');
-      const fileCount = sortedAbsolutePaths.length;
+      const fileListDescription = matches.join('\n');
+      const fileCount = matches.length;
 
       let resultMessage = `Found ${fileCount} file(s) matching "${this.params.pattern}"`;
+      const searchDirectories = this.params.path 
+        ? [path.resolve(this.config.targetDir, this.params.path)]
+        : this.config.workspaceContext.getDirectories();
+        
       if (searchDirectories.length === 1) {
         resultMessage += ` within ${searchDirectories[0]}`;
       } else {

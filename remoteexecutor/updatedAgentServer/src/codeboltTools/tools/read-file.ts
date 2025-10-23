@@ -2,9 +2,7 @@
  * Read File Tool - Reads and returns the content of a specified file
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { makeRelative, shortenPath } from '../utils/paths';
 import type {
   ToolInvocation,
   ToolLocation,
@@ -13,7 +11,9 @@ import type {
 } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
+import { shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';
+import { executeReadFile, type ReadFileParams } from '../../utils/fileSystem/ReadFile';
 
 /**
  * Parameters for the ReadFile tool
@@ -59,54 +59,44 @@ class ReadFileToolInvocation extends BaseToolInvocation<
 
   async execute(): Promise<ToolResult> {
     try {
-      let content = await fs.promises.readFile(this.params.absolute_path, 'utf8');
+      // Convert tool params to utility params
+      const utilParams: ReadFileParams = {
+        absolute_path: this.params.absolute_path,
+        offset: this.params.offset,
+        limit: this.params.limit
+      };
 
-      let isTruncated = false;
-      let linesShown: [number, number] | undefined;
-      let originalLineCount: number | undefined;
+      // Use the utility function
+      const result = await executeReadFile(utilParams);
 
-      // Handle offset and limit
-      if (this.params.offset !== undefined || this.params.limit !== undefined) {
-        const lines = content.split('\n');
-        originalLineCount = lines.length;
-
-        const startLine = this.params.offset || 0;
-        const endLine = this.params.limit
-          ? Math.min(startLine + this.params.limit, lines.length)
-          : lines.length;
-
-        if (startLine >= lines.length) {
-          return {
-            llmContent: `Error: Offset ${startLine} is beyond the file length (${lines.length} lines)`,
-            returnDisplay: `Error: Offset out of range`,
-            error: {
-              message: `Offset ${startLine} is beyond file length`,
-              type: 'invalid_tool_params' as ToolErrorType,
-            },
-          };
-        }
-
-        const selectedLines = lines.slice(startLine, endLine);
-        content = selectedLines.join('\n');
-        linesShown = [startLine + 1, endLine]; // 1-based for display
-        isTruncated = endLine < lines.length;
+      // Handle errors from utility
+      if (result.error) {
+        return {
+          llmContent: `Error reading file: ${result.error.message}`,
+          returnDisplay: `Error reading file: ${result.error.message}`,
+          error: {
+            message: result.error.message,
+            type: result.error.type as ToolErrorType,
+          },
+        };
       }
 
+      // Handle successful result from utility
       let llmContent: string;
-      if (isTruncated && linesShown && originalLineCount) {
-        const [start, end] = linesShown;
+      if (result.isTruncated && result.linesShown && result.originalLineCount) {
+        const [start, end] = result.linesShown;
         const nextOffset = this.params.offset
           ? this.params.offset + end - start + 1
           : end;
         llmContent = `
 IMPORTANT: The file content has been truncated.
-Status: Showing lines ${start}-${end} of ${originalLineCount} total lines.
+Status: Showing lines ${start}-${end} of ${result.originalLineCount} total lines.
 Action: To read more of the file, you can use the 'offset' and 'limit' parameters in a subsequent 'read_file' call. For example, to read the next section of the file, use offset: ${nextOffset}.
 
 --- FILE CONTENT (truncated) ---
-${content}`;
+${result.content}`;
       } else {
-        llmContent = content;
+        llmContent = result.content || '';
       }
 
       return {

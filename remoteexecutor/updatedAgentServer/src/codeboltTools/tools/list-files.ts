@@ -10,6 +10,7 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
+import { executeListFiles, type ListFilesParams } from '../../utils/fileSystem/ListFiles';
 
 /**
  * Parameters for the ListFiles tool
@@ -47,52 +48,48 @@ class ListFilesToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import fsService to use existing logic
-            const { fsService } = await import('../../cliLib/fsService.cli');
-
-            // Create finalMessage object similar to mcpService.cli.ts
-            const finalMessage = {
-                threadId: 'codebolt-tools',
-                agentInstanceId: 'codebolt-tools',
-                agentId: 'codebolt-tools',
-                parentAgentInstanceId: 'codebolt-tools',
-                parentId: 'codebolt-tools'
+            // Convert tool params to utility params
+            const isRecursive = this.params.recursive === 'true';
+            const utilParams: ListFilesParams = {
+                path: this.params.path,
+                recursive: isRecursive
             };
 
-            // Use the exact same logic as fsService
-            const isRecursive = this.params.recursive === 'true';
-            const result = await fsService.listFiles(
-                this.params.path,
-                finalMessage,
-                isRecursive,
-                false, // askForPermission = false for tool execution
-                false // notifyUser = false for tool execution
-            );
+            // Use the utility function
+            const result = await executeListFiles(utilParams);
 
-            if (result && result[0] === false) {
-                // Success case
-                return {
-                    llmContent: result[1] || 'Files listed successfully',
-                    returnDisplay: result[1] || 'Files listed successfully'
-                };
-            } else {
-                // Error case
+            // Handle errors from utility
+            if (result.error) {
                 return {
                     llmContent: '',
                     returnDisplay: '',
                     error: {
                         type: ToolErrorType.LS_EXECUTION_ERROR,
-                        message: result[1] || 'Failed to list files'
+                        message: result.error.message
                     }
                 };
             }
+
+            // Handle successful result from utility
+            const files = result.files || [];
+            const fileList = files.join('\n');
+            
+            const message = files.length > 0 
+                ? `Files in ${this.params.path}${isRecursive ? ' (recursive)' : ''}:\n${fileList}`
+                : `No files found in ${this.params.path}`;
+
+            return {
+                llmContent: message,
+                returnDisplay: message
+            };
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             return {
                 llmContent: '',
                 returnDisplay: '',
                 error: {
                     type: ToolErrorType.LS_EXECUTION_ERROR,
-                    message: `Failed to list files: ${error.message || error}`
+                    message: `Failed to list files: ${errorMessage}`
                 }
             };
         }

@@ -41,55 +41,15 @@ export interface GitActionToolParams {
     commitHash?: string;
 }
 
-export class GitActionTool extends BaseDeclarativeTool<
+class GitActionToolInvocation extends BaseToolInvocation<
     GitActionToolParams,
     ToolResult
 > {
-    static readonly Name: string = 'git_action';
-
-    constructor(private readonly config: ConfigManager) {
-        super(
-            GitActionTool.Name,
-            'Git Action',
-            'Perform Git operations such as init, add, commit, push, pull, checkout, branch creation, viewing logs, diff, status, and clone. Each operation requires user confirmation before execution for security.',
-            Kind.Execute,
-            {
-                type: 'object',
-                properties: {
-                    action: {
-                        type: 'string',
-                        description: 'The git action to perform',
-                        enum: ['init', 'add', 'commit', 'push', 'pull', 'checkout', 'branch', 'logs', 'diff', 'status', 'clone']
-                    },
-                    message: {
-                        type: 'string',
-                        description: 'Commit message (required for commit action)'
-                    },
-                    branch: {
-                        type: 'string',
-                        description: 'Branch name (required for checkout and branch actions)'
-                    },
-                    url: {
-                        type: 'string',
-                        description: 'Repository URL (required for clone action)'
-                    },
-                    commitHash: {
-                        type: 'string',
-                        description: 'Commit hash (optional for diff action)'
-                    }
-                },
-                required: ['action']
-            }
-        );
-    }
-}
-
-export class GitActionToolInvocation extends BaseToolInvocation<
-    GitActionToolParams,
-    ToolResult
-> {
-    constructor(params: GitActionToolParams) {
-        super(GitActionTool.Name, params);
+    constructor(
+        private readonly config: ConfigManager,
+        params: GitActionToolParams,
+    ) {
+        super(params);
     }
 
     getDescription(): string {
@@ -105,39 +65,10 @@ export class GitActionToolInvocation extends BaseToolInvocation<
         return `Executing git ${action}${detailsStr}`;
     }
 
-    async validate(): Promise<string[]> {
-        const errors: string[] = [];
-
-        // Validate required action parameter
-        if (!this.params.action) {
-            errors.push('Action is required');
-            return errors;
-        }
-
-        // Validate action-specific required parameters
-        switch (this.params.action) {
-            case 'commit':
-                if (!this.params.message) {
-                    errors.push('Commit message is required for commit action');
-                }
-                break;
-            case 'checkout':
-            case 'branch':
-                if (!this.params.branch) {
-                    errors.push(`Branch name is required for ${this.params.action} action`);
-                }
-                break;
-            case 'clone':
-                if (!this.params.url) {
-                    errors.push('Repository URL is required for clone action');
-                }
-                break;
-        }
-
-        return errors;
-    }
-
-    async execute(): Promise<ToolResult> {
+    async execute(
+        signal: AbortSignal,
+        updateOutput?: (output: string) => void,
+    ): Promise<ToolResult> {
         try {
             // Import gitServiceCli for execution
             const { gitServiceCli } = await import('../../cliLib/gitService.cli');
@@ -195,14 +126,95 @@ export class GitActionToolInvocation extends BaseToolInvocation<
                 };
             }
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during git operation';
             return {
                 llmContent: '',
                 returnDisplay: '',
                 error: {
                     type: ToolErrorType.EXECUTION_FAILED,
-                    message: error instanceof Error ? error.message : 'Unknown error occurred during git operation'
+                    message: errorMessage
                 }
             };
         }
+    }
+}
+
+export class GitActionTool extends BaseDeclarativeTool<
+    GitActionToolParams,
+    ToolResult
+> {
+    static readonly Name: string = 'git_action';
+
+    constructor(private readonly config: ConfigManager) {
+        super(
+            GitActionTool.Name,
+            'Git Action',
+            'Perform Git operations such as init, add, commit, push, pull, checkout, branch creation, viewing logs, diff, status, and clone. Each operation requires user confirmation before execution for security.',
+            Kind.Execute,
+            {
+                type: 'object',
+                properties: {
+                    action: {
+                        type: 'string',
+                        description: 'The git action to perform',
+                        enum: ['init', 'add', 'commit', 'push', 'pull', 'checkout', 'branch', 'logs', 'diff', 'status', 'clone']
+                    },
+                    message: {
+                        type: 'string',
+                        description: 'Commit message (required for commit action)'
+                    },
+                    branch: {
+                        type: 'string',
+                        description: 'Branch name (required for checkout and branch actions)'
+                    },
+                    url: {
+                        type: 'string',
+                        description: 'Repository URL (required for clone action)'
+                    },
+                    commitHash: {
+                        type: 'string',
+                        description: 'Commit hash (optional for diff action)'
+                    }
+                },
+                required: ['action']
+            }
+        );
+    }
+
+    protected override validateToolParamValues(
+        params: GitActionToolParams,
+    ): string | null {
+        // Validate required action parameter
+        if (!params.action) {
+            return 'Action is required';
+        }
+
+        // Validate action-specific required parameters
+        switch (params.action) {
+            case 'commit':
+                if (!params.message) {
+                    return 'Commit message is required for commit action';
+                }
+                break;
+            case 'checkout':
+            case 'branch':
+                if (!params.branch) {
+                    return `Branch name is required for ${params.action} action`;
+                }
+                break;
+            case 'clone':
+                if (!params.url) {
+                    return 'Repository URL is required for clone action';
+                }
+                break;
+        }
+
+        return null;
+    }
+
+    protected createInvocation(
+        params: GitActionToolParams,
+    ): ToolInvocation<GitActionToolParams, ToolResult> {
+        return new GitActionToolInvocation(this.config, params);
     }
 }
