@@ -3,8 +3,20 @@ import { ConnectionManager } from '../../core/connectionManagers/connectionManag
 import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
 import { BaseApplicationResponse } from '@codebolt/types/sdk';
 import { logger } from '../../utils/logger';
-import { FileDeleteConfirmation, FileReadConfirmation, FileReadSuccess, FileWriteConfirmation, FileWriteSuccess } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
-import { ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
+import {
+  FileDeleteConfirmation,
+  FileReadConfirmation,
+  FileReadSuccess,
+  FileWriteConfirmation,
+  FileWriteSuccess,
+  SearchConfirmation,
+  SearchInProgress,
+  SearchSuccess,
+  SearchError,
+  SearchRejected,
+} from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
+import { ReadFileEvent, GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
+import { GrepSearchSuccessResponse, GrepSearchErrorResponse } from '@codebolt/types/app-to-agent-ws-types';
 
 /**
  * Encapsulates outgoing traffic to the remote proxy.
@@ -16,7 +28,26 @@ export class SendMessageToRemote {
     return RemoteProxyClient.getInstance();
   }
 
-  forwardAgentMessage(agent: ClientConnection, message: Message | FileReadConfirmation | FileReadSuccess  |ReadFileEvent  | FileWriteConfirmation | FileWriteSuccess | FileDeleteConfirmation, options?: { requireRemote?: boolean }): void {
+  forwardAgentMessage(
+    agent: ClientConnection,
+    message:
+      | Message
+      | FileReadConfirmation
+      | FileReadSuccess
+      | ReadFileEvent
+      | FileWriteConfirmation
+      | FileWriteSuccess
+      | FileDeleteConfirmation
+      | SearchConfirmation
+      | SearchInProgress
+      | SearchSuccess
+      | SearchError
+      | SearchRejected
+      | GrepSearchEvent
+      | GrepSearchSuccessResponse
+      | GrepSearchErrorResponse,
+    options?: { requireRemote?: boolean }
+  ): void {
     const client = this.remoteClient;
     if (!client) {
       logger.warn(formatLogMessage('warn', 'SendMessageToRemote', 'Remote proxy client not initialized'));

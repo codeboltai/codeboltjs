@@ -1,6 +1,7 @@
 import { ClientConnection, Message, formatLogMessage } from "../../types";
 import {
   DeleteFileHandler,
+  GrepSearchHandler,
   ReadFileHandler,
   WriteFileHandler,
 } from "../../localAgentRequestFulfilment/index.js";
@@ -10,7 +11,7 @@ import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
-import { ReadFileEvent, WriteToFileEvent,DeleteFileEvent } from "@codebolt/types/agent-to-app-ws-types";
+import { ReadFileEvent, WriteToFileEvent, DeleteFileEvent, GrepSearchEvent } from "@codebolt/types/agent-to-app-ws-types";
 
 /**
  * Routes messages with explicit workflow visibility
@@ -20,6 +21,7 @@ export class AgentMessageRouter {
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
   private deleteFileHandler: DeleteFileHandler;
+  private grepSearchHandler: GrepSearchHandler;
   private sendMessageToApp: SendMessageToApp;
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
@@ -30,6 +32,7 @@ export class AgentMessageRouter {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
     this.deleteFileHandler = new DeleteFileHandler();
+    this.grepSearchHandler = new GrepSearchHandler();
     this.sendMessageToApp = new SendMessageToApp();
     this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
@@ -43,7 +46,7 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | ReadFileEvent | WriteToFileEvent | DeleteFileEvent
+    message: Message | ReadFileEvent | WriteToFileEvent | DeleteFileEvent | GrepSearchEvent
   ) {
     logger.info(
       formatLogMessage(
@@ -67,6 +70,11 @@ export class AgentMessageRouter {
 
     if (message.type === "fsEvent" && message.action === "deleteFile") {
       await this.deleteFileHandler.handleDeleteFile(agent, message as DeleteFileEvent);
+      return;
+    }
+
+    if (message.type === "fsEvent" && message.action === "grep_search") {
+      await this.grepSearchHandler.handleGrepSearch(agent, message as GrepSearchEvent);
       return;
     }
 

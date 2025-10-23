@@ -19,6 +19,10 @@ import {
   WriteFileHandler,
   type WriteFileConfirmation,
 } from "../../localAgentRequestFulfilment/writeFileHandler.js";
+import {
+  GrepSearchHandler,
+  type GrepSearchConfirmation,
+} from "../../localAgentRequestFulfilment/grepSearchHandler.js";
 import { AgentTypeEnum } from "@/types/cli";
 
 /**
@@ -33,6 +37,7 @@ export class AppMessageRouter {
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
   private deleteFileHandler: DeleteFileHandler;
+  private grepSearchHandler: GrepSearchHandler;
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
@@ -42,6 +47,7 @@ export class AppMessageRouter {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
     this.deleteFileHandler = new DeleteFileHandler();
+    this.grepSearchHandler = new GrepSearchHandler();
   }
 
   /**
@@ -71,6 +77,7 @@ export class AppMessageRouter {
       this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
       this.writeFileHandler.handleConfirmation(message as WriteFileConfirmation);
       this.deleteFileHandler.handleConfirmation(message as DeleteFileConfirmation);
+      this.grepSearchHandler.handleConfirmation(message as GrepSearchConfirmation);
       return;
     }
 
