@@ -5,15 +5,16 @@ import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../utils/logger";
-// Import FileServices for smart edit functionality
+import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../fsutils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../fsutils/DefaultWorkspaceContext";
 
-import type { 
-  FileWriteConfirmation, 
+import type {
+  FileWriteConfirmation,
   FileWriteSuccess,
-  FileWriteError
+  FileWriteError,
+  FileWriteRejected,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
 export interface SmartEditEvent {
@@ -41,19 +42,19 @@ export interface SmartEditConfirmation {
   userMessage: string;
 }
 
+type SmartEditResult = Awaited<ReturnType<FileServices["replaceInFile"]>>;
+
 export class SmartEditHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
   private readonly sendMessageToRemote = new SendMessageToRemote();
-  // Use FileServices for smart edit functionality
   private readonly fileServices: FileServices;
 
-  private pendingRequests = new Map<string, PendingRequest>();
-  private grantedPermissions = new Set<string>();
+  private readonly pendingRequests = new Map<string, PendingRequest>();
+  private readonly grantedPermissions = new Set<string>();
 
   constructor() {
-    // Initialize FileServices with default configuration
     const config = {
-      targetDir: process.cwd(), // Use current working directory as target
+      targetDir: process.cwd(),
       workspaceContext: new DefaultWorkspaceContext(),
       fileSystemService: new DefaultFileSystem(),
     };
@@ -61,51 +62,22 @@ export class SmartEditHandler {
   }
 
   async handleSmartEdit(agent: ClientConnection, event: SmartEditEvent): Promise<void> {
-    const { requestId, message } = event;
-    const { filePath, oldString, newString, expectedReplacements } = message;
-    
     const targetClient = this.resolveParent(agent);
 
-    // If no target client or already granted permission, perform the edit directly
     if (!targetClient) {
-      const result = await this.fileServices.replaceInFile(
-        filePath, 
-        oldString, 
-        newString, 
-        expectedReplacements
-      );
-      await this.sendEditResponse(agent, requestId, filePath, oldString, newString, result);
+      await this.executeSmartEdit(agent, event);
       return;
     }
 
-    if (this.hasPermission(agent.id, filePath)) {
-      const result = await this.fileServices.replaceInFile(
-        filePath, 
-        oldString, 
-        newString, 
-        expectedReplacements
-      );
-      await this.sendEditResponse(agent, requestId, filePath, oldString, newString, result);
+    if (this.hasPermission(agent.id, event.message.filePath)) {
+      await this.executeSmartEdit(agent, event, targetClient);
       return;
     }
 
-    // Request approval from target client
     const messageId = uuidv4();
-    this.pendingRequests.set(messageId, {
-      agent,
-      request: event,
-      targetClient,
-    });
-    
-    this.requestApproval(
-      agent, 
-      targetClient, 
-      messageId, 
-      filePath, 
-      oldString, 
-      newString, 
-      requestId
-    );
+    this.pendingRequests.set(messageId, { agent, request: event, targetClient });
+
+    this.requestApproval(agent, targetClient, messageId, event);
   }
 
   async handleConfirmation(message: SmartEditConfirmation): Promise<void> {
@@ -115,8 +87,8 @@ export class SmartEditHandler {
         formatLogMessage(
           "warn",
           "SmartEditHandler",
-          `No pending smart edit request for ${message.messageId}`
-        )
+          `No pending smart edit request for ${message.messageId}`,
+        ),
       );
       return;
     }
@@ -124,31 +96,20 @@ export class SmartEditHandler {
     this.pendingRequests.delete(message.messageId);
 
     const { agent, request, targetClient } = record;
-    const { requestId, message: payload } = request;
-    const { filePath, oldString, newString, expectedReplacements } = payload;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
       this.sendRejection(
         agent,
-        requestId,
-        filePath,
+        request.requestId,
+        request.message.filePath,
         message.userMessage || "Smart edit request rejected",
-        targetClient
+        targetClient,
       );
       return;
     }
 
-    this.grantPermission(agent.id, filePath);
-    
-    // Perform the smart edit
-    const result = await this.fileServices.replaceInFile(
-      filePath, 
-      oldString, 
-      newString, 
-      expectedReplacements
-    );
-    
-    await this.sendEditResponse(agent, requestId, filePath, oldString, newString, result);
+    this.grantPermission(agent.id, request.message.filePath);
+    await this.executeSmartEdit(agent, request, targetClient);
   }
 
   handleRemoteNotification(message: {
@@ -169,47 +130,60 @@ export class SmartEditHandler {
     this.pendingRequests.delete(message.messageId);
 
     const { agent, request, targetClient } = record;
-    const { requestId, message: payload } = request;
-    const { filePath, oldString, newString, expectedReplacements } = payload;
 
     if (message.state !== "approved") {
       this.sendRejection(
         agent,
-        requestId,
-        filePath,
+        request.requestId,
+        request.message.filePath,
         message.reason ?? "Smart edit request rejected",
-        targetClient
+        targetClient,
       );
       return;
     }
 
-    this.grantPermission(agent.id, filePath);
-    
-    // Perform the smart edit
-    this.fileServices.replaceInFile(
-      filePath, 
-      oldString, 
-      newString, 
-      expectedReplacements
-    ).then(result => {
-      void this.sendEditResponse(agent, requestId, filePath, oldString, newString, result);
-    }).catch(error => {
-      logger.error("Error performing smart edit:", error);
-    });
+    this.grantPermission(agent.id, request.message.filePath);
+    void this.executeSmartEdit(agent, request, targetClient);
+  }
+
+  private async executeSmartEdit(
+    agent: ClientConnection,
+    event: SmartEditEvent,
+    targetClient?: { id: string; type: "app" | "tui" },
+  ): Promise<void> {
+    const { requestId, message } = event;
+
+    try {
+      const result = await this.fileServices.replaceInFile(
+        message.filePath,
+        message.oldString,
+        message.newString,
+        message.expectedReplacements,
+      );
+      await this.sendEditResponse(agent, requestId, message, result, targetClient);
+    } catch (error) {
+      logger.error(
+        formatLogMessage("error", "SmartEditHandler", `Smart edit failed for ${message.filePath}`),
+        error,
+      );
+      const failure: SmartEditResult = {
+        success: false,
+        error: getErrorMessage(error),
+      };
+      await this.sendEditResponse(agent, requestId, message, failure, targetClient);
+    }
   }
 
   private async sendEditResponse(
     agent: ClientConnection,
     requestId: string,
-    filePath: string,
-    oldString: string,
-    newString: string,
-    result: any
+    message: SmartEditEvent["message"],
+    result: SmartEditResult,
+    targetClient?: { id: string; type: "app" | "tui" },
   ): Promise<void> {
     if (result.success) {
-      // Send success response
       const response = {
-        type: "smartEditResponse",
+        type: "smartEditResponse" as const,
         requestId,
         success: true,
         originalContent: result.originalContent,
@@ -223,49 +197,71 @@ export class SmartEditHandler {
         clientId: agent.id,
       });
 
-      this.sendApprovalNotification(agent, requestId, filePath, oldString, newString);
-    } else {
-      // Send error response
-      const response = {
-        type: "smartEditResponse",
-        requestId,
-        success: false,
-        message: result.error,
-        error: result.error,
-      };
-
-      this.connectionManager.sendToConnection(agent.id, {
-        ...response,
-        clientId: agent.id,
-      });
-
-      // Send error notification to UI
-      const notification: FileWriteError = {
-        type: "message" as const,
-        actionType: "WRITEFILE" as const,
-        templateType: "WRITEFILE" as const,
-        sender: "agent" as const,
-        messageId: uuidv4(),
+      const notification: FileWriteSuccess = {
+        type: "message",
+        actionType: "WRITEFILE",
+        templateType: "WRITEFILE",
+        sender: "agent",
+        messageId: requestId,
+        threadId: requestId,
         timestamp: Date.now().toString(),
+        agentId: agent.id,
+        agentInstanceId: agent.instanceId,
         payload: {
           type: "file",
-          path: filePath,
-          content: newString,
-          originalContent: oldString,
-          stateEvent: "FILE_WRITE_ERROR"
-        }
+          path: message.filePath,
+          content: result.newContent ?? message.newString,
+          originalContent: result.originalContent ?? message.oldString,
+          diff: result.diff,
+          stateEvent: "fileWrite",
+        },
       };
 
-      if (agent.type === "app") {
-        this.sendMessageToRemote.sendToApp(agent.id, notification);
-      } else if (agent.type === "tui") {
-        this.sendMessageToRemote.sendToTui(agent.id, notification);
-      }
+      this.notifyClients(notification, targetClient);
+      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+      return;
     }
+
+    const errorMessage = result.error ?? "Error performing smart edit";
+    const response = {
+      type: "smartEditResponse" as const,
+      requestId,
+      success: false,
+      message: errorMessage,
+      error: errorMessage,
+    };
+
+    this.connectionManager.sendToConnection(agent.id, {
+      ...response,
+      clientId: agent.id,
+    });
+
+    const notification: FileWriteError = {
+      type: "message",
+      actionType: "WRITEFILE",
+      templateType: "WRITEFILE",
+      sender: "agent",
+      messageId: requestId,
+      threadId: requestId,
+      timestamp: Date.now().toString(),
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      payload: {
+        type: "file",
+        path: message.filePath,
+        content: errorMessage,
+        originalContent: result.originalContent ?? message.oldString,
+        diff: result.diff,
+        stateEvent: "fileWriteError",
+      },
+    };
+
+    this.notifyClients(notification, targetClient);
+    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
   }
 
   private resolveParent(
-    agent: ClientConnection
+    agent: ClientConnection,
   ): { id: string; type: "app" | "tui" } | undefined {
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const appManager = this.connectionManager.getAppConnectionManager();
@@ -291,11 +287,10 @@ export class SmartEditHandler {
     agent: ClientConnection,
     targetClient: { id: string; type: "app" | "tui" },
     messageId: string,
-    filePath: string,
-    oldString: string,
-    newString: string,
-    requestId: string
+    event: SmartEditEvent,
   ): void {
+    const { requestId, message } = event;
+
     const payload: FileWriteConfirmation = {
       type: "message",
       actionType: "WRITEFILE",
@@ -308,18 +303,28 @@ export class SmartEditHandler {
       agentInstanceId: agent.instanceId,
       payload: {
         type: "file",
-        path: filePath,
-        content: newString,
-        originalContent: oldString,
-        stateEvent: "ASK_FOR_CONFIRMATION"
-      }
+        path: message.filePath,
+        content: message.newString,
+        originalContent: message.oldString,
+        stateEvent: "askForConfirmation",
+      },
     };
 
     if (targetClient.type === "app") {
-      this.sendMessageToRemote.sendToApp(targetClient.id, payload);
+      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
     } else {
-      this.sendMessageToRemote.sendToTui(targetClient.id, payload);
+      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
     }
+
+    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
+
+    logger.info(
+      formatLogMessage(
+        "info",
+        "SmartEditHandler",
+        `Requested approval for smart edit on ${message.filePath}`,
+      ),
+    );
   }
 
   private sendRejection(
@@ -327,10 +332,10 @@ export class SmartEditHandler {
     requestId: string,
     filePath: string,
     reason: string,
-    targetClient?: { id: string; type: "app" | "tui" }
+    targetClient?: { id: string; type: "app" | "tui" },
   ): void {
     const response = {
-      type: "smartEditResponse",
+      type: "smartEditResponse" as const,
       requestId,
       success: false,
       message: reason,
@@ -342,65 +347,58 @@ export class SmartEditHandler {
       clientId: agent.id,
     });
 
-    // Send rejection notification to UI
-    const notification: FileWriteError = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: uuidv4(),
+    const notification: FileWriteRejected = {
+      type: "message",
+      actionType: "WRITEFILE",
+      templateType: "WRITEFILE",
+      sender: "agent",
+      messageId: requestId,
+      threadId: requestId,
       timestamp: Date.now().toString(),
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
       payload: {
         type: "file",
         path: filePath,
         content: reason,
         originalContent: "",
-        stateEvent: "REJECTED"
-      }
+        stateEvent: "rejected",
+      },
     };
 
-    if (agent.type === "app") {
-      this.sendMessageToRemote.sendToApp(agent.id, notification);
-    } else if (agent.type === "tui") {
-      this.sendMessageToRemote.sendToTui(agent.id, notification);
-    }
+    this.notifyClients(notification, targetClient);
+    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
   }
 
-  private sendApprovalNotification(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    oldString: string,
-    newString: string
+  private notifyClients(
+    notification: FileWriteSuccess | FileWriteError | FileWriteRejected,
+    targetClient?: { id: string; type: "app" | "tui" },
   ): void {
-    const notification: FileWriteSuccess = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: uuidv4(),
-      timestamp: Date.now().toString(),
-      payload: {
-        type: "file",
-        path: filePath,
-        content: newString,
-        originalContent: oldString,
-        stateEvent: "FILE_WRITE"
-      }
-    };
+    const appManager = this.connectionManager.getAppConnectionManager();
+    const tuiManager = this.connectionManager.getTuiConnectionManager();
 
-    if (agent.type === "app") {
-      this.sendMessageToRemote.sendToApp(agent.id, notification);
-    } else if (agent.type === "tui") {
-      this.sendMessageToRemote.sendToTui(agent.id, notification);
+    if (!targetClient) {
+      appManager.broadcast(notification);
+      tuiManager.broadcast(notification);
+      return;
+    }
+
+    if (targetClient.type === "app") {
+      appManager.sendToApp(targetClient.id, notification);
+    } else {
+      tuiManager.sendToTui(targetClient.id, notification);
     }
   }
 
   private hasPermission(agentId: string, filePath: string): boolean {
-    return this.grantedPermissions.has(`${agentId}:${filePath}`);
+    return this.grantedPermissions.has(this.permissionKey(agentId, filePath));
   }
 
   private grantPermission(agentId: string, filePath: string): void {
-    this.grantedPermissions.add(`${agentId}:${filePath}`);
+    this.grantedPermissions.add(this.permissionKey(agentId, filePath));
+  }
+
+  private permissionKey(agentId: string, filePath: string): string {
+    return `${agentId}:${filePath}`;
   }
 }

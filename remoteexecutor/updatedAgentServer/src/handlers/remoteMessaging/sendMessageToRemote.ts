@@ -14,6 +14,11 @@ import {
   SearchSuccess,
   SearchError,
   SearchRejected,
+  fileWriteErrorSchema,
+  FileWriteError,
+  FileWriteRejected,
+  ListDirectorySuccess,
+  ListDirectoryError
 } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
 import { ReadFileEvent, GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { GrepSearchSuccessResponse, GrepSearchErrorResponse } from '@codebolt/types/app-to-agent-ws-types';
@@ -45,7 +50,11 @@ export class SendMessageToRemote {
       | SearchRejected
       | GrepSearchEvent
       | GrepSearchSuccessResponse
-      | GrepSearchErrorResponse,
+      | GrepSearchErrorResponse
+      |FileWriteError
+      |FileWriteRejected
+      |ListDirectorySuccess
+      |ListDirectoryError,
     options?: { requireRemote?: boolean }
   ): void {
     const client = this.remoteClient;
