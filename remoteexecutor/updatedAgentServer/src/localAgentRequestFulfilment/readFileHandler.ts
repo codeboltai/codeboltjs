@@ -4,7 +4,7 @@ import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
-// Import FileServices instead of the missing WriteFileService
+// Import FileServices instead of the missing ReadFileService
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
@@ -12,36 +12,38 @@ import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 
 import type {
-  FileWriteConfirmation,
-  FileWriteSuccess,
+  FileReadConfirmation,
+  FileReadSuccess,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
+import { WriteFileConfirmation } from "./writeFileHandler";
 
-export interface WriteFileEvent {
+export interface ReadFileEvent {
   type: "fsEvent";
-  action: "writeToFile";
+  action: "readFile";
   requestId: string;
   message: {
     relPath: string;
-    newContent: string;
+    offset?: number;
+    limit?: number;
   };
 }
 
 type PendingRequest = {
   agent: ClientConnection;
-  request: WriteFileEvent;
+  request: ReadFileEvent;
   targetClient?: { id: string; type: "app" | "tui" };
 };
 
-export interface WriteFileConfirmation {
+export interface ReadFileConfirmation {
   type: "confirmationResponse";
   messageId: string;
   userMessage: string;
 }
 
-export class WriteFileHandler {
+export class ReadFileHandler {
   private connectionManager = ConnectionManager.getInstance();
   private sendMessageToRemote = new SendMessageToRemote();
-  // Use FileServices instead of the missing WriteFileService
+  // Use FileServices instead of the missing ReadFileService
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
 
@@ -61,24 +63,24 @@ export class WriteFileHandler {
     this.permissionManager.initialize();
   }
 
-  async handleWriteFile(agent: ClientConnection, event: WriteFileEvent): Promise<void> {
+  async handleReadFile(agent: ClientConnection, event: ReadFileEvent): Promise<void> {
     const { requestId, message } = event;
-    const { relPath, newContent } = message;
+    const { relPath, offset, limit } = message;
 
     const targetClient = this.resolveParent(agent);
 
     if (!targetClient) {
-      // Use FileServices to write the file instead of the missing performWrite method
-      const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result);
+      // Use FileServices to read the file instead of the missing performRead method
+      const result = await this.fileServices.readFile(relPath, { offset, limit });
+      this.sendReadResponse(agent, requestId, relPath, result);
       return;
     }
 
     // Check if permission exists using centralized permission system
-    if (PermissionUtils.hasPermission('write_file', relPath, 'write')) {
-      // Use FileServices to write the file instead of the missing performWrite method
-      const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result);
+    if (PermissionUtils.hasPermission('read_file', relPath, 'read')) {
+      // Use FileServices to read the file instead of the missing performRead method
+      const result = await this.fileServices.readFile(relPath, { offset, limit });
+      this.sendReadResponse(agent, requestId, relPath, result);
       return;
     }
 
@@ -91,21 +93,21 @@ export class WriteFileHandler {
     });
 
     if (targetClient) {
-      this.requestApproval(agent, targetClient, messageId, relPath, newContent, requestId);
+      this.requestApproval(agent, targetClient, messageId, relPath, requestId, offset, limit);
     } else {
       logger.warn("No target client found for approval request");
     }
   }
 
-  async handleConfirmation(message: WriteFileConfirmation): Promise<void> {
+  async handleConfirmation(message: ReadFileConfirmation|WriteFileConfirmation): Promise<void> {
     const record = this.pendingRequests.get(message.messageId);
 
     if (!record) {
       logger.warn(
         formatLogMessage(
           "warn",
-          "WriteFileHandler",
-          `No pending write file request for ${message.messageId}`
+          "ReadFileHandler",
+          `No pending read file request for ${message.messageId}`
         )
       );
       return;
@@ -121,16 +123,19 @@ export class WriteFileHandler {
         agent,
         requestId,
         payload.relPath,
-        message.userMessage || "Write file request rejected",
+        message.userMessage || "Read file request rejected",
         targetClient
       );
       return;
     }
 
-    PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
-    // Use FileServices to write the file instead of the missing performWrite method
-    const result = await this.fileServices.writeFile(payload.relPath, payload.newContent);
-    this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result);
+    PermissionUtils.grantPermission('read_file', payload.relPath, 'read');
+    // Use FileServices to read the file instead of the missing performRead method
+    const result = await this.fileServices.readFile(payload.relPath, { 
+      offset: payload.offset, 
+      limit: payload.limit 
+    });
+    this.sendReadResponse(agent, requestId, payload.relPath, result);
   }
 
   handleRemoteNotification(message: {
@@ -139,7 +144,7 @@ export class WriteFileHandler {
     state?: string;
     reason?: string;
   }): void {
-    if (message.type !== "writeFileApproval") {
+    if (message.type !== "readFileApproval") {
       return;
     }
 
@@ -158,39 +163,41 @@ export class WriteFileHandler {
         agent,
         requestId,
         payload.relPath,
-        message.reason ?? "Write file request rejected",
+        message.reason ?? "Read file request rejected",
         targetClient
       );
       return;
     }
 
-    PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
-    // Use FileServices to write the file instead of the missing performWrite method
-    this.fileServices.writeFile(payload.relPath, payload.newContent).then(result => {
-      this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result);
+    PermissionUtils.grantPermission('read_file', payload.relPath, 'read');
+    // Use FileServices to read the file instead of the missing performRead method
+    this.fileServices.readFile(payload.relPath, { 
+      offset: payload.offset, 
+      limit: payload.limit 
+    }).then(result => {
+      this.sendReadResponse(agent, requestId, payload.relPath, result);
     }).catch(error => {
-      logger.error("Error writing file:", error);
+      logger.error("Error reading file:", error);
     });
   }
 
-  // New method to send write response
-  private sendWriteResponse(
+  // New method to send read response
+  private sendReadResponse(
     agent: ClientConnection,
     requestId: string,
     filePath: string,
-    content: string,
     result: any
   ): void {
     if (result.success) {
       // Send success response
       const response = {
-        type: "writeFileResponse",
+        type: "readFileResponse",
         requestId,
         success: true,
-        originalContent: result.originalContent,
-        newContent: result.newContent,
-        diff: result.diff,
-        isNewFile: result.isNewFile,
+        content: result.content,
+        isTruncated: result.isTruncated,
+        linesShown: result.linesShown,
+        originalLineCount: result.originalLineCount,
       };
 
       this.connectionManager.sendToConnection(agent.id, {
@@ -198,15 +205,15 @@ export class WriteFileHandler {
         clientId: agent.id,
       });
 
-      this.sendApprovalNotification(agent, requestId, filePath, content);
+      this.sendApprovalNotification(agent, requestId, filePath, result.content);
     } else {
       // Send error response
       const response = {
-        type: "writeFileResponse",
+        type: "readFileResponse",
         requestId,
         success: false,
-        message: result.error || "Error writing file",
-        error: result.error || "Error writing file",
+        message: result.error || "Error reading file",
+        error: result.error || "Error reading file",
       };
 
       this.connectionManager.sendToConnection(agent.id, {
@@ -244,13 +251,14 @@ export class WriteFileHandler {
     targetClient: { id: string; type: "app" | "tui" },
     messageId: string,
     filePath: string,
-    newContent: string,
-    requestId: string
+    requestId: string,
+    offset?: number,
+    limit?: number
   ): void {
-    const payload: FileWriteConfirmation = {
+    const payload: FileReadConfirmation = {
       type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
+      actionType: "READFILE" as const,
+      templateType: "READFILE" as const,
       sender: "agent" as const,
       messageId,
       threadId: requestId,
@@ -260,9 +268,10 @@ export class WriteFileHandler {
       payload: {
         type: "file" as const,
         path: filePath,
-        content: newContent,
-        originalContent: "",
-        stateEvent: "askForConfirmation" as const,
+        offset,
+        limit,
+        content: "",
+        stateEvent: "ASK_FOR_CONFIRMATION" as const,
       },
     };
 
@@ -277,8 +286,8 @@ export class WriteFileHandler {
     logger.info(
       formatLogMessage(
         "info",
-        "WriteFileHandler",
-        `Requested approval for writing file ${filePath}`
+        "ReadFileHandler",
+        `Requested approval for reading file ${filePath}`
       )
     );
   }
@@ -291,10 +300,10 @@ export class WriteFileHandler {
     targetClient: { id: string; type: "app" | "tui" } | undefined
   ): void {
     const response = {
-      type: "writeFileResponse",
+      type: "readFileResponse",
       requestId,
       success: false,
-      message: userMessage || "Write file request rejected",
+      message: userMessage || "Read file request rejected",
       error: userMessage || "Rejected by user",
     };
 
@@ -303,10 +312,10 @@ export class WriteFileHandler {
       clientId: agent.id,
     });
 
-    const notification: FileWriteSuccess = {
+    const notification: FileReadSuccess = {
       type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
+      actionType: "READFILE" as const,
+      templateType: "READFILE" as const,
       sender: "agent" as const,
       messageId: requestId,
       threadId: requestId,
@@ -317,7 +326,7 @@ export class WriteFileHandler {
         type: "file" as const,
         path: filePath,
         content: userMessage || "Rejected",
-        stateEvent: "fileWrite" as const,
+        stateEvent: "FILE_READ" as const,
       },
     };
 
@@ -343,10 +352,10 @@ export class WriteFileHandler {
     content: string,
     targetClient?: { id: string; type: "app" | "tui" }
   ): void {
-    const notification: FileWriteSuccess = {
+    const notification: FileReadSuccess = {
       type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
+      actionType: "READFILE" as const,
+      templateType: "READFILE" as const,
       sender: "agent" as const,
       messageId: requestId,
       threadId: requestId,
@@ -357,7 +366,7 @@ export class WriteFileHandler {
         type: "file" as const,
         path: filePath,
         content,
-        stateEvent: "fileWrite" as const,
+        stateEvent: "FILE_READ" as const,
       },
     };
 

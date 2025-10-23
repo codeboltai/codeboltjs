@@ -1,7 +1,5 @@
 import { ClientConnection, Message, formatLogMessage } from "../../types";
 import {
-  DeleteFileHandler,
-  GrepSearchHandler,
   ReadFileHandler,
   WriteFileHandler,
 } from "../../localAgentRequestFulfilment/index.js";
@@ -11,7 +9,34 @@ import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
-import { ReadFileEvent, WriteToFileEvent, DeleteFileEvent, GrepSearchEvent } from "@codebolt/types/agent-to-app-ws-types";
+import type { 
+  ReadFileEvent as SchemaReadFileEvent, 
+  WriteToFileEvent as SchemaWriteToFileEvent,
+  DeleteFileEvent as SchemaDeleteFileEvent,
+  GrepSearchEvent as SchemaGrepSearchEvent
+} from "@codebolt/types/agent-to-app-ws-types";
+
+// Define interfaces that match what the handlers expect
+interface ReadFileEvent {
+  type: "fsEvent";
+  action: "readFile";
+  requestId: string;
+  message: {
+    relPath: string;
+    offset?: number;
+    limit?: number;
+  };
+}
+
+interface WriteToFileEvent {
+  type: "fsEvent";
+  action: "writeToFile";
+  requestId: string;
+  message: {
+    relPath: string;
+    newContent: string;
+  };
+}
 
 /**
  * Routes messages with explicit workflow visibility
@@ -20,8 +45,7 @@ import { ReadFileEvent, WriteToFileEvent, DeleteFileEvent, GrepSearchEvent } fro
 export class AgentMessageRouter {
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
-  private deleteFileHandler: DeleteFileHandler;
-  private grepSearchHandler: GrepSearchHandler;
+
   private sendMessageToApp: SendMessageToApp;
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
@@ -31,8 +55,7 @@ export class AgentMessageRouter {
   constructor() {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
-    this.deleteFileHandler = new DeleteFileHandler();
-    this.grepSearchHandler = new GrepSearchHandler();
+ 
     this.sendMessageToApp = new SendMessageToApp();
     this.sendMessageToTui = new SendMessageToTui();
     this.connectionManager = ConnectionManager.getInstance();
@@ -46,36 +69,48 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | ReadFileEvent | WriteToFileEvent | DeleteFileEvent | GrepSearchEvent
+    message: Message | SchemaReadFileEvent | SchemaWriteToFileEvent | SchemaDeleteFileEvent | SchemaGrepSearchEvent
   ) {
     logger.info(
       formatLogMessage(
         "info",
         "MessageRouter",
-        `Handling agent request: ${message.type} from ${agent.id
-        }`
+        `Handling agent request: ${message.type} from ${agent.id}`
       )
     );
 
     // Handle read file requests locally before forwarding
     if (message.type === "fsEvent" && message.action === "readFile") {
-      await this.readFileHandler.handleReadFile(agent, message as ReadFileEvent);
+      // Convert schema-based event to handler-based event
+      const readFileEvent: ReadFileEvent = {
+        type: "fsEvent",
+        action: "readFile",
+        requestId: message.requestId,
+        message: {
+          relPath: (message as SchemaReadFileEvent).message.filePath,
+          // offset and limit are not in the schema, so we leave them undefined
+        }
+      };
+      await this.readFileHandler.handleReadFile(agent, readFileEvent);
       return;
     }
 
     if (message.type === "fsEvent" && message.action === "writeToFile") {
-      await this.writeFileHandler.handleWriteFile(agent, message as WriteToFileEvent);
+      // Convert schema-based event to handler-based event
+      const writeFileEvent: WriteToFileEvent = {
+        type: "fsEvent",
+        action: "writeToFile",
+        requestId: message.requestId,
+        message: {
+          relPath: (message as SchemaWriteToFileEvent).message.relPath,
+          newContent: (message as SchemaWriteToFileEvent).message.newContent,
+        }
+      };
+      await this.writeFileHandler.handleWriteFile(agent, writeFileEvent);
       return;
     }
+    if(message.type === "codebolttools"){
 
-    if (message.type === "fsEvent" && message.action === "deleteFile") {
-      await this.deleteFileHandler.handleDeleteFile(agent, message as DeleteFileEvent);
-      return;
-    }
-
-    if (message.type === "fsEvent" && message.action === "grep_search") {
-      await this.grepSearchHandler.handleGrepSearch(agent, message as GrepSearchEvent);
-      return;
     }
 
     // Forward the message to the related app instead of sending back to client
@@ -84,8 +119,6 @@ export class AgentMessageRouter {
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const appManager = this.connectionManager.getAppConnectionManager();
     const processManager = this.connectionManager.getProcessManager();
-
- 
 
     // Get the client ID and client type for this agent
     let targetClientId: string | undefined;
@@ -127,20 +160,13 @@ export class AgentMessageRouter {
       }
     }
 
-    // Add agentId and agentInstanceId to the message so the client knows where to send response back
-    const messageWithAgentId = {
-      ...message,
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-    };
-
     // If we have a specific client ID and type, send to that client using the appropriate messaging class
     if (targetClientId && clientType) {
       if (clientType === "app") {
-        this.sendMessageToApp.forwardToApp(agent, messageWithAgentId);
+        this.sendMessageToApp.forwardToApp(agent, message as Message);
         return;
       } else if (clientType === "tui") {
-        this.sendMessageToTui.sendToTui(targetClientId, messageWithAgentId);
+        this.sendMessageToTui.sendToTui(targetClientId, message as Message);
         return;
       }
     }
@@ -151,7 +177,7 @@ export class AgentMessageRouter {
     if (tuis.length > 0) {
       // Try to send to first available tui
       const tui = tuis[0];
-      this.sendMessageToTui.sendToTui(tui.id, messageWithAgentId);
+      this.sendMessageToTui.sendToTui(tui.id, message as Message);
     } else {
       logger.info(
         formatLogMessage(
@@ -166,7 +192,6 @@ export class AgentMessageRouter {
       );
     }
 
-    this.sendMessageToRemote.forwardAgentMessage(agent, messageWithAgentId);
-
+    this.sendMessageToRemote.forwardAgentMessage(agent, message as Message);
   }
 }

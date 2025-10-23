@@ -2,7 +2,7 @@
  * Tool registry for managing and discovering tools
  */
 
-//import type { FunctionDeclaration } from '@google/generative-ai';
+//import type { any } from '@google/generative-ai';
 import type { AnyDeclarativeTool, OpenAIToolSchema, OpenAIFunctionCall } from './types';
 
 /**
@@ -81,8 +81,8 @@ export class ToolRegistry {
   /**
    * Get function declarations for all tools (backward compatibility)
    */
-  getFunctionDeclarations(): FunctionDeclaration[] {
-    const declarations: FunctionDeclaration[] = [];
+  getanys(): any[] {
+    const declarations: any[] = [];
     this.tools.forEach((tool) => {
       declarations.push((tool as any).genAISchema);
     });
@@ -92,8 +92,8 @@ export class ToolRegistry {
   /**
    * Get function declarations for specific tools (backward compatibility)
    */
-  getFunctionDeclarationsFiltered(toolNames: string[]): FunctionDeclaration[] {
-    const declarations: FunctionDeclaration[] = [];
+  getanysFiltered(toolNames: string[]): any[] {
+    const declarations: any[] = [];
     for (const name of toolNames) {
       const tool = this.tools.get(name);
       if (tool) {

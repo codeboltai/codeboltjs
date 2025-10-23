@@ -7,19 +7,12 @@ import { logger } from "../../utils/logger";
 import {
   ReadFileHandler,
   type ReadFileConfirmation,
-} from "../../localAgentRequestFulfilment/readFileHandler.js";
-import {
-  DeleteFileHandler,
-  type DeleteFileConfirmation,
-} from "../../localAgentRequestFulfilment/deleteFileHandler.js";
+} from "../../localAgentRequestFulfilment/readFileHandler";
+
 import {
   WriteFileHandler,
   type WriteFileConfirmation,
-} from "../../localAgentRequestFulfilment/writeFileHandler.js";
-import {
-  GrepSearchHandler,
-  type GrepSearchConfirmation,
-} from "../../localAgentRequestFulfilment/grepSearchHandler.js";
+} from "../../localAgentRequestFulfilment/writeFileHandler";
 
 export class TuiMessageRouter {
   private connectionManager: ConnectionManager;
@@ -27,16 +20,13 @@ export class TuiMessageRouter {
   private sendMessageToRemote: SendMessageToRemote;
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
-  private deleteFileHandler: DeleteFileHandler;
-  private grepSearchHandler: GrepSearchHandler;
+
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
     this.sendMessageToAgent = new SendMessageToAgent();
     this.sendMessageToRemote = new SendMessageToRemote();
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
-    this.deleteFileHandler = new DeleteFileHandler();
-    this.grepSearchHandler = new GrepSearchHandler();
   }
 
   handleTuiMessage(tui: ClientConnection, message: any): void {
@@ -58,8 +48,7 @@ export class TuiMessageRouter {
     if (message.type === "confirmationResponse") {
       this.readFileHandler.handleConfirmation(message as ReadFileConfirmation);
       this.writeFileHandler.handleConfirmation(message as WriteFileConfirmation);
-      this.deleteFileHandler.handleConfirmation(message as DeleteFileConfirmation);
-      this.grepSearchHandler.handleConfirmation(message as GrepSearchConfirmation);
+
       return;
     }
     if (message.type === "messageResponse") {

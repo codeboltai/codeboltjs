@@ -8,9 +8,17 @@ export {
   createFileServices, 
   fileServiceFunctions,
   type FileServicesConfig,
-  type GrepMatch,
-  DEFAULT_FILE_FILTERING_OPTIONS
+  type FileEntry
 } from './FileServices';
+
+// Search Service
+export {
+  SearchService,
+  createSearchService,
+  searchServiceFunctions,
+  type SearchServiceConfig,
+  type GrepMatchResult
+} from './SearchService';
 
 // Terminal Service
 export {
@@ -20,22 +28,3 @@ export {
   type TerminalServiceConfig,
   type CommandResult
 } from './TerminalService';
-
-// Directory
-export {
-  Directory,
-  createDirectory,
-  directoryFunctions,
-  type DirectoryConfig,
-  type FileEntry
-} from '../utils/fsutils/Directory';
-
-// Search
-export {
-  Search,
-  createSearch,
-  searchFunctions,
-  type SearchConfig,
-  type SearchMatch,
-  type SearchOptions
-} from '../utils/fsutils/Search';

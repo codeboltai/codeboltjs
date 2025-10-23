@@ -10,6 +10,7 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
+import { executeGitAction, type GitActionParams } from '../../utils/terminal/GitAction';
 
 /**
  * Parameters for the GitAction tool
@@ -70,61 +71,35 @@ class GitActionToolInvocation extends BaseToolInvocation<
         updateOutput?: (output: string) => void,
     ): Promise<ToolResult> {
         try {
-            // Import gitServiceCli for execution
-            const { gitServiceCli } = await import('../../cliLib/gitService.cli');
-
-            // Map action to tool name expected by gitServiceCli
-            const toolName = `git_${this.params.action}`;
-
-            // Prepare parameters for the git service
-            const gitParams: any = {};
-            if (this.params.message) gitParams.message = this.params.message;
-            if (this.params.branch) gitParams.branch = this.params.branch;
-            if (this.params.url) gitParams.url = this.params.url;
-            if (this.params.commitHash) gitParams.commitHash = this.params.commitHash;
-
-            // Create a finalMessage object for the git service
-            const finalMessage = {
-                messageId: `git_${Date.now()}`,
-                threadId: 'git_thread',
-                agentInstanceId: 'git_agent',
-                agentId: 'git',
-                parentAgentInstanceId: null,
-                parentId: null
+            // Convert tool params to utility params
+            const utilParams: GitActionParams = {
+                action: this.params.action,
+                message: this.params.message,
+                branch: this.params.branch,
+                url: this.params.url,
+                commitHash: this.params.commitHash
             };
 
-            // Execute the git tool using gitServiceCli
-            const result = await gitServiceCli.executeTool(toolName, gitParams, finalMessage);
+            // Use the utility function
+            const result = await executeGitAction(utilParams);
 
-            if (result && result.success !== false) {
-                const message = result.message || `Git ${this.params.action} completed successfully`;
-                const data = result.data;
-
-                let llmContent = message;
-                if (data) {
-                    if (typeof data === 'string') {
-                        llmContent += `\n\n${data}`;
-                    } else {
-                        llmContent += `\n\n${JSON.stringify(data, null, 2)}`;
-                    }
-                }
-
-                return {
-                    llmContent,
-                    returnDisplay: llmContent
-                };
-            } else {
-                // Handle error case
-                const errorMessage = result?.error || `Failed to execute git ${this.params.action}`;
+            // Handle errors from utility
+            if (result.error) {
                 return {
                     llmContent: '',
                     returnDisplay: '',
                     error: {
-                        type: ToolErrorType.EXECUTION_FAILED,
-                        message: errorMessage
+                        type: result.error.type as ToolErrorType,
+                        message: result.error.message
                     }
                 };
             }
+
+            // Return successful result from utility
+            return {
+                llmContent: result.llmContent,
+                returnDisplay: result.returnDisplay
+            };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during git operation';
             return {
