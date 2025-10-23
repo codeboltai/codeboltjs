@@ -6,8 +6,8 @@ import { ConnectionManager } from "../core/connectionManagers/connectionManager.
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 // Import FileServices instead of the missing WriteFileService
 import { FileServices, createFileServices } from "../services/FileServices";
-import { DefaultFileSystem } from "../fsutils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../fsutils/DefaultWorkspaceContext";
+import { DefaultFileSystem } from "../utils/fsutils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../utils/fsutils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 
 import type {

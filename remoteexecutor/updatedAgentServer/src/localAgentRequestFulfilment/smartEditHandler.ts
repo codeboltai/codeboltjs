@@ -7,8 +7,8 @@ import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRe
 import { logger } from "../utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
-import { DefaultFileSystem } from "../fsutils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../fsutils/DefaultWorkspaceContext";
+import { DefaultFileSystem } from "../utils/fsutils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../utils/fsutils/DefaultWorkspaceContext";
 
 import type {
   FileWriteConfirmation,

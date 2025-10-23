@@ -7,11 +7,43 @@ import type {
   FileSystemService,
   FileFilteringOptions
 } from './types';
-import type { FileServices } from '../services/FileServices';
-import { DefaultFileSystem } from '../fsutils/DefaultFileSystem';
-import { DefaultWorkspaceContext } from '../fsutils/DefaultWorkspaceContext';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
-export { DefaultFileSystem, DefaultWorkspaceContext };
+/**
+ * Default file system service implementation
+ */
+export class DefaultFileSystemService implements FileSystemService {
+  async readTextFile(filePath: string): Promise<string> {
+    return fs.readFile(filePath, 'utf-8');
+  }
+
+  async writeTextFile(filePath: string, content: string): Promise<void> {
+    await fs.writeFile(filePath, content, 'utf-8');
+  }
+}
+
+/**
+ * Default workspace context implementation
+ */
+export class DefaultWorkspaceContext implements WorkspaceContext {
+  constructor(private directories: string[]) {
+    // Resolve all directories to absolute paths
+    this.directories = directories.map(dir => path.resolve(dir));
+  }
+
+  getDirectories(): readonly string[] {
+    return this.directories;
+  }
+
+  isPathWithinWorkspace(targetPath: string): boolean {
+    const resolvedPath = path.resolve(targetPath);
+    return this.directories.some(dir => {
+      const relativePath = path.relative(dir, resolvedPath);
+      return !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+    });
+  }
+}
 
 /**
  * Simplified configuration interface for standalone tools
@@ -50,8 +82,14 @@ export interface ToolsConfig {
     writeFile: (path: string, data: string, encoding: string) => Promise<void>;
   } | undefined;
 
-  /** File services instance */
-  fileServices?: FileServices;
+  /** File service for discovery and filtering */
+  getFileService?(): { filterFilesWithReport(filePaths: string[], options: any): { filteredPaths: string[], ignoredCount: number } };
+
+  /** File exclusions for glob operations */
+  getFileExclusions?(): { getGlobExcludes(): string[] };
+
+  /** File filtering options getter */
+  getFileFilteringOptions?(): FileFilteringOptions;
 }
 
 /**
@@ -70,7 +108,6 @@ export function createDefaultConfig(options: {
   approvalMode?: 'auto' | 'manual';
   timeout?: number;
   proxy?: string;
-  fileServices?: FileServices;
 }): ToolsConfig {
   const targetDir = options.targetDir || process.cwd();
   const workspaceDirectories = options.workspaceDirectories || [targetDir];
@@ -78,10 +115,10 @@ export function createDefaultConfig(options: {
   const config: ToolsConfig = {
     targetDir,
     workspaceContext: new DefaultWorkspaceContext(workspaceDirectories),
-    fileSystemService: new DefaultFileSystem(),
+    fileSystemService: new DefaultFileSystemService(),
     fileFilteringOptions: options.fileFilteringOptions || {
       respectGitIgnore: true,
-      respectGeminiIgnore: true,
+      respectCodeboltIgnore: true,
     },
     debugMode: options.debugMode || false,
     approvalMode: options.approvalMode || 'manual',
@@ -89,9 +126,6 @@ export function createDefaultConfig(options: {
   };
   if (options.proxy) {
     config.proxy = options.proxy;
-  }
-  if (options.fileServices) {
-    config.fileServices = options.fileServices;
   }
   return config;
 }
@@ -101,6 +135,12 @@ export function createDefaultConfig(options: {
  * Configuration manager class
  */
 export class ConfigManager implements ToolsConfig {
+  private readonly fileFiltering: {
+    respectGitIgnore: boolean;
+    respectCodeboltIgnore: boolean;
+    enableRecursiveFileSearch: boolean;
+    disableFuzzySearch: boolean;
+  };
   constructor(private config: ToolsConfig) { }
 
   get targetDir(): string {
@@ -143,10 +183,6 @@ export class ConfigManager implements ToolsConfig {
     return this.config.fileSystem;
   }
 
-  getFileServices(): FileServices | undefined {
-    return this.config.fileServices;
-  }
-
   getTargetDir(): string {
     return this.config.targetDir;
   }
@@ -157,6 +193,32 @@ export class ConfigManager implements ToolsConfig {
 
   getFileSystemService(): FileSystemService {
     return this.config.fileSystemService;
+  }
+
+  getFileService(): { filterFilesWithReport(filePaths: string[], options: any): { filteredPaths: string[], ignoredCount: number } } {
+    return {
+      filterFilesWithReport(filePaths: string[], options: any): { filteredPaths: string[], ignoredCount: number } {
+        // Simple implementation - just return all paths for now
+        return {
+          filteredPaths: filePaths,
+          ignoredCount: 0
+        };
+      }
+    };
+  }
+
+  getFileExclusions(): { getGlobExcludes(): string[] } {
+    return {
+      getGlobExcludes(): string[] {
+        return [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/bower_components/**',
+          '**/.svn/**',
+          '**/.hg/**',
+        ];
+      }
+    };
   }
 
   getFileFilteringOptions(): FileFilteringOptions {
@@ -183,47 +245,9 @@ export class ConfigManager implements ToolsConfig {
   updateConfig(updates: Partial<ToolsConfig>): void {
     this.config = { ...this.config, ...updates };
   }
-
-  // Helper methods to create service instances
-  createFileServices() {
-    if (!this.config.fileServices) {
-      const { createFileServices } = require('../services');
-      this.config.fileServices = createFileServices({
-        targetDir: this.config.targetDir,
-        workspaceContext: this.config.workspaceContext,
-        fileSystemService: this.config.fileSystemService,
-        fileFilteringOptions: this.config.fileFilteringOptions,
-        approvalMode: this.config.approvalMode,
-        debugMode: this.config.debugMode,
-      });
-    }
-    return this.config.fileServices;
+  getFileFilteringRespectCodeboltIgnore(): boolean {
+    return this.fileFiltering.respectCodeboltIgnore;
   }
 
-  createTerminalService() {
-    const { createTerminalService } = require('../services');
-    return createTerminalService({
-      targetDir: this.config.targetDir,
-      debugMode: this.config.debugMode,
-      timeout: this.config.timeout,
-    });
-  }
 
-  createDirectoryService() {
-    const { createDirectoryService } = require('../services');
-    return createDirectoryService({
-      targetDir: this.config.targetDir,
-      debugMode: this.config.debugMode,
-      fileFilteringOptions: this.config.fileFilteringOptions,
-    });
-  }
-
-  createSearchService() {
-    const { createSearchService } = require('../services');
-    return createSearchService({
-      targetDir: this.config.targetDir,
-      debugMode: this.config.debugMode,
-      fileFilteringOptions: this.config.fileFilteringOptions,
-    });
-  }
 }

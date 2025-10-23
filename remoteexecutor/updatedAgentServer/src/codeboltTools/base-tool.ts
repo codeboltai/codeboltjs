@@ -109,7 +109,7 @@ export abstract class DeclarativeTool<
   /**
    * Get Google GenAI schema format (for backward compatibility)
    */
-  get genAISchema(): FunctionDeclaration {
+  get genAISchema(): any {
     return {
       name: this.name,
       description: this.description,

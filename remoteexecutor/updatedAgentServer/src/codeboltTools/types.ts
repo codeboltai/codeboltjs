@@ -332,7 +332,7 @@ export function isTool(obj: unknown): obj is AnyDeclarativeTool {
  */
 export interface FileFilteringOptions {
   respectGitIgnore?: boolean;
-  respectGeminiIgnore?: boolean;
+  respectCodeboltIgnore?: boolean;
 }
 
 /**

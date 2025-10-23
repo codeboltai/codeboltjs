@@ -28,7 +28,7 @@ export {
   directoryFunctions,
   type DirectoryConfig,
   type FileEntry
-} from '../fsutils/Directory';
+} from '../utils/fsutils/Directory';
 
 // Search
 export {
@@ -38,4 +38,4 @@ export {
   type SearchConfig,
   type SearchMatch,
   type SearchOptions
-} from '../fsutils/Search';
+} from '../utils/fsutils/Search';
