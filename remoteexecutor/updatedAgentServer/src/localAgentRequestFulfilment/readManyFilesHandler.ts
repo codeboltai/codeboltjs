@@ -3,18 +3,20 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
+// Remove SendMessageToRemote import as it's no longer needed
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+// Add imports for the new approval system
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import type {
   FileReadConfirmation,
   FileReadSuccess,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
-import type { GrepSearchErrorResponse } from "@codebolt/types/app-to-agent-ws-types";
+// Remove GrepSearchErrorResponse import as it's not used
 
 export interface ReadManyFilesEvent {
   type: "fsEvent";
@@ -28,7 +30,7 @@ export interface ReadManyFilesEvent {
 type PendingRequest = {
   agent: ClientConnection;
   request: ReadManyFilesEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient; // Use TargetClient type
 };
 
 export interface ReadManyFilesConfirmation {
@@ -39,9 +41,13 @@ export interface ReadManyFilesConfirmation {
 
 export class ReadManyFilesHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
-  private readonly sendMessageToRemote = new SendMessageToRemote();
+  // Remove sendMessageToRemote as it's no longer needed
   private readonly fileServices: FileServices;
   private readonly permissionManager: PermissionManager;
+  // Add new services
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
 
@@ -60,7 +66,8 @@ export class ReadManyFilesHandler {
     const { requestId, message } = event;
     const { paths } = message;
 
-    const targetClient = this.resolveParent(agent);
+    // Use the new client resolver
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       await this.executeReadManyFiles(agent, event);
@@ -80,7 +87,14 @@ export class ReadManyFilesHandler {
     const messageId = uuidv4();
     this.pendingRequests.set(messageId, { agent, request: event, targetClient });
 
-    this.requestApproval(agent, targetClient, messageId, event);
+    // Use the new approval service
+    this.approvalService.requestReadManyFilesApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      paths
+    });
   }
 
   async handleConfirmation(message: ReadManyFilesConfirmation): Promise<void> {
@@ -103,13 +117,14 @@ export class ReadManyFilesHandler {
     const { requestId, message: payload } = request;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
-      this.sendRejection(
+      // Use the notification service for rejection
+      this.notificationService.sendFileReadSuccess({
         agent,
         requestId,
-        payload.paths,
-        message.userMessage || "Read many files request rejected",
+        filePath: payload.paths.join(", "),
+        content: message.userMessage || "Rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -142,13 +157,14 @@ export class ReadManyFilesHandler {
     const { requestId, message: payload } = request;
 
     if (message.state !== "approved") {
-      this.sendRejection(
+      // Use the notification service for rejection
+      this.notificationService.sendFileReadSuccess({
         agent,
         requestId,
-        payload.paths,
-        message.reason ?? "Read many files request rejected",
+        filePath: payload.paths.join(", "),
+        content: message.reason ?? "Rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -163,7 +179,7 @@ export class ReadManyFilesHandler {
   private async executeReadManyFiles(
     agent: ClientConnection,
     event: ReadManyFilesEvent,
-    targetClient?: { id: string; type: "app" | "tui" }
+    targetClient?: TargetClient // Use TargetClient type
   ): Promise<void> {
     const { requestId, message } = event;
     const { paths } = message;
@@ -204,9 +220,15 @@ export class ReadManyFilesHandler {
         clientId: agent.id,
       });
 
-      // Send notifications for each successful read
+      // Send notifications for each successful read using the notification service
       successResults.forEach(({ path, result }) => {
-        this.sendApprovalNotification(agent, requestId, path, result.content || "", targetClient);
+        this.notificationService.sendFileReadSuccess({
+          agent,
+          requestId,
+          filePath: path,
+          content: result.content || "",
+          targetClient
+        });
       });
 
     } catch (error) {
@@ -235,169 +257,13 @@ export class ReadManyFilesHandler {
     }
   }
 
-  private resolveParent(
-    agent: ClientConnection
-  ): { id: string; type: "app" | "tui" } | undefined {
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
+  // Remove the resolveParent method as it's now handled by ClientResolver
 
-    const parentId = agentManager.getParentByAgent(agent.id);
-    if (!parentId) {
-      return undefined;
-    }
+  // Remove the requestApproval method as it's now handled by ApprovalService
 
-    if (appManager.getApp(parentId)) {
-      return { id: parentId, type: "app" };
-    }
+  // Remove the sendRejection method as it's now handled by NotificationService
 
-    if (tuiManager.getTui(parentId)) {
-      return { id: parentId, type: "tui" };
-    }
+  // Remove the sendApprovalNotification method as it's now handled by NotificationService
 
-    return undefined;
-  }
-
-  private requestApproval(
-    agent: ClientConnection,
-    targetClient: { id: string; type: "app" | "tui" },
-    messageId: string,
-    event: ReadManyFilesEvent
-  ): void {
-    const { requestId, message } = event;
-    const { paths } = message;
-
-    const payload: FileReadConfirmation = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: paths.join(", "), // Show all paths in the confirmation
-        content: "",
-        stateEvent: "ASK_FOR_CONFIRMATION" as const,
-      },
-    };
-
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "ReadManyFilesHandler",
-        `Requested approval for reading ${paths.length} files: ${paths.join(", ")}`
-      )
-    );
-  }
-
-  private sendRejection(
-    agent: ClientConnection,
-    requestId: string,
-    paths: string[],
-    reason: string,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const response = {
-      type: "readManyFilesResponse" as const,
-      requestId,
-      success: false,
-      message: reason || "Read many files request rejected",
-      error: reason || "Rejected by user",
-      results: [],
-      errors: paths.map(path => ({ path, error: reason })),
-      totalRequested: paths.length,
-      totalSuccessful: 0,
-      totalFailed: paths.length,
-    };
-
-    this.connectionManager.sendToConnection(agent.id, {
-      ...response,
-      clientId: agent.id,
-    });
-
-    // Send rejection notifications for each path
-    paths.forEach(path => {
-      const notification: FileReadSuccess = {
-        type: "message" as const,
-        actionType: "READFILE" as const,
-        templateType: "READFILE" as const,
-        sender: "agent" as const,
-        messageId: requestId,
-        threadId: requestId,
-        timestamp: Date.now().toString(),
-        agentId: agent.id,
-        agentInstanceId: agent.instanceId,
-        payload: {
-          type: "file" as const,
-          path,
-          content: reason || "Rejected",
-          stateEvent: "FILE_READ" as const,
-        },
-      };
-
-      this.notifyClients(notification, targetClient);
-      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-    });
-  }
-
-  private sendApprovalNotification(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    content: string,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const notification: FileReadSuccess = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content,
-        stateEvent: "FILE_READ" as const,
-      },
-    };
-
-    this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  private notifyClients(
-    notification: FileReadSuccess,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-      return;
-    }
-
-    if (targetClient.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-  }
+  // Remove the notifyClients method as it's now handled by NotificationService
 }

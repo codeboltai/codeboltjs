@@ -21,7 +21,8 @@ import {
   ListDirectoryError,
   FolderReadConfirmation,
   FolderReadRejected,
-  FolderReadSuccess
+  FolderReadSuccess,
+  FolderReadError
 } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
 import { ReadFileEvent, GrepSearchEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { GrepSearchSuccessResponse, GrepSearchErrorResponse } from '@codebolt/types/app-to-agent-ws-types';
@@ -60,7 +61,11 @@ export class SendMessageToRemote {
       |ListDirectoryError
       |FolderReadConfirmation
       |FolderReadRejected
-      |FolderReadSuccess,
+      |FolderReadSuccess
+      | FileWriteSuccess 
+      
+      | FolderReadError,
+      
     options?: { requireRemote?: boolean }
   ): void {
     const client = this.remoteClient;

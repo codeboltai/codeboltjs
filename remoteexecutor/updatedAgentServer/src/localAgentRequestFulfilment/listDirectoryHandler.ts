@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import {
   FolderReadConfirmation,
@@ -29,7 +29,7 @@ export interface ListDirectoryEvent {
 type PendingRequest = {
   agent: ClientConnection;
   request: ListDirectoryEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient;
 };
 
 export interface ListDirectoryConfirmation {
@@ -40,9 +40,11 @@ export interface ListDirectoryConfirmation {
 
 export class ListDirectoryHandler {
   private connectionManager = ConnectionManager.getInstance();
-  private sendMessageToRemote = new SendMessageToRemote();
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private pendingRequests = new Map<string, PendingRequest>();
 
@@ -64,7 +66,7 @@ export class ListDirectoryHandler {
     const { requestId, message } = event;
     const { path } = message;
 
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       await this.executeListDirectory(agent, event);
@@ -80,7 +82,13 @@ export class ListDirectoryHandler {
     const messageId = uuidv4();
     this.pendingRequests.set(messageId, { agent, request: event, targetClient });
 
-    this.requestApproval(agent, targetClient, messageId, event);
+    this.approvalService.requestFolderReadApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      path
+    });
   }
 
   async handleConfirmation(message: ListDirectoryConfirmation): Promise<void> {
@@ -103,13 +111,29 @@ export class ListDirectoryHandler {
     const { requestId, message: payload } = request;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
-      this.sendRejection(
+      const response = {
+        type: "listDirectoryResponse" as const,
+        requestId,
+        success: false,
+        path: payload.path,
+        message: message.userMessage || "List directory request rejected",
+        error: message.userMessage || "Rejected by user",
+        entries: [],
+        totalCount: 0,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFolderReadRejection({
         agent,
         requestId,
-        payload.path,
-        message.userMessage || "List directory request rejected",
+        path: payload.path,
+        reason: message.userMessage || "List directory request rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -138,13 +162,29 @@ export class ListDirectoryHandler {
     const { requestId, message: payload } = request;
 
     if (message.state !== "approved") {
-      this.sendRejection(
+      const response = {
+        type: "listDirectoryResponse" as const,
+        requestId,
+        success: false,
+        path: payload.path,
+        message: message.reason || "List directory request rejected",
+        error: message.reason || "Rejected by user",
+        entries: [],
+        totalCount: 0,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFolderReadRejection({
         agent,
         requestId,
-        payload.path,
-        message.reason ?? "List directory request rejected",
+        path: payload.path,
+        reason: message.reason ?? "List directory request rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -178,7 +218,13 @@ export class ListDirectoryHandler {
           clientId: agent.id,
         });
 
-        this.sendApprovalNotification(agent, requestId, path, result.entries || [], targetClient);
+        this.notificationService.sendFolderReadSuccess({
+          agent,
+          requestId,
+          path,
+          entries: (result.entries || []).map(entry => entry.name),
+          targetClient
+        });
       } else {
         const response = {
           type: "listDirectoryResponse" as const,
@@ -220,164 +266,4 @@ export class ListDirectoryHandler {
     }
   }
 
-  private resolveParent(
-    agent: ClientConnection
-  ): { id: string; type: "app" | "tui" } | undefined {
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    const parentId = agentManager.getParentByAgent(agent.id);
-    if (!parentId) {
-      return undefined;
-    }
-
-    if (appManager.getApp(parentId)) {
-      return { id: parentId, type: "app" };
-    }
-
-    if (tuiManager.getTui(parentId)) {
-      return { id: parentId, type: "tui" };
-    }
-
-    return undefined;
-  }
-
-  private requestApproval(
-    agent: ClientConnection,
-    targetClient: { id: string; type: "app" | "tui" },
-    messageId: string,
-    event: ListDirectoryEvent
-  ): void {
-    const { requestId, message } = event;
-    const { path } = message;
-
-    const payload: FolderReadConfirmation = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: [],
-        stateEvent: "ASK_FOR_CONFIRMATION" as const,
-      },
-    };
-
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "ListDirectoryHandler",
-        `Requested approval for listing directory ${path}`
-      )
-    );
-  }
-
-  private sendRejection(
-    agent: ClientConnection,
-    requestId: string,
-    path: string,
-    reason: string,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const response = {
-      type: "listDirectoryResponse" as const,
-      requestId,
-      success: false,
-      path,
-      message: reason || "List directory request rejected",
-      error: reason || "Rejected by user",
-      entries: [],
-      totalCount: 0,
-    };
-
-    this.connectionManager.sendToConnection(agent.id, {
-      ...response,
-      clientId: agent.id,
-    });
-
-    const notification: FolderReadRejected = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: [],
-        stateEvent: "REJECTED" as const,
-      },
-    };
-
-    this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  private sendApprovalNotification(
-    agent: ClientConnection,
-    requestId: string,
-    path: string,
-    entries: any[],
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const notification: FolderReadSuccess = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: entries.map(entry => entry.name),
-        stateEvent: "FILE_READ" as const,
-      },
-    };
-
-    this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  private notifyClients(
-    notification: FolderReadSuccess | FolderReadError | FolderReadRejected,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-      return;
-    }
-
-    if (targetClient.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-  }
 }

@@ -3,13 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import type {
   FileWriteConfirmation,
@@ -34,7 +34,7 @@ export interface SmartEditEvent {
 interface PendingRequest {
   agent: ClientConnection;
   request: SmartEditEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient;
 }
 
 export interface SmartEditConfirmation {
@@ -47,9 +47,11 @@ type SmartEditResult = Awaited<ReturnType<FileServices["replaceInFile"]>>;
 
 export class SmartEditHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
-  private readonly sendMessageToRemote = new SendMessageToRemote();
   private readonly fileServices: FileServices;
   private readonly permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
 
@@ -65,7 +67,7 @@ export class SmartEditHandler {
   }
 
   async handleSmartEdit(agent: ClientConnection, event: SmartEditEvent): Promise<void> {
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       await this.executeSmartEdit(agent, event);

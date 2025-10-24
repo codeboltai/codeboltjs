@@ -3,13 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 // Import FileServices instead of the missing WriteFileService
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import type {
   FileWriteConfirmation,
@@ -29,7 +29,7 @@ export interface WriteFileEvent {
 type PendingRequest = {
   agent: ClientConnection;
   request: WriteFileEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient;
 };
 
 export interface WriteFileConfirmation {
@@ -40,10 +40,12 @@ export interface WriteFileConfirmation {
 
 export class WriteFileHandler {
   private connectionManager = ConnectionManager.getInstance();
-  private sendMessageToRemote = new SendMessageToRemote();
   // Use FileServices instead of the missing WriteFileService
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private pendingRequests = new Map<string, PendingRequest>();
 
@@ -65,7 +67,7 @@ export class WriteFileHandler {
     const { requestId, message } = event;
     const { relPath, newContent } = message;
 
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       // Use FileServices to write the file instead of the missing performWrite method
@@ -91,7 +93,14 @@ export class WriteFileHandler {
     });
 
     if (targetClient) {
-      this.requestApproval(agent, targetClient, messageId, relPath, newContent, requestId);
+      this.approvalService.requestWriteFileApproval({
+        agent,
+        targetClient,
+        messageId,
+        requestId,
+        filePath: relPath,
+        newContent
+      });
     } else {
       logger.warn("No target client found for approval request");
     }
@@ -117,13 +126,26 @@ export class WriteFileHandler {
     const { requestId, message: payload } = request;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
-      this.sendRejection(
+      const response = {
+        type: "writeFileResponse",
+        requestId,
+        success: false,
+        message: message.userMessage || "Write file request rejected",
+        error: message.userMessage || "Rejected by user",
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFileWriteRejection({
         agent,
         requestId,
-        payload.relPath,
-        message.userMessage || "Write file request rejected",
+        filePath: payload.relPath,
+        reason: message.userMessage || "Write file request rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -154,13 +176,26 @@ export class WriteFileHandler {
     const { requestId, message: payload } = request;
 
     if (message.state !== "approved") {
-      this.sendRejection(
+      const response = {
+        type: "writeFileResponse",
+        requestId,
+        success: false,
+        message: message.reason || "Write file request rejected",
+        error: message.reason || "Rejected by user",
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFileWriteRejection({
         agent,
         requestId,
-        payload.relPath,
-        message.reason ?? "Write file request rejected",
+        filePath: payload.relPath,
+        reason: message.reason ?? "Write file request rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -198,7 +233,15 @@ export class WriteFileHandler {
         clientId: agent.id,
       });
 
-      this.sendApprovalNotification(agent, requestId, filePath, content);
+      this.notificationService.sendFileWriteSuccess({
+        agent,
+        requestId,
+        filePath,
+        content,
+        originalContent: result.originalContent,
+        diff: result.diff,
+        targetClient
+      });
     } else {
       // Send error response
       const response = {
@@ -216,163 +259,4 @@ export class WriteFileHandler {
     }
   }
 
-  private resolveParent(
-    agent: ClientConnection
-  ): { id: string; type: "app" | "tui" } | undefined {
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    const parentId = agentManager.getParentByAgent(agent.id);
-    if (!parentId) {
-      return undefined;
-    }
-
-    if (appManager.getApp(parentId)) {
-      return { id: parentId, type: "app" };
-    }
-
-    if (tuiManager.getTui(parentId)) {
-      return { id: parentId, type: "tui" };
-    }
-
-    return undefined;
-  }
-
-  private requestApproval(
-    agent: ClientConnection,
-    targetClient: { id: string; type: "app" | "tui" },
-    messageId: string,
-    filePath: string,
-    newContent: string,
-    requestId: string
-  ): void {
-    const payload: FileWriteConfirmation = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content: newContent,
-        originalContent: "",
-        stateEvent: "askForConfirmation" as const,
-      },
-    };
-
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "WriteFileHandler",
-        `Requested approval for writing file ${filePath}`
-      )
-    );
-  }
-
-  private sendRejection(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    userMessage: string,
-    targetClient: { id: string; type: "app" | "tui" } | undefined
-  ): void {
-    const response = {
-      type: "writeFileResponse",
-      requestId,
-      success: false,
-      message: userMessage || "Write file request rejected",
-      error: userMessage || "Rejected by user",
-    };
-
-    this.connectionManager.sendToConnection(agent.id, {
-      ...response,
-      clientId: agent.id,
-    });
-
-    const notification: FileWriteSuccess = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content: userMessage || "Rejected",
-        stateEvent: "fileWrite" as const,
-      },
-    };
-
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-    } else if (targetClient?.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else if (targetClient?.type === "tui") {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  sendApprovalNotification(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    content: string,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const notification: FileWriteSuccess = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content,
-        stateEvent: "fileWrite" as const,
-      },
-    };
-
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-    } else if (targetClient.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
 }

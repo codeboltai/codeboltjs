@@ -3,13 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
-// Import FileServices instead of the missing ReadFileService
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import type {
   FileReadConfirmation,
@@ -31,7 +30,7 @@ export interface ReadFileEvent {
 type PendingRequest = {
   agent: ClientConnection;
   request: ReadFileEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient;
 };
 
 export interface ReadFileConfirmation {
@@ -42,10 +41,11 @@ export interface ReadFileConfirmation {
 
 export class ReadFileHandler {
   private connectionManager = ConnectionManager.getInstance();
-  private sendMessageToRemote = new SendMessageToRemote();
-  // Use FileServices instead of the missing ReadFileService
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private pendingRequests = new Map<string, PendingRequest>();
 
@@ -67,7 +67,7 @@ export class ReadFileHandler {
     const { requestId, message } = event;
     const { relPath, offset, limit } = message;
 
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       // Use FileServices to read the file instead of the missing performRead method
@@ -93,7 +93,15 @@ export class ReadFileHandler {
     });
 
     if (targetClient) {
-      this.requestApproval(agent, targetClient, messageId, relPath, requestId, offset, limit);
+      this.approvalService.requestReadFileApproval({
+        agent,
+        targetClient,
+        messageId,
+        requestId,
+        filePath: relPath,
+        offset,
+        limit
+      });
     } else {
       logger.warn("No target client found for approval request");
     }
@@ -119,13 +127,26 @@ export class ReadFileHandler {
     const { requestId, message: payload } = request;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
-      this.sendRejection(
+      const response = {
+        type: "readFileResponse",
+        requestId,
+        success: false,
+        message: message.userMessage || "Read file request rejected",
+        error: message.userMessage || "Rejected by user",
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFileReadSuccess({
         agent,
         requestId,
-        payload.relPath,
-        message.userMessage || "Read file request rejected",
+        filePath: payload.relPath,
+        content: message.userMessage || "Rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -159,13 +180,26 @@ export class ReadFileHandler {
     const { requestId, message: payload } = request;
 
     if (message.state !== "approved") {
-      this.sendRejection(
+      const response = {
+        type: "readFileResponse",
+        requestId,
+        success: false,
+        message: message.reason || "Read file request rejected",
+        error: message.reason || "Rejected by user",
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFileReadSuccess({
         agent,
         requestId,
-        payload.relPath,
-        message.reason ?? "Read file request rejected",
+        filePath: payload.relPath,
+        content: message.reason ?? "Rejected",
         targetClient
-      );
+      });
       return;
     }
 
@@ -205,7 +239,13 @@ export class ReadFileHandler {
         clientId: agent.id,
       });
 
-      this.sendApprovalNotification(agent, requestId, filePath, result.content);
+      this.notificationService.sendFileReadSuccess({
+        agent,
+        requestId,
+        filePath,
+        content: result.content || "",
+        targetClient
+      });
     } else {
       // Send error response
       const response = {
@@ -223,165 +263,4 @@ export class ReadFileHandler {
     }
   }
 
-  private resolveParent(
-    agent: ClientConnection
-  ): { id: string; type: "app" | "tui" } | undefined {
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    const parentId = agentManager.getParentByAgent(agent.id);
-    if (!parentId) {
-      return undefined;
-    }
-
-    if (appManager.getApp(parentId)) {
-      return { id: parentId, type: "app" };
-    }
-
-    if (tuiManager.getTui(parentId)) {
-      return { id: parentId, type: "tui" };
-    }
-
-    return undefined;
-  }
-
-  private requestApproval(
-    agent: ClientConnection,
-    targetClient: { id: string; type: "app" | "tui" },
-    messageId: string,
-    filePath: string,
-    requestId: string,
-    offset?: number,
-    limit?: number
-  ): void {
-    const payload: FileReadConfirmation = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        offset,
-        limit,
-        content: "",
-        stateEvent: "ASK_FOR_CONFIRMATION" as const,
-      },
-    };
-
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "ReadFileHandler",
-        `Requested approval for reading file ${filePath}`
-      )
-    );
-  }
-
-  private sendRejection(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    userMessage: string,
-    targetClient: { id: string; type: "app" | "tui" } | undefined
-  ): void {
-    const response = {
-      type: "readFileResponse",
-      requestId,
-      success: false,
-      message: userMessage || "Read file request rejected",
-      error: userMessage || "Rejected by user",
-    };
-
-    this.connectionManager.sendToConnection(agent.id, {
-      ...response,
-      clientId: agent.id,
-    });
-
-    const notification: FileReadSuccess = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content: userMessage || "Rejected",
-        stateEvent: "FILE_READ" as const,
-      },
-    };
-
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-    } else if (targetClient?.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else if (targetClient?.type === "tui") {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  sendApprovalNotification(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    content: string,
-    targetClient?: { id: string; type: "app" | "tui" }
-  ): void {
-    const notification: FileReadSuccess = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content,
-        stateEvent: "FILE_READ" as const,
-      },
-    };
-
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-    } else if (targetClient.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
 }
