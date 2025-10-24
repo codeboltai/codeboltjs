@@ -16,8 +16,6 @@ import type {
   McpEvent
 } from '@codebolt/types/wstypes/agent-to-app-ws/actions/mcpEventSchemas'
 
-
-
 import type {
    CreateFileSuccessResponse ,
    CreateFileErrorResponse,

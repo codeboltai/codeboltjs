@@ -7,8 +7,9 @@ import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRe
 import { logger } from "../utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
-import { DefaultFileSystem } from "../utils/fsutils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../utils/fsutils/DefaultWorkspaceContext";
+import { DefaultFileSystem } from "../utils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
+import { PermissionManager, PermissionUtils } from "./PermissionManager";
 
 import type {
   FileWriteConfirmation,
@@ -54,9 +55,9 @@ export class ReplaceInFileHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
   private readonly sendMessageToRemote = new SendMessageToRemote();
   private readonly fileServices: FileServices;
+  private readonly permissionManager: PermissionManager;
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
-  private readonly grantedPermissions = new Set<string>();
 
   constructor() {
     const config = {
@@ -65,6 +66,8 @@ export class ReplaceInFileHandler {
       fileSystemService: new DefaultFileSystem(),
     };
     this.fileServices = createFileServices(config);
+    this.permissionManager = PermissionManager.getInstance();
+    this.permissionManager.initialize();
   }
 
   async handleReplaceInFile(agent: ClientConnection, event: ReplaceInFileEvent): Promise<void> {
@@ -448,14 +451,10 @@ export class ReplaceInFileHandler {
   }
 
   private hasPermission(agentId: string, filePath: string): boolean {
-    return this.grantedPermissions.has(this.permissionKey(agentId, filePath));
+    return PermissionUtils.hasPermission('replace_in_file', filePath, 'write');
   }
 
   private grantPermission(agentId: string, filePath: string): void {
-    this.grantedPermissions.add(this.permissionKey(agentId, filePath));
-  }
-
-  private permissionKey(agentId: string, filePath: string): string {
-    return `${agentId}:${filePath}`;
+    PermissionUtils.grantPermission('replace_in_file', filePath, 'write');
   }
 }
