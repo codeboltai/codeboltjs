@@ -72,6 +72,10 @@ func (c *Chat) SetSize(width, height int) {
 	}
 
 	c.refreshActiveConversationView()
+
+	if c.windowManager != nil {
+		c.windowManager.SetSize(width, height)
+	}
 }
 
 func (c *Chat) configureSingleColumn(width, availableHeight int) {

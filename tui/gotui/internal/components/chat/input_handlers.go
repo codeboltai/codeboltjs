@@ -359,6 +359,19 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 	skipChatViewport := false
 	skipContextViewport := false
 
+	if c.isWindowModeActive() {
+		if windowCmd, handled := c.handleWindowModeMsg(msg); handled {
+			return c, windowCmd
+		}
+
+		switch msg.(type) {
+		case tea.WindowSizeMsg:
+			// Allow layout messages to propagate for resizing
+		default:
+			return c, nil
+		}
+	}
+
 	switch msg := msg.(type) {
 	case tea.MouseClickMsg:
 		if clickCmd, handled := c.handleMouseClick(msg); handled {

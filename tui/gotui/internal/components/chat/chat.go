@@ -3,6 +3,7 @@ package chat
 import (
 	"strings"
 
+	"gotui/internal/components/chat/windows"
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/components/dialogs"
@@ -76,6 +77,8 @@ type Chat struct {
 	zonePrefix           string
 	chatZoneID           string
 	contextZoneID        string
+
+	windowManager *windows.Manager
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -118,6 +121,7 @@ func New() *Chat {
 		zonePrefix:            zonePrefix,
 		chatZoneID:            zonePrefix + "chat_area",
 		contextZoneID:         zonePrefix + "context_drawer",
+		windowManager:         windows.NewManager(templateManager),
 	}
 	chat.modelStatusWidget = widgets.NewModelStatusWidget(nil, nil)
 	chat.modelStatusWidget.SetStateStore(chat.applicationState)
@@ -294,20 +298,24 @@ func (c *Chat) View() string {
 			Render("Chat area too small")
 	}
 
-	theme := styles.CurrentTheme()
-
-	if c.conversationPanel != nil {
-		c.conversationPanel.SetHorizontalLayout(c.singleColumn)
-		c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
-	}
-
-	chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)
-
 	var layout string
-	if c.singleColumn {
-		layout = c.renderSingleColumnLayout(theme, chatArea, chatAreaHeight)
+	if c.isWindowModeActive() {
+		layout = c.renderWindowMode()
 	} else {
-		layout = c.renderTwoColumnLayout(theme, chatArea, chatAreaHeight)
+		theme := styles.CurrentTheme()
+
+		if c.conversationPanel != nil {
+			c.conversationPanel.SetHorizontalLayout(c.singleColumn)
+			c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
+		}
+
+		chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)
+
+		if c.singleColumn {
+			layout = c.renderSingleColumnLayout(theme, chatArea, chatAreaHeight)
+		} else {
+			layout = c.renderTwoColumnLayout(theme, chatArea, chatAreaHeight)
+		}
 	}
 
 	if c.themePicker.IsVisible() {

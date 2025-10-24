@@ -273,6 +273,10 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 	}
 	c.syncApplicationState()
 
+	if c.windowManager != nil {
+		c.windowManager.SyncConversations(c.conversations, c.activeConversationID)
+	}
+
 	if syncPanels {
 		c.syncConversationPanelItems()
 	}

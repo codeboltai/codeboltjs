@@ -12,6 +12,7 @@ type KeyMap struct {
 	ShowCommands key.Binding
 	ScrollUp     key.Binding
 	ScrollDown   key.Binding
+	ToggleMode   key.Binding
 	NextTab      key.Binding
 	PrevTab      key.Binding
 	TabChat      key.Binding
@@ -34,6 +35,7 @@ func DefaultKeyMap() KeyMap {
 		Retry:        key.NewBinding(key.WithKeys("ctrl+r"), key.WithHelp("ctrl+r", "retry connection")),
 		FocusChat:    key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "focus chat/scroll")),
 		ShowCommands: key.NewBinding(key.WithKeys("ctrl+k"), key.WithHelp("ctrl+k", "commands")),
+		ToggleMode:   key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "toggle layout mode")),
 		NextTab:      key.NewBinding(key.WithKeys("ctrl+]"), key.WithHelp("ctrl+]", "next tab")),
 		PrevTab:      key.NewBinding(key.WithKeys("ctrl+["), key.WithHelp("ctrl+[", "prev tab")),
 		TabChat:      key.NewBinding(key.WithKeys("ctrl+1", "shift+1"), key.WithHelp("ctrl+1/shift+1", "chat tab")),
