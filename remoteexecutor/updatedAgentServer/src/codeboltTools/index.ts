@@ -40,7 +40,7 @@ import {
   GrepTool,
   GlobTool,
   SmartEditTool,
-  ExecuteCommandTool,
+  // ExecuteCommandTool,
 
   AttemptCompletionTool,
 
@@ -49,7 +49,7 @@ import {
 
   GitActionTool,
   WriteTodosTool,
-  ExplainNextActionTool,
+  ExplainNextActionTool
 } from './tools/index';
 
 /**
@@ -93,7 +93,7 @@ export class StandaloneToolsFramework {
     this.registry.registerTool(new GlobTool(this.config));
 
     // New tools from mcpService
-    this.registry.registerTool(new ExecuteCommandTool(this.config));
+    // this.registry.registerTool(new ExecuteCommandTool(this.config));
     // this.registry.registerTool(new AskFollowupQuestionTool(this.config));
     this.registry.registerTool(new AttemptCompletionTool(this.config));
 
@@ -108,6 +108,7 @@ export class StandaloneToolsFramework {
 
     // Register the ExplainNextActionTool
     this.registry.registerTool(new ExplainNextActionTool());
+
   }
 
   /**

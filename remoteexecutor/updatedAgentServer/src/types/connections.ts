@@ -13,9 +13,11 @@ export interface BaseConnection {
   ws: any; // WebSocket type - avoiding direct ws import for better compatibility
   type: 'app' | 'agent' | 'client' | 'tui';
   connectedAt: Date;
-  instanceId?:string;
+  instanceId:string;
   connectionId?: string;
-  threadId?:string
+  threadId:string,
+  parentAgentInstanceId:string;
+  parentId:string
 }
 
 /**

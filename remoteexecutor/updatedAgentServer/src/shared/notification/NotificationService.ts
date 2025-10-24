@@ -2,7 +2,48 @@ import type { ClientConnection } from "../../types";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../../handlers/remoteMessaging/sendMessageToRemote.js";
 import type { TargetClient } from "../utils/ClientResolver";
+export enum TemplateEnum {
+  USER = "userChat",
+  AGENT = "agentChat",
+  INFOWITHLINK = "informationWithUILink",
+  AIREQUEST = "aiRequest",
+  AGENTCHATWITHBUTTON = "agentChatWithButton",
+  CONFIRMATIONCHAT = "confirmationChat",
+  CENTERINFO = "centerInfo",
+  MULTIBUTTONSELECT = "multibuttonselect",
+  AGENTINFOCARD = "agentinfocard",
+  AGENTSINFOLISTCARD = "agentsinfolistcard",
+  CODECONFIRMATION = "codeconfirmation",
+  CODEVIEWINEDITOR = "codeviewineditor",
+  CONFIRMATIONWITHFEEDBACK = "confirmationwithfeedback",
+  MANUALSTOPTEMPLATE = "manualstoptemplate",
+  PORTCHECKANDCHANGE = "portcheckandchange",
+  COMMANDCONFIRMATION = "commandconfirmation",
+  COMMANDCONFIRMATIONHISTORY = "commandconfirmationhistory",
+  FILEREAD = "FILEREAD",
+  READFILE = "READFILE",
+  WRITEFILE = "WRITEFILE",
+  FILEWRITE = "FILEWRITE",
+  SHADOWGIT = "shadowgit",
+  FILEREADHISTORY = "filereadhistory",
+  CHILDAGENTSTARTED = "childagentstarted",
+  CHILDAGENTFINISHED = "childagentfinished",
+  NEWAGENTBOX = "newagentbox",
+  FOLDERREAD = 'FOLDERREAD',
+  FILESEARCH = 'FILESEARCH',
+  CODEDEFINITIONS = 'CODEDEFINITIONS',
+  MCP_TOOL = 'MCP_TOOL',
+  READMANYFILES = 'READMANYFILES',
+  LISTDIRECTORY = 'LISTDIRECTORY',
+  CODEBASESEARCH = 'CODEBASESEARCH',
+  EDITOR_STATUS = 'EDITOR_STATUS',
+  REVIEWMODE = 'REVIEWMODE',
+  CREATE_FOLDER = "CREATE_FOLDER",
+  LIST_DIRECTORY = "LIST_DIRECTORY",
+  AGENT_TASK = "AGENT_TASK",
+  WRITE_TODOS = "WRITE_TODOS",
 
+}
 import type {
   FileWriteSuccess,
   FileWriteError,
@@ -16,17 +57,24 @@ import type {
   SearchRejected,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
-export type NotificationMessage = 
-  | FileWriteSuccess 
-  | FileWriteError 
-  | FileWriteRejected 
-  | FileReadSuccess 
-  | FolderReadSuccess 
-  | FolderReadError 
+
+import {
+  templateEnumSchema
+} from '@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas'
+import { ChatNotification } from "@codebolt/types/agent-to-app-ws-types";
+
+export type NotificationMessage =
+  | FileWriteSuccess
+  | FileWriteError
+  | FileWriteRejected
+  | FileReadSuccess
+  | FolderReadSuccess
+  | FolderReadError
   | FolderReadRejected
   | SearchSuccess
   | SearchError
   | SearchRejected;
+
 
 /**
  * Service for handling notifications across all handlers
@@ -285,7 +333,7 @@ export class NotificationService {
    */
   private notifyClients(
     agent: ClientConnection,
-    notification: NotificationMessage,
+    notification: NotificationMessage | any,
     targetClient?: TargetClient
   ): void {
     const appManager = this.connectionManager.getAppConnectionManager();
@@ -414,4 +462,226 @@ export class NotificationService {
   static getInstance(): NotificationService {
     return new NotificationService();
   }
+
+
+  /**
+   * Send Ai Request Notification
+   */
+
+  sendAiRequestNotification(
+    params: {
+      agent: ClientConnection;
+      messageId: string,
+      agentId: string,
+      threadId: string,
+      agentInstanceId: string,
+      parentAgentInstanceId: string,
+      message: string,
+      parentId: string,
+      requestId: string
+      targetClient?: TargetClient;
+    }
+
+  ) {
+    const { agent,
+      messageId,
+      agentId,
+      threadId,
+      agentInstanceId,
+      parentAgentInstanceId,
+      message,
+      parentId,
+      requestId,
+      targetClient } = params;
+
+    // logger.info("stateEvent", stateEvent)
+    let notification = {
+      type: "aiRequest",
+      content: params.message,
+      templateType: "aiRequest",
+
+      data: {
+        text: {
+          content: message,
+          requestId: requestId,
+          linkUrl: "Debug",
+          stateEvent: "SENDING_REQUEST"
+        },
+        linkUrl: "Debug",
+
+        requestId: requestId
+      },
+      actionType: TemplateEnum.AIREQUEST,
+      messageId: messageId,
+      threadId: threadId,
+      agentInstanceId: agentInstanceId,
+      agentId: agentId,
+      parentAgentInstanceId: parentAgentInstanceId,
+      parentId: parentId,
+      sender: "system",
+    }
+    this.notifyClients(agent, notification, targetClient);
+
+
+  }
+
+  sendAiRequestErrorNotification(
+    params: {
+      agent: ClientConnection;
+      messageId: string,
+      agentId: string,
+      threadId: string,
+      agentInstanceId: string,
+      parentAgentInstanceId: string,
+      message: string,
+      parentId: string,
+      requestId: string
+      targetClient?: TargetClient;
+    }
+
+  ) {
+    const { agent,
+      messageId,
+      agentId,
+      threadId,
+      agentInstanceId,
+      parentAgentInstanceId,
+      message,
+      parentId,
+      requestId,
+      targetClient } = params;
+
+    // logger.info("stateEvent", stateEvent)
+    let notification = {
+      type: "aiRequest",
+      content: params.message,
+      templateType: "aiRequest",
+
+      data: {
+        text: {
+          content: message,
+          requestId: requestId,
+          linkUrl: "Debug",
+          stateEvent: "REQUEST_ERROR"
+        },
+        linkUrl: "Debug",
+
+        requestId: requestId
+      },
+      actionType: TemplateEnum.AIREQUEST,
+      messageId: messageId,
+      threadId: threadId,
+      agentInstanceId: agentInstanceId,
+      agentId: agentId,
+      parentAgentInstanceId: parentAgentInstanceId,
+      parentId: parentId,
+      sender: "system",
+    }
+    this.notifyClients(agent, notification, targetClient);
+
+
+  }
+  sendAiRequestSuccessNotification(
+    params: {
+      agent: ClientConnection;
+      messageId: string,
+      agentId: string,
+      threadId: string,
+      agentInstanceId: string,
+      parentAgentInstanceId: string,
+      message: string,
+      parentId: string,
+      requestId: string
+      targetClient?: TargetClient;
+    }
+
+  ) {
+    const { agent,
+      messageId,
+      agentId,
+      threadId,
+      agentInstanceId,
+      parentAgentInstanceId,
+      message,
+      parentId,
+      requestId,
+      targetClient } = params;
+
+    // logger.info("stateEvent", stateEvent)
+    let notification = {
+      type: "aiRequest",
+      content: params.message,
+      templateType: "aiRequest",
+
+      data: {
+        text: {
+          content: message,
+          requestId: requestId,
+          linkUrl: "Debug",
+          stateEvent: "REQUEST_SUCCESS"
+        },
+        linkUrl: "Debug",
+
+        requestId: requestId
+      },
+      actionType: TemplateEnum.AIREQUEST,
+      messageId: messageId,
+      threadId: threadId,
+      agentInstanceId: agentInstanceId,
+      agentId: agentId,
+      parentAgentInstanceId: parentAgentInstanceId,
+      parentId: parentId,
+      sender: "system",
+    }
+    this.notifyClients(agent, notification, targetClient);
+
+
+  }
+
+  sendChatMessageNotification(params: {
+    agent: ClientConnection;
+    messageId: string,
+    agentId: string,
+    threadId: string,
+    agentInstanceId: string,
+    parentAgentInstanceId: string,
+    message: string,
+    parentId: string,
+    requestId: string
+    targetClient?: TargetClient;
+  }) {
+    const { agent,
+      messageId,
+      agentId,
+      threadId,
+      agentInstanceId,
+      parentAgentInstanceId,
+      message,
+      parentId,
+      requestId,
+      targetClient } = params;
+
+    let notification: ChatNotification = {
+      action: "sendMessageRequest",
+      data: {
+        message: message,
+        payload: {
+          text: message
+        },
+      },
+      toolUseId: messageId,
+      type: "chatnotify",
+      requestId: requestId,
+      agentId: agentId,
+      threadId: threadId,
+      agentInstanceId: agentInstanceId,
+      parentAgentInstanceId: parentAgentInstanceId,
+      parentId: parentId
+    }
+    this.notifyClients(agent, notification, targetClient);
+
+
+  }
+
+
 }

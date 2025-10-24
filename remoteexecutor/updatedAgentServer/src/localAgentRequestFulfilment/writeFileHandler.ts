@@ -72,7 +72,7 @@ export class WriteFileHandler {
     if (!targetClient) {
       // Use FileServices to write the file instead of the missing performWrite method
       const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result);
+      this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
       return;
     }
 
@@ -80,7 +80,7 @@ export class WriteFileHandler {
     if (PermissionUtils.hasPermission('write_file', relPath, 'write')) {
       // Use FileServices to write the file instead of the missing performWrite method
       const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result);
+      this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
       return;
     }
 
@@ -152,7 +152,7 @@ export class WriteFileHandler {
     PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
     // Use FileServices to write the file instead of the missing performWrite method
     const result = await this.fileServices.writeFile(payload.relPath, payload.newContent);
-    this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result);
+    this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result, targetClient);
   }
 
   handleRemoteNotification(message: {
@@ -202,7 +202,7 @@ export class WriteFileHandler {
     PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
     // Use FileServices to write the file instead of the missing performWrite method
     this.fileServices.writeFile(payload.relPath, payload.newContent).then(result => {
-      this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result);
+      this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result, targetClient);
     }).catch(error => {
       logger.error("Error writing file:", error);
     });
@@ -214,7 +214,8 @@ export class WriteFileHandler {
     requestId: string,
     filePath: string,
     content: string,
-    result: any
+    result: any,
+    targetClient?: TargetClient
   ): void {
     if (result.success) {
       // Send success response

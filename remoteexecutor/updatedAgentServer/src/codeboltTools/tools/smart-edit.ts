@@ -24,7 +24,7 @@ import { isNodeError } from '../utils/errors';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from '../utils/diff';
 import { ReadFileTool } from './read-file';
 import { BaseToolInvocation } from '../base-tool';
-import { llmService } from '../../services/llmService';
+// import { llmService } from '../../services/llmService';
 
 /**
  * Mock AI interface for self-correction
@@ -180,7 +180,7 @@ async function fixLLMEditWithInstruction(
       requestId: `smart-edit-req-${Date.now()}`
     };
 
-    const llmResponse = await llmService.handleAskLLM(llmMessage);
+    const llmResponse:any = {}//await llmService.handleAskLLM(llmMessage);
 
     if (llmResponse.status === 200 && llmResponse.message) {
       try {

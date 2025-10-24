@@ -10,6 +10,7 @@ import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
+import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote";
 
 import type {
   FileWriteConfirmation,
@@ -52,6 +53,7 @@ export class SmartEditHandler {
   private approvalService = new ApprovalService();
   private notificationService = new NotificationService();
   private clientResolver = new ClientResolver();
+  private sendMessageToRemote = new SendMessageToRemote();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
 
@@ -223,7 +225,7 @@ export class SmartEditHandler {
       };
 
       this.notifyClients(notification, targetClient);
-      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+      // Forwarding is now handled by notificationService.notifyClients
       return;
     }
 
@@ -262,7 +264,7 @@ export class SmartEditHandler {
     };
 
     this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+    // Forwarding is now handled by notificationService.notifyClients
   }
 
   private resolveParent(
@@ -315,13 +317,15 @@ export class SmartEditHandler {
       },
     };
 
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
+    this.approvalService.requestSmartEditApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      filePath: message.filePath,
+      newContent: message.newString,
+      originalContent: message.oldString
+    });
 
     logger.info(
       formatLogMessage(

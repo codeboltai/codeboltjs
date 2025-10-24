@@ -47,7 +47,8 @@ export const ListToolsFromToolBoxesResponseSchema = z.object({
   data: z.array(z.any()).optional(),
   error: z.string().optional(),
   success: z.boolean().optional(),
-  message: z.string().optional()
+  message: z.string().optional(),
+  requestId:z.string().optional()
 });
 
 // Configure toolbox response schema

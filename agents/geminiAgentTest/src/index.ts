@@ -351,7 +351,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
             let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
             prompt = result.nextMessage;
-            console.log(prompt)
+       
             let responseExecutor = new ResponseExecutor({
                 preToolCalProcessors: [],
                 postToolCallProcessors: []
@@ -379,7 +379,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
 
     } catch (error) {
-        console.log(error)
+    
     }
 })
 

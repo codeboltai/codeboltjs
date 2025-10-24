@@ -1,6 +1,7 @@
 import { ClientConnection, Message, formatLogMessage } from "../../types";
 import {
   ReadFileHandler,
+  ToolHandler,
   WriteFileHandler,
 } from "../../localAgentRequestFulfilment/index.js";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
@@ -9,12 +10,31 @@ import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { logger } from "../../utils/logger";
-import type { 
-  ReadFileEvent as SchemaReadFileEvent, 
+import type {
+  ReadFileEvent as SchemaReadFileEvent,
   WriteToFileEvent as SchemaWriteToFileEvent,
   DeleteFileEvent as SchemaDeleteFileEvent,
-  GrepSearchEvent as SchemaGrepSearchEvent
+  GrepSearchEvent as SchemaGrepSearchEvent,
+
+  GetEnabledToolBoxesEvent,
+  GetLocalToolBoxesEvent,
+  GetAvailableToolBoxesEvent,
+  SearchAvailableToolBoxesEvent,
+  ListToolsFromToolBoxesEvent,
+  ConfigureToolBoxEvent,
+  GetToolsEvent,
+  ExecuteToolEvent,
+  McpEvent,
+  LLMEvent,
+  GetChatHistoryEvent,
+  ProjectEvent,
+  SendMessageEvent,
 } from "@codebolt/types/agent-to-app-ws-types";
+import { AIRequesteHandler } from "@/localAgentRequestFulfilment/llmRequestHandler";
+import { ChatHistoryHandler } from "@/localAgentRequestFulfilment/chatHistoryHandler";
+import { ProjectRequestHandler } from "@/localAgentRequestFulfilment/projectRequestHandler";
+import { SendMessage } from "@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas";
+import { ChatMessageHandler } from "@/localAgentRequestFulfilment/chatMessageHandler";
 
 // Define interfaces that match what the handlers expect
 interface ReadFileEvent {
@@ -45,22 +65,32 @@ interface WriteToFileEvent {
 export class AgentMessageRouter {
   private readFileHandler: ReadFileHandler;
   private writeFileHandler: WriteFileHandler;
-
   private sendMessageToApp: SendMessageToApp;
   private sendMessageToTui: SendMessageToTui;
   private connectionManager: ConnectionManager;
   private notificationService: NotificationService;
   private sendMessageToRemote: SendMessageToRemote;
 
+  private toolHandler: ToolHandler
+  private chatHistoryHandler: ChatHistoryHandler
+  private llmRequestHandler: AIRequesteHandler;
+  private projectRequestHandler: ProjectRequestHandler
+  private chatMessageRequestHandler:ChatMessageHandler
+
   constructor() {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
- 
+
     this.sendMessageToApp = new SendMessageToApp();
     this.sendMessageToTui = new SendMessageToTui();
+    this.toolHandler = new ToolHandler()
     this.connectionManager = ConnectionManager.getInstance();
     this.notificationService = NotificationService.getInstance();
     this.sendMessageToRemote = new SendMessageToRemote();
+    this.llmRequestHandler = new AIRequesteHandler();
+    this.chatHistoryHandler = new ChatHistoryHandler();
+    this.projectRequestHandler = new ProjectRequestHandler()
+    this.chatMessageRequestHandler = new ChatMessageHandler()
   }
 
   /**
@@ -69,7 +99,16 @@ export class AgentMessageRouter {
    */
   async handleAgentRequestMessage(
     agent: ClientConnection,
-    message: Message | SchemaReadFileEvent | SchemaWriteToFileEvent | SchemaDeleteFileEvent | SchemaGrepSearchEvent
+    message: Message |
+      SchemaReadFileEvent |
+      SchemaWriteToFileEvent |
+      SchemaDeleteFileEvent |
+      SchemaGrepSearchEvent |
+      McpEvent |
+      LLMEvent |
+      GetChatHistoryEvent|
+      ProjectEvent|
+      SendMessageEvent
   ) {
     logger.info(
       formatLogMessage(
@@ -109,9 +148,25 @@ export class AgentMessageRouter {
       await this.writeFileHandler.handleWriteFile(agent, writeFileEvent);
       return;
     }
-    if(message.type === "codebolttools"){
-
+    if (message.type === "codebolttools") {
+      await this.toolHandler.handleToolEvent(agent, message);
+      return;
     }
+    if (message.type == 'inference') {
+      await this.llmRequestHandler.handleAiRequest(agent, message)
+    }
+    if (message.type === 'getChatHistory') {
+      await this.chatHistoryHandler.handleChatHistoryEvent(agent, message as GetChatHistoryEvent)
+    }
+    if (message.type === 'projectEvent') {
+      await this.projectRequestHandler.handleProjectEvent(agent, message as ProjectEvent);
+      return;
+    }
+    if(message.type =='sendMessage'){
+      await this.chatMessageRequestHandler.handleChatMessageRequest(agent, message as SendMessageEvent)
+      return
+    }
+
 
     // Forward the message to the related app instead of sending back to client
 

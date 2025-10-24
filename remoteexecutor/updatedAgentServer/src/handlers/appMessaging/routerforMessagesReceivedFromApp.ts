@@ -98,7 +98,7 @@ export class AppMessageRouter {
     );
     
     message.message.selectedAgent = {
-      "agentDetails": "./../../../agents/CliTestAgent/dist",
+      "agentDetails": "./../../../agents/geminiAgentTest/dist",
       "agentType": AgentTypeEnum.localPath,
       "id": "cli-agent",
       "name": "Ask Agent"

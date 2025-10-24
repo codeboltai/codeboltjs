@@ -177,21 +177,21 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
                     
                     // Also read files within the folder
                     const filesInFolder = await this.getFilesInFolder(resolvedPath);
-                    console.log(`Found ${filesInFolder.length} files in ${folderPath}:`, filesInFolder.map(f => path.basename(f)));
+                    // console.log(`Found ${filesInFolder.length} files in ${folderPath}:`, filesInFolder.map(f => path.basename(f)));
                     
                     if (filesInFolder.length > 0) {
                         contextParts.push(`\n--- Files in ${folderPath} ---`);
                         
                         for (const filePath of filesInFolder) {
                             try {
-                                console.log(`Attempting to read file: ${filePath}`);
+                                // console.log(`Attempting to read file: ${filePath}`);
                                 const content = await this.readFileContent(filePath);
                                 const relativePath = path.relative(resolvedPath, filePath);
                                 const displayPath = `${folderPath}/${relativePath}`;
                                 
                                 contextParts.push(`\nContent from @${displayPath}:\n`);
                                 contextParts.push(content);
-                                console.log(`Successfully read file: ${displayPath} (${content.length} chars)`);
+                                // console.log(`Successfully read file: ${displayPath} (${content.length} chars)`);
                             } catch (error) {
                                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                                 const relativePath = path.relative(resolvedPath, filePath);
@@ -386,11 +386,11 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
                     // Check file extension if allowed extensions are specified
                     if (this.options.allowedExtensions!.length > 0) {
                         const ext = path.extname(entry.name).toLowerCase();
-                        console.log(`Checking file ${entry.name} with extension ${ext}. Allowed:`, this.options.allowedExtensions);
+                        // console.log(`Checking file ${entry.name} with extension ${ext}. Allowed:`, this.options.allowedExtensions);
                         if (this.options.allowedExtensions!.includes(ext)) {
                             files.push(path.join(folderPath, entry.name));
                         } else {
-                            console.log(`File ${entry.name} extension ${ext} not in allowed list`);
+                            // console.log(`File ${entry.name} extension ${ext} not in allowed list`);
                         }
                     } else {
                         files.push(path.join(folderPath, entry.name));

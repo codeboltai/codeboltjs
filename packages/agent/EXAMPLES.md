@@ -20,11 +20,11 @@ const chatAgent = new ComposableAgent({
 // Usage
 async function runChatExample() {
   const result = await chatAgent.execute('Hello! How can you help me today?');
-  console.log(result.message);
+  // console.log(result.message);
   
   // Follow-up conversation
   const followUp = await chatAgent.execute('Tell me a fun fact about space');
-  console.log(followUp.message);
+  // console.log(followUp.message);
 }
 
 runChatExample();

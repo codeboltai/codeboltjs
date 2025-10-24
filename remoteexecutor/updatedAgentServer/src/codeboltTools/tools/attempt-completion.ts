@@ -1,7 +1,7 @@
 /**
  * Attempt Completion Tool - Attempts to complete a task
  */
-import { attemptCompletion } from '../../cliLib/mcpService.cli';
+// import { attemptCompletion } from '../../cliLib/mcpService.cli';
 
 import type {
     ToolInvocation,
@@ -61,7 +61,7 @@ class AttemptCompletionToolInvocation extends BaseToolInvocation<
             // };
 
             // Use the exact same logic as mcpService.cli.ts
-            const result = await attemptCompletion(this.params, finalMessage);
+            const result = [false, '']// await attemptCompletion(this.params, finalMessage);
 
             if (result && Array.isArray(result) && result[0] === false) {
                 // Success case - attemptCompletion returns [false, ""]
@@ -86,7 +86,7 @@ class AttemptCompletionToolInvocation extends BaseToolInvocation<
                 returnDisplay: '',
                 error: {
                     type: ToolErrorType.EXECUTION_FAILED,
-                    message: `Failed to attempt completion: ${error.message || error}`
+                    message: `Failed to attempt completion: ${error || error}`
                 }
             };
         }

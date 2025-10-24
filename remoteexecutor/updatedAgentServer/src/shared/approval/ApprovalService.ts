@@ -182,32 +182,6 @@ export class ApprovalService {
   }
 
   /**
-   * Send approval message to the target client
-   */
-  private sendApprovalMessage(
-    agent: ClientConnection,
-    targetClient: TargetClient,
-    payload: FileWriteConfirmation | FileReadConfirmation | FolderReadConfirmation,
-    operationDescription: string
-  ): void {
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "ApprovalService",
-        `Requested approval for ${operationDescription}`
-      )
-    );
-  }
-
-  /**
    * Request approval for replace in file operation
    */
   requestReplaceInFileApproval(params: {

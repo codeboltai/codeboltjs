@@ -13,7 +13,8 @@ import type {
     ToolErrorType,
 } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
-import todoService from '../../services/todoService';
+import { TodoService } from './../../services/TodoService';
+// import { projectState } from '../../stores/projectState';
 
 // Local type definition for backward compatibility
 interface FunctionDeclaration {
@@ -91,22 +92,32 @@ class WriteTodosToolInvocation extends BaseToolInvocation<
         _signal: AbortSignal,
         _updateOutput?: (output: string) => void,
         finalMessage?: any
-    ): Promise<ToolResult> {
-        // Get threadId from finalMessage context
-        const { threadId } = this.params
+    ): Promise<any> {
+        // Get threadId from params
+        const { threadId, todos } = this.params;
 
-        const { todos } = this.params;
+        // Get the project path from projectState
+        const projectPath = process.cwd() //projectState.projectPath;
+        if (!projectPath) {
+            throw new Error('Project path not found in projectState');
+        }
+
+        // Get TodoService instance
+        const todoService = TodoService.getInstance(projectPath);
+
+        // Initialize the todo service if needed
+        await todoService.init();
 
         // Clear existing todos for this thread first
-        const existingTodos = todoService.getTodosByThreadId(threadId);
+        const existingTodos = await todoService.getTodosByThreadId(threadId);
         for (const todo of existingTodos) {
-            todoService.deleteTodo(todo.id);
+            await todoService.deleteTodo(todo.id);
         }
 
         // Create new todos using the todoService
         const createdTodos = [];
         for (const todo of todos) {
-            const createdTodo = todoService.createTodo({
+            const createdTodo = await todoService.createTodo({
                 title: todo.content,
                 threadId: threadId,
                 priority: 'medium',
@@ -121,7 +132,7 @@ class WriteTodosToolInvocation extends BaseToolInvocation<
                         'completed': 'completed',
                         'cancelled': 'pending' // There's no cancelled status in todoService
                     };
-                    todoService.updateTodoStatus(createdTodo.id, statusMap[todo.status]);
+                    await todoService.updateTodoStatus(createdTodo.id, statusMap[todo.status]);
                 }
                 createdTodos.push(createdTodo);
             }

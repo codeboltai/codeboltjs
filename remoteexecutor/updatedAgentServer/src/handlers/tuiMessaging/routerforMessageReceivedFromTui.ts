@@ -13,6 +13,7 @@ import {
   WriteFileHandler,
   type WriteFileConfirmation,
 } from "../../localAgentRequestFulfilment/writeFileHandler";
+import { AgentTypeEnum } from "@/types/cli";
 
 export class TuiMessageRouter {
   private connectionManager: ConnectionManager;
@@ -73,6 +74,13 @@ export class TuiMessageRouter {
         `Handling initial user message: ${message.type} from ${tui.id}`
       )
     );
+    message.message.selectedAgent = {
+      "agentDetails": "./../../agents/geminiAgentTest/dist",
+      "agentType": AgentTypeEnum.localPath,
+      "id": "cli-agent",
+      "name": "Ask Agent"
+    };
+    
     this.sendMessageToAgent.sendInitialMessage(message,tui.id);
   }
 }

@@ -72,7 +72,7 @@ export class ReadFileHandler {
     if (!targetClient) {
       // Use FileServices to read the file instead of the missing performRead method
       const result = await this.fileServices.readFile(relPath, { offset, limit });
-      this.sendReadResponse(agent, requestId, relPath, result);
+      this.sendReadResponse(agent, requestId, relPath, result, targetClient);
       return;
     }
 
@@ -80,7 +80,7 @@ export class ReadFileHandler {
     if (PermissionUtils.hasPermission('read_file', relPath, 'read')) {
       // Use FileServices to read the file instead of the missing performRead method
       const result = await this.fileServices.readFile(relPath, { offset, limit });
-      this.sendReadResponse(agent, requestId, relPath, result);
+      this.sendReadResponse(agent, requestId, relPath, result, targetClient);
       return;
     }
 
@@ -156,7 +156,7 @@ export class ReadFileHandler {
       offset: payload.offset, 
       limit: payload.limit 
     });
-    this.sendReadResponse(agent, requestId, payload.relPath, result);
+    this.sendReadResponse(agent, requestId, payload.relPath, result, targetClient);
   }
 
   handleRemoteNotification(message: {
@@ -209,7 +209,7 @@ export class ReadFileHandler {
       offset: payload.offset, 
       limit: payload.limit 
     }).then(result => {
-      this.sendReadResponse(agent, requestId, payload.relPath, result);
+      this.sendReadResponse(agent, requestId, payload.relPath, result, targetClient);
     }).catch(error => {
       logger.error("Error reading file:", error);
     });
@@ -220,7 +220,8 @@ export class ReadFileHandler {
     agent: ClientConnection,
     requestId: string,
     filePath: string,
-    result: any
+    result: any,
+    targetClient?: TargetClient
   ): void {
     if (result.success) {
       // Send success response

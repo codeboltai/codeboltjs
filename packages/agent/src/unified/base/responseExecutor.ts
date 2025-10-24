@@ -171,11 +171,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
                                     }
                                     else {
-                                        console.log("Executing tool: ", toolName, toolInput);
+                                        // console.log("Executing tool: ", toolName, toolInput);
                                        
 
                                         const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                        console.log("Tool result: ", result);
+                                        // console.log("Tool result: ", result);
                                         // toolResults.push(this.parseToolResult(toolUseId, result));
                                         let toolResult = this.parseToolResult(toolUseId, result)
                                       
@@ -275,12 +275,12 @@ export class ResponseExecutor implements AgentResponseExecutor {
      */
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         //codebolttools--readfile
-        console.log("Executing tool: ", toolName, toolInput);
+        // console.log("Executing tool: ", toolName, toolInput);
         const [toolboxName, actualToolName] = toolName.split('--');
-        console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
+        // console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
        
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
-        console.log("Tool result: ", data);
+        // console.log("Tool result: ", data);
         return [false, data];
     }
 
@@ -296,7 +296,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
         try {
             let parsed = JSON.parse(content);
 
-            console.log("Parsed Content: ", parsed);
+            // console.log("Parsed Content: ", parsed);
             if (parsed.payload && parsed.payload.content) {
                 content = `The browser action has been executed. The  screenshot have been captured for your analysis. The tool response is provided in the next user message`
                 // this.apiConversationHistory.push()

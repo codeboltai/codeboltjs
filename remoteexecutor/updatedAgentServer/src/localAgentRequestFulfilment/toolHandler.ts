@@ -57,6 +57,7 @@ import type {
    ExecuteToolResponse,
    MCPServiceResponse ,
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
+import { lookup } from "dns";
 
 
 export class ToolHandler {
@@ -337,22 +338,16 @@ export class ToolHandler {
     
     try {
       // Get tools from specified toolboxes
-      const allTools = this.toolsFramework.getRegistry().getAllTools();
-      const filteredTools = allTools.filter(tool => 
-        event.toolBoxes.includes(tool.name) || event.toolBoxes.includes(tool.kind)
-      );
+      const allTools = this.toolsFramework.getRegistry().getOpenAIToolSchemas()
+      // logger.info("allTools",allTools)
+    
       
       const response: ListToolsFromToolBoxesResponse = {
         type: 'listToolsFromToolBoxesResponse',
-        data: filteredTools.map(tool => ({
-          name: tool.name,
-          displayName: tool.displayName,
-          description: tool.description,
-          kind: tool.kind,
-          schema: tool.schema
-        })),
+        data: allTools,
         success: true,
-        message: `Found ${filteredTools.length} tools from specified toolboxes`
+        message: `Found ${allTools.length} tools from specified toolboxes`,
+        requestId: event.requestId
       };
       
       this.connectionManager.sendToConnection(agent.id, response);
@@ -440,14 +435,14 @@ export class ToolHandler {
       // Execute the tool using the registry
       const abortController = new AbortController();
       const result = await this.toolsFramework.getRegistry().executeTool(
-        event.toolName,
+        event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
         event.params,
         abortController.signal
       );
       
       const response: ExecuteToolResponse = {
         type: 'executeToolResponse',
-        toolName: event.toolName,
+        toolName: event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
         params: event.params,
         result: result,
         data: [true, result],
@@ -455,6 +450,8 @@ export class ToolHandler {
         success: true,
         message: `Successfully executed tool: ${event.toolName}`
       };
+
+      logger.info("response from tool",response)
       
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
