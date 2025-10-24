@@ -24,6 +24,8 @@ type ActivateConversationMsg struct {
 	ConversationID string
 }
 
+type ContentRenderer func(win *ConversationWindow, focused, active bool) string
+
 type Manager struct {
 	mode            Mode
 	width           int
@@ -36,6 +38,7 @@ type Manager struct {
 	dragging        *dragState
 	autoTile        bool
 	animations      map[string]*animation
+	renderContent   ContentRenderer
 }
 
 type dragState struct {
@@ -79,6 +82,10 @@ func (m *Manager) ToggleMode() Mode {
 		m.SetMode(ModeWindow)
 	}
 	return m.mode
+}
+
+func (m *Manager) SetContentRenderer(renderer ContentRenderer) {
+	m.renderContent = renderer
 }
 
 func (m *Manager) IsWindowMode() bool {
@@ -293,7 +300,12 @@ func (m *Manager) View() string {
 
 		focused := id == m.focusedID
 		active := id == m.activeID
-		layerContent := win.Render(focused, active)
+
+		var body string
+		if m.renderContent != nil {
+			body = m.renderContent(win, focused, active)
+		}
+		layerContent := win.Render(focused, active, body)
 
 		layer := lipgloss.NewLayer(layerContent).
 			X(win.X).

@@ -131,6 +131,9 @@ func New() *Chat {
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 	chat.createInitialConversation()
 	chat.loadActiveConversation()
+	if chat.windowManager != nil {
+		chat.windowManager.SetContentRenderer(chat.renderConversationWindow)
+	}
 
 	return chat
 }

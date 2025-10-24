@@ -143,6 +143,18 @@ func (w *ConversationWindow) innerHeight() int {
 	return height
 }
 
+func (w *ConversationWindow) InnerWidth() int {
+	return w.innerWidth()
+}
+
+func (w *ConversationWindow) InnerHeight() int {
+	return w.innerHeight()
+}
+
+func (w *ConversationWindow) Viewport() *chatcomponents.ChatViewport {
+	return w.viewport
+}
+
 func (w *ConversationWindow) HandleViewportMsg(msg tea.Msg) tea.Cmd {
 	if w.viewport == nil {
 		return nil
@@ -152,11 +164,7 @@ func (w *ConversationWindow) HandleViewportMsg(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-func (w *ConversationWindow) Render(focused, active bool) string {
-	if w.viewport == nil {
-		return ""
-	}
-
+func (w *ConversationWindow) Render(focused, active bool, body string) string {
 	theme := styles.CurrentTheme()
 
 	borderColor := theme.Border
@@ -205,12 +213,12 @@ func (w *ConversationWindow) Render(focused, active bool) string {
 		Padding(0, 1).
 		Render(headerText)
 
-	body := lipgloss.NewStyle().
+	renderedBody := lipgloss.NewStyle().
 		Width(innerWidth).
 		Height(innerHeight).
-		Render(w.viewport.View())
+		Render(body)
 
-	content := lipgloss.JoinVertical(lipgloss.Left, header, body)
+	content := lipgloss.JoinVertical(lipgloss.Left, header, renderedBody)
 
 	frame := lipgloss.NewStyle().
 		Width(w.Width).
