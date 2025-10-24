@@ -80,8 +80,10 @@ type Chat struct {
 	chatZoneID           string
 	contextZoneID        string
 
-	windowManager *windows.Manager
-	pendingCmds   []tea.Cmd
+	windowManager      *windows.Manager
+	pendingCmds        []tea.Cmd
+	subAgentSelections map[string]int
+	subAgentMessages   map[string]map[int][]chattemplates.MessageTemplateData
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -125,6 +127,8 @@ func New() *Chat {
 		chatZoneID:            zonePrefix + "chat_area",
 		contextZoneID:         zonePrefix + "context_drawer",
 		windowManager:         windows.NewManager(templateManager),
+		subAgentSelections:    make(map[string]int),
+		subAgentMessages:      make(map[string]map[int][]chattemplates.MessageTemplateData),
 	}
 	chat.modelStatusWidget = widgets.NewModelStatusWidget(nil, nil)
 	chat.modelStatusWidget.SetStateStore(chat.applicationState)

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"strings"
 
 	"gotui/internal/components/chat/windows"
@@ -9,15 +10,19 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 )
 
-func (c *Chat) renderConversationWindow(win *windows.ConversationWindow, _ bool, active bool) string {
+func (c *Chat) renderConversationWindow(win *windows.ConversationWindow, _ bool, active bool) windows.WindowContent {
 	if c == nil || win == nil {
-		return ""
+		return windows.WindowContent{}
 	}
 	innerWidth := win.InnerWidth()
 	innerHeight := win.InnerHeight()
 	if innerWidth <= 0 || innerHeight <= 0 {
-		return ""
+		return windows.WindowContent{}
 	}
+
+	c.ensureSubAgentEntry(win.ID)
+	selectedAgent := c.currentSubAgentIndex(win.ID)
+	headerRight := c.renderSubAgentBubbles(win.ID, selectedAgent)
 
 	chatWidth := innerWidth
 	contextWidth := 0
@@ -45,7 +50,7 @@ func (c *Chat) renderConversationWindow(win *windows.ConversationWindow, _ bool,
 		}
 	}
 
-	chatColumn := c.renderWindowChatColumn(win, chatWidth, innerHeight, active)
+	chatColumn := c.renderWindowChatColumn(win, chatWidth, innerHeight, active, selectedAgent)
 	if strings.TrimSpace(chatColumn) == "" {
 		chatColumn = lipgloss.NewStyle().Width(chatWidth).Height(innerHeight).Render("")
 	}
@@ -68,13 +73,16 @@ func (c *Chat) renderConversationWindow(win *windows.ConversationWindow, _ bool,
 	}
 
 	body := lipgloss.JoinHorizontal(lipgloss.Top, segments...)
-	return lipgloss.NewStyle().
-		Width(innerWidth).
-		Height(innerHeight).
-		Render(body)
+	return windows.WindowContent{
+		Body: lipgloss.NewStyle().
+			Width(innerWidth).
+			Height(innerHeight).
+			Render(body),
+		HeaderRight: headerRight,
+	}
 }
 
-func (c *Chat) renderWindowChatColumn(win *windows.ConversationWindow, width, height int, active bool) string {
+func (c *Chat) renderWindowChatColumn(win *windows.ConversationWindow, width, height int, active bool, agentIndex int) string {
 	if width <= 0 || height <= 0 {
 		return ""
 	}
@@ -83,8 +91,8 @@ func (c *Chat) renderWindowChatColumn(win *windows.ConversationWindow, width, he
 		return lipgloss.NewStyle().Width(width).Height(height).Render("")
 	}
 
-	statusView, statusHeight := c.windowStatusView(width)
-	inputView, inputHeight := c.windowInputView(width, active)
+	statusView, statusHeight := c.windowStatusView(width, agentIndex)
+	inputView, inputHeight := c.windowInputView(width, agentIndex, active)
 	helpView, helpHeight := c.windowHelpView(width)
 
 	minViewport := 3
@@ -110,6 +118,9 @@ func (c *Chat) renderWindowChatColumn(win *windows.ConversationWindow, width, he
 
 	if vp.Width() != width || vp.Height() != viewportHeight {
 		vp.SetSize(width, viewportHeight)
+	}
+	if messages := c.windowMessagesForAgent(win.ID, agentIndex, width); messages != nil {
+		vp.SetMessages(messages)
 	}
 
 	history := lipgloss.NewStyle().
@@ -155,15 +166,23 @@ func (c *Chat) renderWindowContextColumn(width, height int) string {
 		Render(trimmed)
 }
 
-func (c *Chat) windowStatusView(width int) (string, int) {
-	if c.modelStatusWidget == nil {
+func (c *Chat) windowStatusView(width int, agentIndex int) (string, int) {
+	var segments []string
+	if c.modelStatusWidget != nil {
+		view := strings.TrimSpace(c.modelStatusWidget.View())
+		if view != "" {
+			segments = append(segments, view)
+		}
+	}
+	indicator := fmt.Sprintf("Agent %d", agentIndex)
+	indicatorView := lipgloss.NewStyle().Foreground(styles.CurrentTheme().Secondary).Render(indicator)
+	segments = append(segments, indicatorView)
+
+	combined := lipgloss.JoinVertical(lipgloss.Left, segments...)
+	if strings.TrimSpace(combined) == "" {
 		return "", 0
 	}
-	view := c.modelStatusWidget.View()
-	if strings.TrimSpace(view) == "" {
-		return "", 0
-	}
-	rendered := lipgloss.NewStyle().Width(width).Render(view)
+	rendered := lipgloss.NewStyle().Width(width).Render(combined)
 	return rendered, lipgloss.Height(rendered)
 }
 
@@ -176,7 +195,7 @@ func (c *Chat) windowHelpView(width int) (string, int) {
 	return rendered, lipgloss.Height(rendered)
 }
 
-func (c *Chat) windowInputView(width int, active bool) (string, int) {
+func (c *Chat) windowInputView(width int, agentIndex int, active bool) (string, int) {
 	height := c.textHeight
 	if height < 1 {
 		height = 1
@@ -190,6 +209,7 @@ func (c *Chat) windowInputView(width int, active bool) (string, int) {
 		return view, lipgloss.Height(view)
 	}
 	theme := styles.CurrentTheme()
+	label := fmt.Sprintf("Activate to chat with agent %d", agentIndex)
 	pl := lipgloss.NewStyle().
 		Width(width).
 		Height(height).
@@ -197,7 +217,7 @@ func (c *Chat) windowInputView(width int, active bool) (string, int) {
 		BorderForeground(lipgloss.Color(theme.Muted.Hex())).
 		Foreground(lipgloss.Color(theme.Muted.Hex())).
 		Align(lipgloss.Center, lipgloss.Center).
-		Render("Activate window to type")
+		Render(label)
 	return pl, height
 }
 

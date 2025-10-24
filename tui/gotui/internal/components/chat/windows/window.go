@@ -28,6 +28,11 @@ type ConversationWindow struct {
 	templateManager *chattemplates.TemplateManager
 }
 
+type WindowContent struct {
+	Body        string
+	HeaderRight string
+}
+
 func NewConversationWindow(conv *stores.Conversation, tm *chattemplates.TemplateManager) *ConversationWindow {
 	vp := chatcomponents.NewChatViewport(tm)
 	w := &ConversationWindow{
@@ -164,7 +169,7 @@ func (w *ConversationWindow) HandleViewportMsg(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-func (w *ConversationWindow) Render(focused, active bool, body string) string {
+func (w *ConversationWindow) Render(focused, active bool, content WindowContent) string {
 	theme := styles.CurrentTheme()
 
 	borderColor := theme.Border
@@ -205,27 +210,40 @@ func (w *ConversationWindow) Render(focused, active bool, body string) string {
 		headerText = fmt.Sprintf("%s  %s", title, subtitle)
 	}
 
+	headerTextWidth := lipgloss.Width(headerText)
+	rightWidth := lipgloss.Width(content.HeaderRight)
+	gap := innerWidth - headerTextWidth - rightWidth
+	if gap < 1 {
+		gap = 1
+	}
+	padding := strings.Repeat(" ", gap)
+
+	headerLine := headerText
+	if rightWidth > 0 {
+		headerLine = headerText + padding + content.HeaderRight
+	}
+
 	header := lipgloss.NewStyle().
 		Width(innerWidth).
 		Background(lipgloss.Color(headerBackground.Hex())).
 		Foreground(lipgloss.Color(headerForeground.Hex())).
 		Bold(true).
 		Padding(0, 1).
-		Render(headerText)
+		Render(headerLine)
 
 	renderedBody := lipgloss.NewStyle().
 		Width(innerWidth).
 		Height(innerHeight).
-		Render(body)
+		Render(content.Body)
 
-	content := lipgloss.JoinVertical(lipgloss.Left, header, renderedBody)
+	frameBody := lipgloss.JoinVertical(lipgloss.Left, header, renderedBody)
 
 	frame := lipgloss.NewStyle().
 		Width(w.Width).
 		Height(w.Height).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(borderColor.Hex())).
-		Render(content)
+		Render(frameBody)
 
 	return frame
 }

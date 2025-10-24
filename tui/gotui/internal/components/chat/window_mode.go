@@ -89,6 +89,13 @@ func (c *Chat) handleWindowModeMsg(msg tea.Msg) (tea.Cmd, bool) {
 		return nil, false
 	}
 
+	switch ev := msg.(type) {
+	case tea.MouseClickMsg:
+		if c.handleSubAgentBubbleClick(ev.Mouse()) {
+			return nil, true
+		}
+	}
+
 	if cmd, handled := c.windowManager.HandleMessage(msg); handled {
 		return cmd, true
 	}

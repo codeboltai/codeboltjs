@@ -238,6 +238,7 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 
 	c.conversations = store.Conversations()
 	c.activeConversationID = activeID
+	c.syncSubAgentState()
 
 	c.selectedModel = nil
 	c.selectedAgent = nil

@@ -24,7 +24,7 @@ type ActivateConversationMsg struct {
 	ConversationID string
 }
 
-type ContentRenderer func(win *ConversationWindow, focused, active bool) string
+type ContentRenderer func(win *ConversationWindow, focused, active bool) WindowContent
 
 type Manager struct {
 	mode            Mode
@@ -301,11 +301,16 @@ func (m *Manager) View() string {
 		focused := id == m.focusedID
 		active := id == m.activeID
 
-		var body string
+		content := WindowContent{}
 		if m.renderContent != nil {
-			body = m.renderContent(win, focused, active)
+			content = m.renderContent(win, focused, active)
 		}
-		layerContent := win.Render(focused, active, body)
+		if content.Body == "" {
+			if vp := win.Viewport(); vp != nil {
+				content.Body = vp.View()
+			}
+		}
+		layerContent := win.Render(focused, active, content)
 
 		layer := lipgloss.NewLayer(layerContent).
 			X(win.X).
@@ -360,6 +365,10 @@ func (m *Manager) focusWindow(id string) {
 	m.removeFromOrder(id)
 	m.order = append(m.order, id)
 	m.focusedID = id
+}
+
+func (m *Manager) Focus(id string) {
+	m.focusWindow(id)
 }
 
 func (m *Manager) cycleFocus(delta int) {
