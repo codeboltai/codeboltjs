@@ -16,7 +16,26 @@ func (c *Chat) ToggleLayoutMode() bool {
 	}
 	c.windowManager.SetSize(c.width, c.height)
 	mode := c.windowManager.ToggleMode()
+	if mode == windows.ModeWindow && c.windowManager.AutoTileEnabled() {
+		if cmd := c.windowManager.RefreshAutoTile(true); cmd != nil {
+			c.enqueueCmd(cmd)
+		}
+	}
 	return mode == windows.ModeWindow
+}
+
+func (c *Chat) WindowModeActive() bool {
+	return c.isWindowModeActive()
+}
+
+func (c *Chat) ToggleAutoTile() (bool, tea.Cmd) {
+	if c.windowManager == nil || !c.isWindowModeActive() {
+		if c.windowManager == nil {
+			return false, nil
+		}
+		return c.windowManager.AutoTileEnabled(), nil
+	}
+	return c.windowManager.ToggleAutoTile()
 }
 
 func (c *Chat) isWindowModeActive() bool {

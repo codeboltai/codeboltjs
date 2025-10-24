@@ -13,6 +13,7 @@ import (
 	"gotui/internal/styles"
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
+	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	zone "github.com/lrstanley/bubblezone"
 )
@@ -80,6 +81,7 @@ type Chat struct {
 	contextZoneID        string
 
 	windowManager *windows.Manager
+	pendingCmds   []tea.Cmd
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -234,6 +236,22 @@ func (c *Chat) EnsureHorizontalConversationList() {
 	if c.conversationBar != nil {
 		c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
 	}
+}
+
+func (c *Chat) enqueueCmd(cmd tea.Cmd) {
+	if cmd == nil {
+		return
+	}
+	c.pendingCmds = append(c.pendingCmds, cmd)
+}
+
+func (c *Chat) drainPendingCmds() []tea.Cmd {
+	if len(c.pendingCmds) == 0 {
+		return nil
+	}
+	cmds := c.pendingCmds
+	c.pendingCmds = nil
+	return cmds
 }
 
 // AddMessage adds a message to the chat.

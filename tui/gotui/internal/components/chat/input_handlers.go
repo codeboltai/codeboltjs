@@ -639,6 +639,9 @@ func (c *Chat) Update(msg tea.Msg) (*Chat, tea.Cmd) {
 		}
 	}
 
+	if pending := c.drainPendingCmds(); len(pending) > 0 {
+		cmds = append(cmds, pending...)
+	}
 	return c, tea.Batch(cmds...)
 }
 

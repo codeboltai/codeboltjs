@@ -1,7 +1,9 @@
 package windows
 
 import (
+	"fmt"
 	"math"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -32,6 +34,8 @@ type Manager struct {
 	focusedID       string
 	activeID        string
 	dragging        *dragState
+	autoTile        bool
+	animations      map[string]*animation
 }
 
 type dragState struct {
@@ -45,6 +49,7 @@ func NewManager(templateManager *chattemplates.TemplateManager) *Manager {
 		mode:            ModePanel,
 		templateManager: templateManager,
 		windows:         make(map[string]*ConversationWindow),
+		animations:      make(map[string]*animation),
 	}
 }
 
@@ -92,9 +97,9 @@ func (m *Manager) SetSize(width, height int) {
 	m.ensureWindowBounds()
 }
 
-func (m *Manager) SyncConversations(conversations []*stores.Conversation, activeID string) {
+func (m *Manager) SyncConversations(conversations []*stores.Conversation, activeID string) tea.Cmd {
 	if m.templateManager == nil {
-		return
+		return nil
 	}
 
 	seen := make(map[string]struct{}, len(conversations))
@@ -132,7 +137,12 @@ func (m *Manager) SyncConversations(conversations []*stores.Conversation, active
 		m.focusWindow(activeID)
 	}
 
+	if m.autoTile {
+		return m.layoutAutoTile(true)
+	}
+
 	m.ensureWindowBounds()
+	return nil
 }
 
 func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
@@ -142,6 +152,21 @@ func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
 
 	switch ev := msg.(type) {
 	case tea.MouseClickMsg:
+		if m.autoTile {
+			mouse := ev.Mouse()
+			if mouse.Button != tea.MouseLeft {
+				return nil, false
+			}
+			id := m.windowAt(mouse.X, mouse.Y)
+			if id == "" {
+				return nil, true
+			}
+			m.focusWindow(id)
+			activate := tea.Cmd(func() tea.Msg {
+				return ActivateConversationMsg{ConversationID: id}
+			})
+			return activate, true
+		}
 		mouse := ev.Mouse()
 		if mouse.Button != tea.MouseLeft {
 			return nil, false
@@ -176,6 +201,9 @@ func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
 		return activate, true
 
 	case tea.MouseMotionMsg:
+		if m.autoTile {
+			return nil, false
+		}
 		if m.dragging == nil {
 			return nil, false
 		}
@@ -192,6 +220,9 @@ func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
 		return nil, true
 
 	case tea.MouseReleaseMsg:
+		if m.autoTile {
+			return nil, false
+		}
 		mouse := ev.Mouse()
 		if mouse.Button == tea.MouseLeft {
 			m.dragging = nil
@@ -200,6 +231,9 @@ func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
 		return nil, false
 
 	case tea.MouseWheelMsg:
+		if m.autoTile {
+			return nil, false
+		}
 		mouse := ev.Mouse()
 		id := m.windowAt(mouse.X, mouse.Y)
 		if id == "" {
@@ -220,6 +254,15 @@ func (m *Manager) HandleMessage(msg tea.Msg) (tea.Cmd, bool) {
 			m.cycleFocus(-1)
 			return nil, true
 		}
+	case AnimationTickMsg:
+		if !m.autoTile {
+			return nil, true
+		}
+		m.applyAnimations(ev.Time)
+		if len(m.animations) > 0 {
+			return m.animationTickCmd(), true
+		}
+		return nil, true
 	}
 
 	return nil, false
@@ -240,6 +283,8 @@ func (m *Manager) View() string {
 
 	canvas := lipgloss.NewCanvas(lipgloss.NewLayer(base))
 
+	m.applyAnimations(time.Now())
+
 	for idx, id := range m.order {
 		win := m.windows[id]
 		if win == nil {
@@ -259,11 +304,16 @@ func (m *Manager) View() string {
 		canvas.AddLayers(layer)
 	}
 
+	autoStatus := "OFF"
+	if m.autoTile {
+		autoStatus = "ON"
+	}
+	instructionText := fmt.Sprintf("Window mode – drag windows with mouse, TAB to cycle, Ctrl+T to exit, Ctrl+U auto-tiling %s", autoStatus)
 	instructions := lipgloss.NewStyle().
 		Background(lipgloss.Color(theme.SurfaceHigh.Hex())).
 		Foreground(lipgloss.Color(theme.Muted.Hex())).
 		Padding(0, 1).
-		Render("Window mode – drag windows with mouse, TAB to cycle, Ctrl+T to exit")
+		Render(instructionText)
 
 	canvas.AddLayers(lipgloss.NewLayer(instructions).
 		X(1).
@@ -335,6 +385,10 @@ func (m *Manager) ensureWindowBounds() {
 	if len(m.windows) == 0 {
 		return
 	}
+	if m.autoTile {
+		m.layoutAutoTile(false)
+		return
+	}
 	for _, id := range m.order {
 		win := m.windows[id]
 		if win == nil {
@@ -397,6 +451,170 @@ func (m *Manager) defaultBounds(index int) (int, int, int, int) {
 	return x, y, width, height
 }
 
+func (m *Manager) layoutAutoTile(animated bool) tea.Cmd {
+	if len(m.order) == 0 || m.width <= 0 || m.height <= 0 {
+		return nil
+	}
+
+	cols := int(math.Ceil(math.Sqrt(float64(len(m.order)))))
+	if cols < 1 {
+		cols = 1
+	}
+	rows := int(math.Ceil(float64(len(m.order)) / float64(cols)))
+	if rows < 1 {
+		rows = 1
+	}
+
+	gutter := autoTileGutter
+	usableWidth := maxInt(1, m.width-(cols+1)*gutter)
+	usableHeight := maxInt(1, m.height-(rows+1)*gutter)
+	tileWidth := maxInt(minWindowWidth, usableWidth/cols)
+	tileHeight := maxInt(minWindowHeight, usableHeight/rows)
+
+	now := time.Now()
+	started := false
+
+	for idx, id := range m.order {
+		win := m.windows[id]
+		if win == nil {
+			continue
+		}
+		col := idx % cols
+		row := idx / cols
+
+		target := rect{
+			x:      gutter + col*(tileWidth+gutter),
+			y:      gutter + row*(tileHeight+gutter),
+			width:  tileWidth,
+			height: tileHeight,
+		}
+
+		if animated {
+			if m.startAnimation(id, win, target, now) {
+				started = true
+			}
+		} else {
+			win.SetBounds(target.x, target.y, target.width, target.height)
+		}
+	}
+
+	if animated && started {
+		return m.animationTickCmd()
+	}
+
+	if !animated {
+		m.animations = make(map[string]*animation)
+	}
+
+	return nil
+}
+
+func (m *Manager) startAnimation(id string, win *ConversationWindow, target rect, now time.Time) bool {
+	start := rect{x: win.X, y: win.Y, width: win.Width, height: win.Height}
+	if start == target {
+		return false
+	}
+	m.animations[id] = &animation{
+		windowID:  id,
+		start:     start,
+		target:    target,
+		startTime: now,
+		duration:  animationDuration,
+	}
+	return true
+}
+
+func (m *Manager) applyAnimations(now time.Time) {
+	if len(m.animations) == 0 {
+		return
+	}
+	for id, anim := range m.animations {
+		win := m.windows[id]
+		if win == nil {
+			delete(m.animations, id)
+			continue
+		}
+
+		progress := float64(now.Sub(anim.startTime)) / float64(anim.duration)
+		if progress >= 1 {
+			win.SetBounds(anim.target.x, anim.target.y, anim.target.width, anim.target.height)
+			delete(m.animations, id)
+			continue
+		}
+		if progress < 0 {
+			progress = 0
+		}
+		smoothed := easeOutCubic(progress)
+		x := interpolate(anim.start.x, anim.target.x, smoothed)
+		y := interpolate(anim.start.y, anim.target.y, smoothed)
+		w := interpolate(anim.start.width, anim.target.width, smoothed)
+		h := interpolate(anim.start.height, anim.target.height, smoothed)
+		win.SetBounds(x, y, w, h)
+	}
+}
+
+func (m *Manager) animationTickCmd() tea.Cmd {
+	if len(m.animations) == 0 {
+		return nil
+	}
+	return tea.Tick(animationFrameDuration, func(t time.Time) tea.Msg {
+		return AnimationTickMsg{Time: t}
+	})
+}
+
+func (m *Manager) ToggleAutoTile() (bool, tea.Cmd) {
+	m.autoTile = !m.autoTile
+	if !m.autoTile {
+		m.animations = make(map[string]*animation)
+		return false, nil
+	}
+	return true, m.layoutAutoTile(true)
+}
+
+func (m *Manager) AutoTileEnabled() bool {
+	return m.autoTile
+}
+
+func (m *Manager) RefreshAutoTile(animated bool) tea.Cmd {
+	if !m.autoTile {
+		return nil
+	}
+	return m.layoutAutoTile(animated)
+}
+
+func easeOutCubic(t float64) float64 {
+	if t < 0 {
+		t = 0
+	}
+	if t > 1 {
+		t = 1
+	}
+	return 1 - math.Pow(1-t, 3)
+}
+
+func interpolate(start, end int, t float64) int {
+	return int(math.Round(float64(start) + (float64(end-start) * t)))
+}
+
+type rect struct {
+	x      int
+	y      int
+	width  int
+	height int
+}
+
+type animation struct {
+	windowID  string
+	start     rect
+	target    rect
+	startTime time.Time
+	duration  time.Duration
+}
+
+type AnimationTickMsg struct {
+	Time time.Time
+}
+
 func maxInt(a, b int) int {
 	if a > b {
 		return a
@@ -405,6 +623,9 @@ func maxInt(a, b int) int {
 }
 
 const (
-	defaultWindowWidth  = 60
-	defaultWindowHeight = 18
+	defaultWindowWidth     = 60
+	defaultWindowHeight    = 18
+	autoTileGutter         = 2
+	animationDuration      = 180 * time.Millisecond
+	animationFrameDuration = time.Second / 60
 )

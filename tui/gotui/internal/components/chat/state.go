@@ -274,7 +274,9 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 	c.syncApplicationState()
 
 	if c.windowManager != nil {
-		c.windowManager.SyncConversations(c.conversations, c.activeConversationID)
+		if cmd := c.windowManager.SyncConversations(c.conversations, c.activeConversationID); cmd != nil {
+			c.enqueueCmd(cmd)
+		}
 	}
 
 	if syncPanels {
