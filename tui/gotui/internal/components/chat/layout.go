@@ -58,9 +58,8 @@ func (c *Chat) SetSize(width, height int) {
 		c.helpBar.SetSize(c.contentWidth, helpBarHeight)
 	}
 
-	if c.conversationPanel != nil {
-		c.conversationPanel.SetHorizontalLayout(c.singleColumn)
-		c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
+	if c.conversationBar != nil {
+		c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
 	}
 
 	if c.input != nil {
@@ -86,6 +85,7 @@ func (c *Chat) configureSingleColumn(width, availableHeight int) {
 	c.conversationListWidth = width
 	c.contentWidth = width
 	c.rightSidebarWidth = 0
+	c.contextWidth = 0
 
 	if availableHeight <= 0 {
 		c.conversationHeight = 0
@@ -164,89 +164,57 @@ func (c *Chat) configureTwoColumn(width, availableHeight int) {
 		width = 0
 	}
 
-	maxListWidth := width - minMainWidth - 1
-	if maxListWidth < minConversationWidth {
-		c.conversationListWidth = 0
+	// Compute conversation area (chips) height across the full width
+	chipsHeight := clampInt(c.estimateHorizontalConversationHeight(width), twoColumnMinConversationHeight, availableHeight)
+	if chipsHeight > availableHeight {
+		chipsHeight = availableHeight
+	}
+
+	remaining := maxInt(0, availableHeight-chipsHeight)
+
+	// Determine context drawer width (right column)
+	maxContextWidth := width - minMainWidth - 1
+	contextWidth := c.contextWidth
+	if maxContextWidth < minConversationWidth {
+		contextWidth = 0
 	} else {
-		if c.conversationListWidth == 0 {
-			c.conversationListWidth = defaultConversationWidth
+		if contextWidth == 0 {
+			contextWidth = defaultConversationWidth
 		}
-		upper := minInt(maxListWidth, maxConversationWidth)
-		c.conversationListWidth = clampInt(c.conversationListWidth, minConversationWidth, upper)
+		upper := minInt(maxContextWidth, maxConversationWidth)
+		contextWidth = clampInt(contextWidth, minConversationWidth, upper)
 	}
 
 	separator := 0
-	if c.conversationListWidth > 0 {
+	if contextWidth > 0 {
 		separator = 1
 	}
 
-	c.contentWidth = width - c.conversationListWidth - separator
-	if c.contentWidth < minMainWidth && c.conversationListWidth > 0 {
-		shortfall := minMainWidth - c.contentWidth
-		adjusted := c.conversationListWidth - shortfall
+	contentWidth := width - contextWidth - separator
+	if contentWidth < minMainWidth && contextWidth > 0 {
+		shortfall := minMainWidth - contentWidth
+		adjusted := contextWidth - shortfall
 		if adjusted < minConversationWidth {
 			adjusted = 0
 		}
-		c.conversationListWidth = adjusted
+		contextWidth = adjusted
 		separator = 0
-		if c.conversationListWidth > 0 {
+		if contextWidth > 0 {
 			separator = 1
 		}
-		c.contentWidth = width - c.conversationListWidth - separator
+		contentWidth = width - contextWidth - separator
 	}
-	if c.contentWidth < 0 {
-		c.contentWidth = 0
-	}
-
-	c.rightSidebarWidth = 0
-	c.chatHeight = maxInt(0, availableHeight)
-
-	if c.conversationListWidth == 0 {
-		c.conversationHeight = 0
-		c.contextHeight = 0
-		return
+	if contentWidth < 0 {
+		contentWidth = 0
 	}
 
-	conversationHeight := availableHeight
-	contextHeight := 0
-
-	if c.contextDrawerVisible && availableHeight > twoColumnMinConversationHeight {
-		desired := c.desiredContextHeight(c.conversationListWidth)
-		maxContext := maxInt(0, availableHeight-twoColumnMinConversationHeight)
-		if maxContext > 0 && desired > 0 {
-			lower := contextMinimumHeight
-			if desired < lower {
-				lower = desired
-			}
-			if lower > maxContext {
-				lower = maxContext
-			}
-			contextHeight = clampInt(desired, lower, maxContext)
-		}
-		if contextHeight > maxContext {
-			contextHeight = maxContext
-		}
-	}
-
-	conversationHeight = availableHeight - contextHeight
-	if conversationHeight < twoColumnMinConversationHeight && availableHeight >= twoColumnMinConversationHeight {
-		deficit := twoColumnMinConversationHeight - conversationHeight
-		contextHeight -= deficit
-		if contextHeight < 0 {
-			contextHeight = 0
-		}
-		conversationHeight = availableHeight - contextHeight
-	}
-
-	if conversationHeight < 0 {
-		conversationHeight = 0
-	}
-	if contextHeight < 0 {
-		contextHeight = 0
-	}
-
-	c.conversationHeight = conversationHeight
-	c.contextHeight = contextHeight
+	c.contextWidth = contextWidth
+	c.contentWidth = contentWidth
+	c.conversationListWidth = width
+	c.conversationHeight = chipsHeight
+	c.chatHeight = remaining
+	c.contextHeight = remaining
+	c.rightSidebarWidth = contextWidth
 }
 
 func (c *Chat) estimateHorizontalConversationHeight(width int) int {
@@ -483,39 +451,18 @@ func (c *Chat) renderSingleColumnLayout(theme styles.Theme, chatArea string, cha
 }
 
 func (c *Chat) renderTwoColumnLayout(theme styles.Theme, chatArea string, chatAreaHeight int) string {
-	var leftSections []string
+	var sections []string
 
-	if c.conversationListWidth > 0 && c.conversationHeight > 0 {
+	if c.conversationHeight > 0 {
 		convo := c.renderConversationList()
 		if strings.TrimSpace(convo) != "" {
 			convo = lipgloss.NewStyle().
-				Width(c.conversationListWidth).
+				Width(c.width).
 				Height(c.conversationHeight).
 				Render(convo)
-			leftSections = append(leftSections, convo)
+			sections = append(sections, convo)
+			sections = append(sections, horizontalSeparator(theme, c.width))
 		}
-	}
-
-	if c.contextDrawerVisible && c.contextHeight > 0 {
-		contextView := c.renderContextDrawer(c.conversationListWidth, c.contextHeight)
-		if strings.TrimSpace(contextView) != "" {
-			if len(leftSections) > 0 {
-				leftSections = append(leftSections, horizontalSeparator(theme, c.conversationListWidth))
-			}
-			leftSections = append(leftSections, lipgloss.NewStyle().
-				Width(c.conversationListWidth).
-				Height(c.contextHeight).
-				Render(contextView))
-		}
-	}
-
-	leftColumn := ""
-	if len(leftSections) > 0 {
-		leftColumn = lipgloss.JoinVertical(lipgloss.Left, leftSections...)
-		leftColumn = lipgloss.NewStyle().
-			Width(c.conversationListWidth).
-			Height(chatAreaHeight).
-			Render(leftColumn)
 	}
 
 	chatView := lipgloss.NewStyle().
@@ -523,13 +470,23 @@ func (c *Chat) renderTwoColumnLayout(theme styles.Theme, chatArea string, chatAr
 		Height(chatAreaHeight).
 		Render(chatArea)
 
-	segments := []string{}
-	if leftColumn != "" {
-		segments = append(segments, leftColumn, verticalSeparator(theme, chatAreaHeight))
-	}
-	segments = append(segments, chatView)
+	rowSegments := []string{chatView}
 
-	content := lipgloss.JoinHorizontal(lipgloss.Top, segments...)
+	if c.contextDrawerVisible && c.contextWidth > 0 {
+		contextView := c.renderContextDrawer(c.contextWidth, c.contextHeight)
+		if strings.TrimSpace(contextView) != "" {
+			rowSegments = append(rowSegments, verticalSeparator(theme, chatAreaHeight))
+			rowSegments = append(rowSegments, lipgloss.NewStyle().
+				Width(c.contextWidth).
+				Height(chatAreaHeight).
+				Render(contextView))
+		}
+	}
+
+	mainRow := lipgloss.JoinHorizontal(lipgloss.Top, rowSegments...)
+	sections = append(sections, mainRow)
+
+	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
 	return lipgloss.NewStyle().
 		Width(c.width).
 		Height(c.height).

@@ -27,22 +27,22 @@ const (
 
 // Chat represents the main chat interface.
 type Chat struct {
-	input             *chatcomponents.ChatInput
-	viewport          *chatcomponents.ChatViewport
-	templateManager   *chattemplates.TemplateManager
-	slashMenu         *chatcomponents.SlashMenu
-	modelPicker       *chatcomponents.ModelPicker
-	agentPicker       *chatcomponents.AgentPicker
-	themePicker       *dialogs.ThemePicker
-	settingsDialog    *chatcomponents.ApplicationSettingsDialog
-	commandPalette    *chatcomponents.CommandPalette
-	selectedModel     *chatcomponents.ModelOption
-	modelOptions      []chatcomponents.ModelOption
-	selectedAgent     *stores.AgentSelection
-	conversationPanel *panels.ConversationListPanel
-	width             int
-	height            int
-	focused           bool
+	input           *chatcomponents.ChatInput
+	viewport        *chatcomponents.ChatViewport
+	templateManager *chattemplates.TemplateManager
+	slashMenu       *chatcomponents.SlashMenu
+	modelPicker     *chatcomponents.ModelPicker
+	agentPicker     *chatcomponents.AgentPicker
+	themePicker     *dialogs.ThemePicker
+	settingsDialog  *chatcomponents.ApplicationSettingsDialog
+	commandPalette  *chatcomponents.CommandPalette
+	selectedModel   *chatcomponents.ModelOption
+	modelOptions    []chatcomponents.ModelOption
+	selectedAgent   *stores.AgentSelection
+	conversationBar *ConversationBar
+	width           int
+	height          int
+	focused         bool
 
 	conversations        []*Conversation
 	activeConversationID string
@@ -57,6 +57,7 @@ type Chat struct {
 	textHeight        int
 	rightSidebarWidth int
 	contentWidth      int
+	contextWidth      int
 
 	rightPanels       []*panels.InfoPanel
 	helpBar           *widgets.HelpBar
@@ -109,7 +110,7 @@ func New() *Chat {
 		themePicker:           dialogs.NewThemePicker(styles.PresetThemes()),
 		settingsDialog:        chatcomponents.NewApplicationSettingsDialog(),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
-		conversationPanel:     panels.NewConversationListPanel(),
+		conversationBar:       NewConversationBar(),
 		focused:               true,
 		rightSidebarWidth:     0,
 		textHeight:            3,
@@ -225,6 +226,16 @@ func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 	c.contextDrawerVisible = true
 }
 
+// EnsureHorizontalConversationList enforces the horizontal chip layout for conversations.
+func (c *Chat) EnsureHorizontalConversationList() {
+	if c == nil {
+		return
+	}
+	if c.conversationBar != nil {
+		c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
+	}
+}
+
 // AddMessage adds a message to the chat.
 func (c *Chat) AddMessage(msgType, content string) {
 	c.appendMessageToActiveConversation(msgType, content, nil, nil)
@@ -304,9 +315,8 @@ func (c *Chat) View() string {
 	} else {
 		theme := styles.CurrentTheme()
 
-		if c.conversationPanel != nil {
-			c.conversationPanel.SetHorizontalLayout(c.singleColumn)
-			c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
+		if c.conversationBar != nil {
+			c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
 		}
 
 		chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)

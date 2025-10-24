@@ -260,17 +260,17 @@ func (c *Chat) moveHoverToEnd() {
 }
 
 func (c *Chat) renderConversationList() string {
-	if c.conversationPanel == nil {
+	if c.conversationBar == nil {
 		return ""
 	}
 
 	c.syncConversationPanelItems()
 	c.ensureHoverSelection()
-	return c.conversationPanel.View()
+	return c.conversationBar.View()
 }
 
 func (c *Chat) syncConversationPanelItems() {
-	if c.conversationPanel == nil {
+	if c.conversationBar == nil {
 		return
 	}
 
@@ -288,19 +288,19 @@ func (c *Chat) syncConversationPanelItems() {
 		}
 	}
 
-	c.conversationPanel.SetItems(items)
+	c.conversationBar.SetItems(items)
 	c.syncConversationPanelHover(c.hoverConversationID)
 }
 
 func (c *Chat) syncConversationPanelHover(conversationID string) {
-	if c.conversationPanel == nil {
+	if c.conversationBar == nil {
 		return
 	}
 
 	store := c.ensureConversationStore()
 
 	hoverNew := c.hoverButton && conversationID == ""
-	c.conversationPanel.SetNewButtonState(true, hoverNew)
+	c.conversationBar.SetNewButtonState(true, hoverNew)
 
 	items := make([]panels.ConversationListItem, len(c.conversations))
 	for i, conv := range c.conversations {
@@ -313,7 +313,7 @@ func (c *Chat) syncConversationPanelHover(conversationID string) {
 			IsSyncing: store != nil && store.IsSyncing(conv.ID),
 		}
 	}
-	c.conversationPanel.SetItems(items)
+	c.conversationBar.SetItems(items)
 }
 
 func (c *Chat) handleSidebarKeys(msg tea.KeyPressMsg) bool {
@@ -678,7 +678,7 @@ func isMouseEvent(msg tea.Msg) bool {
 }
 
 func (c *Chat) handleMouseClick(msg tea.MouseClickMsg) (tea.Cmd, bool) {
-	if c.conversationPanel == nil || c.conversationListWidth == 0 {
+	if c.conversationBar == nil || c.conversationHeight == 0 {
 		return nil, false
 	}
 
@@ -687,14 +687,14 @@ func (c *Chat) handleMouseClick(msg tea.MouseClickMsg) (tea.Cmd, bool) {
 		return nil, false
 	}
 
-	if zoneID := c.conversationPanel.NewConversationZoneID(); zoneID != "" {
+	if zoneID := c.conversationBar.NewConversationZoneID(); zoneID != "" {
 		if mouseInZone(mouse, zone.Get(zoneID)) {
 			return c.createNewConversation(), true
 		}
 	}
 
 	for _, conv := range c.conversations {
-		zoneID := c.conversationPanel.ConversationZoneID(conv.ID)
+		zoneID := c.conversationBar.ConversationZoneID(conv.ID)
 		if zoneID == "" {
 			continue
 		}
