@@ -1,0 +1,7 @@
+tuios
+dist/
+*.mov
+.DS_Store
+!tuios/
+.direnv/
+result
