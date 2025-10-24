@@ -18,7 +18,7 @@ export { GlobTool } from './glob';
 export { SmartEditTool } from './smart-edit';
 
 // New tools from mcpService
-export { ExecuteCommandTool } from './execute-command';
+// export { ExecuteCommandTool } from './execute-command';
 
 export { AttemptCompletionTool } from './attempt-completion';
 
@@ -47,7 +47,7 @@ export type { GlobToolParams } from './glob';
 export type { SmartEditToolParams } from './smart-edit';
 
 // New tool parameter types
-export type { ExecuteCommandToolParams } from './execute-command';
+// export type { ExecuteCommandToolParams } from './execute-command';
 
 export type { AttemptCompletionToolParams } from './attempt-completion';
 

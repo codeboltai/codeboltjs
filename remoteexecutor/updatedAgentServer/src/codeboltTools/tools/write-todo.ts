@@ -13,7 +13,7 @@ import type {
     ToolErrorType,
 } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
-import todoService from '../../services/todoService';
+import { TodoService } from '../../services/TodoService';
 
 // Local type definition for backward compatibility
 interface FunctionDeclaration {
@@ -98,15 +98,15 @@ class WriteTodosToolInvocation extends BaseToolInvocation<
         const { todos } = this.params;
 
         // Clear existing todos for this thread first
-        const existingTodos = todoService.getTodosByThreadId(threadId);
+        const existingTodos = TodoService.getTodosByThreadId(threadId);
         for (const todo of existingTodos) {
-            todoService.deleteTodo(todo.id);
+            TodoService.deleteTodo(todo.id);
         }
 
         // Create new todos using the todoService
         const createdTodos = [];
         for (const todo of todos) {
-            const createdTodo = todoService.createTodo({
+            const createdTodo = TodoService.createTodo({
                 title: todo.content,
                 threadId: threadId,
                 priority: 'medium',
@@ -121,7 +121,7 @@ class WriteTodosToolInvocation extends BaseToolInvocation<
                         'completed': 'completed',
                         'cancelled': 'pending' // There's no cancelled status in todoService
                     };
-                    todoService.updateTodoStatus(createdTodo.id, statusMap[todo.status]);
+                    TodoService.updateTodoStatus(createdTodo.id, statusMap[todo.status]);
                 }
                 createdTodos.push(createdTodo);
             }

@@ -40,7 +40,7 @@ import {
   GrepTool,
   GlobTool,
   SmartEditTool,
-  ExecuteCommandTool,
+  // ExecuteCommandTool,
 
   AttemptCompletionTool,
 
