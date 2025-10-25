@@ -17,16 +17,17 @@ export const LLMResponseSchema = z.object({
     total_tokens: z.number()
   }).optional(),
   finish_reason: z.string().optional(),
-  choices: z.array(z.object({
+  completion:z.object({choices: z.array(z.object({
     message: z.object({
       role: z.string(),
       content: z.string()
     }),
     finish_reason: z.string()
-  })).optional(),
+  })).optional()}),
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
+  requestId:z.string(),
   error: z.string().optional()
 });
 

@@ -96,10 +96,10 @@ export class AIRequesteHandler {
 
 
             const finalRequest = prepareLLmRequest(request, 'glm-4.6');
-            logger.info("sending request to ai", finalRequest)
+           
             const CodeboltAi = new Multillm('zai', 'gml-4.6', null, "71ae6067878541a5905599c4b15668a6.wKmAsVs2m2P60rI5");
 
-            logger.info("sending request to ai", finalRequest)
+           
             const response = await CodeboltAi.createCompletion(finalRequest);
 
             // Extract the first choice's message content
@@ -121,16 +121,20 @@ export class AIRequesteHandler {
             }
 
             // Return properly typed LLMResponse
-            let llmResponse = {
+            let llmResponse:LLMResponse = {
                 type: 'llmResponse',
                 content: content,
                 role: 'assistant',
                 model: finalRequest.model,
                 usage: response.usage,
                 finish_reason: response.choices?.[0]?.finish_reason,
-                choices: response.choices,
-                success: true
-            } as LLMResponse;
+                completion: response,
+                requestId: request.requestId,
+                success: true,
+                
+            } ;
+
+           
             this.connectionManager.sendToConnection(agent.id, llmResponse);
             return llmResponse
         } catch (error) {

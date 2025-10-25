@@ -17,45 +17,45 @@ import type {
 } from '@codebolt/types/wstypes/agent-to-app-ws/actions/mcpEventSchemas'
 
 import type {
-   CreateFileSuccessResponse ,
-   CreateFileErrorResponse,
-   CreateFolderSuccessResponse ,
-   CreateFolderErrorResponse,
-   ReadFileSuccessResponse ,
-   ReadFileSuccessResultResponse ,
-   UpdateFileSuccessResponse ,
-   UpdateFileErrorResponse ,
-   DeleteFileSuccessResponse ,
-   DeleteFileErrorResponse ,
-   DeleteFolderSuccessResponse ,
-   DeleteFolderErrorResponse ,
-   FileListSuccessResponse ,
-   FileListErrorResponse ,
-   SearchFilesSuccessResponse ,
-   SearchFilesErrorResponse ,
-   WriteToFileSuccessResponse ,
-   WriteToFileErrorResponse,
-   GrepSearchSuccessResponse ,
-   GrepSearchErrorResponse ,
-   ListCodeDefinitionNamesSuccessResponse ,
-   ListCodeDefinitionNamesErrorResponse ,
-   FileSearchSuccessResponse ,
-   FileSearchErrorResponse,
-   EditFileAndApplyDiffSuccessResponse,
-   EditFileAndApplyDiffErrorResponse,
-   FsServiceResponse 
+  CreateFileSuccessResponse,
+  CreateFileErrorResponse,
+  CreateFolderSuccessResponse,
+  CreateFolderErrorResponse,
+  ReadFileSuccessResponse,
+  ReadFileSuccessResultResponse,
+  UpdateFileSuccessResponse,
+  UpdateFileErrorResponse,
+  DeleteFileSuccessResponse,
+  DeleteFileErrorResponse,
+  DeleteFolderSuccessResponse,
+  DeleteFolderErrorResponse,
+  FileListSuccessResponse,
+  FileListErrorResponse,
+  SearchFilesSuccessResponse,
+  SearchFilesErrorResponse,
+  WriteToFileSuccessResponse,
+  WriteToFileErrorResponse,
+  GrepSearchSuccessResponse,
+  GrepSearchErrorResponse,
+  ListCodeDefinitionNamesSuccessResponse,
+  ListCodeDefinitionNamesErrorResponse,
+  FileSearchSuccessResponse,
+  FileSearchErrorResponse,
+  EditFileAndApplyDiffSuccessResponse,
+  EditFileAndApplyDiffErrorResponse,
+  FsServiceResponse
 } from "@codebolt/types/wstypes/app-to-agent-ws/fsServiceResponses"
 
 import type {
-   GetEnabledToolBoxesResponse ,
-   GetLocalToolBoxesResponse,
-   GetAvailableToolBoxesResponse,
-   SearchAvailableToolBoxesResponse,
-   ListToolsFromToolBoxesResponse ,
-   ConfigureToolBoxResponse ,
-   GetToolsResponse ,
-   ExecuteToolResponse,
-   MCPServiceResponse ,
+  GetEnabledToolBoxesResponse,
+  GetLocalToolBoxesResponse,
+  GetAvailableToolBoxesResponse,
+  SearchAvailableToolBoxesResponse,
+  ListToolsFromToolBoxesResponse,
+  ConfigureToolBoxResponse,
+  GetToolsResponse,
+  ExecuteToolResponse,
+  MCPServiceResponse,
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
 import { lookup } from "dns";
 
@@ -75,11 +75,11 @@ export class ToolHandler {
       approvalMode: 'auto',
       timeout: 30000 // 30 seconds timeout
     });
-      
+
     // Initialize PermissionManager
     this.permissionManager = PermissionManager.getInstance();
     this.permissionManager.initialize();
-    
+
     const toolCount = this.toolsFramework.getRegistry().size();
     logger.info(`StandaloneToolsFramework initialized with ${toolCount} tools`);
   }
@@ -91,7 +91,7 @@ export class ToolHandler {
     if (!this.toolsFramework) {
       throw new Error('StandaloneToolsFramework not initialized');
     }
-    
+
     const toolCount = this.toolsFramework.getRegistry().size();
     if (toolCount === 0) {
       logger.warn('No tools registered in the framework');
@@ -104,35 +104,35 @@ export class ToolHandler {
         case 'getEnabledToolBoxes':
           await this.handleGetEnabledToolBoxes(agent, event as GetEnabledToolBoxesEvent);
           break;
-        
+
         case 'getLocalToolBoxes':
           await this.handleGetLocalToolBoxes(agent, event as GetLocalToolBoxesEvent);
           break;
-        
+
         case 'getAvailableToolBoxes':
           await this.handleGetAvailableToolBoxes(agent, event as GetAvailableToolBoxesEvent);
           break;
-        
+
         case 'searchAvailableToolBoxes':
           await this.handleSearchAvailableToolBoxes(agent, event as SearchAvailableToolBoxesEvent);
           break;
-        
+
         case 'listToolsFromToolBoxes':
           await this.handleListToolsFromToolBoxes(agent, event as ListToolsFromToolBoxesEvent);
           break;
-        
+
         case 'configureToolBox':
           await this.handleConfigureToolBox(agent, event as ConfigureToolBoxEvent);
           break;
-        
+
         case 'getTools':
           await this.handleGetTools(agent, event as GetToolsEvent);
           break;
-        
+
         case 'executeTool':
           await this.handleExecuteTool(agent, event as ExecuteToolEvent);
           break;
-        
+
         default:
           logger.warn(`Unknown tool event action: ${(event as any).action}`);
           break;
@@ -176,7 +176,7 @@ export class ToolHandler {
         event.params,
         abortController.signal
       );
-      
+
       // Send success response
       this.connectionManager.sendToConnection(agent.id, {
         type: 'toolResponse',
@@ -198,11 +198,11 @@ export class ToolHandler {
 
   private async handleGetEnabledToolBoxes(agent: ClientConnection, event: GetEnabledToolBoxesEvent): Promise<void> {
     logger.info(`Handling getEnabledToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get enabled toolboxes from registry
       const enabledTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetEnabledToolBoxesResponse = {
         type: 'getEnabledToolBoxesResponse',
         data: enabledTools.map(tool => ({
@@ -214,7 +214,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${enabledTools.length} enabled toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting enabled toolboxes: ${error}`);
@@ -229,11 +229,11 @@ export class ToolHandler {
 
   private async handleGetLocalToolBoxes(agent: ClientConnection, event: GetLocalToolBoxesEvent): Promise<void> {
     logger.info(`Handling getLocalToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get local toolboxes from registry
       const localTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetLocalToolBoxesResponse = {
         type: 'getLocalToolBoxesResponse',
         data: localTools.map(tool => ({
@@ -245,7 +245,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${localTools.length} local toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting local toolboxes: ${error}`);
@@ -260,11 +260,11 @@ export class ToolHandler {
 
   private async handleGetAvailableToolBoxes(agent: ClientConnection, event: GetAvailableToolBoxesEvent): Promise<void> {
     logger.info(`Handling getAvailableToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get available toolboxes from registry
       const availableTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetAvailableToolBoxesResponse = {
         type: 'getAvailableToolBoxesResponse',
         data: availableTools.map(tool => ({
@@ -276,7 +276,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${availableTools.length} available toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting available toolboxes: ${error}`);
@@ -291,11 +291,11 @@ export class ToolHandler {
 
   private async handleSearchAvailableToolBoxes(agent: ClientConnection, event: SearchAvailableToolBoxesEvent): Promise<void> {
     logger.info(`Handling searchAvailableToolBoxes event: ${event.requestId}, query: ${event.query}`);
-    
+
     try {
       // Get all available tool schemas from the registry
       const toolSchemas = this.toolsFramework.getRegistry().getOpenAIToolSchemas();
-      
+
       // Filter tools based on the search query
       const filteredTools = toolSchemas.filter(tool => {
         const searchQuery = event.query.toLowerCase();
@@ -305,7 +305,7 @@ export class ToolHandler {
           false
         );
       });
-      
+
       const response: SearchAvailableToolBoxesResponse = {
         type: 'searchAvailableToolBoxesResponse',
         data: {
@@ -320,7 +320,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${filteredTools.length} tools matching '${event.query}'`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error searching available toolboxes: ${error}`);
@@ -335,21 +335,25 @@ export class ToolHandler {
 
   private async handleListToolsFromToolBoxes(agent: ClientConnection, event: ListToolsFromToolBoxesEvent): Promise<void> {
     logger.info(`Handling listToolsFromToolBoxes event: ${event.requestId}, toolBoxes: ${event.toolBoxes.join(', ')}`);
-    
+
     try {
       // Get tools from specified toolboxes
       const allTools = this.toolsFramework.getRegistry().getOpenAIToolSchemas()
-      // logger.info("allTools",allTools)
-    
-      
+      const tools = allTools.map(tool => ({
+        ...tool,
+        function: {
+          ...tool.function,
+          name: `codebolt--${tool.function.name}`
+        }
+      }));
       const response: ListToolsFromToolBoxesResponse = {
         type: 'listToolsFromToolBoxesResponse',
-        data: allTools,
+        data: tools,
         success: true,
-        message: `Found ${allTools.length} tools from specified toolboxes`,
+        message: `Found ${tools.length} tools from specified toolboxes`,
         requestId: event.requestId
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error listing tools from toolboxes: ${error}`);
@@ -364,11 +368,11 @@ export class ToolHandler {
 
   private async handleConfigureToolBox(agent: ClientConnection, event: ConfigureToolBoxEvent): Promise<void> {
     logger.info(`Handling configureToolBox event: ${event.requestId}, mcpName: ${event.mcpName}`);
-    
+
     try {
       // Configure toolbox logic would go here
       // For now, we'll just acknowledge the configuration
-      
+
       const response: ConfigureToolBoxResponse = {
         type: 'configureToolBoxResponse',
         configuration: event.config,
@@ -380,7 +384,7 @@ export class ToolHandler {
         success: true,
         message: `Successfully configured toolbox: ${event.mcpName}`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error configuring toolbox: ${error}`);
@@ -395,12 +399,12 @@ export class ToolHandler {
 
   private async handleGetTools(agent: ClientConnection, event: GetToolsEvent): Promise<void> {
     logger.info(`Handling getTools event: ${event.requestId}, toolboxes: ${event.toolboxes.length}`);
-    
+
     try {
       // Get tools from specified toolboxes
       const toolNames = event.toolboxes.map(tb => tb.toolName);
       const toolSchemas = this.toolsFramework.getRegistry().getToolSchemasFiltered(toolNames);
-      
+
       const response: GetToolsResponse = {
         type: 'getToolsResponse',
         tools: toolSchemas.map(schema => ({
@@ -412,7 +416,7 @@ export class ToolHandler {
         success: true,
         message: `Retrieved ${toolSchemas.length} tools from specified toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting tools: ${error}`);
@@ -427,11 +431,11 @@ export class ToolHandler {
 
   private async handleExecuteTool(agent: ClientConnection, event: ExecuteToolEvent): Promise<void> {
     logger.info(`Handling executeTool event: ${event.requestId}, toolName: ${event.toolName}`);
-    
+
     try {
       // Ensure framework is ready before executing
       this.ensureFrameworkReady();
-      
+
       // Execute the tool using the registry
       const abortController = new AbortController();
       const result = await this.toolsFramework.getRegistry().executeTool(
@@ -439,7 +443,7 @@ export class ToolHandler {
         event.params,
         abortController.signal
       );
-      
+
       const response: ExecuteToolResponse = {
         type: 'executeToolResponse',
         toolName: event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
@@ -451,8 +455,8 @@ export class ToolHandler {
         message: `Successfully executed tool: ${event.toolName}`
       };
 
-      logger.info("response from tool",response)
-      
+      logger.info("response from tool", response)
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error executing tool: ${error}`);
