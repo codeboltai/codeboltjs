@@ -59,13 +59,14 @@ export class AIRequesteHandler {
         this.notificationService = NotificationService.getInstance();
     }
     async handleAiRequest(agent: ClientConnection, request: any): Promise<LLMResponse> {
+        let messageId = new Date().getTime().toString();
 
         try {
             // Send initial notification - request started
             if (agent) {
                 this.notificationService.sendAiRequestNotification({
                     agent,
-                    messageId: request.requestId,
+                    messageId: messageId,
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,
@@ -77,14 +78,14 @@ export class AIRequesteHandler {
             }
 
             // Get configured LLM providers and custom model config
-            // const { providers, custom_model_config } = await this.llmProviderService.getConfiguredLLMProviders();
+            const { providers, custom_model_config } = await this.llmProviderService.getConfiguredLLMProviders();
 
             // if (providers.length === 0) {
             //     throw new Error('No LLM providers configured');
             // }
 
             // Use the first available provider
-            // const provider = providers[0];
+            const provider = providers[0];
 
             // Create Multillm instance with provider configuration
             // const CodeboltAi = new Multillm(
@@ -97,7 +98,7 @@ export class AIRequesteHandler {
 
             const finalRequest = prepareLLmRequest(request, 'glm-4.6');
            
-            const CodeboltAi = new Multillm('zai', 'gml-4.6', null, "71ae6067878541a5905599c4b15668a6.wKmAsVs2m2P60rI5");
+            const CodeboltAi = new Multillm('zai', 'gml-4.6', null, provider.key);
 
            
             const response = await CodeboltAi.createCompletion(finalRequest);
@@ -109,7 +110,7 @@ export class AIRequesteHandler {
             if (agent) {
                 this.notificationService.sendAiRequestSuccessNotification({
                     agent,
-                    messageId: request.requestId,
+                    messageId: messageId,
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,
@@ -144,7 +145,7 @@ export class AIRequesteHandler {
             if (agent) {
                 this.notificationService.sendAiRequestErrorNotification({
                     agent,
-                    messageId: request.requestId,
+                    messageId: messageId,
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,

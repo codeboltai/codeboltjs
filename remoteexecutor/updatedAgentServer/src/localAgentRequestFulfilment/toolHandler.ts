@@ -572,14 +572,15 @@ export class ToolHandler {
             event.params,
             abortController.signal);
           // Send AI request success notification
-          this.notificationService.sendAiRequestSuccessNotification({
+          if(event.params.result)
+          this.notificationService.sendChatMessageNotification({
             agent,
             messageId: event.requestId,
             agentId: agent.id,
             threadId: event.requestId,
             agentInstanceId: agent.instanceId,
             parentAgentInstanceId: '',
-            message: `Task completion attempted: ${event.params?.task || 'Unknown task'}`,
+            message: event.params.result,
             parentId: '',
             requestId: event.requestId
           });

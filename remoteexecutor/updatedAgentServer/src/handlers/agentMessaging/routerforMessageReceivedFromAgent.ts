@@ -153,7 +153,8 @@ export class AgentMessageRouter {
       return;
     }
     if (message.type == 'inference') {
-      await this.llmRequestHandler.handleAiRequest(agent, message)
+      await this.llmRequestHandler.handleAiRequest(agent, message);
+      return;
     }
     if (message.type === 'getChatHistory') {
       await this.chatHistoryHandler.handleChatHistoryEvent(agent, message as GetChatHistoryEvent)

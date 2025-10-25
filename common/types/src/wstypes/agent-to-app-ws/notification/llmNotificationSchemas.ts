@@ -11,6 +11,7 @@ export const llmNotificationBaseSchema = AgentMessageBaseSchema.extend({
   toolUseId: z.string(),
   type: z.literal('llmnotify'),
   action: z.string(),
+  messageId: z.string(),
 });
 
 // LLM Request

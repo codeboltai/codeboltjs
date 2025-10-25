@@ -44,37 +44,27 @@ export enum TemplateEnum {
   WRITE_TODOS = "WRITE_TODOS",
 
 }
-import type {
-  FileWriteSuccess,
-  FileWriteError,
-  FileWriteRejected,
-  FileReadSuccess,
-  FolderReadSuccess,
-  FolderReadError,
-  FolderReadRejected,
-  SearchSuccess,
-  SearchError,
-  SearchRejected,
-} from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
-
 
 import type {
   FileReadResponseNotification,
   FileReadErrorNotification,
   WriteToFileResponseNotification,
-  ListDirectoryResponseNotification,
-  ListDirectoryErrorNotification
+  ListDirectoryResponseNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/fsNotificationSchemas"
 
 import type {
   LlmRequestNotification,
-  LlmResponseNotification,
-  LlmErrorNotification
+  LlmResponseNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/llmNotificationSchemas"
 
 import type {
   UserMessageRequestNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/chatNotificationSchemas"
+
+import type {
+  SearchResult,
+  CodebaseSearchResult
+} from "@codebolt/types/wstypes/agent-to-app-ws/notification/searchNotificationSchemas"
 
 import {
   templateEnumSchema
@@ -82,17 +72,6 @@ import {
 import { ChatNotification } from "@codebolt/types/agent-to-app-ws-types";
 import { logger } from "@/utils/logger";
 
-export type NotificationMessage =
-  | FileWriteSuccess
-  | FileWriteError
-  | FileWriteRejected
-  | FileReadSuccess
-  | FolderReadSuccess
-  | FolderReadError
-  | FolderReadRejected
-  | SearchSuccess
-  | SearchError
-  | SearchRejected;
 
 
 /**
@@ -121,24 +100,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, filePath, content, originalContent, diff, targetClient } = params;
 
-    const notification: FileWriteSuccess = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: agent.threadId,
-      timestamp: Date.now().toString(),
+    const notification: WriteToFileResponseNotification = {
+      action: "writeToFileResult",
+      content: content,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: requestId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content,
-        originalContent: originalContent || "",
-        diff: diff || "",
-        stateEvent: "fileWrite" as const,
-      },
+      isError: false
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -156,23 +127,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, filePath, reason, targetClient } = params;
 
-    const notification: FileWriteRejected = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: WriteToFileResponseNotification = {
+      action: "writeToFileResult",
+      content: reason,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content: reason,
-        originalContent: "",
-        stateEvent: "rejected" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -219,22 +183,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, path, entries, targetClient } = params;
 
-    const notification: FolderReadSuccess = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: ListDirectoryResponseNotification = {
+      action: "listDirectoryResult",
+      content: entries,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: entries,
-        stateEvent: "FILE_READ" as const,
-      },
+      isError: false
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -252,22 +210,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, path, reason, targetClient } = params;
 
-    const notification: FolderReadRejected = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: ListDirectoryResponseNotification = {
+      action: "listDirectoryResult",
+      content: reason,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: [],
-        stateEvent: "REJECTED" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -287,24 +239,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, filePath, error, originalContent, diff, targetClient } = params;
 
-    const notification: FileWriteError = {
-      type: "message" as const,
-      actionType: "WRITEFILE" as const,
-      templateType: "WRITEFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: WriteToFileResponseNotification = {
+      action: "writeToFileResult",
+      content: error,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content: error,
-        originalContent: originalContent || "",
-        diff: diff || "",
-        stateEvent: "fileWriteError" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -322,22 +266,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, path, error, targetClient } = params;
 
-    const notification: FolderReadError = {
-      type: "message" as const,
-      actionType: "FOLDERREAD" as const,
-      templateType: "FOLDERREAD" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: ListDirectoryResponseNotification = {
+      action: "listDirectoryResult",
+      content: error,
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "folder" as const,
-        path,
-        content: [],
-        stateEvent: "FILE_READ_ERROR" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -348,7 +286,7 @@ export class NotificationService {
    */
   private notifyClients(
     agent: ClientConnection,
-    notification: NotificationMessage | any,
+    notification:   any,
     targetClient?: TargetClient
   ): void {
     const appManager = this.connectionManager.getAppConnectionManager();
@@ -379,23 +317,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, results, targetClient } = params;
 
-    const notification: SearchSuccess = {
-      type: "message" as const,
-      actionType: "FILESEARCH" as const,
-      templateType: "FILESEARCH" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: SearchResult = {
+      action: "searchResult",
+      content: results,
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "search" as const,
-        query,
-        path,
-        results,
-        stateEvent: "FILE_READ" as const,
-      },
+      isError: false
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -414,23 +345,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, reason, targetClient } = params;
 
-    const notification: SearchRejected = {
-      type: "message" as const,
-      actionType: "FILESEARCH" as const,
-      templateType: "FILESEARCH" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: SearchResult = {
+      action: "searchResult",
+      content: reason,
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "search" as const,
-        query,
-        path,
-        results: [],
-        stateEvent: "REJECTED" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -449,23 +373,16 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, error, targetClient } = params;
 
-    const notification: SearchError = {
-      type: "message" as const,
-      actionType: "FILESEARCH" as const,
-      templateType: "FILESEARCH" as const,
-      sender: "agent" as const,
-      messageId: requestId,
+    const notification: SearchResult = {
+      action: "searchResult",
+      content: error,
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: requestId,
-      timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
-      payload: {
-        type: "search" as const,
-        query,
-        path,
-        results: [],
-        stateEvent: "FILE_READ_ERROR" as const,
-      },
+      isError: true
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -509,35 +426,24 @@ export class NotificationService {
       requestId,
       targetClient } = params;
 
-    // logger.info("stateEvent", stateEvent)
-    let notification = {
-      type: "llmnotify",
-      content: params.message,
-      action:'inferenceRequest',
-
+    const notification: LlmRequestNotification = {
+      action: "inferenceRequest",
       data: {
-        text: {
-          content: message,
-          requestId: requestId,
-          linkUrl: "Debug",
-          stateEvent: "SENDING_REQUEST"
-        },
-        linkUrl: "Debug",
-
-        requestId: requestId
+        messages: [],
+        prompt: message
       },
-      actionType: TemplateEnum.AIREQUEST,
-      messageId: messageId,
+      type: "llmnotify",
+      messageId:messageId,
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: threadId,
-      agentInstanceId: agentInstanceId,
       agentId: agentId,
+      agentInstanceId: agentInstanceId,
       parentAgentInstanceId: parentAgentInstanceId,
-      parentId: parentId,
-      sender: "system",
-    }
+      parentId: parentId
+    };
+
     this.notifyClients(agent, notification, targetClient);
-
-
   }
 
   sendAiRequestErrorNotification(
@@ -566,35 +472,22 @@ export class NotificationService {
       requestId,
       targetClient } = params;
 
-    // logger.info("stateEvent", stateEvent)
-    let notification = {
+    const notification: LlmResponseNotification = {
+      action: "inferenceResult",
+      content: message,
+      messageId:messageId,
       type: "llmnotify",
-      content: params.message,
-      action:'inferenceError',
-
-      data: {
-        text: {
-          content: message,
-          requestId: requestId,
-          linkUrl: "Debug",
-          stateEvent: "REQUEST_ERROR"
-        },
-        linkUrl: "Debug",
-
-        requestId: requestId
-      },
-      actionType: TemplateEnum.AIREQUEST,
-      messageId: messageId,
+      requestId: requestId,
+      toolUseId: requestId,
       threadId: threadId,
-      agentInstanceId: agentInstanceId,
       agentId: agentId,
+      agentInstanceId: agentInstanceId,
       parentAgentInstanceId: parentAgentInstanceId,
       parentId: parentId,
-      sender: "system",
-    }
+      isError: true
+    };
+
     this.notifyClients(agent, notification, targetClient);
-
-
   }
   sendAiRequestSuccessNotification(
     params: {
@@ -622,36 +515,22 @@ export class NotificationService {
       requestId,
       targetClient } = params;
 
-    // logger.info("stateEvent", stateEvent)
-    let notification = {
+    const notification: LlmResponseNotification = {
+      action: "inferenceResult",
+      content: message,
       type: "llmnotify",
-      content: params.message,
-      action:'inferenceResult',
-      templateType: "aiRequest",
-
-      data: {
-        text: {
-          content: message,
-          requestId: requestId,
-          linkUrl: "Debug",
-          stateEvent: "REQUEST_SUCCESS"
-        },
-        linkUrl: "Debug",
-
-        requestId: requestId
-      },
-      actionType: TemplateEnum.AIREQUEST,
-      messageId: messageId,
+      requestId: requestId,
+      messageId:messageId,
+      toolUseId: requestId,
       threadId: threadId,
-      agentInstanceId: agentInstanceId,
       agentId: agentId,
+      agentInstanceId: agentInstanceId,
       parentAgentInstanceId: parentAgentInstanceId,
       parentId: parentId,
-      sender: "system",
-    }
+      isError: false
+    };
+
     this.notifyClients(agent, notification, targetClient);
-
-
   }
 
   sendChatMessageNotification(params: {
@@ -677,26 +556,25 @@ export class NotificationService {
       requestId,
       targetClient } = params;
 
-    let notification: ChatNotification = {
+    const notification: UserMessageRequestNotification = {
       action: "sendMessageRequest",
       data: {
         message: message,
         payload: {
           text: message
-        },
+        }
       },
-      toolUseId: messageId,
       type: "chatnotify",
       requestId: requestId,
-      agentId: agentId,
+      toolUseId: messageId,
       threadId: threadId,
+      agentId: agentId,
       agentInstanceId: agentInstanceId,
       parentAgentInstanceId: parentAgentInstanceId,
       parentId: parentId
-    }
+    };
+
     this.notifyClients(agent, notification, targetClient);
-
-
   }
 
 
