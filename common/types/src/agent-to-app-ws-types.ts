@@ -295,6 +295,7 @@ export {
   type FolderCreateResponseNotification,
   type FileReadRequestNotification,
   type FileReadResponseNotification,
+  type FileReadErrorNotification,
   type FileEditRequestNotification,
   type FileEditResponseNotification,
   type FileDeleteRequestNotification,
@@ -384,14 +385,20 @@ export {
 // searchNotificationSchemas
 export {
   type SearchNotificationBase,
-  type SearchInitRequest,
-  type SearchRequest,
-  type GetFirstLinkRequest,
   type CodebaseSearchRequest,
-  type SearchInitResult,
-  type SearchResult,
-  type GetFirstLinkResult,
   type CodebaseSearchResult,
+  type SearchFilesRequest,
+  type SearchFilesResult,
+  type SearchMcpToolRequest,
+  type SearchMcpToolResult,
+  type WebSearchRequest,
+  type WebSearchResult,
+  type GetFirstLinkRequest,
+  type GetFirstLinkResult,
+  type FolderSearchRequest,
+  type FolderSearchResult,
+  type ListDirectoryForSearchRequest,
+  type ListDirectoryForSearchResult,
   type SearchNotification
 } from './wstypes/agent-to-app-ws/notification/searchNotificationSchemas';
 

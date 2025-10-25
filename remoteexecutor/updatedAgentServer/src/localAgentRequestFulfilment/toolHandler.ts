@@ -500,9 +500,10 @@ export class ToolHandler {
           result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
             event.params,
             abortController.signal);
+            logger.info("response form list_directory ",result)
           // Send folder read notification
           if (result && event.params?.path) {
-            const entries = Array.isArray(result) ? result : (result.entries || []);
+            const entries = (result as any)?.entries || []
             this.notificationService.sendFolderReadSuccess({
               agent,
               requestId: event.requestId,
@@ -534,35 +535,72 @@ export class ToolHandler {
 
         case 'search_file_content':
           logger.info(`Executing search_file_content (grep) tool with params:`, event.params);
-          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
-            event.params,
-            abortController.signal);
-          // Send search notification
-          if (result && event.params?.pattern) {
-            this.notificationService.sendSearchSuccess({
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send file search notification
+            if (result && event.params?.pattern) {
+              // Convert result to proper format for file search
+              const searchResults = (result as any)?.entries || []
+             
+              
+              this.notificationService.sendFileSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                path: event.params.path || '',
+                regex: event.params.pattern,
+                results: searchResults,
+                totalMatches: searchResults.reduce((sum: any, r: { matches: string | any[]; }) => sum + r.matches.length, 0)
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in search_file_content: ${error}`);
+            this.notificationService.sendFileSearchError({
               agent,
               requestId: event.requestId,
-              query: event.params.pattern,
-              path: event.params.path || '',
-              results: Array.isArray(result) ? result : [result]
+              path: event.params?.path || '',
+              regex: event.params?.pattern || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
+            throw error; // Re-throw to be handled by outer catch
           }
           break;
 
         case 'glob':
           logger.info(`Executing glob tool with params:`, event.params);
-          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
-            event.params,
-            abortController.signal);
-          // Send search notification for glob results
-          if (result && event.params?.pattern) {
-            this.notificationService.sendSearchSuccess({
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send list directory for search notification for glob results
+            if (result && event.params?.pattern) {
+              const entries = Array.isArray(result) ? result : [result];
+              const formattedEntries = entries.map((item: any) => ({
+                name: item.name || item.path?.split('/').pop() || 'unknown',
+                type: item.type || (item.isDirectory ? 'directory' : 'file') as 'file' | 'directory',
+                path: item.path || item.file || 'unknown',
+                size: item.size || 0,
+                modified: item.modified || item.mtime || undefined
+              }));
+              
+              this.notificationService.sendListDirectoryForSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                dirPath: event.params.path || '',
+                entries: formattedEntries,
+                totalEntries: formattedEntries.length
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in glob: ${error}`);
+            this.notificationService.sendListDirectoryForSearchError({
               agent,
               requestId: event.requestId,
-              query: event.params.pattern,
-              path: event.params.path || '',
-              results: Array.isArray(result) ? result : [result]
+              dirPath: event.params?.path || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
+            throw error; // Re-throw to be handled by outer catch
           }
           break;
 
@@ -588,35 +626,74 @@ export class ToolHandler {
 
         case 'search_files':
           logger.info(`Executing search_files tool with params:`, event.params);
-          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
-            event.params,
-            abortController.signal);
-          // Send search notification
-          if (result && event.params?.query) {
-            this.notificationService.sendSearchSuccess({
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send codebase search notification for file search results
+            if (result && event.params?.query) {
+              const searchResults = Array.isArray(result) ? result : [result];
+              const formattedResults = searchResults.map((item: any) => ({
+                file: item.file || item.path || 'unknown',
+                content: item.content || item.text || '',
+                line: item.line || 0,
+                score: item.score || 1.0
+              }));
+              
+              this.notificationService.sendCodebaseSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                query: event.params.query,
+                results: formattedResults,
+                totalResults: formattedResults.length
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in search_files: ${error}`);
+            this.notificationService.sendCodebaseSearchError({
               agent,
               requestId: event.requestId,
-              query: event.params.query,
-              path: event.params.path || '',
-              results: Array.isArray(result) ? result : [result]
+              query: event.params?.query || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
+            throw error; // Re-throw to be handled by outer catch
           }
           break;
 
         case 'list_files':
           logger.info(`Executing list_files tool with params:`, event.params);
-          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
-            event.params,
-            abortController.signal);
-          // Send folder read notification for file listing
-          if (result && event.params?.path) {
-            const entries = Array.isArray(result) ? result : (result.files || []);
-            this.notificationService.sendFolderReadSuccess({
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send list directory for search notification for file listing
+            if (result && event.params?.path) {
+              const entries = Array.isArray(result) ? result : ((result as any).files || []);
+              const formattedEntries = entries.map((item: any) => ({
+                name: item.name || item.path?.split('/').pop() || 'unknown',
+                type: item.type || (item.isDirectory ? 'directory' : 'file') as 'file' | 'directory',
+                path: item.path || item.file || 'unknown',
+                size: item.size || 0,
+                modified: item.modified || item.mtime || undefined
+              }));
+              
+              this.notificationService.sendListDirectoryForSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                dirPath: event.params.path,
+                entries: formattedEntries,
+                totalEntries: formattedEntries.length
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in list_files: ${error}`);
+            this.notificationService.sendListDirectoryForSearchError({
               agent,
               requestId: event.requestId,
-              path: event.params.path,
-              entries: entries
+              dirPath: event.params?.path || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
+            throw error; // Re-throw to be handled by outer catch
           }
           break;
 

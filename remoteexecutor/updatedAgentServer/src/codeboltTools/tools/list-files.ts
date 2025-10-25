@@ -80,7 +80,8 @@ class ListFilesToolInvocation extends BaseToolInvocation<
 
             return {
                 llmContent: message,
-                returnDisplay: message
+                returnDisplay: message,
+                entries:files
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);

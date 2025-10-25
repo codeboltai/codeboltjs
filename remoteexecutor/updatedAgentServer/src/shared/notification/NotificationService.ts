@@ -49,9 +49,42 @@ import type {
   FileReadResponseNotification,
   FileReadErrorNotification,
   WriteToFileResponseNotification,
-  ListDirectoryResponseNotification
+  ListDirectoryResponseNotification,
+  ListDirectoryRequestNotification,
+  FileCreateRequestNotification,
+  FileCreateResponseNotification,
+  FolderCreateRequestNotification,
+  FolderCreateResponseNotification,
+  FileDeleteRequestNotification,
+  FileDeleteResponseNotification,
+  FolderDeleteRequestNotification,
+  FolderDeleteResponseNotification,
+  FileEditRequestNotification,
+  FileEditResponseNotification,
+  AppendToFileRequestNotification,
+  AppendToFileResponseNotification,
+  CopyFileRequestNotification,
+  CopyFileResponseNotification,
+  MoveFileRequestNotification,
+  MoveFileResponseNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/fsNotificationSchemas"
 
+import type {
+  WebSearchResult,
+  CodebaseSearchResult,
+  SearchFilesResult,
+  SearchMcpToolResult,
+  GetFirstLinkResult,
+  FolderSearchResult,
+  ListDirectoryForSearchResult,
+  WebSearchRequest,
+  CodebaseSearchRequest,
+  SearchFilesRequest,
+  SearchMcpToolRequest,
+  GetFirstLinkRequest,
+  FolderSearchRequest,
+  ListDirectoryForSearchRequest
+} from '@codebolt/types/wstypes/agent-to-app-ws/notification/searchNotificationSchemas'
 import type {
   LlmRequestNotification,
   LlmResponseNotification
@@ -60,11 +93,6 @@ import type {
 import type {
   UserMessageRequestNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/chatNotificationSchemas"
-
-import type {
-  SearchResult,
-  CodebaseSearchResult
-} from "@codebolt/types/wstypes/agent-to-app-ws/notification/searchNotificationSchemas"
 
 import {
   templateEnumSchema
@@ -102,11 +130,14 @@ export class NotificationService {
 
     const notification: WriteToFileResponseNotification = {
       action: "writeToFileResult",
-      content: content,
+      data:{
+        content,
+        filePath
+      },
       type: "fsnotify",
       requestId: requestId,
       toolUseId: requestId,
-      threadId: requestId,
+      threadId:agent.threadId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
       isError: false
@@ -129,11 +160,14 @@ export class NotificationService {
 
     const notification: WriteToFileResponseNotification = {
       action: "writeToFileResult",
-      content: reason,
+      data: {
+        content: reason,
+        filePath: filePath
+      },
       type: "fsnotify",
       requestId: requestId,
       toolUseId: requestId,
-      threadId: requestId,
+      threadId: agent.threadId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
       isError: true
@@ -183,13 +217,24 @@ export class NotificationService {
   }): void {
     const { agent, requestId, path, entries, targetClient } = params;
 
-    const notification: ListDirectoryResponseNotification = {
-      action: "listDirectoryResult",
+    const notification: ListDirectoryForSearchResult = {
+      action: "listDirectoryForSearchResult",
       content: entries,
-      type: "fsnotify",
+      data: {
+        dirPath: path,
+        entries: entries.map(entry => ({
+          name: entry,
+          type: 'file' as 'file' | 'directory',
+          path: entry,
+          size: 0,
+          modified: undefined
+        })),
+        totalEntries: entries.length
+      },
+      type: "searchnotify",
       requestId: requestId,
       toolUseId: requestId,
-      threadId: requestId,
+      threadId: agent.threadId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
       isError: false
@@ -241,11 +286,14 @@ export class NotificationService {
 
     const notification: WriteToFileResponseNotification = {
       action: "writeToFileResult",
-      content: error,
+      data: {
+        content: error,
+        filePath: filePath
+      },
       type: "fsnotify",
       requestId: requestId,
       toolUseId: requestId,
-      threadId: requestId,
+      threadId: agent.threadId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
       isError: true
@@ -317,8 +365,8 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, results, targetClient } = params;
 
-    const notification: SearchResult = {
-      action: "searchResult",
+    const notification: WebSearchResult = {
+      action: "webSearchResult",
       content: results,
       type: "searchnotify",
       requestId: requestId,
@@ -345,8 +393,8 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, reason, targetClient } = params;
 
-    const notification: SearchResult = {
-      action: "searchResult",
+    const notification: WebSearchResult = {
+      action: "webSearchResult",
       content: reason,
       type: "searchnotify",
       requestId: requestId,
@@ -373,13 +421,631 @@ export class NotificationService {
   }): void {
     const { agent, requestId, query, path, error, targetClient } = params;
 
-    const notification: SearchResult = {
-      action: "searchResult",
+    const notification: WebSearchResult = {
+      action: "webSearchResult",
       content: error,
       type: "searchnotify",
       requestId: requestId,
       toolUseId: requestId,
       threadId: requestId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send codebase search request notification
+   */
+  sendCodebaseSearchRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    targetDirectories?: string[];
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, targetDirectories, targetClient } = params;
+
+    const notification: CodebaseSearchRequest = {
+      action: "codebaseSearchRequest",
+      data: {
+        query: query,
+        target_directories: targetDirectories
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send codebase search success notification
+   */
+  sendCodebaseSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    results: Array<{
+      file: string;
+      content: string;
+      line?: number;
+      score?: number;
+    }>;
+    totalResults?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, results, totalResults, targetClient } = params;
+
+    const notification: CodebaseSearchResult = {
+      action: "codebaseSearchResult",
+      content: results,
+      data: {
+        query: query,
+        results: results,
+        totalResults: totalResults
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send codebase search error notification
+   */
+  sendCodebaseSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, error, targetClient } = params;
+
+    const notification: CodebaseSearchResult = {
+      action: "codebaseSearchResult",
+      content: error,
+      data: {
+        query: query,
+        results: [],
+        totalResults: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send file search request notification
+   */
+  sendFileSearchRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    path: string;
+    regex: string;
+    filePattern?: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, path, regex, filePattern, targetClient } = params;
+
+    const notification: SearchFilesRequest = {
+      action: "searchFilesRequest",
+      data: {
+        path: path,
+        regex: regex,
+        filePattern: filePattern
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send file search success notification
+   */
+  sendFileSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    path: string;
+    regex: string;
+    results: Array<{
+      file: string;
+      matches: Array<{
+        line: number;
+        content: string;
+        matchIndex?: number;
+      }>;
+    }>;
+    totalMatches?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, path, regex, results, totalMatches, targetClient } = params;
+
+    const notification: SearchFilesResult = {
+      action: "searchFilesResult",
+      content: results,
+      data: {
+        path: path,
+        regex: regex,
+        results: results,
+        totalMatches: totalMatches
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send file search error notification
+   */
+  sendFileSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    path: string;
+    regex: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, path, regex, error, targetClient } = params;
+
+    const notification: SearchFilesResult = {
+      action: "searchFilesResult",
+      content: error,
+      data: {
+        path: path,
+        regex: regex,
+        results: [],
+        totalMatches: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send MCP tool search request notification
+   */
+  sendMcpToolSearchRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    tags?: string[];
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, tags, targetClient } = params;
+
+    const notification: SearchMcpToolRequest = {
+      action: "searchMcpToolRequest",
+      data: {
+        query: query,
+        tags: tags
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send MCP tool search success notification
+   */
+  sendMcpToolSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    tools: Array<{
+      name: string;
+      description: string;
+      category?: string;
+      tags?: string[];
+    }>;
+    totalTools?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, tools, totalTools, targetClient } = params;
+
+    const notification: SearchMcpToolResult = {
+      action: "searchMcpToolResult",
+      content: tools,
+      data: {
+        query: query,
+        tools: tools,
+        totalTools: totalTools
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send MCP tool search error notification
+   */
+  sendMcpToolSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, error, targetClient } = params;
+
+    const notification: SearchMcpToolResult = {
+      action: "searchMcpToolResult",
+      content: error,
+      data: {
+        query: query,
+        tools: [],
+        totalTools: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send get first link request notification
+   */
+  sendGetFirstLinkRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, targetClient } = params;
+
+    const notification: GetFirstLinkRequest = {
+      action: "getFirstLinkRequest",
+      data: {
+        query: query
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send get first link success notification
+   */
+  sendGetFirstLinkSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    url?: string;
+    title?: string;
+    snippet?: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, url, title, snippet, targetClient } = params;
+
+    const notification: GetFirstLinkResult = {
+      action: "getFirstLinkResult",
+      content: {
+        url: url,
+        title: title,
+        snippet: snippet
+      },
+      data: {
+        query: query,
+        url: url,
+        title: title,
+        snippet: snippet
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send get first link error notification
+   */
+  sendGetFirstLinkError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    query: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, query, error, targetClient } = params;
+
+    const notification: GetFirstLinkResult = {
+      action: "getFirstLinkResult",
+      content: error,
+      data: {
+        query: query,
+        url: "",
+        title: "",
+        snippet: ""
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send folder search request notification
+   */
+  sendFolderSearchRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    folderPath: string;
+    query: string;
+    recursive?: boolean;
+    fileTypes?: string[];
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, folderPath, query, recursive, fileTypes, targetClient } = params;
+
+    const notification: FolderSearchRequest = {
+      action: "folderSearchRequest",
+      data: {
+        folderPath: folderPath,
+        query: query,
+        recursive: recursive,
+        fileTypes: fileTypes
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send folder search success notification
+   */
+  sendFolderSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    folderPath: string;
+    query: string;
+    results: Array<{
+      file: string;
+      matches: Array<{
+        line: number;
+        content: string;
+        matchIndex?: number;
+      }>;
+    }>;
+    totalMatches?: number;
+    filesSearched?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, folderPath, query, results, totalMatches, filesSearched, targetClient } = params;
+
+    const notification: FolderSearchResult = {
+      action: "folderSearchResult",
+      content: results,
+      data: {
+        folderPath: folderPath,
+        query: query,
+        results: results,
+        totalMatches: totalMatches,
+        filesSearched: filesSearched
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send folder search error notification
+   */
+  sendFolderSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    folderPath: string;
+    query: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, folderPath, query, error, targetClient } = params;
+
+    const notification: FolderSearchResult = {
+      action: "folderSearchResult",
+      content: error,
+      data: {
+        folderPath: folderPath,
+        query: query,
+        results: [],
+        totalMatches: 0,
+        filesSearched: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send list directory for search request notification
+   */
+  sendListDirectoryForSearchRequest(params: {
+    agent: ClientConnection;
+    requestId: string;
+    dirPath: string;
+    includeHidden?: boolean;
+    maxDepth?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, dirPath, includeHidden, maxDepth, targetClient } = params;
+
+    const notification: ListDirectoryForSearchRequest = {
+      action: "listDirectoryForSearchRequest",
+      data: {
+        dirPath: dirPath,
+        includeHidden: includeHidden,
+        maxDepth: maxDepth
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send list directory for search success notification
+   */
+  sendListDirectoryForSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    dirPath: string;
+    entries: Array<{
+      name: string;
+      type: 'file' | 'directory';
+      path: string;
+      size?: number;
+      modified?: string;
+    }>;
+    totalEntries?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, dirPath, entries, totalEntries, targetClient } = params;
+
+    const notification: ListDirectoryForSearchResult = {
+      action: "listDirectoryForSearchResult",
+      content: entries,
+      data: {
+        dirPath: dirPath,
+        entries: entries,
+        totalEntries: totalEntries
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send list directory for search error notification
+   */
+  sendListDirectoryForSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    dirPath: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, dirPath, error, targetClient } = params;
+
+    const notification: ListDirectoryForSearchResult = {
+      action: "listDirectoryForSearchResult",
+      content: error,
+      data: {
+        dirPath: dirPath,
+        entries: [],
+        totalEntries: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
       isError: true
