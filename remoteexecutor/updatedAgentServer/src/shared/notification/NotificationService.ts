@@ -59,14 +59,28 @@ import type {
 
 
 import type {
-  FileReadResponseNotification
+  FileReadResponseNotification,
+  FileReadErrorNotification,
+  WriteToFileResponseNotification,
+  ListDirectoryResponseNotification,
+  ListDirectoryErrorNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/fsNotificationSchemas"
 
+import type {
+  LlmRequestNotification,
+  LlmResponseNotification,
+  LlmErrorNotification
+} from "@codebolt/types/wstypes/agent-to-app-ws/notification/llmNotificationSchemas"
+
+import type {
+  UserMessageRequestNotification
+} from "@codebolt/types/wstypes/agent-to-app-ws/notification/chatNotificationSchemas"
 
 import {
   templateEnumSchema
 } from '@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas'
 import { ChatNotification } from "@codebolt/types/agent-to-app-ws-types";
+import { logger } from "@/utils/logger";
 
 export type NotificationMessage =
   | FileWriteSuccess
@@ -188,7 +202,6 @@ export class NotificationService {
       threadId: requestId,
       agentId: agent.id,
       agentInstanceId: agent.instanceId
-
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -349,7 +362,7 @@ export class NotificationService {
     } else {
       tuiManager.sendToTui(targetClient.id, notification);
     }
-
+    logger.info("sending notification to ui",notification)
     this.sendMessageToRemote.forwardAgentMessage(agent, notification);
   }
 

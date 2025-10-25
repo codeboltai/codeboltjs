@@ -69,9 +69,9 @@ export class AIRequesteHandler {
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,
-                    parentAgentInstanceId: agent.parentAgentInstanceId || '',
+                    parentAgentInstanceId: agent.parentAgentInstanceId,
                     message: `Sending Request To AI: View Logs.`,
-                    parentId: agent?.parentId || '',
+                    parentId: agent?.parentId,
                     requestId: request.requestId
                 });
             }
@@ -113,9 +113,9 @@ export class AIRequesteHandler {
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,
-                    parentAgentInstanceId: agent.parentAgentInstanceId || '',
+                    parentAgentInstanceId: agent.parentAgentInstanceId ,
                     message: "Response From AI: View Logs.",
-                    parentId: request?.parentId || '',
+                    parentId: request?.parentId ,
                     requestId: request.requestId
                 });
             }
@@ -148,9 +148,9 @@ export class AIRequesteHandler {
                     agentId: agent.id,
                     threadId:  agent.threadId,
                     agentInstanceId: agent.instanceId,
-                    parentAgentInstanceId: agent.parentAgentInstanceId || '',
+                    parentAgentInstanceId: agent.parentAgentInstanceId ,
                     message: error instanceof Error ? error.message : 'Unknown error occurred',
-                    parentId: agent?.parentId || '',
+                    parentId: agent?.parentId ,
                     requestId: request.requestId
                 });
             }

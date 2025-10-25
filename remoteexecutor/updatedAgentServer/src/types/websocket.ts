@@ -13,6 +13,7 @@ export type ConnectionParams = {
   projectName?: string;
   projectType?: string;
   connectionId?: string;
+  threadId?:string
 };
 
 export type RegistrationResult = {

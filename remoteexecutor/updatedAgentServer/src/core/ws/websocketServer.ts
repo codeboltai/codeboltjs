@@ -24,6 +24,7 @@ import {
 } from '../../types';
 import { WEBSOCKET_CONSTANTS } from '../../constants';
 import { logger } from '../../utils/logger';
+import { threadId } from 'worker_threads';
 
 /**
  * WebSocket server management
@@ -167,6 +168,7 @@ export class WebSocketServer {
       appId: queryParams.get('appId') || undefined,
       currentProject: queryParams.get('currentProject') || undefined,
       projectName: queryParams.get('projectName') || undefined,
+      threadId:queryParams.get('threadId') || undefined,
       projectType: queryParams.get('projectType') || undefined,
       connectionId: queryParams.get('connectionId') || undefined
     };
@@ -222,7 +224,7 @@ export class WebSocketServer {
       
       this.agentMessageRouter.handleAgentRequestMessage(tempConnection, message as any);
 
-      this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId);
+      this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId,params.threadId);
       return { clientId: params.agentId };
     }
 
@@ -254,7 +256,8 @@ export class WebSocketServer {
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     agentInstanceId?: string,
-    connectionId?: string
+    connectionId?: string,
+    threadId?:string
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''} : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
@@ -263,15 +266,18 @@ export class WebSocketServer {
       agentId,
       ws,
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
+      threadId,
       parentId,
       agentInstanceId,
-      connectionId
+      connectionId,
+
     );
 
     this.sendRegistrationConfirmation(
       ws,
       agentId,
       WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT,
+      threadId,
       parentId,
       registrationType,
       { agentInstanceId }
@@ -285,13 +291,14 @@ export class WebSocketServer {
     ws: WebSocket,
     appId: string,
     registrationType: RegistrationType = 'auto',
+    threadId?:string,
     appInstanceId?: string
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId} : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
 
-    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, appInstanceId);
-    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, registrationType, { appInstanceId });
+    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP,threadId, undefined, appInstanceId);
+    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP,threadId, undefined, registrationType, { appInstanceId });
   }
 
   /**
@@ -301,13 +308,14 @@ export class WebSocketServer {
     ws: WebSocket,
     tuiId: string,
     registrationType: RegistrationType = 'auto',
+    threadId?:string,
     tuiInstanceId?: string
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId} : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
 
     this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, tuiInstanceId);
-    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, registrationType, { tuiInstanceId });
+    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI,threadId, undefined, registrationType, { tuiInstanceId });
   }
 
   /**
@@ -317,6 +325,7 @@ export class WebSocketServer {
     ws: WebSocket,
     connectionId: string,
     connectionType: string,
+    threadId?:string,
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     // projectInfo?: ProjectInfo,
@@ -326,6 +335,7 @@ export class WebSocketServer {
       type: WEBSOCKET_CONSTANTS.MESSAGE_TYPES.REGISTERED,
       connectionId,
       connectionType,
+      threadId,
       message: registrationType === 'auto' ?
         WEBSOCKET_CONSTANTS.MESSAGES.AUTO_REGISTRATION_SUCCESS :
         WEBSOCKET_CONSTANTS.MESSAGES.REGISTRATION_SUCCESS,
