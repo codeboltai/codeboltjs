@@ -58,6 +58,11 @@ import type {
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
 
+import type {
+  FileReadResponseNotification
+} from "@codebolt/types/wstypes/agent-to-app-ws/notification/fsNotificationSchemas"
+
+
 import {
   templateEnumSchema
 } from '@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas'
@@ -108,7 +113,7 @@ export class NotificationService {
       templateType: "WRITEFILE" as const,
       sender: "agent" as const,
       messageId: requestId,
-      threadId: requestId,
+      threadId: agent.threadId,
       timestamp: Date.now().toString(),
       agentId: agent.id,
       agentInstanceId: agent.instanceId,
@@ -171,22 +176,19 @@ export class NotificationService {
   }): void {
     const { agent, requestId, filePath, content, targetClient } = params;
 
-    const notification: FileReadSuccess = {
-      type: "message" as const,
-      actionType: "READFILE" as const,
-      templateType: "READFILE" as const,
-      sender: "agent" as const,
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file" as const,
-        path: filePath,
-        content,
-        stateEvent: "FILE_READ" as const,
+    const notification: FileReadResponseNotification = {
+      action: "readFileResult",
+      data: {
+        filePath:filePath,
+        content: content
       },
+      type: "fsnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: requestId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId
+
     };
 
     this.notifyClients(agent, notification, targetClient);
@@ -496,9 +498,9 @@ export class NotificationService {
 
     // logger.info("stateEvent", stateEvent)
     let notification = {
-      type: "aiRequest",
+      type: "llmnotify",
       content: params.message,
-      templateType: "aiRequest",
+      action:'inferenceRequest',
 
       data: {
         text: {
@@ -553,9 +555,9 @@ export class NotificationService {
 
     // logger.info("stateEvent", stateEvent)
     let notification = {
-      type: "aiRequest",
+      type: "llmnotify",
       content: params.message,
-      templateType: "aiRequest",
+      action:'inferenceError',
 
       data: {
         text: {
@@ -609,8 +611,9 @@ export class NotificationService {
 
     // logger.info("stateEvent", stateEvent)
     let notification = {
-      type: "aiRequest",
+      type: "llmnotify",
       content: params.message,
+      action:'inferenceResult',
       templateType: "aiRequest",
 
       data: {
