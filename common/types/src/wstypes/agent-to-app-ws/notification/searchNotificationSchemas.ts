@@ -204,6 +204,57 @@ export const listDirectoryForSearchResultSchema = searchNotificationBaseSchema.e
   }).optional(),
 });
 
+// Grep Search Request
+export const grepSearchRequestSchema = searchNotificationBaseSchema.extend({
+  action: z.literal('grepSearchRequest'),
+  data: z.object({
+    pattern: z.string(),
+    path: z.string().optional(),
+  }),
+});
+
+// Grep Search Response
+export const grepSearchResultSchema = searchNotificationBaseSchema.extend({
+  action: z.literal('grepSearchResult'),
+  content: z.union([z.string(), z.any()]),
+  isError: z.boolean().optional(),
+  data: z.object({
+    pattern: z.string(),
+    path: z.string().optional(),
+    results: z.array(z.object({
+      file: z.string(),
+      line: z.number(),
+      content: z.string(),
+    })).optional(),
+    totalMatches: z.number().optional(),
+    filesWithMatches: z.number().optional(),
+  }).optional(),
+});
+
+// Glob Search Request
+export const globSearchRequestSchema = searchNotificationBaseSchema.extend({
+  action: z.literal('globSearchRequest'),
+  data: z.object({
+    pattern: z.string(),
+    path: z.string().optional(),
+  }),
+});
+
+// Glob Search Response
+export const globSearchResultSchema = searchNotificationBaseSchema.extend({
+  action: z.literal('globSearchResult'),
+  content: z.union([z.string(), z.any()]),
+  isError: z.boolean().optional(),
+  data: z.object({
+    pattern: z.string(),
+    path: z.string().optional(),
+    results: z.array(z.object({
+      path: z.string(),
+    })).optional(),
+    totalFiles: z.number().optional(),
+  }).optional(),
+});
+
 // Union of all search notification schemas
 export const searchNotificationSchema = z.union([
   codebaseSearchRequestSchema,
@@ -220,6 +271,10 @@ export const searchNotificationSchema = z.union([
   folderSearchResultSchema,
   listDirectoryForSearchRequestSchema,
   listDirectoryForSearchResultSchema,
+  grepSearchRequestSchema,
+  grepSearchResultSchema,
+  globSearchRequestSchema,
+  globSearchResultSchema,
 ]);
 
 // Inferred TypeScript types
@@ -238,6 +293,10 @@ export type FolderSearchRequest = z.infer<typeof folderSearchRequestSchema>;
 export type FolderSearchResult = z.infer<typeof folderSearchResultSchema>;
 export type ListDirectoryForSearchRequest = z.infer<typeof listDirectoryForSearchRequestSchema>;
 export type ListDirectoryForSearchResult = z.infer<typeof listDirectoryForSearchResultSchema>;
+export type GrepSearchRequest = z.infer<typeof grepSearchRequestSchema>;
+export type GrepSearchResult = z.infer<typeof grepSearchResultSchema>;
+export type GlobSearchRequest = z.infer<typeof globSearchRequestSchema>;
+export type GlobSearchResult = z.infer<typeof globSearchResultSchema>;
 
 // Union types for convenience
 export type SearchNotification = z.infer<typeof searchNotificationSchema>; 

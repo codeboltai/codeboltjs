@@ -4,6 +4,14 @@ import { logger } from "../utils/logger";
 import { StandaloneToolsFramework, ToolResult } from "../codeboltTools/index";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 
+// Import the search notification utilities
+import {
+  formatGlobResults,
+  formatListFilesResults,
+  formatFileSearchResults,
+  formatSearchFilesResults
+} from "../utils/searchNotificationUtils";
+
 import type {
   GetEnabledToolBoxesEvent,
   GetLocalToolBoxesEvent,
@@ -58,6 +66,8 @@ import type {
   MCPServiceResponse,
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
 import { NotificationService } from "@/shared";
+
+
 
 
 
@@ -541,17 +551,15 @@ export class ToolHandler {
               abortController.signal);
             // Send file search notification
             if (result && event.params?.pattern) {
-              // Convert result to proper format for file search
-              const searchResults = (result as any)?.entries || []
-             
+              const { formattedResults, totalMatches, filesWithMatches } = formatFileSearchResults(result as any);
               
               this.notificationService.sendFileSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 path: event.params.path || '',
                 regex: event.params.pattern,
-                results: searchResults,
-                totalMatches: searchResults.reduce((sum: any, r: { matches: string | any[]; }) => sum + r.matches.length, 0)
+                results: (result as any)?.results || [],
+                totalMatches: totalMatches
               });
             }
           } catch (error) {
@@ -575,21 +583,14 @@ export class ToolHandler {
               abortController.signal);
             // Send list directory for search notification for glob results
             if (result && event.params?.pattern) {
-              const entries = Array.isArray(result) ? result : [result];
-              const formattedEntries = entries.map((item: any) => ({
-                name: item.name || item.path?.split('/').pop() || 'unknown',
-                type: item.type || (item.isDirectory ? 'directory' : 'file') as 'file' | 'directory',
-                path: item.path || item.file || 'unknown',
-                size: item.size || 0,
-                modified: item.modified || item.mtime || undefined
-              }));
+              const { entries, totalEntries } = formatGlobResults(result);
               
               this.notificationService.sendListDirectoryForSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 dirPath: event.params.path || '',
-                entries: formattedEntries,
-                totalEntries: formattedEntries.length
+                entries: entries,
+                totalEntries: totalEntries
               });
             }
           } catch (error) {
@@ -632,20 +633,14 @@ export class ToolHandler {
               abortController.signal);
             // Send codebase search notification for file search results
             if (result && event.params?.query) {
-              const searchResults = Array.isArray(result) ? result : [result];
-              const formattedResults = searchResults.map((item: any) => ({
-                file: item.file || item.path || 'unknown',
-                content: item.content || item.text || '',
-                line: item.line || 0,
-                score: item.score || 1.0
-              }));
+              const { results, totalResults } = formatSearchFilesResults(result);
               
               this.notificationService.sendCodebaseSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 query: event.params.query,
-                results: formattedResults,
-                totalResults: formattedResults.length
+                results: results,
+                totalResults: totalResults
               });
             }
           } catch (error) {
@@ -668,21 +663,14 @@ export class ToolHandler {
               abortController.signal);
             // Send list directory for search notification for file listing
             if (result && event.params?.path) {
-              const entries = Array.isArray(result) ? result : ((result as any).files || []);
-              const formattedEntries = entries.map((item: any) => ({
-                name: item.name || item.path?.split('/').pop() || 'unknown',
-                type: item.type || (item.isDirectory ? 'directory' : 'file') as 'file' | 'directory',
-                path: item.path || item.file || 'unknown',
-                size: item.size || 0,
-                modified: item.modified || item.mtime || undefined
-              }));
+              const { entries, totalEntries } = formatListFilesResults(result);
               
               this.notificationService.sendListDirectoryForSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 dirPath: event.params.path,
-                entries: formattedEntries,
-                totalEntries: formattedEntries.length
+                entries: entries,
+                totalEntries: totalEntries
               });
             }
           } catch (error) {

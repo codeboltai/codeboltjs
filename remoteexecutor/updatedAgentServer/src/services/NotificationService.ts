@@ -10,7 +10,163 @@ import type {
   UserMessageRequestNotification
 } from '@codebolt/types/agent-to-app-ws-types';
 import { logger } from '../utils/logger';
-import type  {FileReadResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification'
+import type  {FileReadResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification';
+import type {
+  ListDirectoryForSearchResult,
+  GrepSearchResult,
+  GlobSearchResult,
+  CodebaseSearchResult,
+  SearchFilesResult
+} from '@codebolt/types/wstypes/agent-to-app-ws/notification/searchNotificationSchemas';
+
+// Add the missing interfaces for the search notification parameters
+export interface ListDirectoryForSearchSuccessParams {
+  agent: any;
+  requestId: string;
+  dirPath: string;
+  entries: Array<{
+    name: string;
+    type: 'file' | 'directory';
+    size?: number;
+    modified?: string;
+    path: string;
+  }>;
+  totalEntries: number;
+}
+
+export interface ListDirectoryForSearchErrorParams {
+  agent: any;
+  requestId: string;
+  dirPath: string;
+  error: string;
+}
+
+export interface GrepSearchSuccessParams {
+  agent: any;
+  requestId: string;
+  pattern: string;
+  path?: string;
+  results: Array<{
+    file: string;
+    line: number;
+    content: string;
+  }>;
+  totalMatches?: number;
+  filesWithMatches?: number;
+}
+
+export interface GrepSearchErrorParams {
+  agent: any;
+  requestId: string;
+  pattern: string;
+  path?: string;
+  error: string;
+}
+
+export interface GlobSearchSuccessParams {
+  agent: any;
+  requestId: string;
+  pattern: string;
+  path?: string;
+  results: Array<{
+    path: string;
+  }>;
+  totalFiles?: number;
+}
+
+export interface GlobSearchErrorParams {
+  agent: any;
+  requestId: string;
+  pattern: string;
+  path?: string;
+  error: string;
+}
+
+export interface CodebaseSearchSuccessParams {
+  agent: any;
+  requestId: string;
+  query: string;
+  results: Array<{
+    file: string;
+    content: string;
+    line?: number;
+    score?: number;
+  }>;
+  totalResults?: number;
+}
+
+export interface CodebaseSearchErrorParams {
+  agent: any;
+  requestId: string;
+  query: string;
+  error: string;
+}
+
+export interface SearchFilesSuccessParams {
+  agent: any;
+  requestId: string;
+  path: string;
+  regex: string;
+  results: Array<{
+    file: string;
+    matches: Array<{
+      line: number;
+      content: string;
+      matchIndex?: number;
+    }>;
+  }>;
+  totalMatches?: number;
+}
+
+export interface SearchFilesErrorParams {
+  agent: any;
+  requestId: string;
+  path: string;
+  regex: string;
+  error: string;
+}
+
+// Add new interfaces for the raw data that comes from tool execution
+export interface GlobToolResult {
+  name?: string;
+  path?: string;
+  file?: string;
+  type?: 'file' | 'directory';
+  isDirectory?: boolean;
+  size?: number;
+  modified?: string;
+  mtime?: string;
+}
+
+export interface SearchFilesToolResult {
+  file?: string;
+  path?: string;
+  content?: string;
+  text?: string;
+  line?: number;
+  score?: number;
+}
+
+export interface ListFilesToolResult {
+  name?: string;
+  path?: string;
+  file?: string;
+  type?: 'file' | 'directory';
+  isDirectory?: boolean;
+  size?: number;
+  modified?: string;
+  mtime?: string;
+}
+
+export interface FileSearchToolResult {
+  entries?: Array<{
+    file: string;
+    matches: Array<{
+      line: number;
+      content: string;
+    }>;
+  }>;
+}
 
 // Legacy interface for backward compatibility
 export interface NotificationMessage {
@@ -285,4 +441,323 @@ export class NotificationService {
     this.pendingRequests.clear();
     logger.info(formatLogMessage('info', 'NotificationService', 'Cleaned up all pending requests'));
   }
+
+  /**
+   * Send list directory for search success notification
+   */
+  sendListDirectoryForSearchSuccess(params: ListDirectoryForSearchSuccessParams): void {
+    const { agent, requestId, dirPath, entries, totalEntries } = params;
+    
+    const notification: ListDirectoryForSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'listDirectoryForSearchResult',
+      content: `Directory listing completed: ${dirPath}`,
+      data: {
+        dirPath,
+        entries,
+        totalEntries
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send list directory for search success notification from raw results
+   */
+  sendListDirectoryForSearchSuccessFromRaw(params: { 
+    agent: any; 
+    requestId: string; 
+    dirPath: string; 
+    results: Array<{ 
+      name?: string; 
+      path?: string; 
+      file?: string; 
+      type?: 'file' | 'directory'; 
+      isDirectory?: boolean; 
+      size?: number; 
+      modified?: string; 
+      mtime?: string; 
+    }> 
+  }): void {
+    const { agent, requestId, dirPath, results } = params;
+    
+    const formattedEntries = results.map((item) => ({
+      name: item.name || item.path?.split('/').pop() || 'unknown',
+      type: item.type || (item.isDirectory ? 'directory' : 'file') as 'file' | 'directory',
+      path: item.path || item.file || 'unknown',
+      size: item.size || 0,
+      modified: item.modified || item.mtime || undefined
+    }));
+    
+    this.sendListDirectoryForSearchSuccess({
+      agent,
+      requestId,
+      dirPath,
+      entries: formattedEntries,
+      totalEntries: formattedEntries.length
+    });
+  }
+
+  /**
+   * Send list directory for search error notification
+   */
+  sendListDirectoryForSearchError(params: ListDirectoryForSearchErrorParams): void {
+    const { agent, requestId, dirPath, error } = params;
+    
+    const notification: ListDirectoryForSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'listDirectoryForSearchResult',
+      content: `Directory listing failed: ${dirPath}`,
+      isError: true,
+      data: {
+        dirPath,
+        entries: [],
+        totalEntries: 0
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send grep search success notification
+   */
+  sendGrepSearchSuccess(params: GrepSearchSuccessParams): void {
+    const { agent, requestId, pattern, path, results, totalMatches, filesWithMatches } = params;
+    
+    const notification: GrepSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'grepSearchResult',
+      content: `Grep search completed for pattern: ${pattern}`,
+      data: {
+        pattern,
+        path,
+        results,
+        totalMatches,
+        filesWithMatches
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send grep search success notification from raw results
+   */
+  sendGrepSearchSuccessFromRaw(params: { 
+    agent: any; 
+    requestId: string; 
+    path: string; 
+    regex: string; 
+    results: { 
+      entries?: Array<{ 
+        file: string; 
+        matches: Array<{ 
+          line: number; 
+          content: string; 
+        }> 
+      }> 
+    } 
+  }): void {
+    const { agent, requestId, path, regex, results } = params;
+    
+    const formattedResults = (results.entries || []).map(entry => ({
+      file: entry.file,
+      matches: entry.matches
+    }));
+    
+    const totalMatches = formattedResults.reduce((sum, r) => sum + r.matches.length, 0);
+    
+    this.sendGrepSearchSuccess({
+      agent,
+      requestId,
+      pattern: regex,
+      path,
+      results: formattedResults.flatMap(entry => 
+        entry.matches.map(match => ({
+          file: entry.file,
+          line: match.line,
+          content: match.content
+        }))
+      ),
+      totalMatches,
+      filesWithMatches: formattedResults.length
+    });
+  }
+
+  /**
+   * Send grep search error notification
+   */
+  sendGrepSearchError(params: GrepSearchErrorParams): void {
+    const { agent, requestId, pattern, path, error } = params;
+    
+    const notification: GrepSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'grepSearchResult',
+      content: `Grep search failed for pattern: ${pattern}`,
+      isError: true,
+      data: {
+        pattern,
+        path,
+        results: [],
+        totalMatches: 0,
+        filesWithMatches: 0
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send codebase search success notification
+   */
+  sendCodebaseSearchSuccess(params: CodebaseSearchSuccessParams): void {
+    const { agent, requestId, query, results, totalResults } = params;
+    
+    const notification: CodebaseSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'codebaseSearchResult',
+      content: `Codebase search completed for query: ${query}`,
+      data: {
+        query,
+        results,
+        totalResults
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send codebase search success notification from raw results
+   */
+  sendCodebaseSearchSuccessFromRaw(params: { 
+    agent: any; 
+    requestId: string; 
+    query: string; 
+    results: Array<{ 
+      file?: string; 
+      path?: string; 
+      content?: string; 
+      text?: string; 
+      line?: number; 
+      score?: number; 
+    }> 
+  }): void {
+    const { agent, requestId, query, results } = params;
+    
+    const formattedResults = results.map((item) => ({
+      file: item.file || item.path || 'unknown',
+      content: item.content || item.text || '',
+      line: item.line || 0,
+      score: item.score || 1.0
+    }));
+    
+    this.sendCodebaseSearchSuccess({
+      agent,
+      requestId,
+      query,
+      results: formattedResults,
+      totalResults: formattedResults.length
+    });
+  }
+
+  /**
+   * Send codebase search error notification
+   */
+  sendCodebaseSearchError(params: CodebaseSearchErrorParams): void {
+    const { agent, requestId, query, error } = params;
+    
+    const notification: CodebaseSearchResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'codebaseSearchResult',
+      content: `Codebase search failed for query: ${query}`,
+      isError: true,
+      data: {
+        query,
+        results: [],
+        totalResults: 0
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send search files success notification
+   */
+  sendSearchFilesSuccess(params: SearchFilesSuccessParams): void {
+    const { agent, requestId, path, regex, results, totalMatches } = params;
+    
+    const notification: SearchFilesResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'searchFilesResult',
+      content: `File search completed for regex: ${regex} in path: ${path}`,
+      data: {
+        path,
+        regex,
+        results,
+        totalMatches
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send search files error notification
+   */
+  sendSearchFilesError(params: SearchFilesErrorParams): void {
+    const { agent, requestId, path, regex, error } = params;
+    
+    const notification: SearchFilesResult = {
+      requestId,
+      toolUseId: requestId,
+      type: 'searchnotify',
+      action: 'searchFilesResult',
+      content: `File search failed for regex: ${regex} in path: ${path}`,
+      isError: true,
+      data: {
+        path,
+        regex,
+        results: [],
+        totalMatches: 0
+      }
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send file search success notification (alias for sendSearchFilesSuccess)
+   */
+  sendFileSearchSuccess(params: SearchFilesSuccessParams): void {
+    this.sendSearchFilesSuccess(params);
+  }
+
+  /**
+   * Send file search error notification (alias for sendSearchFilesError)
+   */
+  sendFileSearchError(params: SearchFilesErrorParams): void {
+    this.sendSearchFilesError(params);
+  }
+
+  /**
+   * Send list directory for search success notification from raw glob results
+   */
 }
