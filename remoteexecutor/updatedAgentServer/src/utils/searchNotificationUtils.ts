@@ -163,7 +163,7 @@ export function formatFileSearchResults(results: any): {
 }
 
 /**
- * Format raw search files results to codebase search results
+ * Format raw search files results to file search notification format
  * 
  * Expected input format from SearchFilesTool:
  * {
@@ -175,20 +175,43 @@ export function formatFileSearchResults(results: any): {
  * }
  */
 export function formatSearchFilesResults(results: any): {
-  results: FormattedCodebaseSearchResult[];
+  results: Array<{
+    file: string;
+    matches: Array<{
+      line: number;
+      content: string;
+      matchIndex?: number;
+    }>;
+  }>;
   totalResults: number;
 } {
   const matches = results.matches || [];
   
-  const formattedResults = matches.map((match: any) => ({
-    file: match.filePath || 'unknown',
-    content: match.line || '',
-    line: match.lineNumber || 0,
-    score: 1.0 // Default score since SearchFiles doesn't provide one
+  // Group matches by file
+  const matchesByFile: Record<string, Array<{lineNumber: number; line: string; matchIndex?: number}>> = {};
+  for (const match of matches) {
+    if (!matchesByFile[match.filePath]) {
+      matchesByFile[match.filePath] = [];
+    }
+    matchesByFile[match.filePath].push({
+      lineNumber: match.lineNumber || 0,
+      line: match.line || '',
+      matchIndex: match.matchIndex
+    });
+  }
+  
+  // Format grouped results
+  const formattedResults = Object.entries(matchesByFile).map(([filePath, fileMatches]) => ({
+    file: filePath,
+    matches: fileMatches.map(match => ({
+      line: match.lineNumber,
+      content: match.line,
+      matchIndex: match.matchIndex
+    }))
   }));
   
   return {
     results: formattedResults,
-    totalResults: formattedResults.length
+    totalResults: matches.length
   };
 }

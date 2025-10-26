@@ -658,24 +658,26 @@ export class ToolHandler {
             result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
               event.params,
               abortController.signal);
-            // Send codebase search notification for file search results
-            if (result && event.params?.query) {
+            // Send file search notification for file search results
+            if (result && event.params?.path && event.params?.regex) {
               const { results, totalResults } = formatSearchFilesResults(result);
               
               this.notificationService.sendFileSearchSuccess({
                 agent,
                 requestId: event.requestId,
-                query: event.params.query,
+                path: event.params.path,
+                regex: event.params.regex,
                 results: results,
-                totalResults: totalResults
+                totalMatches: totalResults
               });
             }
           } catch (error) {
             logger.error(`Error in search_files: ${error}`);
-            this.notificationService.sendCodebaseSearchError({
+            this.notificationService.sendFileSearchError({
               agent,
               requestId: event.requestId,
-              query: event.params?.query || '',
+              path: event.params?.path || '',
+              regex: event.params?.regex || '',
               error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
             throw error; // Re-throw to be handled by outer catch
