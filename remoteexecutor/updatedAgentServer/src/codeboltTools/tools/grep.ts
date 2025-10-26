@@ -7,12 +7,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolInvocation, ToolResult } from '../types';
+import { executeGrepSearch, type GrepSearchParams, type GrepSearchResult as UtilGrepSearchResult, type GrepMatch } from '../../utils/search/GrepSearch';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
 import { makeRelative, shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
-import { executeGrepSearch, type GrepSearchParams, type GrepSearchResult, type GrepMatch } from '../../utils/search/GrepSearch';
 
 /**
  * Parameters for the GrepTool
@@ -34,9 +34,41 @@ export interface GrepToolParams {
   include?: string;
 }
 
+/**
+ * Extended ToolResult for grep search that includes matches data
+ */
+export interface ExtendedGrepSearchResult extends ToolResult {
+  /**
+   * Array of search result objects
+   */
+  results?: Array<{
+    path: string;
+    file?: string;
+    line?: number;
+    content?: string;
+    lineNumber?: number;
+    lineText?: string;
+  }>;
+
+  /**
+   * Total number of matches found
+   */
+  totalMatches?: number;
+
+  /**
+   * Number of files with matches
+   */
+  filesWithMatches?: number;
+
+  /**
+   * Whether the results were truncated
+   */
+  isTruncated?: boolean;
+}
+
 class GrepToolInvocation extends BaseToolInvocation<
   GrepToolParams,
-  ToolResult
+  ExtendedGrepSearchResult
 > {
   constructor(
     private readonly config: StandaloneToolConfig,
@@ -81,7 +113,7 @@ class GrepToolInvocation extends BaseToolInvocation<
     return description;
   }
 
-  async execute(signal: AbortSignal): Promise<ToolResult> {
+  async execute(signal: AbortSignal): Promise<ExtendedGrepSearchResult> {
     try {
       // Convert tool params to utility params
       const utilParams: GrepSearchParams = {
@@ -91,7 +123,7 @@ class GrepToolInvocation extends BaseToolInvocation<
       };
 
       // Use the utility function
-      const result: GrepSearchResult = await executeGrepSearch(
+      const result: UtilGrepSearchResult = await executeGrepSearch(
         utilParams,
         this.config.targetDir,
         this.config.workspaceContext,
@@ -107,6 +139,10 @@ class GrepToolInvocation extends BaseToolInvocation<
             message: result.error.message,
             type: result.error.type as ToolErrorType,
           },
+          results: [],
+          totalMatches: 0,
+          filesWithMatches: 0,
+          isTruncated: false
         };
       }
 
@@ -128,9 +164,29 @@ class GrepToolInvocation extends BaseToolInvocation<
         searchLocationDescription = `in path "${searchDirDisplay}"`;
       }
 
+      // Format results for UI
+      const formattedResults = allMatches.map(match => ({
+        path: match.filePath,
+        file: match.filePath,
+        line: match.lineNumber,
+        lineNumber: match.lineNumber,
+        content: match.line,
+        lineText: match.line
+      }));
+
+      // Group by file to count unique files
+      const uniqueFiles = new Set(allMatches.map(m => m.filePath));
+
       if (allMatches.length === 0) {
         const noMatchMsg = `No matches found for pattern "${this.params.pattern}" ${searchLocationDescription}${this.params.include ? ` (filter: "${this.params.include}")` : ''}.`;
-        return { llmContent: noMatchMsg, returnDisplay: `No matches found` };
+        return {
+          llmContent: noMatchMsg,
+          returnDisplay: `No matches found`,
+          results: [],
+          totalMatches: 0,
+          filesWithMatches: 0,
+          isTruncated: false
+        };
       }
 
       // Group matches by file
@@ -166,6 +222,10 @@ class GrepToolInvocation extends BaseToolInvocation<
       return {
         llmContent: llmContent.trim(),
         returnDisplay: `Found ${matchCount} ${matchTerm}`,
+        results: formattedResults,
+        totalMatches: matchCount,
+        filesWithMatches: uniqueFiles.size,
+        isTruncated: false
       };
     } catch (error) {
       console.error(`Error during GrepLogic execution: ${error}`);
@@ -177,6 +237,10 @@ class GrepToolInvocation extends BaseToolInvocation<
           message: errorMessage,
           type: ToolErrorType.GREP_EXECUTION_ERROR,
         },
+        results: [],
+        totalMatches: 0,
+        filesWithMatches: 0,
+        isTruncated: false
       };
     }
   }
@@ -185,7 +249,7 @@ class GrepToolInvocation extends BaseToolInvocation<
 /**
  * Implementation of the Grep tool logic (moved from CLI)
  */
-export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
+export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ExtendedGrepSearchResult> {
   static readonly Name = 'search_file_content'; // Keep static name
 
   constructor(private readonly config: StandaloneToolConfig) {
@@ -246,7 +310,7 @@ export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
 
   protected createInvocation(
     params: GrepToolParams,
-  ): ToolInvocation<GrepToolParams, ToolResult> {
+  ): ToolInvocation<GrepToolParams, ExtendedGrepSearchResult> {
     return new GrepToolInvocation(this.config, params);
   }
 }

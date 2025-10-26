@@ -31,7 +31,32 @@ export interface LSToolParams {
   respect_git_ignore?: boolean;
 }
 
-class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
+/**
+ * Extended ToolResult for list directory that includes entries data
+ */
+export interface ListDirectoryResult extends ToolResult {
+  /**
+   * Array of file entries in the directory
+   */
+  entries?: FileEntry[];
+
+  /**
+   * Total number of entries (may be larger than entries.length if truncated)
+   */
+  totalCount?: number;
+
+  /**
+   * Number of entries shown
+   */
+  shownCount?: number;
+
+  /**
+   * Whether the results were truncated
+   */
+  isTruncated?: boolean;
+}
+
+class LSToolInvocation extends BaseToolInvocation<LSToolParams, ListDirectoryResult> {
   constructor(
     private readonly config: ConfigManager,
     params: LSToolParams,
@@ -51,7 +76,7 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
     llmContent: string,
     returnDisplay: string,
     type: ToolErrorType,
-  ): ToolResult {
+  ): ListDirectoryResult {
     return {
       llmContent,
       returnDisplay: `Error: ${returnDisplay}`,
@@ -59,10 +84,14 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         message: llmContent,
         type,
       },
+      entries: [],
+      totalCount: 0,
+      shownCount: 0,
+      isTruncated: false,
     };
   }
 
-  async execute(_signal: AbortSignal): Promise<ToolResult> {
+  async execute(_signal: AbortSignal): Promise<ListDirectoryResult> {
     try {
       // Convert tool params to utility params
       const utilParams: LSParams = {
@@ -94,6 +123,10 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         return {
           llmContent: `Directory ${this.params.path} is empty.`,
           returnDisplay: `Directory is empty.`,
+          entries: [],
+          totalCount: 0,
+          shownCount: 0,
+          isTruncated: false,
         };
       }
 
@@ -108,6 +141,10 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
       return {
         llmContent: resultMessage,
         returnDisplay: displayMessage,
+        entries: entries,
+        totalCount: entries.length,
+        shownCount: entries.length,
+        isTruncated: false,
       };
     } catch (error) {
       const errorMsg = `Error listing directory: ${error instanceof Error ? error.message : String(error)}`;
@@ -123,7 +160,7 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
 /**
  * Implementation of the LS tool logic
  */
-export class LSTool extends BaseDeclarativeTool<LSToolParams, ToolResult> {
+export class LSTool extends BaseDeclarativeTool<LSToolParams, ListDirectoryResult> {
   static readonly Name = 'list_directory';
 
   constructor(private config: ConfigManager) {
@@ -177,7 +214,7 @@ export class LSTool extends BaseDeclarativeTool<LSToolParams, ToolResult> {
 
   protected createInvocation(
     params: LSToolParams,
-  ): ToolInvocation<LSToolParams, ToolResult> {
+  ): ToolInvocation<LSToolParams, ListDirectoryResult> {
     return new LSToolInvocation(this.config, params);
   }
 }

@@ -14,7 +14,7 @@ import { glob, escape } from 'glob';
 type PartListUnion = string;
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
-import { executeReadManyFiles, type ReadManyFilesParams as UtilReadManyFilesParams, type ReadManyFilesResult } from '../../utils/fileSystem/ReadManyFiles';
+import { executeReadManyFiles, type ReadManyFilesParams as UtilReadManyFilesParams, type ReadManyFilesResult as UtilReadManyFilesResult } from '../../utils/fileSystem/ReadManyFiles';
 
 /**
  * Parameters for the ReadManyFilesTool.
@@ -63,13 +63,45 @@ export interface ReadManyFilesParams {
   };
 }
 
+/**
+ * Extended ToolResult for read many files that includes detailed file information
+ */
+export interface ReadManyFilesResult extends ToolResult {
+  /**
+   * Array of successfully processed files with their content
+   */
+  processedFiles?: Array<{
+    filePath: string;
+    relativePathForDisplay: string;
+    content: string;
+  }>;
+  
+  /**
+   * Array of skipped files with reasons
+   */
+  skippedFiles?: Array<{
+    path: string;
+    reason: string;
+  }>;
+  
+  /**
+   * Total number of files processed
+   */
+  totalProcessed?: number;
+  
+  /**
+   * Total number of files skipped
+   */
+  totalSkipped?: number;
+}
+
 const DEFAULT_OUTPUT_SEPARATOR_FORMAT = '--- {filePath} ---';
 const DEFAULT_OUTPUT_TERMINATOR = '\n--- End of content ---';
 const DEFAULT_ENCODING = 'utf-8';
 
 class ReadManyFilesToolInvocation extends BaseToolInvocation<
   ReadManyFilesParams,
-  ToolResult
+  ReadManyFilesResult
 > {
   constructor(
     params: ReadManyFilesParams,
@@ -106,7 +138,7 @@ ${finalExclusionPatternsForDescription
     )}".`;
   }
 
-  async execute(signal: AbortSignal): Promise<ToolResult> {
+  async execute(signal: AbortSignal): Promise<ReadManyFilesResult> {
     try {
       // Convert tool params to utility params
       const utilParams: UtilReadManyFilesParams = {
@@ -119,7 +151,7 @@ ${finalExclusionPatternsForDescription
       };
 
       // Use the utility function
-      const result: ReadManyFilesResult = await executeReadManyFiles(
+      const result: UtilReadManyFilesResult = await executeReadManyFiles(
         utilParams,
         signal,
         this.params.paths // Pass inputPatterns for explicit file checking
@@ -139,6 +171,10 @@ ${result.error.message}
             message: result.error.message,
             type: result.error.type as ToolErrorType,
           },
+          processedFiles: [],
+          skippedFiles: [],
+          totalProcessed: 0,
+          totalSkipped: 0,
         };
       }
 
@@ -198,36 +234,34 @@ ${fileContentForLlm}
           displayMessage += `- ...and ${skippedFiles.length - 5} more.\n`;
         }
       } else if (
-        processedFilesRelativePaths.length === 0 &&
-        skippedFiles.length === 0
+        processedFilesRelativePaths.length === 0
       ) {
         displayMessage += `No files were read and concatenated based on the criteria.\n`;
       }
 
-      if (contentString.length > 0) {
-        contentString += DEFAULT_OUTPUT_TERMINATOR;
-      } else {
-        contentString = 'No files matching the criteria were found or all were skipped.';
-      }
+      contentString += DEFAULT_OUTPUT_TERMINATOR;
 
       return {
         llmContent: contentString,
-        returnDisplay: displayMessage.trim(),
+        returnDisplay: displayMessage,
+        processedFiles: processedFiles,
+        skippedFiles: skippedFiles,
+        totalProcessed: processedFiles.length,
+        totalSkipped: skippedFiles.length,
       };
     } catch (error) {
-      const errorMessage = `Error during file search: ${getErrorMessage(error)}`;
+      const errorMessage = getErrorMessage(error);
       return {
-        llmContent: errorMessage,
-        returnDisplay: `## File Search Error
-
-An error occurred while searching for files:
-\`\`\`
-${getErrorMessage(error)}
-\`\`\``,
+        llmContent: `Error reading files: ${errorMessage}`,
+        returnDisplay: `Error reading files: ${errorMessage}`,
         error: {
           message: errorMessage,
-          type: ToolErrorType.READ_MANY_FILES_SEARCH_ERROR,
+          type: 'unknown' as ToolErrorType,
         },
+        processedFiles: [],
+        skippedFiles: [],
+        totalProcessed: 0,
+        totalSkipped: 0,
       };
     }
   }
@@ -267,7 +301,7 @@ function getDefaultExcludes(): string[] {
  */
 export class ReadManyFilesTool extends BaseDeclarativeTool<
   ReadManyFilesParams,
-  ToolResult
+  ReadManyFilesResult
 > {
   static readonly Name: string = 'read_many_files';
 
@@ -358,7 +392,7 @@ Use this tool when the user's query implies needing the content of several files
 
   protected createInvocation(
     params: ReadManyFilesParams,
-  ): ToolInvocation<ReadManyFilesParams, ToolResult> {
+  ): ToolInvocation<ReadManyFilesParams, ReadManyFilesResult> {
     return new ReadManyFilesToolInvocation(params);
   }
 }

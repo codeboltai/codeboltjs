@@ -9,7 +9,8 @@ import {
   formatGlobResults,
   formatListFilesResults,
   formatFileSearchResults,
-  formatSearchFilesResults
+  formatSearchFilesResults,
+  formatListDirectoryResults
 } from "../utils/searchNotificationUtils";
 
 import type {
@@ -529,13 +530,28 @@ export class ToolHandler {
             event.params,
             abortController.signal);
           // Send multiple file read notifications
-          if (result && Array.isArray(result)) {
-            result.forEach((fileResult: any, index: number) => {
-              if (fileResult.path) {
+          if (result) {
+            // Cast to access the extended properties
+            const readManyResult = result as ToolResult & {
+              processedFiles?: Array<{
+                filePath: string;
+                relativePathForDisplay: string;
+                content: string;
+              }>;
+              skippedFiles?: Array<{
+                path: string;
+                reason: string;
+              }>;
+              totalProcessed?: number;
+              totalSkipped?: number;
+            };
+            const processedFiles = readManyResult.processedFiles || [];
+            processedFiles.forEach((fileResult: { filePath: string; content: string }, index: number) => {
+              if (fileResult.filePath) {
                 this.notificationService.sendFileReadSuccess({
                   agent,
                   requestId: `${event.requestId}_${index}`,
-                  filePath: fileResult.path,
+                  filePath: fileResult.filePath,
                   content: fileResult.content || ''
                 });
               }
@@ -583,14 +599,26 @@ export class ToolHandler {
               abortController.signal);
             // Send list directory for search notification for glob results
             if (result && event.params?.pattern) {
-              const { entries, totalEntries } = formatGlobResults(result);
+              // Cast to access the extended properties
+              const globResult = result as ToolResult & {
+                results?: Array<{ path: string }>;
+                totalFiles?: number;
+                isTruncated?: boolean;
+              };
+              const entries: Array<{ name: string; type: "file"; path: string; size?: number; modified?: string }> = (globResult.results || []).map((item: { path: string }) => ({
+                name: item.path?.split('/').pop() || 'unknown',
+                type: 'file', // Glob only returns files
+                path: item.path || 'unknown',
+                size: undefined, // Glob doesn't provide size info
+                modified: undefined // Glob doesn't provide modification time
+              }));
               
               this.notificationService.sendListDirectoryForSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 dirPath: event.params.path || '',
                 entries: entries,
-                totalEntries: totalEntries
+                totalEntries: globResult.totalFiles || entries.length
               });
             }
           } catch (error) {

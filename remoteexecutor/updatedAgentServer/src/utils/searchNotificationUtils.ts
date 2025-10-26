@@ -88,6 +88,41 @@ export function formatListFilesResults(results: any): {
 }
 
 /**
+ * Format raw list directory results to list directory entries
+ * 
+ * Expected input format from ListDirectoryTool:
+ * {
+ *   entries?: Array<{
+ *     name: string;
+ *     path: string;
+ *     relativePath?: string;
+ *     isDirectory: boolean;
+ *     size: number;
+ *     modifiedTime: Date;
+ *   }>;
+ * }
+ */
+export function formatListDirectoryResults(results: any): { 
+  entries: FormattedListDirectoryEntry[]; 
+  totalEntries: number 
+} {
+  const rawEntries = results.entries || [];
+  
+  const entries = rawEntries.map((entry: any) => ({
+    name: entry.name || 'unknown',
+    type: entry.isDirectory ? 'directory' : 'file',
+    path: entry.path || 'unknown',
+    size: entry.size,
+    modified: entry.modifiedTime ? entry.modifiedTime.toISOString() : undefined
+  }));
+  
+  return {
+    entries,
+    totalEntries: rawEntries.length
+  };
+}
+
+/**
  * Format raw file search results to grep search results
  * 
  * Expected input format from GrepTool:
