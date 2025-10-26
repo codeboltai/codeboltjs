@@ -346,11 +346,32 @@ export class NotificationService {
       appManager.broadcast(notification);
       tuiManager.broadcast(notification);
     } else if (targetClient.type === "app") {
+      const  UserMessageRequestNotification:any = {
+        action: "sendMessageRequest",
+        data: {
+          message: JSON.stringify(notification),
+          payload: {
+            text: JSON.stringify(notification)
+          }
+        },
+        type: "chatnotify",
+        requestId: notification.requestId,
+        toolUseId: notification.messageId,
+        threadId: notification.threadId,
+        agentId: notification.agentId,
+        agentInstanceId: notification.agentInstanceId,
+        parentAgentInstanceId: notification.parentAgentInstanceId,
+        parentId: notification.parentId
+      };
+      appManager.sendToApp(targetClient.id,UserMessageRequestNotification)
+
       appManager.sendToApp(targetClient.id, notification);
+
     } else {
       tuiManager.sendToTui(targetClient.id, notification);
     }
     logger.info("sending notification to ui",notification)
+   
     this.sendMessageToRemote.forwardAgentMessage(agent, notification);
   }
 

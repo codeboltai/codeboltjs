@@ -662,7 +662,7 @@ export class ToolHandler {
             if (result && event.params?.query) {
               const { results, totalResults } = formatSearchFilesResults(result);
               
-              this.notificationService.sendCodebaseSearchSuccess({
+              this.notificationService.sendFileSearchSuccess({
                 agent,
                 requestId: event.requestId,
                 query: event.params.query,
