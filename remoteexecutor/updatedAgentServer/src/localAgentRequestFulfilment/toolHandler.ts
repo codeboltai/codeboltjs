@@ -724,7 +724,7 @@ export class ToolHandler {
             agent,
             messageId: event.requestId,
             agentId: agent.id,
-            threadId: event.requestId,
+            threadId: agent.threadId,
             agentInstanceId: agent.instanceId,
             parentAgentInstanceId: '',
             message: `Git action executed: ${event.params?.action || 'Unknown action'}`,
@@ -738,18 +738,19 @@ export class ToolHandler {
           result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
             event.params,
             abortController.signal);
-          // Send AI request success notification for todo operations
-          this.notificationService.sendAiRequestSuccessNotification({
-            agent,
-            messageId: event.requestId,
-            agentId: agent.id,
-            threadId: event.requestId,
-            agentInstanceId: agent.instanceId,
-            parentAgentInstanceId: '',
-            message: `Todo list updated: ${event.params?.todos?.length || 0} items`,
-            parentId: '',
-            requestId: event.requestId
-          });
+         
+          // Also send a success response
+          this.notificationService.sendWriteTodosResponse({
+              agent,
+              requestId: event.requestId,
+              content: event.params.todos.map((todo: any) => ({
+                id: todo.id || '',
+                title: todo.content || todo.title || '',
+                status: todo.status || 'pending',
+                priority: 'medium',
+                tags: []
+              }))
+            });
           break;
 
         case 'explain_next_action':

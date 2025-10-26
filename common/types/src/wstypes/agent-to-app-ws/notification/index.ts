@@ -17,6 +17,7 @@ export * from './searchNotificationSchemas';
 export * from './systemNotificationSchemas';
 export * from './terminalNotificationSchemas';
 export * from './todoNotificationSchemas';
+export * from './writeTodosNotificationSchemas';
 
 // Import individual schemas for union
 import { agentNotificationSchema } from './agentNotificationSchemas';
@@ -34,6 +35,7 @@ import { searchNotificationSchema } from './searchNotificationSchemas';
 import { systemNotificationSchema } from './systemNotificationSchemas';
 import { terminalNotificationSchema } from './terminalNotificationSchemas';
 import { todoNotificationSchema } from './todoNotificationSchemas';
+import { writeTodosNotificationSchema } from './writeTodosNotificationSchemas';
 
 /**
  * Union schema for all possible notification types
@@ -55,6 +57,7 @@ export const allNotificationSchema = z.union([
   systemNotificationSchema,
   terminalNotificationSchema,
   todoNotificationSchema,
+  writeTodosNotificationSchema,
 ]);
 
 /**

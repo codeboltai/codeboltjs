@@ -8,9 +8,10 @@ import type {
   ChatNotification,
   AgentTextResponseNotification,
   UserMessageRequestNotification
+
 } from '@codebolt/types/agent-to-app-ws-types';
 import { logger } from '../utils/logger';
-import type  {FileReadResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification';
+import type  {FileReadResponseNotification, WriteTodosResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification';
 import type {
   ListDirectoryForSearchResult,
   GrepSearchResult,
@@ -166,6 +167,27 @@ export interface FileSearchToolResult {
       content: string;
     }>;
   }>;
+}
+
+// Add new interfaces for todo write notification parameters
+export interface WriteTodosSuccessParams {
+  agent: any;
+  requestId: string;
+  todos: Array<{
+    id: string;
+    title: string;
+    status: string;
+    priority?: string;
+    tags?: string[];
+  }>;
+  message?: string;
+}
+
+export interface WriteTodosErrorParams {
+  agent: any;
+  requestId: string;
+  error: string;
+  message?: string;
 }
 
 // Legacy interface for backward compatibility
@@ -760,4 +782,36 @@ export class NotificationService {
   /**
    * Send list directory for search success notification from raw glob results
    */
+  sendWriteTodosSuccess(params: WriteTodosSuccessParams): void {
+    const { agent, requestId, todos, message } = params;
+    
+    const notification:WriteTodosResponseNotification = {
+      requestId,
+      toolUseId: requestId,
+      type: 'writetodosnotify',
+      action: 'writeTodosResult',
+      content: todos || 'Todos updated successfully',
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
+
+  /**
+   * Send write todos error notification
+   */
+  sendWriteTodosError(params: WriteTodosErrorParams): void {
+    const { agent, requestId, error, message } = params;
+    
+    const notification = {
+      requestId,
+      toolUseId: requestId,
+      type: 'writetodosnotify',
+      action: 'writeTodosResult',
+      content: message || 'Failed to update todos',
+      isError: true,
+      error: error
+    };
+
+    this.sendTypedNotification(agent.id, notification);
+  }
 }

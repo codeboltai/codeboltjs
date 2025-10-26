@@ -418,6 +418,7 @@ export {
   type TerminalNotification
 } from './wstypes/agent-to-app-ws/notification/terminalNotificationSchemas';
 
+export * from './wstypes/agent-to-app-ws/notification/writeTodosNotificationSchemas'
 // todoNotificationSchemas
 export {
   type TodoNotificationBase,
