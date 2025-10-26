@@ -83,7 +83,9 @@ import type {
   SearchMcpToolRequest,
   GetFirstLinkRequest,
   FolderSearchRequest,
-  ListDirectoryForSearchRequest
+  ListDirectoryForSearchRequest,
+  GrepSearchResult,
+  GlobSearchResult
 } from '@codebolt/types/wstypes/agent-to-app-ws/notification/searchNotificationSchemas'
 import type {
   LlmRequestNotification,
@@ -1041,6 +1043,153 @@ export class NotificationService {
         dirPath: dirPath,
         entries: [],
         totalEntries: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send grep search success notification
+   */
+  sendGrepSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    pattern: string;
+    path?: string;
+    results: Array<{
+      file: string;
+      line: number;
+      content: string;
+    }>;
+    totalMatches?: number;
+    filesWithMatches?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, pattern, path, results, totalMatches, filesWithMatches, targetClient } = params;
+
+    const notification: GrepSearchResult = {
+      action: "grepSearchResult",
+      content: results,
+      data: {
+        pattern: pattern,
+        path: path,
+        results: results,
+        totalMatches: totalMatches,
+        filesWithMatches: filesWithMatches
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send grep search error notification
+   */
+  sendGrepSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    pattern: string;
+    path?: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, pattern, path, error, targetClient } = params;
+
+    const notification: GrepSearchResult = {
+      action: "grepSearchResult",
+      content: error,
+      data: {
+        pattern: pattern,
+        path: path,
+        results: [],
+        totalMatches: 0,
+        filesWithMatches: 0
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: true
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send glob search success notification
+   */
+  sendGlobSearchSuccess(params: {
+    agent: ClientConnection;
+    requestId: string;
+    pattern: string;
+    path?: string;
+    results: Array<{
+      path: string;
+    }>;
+    totalFiles?: number;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, pattern, path, results, totalFiles, targetClient } = params;
+
+    const notification: GlobSearchResult = {
+      action: "globSearchResult",
+      content: results,
+      data: {
+        pattern: pattern,
+        path: path,
+        results: results,
+        totalFiles: totalFiles
+      },
+      type: "searchnotify",
+      requestId: requestId,
+      toolUseId: requestId,
+      threadId: agent.threadId,
+      agentId: agent.id,
+      agentInstanceId: agent.instanceId,
+      isError: false
+    };
+
+    this.notifyClients(agent, notification, targetClient);
+  }
+
+  /**
+   * Send glob search error notification
+   */
+  sendGlobSearchError(params: {
+    agent: ClientConnection;
+    requestId: string;
+    pattern: string;
+    path?: string;
+    error: string;
+    targetClient?: TargetClient;
+  }): void {
+    const { agent, requestId, pattern, path, error, targetClient } = params;
+
+    const notification: GlobSearchResult = {
+      action: "globSearchResult",
+      content: error,
+      data: {
+        pattern: pattern,
+        path: path,
+        results: [],
+        totalFiles: 0
       },
       type: "searchnotify",
       requestId: requestId,

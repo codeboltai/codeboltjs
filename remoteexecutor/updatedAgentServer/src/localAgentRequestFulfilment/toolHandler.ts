@@ -565,26 +565,27 @@ export class ToolHandler {
             result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
               event.params,
               abortController.signal);
-            // Send file search notification
+            // Send grep search notification
             if (result && event.params?.pattern) {
               const { formattedResults, totalMatches, filesWithMatches } = formatFileSearchResults(result as any);
               
-              this.notificationService.sendFileSearchSuccess({
+              this.notificationService.sendGrepSearchSuccess({
                 agent,
                 requestId: event.requestId,
-                path: event.params.path || '',
-                regex: event.params.pattern,
-                results: (result as any)?.results || [],
-                totalMatches: totalMatches
+                pattern: event.params.pattern,
+                path: event.params.path,
+                results: formattedResults,
+                totalMatches: totalMatches,
+                filesWithMatches: filesWithMatches
               });
             }
           } catch (error) {
             logger.error(`Error in search_file_content: ${error}`);
-            this.notificationService.sendFileSearchError({
+            this.notificationService.sendGrepSearchError({
               agent,
               requestId: event.requestId,
-              path: event.params?.path || '',
-              regex: event.params?.pattern || '',
+              pattern: event.params?.pattern || '',
+              path: event.params?.path,
               error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
             throw error; // Re-throw to be handled by outer catch
@@ -597,7 +598,7 @@ export class ToolHandler {
             result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
               event.params,
               abortController.signal);
-            // Send list directory for search notification for glob results
+            // Send glob search notification
             if (result && event.params?.pattern) {
               // Cast to access the extended properties
               const globResult = result as ToolResult & {
@@ -605,28 +606,26 @@ export class ToolHandler {
                 totalFiles?: number;
                 isTruncated?: boolean;
               };
-              const entries: Array<{ name: string; type: "file"; path: string; size?: number; modified?: string }> = (globResult.results || []).map((item: { path: string }) => ({
-                name: item.path?.split('/').pop() || 'unknown',
-                type: 'file', // Glob only returns files
-                path: item.path || 'unknown',
-                size: undefined, // Glob doesn't provide size info
-                modified: undefined // Glob doesn't provide modification time
+              const results = (globResult.results || []).map((item: { path: string }) => ({
+                path: item.path || 'unknown'
               }));
               
-              this.notificationService.sendListDirectoryForSearchSuccess({
+              this.notificationService.sendGlobSearchSuccess({
                 agent,
                 requestId: event.requestId,
-                dirPath: event.params.path || '',
-                entries: entries,
-                totalEntries: globResult.totalFiles || entries.length
+                pattern: event.params.pattern,
+                path: event.params.path,
+                results: results,
+                totalFiles: globResult.totalFiles || results.length
               });
             }
           } catch (error) {
             logger.error(`Error in glob: ${error}`);
-            this.notificationService.sendListDirectoryForSearchError({
+            this.notificationService.sendGlobSearchError({
               agent,
               requestId: event.requestId,
-              dirPath: event.params?.path || '',
+              pattern: event.params?.pattern || '',
+              path: event.params?.path,
               error: error instanceof Error ? error.message : 'Unknown error occurred'
             });
             throw error; // Re-throw to be handled by outer catch
