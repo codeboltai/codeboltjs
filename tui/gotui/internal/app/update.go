@@ -171,6 +171,37 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.logsPage.LogsPanel().AddLine("🔄 Manual retry triggered")
 			}
 			return m, m.tryConnect()
+		case key.Matches(msg, m.keyMap.ToggleMode):
+			if m.activeTab == tabChat {
+				if chat := m.chatComponent(); chat != nil {
+					windowMode := chat.ToggleLayoutMode()
+					if m.logsPage != nil {
+						if windowMode {
+							m.logsPage.LogsPanel().AddLine("🪟 Switched to window mode")
+						} else {
+							m.logsPage.LogsPanel().AddLine("🪟 Returned to panel mode")
+						}
+					}
+				}
+			}
+			return m, nil
+		case key.Matches(msg, m.keyMap.ToggleAutoTile):
+			if m.activeTab == tabChat {
+				if chat := m.chatComponent(); chat != nil && chat.WindowModeActive() {
+					enabled, autoCmd := chat.ToggleAutoTile()
+					if autoCmd != nil {
+						cmds = append(cmds, autoCmd)
+					}
+					if m.logsPage != nil {
+						if enabled {
+							m.logsPage.LogsPanel().AddLine("🧩 Auto-tiling enabled")
+						} else {
+							m.logsPage.LogsPanel().AddLine("🧩 Auto-tiling disabled")
+						}
+					}
+				}
+			}
+			return m, nil
 		case key.Matches(msg, m.keyMap.NextTab):
 			if cmd := m.switchTab(m.nextTabID()); cmd != nil {
 				return m, cmd

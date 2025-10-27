@@ -3,6 +3,7 @@ package chat
 import (
 	"strings"
 
+	"gotui/internal/components/chat/windows"
 	"gotui/internal/components/chatcomponents"
 	"gotui/internal/components/chattemplates"
 	"gotui/internal/components/dialogs"
@@ -12,6 +13,7 @@ import (
 	"gotui/internal/styles"
 
 	"github.com/charmbracelet/bubbles/v2/viewport"
+	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	zone "github.com/lrstanley/bubblezone"
 )
@@ -26,22 +28,22 @@ const (
 
 // Chat represents the main chat interface.
 type Chat struct {
-	input             *chatcomponents.ChatInput
-	viewport          *chatcomponents.ChatViewport
-	templateManager   *chattemplates.TemplateManager
-	slashMenu         *chatcomponents.SlashMenu
-	modelPicker       *chatcomponents.ModelPicker
-	agentPicker       *chatcomponents.AgentPicker
-	themePicker       *dialogs.ThemePicker
-	settingsDialog    *chatcomponents.ApplicationSettingsDialog
-	commandPalette    *chatcomponents.CommandPalette
-	selectedModel     *chatcomponents.ModelOption
-	modelOptions      []chatcomponents.ModelOption
-	selectedAgent     *stores.AgentSelection
-	conversationPanel *panels.ConversationListPanel
-	width             int
-	height            int
-	focused           bool
+	input           *chatcomponents.ChatInput
+	viewport        *chatcomponents.ChatViewport
+	templateManager *chattemplates.TemplateManager
+	slashMenu       *chatcomponents.SlashMenu
+	modelPicker     *chatcomponents.ModelPicker
+	agentPicker     *chatcomponents.AgentPicker
+	themePicker     *dialogs.ThemePicker
+	settingsDialog  *chatcomponents.ApplicationSettingsDialog
+	commandPalette  *chatcomponents.CommandPalette
+	selectedModel   *chatcomponents.ModelOption
+	modelOptions    []chatcomponents.ModelOption
+	selectedAgent   *stores.AgentSelection
+	conversationBar *ConversationBar
+	width           int
+	height          int
+	focused         bool
 
 	conversations        []*Conversation
 	activeConversationID string
@@ -56,6 +58,7 @@ type Chat struct {
 	textHeight        int
 	rightSidebarWidth int
 	contentWidth      int
+	contextWidth      int
 
 	rightPanels       []*panels.InfoPanel
 	helpBar           *widgets.HelpBar
@@ -76,6 +79,11 @@ type Chat struct {
 	zonePrefix           string
 	chatZoneID           string
 	contextZoneID        string
+
+	windowManager      *windows.Manager
+	pendingCmds        []tea.Cmd
+	subAgentSelections map[string]int
+	subAgentMessages   map[string]map[int][]chattemplates.MessageTemplateData
 }
 
 func defaultSlashCommands() []chatcomponents.SlashCommand {
@@ -106,7 +114,7 @@ func New() *Chat {
 		themePicker:           dialogs.NewThemePicker(styles.PresetThemes()),
 		settingsDialog:        chatcomponents.NewApplicationSettingsDialog(),
 		commandPalette:        chatcomponents.NewCommandPalette(defaultSlashCommands()),
-		conversationPanel:     panels.NewConversationListPanel(),
+		conversationBar:       NewConversationBar(),
 		focused:               true,
 		rightSidebarWidth:     0,
 		textHeight:            3,
@@ -118,12 +126,18 @@ func New() *Chat {
 		zonePrefix:            zonePrefix,
 		chatZoneID:            zonePrefix + "chat_area",
 		contextZoneID:         zonePrefix + "context_drawer",
+		windowManager:         windows.NewManager(templateManager),
+		subAgentSelections:    make(map[string]int),
+		subAgentMessages:      make(map[string]map[int][]chattemplates.MessageTemplateData),
 	}
 	chat.modelStatusWidget = widgets.NewModelStatusWidget(nil, nil)
 	chat.modelStatusWidget.SetStateStore(chat.applicationState)
 	chat.commandPalette.UpdateCommands(chat.slashMenu.Commands())
 	chat.createInitialConversation()
 	chat.loadActiveConversation()
+	if chat.windowManager != nil {
+		chat.windowManager.SetContentRenderer(chat.renderConversationWindow)
+	}
 
 	return chat
 }
@@ -221,6 +235,32 @@ func (c *Chat) SetRightSidebarPanels(infos ...*panels.InfoPanel) {
 	c.contextDrawerVisible = true
 }
 
+// EnsureHorizontalConversationList enforces the horizontal chip layout for conversations.
+func (c *Chat) EnsureHorizontalConversationList() {
+	if c == nil {
+		return
+	}
+	if c.conversationBar != nil {
+		c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
+	}
+}
+
+func (c *Chat) enqueueCmd(cmd tea.Cmd) {
+	if cmd == nil {
+		return
+	}
+	c.pendingCmds = append(c.pendingCmds, cmd)
+}
+
+func (c *Chat) drainPendingCmds() []tea.Cmd {
+	if len(c.pendingCmds) == 0 {
+		return nil
+	}
+	cmds := c.pendingCmds
+	c.pendingCmds = nil
+	return cmds
+}
+
 // AddMessage adds a message to the chat.
 func (c *Chat) AddMessage(msgType, content string) {
 	c.appendMessageToActiveConversation(msgType, content, nil, nil)
@@ -294,20 +334,23 @@ func (c *Chat) View() string {
 			Render("Chat area too small")
 	}
 
-	theme := styles.CurrentTheme()
-
-	if c.conversationPanel != nil {
-		c.conversationPanel.SetHorizontalLayout(c.singleColumn)
-		c.conversationPanel.SetSize(c.conversationListWidth, c.conversationHeight)
-	}
-
-	chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)
-
 	var layout string
-	if c.singleColumn {
-		layout = c.renderSingleColumnLayout(theme, chatArea, chatAreaHeight)
+	if c.isWindowModeActive() {
+		layout = c.renderWindowMode()
 	} else {
-		layout = c.renderTwoColumnLayout(theme, chatArea, chatAreaHeight)
+		theme := styles.CurrentTheme()
+
+		if c.conversationBar != nil {
+			c.conversationBar.SetSize(c.conversationListWidth, c.conversationHeight)
+		}
+
+		chatArea, chatAreaHeight := c.renderChatArea(c.contentWidth)
+
+		if c.singleColumn {
+			layout = c.renderSingleColumnLayout(theme, chatArea, chatAreaHeight)
+		} else {
+			layout = c.renderTwoColumnLayout(theme, chatArea, chatAreaHeight)
+		}
 	}
 
 	if c.themePicker.IsVisible() {

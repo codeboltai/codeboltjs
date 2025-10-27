@@ -34,7 +34,7 @@ type ConversationListPanel struct {
 
 // NewConversationListPanel constructs a new conversation list panel.
 func NewConversationListPanel() *ConversationListPanel {
-	return &ConversationListPanel{zonePrefix: zone.NewPrefix()}
+	return &ConversationListPanel{zonePrefix: zone.NewPrefix(), horizontal: true}
 }
 
 // SetSize configures the panel dimensions.
@@ -56,7 +56,7 @@ func (p *ConversationListPanel) SetNewButtonState(show bool, hover bool) {
 
 // SetHorizontalLayout toggles horizontal rendering mode.
 func (p *ConversationListPanel) SetHorizontalLayout(horizontal bool) {
-	p.horizontal = horizontal
+	p.horizontal = true
 }
 
 // View renders the panel.
@@ -69,10 +69,7 @@ func (p *ConversationListPanel) View() string {
 		p.zonePrefix = zone.NewPrefix()
 	}
 
-	if p.horizontal {
-		return p.viewHorizontal()
-	}
-	return p.viewVertical()
+	return p.viewHorizontal()
 }
 
 func (p *ConversationListPanel) viewVertical() string {

@@ -238,6 +238,7 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 
 	c.conversations = store.Conversations()
 	c.activeConversationID = activeID
+	c.syncSubAgentState()
 
 	c.selectedModel = nil
 	c.selectedAgent = nil
@@ -272,6 +273,12 @@ func (c *Chat) refreshConversationsFromStore(syncPanels bool) {
 		}
 	}
 	c.syncApplicationState()
+
+	if c.windowManager != nil {
+		if cmd := c.windowManager.SyncConversations(c.conversations, c.activeConversationID); cmd != nil {
+			c.enqueueCmd(cmd)
+		}
+	}
 
 	if syncPanels {
 		c.syncConversationPanelItems()

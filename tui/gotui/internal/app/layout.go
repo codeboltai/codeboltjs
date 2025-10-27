@@ -45,6 +45,7 @@ func (m *Model) updateAllComponents() {
 
 		if chat := m.chatComponent(); chat != nil {
 			chat.SetSize(m.width, contentHeight)
+			chat.EnsureHorizontalConversationList()
 		}
 		m.logsPage.SetSize(m.width, contentHeight)
 		m.gitPage.SetSize(m.width, contentHeight)
