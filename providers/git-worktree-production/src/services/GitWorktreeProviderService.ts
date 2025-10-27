@@ -34,6 +34,8 @@ export class GitWorktreeProviderService
     isCreated: false,
   };
 
+  private baseRepoPath: string | null = null; // Store the base git repository path
+
   private readonly providerConfig: ProviderConfig;
   private readonly logger: Logger;
 
@@ -67,6 +69,7 @@ export class GitWorktreeProviderService
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
     const result = await super.onProviderStart(initVars);
+    this.logger.log('Started Environment with :',  this.worktreeInfo.path ?? result.workspacePath);
 
     return {
       ...result,
@@ -232,39 +235,56 @@ export class GitWorktreeProviderService
     return this.worktreeInfo.isCreated && this.agentServer.isConnected;
   }
 
-  protected async resolveProjectContext(): Promise<void> {
-    const { projectPath } = await codebolt.project.getProjectPath();
+  protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
+    // Get the base repository path from current working directory
+    const projectPath = process.cwd();
     if (!projectPath) {
       throw new Error('Project path is not available');
     }
 
-    this.state.projectPath = projectPath;
+    // Store the base repo path for worktree operations
+    this.baseRepoPath = projectPath;
+    
+    // Construct the worktree path
+    const worktreePath = path.join(projectPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
+    
+    // Use the worktree path as the project path (this is the actual worktree project path)
+    this.state.projectPath = worktreePath;
   }
 
   protected async resolveWorkspacePath(initVars: ProviderInitVars): Promise<string> {
+    // Since resolveProjectContext already constructed the worktree path in this.state.projectPath
+    // we can just return it directly
     if (!this.state.projectPath) {
       throw new Error('Project path is undefined in provider state');
     }
 
-    return path.join(this.state.projectPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
+    return this.state.projectPath;
   }
 
   protected async setupEnvironment(initVars: ProviderInitVars): Promise<void> {
-    if (!this.state.projectPath) {
-      throw new Error('Project path is not available');
+    if (!this.baseRepoPath) {
+      throw new Error('Base repository path is not available');
     }
 
-    const worktreeInfo = await this.createWorktree(this.state.projectPath, initVars.environmentName);
+    // Create worktree using the base repo path
+    const worktreeInfo = await this.createWorktree(this.baseRepoPath, initVars.environmentName);
     this.worktreeInfo = worktreeInfo;
-    this.state.workspacePath = worktreeInfo.path;
+    
+    // Set workspace path to the worktree path
+    if (worktreeInfo.path) {
+      this.state.workspacePath = worktreeInfo.path;
+      this.state.projectPath = worktreeInfo.path; // Use worktree path as project path
+    }
   }
 
   protected async teardownEnvironment(): Promise<void> {
-    if (!this.state.projectPath) {
+    // Use baseRepoPath to remove the worktree (needs to point to the base git repo, not the worktree)
+    if (!this.baseRepoPath) {
       return;
     }
 
-    await this.removeWorktree(this.state.projectPath);
+    await this.removeWorktree(this.baseRepoPath);
   }
 
   protected async ensureAgentServer(): Promise<void> {
@@ -290,8 +310,9 @@ export class GitWorktreeProviderService
       projectName: initVars.environmentName,
     });
 
-    if (this.worktreeInfo.path) {
-      query.set('currentProject', this.worktreeInfo.path);
+    // Use state.projectPath which contains the worktree path
+    if (this.state.projectPath) {
+      query.set('currentProject', this.state.projectPath);
     }
 
     return `${this.agentServer.serverUrl}?${query.toString()}`;

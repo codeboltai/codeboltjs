@@ -350,8 +350,9 @@ export abstract class BaseProvider
       projectName: initVars.environmentName,
     });
 
-    if (this.state.workspacePath) {
-      query.set("currentProject", this.state.workspacePath);
+    // Send projectPath instead of workspacePath
+    if (this.state.projectPath) {
+      query.set("currentProject", this.state.projectPath);
     }
 
     return `${this.agentServer.serverUrl}?${query.toString()}`;

@@ -34,14 +34,17 @@ export class ProjectRequestHandler {
   }
 
   async handleProjectEvent(agent: ClientConnection, event: ProjectEvent): Promise<void> {
+    // Use project path from connection if available, otherwise fallback to current working directory
+    const projectPath = agent.currentProject?.path || process.cwd();
+    const projectName = agent.currentProject?.name || 'Unknown Project';
+
     const projectPathResponse: GetProjectPathResponse = {
       type: 'getProjectPathResponse',
       success: true,
       message: 'Project path retrieved successfully',
-
       requestId: event.requestId,
-      projectPath: process.cwd(),
-      projectName: 'Testing Project'
+      projectPath,
+      projectName
     };
     this.connectionManager.sendToConnection(agent.id, projectPathResponse);
   }
