@@ -68,7 +68,10 @@ import type {
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
 import { NotificationService } from "@/shared";
 
-
+import {TodoService} from './../services/TodoService'
+export function getMessageId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
 
 
 
@@ -77,6 +80,7 @@ export class ToolHandler {
   private permissionManager: PermissionManager;
   private toolsFramework: StandaloneToolsFramework;
   private notificationService: NotificationService
+  private todoService: TodoService
   constructor() {
     // Initialize StandaloneToolsFramework with proper configuration
     logger.info('Initializing StandaloneToolsFramework...');
@@ -92,7 +96,7 @@ export class ToolHandler {
     this.permissionManager = PermissionManager.getInstance();
     this.permissionManager.initialize();
     this.notificationService = NotificationService.getInstance();
-
+    this.todoService = TodoService.getInstance(process.cwd());
     const toolCount = this.toolsFramework.getRegistry().size();
     logger.info(`StandaloneToolsFramework initialized with ${toolCount} tools`);
   }
@@ -738,12 +742,54 @@ export class ToolHandler {
           result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
             event.params,
             abortController.signal);
-         
+            
+            // Get existing todos by threadId
+            const existingTodos = await this.todoService.getTodosByThreadId(event.params.threadId);
+
+            // Create a map of existing todos by title for quick lookup
+            const existingTodosMap = new Map(
+                existingTodos.map((todo: any) => [todo.title.toLowerCase().trim(), todo])
+            );
+
+            // Mark todos as updated if they exist and status changed
+            const todosWithUpdateFlag = event.params.todos.map((todo: any) => {
+                const todoTitle = (todo.content || todo.title || '').toLowerCase().trim();
+                const existingTodo = existingTodosMap.get(todoTitle) as any;
+
+                // If no existing todos found, mark all as updated (new list)
+                if (existingTodos.length === 0) {
+                    return { ...todo, isUpdated: true };
+                }
+
+                // If todo exists and status changed, mark as updated
+                if (existingTodo && existingTodo.status !== todo.status) {
+                    return { ...todo, isUpdated: true };
+                }
+
+                // Otherwise, not updated
+                return { ...todo, isUpdated: false };
+            });  
+            
+            // Get the todos from the result and preserve isUpdated flag
+            let todos = [];
+            if (event.params.todos && Array.isArray(event.params.todos)) {
+                // Use the input todos if result doesn't have them
+                todos = todosWithUpdateFlag.map((todo: { id: any; content: any; title: any; status: string; isUpdated: any; }) => ({
+                    id: todo.id ,
+                    title: todo.content || todo.title,
+                    status: todo.status === 'in_progress' ? 'processing' :
+                        todo.status === 'cancelled' ? 'pending' :
+                            todo.status,
+                    priority: 'medium',
+                    tags: [],
+                    isUpdated: todo.isUpdated
+                }));
+            }
           // Also send a success response
           this.notificationService.sendWriteTodosResponse({
               agent,
               requestId: event.requestId,
-              content: event.params.todos.map((todo: any) => ({
+              content: todos.map((todo: any) => ({
                 id: todo.id || '',
                 title: todo.content || todo.title || '',
                 status: todo.status || 'pending',
