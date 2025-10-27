@@ -64,7 +64,7 @@ export class AppMessageRouter {
         messageId: (message as any).messageId || (message as any).requestId || "",
         userMessage: (message as any).userMessage || (message as any).message || "approve"
       };
-      
+
       // Route the confirmation to the appropriate handler based on the message content
       // For now, we'll try both handlers as we don't have a way to distinguish between them
       // In a real implementation, we would need to track which handler created the pending request
@@ -81,7 +81,7 @@ export class AppMessageRouter {
         message as BaseApplicationResponse
       );
     }
-    
+
     this.sendMessageToRemote.forwardAppMessage(
       app.id,
       message as BaseApplicationResponse
@@ -96,14 +96,14 @@ export class AppMessageRouter {
         `Handling initial user message: ${message.type} from ${app.id}`
       )
     );
-    
+
     message.message.selectedAgent = {
-      "agentDetails": "./../../../agents/CliTestAgent/dist",
+      "agentDetails": "./../../../agents/geminiAgentTest/dist",
       "agentType": AgentTypeEnum.localPath,
       "id": "cli-agent",
       "name": "Ask Agent"
     };
-    
+
     this.sendMessageToAgent.sendInitialMessage(message, app.id);
   }
 }

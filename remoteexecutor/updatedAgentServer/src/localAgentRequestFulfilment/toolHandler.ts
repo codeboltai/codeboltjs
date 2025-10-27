@@ -1,8 +1,17 @@
 import type { ClientConnection } from "../types";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { logger } from "../utils/logger";
-import { StandaloneToolsFramework } from "../codeboltTools/index";
+import { StandaloneToolsFramework, ToolResult } from "../codeboltTools/index";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+
+// Import the search notification utilities
+import {
+  formatGlobResults,
+  formatListFilesResults,
+  formatFileSearchResults,
+  formatSearchFilesResults,
+  formatListDirectoryResults
+} from "../utils/searchNotificationUtils";
 
 import type {
   GetEnabledToolBoxesEvent,
@@ -16,56 +25,62 @@ import type {
   McpEvent
 } from '@codebolt/types/wstypes/agent-to-app-ws/actions/mcpEventSchemas'
 
-
-
 import type {
-   CreateFileSuccessResponse ,
-   CreateFileErrorResponse,
-   CreateFolderSuccessResponse ,
-   CreateFolderErrorResponse,
-   ReadFileSuccessResponse ,
-   ReadFileSuccessResultResponse ,
-   UpdateFileSuccessResponse ,
-   UpdateFileErrorResponse ,
-   DeleteFileSuccessResponse ,
-   DeleteFileErrorResponse ,
-   DeleteFolderSuccessResponse ,
-   DeleteFolderErrorResponse ,
-   FileListSuccessResponse ,
-   FileListErrorResponse ,
-   SearchFilesSuccessResponse ,
-   SearchFilesErrorResponse ,
-   WriteToFileSuccessResponse ,
-   WriteToFileErrorResponse,
-   GrepSearchSuccessResponse ,
-   GrepSearchErrorResponse ,
-   ListCodeDefinitionNamesSuccessResponse ,
-   ListCodeDefinitionNamesErrorResponse ,
-   FileSearchSuccessResponse ,
-   FileSearchErrorResponse,
-   EditFileAndApplyDiffSuccessResponse,
-   EditFileAndApplyDiffErrorResponse,
-   FsServiceResponse 
+  CreateFileSuccessResponse,
+  CreateFileErrorResponse,
+  CreateFolderSuccessResponse,
+  CreateFolderErrorResponse,
+  ReadFileSuccessResponse,
+  ReadFileSuccessResultResponse,
+  UpdateFileSuccessResponse,
+  UpdateFileErrorResponse,
+  DeleteFileSuccessResponse,
+  DeleteFileErrorResponse,
+  DeleteFolderSuccessResponse,
+  DeleteFolderErrorResponse,
+  FileListSuccessResponse,
+  FileListErrorResponse,
+  SearchFilesSuccessResponse,
+  SearchFilesErrorResponse,
+  WriteToFileSuccessResponse,
+  WriteToFileErrorResponse,
+  GrepSearchSuccessResponse,
+  GrepSearchErrorResponse,
+  ListCodeDefinitionNamesSuccessResponse,
+  ListCodeDefinitionNamesErrorResponse,
+  FileSearchSuccessResponse,
+  FileSearchErrorResponse,
+  EditFileAndApplyDiffSuccessResponse,
+  EditFileAndApplyDiffErrorResponse,
+  FsServiceResponse
 } from "@codebolt/types/wstypes/app-to-agent-ws/fsServiceResponses"
 
 import type {
-   GetEnabledToolBoxesResponse ,
-   GetLocalToolBoxesResponse,
-   GetAvailableToolBoxesResponse,
-   SearchAvailableToolBoxesResponse,
-   ListToolsFromToolBoxesResponse ,
-   ConfigureToolBoxResponse ,
-   GetToolsResponse ,
-   ExecuteToolResponse,
-   MCPServiceResponse ,
+  GetEnabledToolBoxesResponse,
+  GetLocalToolBoxesResponse,
+  GetAvailableToolBoxesResponse,
+  SearchAvailableToolBoxesResponse,
+  ListToolsFromToolBoxesResponse,
+  ConfigureToolBoxResponse,
+  GetToolsResponse,
+  ExecuteToolResponse,
+  MCPServiceResponse,
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
+import { NotificationService } from "@/shared";
+
+import {TodoService} from './../services/TodoService'
+export function getMessageId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
 
 
 export class ToolHandler {
   private connectionManager = ConnectionManager.getInstance();
   private permissionManager: PermissionManager;
   private toolsFramework: StandaloneToolsFramework;
-
+  private notificationService: NotificationService
+  private todoService: TodoService
   constructor() {
     // Initialize StandaloneToolsFramework with proper configuration
     logger.info('Initializing StandaloneToolsFramework...');
@@ -76,11 +91,12 @@ export class ToolHandler {
       approvalMode: 'auto',
       timeout: 30000 // 30 seconds timeout
     });
-      
+
     // Initialize PermissionManager
     this.permissionManager = PermissionManager.getInstance();
     this.permissionManager.initialize();
-    
+    this.notificationService = NotificationService.getInstance();
+    this.todoService = TodoService.getInstance(process.cwd());
     const toolCount = this.toolsFramework.getRegistry().size();
     logger.info(`StandaloneToolsFramework initialized with ${toolCount} tools`);
   }
@@ -92,7 +108,7 @@ export class ToolHandler {
     if (!this.toolsFramework) {
       throw new Error('StandaloneToolsFramework not initialized');
     }
-    
+
     const toolCount = this.toolsFramework.getRegistry().size();
     if (toolCount === 0) {
       logger.warn('No tools registered in the framework');
@@ -105,35 +121,35 @@ export class ToolHandler {
         case 'getEnabledToolBoxes':
           await this.handleGetEnabledToolBoxes(agent, event as GetEnabledToolBoxesEvent);
           break;
-        
+
         case 'getLocalToolBoxes':
           await this.handleGetLocalToolBoxes(agent, event as GetLocalToolBoxesEvent);
           break;
-        
+
         case 'getAvailableToolBoxes':
           await this.handleGetAvailableToolBoxes(agent, event as GetAvailableToolBoxesEvent);
           break;
-        
+
         case 'searchAvailableToolBoxes':
           await this.handleSearchAvailableToolBoxes(agent, event as SearchAvailableToolBoxesEvent);
           break;
-        
+
         case 'listToolsFromToolBoxes':
           await this.handleListToolsFromToolBoxes(agent, event as ListToolsFromToolBoxesEvent);
           break;
-        
+
         case 'configureToolBox':
           await this.handleConfigureToolBox(agent, event as ConfigureToolBoxEvent);
           break;
-        
+
         case 'getTools':
           await this.handleGetTools(agent, event as GetToolsEvent);
           break;
-        
+
         case 'executeTool':
           await this.handleExecuteTool(agent, event as ExecuteToolEvent);
           break;
-        
+
         default:
           logger.warn(`Unknown tool event action: ${(event as any).action}`);
           break;
@@ -177,7 +193,7 @@ export class ToolHandler {
         event.params,
         abortController.signal
       );
-      
+
       // Send success response
       this.connectionManager.sendToConnection(agent.id, {
         type: 'toolResponse',
@@ -199,11 +215,11 @@ export class ToolHandler {
 
   private async handleGetEnabledToolBoxes(agent: ClientConnection, event: GetEnabledToolBoxesEvent): Promise<void> {
     logger.info(`Handling getEnabledToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get enabled toolboxes from registry
       const enabledTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetEnabledToolBoxesResponse = {
         type: 'getEnabledToolBoxesResponse',
         data: enabledTools.map(tool => ({
@@ -215,7 +231,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${enabledTools.length} enabled toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting enabled toolboxes: ${error}`);
@@ -230,11 +246,11 @@ export class ToolHandler {
 
   private async handleGetLocalToolBoxes(agent: ClientConnection, event: GetLocalToolBoxesEvent): Promise<void> {
     logger.info(`Handling getLocalToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get local toolboxes from registry
       const localTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetLocalToolBoxesResponse = {
         type: 'getLocalToolBoxesResponse',
         data: localTools.map(tool => ({
@@ -246,7 +262,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${localTools.length} local toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting local toolboxes: ${error}`);
@@ -261,11 +277,11 @@ export class ToolHandler {
 
   private async handleGetAvailableToolBoxes(agent: ClientConnection, event: GetAvailableToolBoxesEvent): Promise<void> {
     logger.info(`Handling getAvailableToolBoxes event: ${event.requestId}`);
-    
+
     try {
       // Get available toolboxes from registry
       const availableTools = this.toolsFramework.getRegistry().getAllTools();
-      
+
       const response: GetAvailableToolBoxesResponse = {
         type: 'getAvailableToolBoxesResponse',
         data: availableTools.map(tool => ({
@@ -277,7 +293,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${availableTools.length} available toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting available toolboxes: ${error}`);
@@ -292,11 +308,11 @@ export class ToolHandler {
 
   private async handleSearchAvailableToolBoxes(agent: ClientConnection, event: SearchAvailableToolBoxesEvent): Promise<void> {
     logger.info(`Handling searchAvailableToolBoxes event: ${event.requestId}, query: ${event.query}`);
-    
+
     try {
       // Get all available tool schemas from the registry
       const toolSchemas = this.toolsFramework.getRegistry().getOpenAIToolSchemas();
-      
+
       // Filter tools based on the search query
       const filteredTools = toolSchemas.filter(tool => {
         const searchQuery = event.query.toLowerCase();
@@ -306,7 +322,7 @@ export class ToolHandler {
           false
         );
       });
-      
+
       const response: SearchAvailableToolBoxesResponse = {
         type: 'searchAvailableToolBoxesResponse',
         data: {
@@ -321,7 +337,7 @@ export class ToolHandler {
         success: true,
         message: `Found ${filteredTools.length} tools matching '${event.query}'`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error searching available toolboxes: ${error}`);
@@ -336,27 +352,25 @@ export class ToolHandler {
 
   private async handleListToolsFromToolBoxes(agent: ClientConnection, event: ListToolsFromToolBoxesEvent): Promise<void> {
     logger.info(`Handling listToolsFromToolBoxes event: ${event.requestId}, toolBoxes: ${event.toolBoxes.join(', ')}`);
-    
+
     try {
       // Get tools from specified toolboxes
-      const allTools = this.toolsFramework.getRegistry().getAllTools();
-      const filteredTools = allTools.filter(tool => 
-        event.toolBoxes.includes(tool.name) || event.toolBoxes.includes(tool.kind)
-      );
-      
+      const allTools = this.toolsFramework.getRegistry().getOpenAIToolSchemas()
+      const tools = allTools.map(tool => ({
+        ...tool,
+        function: {
+          ...tool.function,
+          name: `codebolt--${tool.function.name}`
+        }
+      }));
       const response: ListToolsFromToolBoxesResponse = {
         type: 'listToolsFromToolBoxesResponse',
-        data: filteredTools.map(tool => ({
-          name: tool.name,
-          displayName: tool.displayName,
-          description: tool.description,
-          kind: tool.kind,
-          schema: tool.schema
-        })),
+        data: tools,
         success: true,
-        message: `Found ${filteredTools.length} tools from specified toolboxes`
+        message: `Found ${tools.length} tools from specified toolboxes`,
+        requestId: event.requestId
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error listing tools from toolboxes: ${error}`);
@@ -371,11 +385,11 @@ export class ToolHandler {
 
   private async handleConfigureToolBox(agent: ClientConnection, event: ConfigureToolBoxEvent): Promise<void> {
     logger.info(`Handling configureToolBox event: ${event.requestId}, mcpName: ${event.mcpName}`);
-    
+
     try {
       // Configure toolbox logic would go here
       // For now, we'll just acknowledge the configuration
-      
+
       const response: ConfigureToolBoxResponse = {
         type: 'configureToolBoxResponse',
         configuration: event.config,
@@ -387,7 +401,7 @@ export class ToolHandler {
         success: true,
         message: `Successfully configured toolbox: ${event.mcpName}`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error configuring toolbox: ${error}`);
@@ -402,12 +416,12 @@ export class ToolHandler {
 
   private async handleGetTools(agent: ClientConnection, event: GetToolsEvent): Promise<void> {
     logger.info(`Handling getTools event: ${event.requestId}, toolboxes: ${event.toolboxes.length}`);
-    
+
     try {
       // Get tools from specified toolboxes
       const toolNames = event.toolboxes.map(tb => tb.toolName);
       const toolSchemas = this.toolsFramework.getRegistry().getToolSchemasFiltered(toolNames);
-      
+
       const response: GetToolsResponse = {
         type: 'getToolsResponse',
         tools: toolSchemas.map(schema => ({
@@ -419,7 +433,7 @@ export class ToolHandler {
         success: true,
         message: `Retrieved ${toolSchemas.length} tools from specified toolboxes`
       };
-      
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error getting tools: ${error}`);
@@ -434,22 +448,399 @@ export class ToolHandler {
 
   private async handleExecuteTool(agent: ClientConnection, event: ExecuteToolEvent): Promise<void> {
     logger.info(`Handling executeTool event: ${event.requestId}, toolName: ${event.toolName}`);
-    
+
     try {
       // Ensure framework is ready before executing
       this.ensureFrameworkReady();
-      
+
       // Execute the tool using the registry
       const abortController = new AbortController();
-      const result = await this.toolsFramework.getRegistry().executeTool(
-        event.toolName,
-        event.params,
-        abortController.signal
-      );
-      
+      let cleanToolName = event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName;
+      let result: ToolResult;
+      switch (cleanToolName) {
+        case 'read_file':
+          logger.info(`Executing read_file tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send file read notification
+          if (result && event.params?.absolute_path) {
+            this.notificationService.sendFileReadSuccess({
+              agent,
+              requestId: event.requestId,
+              filePath: event.params.absolute_path,
+              content: typeof result === 'string' ? result : JSON.stringify(result)
+            });
+          }
+          break;
+
+        case 'write_file':
+          logger.info(`Executing write_file tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send file write notification
+          if (result && event.params?.file_path) {
+            this.notificationService.sendFileWriteSuccess({
+              agent,
+              requestId: event.requestId,
+              filePath: event.params.file_path,
+              content: event.params.content || '',
+              originalContent: '',
+              diff: ''
+            });
+          }
+          break;
+
+        case 'replace':
+          logger.info(`Executing replace tool (edit/smart-edit) with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send file write notification for edit operations
+          if (result && event.params?.file_path) {
+            this.notificationService.sendFileWriteSuccess({
+              agent,
+              requestId: event.requestId,
+              filePath: event.params.file_path,
+              content: event.params.new_string || '',
+              originalContent: event.params.old_string || '',
+              diff: ''
+            });
+          }
+          break;
+
+        case 'list_directory':
+          logger.info(`Executing list_directory tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+            logger.info("response form list_directory ",result)
+          // Send folder read notification
+          if (result && event.params?.path) {
+            const entries = (result as any)?.entries || []
+            this.notificationService.sendFolderReadSuccess({
+              agent,
+              requestId: event.requestId,
+              path: event.params.path,
+              entries: entries
+            });
+          }
+          break;
+
+        case 'read_many_files':
+          logger.info(`Executing read_many_files tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send multiple file read notifications
+          if (result) {
+            // Cast to access the extended properties
+            const readManyResult = result as ToolResult & {
+              processedFiles?: Array<{
+                filePath: string;
+                relativePathForDisplay: string;
+                content: string;
+              }>;
+              skippedFiles?: Array<{
+                path: string;
+                reason: string;
+              }>;
+              totalProcessed?: number;
+              totalSkipped?: number;
+            };
+            const processedFiles = readManyResult.processedFiles || [];
+            processedFiles.forEach((fileResult: { filePath: string; content: string }, index: number) => {
+              if (fileResult.filePath) {
+                this.notificationService.sendFileReadSuccess({
+                  agent,
+                  requestId: `${event.requestId}_${index}`,
+                  filePath: fileResult.filePath,
+                  content: fileResult.content || ''
+                });
+              }
+            });
+          }
+          break;
+
+        case 'search_file_content':
+          logger.info(`Executing search_file_content (grep) tool with params:`, event.params);
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send grep search notification
+            if (result && event.params?.pattern) {
+              const { formattedResults, totalMatches, filesWithMatches } = formatFileSearchResults(result as any);
+              
+              this.notificationService.sendGrepSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                pattern: event.params.pattern,
+                path: event.params.path,
+                results: formattedResults,
+                totalMatches: totalMatches,
+                filesWithMatches: filesWithMatches
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in search_file_content: ${error}`);
+            this.notificationService.sendGrepSearchError({
+              agent,
+              requestId: event.requestId,
+              pattern: event.params?.pattern || '',
+              path: event.params?.path,
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+            throw error; // Re-throw to be handled by outer catch
+          }
+          break;
+
+        case 'glob':
+          logger.info(`Executing glob tool with params:`, event.params);
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send glob search notification
+            if (result && event.params?.pattern) {
+              // Cast to access the extended properties
+              const globResult = result as ToolResult & {
+                results?: Array<{ path: string }>;
+                totalFiles?: number;
+                isTruncated?: boolean;
+              };
+              const results = (globResult.results || []).map((item: { path: string }) => ({
+                path: item.path || 'unknown'
+              }));
+              
+              this.notificationService.sendGlobSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                pattern: event.params.pattern,
+                path: event.params.path,
+                results: results,
+                totalFiles: globResult.totalFiles || results.length
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in glob: ${error}`);
+            this.notificationService.sendGlobSearchError({
+              agent,
+              requestId: event.requestId,
+              pattern: event.params?.pattern || '',
+              path: event.params?.path,
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+            throw error; // Re-throw to be handled by outer catch
+          }
+          break;
+
+        case 'attempt_completion':
+          logger.info(`Executing attempt_completion tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send AI request success notification
+          if(event.params.result)
+          this.notificationService.sendChatMessageNotification({
+            agent,
+            messageId: event.requestId,
+            agentId: agent.id,
+            threadId: event.requestId,
+            agentInstanceId: agent.instanceId,
+            parentAgentInstanceId: '',
+            message: event.params.result,
+            parentId: '',
+            requestId: event.requestId
+          });
+          break;
+
+        case 'search_files':
+          logger.info(`Executing search_files tool with params:`, event.params);
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send file search notification for file search results
+            if (result && event.params?.path && event.params?.regex) {
+              const { results, totalResults } = formatSearchFilesResults(result);
+              
+              this.notificationService.sendFileSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                path: event.params.path,
+                regex: event.params.regex,
+                results: results,
+                totalMatches: totalResults
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in search_files: ${error}`);
+            this.notificationService.sendFileSearchError({
+              agent,
+              requestId: event.requestId,
+              path: event.params?.path || '',
+              regex: event.params?.regex || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+            throw error; // Re-throw to be handled by outer catch
+          }
+          break;
+
+        case 'list_files':
+          logger.info(`Executing list_files tool with params:`, event.params);
+          try {
+            result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+              event.params,
+              abortController.signal);
+            // Send list directory for search notification for file listing
+            if (result && event.params?.path) {
+              const { entries, totalEntries } = formatListFilesResults(result);
+              
+              this.notificationService.sendListDirectoryForSearchSuccess({
+                agent,
+                requestId: event.requestId,
+                dirPath: event.params.path,
+                entries: entries,
+                totalEntries: totalEntries
+              });
+            }
+          } catch (error) {
+            logger.error(`Error in list_files: ${error}`);
+            this.notificationService.sendListDirectoryForSearchError({
+              agent,
+              requestId: event.requestId,
+              dirPath: event.params?.path || '',
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
+            });
+            throw error; // Re-throw to be handled by outer catch
+          }
+          break;
+
+        case 'git_action':
+          logger.info(`Executing git_action tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send AI request success notification for git actions
+          this.notificationService.sendAiRequestSuccessNotification({
+            agent,
+            messageId: event.requestId,
+            agentId: agent.id,
+            threadId: agent.threadId,
+            agentInstanceId: agent.instanceId,
+            parentAgentInstanceId: '',
+            message: `Git action executed: ${event.params?.action || 'Unknown action'}`,
+            parentId: '',
+            requestId: event.requestId
+          });
+          break;
+
+        case 'todo_write':
+          logger.info(`Executing todo_write tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+            
+            // Get existing todos by threadId
+            const existingTodos = await this.todoService.getTodosByThreadId(event.params.threadId);
+
+            // Create a map of existing todos by title for quick lookup
+            const existingTodosMap = new Map(
+                existingTodos.map((todo: any) => [todo.title.toLowerCase().trim(), todo])
+            );
+
+            // Mark todos as updated if they exist and status changed
+            const todosWithUpdateFlag = event.params.todos.map((todo: any) => {
+                const todoTitle = (todo.content || todo.title || '').toLowerCase().trim();
+                const existingTodo = existingTodosMap.get(todoTitle) as any;
+
+                // If no existing todos found, mark all as updated (new list)
+                if (existingTodos.length === 0) {
+                    return { ...todo, isUpdated: true };
+                }
+
+                // If todo exists and status changed, mark as updated
+                if (existingTodo && existingTodo.status !== todo.status) {
+                    return { ...todo, isUpdated: true };
+                }
+
+                // Otherwise, not updated
+                return { ...todo, isUpdated: false };
+            });  
+            
+            // Get the todos from the result and preserve isUpdated flag
+            let todos = [];
+            if (event.params.todos && Array.isArray(event.params.todos)) {
+                // Use the input todos if result doesn't have them
+                todos = todosWithUpdateFlag.map((todo: { id: any; content: any; title: any; status: string; isUpdated: any; }) => ({
+                    id: todo.id ,
+                    title: todo.content || todo.title,
+                    status: todo.status === 'in_progress' ? 'processing' :
+                        todo.status === 'cancelled' ? 'pending' :
+                            todo.status,
+                    priority: 'medium',
+                    tags: [],
+                    isUpdated: todo.isUpdated
+                }));
+            }
+          // Also send a success response
+          this.notificationService.sendWriteTodosResponse({
+              agent,
+              requestId: event.requestId,
+              content: todos.map((todo: any) => ({
+                id: todo.id || '',
+                title: todo.content || todo.title || '',
+                status: todo.status || 'pending',
+                priority: 'medium',
+                tags: []
+              }))
+            });
+          break;
+
+        case 'explain_next_action':
+          logger.info(`Executing explain_next_action tool with params:`, event.params);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send chat message notification for explanations
+          this.notificationService.sendChatMessageNotification({
+            agent,
+            messageId: event.requestId,
+            agentId: agent.id,
+            threadId: event.requestId,
+            agentInstanceId: agent.instanceId,
+            parentAgentInstanceId: '',
+            message: typeof result === 'string' ? result : JSON.stringify(result),
+            parentId: '',
+            requestId: event.requestId
+          });
+          break;
+
+        default:
+          logger.warn(`Unknown tool: ${cleanToolName}, falling back to generic execution`);
+          result = await this.toolsFramework.getRegistry().executeTool(event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
+            event.params,
+            abortController.signal);
+          // Send generic AI request notification for unknown tools
+          this.notificationService.sendAiRequestNotification({
+            agent,
+            messageId: event.requestId,
+            agentId: agent.id,
+            threadId: event.requestId,
+            agentInstanceId: agent.instanceId,
+            parentAgentInstanceId: '',
+            message: `Executed unknown tool: ${cleanToolName}`,
+            parentId: '',
+            requestId: event.requestId
+          });
+          break;
+      }
+
       const response: ExecuteToolResponse = {
         type: 'executeToolResponse',
-        toolName: event.toolName,
+        toolName: event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
         params: event.params,
         result: result,
         data: [true, result],
@@ -457,7 +848,9 @@ export class ToolHandler {
         success: true,
         message: `Successfully executed tool: ${event.toolName}`
       };
-      
+
+      logger.info("response from tool", response)
+
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error executing tool: ${error}`);

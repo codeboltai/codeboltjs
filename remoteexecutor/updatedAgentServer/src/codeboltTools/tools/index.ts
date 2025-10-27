@@ -27,8 +27,9 @@ export { ListFilesTool } from './list-files';
 
 export { GitActionTool } from './git-action';
 
-// Todo tool
+// Todo tools
 export { WriteTodosTool } from './write-todo';
+
 
 // Explanation tool
 export { ExplainNextActionTool } from './explain-next-action';

@@ -3,12 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
+// Remove SendMessageToRemote import as it's no longer needed
 import { logger } from "../utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
-import { DefaultFileSystem } from "../utils/fsutils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../utils/fsutils/DefaultWorkspaceContext";
+import { DefaultFileSystem } from "../utils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
+import { PermissionManager, PermissionUtils } from "./PermissionManager";
+// Add imports for the new approval system
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import type {
   FileWriteConfirmation,
@@ -39,7 +42,7 @@ export interface ReplaceInFileEvent {
 interface PendingRequest {
   agent: ClientConnection;
   request: ReplaceInFileEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient; // Use TargetClient type
 }
 
 export interface ReplaceInFileConfirmation {
@@ -52,11 +55,15 @@ type ReplaceResult = Awaited<ReturnType<FileServices["replaceInFile"]>>;
 
 export class ReplaceInFileHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
-  private readonly sendMessageToRemote = new SendMessageToRemote();
+  // Remove sendMessageToRemote as it's no longer needed
   private readonly fileServices: FileServices;
+  private readonly permissionManager: PermissionManager;
+  // Add new services
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
-  private readonly grantedPermissions = new Set<string>();
 
   constructor() {
     const config = {
@@ -65,10 +72,12 @@ export class ReplaceInFileHandler {
       fileSystemService: new DefaultFileSystem(),
     };
     this.fileServices = createFileServices(config);
+    this.permissionManager = PermissionManager.getInstance();
+    this.permissionManager.initialize();
   }
 
   async handleReplaceInFile(agent: ClientConnection, event: ReplaceInFileEvent): Promise<void> {
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       await this.executeReplace(agent, event);
@@ -83,7 +92,22 @@ export class ReplaceInFileHandler {
     const messageId = uuidv4();
     this.pendingRequests.set(messageId, { agent, request: event, targetClient });
 
-    this.requestApproval(agent, targetClient, messageId, event);
+    // Extract preview replacement for approval request
+    const instructions = this.resolveInstructions(event.message);
+    const previewReplacement = instructions[0];
+
+    // Use the new approval service
+    if (previewReplacement) {
+      this.approvalService.requestReplaceInFileApproval({
+        agent,
+        targetClient,
+        messageId,
+        requestId: event.requestId,
+        filePath: event.message.filePath,
+        oldString: previewReplacement.oldString,
+        newString: previewReplacement.newString,
+      });
+    }
   }
 
   async handleConfirmation(message: ReplaceInFileConfirmation): Promise<void> {
@@ -104,13 +128,14 @@ export class ReplaceInFileHandler {
     const { agent, request, targetClient } = record;
 
     if (message.userMessage?.toLowerCase() !== "approve") {
-      this.sendRejection(
+      // Use the notification service for rejection
+      this.notificationService.sendFileWriteRejection({
         agent,
-        request.requestId,
-        request.message.filePath,
-        message.userMessage || "Replace in file request rejected",
+        requestId: request.requestId,
+        filePath: request.message.filePath,
+        reason: message.userMessage || "Replace in file request rejected",
         targetClient,
-      );
+      });
       return;
     }
 
@@ -138,13 +163,14 @@ export class ReplaceInFileHandler {
     const { agent, request, targetClient } = record;
 
     if (message.state !== "approved") {
-      this.sendRejection(
+      // Use the notification service for rejection
+      this.notificationService.sendFileWriteRejection({
         agent,
-        request.requestId,
-        request.message.filePath,
-        message.reason ?? "Replace in file request rejected",
+        requestId: request.requestId,
+        filePath: request.message.filePath,
+        reason: message.reason ?? "Replace in file request rejected",
         targetClient,
-      );
+      });
       return;
     }
 
@@ -155,7 +181,7 @@ export class ReplaceInFileHandler {
   private async executeReplace(
     agent: ClientConnection,
     event: ReplaceInFileEvent,
-    targetClient?: { id: string; type: "app" | "tui" },
+    targetClient?: TargetClient // Use TargetClient type
   ): Promise<void> {
     const { requestId, message } = event;
     const instructions = this.resolveInstructions(message);
@@ -233,7 +259,7 @@ export class ReplaceInFileHandler {
     filePath: string,
     instructions: ReplaceInstruction[],
     result: ReplaceResult,
-    targetClient?: { id: string; type: "app" | "tui" },
+    targetClient?: TargetClient // Use TargetClient type
   ): Promise<void> {
     if (result.success) {
       const response = {
@@ -252,28 +278,16 @@ export class ReplaceInFileHandler {
         clientId: agent.id,
       });
 
-      const notification: FileWriteSuccess = {
-        type: "message",
-        actionType: "WRITEFILE",
-        templateType: "WRITEFILE",
-        sender: "agent",
-        messageId: requestId,
-        threadId: requestId,
-        timestamp: Date.now().toString(),
-        agentId: agent.id,
-        agentInstanceId: agent.instanceId,
-        payload: {
-          type: "file",
-          path: filePath,
-          content: result.newContent ?? (instructions.length > 0 ? instructions[instructions.length - 1].newString : "") ?? "",
-          originalContent: result.originalContent ?? (instructions.length > 0 ? instructions[0].oldString : "") ?? "",
-          diff: result.diff,
-          stateEvent: "fileWrite",
-        },
-      };
-
-      this.notifyClients(notification, targetClient);
-      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+      // Use the notification service for success
+      this.notificationService.sendFileWriteSuccess({
+        agent,
+        requestId,
+        filePath,
+        content: result.newContent ?? (instructions.length > 0 ? instructions[instructions.length - 1].newString : "") ?? "",
+        originalContent: result.originalContent ?? (instructions.length > 0 ? instructions[0].oldString : "") ?? "",
+        diff: result.diff,
+        targetClient
+      });
       return;
     }
 
@@ -292,170 +306,31 @@ export class ReplaceInFileHandler {
       clientId: agent.id,
     });
 
-    const notification: FileWriteError = {
-      type: "message",
-      actionType: "WRITEFILE",
-      templateType: "WRITEFILE",
-      sender: "agent",
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file",
-        path: filePath,
-        content: errorMessage,
-        originalContent: result.originalContent ?? (instructions.length > 0 ? instructions[0].oldString : "") ?? "",
-        diff: result.diff,
-        stateEvent: "fileWriteError",
-      },
-    };
-
-    this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
-  }
-
-  private resolveParent(
-    agent: ClientConnection,
-  ): { id: string; type: "app" | "tui" } | undefined {
-    const agentManager = this.connectionManager.getAgentConnectionManager();
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
-
-    const parentId = agentManager.getParentByAgent(agent.id);
-    if (!parentId) {
-      return undefined;
-    }
-
-    if (appManager.getApp(parentId)) {
-      return { id: parentId, type: "app" };
-    }
-
-    if (tuiManager.getTui(parentId)) {
-      return { id: parentId, type: "tui" };
-    }
-
-    return undefined;
-  }
-
-  private requestApproval(
-    agent: ClientConnection,
-    targetClient: { id: string; type: "app" | "tui" },
-    messageId: string,
-    event: ReplaceInFileEvent,
-  ): void {
-    const { requestId, message } = event;
-    const previewReplacement = this.resolveInstructions(message)[0];
-
-    const payload: FileWriteConfirmation = {
-      type: "message",
-      actionType: "WRITEFILE",
-      templateType: "WRITEFILE",
-      sender: "agent",
-      messageId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file",
-        path: message.filePath,
-        content: previewReplacement?.newString ?? "",
-        originalContent: previewReplacement?.oldString ?? "",
-        stateEvent: "askForConfirmation",
-      },
-    };
-
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
-
-    logger.info(
-      formatLogMessage(
-        "info",
-        "ReplaceInfileHandler",
-        `Requested approval for replaceInFile on ${message.filePath}`,
-      ),
-    );
-  }
-
-  private sendRejection(
-    agent: ClientConnection,
-    requestId: string,
-    filePath: string,
-    reason: string,
-    targetClient?: { id: string; type: "app" | "tui" },
-  ): void {
-    const response = {
-      type: "replaceInFileResponse" as const,
+    // Use the notification service for error
+    this.notificationService.sendFileWriteError({
+      agent,
       requestId,
-      success: false,
-      message: reason,
-      error: reason,
-    };
-
-    this.connectionManager.sendToConnection(agent.id, {
-      ...response,
-      clientId: agent.id,
+      filePath,
+      error: errorMessage,
+      originalContent: result.originalContent ?? (instructions.length > 0 ? instructions[0].oldString : "") ?? "",
+      diff: result.diff,
+      targetClient
     });
-
-    const notification: FileWriteRejected = {
-      type: "message",
-      actionType: "WRITEFILE",
-      templateType: "WRITEFILE",
-      sender: "agent",
-      messageId: requestId,
-      threadId: requestId,
-      timestamp: Date.now().toString(),
-      agentId: agent.id,
-      agentInstanceId: agent.instanceId,
-      payload: {
-        type: "file",
-        path: filePath,
-        content: reason,
-        originalContent: "",
-        stateEvent: "rejected",
-      },
-    };
-
-    this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
   }
 
-  private notifyClients(
-    notification: FileWriteSuccess | FileWriteError | FileWriteRejected,
-    targetClient?: { id: string; type: "app" | "tui" },
-  ): void {
-    const appManager = this.connectionManager.getAppConnectionManager();
-    const tuiManager = this.connectionManager.getTuiConnectionManager();
+  // Remove the resolveParent method as it's now handled by ClientResolver
 
-    if (!targetClient) {
-      appManager.broadcast(notification);
-      tuiManager.broadcast(notification);
-      return;
-    }
+  // Remove the requestApproval method as it's now handled by ApprovalService
 
-    if (targetClient.type === "app") {
-      appManager.sendToApp(targetClient.id, notification);
-    } else {
-      tuiManager.sendToTui(targetClient.id, notification);
-    }
-  }
+  // Remove the sendRejection method as it's now handled by NotificationService
+
+  // Remove the notifyClients method as it's now handled by NotificationService
 
   private hasPermission(agentId: string, filePath: string): boolean {
-    return this.grantedPermissions.has(this.permissionKey(agentId, filePath));
+    return PermissionUtils.hasPermission('replace_in_file', filePath, 'write');
   }
 
   private grantPermission(agentId: string, filePath: string): void {
-    this.grantedPermissions.add(this.permissionKey(agentId, filePath));
-  }
-
-  private permissionKey(agentId: string, filePath: string): string {
-    return `${agentId}:${filePath}`;
+    PermissionUtils.grantPermission('replace_in_file', filePath, 'write');
   }
 }

@@ -35,7 +35,7 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
     async processMessage(input: FlatUserMessage): Promise<ProcessedMessage> {
         try {
             if (this.enableLogging) {
-                console.log('[InitialPromptGenerator] Processing message:', input);
+                // console.log('[InitialPromptGenerator] Processing message:', input);
             }
 
             // Create initial ProcessedMessage from FlatUserMessage
@@ -80,10 +80,10 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
             });
 
             if (this.enableLogging) {
-                console.log('[InitialPromptGenerator] Processing completed:', {
-                    messageCount: createdMessage.message.messages.length,
-                    metadata: createdMessage.metadata
-                });
+                // console.log('[InitialPromptGenerator] Processing completed:', {
+                //     messageCount: createdMessage.message.messages.length,
+                //     metadata: createdMessage.metadata
+                // });
             }
             if (this.baseSystemPrompt !== undefined) {
                 const hasSystem = createdMessage.message.messages.some(msg => msg.role === 'system');

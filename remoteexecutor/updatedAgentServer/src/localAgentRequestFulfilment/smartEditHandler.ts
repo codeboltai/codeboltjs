@@ -3,12 +3,14 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
-import { DefaultFileSystem } from "../utils/fsutils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../utils/fsutils/DefaultWorkspaceContext";
+import { DefaultFileSystem } from "../utils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
+import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
+import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote";
 
 import type {
   FileWriteConfirmation,
@@ -33,7 +35,7 @@ export interface SmartEditEvent {
 interface PendingRequest {
   agent: ClientConnection;
   request: SmartEditEvent;
-  targetClient?: { id: string; type: "app" | "tui" };
+  targetClient?: TargetClient;
 }
 
 export interface SmartEditConfirmation {
@@ -46,11 +48,14 @@ type SmartEditResult = Awaited<ReturnType<FileServices["replaceInFile"]>>;
 
 export class SmartEditHandler {
   private readonly connectionManager = ConnectionManager.getInstance();
-  private readonly sendMessageToRemote = new SendMessageToRemote();
   private readonly fileServices: FileServices;
+  private readonly permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
+  private sendMessageToRemote = new SendMessageToRemote();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();
-  private readonly grantedPermissions = new Set<string>();
 
   constructor() {
     const config = {
@@ -59,10 +64,12 @@ export class SmartEditHandler {
       fileSystemService: new DefaultFileSystem(),
     };
     this.fileServices = createFileServices(config);
+    this.permissionManager = PermissionManager.getInstance();
+    this.permissionManager.initialize();
   }
 
   async handleSmartEdit(agent: ClientConnection, event: SmartEditEvent): Promise<void> {
-    const targetClient = this.resolveParent(agent);
+    const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
       await this.executeSmartEdit(agent, event);
@@ -218,7 +225,7 @@ export class SmartEditHandler {
       };
 
       this.notifyClients(notification, targetClient);
-      this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+      // Forwarding is now handled by notificationService.notifyClients
       return;
     }
 
@@ -257,7 +264,7 @@ export class SmartEditHandler {
     };
 
     this.notifyClients(notification, targetClient);
-    this.sendMessageToRemote.forwardAgentMessage(agent, notification);
+    // Forwarding is now handled by notificationService.notifyClients
   }
 
   private resolveParent(
@@ -310,13 +317,15 @@ export class SmartEditHandler {
       },
     };
 
-    if (targetClient.type === "app") {
-      this.connectionManager.getAppConnectionManager().sendToApp(targetClient.id, payload);
-    } else {
-      this.connectionManager.getTuiConnectionManager().sendToTui(targetClient.id, payload);
-    }
-
-    this.sendMessageToRemote.forwardAgentMessage(agent, payload);
+    this.approvalService.requestSmartEditApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      filePath: message.filePath,
+      newContent: message.newString,
+      originalContent: message.oldString
+    });
 
     logger.info(
       formatLogMessage(
@@ -391,14 +400,10 @@ export class SmartEditHandler {
   }
 
   private hasPermission(agentId: string, filePath: string): boolean {
-    return this.grantedPermissions.has(this.permissionKey(agentId, filePath));
+    return PermissionUtils.hasPermission('smart_edit', filePath, 'write');
   }
 
   private grantPermission(agentId: string, filePath: string): void {
-    this.grantedPermissions.add(this.permissionKey(agentId, filePath));
-  }
-
-  private permissionKey(agentId: string, filePath: string): string {
-    return `${agentId}:${filePath}`;
+    PermissionUtils.grantPermission('smart_edit', filePath, 'write');
   }
 }

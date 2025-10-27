@@ -11,6 +11,7 @@ import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
 import { executeSearchFiles, type SearchFilesParams, type SearchFilesResult } from '../../utils/search/SearchFiles';
+import type { GrepMatch } from '../../utils/search/GrepSearch';
 
 /**
  * Parameters for the SearchFiles tool
@@ -32,9 +33,24 @@ export interface SearchFilesToolParams {
     filePattern?: string;
 }
 
+/**
+ * Extended ToolResult for search files that includes matches data
+ */
+export interface SearchFilesToolResult extends ToolResult {
+    /**
+     * Array of matches found
+     */
+    matches?: GrepMatch[];
+    
+    /**
+     * Total number of matches found
+     */
+    totalMatches?: number;
+}
+
 class SearchFilesToolInvocation extends BaseToolInvocation<
     SearchFilesToolParams,
-    ToolResult
+    SearchFilesToolResult
 > {
     constructor(
         private readonly config: ConfigManager,
@@ -51,7 +67,7 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
     async execute(
         signal: AbortSignal,
         updateOutput?: (output: string) => void,
-    ): Promise<ToolResult> {
+    ): Promise<SearchFilesToolResult> {
         try {
             // Convert tool params to utility params
             const utilParams: SearchFilesParams = {
@@ -86,7 +102,9 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
             if (matches.length === 0) {
                 return {
                     llmContent: 'No matches found',
-                    returnDisplay: 'No matches found'
+                    returnDisplay: 'No matches found',
+                    matches: [],
+                    totalMatches: 0
                 };
             }
 
@@ -113,7 +131,9 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
 
             return {
                 llmContent: content.trim(),
-                returnDisplay: `Found ${matches.length} match${matches.length === 1 ? '' : 'es'}`
+                returnDisplay: `Found ${matches.length} match${matches.length === 1 ? '' : 'es'}`,
+                matches: matches,
+                totalMatches: matches.length
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -131,7 +151,7 @@ class SearchFilesToolInvocation extends BaseToolInvocation<
 
 export class SearchFilesTool extends BaseDeclarativeTool<
     SearchFilesToolParams,
-    ToolResult
+    SearchFilesToolResult
 > {
     static readonly Name: string = 'search_files';
 

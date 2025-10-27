@@ -1,10 +1,16 @@
+import { v4 as uuidv4 } from "uuid";
+
 import type { ClientConnection } from "../types";
+import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
+// Remove SendMessageToRemote import as it's no longer needed
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { createSearchService } from "../services/SearchService";
+// Add imports for the new approval system
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import {
   SearchConfirmation,
@@ -14,10 +20,40 @@ import {
   SearchRejected,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
+export interface SearchFileContentEvent {
+  type: "fsEvent";
+  action: "searchFileContent";
+  requestId: string;
+  message: {
+    pattern: string;
+    path?: string;
+    include?: string[];
+  };
+}
+
+type PendingRequest = {
+  agent: ClientConnection;
+  request: SearchFileContentEvent;
+  targetClient?: TargetClient; // Use TargetClient type
+};
+
+export interface SearchFileContentConfirmation {
+  type: "confirmationResponse";
+  messageId: string;
+  userMessage: string;
+}
+
 export class SearchFileContentHandler {
   private connectionManager = ConnectionManager.getInstance();
+  // Remove sendMessageToRemote as it's no longer needed
   private searchService: any;
   private permissionManager: PermissionManager;
+  // Add new services
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
+
+  private pendingRequests = new Map<string, PendingRequest>();
 
   constructor() {
     // Initialize SearchService with default configuration
@@ -33,125 +69,199 @@ export class SearchFileContentHandler {
     this.permissionManager.initialize();
   }
 
-  /**
-   * Handle search_file_content tool with confirmation
-   */
-  async handleSearchFileContentTool(agent: ClientConnection, event: {
+  async handleSearchFileContent(agent: ClientConnection, event: SearchFileContentEvent): Promise<void> {
+    const { requestId, message } = event;
+    const { pattern, path, include } = message;
+
+    const targetClient = this.clientResolver.resolveParent(agent);
+
+    if (!targetClient) {
+      await this.executeSearchFileContent(agent, event);
+      return;
+    }
+
+    // Check if permission exists using centralized permission system
+    const searchPath = path || '*';
+    if (PermissionUtils.hasPermission('search_file_content', searchPath, 'read')) {
+      await this.executeSearchFileContent(agent, event, targetClient);
+      return;
+    }
+
+    const messageId = uuidv4();
+    this.pendingRequests.set(messageId, { agent, request: event, targetClient });
+
+    // Use the new approval service
+    this.approvalService.requestSearchFileContentApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      pattern,
+      path
+    });
+  }
+
+  async handleConfirmation(message: SearchFileContentConfirmation): Promise<void> {
+    const record = this.pendingRequests.get(message.messageId);
+
+    if (!record) {
+      logger.warn(
+        formatLogMessage(
+          "warn",
+          "SearchFileContentHandler",
+          `No pending search file content request for ${message.messageId}`
+        )
+      );
+      return;
+    }
+
+    this.pendingRequests.delete(message.messageId);
+
+    const { agent, request, targetClient } = record;
+    const { requestId, message: payload } = request;
+
+    if (message.userMessage?.toLowerCase() !== "approve") {
+      // Use the notification service for rejection
+      this.notificationService.sendSearchRejection({
+        agent,
+        requestId,
+        query: payload.pattern,
+        path: payload.path || '*',
+        reason: message.userMessage || "Search file content request rejected",
+        targetClient
+      });
+      return;
+    }
+
+    const searchPath = payload.path || '*';
+    PermissionUtils.grantPermission('search_file_content', searchPath, 'read');
+    await this.executeSearchFileContent(agent, request, targetClient);
+  }
+
+  handleRemoteNotification(message: {
+    messageId: string;
     type: string;
-    action: string;
-    requestId: string;
-    toolName: string;
-    params: any;
-    messageId?: string;
-    threadId?: string;
-    agentInstanceId?: string;
-    agentId?: string;
-    parentAgentInstanceId?: string;
-    parentId?: string;
-  }): Promise<void> {
+    state?: string;
+    reason?: string;
+  }): void {
+    if (message.type !== "searchFileContentApproval") {
+      return;
+    }
+
+    const record = this.pendingRequests.get(message.messageId);
+    if (!record) {
+      return;
+    }
+
+    this.pendingRequests.delete(message.messageId);
+
+    const { agent, request, targetClient } = record;
+    const { requestId, message: payload } = request;
+
+    if (message.state !== "approved") {
+      // Use the notification service for rejection
+      this.notificationService.sendSearchRejection({
+        agent,
+        requestId,
+        query: payload.pattern,
+        path: payload.path || '*',
+        reason: message.reason ?? "Search file content request rejected",
+        targetClient
+      });
+      return;
+    }
+
+    const searchPath = payload.path || '*';
+    PermissionUtils.grantPermission('search_file_content', searchPath, 'read');
+    void this.executeSearchFileContent(agent, request, targetClient);
+  }
+
+  private async executeSearchFileContent(
+    agent: ClientConnection,
+    event: SearchFileContentEvent,
+    targetClient?: TargetClient // Use TargetClient type
+  ): Promise<void> {
+    const { requestId, message } = event;
+    const { pattern, path, include } = message;
+
     try {
-      const { pattern, path, include } = event.params;
-      
-      // Create confirmation message
-      const messageData: SearchConfirmation = {
-        type: "message",
-        actionType: "FILESEARCH",
-        sender: "agent",
-        messageId: event.messageId || event.requestId,
-        threadId: event.threadId || event.requestId,
-        templateType: "FILESEARCH",
-        timestamp: new Date().toISOString(),
-        payload: {
-          type: "search",
-          query: pattern,
-          path: path,
-          results: [],
-          stateEvent: "ASK_FOR_CONFIRMATION"
-        },
-        agentInstanceId: event.agentInstanceId || agent.instanceId,
-        agentId: event.agentId || agent.id,
-        parentAgentInstanceId: event.parentAgentInstanceId,
-        parentId: event.parentId
-      };
-
-      // Check permission using centralized system
-      if (!PermissionUtils.hasPermission('search_file_content', path || '*', 'read')) {
-        // Request permission through confirmation flow
-        this.requestToolPermission(agent, event, 'search_file_content', path || '*', 'read');
-        return;
-      }
-
-      // Execute search operation
       const result = await this.searchService.grepSearch(pattern, { path, include });
       
       if (result.success) {
-        // Send success response
-        const successResponse: SearchSuccess = {
-          ...messageData,
-          payload: {
-            ...messageData.payload,
-            results: result.matches || [],
-            stateEvent: "FILE_READ"
-          }
+        const response = {
+          type: "searchFileContentResponse" as const,
+          requestId,
+          success: true,
+          pattern,
+          path: path || '*',
+          matches: result.matches || [],
+          totalMatches: result.matches?.length || 0,
         };
 
-        // Grant permission for future requests
-        PermissionUtils.grantPermission('search_file_content', path || '*', 'read');
-
         this.connectionManager.sendToConnection(agent.id, {
-          type: 'toolResponse',
-          requestId: event.requestId,
-          success: true,
-          toolName: 'search_file_content',
-          result: result.matches || [],
+          ...response,
+          clientId: agent.id,
+        });
+
+        // Use the notification service for success
+        this.notificationService.sendSearchSuccess({
+          agent,
+          requestId,
+          query: pattern,
+          path: path || '*',
+          results: result.matches || [],
+          targetClient
         });
       } else {
-        // Send error response
-        const errorResponse: SearchError = {
-          ...messageData,
-          payload: {
-            ...messageData.payload,
-            stateEvent: "FILE_READ_ERROR"
-          }
+        const response = {
+          type: "searchFileContentResponse" as const,
+          requestId,
+          success: false,
+          pattern,
+          path: path || '*',
+          message: result.error || "Error searching file content",
+          error: result.error || "Error searching file content",
+          matches: [],
+          totalMatches: 0,
         };
 
         this.connectionManager.sendToConnection(agent.id, {
-          type: 'toolResponse',
-          requestId: event.requestId,
-          success: false,
-          toolName: 'search_file_content',
-          error: result.error || "Error searching file content",
+          ...response,
+          clientId: agent.id,
         });
       }
     } catch (error) {
-      logger.error(`Error handling search_file_content tool: ${error}`);
-      this.connectionManager.sendToConnection(agent.id, {
-        type: 'toolResponse',
-        requestId: event.requestId,
+      logger.error(
+        formatLogMessage("error", "SearchFileContentHandler", `Search file content failed for pattern: ${pattern}`),
+        error
+      );
+
+      const response = {
+        type: "searchFileContentResponse" as const,
+        requestId,
         success: false,
-        toolName: 'search_file_content',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        pattern,
+        path: path || '*',
+        message: "Error searching file content",
+        error: error instanceof Error ? error.message : "Unknown error",
+        matches: [],
+        totalMatches: 0,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
       });
     }
   }
 
-  /**
-   * Request permission for a tool operation
-   */
-  private requestToolPermission(
-    agent: ClientConnection,
-    event: any,
-    toolName: string,
-    resourcePath: string,
-    permissionType: 'read' | 'write' | 'execute' | 'all'
-  ): void {
-    // For now, auto-grant permissions (can be made configurable)
-    // In a real implementation, this would send a confirmation request to the UI
-    PermissionUtils.grantPermission(toolName, resourcePath, permissionType);
-    
-    logger.info(`Auto-granted permission for ${toolName}:${resourcePath}:${permissionType}`);
-    
-    // Re-execute the tool with granted permission
-    this.handleSearchFileContentTool(agent, event);
-  }
+  // Remove the resolveParent method as it's now handled by ClientResolver
+
+  // Remove the requestApproval method as it's now handled by ApprovalService
+
+  // Remove the sendRejection method as it's now handled by NotificationService
+
+  // Remove the sendApprovalNotification method as it's now handled by NotificationService
+
+  // Remove the notifyClients method as it's now handled by NotificationService
 }

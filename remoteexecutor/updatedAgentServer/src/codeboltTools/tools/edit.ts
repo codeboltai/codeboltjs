@@ -211,12 +211,12 @@ class EditToolInvocation extends BaseToolInvocation<EditToolParams, ToolResult> 
       editData = await this.calculateEdit(this.params, abortSignal);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.log(`Error preparing edit: ${errorMsg}`);
+      // console.log(`Error preparing edit: ${errorMsg}`);
       return false;
     }
 
     if (editData.error) {
-      console.log(`Error: ${editData.error.display}`);
+      // console.log(`Error: ${editData.error.display}`);
       return false;
     }
 

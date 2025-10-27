@@ -43,9 +43,31 @@ export interface GlobToolParams {
   respect_gemini_ignore?: boolean;
 }
 
+/**
+ * Extended ToolResult for glob search that includes matches data
+ */
+export interface GlobResult extends ToolResult {
+  /**
+   * Array of file paths found
+   */
+  results?: Array<{
+    path: string;
+  }>;
+
+  /**
+   * Total number of files found
+   */
+  totalFiles?: number;
+
+  /**
+   * Whether the results were truncated
+   */
+  isTruncated?: boolean;
+}
+
 class GlobToolInvocation extends BaseToolInvocation<
   GlobToolParams,
-  ToolResult
+  GlobResult
 > {
   constructor(
     private config: StandaloneToolConfig,
@@ -67,7 +89,7 @@ class GlobToolInvocation extends BaseToolInvocation<
     return description;
   }
 
-  async execute(signal: AbortSignal): Promise<ToolResult> {
+  async execute(signal: AbortSignal): Promise<GlobResult> {
     try {
       // Convert tool params to utility params
       const utilParams: GlobSearchParams = {
@@ -108,6 +130,9 @@ class GlobToolInvocation extends BaseToolInvocation<
             message: rawError,
             type: result.error.type as ToolErrorType,
           },
+          results: [],
+          totalFiles: 0,
+          isTruncated: false
         };
       }
 
@@ -132,6 +157,9 @@ class GlobToolInvocation extends BaseToolInvocation<
         return {
           llmContent: message,
           returnDisplay: `No files found`,
+          results: [],
+          totalFiles: 0,
+          isTruncated: false
         };
       }
 
@@ -153,9 +181,15 @@ class GlobToolInvocation extends BaseToolInvocation<
       }
       resultMessage += `, sorted by modification time (newest first):\n${fileListDescription}`;
 
+      // Format results for UI
+      const formattedResults = matches.map(path => ({ path }));
+
       return {
         llmContent: resultMessage,
         returnDisplay: `Found ${fileCount} matching file(s)`,
+        results: formattedResults,
+        totalFiles: fileCount,
+        isTruncated: false
       };
     } catch (error) {
       const errorMessage =
@@ -169,6 +203,9 @@ class GlobToolInvocation extends BaseToolInvocation<
           message: rawError,
           type: ToolErrorType.GLOB_EXECUTION_ERROR,
         },
+        results: [],
+        totalFiles: 0,
+        isTruncated: false
       };
     }
   }
@@ -177,7 +214,7 @@ class GlobToolInvocation extends BaseToolInvocation<
 /**
  * Implementation of the Glob tool logic
  */
-export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
+export class GlobTool extends BaseDeclarativeTool<GlobToolParams, GlobResult> {
   static readonly Name = 'glob';
   constructor(
     private config: StandaloneToolConfig,
@@ -265,7 +302,7 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
 
   protected createInvocation(
     params: GlobToolParams,
-  ): ToolInvocation<GlobToolParams, ToolResult> {
+  ): ToolInvocation<GlobToolParams, GlobResult> {
     return new GlobToolInvocation(
       this.config,
       params,

@@ -55,7 +55,7 @@ export class Agent implements AgentInterface {
                 prompt = stepResult.nextMessage;
                 
                 if (this.enableLogging) {
-                    console.log('[Agent] Step completed, processing response');
+                    // console.log('[Agent] Step completed, processing response');
                 }
                 
                 const responseExecutor = new ResponseExecutor({
@@ -75,7 +75,7 @@ export class Agent implements AgentInterface {
             }
             
             if (this.enableLogging) {
-                console.log('[Agent] Execution completed successfully');
+                // console.log('[Agent] Execution completed successfully');
             }
             
             return {

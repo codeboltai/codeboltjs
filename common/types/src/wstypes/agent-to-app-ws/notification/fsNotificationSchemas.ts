@@ -155,7 +155,10 @@ export const writeToFileRequestNotificationSchema = fsNotificationBaseSchema.ext
 // Write to File Response
 export const writeToFileResponseNotificationSchema = fsNotificationBaseSchema.extend({
   action: z.literal('writeToFileResult'),
-  content: z.union([z.string(), z.any()]),
+  data: z.object({
+    filePath: z.string(),
+    content: z.string(),
+  }),
   isError: z.boolean().optional(),
 });
 

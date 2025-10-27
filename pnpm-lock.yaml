@@ -743,8 +743,8 @@ importers:
   remoteexecutor/updatedAgentServer:
     dependencies:
       '@arrowai/multillm':
-        specifier: ^1.0.0
-        version: 1.1.51(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
+        specifier: file:///Users/ravirawat/Documents/codeboltai/multillm-node
+        version: file:../multillm-node(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
       '@codebolt/types':
         specifier: workspace:*
         version: link:../../common/types
@@ -989,8 +989,8 @@ packages:
   '@anthropic-ai/vertex-sdk@0.6.4':
     resolution: {integrity: sha512-rMBlO2jF53TfMRmsQMm1bPO2JRUh4jYddjq/OJLj8DSAkfbCrNWhc0yhDed6oLYJg5s+VpDbvlPzMggqHhTfMw==}
 
-  '@arrowai/multillm@1.1.51':
-    resolution: {integrity: sha512-loMCgynuSy1J11iwKW6IRCvttP6dCr4i1xzHnLqiTsGgtxxNIzyRwPLIPFw7+9ImWZKJ2pgHnUZL4gfpPlu0uQ==}
+  '@arrowai/multillm@file:../multillm-node':
+    resolution: {directory: ../multillm-node, type: directory}
 
   '@aws-crypto/crc32@3.0.0':
     resolution: {integrity: sha512-IzSgsrxUcsrejQbPVilIKy16kAT52EwB6zSaI+M3xxIhKh5+aldEyvI+z6erM7TCLB2BJsFrtHjp6/4/sr+3dA==}
@@ -7526,7 +7526,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@arrowai/multillm@1.1.51(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)':
+  '@arrowai/multillm@file:../multillm-node(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)':
     dependencies:
       '@anthropic-ai/bedrock-sdk': 0.12.6
       '@anthropic-ai/sdk': 0.37.0

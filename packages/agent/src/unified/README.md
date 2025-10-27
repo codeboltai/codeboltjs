@@ -134,7 +134,7 @@ const result = await agent.execute({
     tools: availableTools
 });
 
-console.log(result.response);
+// console.log(result.response);
 ```
 
 ### Advanced Usage

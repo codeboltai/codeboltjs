@@ -40,6 +40,11 @@ export interface FileEntry {
   path: string;
 
   /**
+   * Relative path to the file or directory (from workspace root)
+   */
+  relativePath?: string;
+
+  /**
    * Whether this entry is a directory
    */
   isDirectory: boolean;
@@ -144,9 +149,14 @@ export function executeListDirectory(
       try {
         const stats = fs.statSync(fullPath);
         const isDir = stats.isDirectory();
+
+        // Calculate relative path from workspace root
+        const relativePath = path.relative(targetDir, fullPath);
+
         entries.push({
           name: file,
           path: fullPath,
+          relativePath: relativePath.startsWith('..') ? fullPath : relativePath,
           isDirectory: isDir,
           size: isDir ? 0 : stats.size,
           modifiedTime: stats.mtime,

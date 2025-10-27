@@ -31,19 +31,22 @@ export class ConnectionManager {
     connectionId: string,
     ws: WebSocket,
     connectionType: 'app' | 'agent' | 'tui',
+    threadId?:string,
     parentId?: string,
-    // projectInfo?: ProjectInfo,
     instanceId?: string,
-    connectionIdentifier?: string
+    connectionIdentifier?: string,
+
   ): void {
     const connection: BaseConnection = {
       id: connectionId,
       ws,
       type: connectionType,
+      threadId: threadId || '',
       connectedAt: new Date(),
-      // currentProject: projectInfo,
-      instanceId,
-      connectionId: connectionIdentifier
+      instanceId: instanceId || '',
+      connectionId: connectionIdentifier,
+      parentAgentInstanceId: '',
+      parentId: ''
     };
 
     if (connectionType === 'agent') {

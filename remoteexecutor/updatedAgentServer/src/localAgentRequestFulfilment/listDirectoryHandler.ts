@@ -1,10 +1,14 @@
+import { v4 as uuidv4 } from "uuid";
+
 import type { ClientConnection } from "../types";
+import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import {
   FolderReadConfirmation,
@@ -13,10 +17,36 @@ import {
   FolderReadRejected,
 } from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
+export interface ListDirectoryEvent {
+  type: "fsEvent";
+  action: "listDirectory";
+  requestId: string;
+  message: {
+    path: string;
+  };
+}
+
+type PendingRequest = {
+  agent: ClientConnection;
+  request: ListDirectoryEvent;
+  targetClient?: TargetClient;
+};
+
+export interface ListDirectoryConfirmation {
+  type: "confirmationResponse";
+  messageId: string;
+  userMessage: string;
+}
+
 export class ListDirectoryHandler {
   private connectionManager = ConnectionManager.getInstance();
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
+  private approvalService = new ApprovalService();
+  private notificationService = new NotificationService();
+  private clientResolver = new ClientResolver();
+
+  private pendingRequests = new Map<string, PendingRequest>();
 
   constructor() {
     // Initialize FileServices with default configuration
@@ -32,125 +62,208 @@ export class ListDirectoryHandler {
     this.permissionManager.initialize();
   }
 
-  /**
-   * Handle list_directory tool with confirmation
-   */
-  async handleListDirectoryTool(agent: ClientConnection, event: {
-    type: string;
-    action: string;
-    requestId: string;
-    toolName: string;
-    params: any;
-    messageId?: string;
-    threadId?: string;
-    agentInstanceId?: string;
-    agentId?: string;
-    parentAgentInstanceId?: string;
-    parentId?: string;
-  }): Promise<void> {
-    try {
-      const { path } = event.params;
-      
-      // Create confirmation message
-      const messageData: FolderReadConfirmation = {
-        type: "message",
-        actionType: "FOLDERREAD",
-        sender: "agent",
-        messageId: event.messageId || event.requestId,
-        threadId: event.threadId || event.requestId,
-        templateType: "FOLDERREAD",
-        timestamp: new Date().toISOString(),
-        payload: {
-          type: "folder",
-          path: path,
-          content: [],
-          stateEvent: "ASK_FOR_CONFIRMATION"
-        },
-        agentInstanceId: event.agentInstanceId || agent.instanceId,
-        agentId: event.agentId || agent.id,
-        parentAgentInstanceId: event.parentAgentInstanceId,
-        parentId: event.parentId
+  async handleListDirectory(agent: ClientConnection, event: ListDirectoryEvent): Promise<void> {
+    const { requestId, message } = event;
+    const { path } = message;
+
+    const targetClient = this.clientResolver.resolveParent(agent);
+
+    if (!targetClient) {
+      await this.executeListDirectory(agent, event);
+      return;
+    }
+
+    // Check if permission exists using centralized permission system
+    if (PermissionUtils.hasPermission('list_directory', path, 'read')) {
+      await this.executeListDirectory(agent, event, targetClient);
+      return;
+    }
+
+    const messageId = uuidv4();
+    this.pendingRequests.set(messageId, { agent, request: event, targetClient });
+
+    this.approvalService.requestFolderReadApproval({
+      agent,
+      targetClient,
+      messageId,
+      requestId,
+      path
+    });
+  }
+
+  async handleConfirmation(message: ListDirectoryConfirmation): Promise<void> {
+    const record = this.pendingRequests.get(message.messageId);
+
+    if (!record) {
+      logger.warn(
+        formatLogMessage(
+          "warn",
+          "ListDirectoryHandler",
+          `No pending list directory request for ${message.messageId}`
+        )
+      );
+      return;
+    }
+
+    this.pendingRequests.delete(message.messageId);
+
+    const { agent, request, targetClient } = record;
+    const { requestId, message: payload } = request;
+
+    if (message.userMessage?.toLowerCase() !== "approve") {
+      const response = {
+        type: "listDirectoryResponse" as const,
+        requestId,
+        success: false,
+        path: payload.path,
+        message: message.userMessage || "List directory request rejected",
+        error: message.userMessage || "Rejected by user",
+        entries: [],
+        totalCount: 0,
       };
 
-      // Check permission using centralized system
-      if (!PermissionUtils.hasPermission('list_directory', path, 'read')) {
-        // Request permission through confirmation flow
-        this.requestToolPermission(agent, event, 'list_directory', path, 'read');
-        return;
-      }
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
 
-      // Execute directory listing
+      this.notificationService.sendFolderReadRejection({
+        agent,
+        requestId,
+        path: payload.path,
+        reason: message.userMessage || "List directory request rejected",
+        targetClient
+      });
+      return;
+    }
+
+    PermissionUtils.grantPermission('list_directory', payload.path, 'read');
+    await this.executeListDirectory(agent, request, targetClient);
+  }
+
+  handleRemoteNotification(message: {
+    messageId: string;
+    type: string;
+    state?: string;
+    reason?: string;
+  }): void {
+    if (message.type !== "listDirectoryApproval") {
+      return;
+    }
+
+    const record = this.pendingRequests.get(message.messageId);
+    if (!record) {
+      return;
+    }
+
+    this.pendingRequests.delete(message.messageId);
+
+    const { agent, request, targetClient } = record;
+    const { requestId, message: payload } = request;
+
+    if (message.state !== "approved") {
+      const response = {
+        type: "listDirectoryResponse" as const,
+        requestId,
+        success: false,
+        path: payload.path,
+        message: message.reason || "List directory request rejected",
+        error: message.reason || "Rejected by user",
+        entries: [],
+        totalCount: 0,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
+      });
+
+      this.notificationService.sendFolderReadRejection({
+        agent,
+        requestId,
+        path: payload.path,
+        reason: message.reason ?? "List directory request rejected",
+        targetClient
+      });
+      return;
+    }
+
+    PermissionUtils.grantPermission('list_directory', payload.path, 'read');
+    void this.executeListDirectory(agent, request, targetClient);
+  }
+
+  private async executeListDirectory(
+    agent: ClientConnection,
+    event: ListDirectoryEvent,
+    targetClient?: { id: string; type: "app" | "tui" }
+  ): Promise<void> {
+    const { requestId, message } = event;
+    const { path } = message;
+
+    try {
       const result = await this.fileServices.listDirectory(path);
       
       if (result.success) {
-        // Send success response
-        const successResponse: FolderReadSuccess = {
-          ...messageData,
-          payload: {
-            ...messageData.payload,
-            content: (result.entries || []).map(entry => entry.name),
-            stateEvent: "FILE_READ"
-          }
+        const response = {
+          type: "listDirectoryResponse" as const,
+          requestId,
+          success: true,
+          path,
+          entries: result.entries || [],
+          totalCount: result.entries?.length || 0,
         };
 
-        // Grant permission for future requests
-        PermissionUtils.grantPermission('list_directory', path, 'read');
-
         this.connectionManager.sendToConnection(agent.id, {
-          type: 'toolResponse',
-          requestId: event.requestId,
-          success: true,
-          toolName: 'list_directory',
-          result: result.entries || [],
+          ...response,
+          clientId: agent.id,
+        });
+
+        this.notificationService.sendFolderReadSuccess({
+          agent,
+          requestId,
+          path,
+          entries: (result.entries || []).map(entry => entry.name),
+          targetClient
         });
       } else {
-        // Send error response
-        const errorResponse: FolderReadError = {
-          ...messageData,
-          payload: {
-            ...messageData.payload,
-            content: [],
-            stateEvent: "FILE_READ_ERROR"
-          }
+        const response = {
+          type: "listDirectoryResponse" as const,
+          requestId,
+          success: false,
+          path,
+          message: result.error || "Error listing directory",
+          error: result.error || "Error listing directory",
+          entries: [],
+          totalCount: 0,
         };
 
         this.connectionManager.sendToConnection(agent.id, {
-          type: 'toolResponse',
-          requestId: event.requestId,
-          success: false,
-          toolName: 'list_directory',
-          error: result.error || "Error listing directory",
+          ...response,
+          clientId: agent.id,
         });
       }
     } catch (error) {
-      logger.error(`Error handling list_directory tool: ${error}`);
-      this.connectionManager.sendToConnection(agent.id, {
-        type: 'toolResponse',
-        requestId: event.requestId,
+      logger.error(
+        formatLogMessage("error", "ListDirectoryHandler", `List directory failed for ${path}`),
+        error
+      );
+
+      const response = {
+        type: "listDirectoryResponse" as const,
+        requestId,
         success: false,
-        toolName: 'list_directory',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        path,
+        message: "Error listing directory",
+        error: error instanceof Error ? error.message : "Unknown error",
+        entries: [],
+        totalCount: 0,
+      };
+
+      this.connectionManager.sendToConnection(agent.id, {
+        ...response,
+        clientId: agent.id,
       });
     }
   }
 
-  /**
-   * Request permission for a tool operation
-   */
-  private requestToolPermission(
-    agent: ClientConnection,
-    event: any,
-    toolName: string,
-    resourcePath: string,
-    permissionType: 'read' | 'write' | 'execute' | 'all'
-  ): void {
-    // For now, auto-grant permissions (can be made configurable)
-    // In a real implementation, this would send a confirmation request to the UI
-    PermissionUtils.grantPermission(toolName, resourcePath, permissionType);
-    
-    logger.info(`Auto-granted permission for ${toolName}:${resourcePath}:${permissionType}`);
-    
-    // Re-execute the tool with granted permission
-    this.handleListDirectoryTool(agent, event);
-  }
 }

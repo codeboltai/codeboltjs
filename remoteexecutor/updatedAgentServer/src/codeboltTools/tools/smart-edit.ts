@@ -180,11 +180,8 @@ async function fixLLMEditWithInstruction(
       requestId: `smart-edit-req-${Date.now()}`
     };
 
-    // const llmResponse = await llmService.handleAskLLM(llmMessage);
-    const llmResponse = {
-      status: 200,
-      message: '{"search": "corrected search string that will match the file exactly", "replace": "the replacement string (usually same as original)", "noChangesRequired": false, "explanation": "explanation of what was fixed or why no changes are needed"}'
-    };
+    const llmResponse:any = {}//await llmService.handleAskLLM(llmMessage);
+
     if (llmResponse.status === 200 && llmResponse.message) {
       try {
         // Clean the response to extract JSON if wrapped in markdown or text

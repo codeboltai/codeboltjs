@@ -63,7 +63,30 @@ export class ToolRegistry {
     });
     return schemas;
   }
+/**
+   * Get function declarations for all tools (backward compatibility)
+   */
+getFunctionDeclarations(): any[] {
+  const declarations: any[] = [];
+  this.tools.forEach((tool) => {
+    declarations.push((tool as any).genAISchema);
+  });
+  return declarations;
+}
 
+/**
+ * Get function declarations for specific tools (backward compatibility)
+ */
+getFunctionDeclarationsFiltered(toolNames: string[]): any[] {
+  const declarations: any[] = [];
+  for (const name of toolNames) {
+    const tool = this.tools.get(name);
+    if (tool) {
+      declarations.push((tool as any).genAISchema);
+    }
+  }
+  return declarations;
+}
   /**
    * Get OpenAI tool schemas for specific tools (primary format)
    */

@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 // Base project/setting message schema
 export const projectEventBaseSchema = z.object({
-  type: z.literal('settingEvent'),
+  type: z.literal('projectEvent'),
   action: z.string(),
   requestId: z.string(),
 });
