@@ -18,6 +18,7 @@ import type {
     UpdateTaskEvent,
     DeleteTaskEvent,
     CompleteTaskEvent,
+    StartTaskEvent,
     CanTaskStartEvent,
     GetTasksDependentOnEvent,
     GetTasksReadyToStartEvent,
@@ -37,6 +38,7 @@ import type {
     CompleteStepOptions,
     DeleteTaskOptions,
     CompleteTaskOptions,
+    StartTaskOptions,
     CanTaskStartOptions,
     GetTasksDependentOnOptions,
     GetTasksReadyToStartOptions,
@@ -72,6 +74,7 @@ import type {
     CompleteStepResponse,
     UpdateTaskResponse,
     CompleteTaskResponse,
+    StartTaskResponse,
     GetTasksDependentOnResponse,
     GetTasksReadyToStartResponse,
     GetTaskDependencyChainResponse,
@@ -309,6 +312,29 @@ const taskService = {
         return cbws.messageManager.sendAndWaitForResponse(
             event,
             'completeTaskResponse'
+        );
+    },
+
+    /**
+     * Starts a task.
+     * @param {string} taskId - The task ID to start
+     * @returns {Promise<StartTaskResponse>} A promise that resolves with the task start response
+     */
+    startTask: async (taskId: string): Promise<StartTaskResponse> => {
+        const requestId = randomUUID();
+        
+        const event: StartTaskEvent = {
+            type: 'taskEvent',
+            action: 'startTask',
+            requestId,
+            message: {
+                taskId
+            }
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'startTaskResponse'
         );
     },
 
@@ -670,6 +696,7 @@ export type {
     GetActiveStepOptions,
     DeleteTaskOptions,
     CompleteTaskOptions,
+    StartTaskOptions,
     CanTaskStartOptions,
     GetTasksDependentOnOptions,
     GetTasksReadyToStartOptions,
@@ -697,6 +724,7 @@ export type {
     CompleteStepResponse,
     UpdateTaskResponse,
     CompleteTaskResponse,
+    StartTaskResponse,
     GetTasksDependentOnResponse,
     GetTasksReadyToStartResponse,
     GetTaskDependencyChainResponse,

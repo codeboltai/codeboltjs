@@ -68,6 +68,14 @@ export class GitWorktreeProviderService
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
+    
+    // Initialize base repo path from initVars
+    const projectPath = initVars.projectPath as string | undefined;
+    if (!projectPath) {
+      throw new Error('Project path is not available in initVars');
+    }
+    this.baseRepoPath = projectPath;
+    
     const result = await super.onProviderStart(initVars);
     this.logger.log('Started Environment with :',  this.worktreeInfo.path ?? result.workspacePath);
 
@@ -236,17 +244,13 @@ export class GitWorktreeProviderService
   }
 
   protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
-    // Get the base repository path from current working directory
-    const projectPath = process.cwd();
-    if (!projectPath) {
-      throw new Error('Project path is not available');
+    // Use the base repository path that was set from initVars in onProviderStart
+    if (!this.baseRepoPath) {
+      throw new Error('Base repository path is not available');
     }
-
-    // Store the base repo path for worktree operations
-    this.baseRepoPath = projectPath;
     
     // Construct the worktree path
-    const worktreePath = path.join(projectPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
+    const worktreePath = path.join(this.baseRepoPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
     
     // Use the worktree path as the project path (this is the actual worktree project path)
     this.state.projectPath = worktreePath;
