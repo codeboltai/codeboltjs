@@ -1,0 +1,199 @@
+test:
+  prompt: |
+    want to build an AI agent like cursor where the user will get up a message from LLM. 
+    This is for code bolt AI. The user will get the message from LLM and then it will call the LLM with the user message and additional prompts and then the AI can ask the agent to perform an action. The agent can ask code bolt to perform a particular action using the tools provided below.
+    When the agent receives the response from the tools, then it sends the response back to the LLM asking the AI to tell what the next step is. In this way, the agent will typically work. The agent will also keep in mind the context of the files and the agent can get the context of the files using the tools mentioned below. 
+    you need any function details please use the ```get_tools_details tool``` to get the details of the function and then use the function in your code. 
+  
+    The agent has the following structure:
+    - The entrypoint of agent is codebolt.onUserMessage(message).
+    For Example:
+    
+    ```
+    import { codebolt } from "codebolt";
+    
+    codebolt.onUserMessage(message){
+        // perform action on message
+    }
+    ```
+    - This is called when the user sends a message to your agent. inside this function you can perform actions on the message.
+    - There are multiple actions that you can perform on the message which are listed below. Please tell me in response that what action you want to know in detail.
+    Actions list:
+    - StartAgent - Starts an agent for the specified task with a given agent ID .
+    - FindAgent - Finds agents for a specified task with filtering options by location, source and maximum results.
+    - GetAgentsList - Lists available agents of a specific type (downloaded, local, or all).
+    - GetAgentsDetail - Retrieves detailed information for a list of specified agents .
+    - StartAgent - Starts an agent for the specified task with a given agent ID .
+    - newPage - Creates a new browser page or tab for web automation.
+    - getUrl - Gets the current URL of the active browser page.
+    - goToPage - Navigates the browser to a specific URL.
+    - screenshot - Captures a screenshot of the current page as base64 image data.
+    - getHTML - Retrieves the complete HTML source code of the current page.
+    - getMarkdown - Converts the current page content to Markdown format.
+    - getContent - Extracts the visible text content from the current page.
+    - extractText - Extracts clean, formatted text from the current page.
+    - getSnapShot - Takes a visual snapshot of the current page (similar to screenshot).
+    - getBrowserInfo - Gets detailed browser information including viewport, performance, and page statistics.
+    - scroll - Scrolls the page in a specified direction by a given number of pixels.
+    - type - Types text into a specific input element on the page.
+    - click - Clicks on a specific element using its element ID.
+    - enter - Simulates pressing the Enter key on the current page.
+    - search - Performs a search by typing a query into a search input element.
+    - close - Closes the current browser page or tab.
+    - getPDF - Retrieves PDF content from the current page.
+    - pdfToText - Converts PDF content on the current page to readable text.
+    - addToAgentState - Adds a key-value pair to the agent's state on the server via WebSocket.
+    - getAgentState - Retrieves the current state of the agent from the server via WebSocket.
+    - getApplicationState - Retrieves the current application state from the server via WebSocket.
+    - getProjectState - Retrieves the current project state from the server via WebSocket.
+    - updateProjectState - Updates the project state on the server via WebSocket.
+    - getChatHistory - Retrieves the chat history from the server.
+    - sendMessage - Sends a message through the WebSocket connection.
+    - stopProcess - Stops the ongoing process. Sends a specific message to the server to stop the process.
+    - processFinished - Notifies the server that a process has finished.
+    - waitforReply - Waits for a reply to a sent message.
+    - sendConfirmationRequest - Sends a confirmation request to the server with customizable buttons.
+    - askQuestion - Asks a question to the user.
+    - sendNotificationEvent - Sends a notification event to the server.
+    - getAstTreeInFile - Generates an Abstract Syntax Tree (AST) for a given file.
+    - getClassesInFile - Retrieves the classes in a given file.
+    - getFunctionsinClass - Retrieves the functions in a given class within a file.
+    - getAllFilesAsMarkDown - Retrieves all files as Markdown.
+    - getJsTree - Retrieves a JavaScript tree structure for a given file path.
+    - getMatcherList - Retrieves the list of matchers.
+    - matchDetail - Retrieves details of a match.
+    - performMatch - Performs a matching operation based on the provided matcher definition and problem patterns.
+    - addKnowledge - Adds a key-value pair to the in-memory database.
+    - getKnowledge - Retrieves a value from the in-memory database by key.
+    - debug - Sends a log message to the debug websocket and waits for a response.
+    - openDebugBrowser - Requests to open a debug browser at the specified URL and port.
+    - createFile - Creates a new file with the specified name and content. Supports creating files with complex content including code definitions.
+    - createFolder - Creates a new folder at the specified location. Useful for organizing project structures and temporary workspaces.
+    - readFile - Reads the contents of a file and returns it as a string. Works with various file types including text, code, and configuration files.
+    - updateFile - Updates an existing file with new content. Requires separate filename and path parameters.
+    - writeToFile - Creates or updates a file and writes data to it. Uses a single relative path parameter and overwrites existing content.
+    - deleteFile - Deletes a specified file from the filesystem. Includes proper error handling and cleanup workflows.
+    - deleteFolder - Deletes a specified folder and its contents. Requires the folder to be empty before deletion.
+    - listFile - Lists all files in the specified directory. Supports recursive listing and enhanced file information modes.
+    - listCodeDefinitionNames - Extracts and lists all code definition names (functions, classes, methods) from source files within a project.
+    - searchFiles - Searches for files matching a regex pattern within file contents. Supports advanced regex patterns and file type filtering.
+    - init - Initializes a new Git repository. Can be used in the current directory or at a specified path.
+    - status - Retrieves the status of the Git repository. Shows working tree status including staged, unstaged, and untracked files.
+    - add - Adds changes in the local repository to the staging area. Can add specific files or all changes using addAll().
+    - commit - Commits the staged changes in the local repository with the given commit message.
+    - branch - Creates a new branch in the Git repository. Essential for feature development and parallel work streams.
+    - checkout - Checks out a branch or commit in the Git repository. Switches the working directory to the specified branch.
+    - logs - Retrieves the commit logs for the Git repository. Shows commit history with details like hash, message, author, and date.
+    - diff - Retrieves the diff of changes for a specific commit in the local repository.
+    - clone - Clones a Git repository from the given URL to the specified path.
+    - pull - Pulls the latest changes from the remote repository to the local repository.
+    - push - Pushes local repository changes to the remote repository.
+    - inference - Sends an inference request to the LLM and returns the model's response. The model is selected based on the provided llmrole parameter.
+    - parseJSON - Parses JSON string and returns a result object with success flag and parsed data or error.
+    - parseXML - Parses XML string and returns a result object with success flag and parsed data.
+    - parseCSV - Parses CSV string and returns a result object with success flag and parsed array of objects.
+    - parseText - Parses text string and returns a result object with success flag and parsed lines array.
+    - getProjectSettings - Placeholder for a method to get project settings.
+    - getProjectPath - Retrieves the path of the current project.
+    - getRepoMap - Retrieves the repository map for the current project.
+    - runProject - Runs the current project.
+    - getEditorFileStatus - Retrieves the current status of files in the editor.
+    - add_file - Adds a file to the CodeBolt File System.
+    - init - Initializes the CodeBolt File System Module.
+    - retrieve_related_knowledge - Retrieves related knowledge for a given query and filename.
+    - addTask - Adds a task using a WebSocket message.
+    - getTasks - Retrieves all tasks using a WebSocket message.
+    - updateTask - Updates an existing task using a WebSocket message.
+    - eventEmitter -
+    - executeCommand - Executes a given command and returns the result. Listens for messages from the WebSocket that indicate the output, error, or finish state of the executed command and resolves the promise accordingly.
+    - executeCommandRunUntilError - Executes a given command and keeps running until an error occurs. Listens for messages from the WebSocket and resolves the promise when an error is encountered.
+    - executeCommandWithStream -
+    - sendManualInterrupt -
+    - addToken - Adds a token to the system and returns tokenized array.
+    - getToken - Retrieves a token by its key from the system.
+    - getEnabledToolBoxes - Retrieves the list of currently enabled toolboxes.
+    - getLocalToolBoxes - Gets toolboxes available in the local environment.
+    - getMentionedToolBoxes - Extracts mentioned toolboxes from a user message.
+    - getAvailableToolBoxes - Retrieves all available toolboxes from the registry.
+    - searchAvailableToolBoxes - Searches available toolboxes by name or description.
+    - listToolsFromToolBoxes - Lists all tools contained in specified toolboxes.
+    - configureToolBox - Configures settings for a specific toolbox.
+    - getTools - Retrieves detailed information about specific tools.
+    - executeTool - Executes a specific tool from a toolbox.
+    - addVectorItem - Adds a new vector item to the vector database.
+    - getVector - Retrieves a vector from the vector database based on the provided key.
+    - queryVectorItem - Queries a vector item from the vector database based on the provided key.
+
+    - A typical logic of an agent would be the following:
+    ```
+    codebolt.onUserMessage(message){
+        // get all the data from the message object and create a prompt for the llm
+        // call the llm with the prompt
+        // get the response from the llm and find out which action to perform or which tool to run these tools are actions defined above
+        // these tools include things like performing actions on code, like read write file execute command etc. or sending messages to the user like sendMessageToUser(message)
+        // run those tools locally using the codebolt library actions above and get the response
+        // send those response back to the llm in a formatted way to the llm.
+        // keep repeating the process untill the llm sends a completion message.
+        // once you get the completion message then end the loop and function.
+    }
+    ```
+    
+    This is the core agentic loop. I will show you an example of how to use the codebolt library to perform actions on the message.
+    ```
+    agentic loop example:
+    async function startTask(task: string, images: string[] = []) {
+              // Reset state
+              apiConversationHistory = [];
+              consecutiveMistakeCount = 0;
+              isAborted = false;
+              
+              // Get project path
+              const { projectPath } = await codebolt.project.getProjectPath();
+              if (projectPath) {
+                  cwd = projectPath;
+              }
+              
+              await sendMessageToUI(task, "text");
+              
+              // Format initial content
+              const imageBlocks = formatImagesIntoBlocks(images);
+              let userContent: UserContent = [
+                  { type: "text", text: `<task>\n${task}\n</task>` },
+                  ...imageBlocks,
+              ];
+              
+              // Main processing loop
+              let includeFileDetails = true;
+              while (!isAborted) {
+                  const didEndLoop = await processApiResponse(userContent);
+                  
+                  if (didEndLoop) {
+                      break;
+                  }
+                  
+                  // Continue with next iteration
+                  userContent = [{
+                      type: "text",
+                      text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, proceed with the next step of the task."
+                  }];
+                  
+                  consecutiveMistakeCount++;
+                  includeFileDetails = false;
+              }
+    }
+    
+    
+    ```
+    
+    The user might have certain requirements like they would want to read a file first and then do an agentic loop along with the file contents, or they might want to write a file at the end of each step of each agentic loop.
+    in that ways you can put their custom code in the agentic loop.
+
+
+    Full example agent is given below:
+
+    ====
+    
+    
+    
+
+   

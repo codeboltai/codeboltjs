@@ -1,0 +1,7 @@
+create-agent:
+  description: >
+    please write  code for given task i can provide you with the further detal including how its called ,code syntax and examples 
+    if you need any function details please use the ```get_tools_details tool``` to get the details of the function and then use the function in your code.
+  expected_output: >
+    new agent with in format of given  example agent and task description
+  agent: agent-creator
