@@ -274,7 +274,7 @@ async function getComponentDetails(requiredComponents) {
 /**
  * Step 5: Generate the final Codebolt AI agent code
  */
-async function generateCodeboltAgent(userRequest, highLevelPlan, componentDetails) {
+async function generateCodeboltAgent(userRequest, highLevelPlan, componentDetails,reqMessage) {
     try {
         
     
@@ -288,7 +288,7 @@ ${Object.entries(comp.examples || {}).map(([key, value]) => `- ${key}: ${value}`
 `).join('\n');
 
     const systemPrompt = `
-You are an expert Codebolt AI agent developer. Your task is to generate a complete Codebolt AI agent based on the user request, high-level plan, and available API components.
+You are an expert Codebolt AI agent developer. Your task is to generate a complete Codebolt AI agent based on the user request in typescript, high-level plan, and available API components.
 
 USER REQUEST:
 "${userRequest}"
@@ -298,10 +298,10 @@ ${highLevelPlan}
 
 AVAILABLE API COMPONENTS:
 ${componentsInfo}
-IMPORTANT NOTE: You **MUST** create your agent inside the `.codeboltAgent/agents` folder. Place your complete agent definition there for proper Codebolt project structure and discoverability. This is required for correct deployment and functioning.
+IMPORTANT NOTE: You **MUST** create your agent inside the \`.codeboltAgents/agents/<meaningful-name>\` folder. with typescript node js. Place your complete agent definition there for proper Codebolt project structure and discoverability. This is required for correct deployment and functioning.
 
 Example:
-- Path: `.codeboltAgent/agents/`
+- Path: \`.codeboltAgents/agents/<meaningful-name>\`
 
 
 Generate a complete Codebolt AI agent that implements the requested functionality. The agent should:
@@ -436,12 +436,16 @@ The agent has the following structure:
     The user might have certain requirements like they would want to read a file first and then do an agentic loop along with the file contents, or they might want to write a file at the end of each step of each agentic loop.
     in that ways you can put their custom code in the agentic loop.
 
-
     Full example agent is given below:
-
     ====
     ${fs.readFileSync('./exampleAgent.md', 'utf8')}
     ====
+
+    Must Always first generate codeboltagent.yaml 
+    here is sample yaml file
+    ===
+    ${fs.readFileSync('./codeboltagent.yaml')}
+    ===
 `;
 
 console.log(systemPrompt)
@@ -487,7 +491,7 @@ console.log(systemPrompt)
             ],
             baseSystemPrompt: systemPrompt
         });
-        let prompt = await promptGenerator.processMessage(userRequest);
+        let prompt = await promptGenerator.processMessage(reqMessage);
         let completed = false;
         do {
             let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })

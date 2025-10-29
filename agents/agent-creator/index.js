@@ -47,7 +47,7 @@ codebolt.onMessage(async (reqMessage) => {
       // Step 5: Generate Codebolt AI agent
       console.log('\n🤖 Step 5: Generating Codebolt AI agent...');
       codebolt.chat.sendMessage("Generating Codebolt AI agent...");
-      const codeboltAgent = await generateCodeboltAgent(userRequest, highLevelPlan, componentDetails);
+      const codeboltAgent = await generateCodeboltAgent(userRequest, highLevelPlan, componentDetails,reqMessage);
       console.log(codeboltAgent);
       // codebolt.chat.sendMessage(codeboltAgent);
       console.log('✅ Codebolt AI agent generated successfully');
