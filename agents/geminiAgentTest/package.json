@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/testAgent",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "TestAgent",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,9 +20,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agent": "workspace:*",
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/agent": "latest",
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/types": "latest",
     "zod": "^3.22.4"
   },
   "devDependencies": {

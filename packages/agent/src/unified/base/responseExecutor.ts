@@ -226,6 +226,9 @@ export class ResponseExecutor implements AgentResponseExecutor {
                         }
                     }
                 }
+                else{
+                    this.completed=true
+                }
 
                 if (taskCompletedBlock) {
                     let [_, result] = await this.executeTool(

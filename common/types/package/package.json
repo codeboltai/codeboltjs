@@ -75,7 +75,7 @@
     "lint": "eslint src/**/*.ts --no-warn-ignored",
     "lint:fix": "eslint src/**/*.ts --fix",
     "check-no-any": "node scripts/check-no-any.js && npm run type-check && npm run lint",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run check-no-any && npm run build"
   },
   "keywords": [
     "codebolt",

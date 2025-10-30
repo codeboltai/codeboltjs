@@ -1,5 +1,11 @@
 # @codebolt/codeboltjs
 
+## 2.2.5
+
+### Patch Changes
+
+- 38cd290: new version
+
 ## 2.2.2
 
 ### Patch Changes
