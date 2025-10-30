@@ -1,5 +1,27 @@
 # @codebolt/agent
 
+## 4.0.0
+
+### Major Changes
+
+- agent updated
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.20
+
+## 3.0.0
+
+### Major Changes
+
+- 083e3bd: agent updated
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.19
+
 ## 2.2.5
 
 ### Patch Changes

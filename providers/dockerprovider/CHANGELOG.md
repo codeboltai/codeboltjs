@@ -1,22 +1,15 @@
-# @codebolt/provider
-
-## 1.0.3
-
-### Patch Changes
-
-- Updated dependencies
-  - @codebolt/types@1.0.20
+# dockerprovideragent
 
 ## 1.0.2
 
 ### Patch Changes
 
 - Updated dependencies
-  - @codebolt/types@1.0.19
+  - @codebolt/types@1.0.20
 
 ## 1.0.1
 
 ### Patch Changes
 
-- Updated dependencies [38cd290]
-  - @codebolt/codeboltjs@2.2.5
+- Updated dependencies
+  - @codebolt/types@1.0.19

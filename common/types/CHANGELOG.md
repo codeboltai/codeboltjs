@@ -1,5 +1,17 @@
 # @codebolt/types
 
+## 1.0.20
+
+### Patch Changes
+
+- Updated types package with latest changes
+
+## 1.0.19
+
+### Patch Changes
+
+- Updated types package with latest changes
+
 ## 1.0.16
 
 ### Patch Changes
