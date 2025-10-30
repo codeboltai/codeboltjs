@@ -307,14 +307,14 @@ importers:
   agents/geminiAgentTest:
     dependencies:
       '@codebolt/agent':
-        specifier: latest
-        version: 2.2.5(@codebolt/codeboltjs@2.2.5(bufferutil@4.0.9)(utf-8-validate@6.0.5))
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: latest
-        version: 2.2.5(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
       '@codebolt/types':
-        specifier: latest
-        version: 1.0.18
+        specifier: workspace:*
+        version: link:../../common/types
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1969,14 +1969,6 @@ packages:
 
   '@cloudflare/workers-types@4.20251008.0':
     resolution: {integrity: sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA==}
-
-  '@codebolt/agent@2.2.5':
-    resolution: {integrity: sha512-eHs1HXC5VEvleN4mI/MdIwWG5ZTdr/RauOSO0q8djpx1cVOPZnJIIoUVMxpdyeF/5Ze4oHwaIH0EKKJJGT4UEA==}
-    peerDependencies:
-      '@codebolt/codeboltjs': 2.2.5
-
-  '@codebolt/codeboltjs@2.2.5':
-    resolution: {integrity: sha512-fNVxwdQc3eJC+THGuzgZ7ZEEgSvCQRuQhXal1zpWoOUNt8TuHt821+Q5T7Ci7l3y5rvjG1in+zxKOmwh9Jad6g==}
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
@@ -9109,32 +9101,6 @@ snapshots:
     optional: true
 
   '@cloudflare/workers-types@4.20251008.0': {}
-
-  '@codebolt/agent@2.2.5(@codebolt/codeboltjs@2.2.5(bufferutil@4.0.9)(utf-8-validate@6.0.5))':
-    dependencies:
-      '@codebolt/codeboltjs': 2.2.5(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      '@codebolt/types': 1.0.18
-      js-yaml: 4.1.0
-      zod: 3.25.76
-
-  '@codebolt/codeboltjs@2.2.5(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
-    dependencies:
-      '@codebolt/types': 1.0.18
-      '@types/uuid': 10.0.0
-      buffer: 6.0.3
-      execa: 9.6.0
-      js-yaml: 4.1.0
-      os-browserify: 0.3.0
-      path-browserify: 1.0.1
-      stream-browserify: 3.0.0
-      timers: 0.1.1
-      util: 0.12.5
-      uuid: 11.1.0
-      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   '@codebolt/globby@1.0.1':
     dependencies:

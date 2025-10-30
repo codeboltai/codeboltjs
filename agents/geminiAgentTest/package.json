@@ -20,9 +20,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agent": "latest",
-    "@codebolt/codeboltjs": "latest",
-    "@codebolt/types": "latest",
+    "@codebolt/agent": "workspace:*",
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/types": "workspace:*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
