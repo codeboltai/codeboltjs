@@ -203,12 +203,16 @@ export class WebSocketServer {
 
     // Priority 1: Auto-register agent if agentId and parentId are provided
     if (params.agentId && params.parentId) {
+      // Get project info from parent app connection instead of params
+      const parentConnection = this.connectionManager.getConnection(params.parentId);
+      const projectInfo = parentConnection?.currentProject;
+      
       let message = {
         type: 'agentStarted',
         agentId: params.agentId,
         parentId: params.parentId,
         instanceId,
-        projectInfo: this.createProjectInfo(params)
+        projectInfo
       };
       
       // Create a temporary connection object for the router
@@ -224,26 +228,26 @@ export class WebSocketServer {
       
       this.agentMessageRouter.handleAgentRequestMessage(tempConnection, message as any);
 
-      this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId,params.threadId);
+      this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId, params.threadId, projectInfo);
       return { clientId: params.agentId };
     }
 
     // Priority 2: Auto-register app if clientType is 'app'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP) {
       const connectionId = params.appId || fallbackClientId;
-      this.registerApp(ws, connectionId, 'auto', instanceId);
+      this.registerApp(ws, connectionId, 'auto', undefined, instanceId, this.createProjectInfo(params));
       return { clientId: connectionId };
     }
 
     // Priority 3: Auto-register TUI if clientType is 'tui'
     if (params.clientType === WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI) {
       const connectionId = params.tuiId || fallbackClientId;
-      this.registerTui(ws, connectionId, 'auto', instanceId);
+      this.registerTui(ws, connectionId, 'auto', undefined, instanceId, this.createProjectInfo(params));
       return { clientId: connectionId };
     }
 
     // Default: Register as app if no specific parameters provided
-    this.registerApp(ws, fallbackClientId, 'auto', instanceId);
+    this.registerApp(ws, fallbackClientId, 'auto', undefined, instanceId, this.createProjectInfo(params));
     return { clientId: fallbackClientId };
   }
 
@@ -257,7 +261,8 @@ export class WebSocketServer {
     registrationType: RegistrationType = 'auto',
     agentInstanceId?: string,
     connectionId?: string,
-    threadId?:string
+    threadId?:string,
+    projectInfo?: ProjectInfo
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering agent: ${agentId}${parentId ? ` with parent: ${parentId}` : ''} : ''}${agentInstanceId ? ` with agentInstanceId: ${agentInstanceId}` : ''}`));
@@ -270,7 +275,7 @@ export class WebSocketServer {
       parentId,
       agentInstanceId,
       connectionId,
-
+      projectInfo
     );
 
     this.sendRegistrationConfirmation(
@@ -292,13 +297,14 @@ export class WebSocketServer {
     appId: string,
     registrationType: RegistrationType = 'auto',
     threadId?:string,
-    appInstanceId?: string
+    appInstanceId?: string,
+    projectInfo?: ProjectInfo
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering app: ${appId} : ''}${appInstanceId ? ` with appInstanceId: ${appInstanceId}` : ''}`));
 
-    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP,threadId, undefined, appInstanceId);
-    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP,threadId, undefined, registrationType, { appInstanceId });
+    this.connectionManager.registerConnection(appId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, undefined, undefined, appInstanceId, undefined, projectInfo);
+    this.sendRegistrationConfirmation(ws, appId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP, threadId, undefined, registrationType, { appInstanceId });
   }
 
   /**
@@ -309,13 +315,14 @@ export class WebSocketServer {
     tuiId: string,
     registrationType: RegistrationType = 'auto',
     threadId?:string,
-    tuiInstanceId?: string
+    tuiInstanceId?: string,
+    projectInfo?: ProjectInfo
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
       `${registrationType === 'auto' ? 'Auto' : 'Manual'}-registering TUI: ${tuiId} : ''}${tuiInstanceId ? ` with tuiInstanceId: ${tuiInstanceId}` : ''}`));
 
-    this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, tuiInstanceId);
-    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI,threadId, undefined, registrationType, { tuiInstanceId });
+    this.connectionManager.registerConnection(tuiId, ws, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, undefined, undefined, tuiInstanceId, undefined, projectInfo);
+    this.sendRegistrationConfirmation(ws, tuiId, WEBSOCKET_CONSTANTS.CLIENT_TYPES.TUI, threadId, undefined, registrationType, { tuiInstanceId });
   }
 
   /**

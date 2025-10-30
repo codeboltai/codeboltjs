@@ -35,9 +35,9 @@ export class ConnectionManager {
     parentId?: string,
     instanceId?: string,
     connectionIdentifier?: string,
-
+    projectInfo?: ProjectInfo
   ): void {
-    const connection: BaseConnection = {
+    const connection: ClientConnection = {
       id: connectionId,
       ws,
       type: connectionType,
@@ -46,7 +46,8 @@ export class ConnectionManager {
       instanceId: instanceId || '',
       connectionId: connectionIdentifier,
       parentAgentInstanceId: '',
-      parentId: ''
+      parentId: '',
+      currentProject: projectInfo
     };
 
     if (connectionType === 'agent') {

@@ -202,6 +202,11 @@ const completeTaskOptionsSchema = z.object({
   taskId: z.string(),
 });
 
+// Start task options schema
+const startTaskOptionsSchema = z.object({
+  taskId: z.string(),
+});
+
 // Can task start options schema
 const canTaskStartOptionsSchema = z.object({
   taskId: z.string(),
@@ -315,6 +320,12 @@ export const completeTaskEventSchema = taskEventBaseSchema.extend({
   message: completeTaskOptionsSchema,
 });
 
+// Start Task Event Schema
+export const startTaskEventSchema = taskEventBaseSchema.extend({
+  action: z.literal('startTask'),
+  message: startTaskOptionsSchema,
+});
+
 // Can Task Start Event Schema
 export const canTaskStartEventSchema = taskEventBaseSchema.extend({
   action: z.literal('canTaskStart'),
@@ -361,6 +372,7 @@ export const taskEventSchema = z.union([
   updateTaskEventSchema,
   deleteTaskEventSchema,
   completeTaskEventSchema,
+  startTaskEventSchema,
   canTaskStartEventSchema,
   getTasksDependentOnEventSchema,
   getTasksReadyToStartEventSchema,
@@ -389,6 +401,7 @@ export type UpdateStepStatusOptions = z.infer<typeof updateStepStatusOptionsSche
 export type CompleteStepOptions = z.infer<typeof completeStepOptionsSchema>;
 export type DeleteTaskOptions = z.infer<typeof deleteTaskOptionsSchema>;
 export type CompleteTaskOptions = z.infer<typeof completeTaskOptionsSchema>;
+export type StartTaskOptions = z.infer<typeof startTaskOptionsSchema>;
 export type CanTaskStartOptions = z.infer<typeof canTaskStartOptionsSchema>;
 export type GetTasksDependentOnOptions = z.infer<typeof getTasksDependentOnOptionsSchema>;
 export type GetTasksReadyToStartOptions = z.infer<typeof getTasksReadyToStartOptionsSchema>;
@@ -409,6 +422,7 @@ export type CompleteStepEvent = z.infer<typeof completeStepEventSchema>;
 export type UpdateTaskEvent = z.infer<typeof updateTaskEventSchema>;
 export type DeleteTaskEvent = z.infer<typeof deleteTaskEventSchema>;
 export type CompleteTaskEvent = z.infer<typeof completeTaskEventSchema>;
+export type StartTaskEvent = z.infer<typeof startTaskEventSchema>;
 export type CanTaskStartEvent = z.infer<typeof canTaskStartEventSchema>;
 export type GetTasksDependentOnEvent = z.infer<typeof getTasksDependentOnEventSchema>;
 export type GetTasksReadyToStartEvent = z.infer<typeof getTasksReadyToStartEventSchema>;

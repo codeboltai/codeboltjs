@@ -211,6 +211,7 @@ export {
   type CompleteStepResponse,
   type UpdateTaskResponse,
   type CompleteTaskResponse,
+  type StartTaskResponse,
   type GetTasksDependentOnResponse,
   type GetTasksReadyToStartResponse,
   type GetTaskDependencyChainResponse,

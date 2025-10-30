@@ -36,7 +36,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         
         // Create a scheduled task with simple, clean steps
         const taskOptions: any = {
-            name: 'Clean Development Workflow',
+            name: 'Node Js Project',
             dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
             taskType: 'scheduled',
             executionType: 'scheduled',
@@ -45,30 +45,29 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             isRemoteTask: false,
             isKanbanTask: true,
             steps: [
-                createTaskStep('Remove environment and model dropdowns from AgentTaskTemplate', true, 0),
-                createTaskStep('Remove unused imports related to environment and model selection', false, 100),
-                createTaskStep('Remove unused state variables and functions', false, 200),
-                createTaskStep('Remove environment and model properties from TaskItem interface', false, 300),
-                createTaskStep('Clean up and test the simplified interface', false, 400)
+                createTaskStep('Create Node Js project', true, 0),
+                
             ]
         };
         
         console.log('Creating scheduled task with options:', taskOptions);
         
         // Create the scheduled task
-        const taskResponse = await codebolt.task.createTask(taskOptions);
+        // const taskResponse = await codebolt.task.createTask(taskOptions);
         
-        console.log('Scheduled task created successfully:', taskResponse);
+        // console.log('Scheduled task created successfully:', taskResponse);
         
         // Send success notification
-        codebolt.notify.chat.AgentTextResponseNotify(`Scheduled task created successfully with ID: ${taskResponse.task?.id}`, false);
+        // codebolt.notify.chat.AgentTextResponseNotify(`Scheduled task created successfully with ID: ${taskResponse.task?.id}`, false);
+
+       let startTaskResponse=   await codebolt.task.startTask("a1cd38ef-3095-4fb9-81f8-da5b2673f61f")
         
         return {
             success: true,
             message: 'Scheduled task created successfully',
-            taskId: taskResponse.task?.id,
-            taskName: taskResponse.task?.name,
-            dueDate: taskResponse.task?.dueDate
+            // taskId: taskResponse.task?.id,
+            // taskName: taskResponse.task?.name,
+            // dueDate: taskResponse.task?.dueDate
         };
         
     } catch (error) {

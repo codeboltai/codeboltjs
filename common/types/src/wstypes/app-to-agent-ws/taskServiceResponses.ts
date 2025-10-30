@@ -212,19 +212,19 @@ export const sendSteeringMessageResponseSchema = baseResponseSchema.extend({
 });
 
 // Delete task response schema
-export const deleteTaskResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    deleted: z.boolean(),
-  }).optional(),
-});
+// export const deleteTaskResponseSchema = baseResponseSchema.extend({
+//   data: z.object({
+//     deleted: z.boolean(),
+//   }).optional(),
+// });
 
 // Can task start response schema
-export const canTaskStartResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    canStart: z.boolean(),
-    reason: z.string().optional(),
-  }).optional(),
-});
+// export const canTaskStartResponseSchema = baseResponseSchema.extend({
+//   data: z.object({
+//     canStart: z.boolean(),
+//     reason: z.string().optional(),
+//   }).optional(),
+// });
 
 // Task stats response schema
 export const taskStatsResponseSchema = baseResponseSchema.extend({
@@ -243,7 +243,19 @@ export const getCurrentRunningStepResponseSchema = activeStepResponseSchema;
 export const updateStepStatusResponseSchema = stepResponseSchema;
 export const completeStepResponseSchema = stepResponseSchema;
 export const updateTaskResponseSchema = taskResponseSchema;
+export const deleteTaskResponseSchema = baseResponseSchema.extend({
+  data: z.object({
+    deleted: z.boolean(),
+  }).optional(),
+});
 export const completeTaskResponseSchema = taskResponseSchema;
+export const startTaskResponseSchema = taskResponseSchema;
+export const canTaskStartResponseSchema = baseResponseSchema.extend({
+  data: z.object({
+    canStart: z.boolean(),
+    reason: z.string().optional(),
+  }).optional(),
+});
 export const getTasksDependentOnResponseSchema = taskListResponseSchema;
 export const getTasksReadyToStartResponseSchema = taskListResponseSchema;
 export const getTaskDependencyChainResponseSchema = taskListResponseSchema;
@@ -265,6 +277,7 @@ export const allTaskServiceResponseSchema = z.union([
   updateTaskResponseSchema,
   deleteTaskResponseSchema,
   completeTaskResponseSchema,
+  startTaskResponseSchema,
   canTaskStartResponseSchema,
   getTasksDependentOnResponseSchema,
   getTasksReadyToStartResponseSchema,
@@ -312,8 +325,10 @@ export type UpdateStepStatusResponse = z.infer<typeof updateStepStatusResponseSc
 export type CompleteStepResponse = z.infer<typeof completeStepResponseSchema>;
 export type UpdateTaskResponse = z.infer<typeof updateTaskResponseSchema>;
 export type CompleteTaskResponse = z.infer<typeof completeTaskResponseSchema>;
+export type StartTaskResponse = z.infer<typeof startTaskResponseSchema>;
 export type GetTasksDependentOnResponse = z.infer<typeof getTasksDependentOnResponseSchema>;
 export type GetTasksReadyToStartResponse = z.infer<typeof getTasksReadyToStartResponseSchema>;
+
 export type GetTaskDependencyChainResponse = z.infer<typeof getTaskDependencyChainResponseSchema>;
 export type GetTaskStatsResponse = z.infer<typeof getTaskStatsResponseSchema>;
 
