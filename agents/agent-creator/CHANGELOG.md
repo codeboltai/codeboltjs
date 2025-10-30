@@ -1,5 +1,12 @@
 # act
 
+## 1.1.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/agent@4.0.1
+
 ## 1.1.31
 
 ### Patch Changes

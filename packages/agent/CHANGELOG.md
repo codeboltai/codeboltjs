@@ -1,5 +1,11 @@
 # @codebolt/agent
 
+## 4.0.1
+
+### Patch Changes
+
+- Ensure published manifest resolves workspace protocol dependencies.
+
 ## 4.0.0
 
 ### Major Changes

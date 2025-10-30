@@ -1,5 +1,12 @@
 # @codebolt/epomlagent
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/agent@4.0.1
+
 ## 1.0.4
 
 ### Patch Changes
