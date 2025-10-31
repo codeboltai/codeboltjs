@@ -1,6 +1,6 @@
 {
   "name": "epoml",
-  "version": "2.2.5",
+  "version": "4.0.2",
   "description": "Enhanced Prompt Orchestration Markup Language - A JSX-based template engine for orchestrating prompts and rendering to plain text",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

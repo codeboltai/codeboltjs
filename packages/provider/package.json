@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/provider",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Base provider utilities for CodeBOLT environment providers",
   "keywords": [
     "codebolt",

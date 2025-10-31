@@ -1,5 +1,14 @@
 # @codebolt/git-worktree-provider
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.21
+  - @codebolt/codeboltjs@4.0.2
+  - @codebolt/provider@1.0.4
+
 ## 1.0.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @epoml/example
 
+## 1.0.3
+
+### Patch Changes
+
+- epoml@4.0.2
+
 ## 1.0.2
 
 ### Patch Changes

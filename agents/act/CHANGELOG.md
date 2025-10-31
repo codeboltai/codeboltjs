@@ -1,5 +1,12 @@
 # @codebolt/act
 
+## 1.1.31
+
+### Patch Changes
+
+- @codebolt/codeboltjs@4.0.2
+- @codebolt/utils@4.0.2
+
 ## 1.1.30
 
 ### Patch Changes

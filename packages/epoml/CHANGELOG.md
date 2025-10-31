@@ -1,5 +1,11 @@
 # epoml
 
+## 4.0.2
+
+### Patch Changes
+
+- @codebolt/codeboltjs@4.0.2
+
 ## 2.2.5
 
 ### Patch Changes
