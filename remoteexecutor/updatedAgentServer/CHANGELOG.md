@@ -1,5 +1,12 @@
 # @codebolt/agentserver
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [0e9d5a9]
+  - @codebolt/types@1.0.22
+
 ## 1.0.6
 
 ### Patch Changes

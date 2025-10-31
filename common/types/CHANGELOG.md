@@ -1,5 +1,11 @@
 # @codebolt/types
 
+## 1.0.22
+
+### Patch Changes
+
+- 0e9d5a9: Update repository path to reflect correct location in monorepo (common/types)
+
 ## 1.0.21
 
 ### Patch Changes

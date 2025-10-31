@@ -1,5 +1,13 @@
 # @codebolt/act
 
+## 1.1.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@4.0.3
+  - @codebolt/utils@4.0.3
+
 ## 1.1.31
 
 ### Patch Changes

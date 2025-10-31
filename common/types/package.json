@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/types",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "A comprehensive TypeScript type definitions package for the CodeBolt ecosystem, providing type safety and schema validation for WebSocket communication between agents and applications.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

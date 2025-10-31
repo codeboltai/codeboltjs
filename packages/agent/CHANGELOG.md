@@ -1,5 +1,14 @@
 # @codebolt/agent
 
+## 4.0.3
+
+### Patch Changes
+
+- Updated dependencies [0e9d5a9]
+- Updated dependencies
+  - @codebolt/types@1.0.22
+  - @codebolt/codeboltjs@4.0.3
+
 ## 4.0.2
 
 ### Patch Changes

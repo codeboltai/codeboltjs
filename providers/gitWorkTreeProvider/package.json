@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/git-worktree-provider",
   "private": true,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/index.js",
   "description": "E2B Provider for CodeBolt - Remote code execution using E2B sandboxes",
   "types": "dist/index.d.ts",

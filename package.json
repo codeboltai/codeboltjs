@@ -13,7 +13,9 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
-    "example": "turbo run example:basic"
+    "example": "turbo run example:basic",
+    "publish:codeboltjs": "bash scripts/publish-codeboltjs.sh",
+    "publish:codeboltjs:skip": "bash scripts/publish-codeboltjs.sh skip"
   },
   "repository": {
     "type": "git",

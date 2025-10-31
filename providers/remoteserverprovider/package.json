@@ -1,7 +1,7 @@
 {
   "name": "remoteserverprovideragent",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Docker Provider Agent that connects to Codebolt application",
   "main": "dist/index.js",
   "scripts": {
