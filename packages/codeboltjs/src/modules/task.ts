@@ -666,92 +666,32 @@ const taskService = {
         // This would need to be implemented as post-processing
         return taskService.getTaskList();
     },
-    attachJsonMemoryToTask:(taskId:string,memoryId:string)=>{
+    attachMemoryToTask:(taskId:string,memoryId:string)=>{
         const requestId = randomUUID();
         const event = {
             type: 'taskEvent',
-            action: 'attachJsonMemoryToTask',
+            action: 'attachMemoryToTask',
             requestId,
             taskId,
             memoryId
-            
-        };
-        
-        return cbws.messageManager.sendAndWaitForResponse(
-            event,
-            'attachJsonMemoryToTaskResponse'
-        );
-    },
-    attachMarktownMemoryJToTask:(taskId:string,memoryId:string)=>{
-        const requestId = randomUUID();
-        const event = {
-            type: 'taskEvent',
-            action: 'attachMarktownMemoryJToTask',
-            requestId,
-            taskId,
-            memoryId
-            
-        };
-        
-        return cbws.messageManager.sendAndWaitForResponse(
-            event,
-            'attachJsonMemoryToTaskResponse'
-        );
-    },
-    attachToDoToTask:(taskId:string,todoId:string)=>{
-        const requestId = randomUUID();
-        const event = {
-            type: 'taskEvent',
-            action: 'attachToDoToTask',
-            requestId,
-            taskId,
-            todoId
         };
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'attachToDoToTaskResponse'
+            'attachMemoryToTaskResponse'
         );
     },
-    getAttachedTodos:(taskId:string)=>{
+    getAttachedMemoryForTask:(taskId:string)=>{
         const requestId = randomUUID();
         const event = {
             type: 'taskEvent',
-            action: 'attachToDoToTask',
+            action: 'getAttachedFromTaskMemory',
             requestId,
             taskId,
         };
         
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'attachToDoToTaskResponse'
-        );
-    },
-    getAttachedJsonMemory:(taskId:string)=>{
-        const requestId = randomUUID();
-        const event = {
-            type: 'taskEvent',
-            action: 'getAttachedJsonMemory',
-            requestId,
-            taskId,
-        };
-        
-        return cbws.messageManager.sendAndWaitForResponse(
-            event,
-            'getAttachedJsonMemoryResponse'
-        );
-    },
-    getAttachedMarkdownMemory:(taskId:string)=>{
-        const requestId = randomUUID();
-        const event = {
-            type: 'taskEvent',
-            action: 'getAttachedMarkdownMemory',
-            requestId,
-            taskId,
-        };
-        
-        return cbws.messageManager.sendAndWaitForResponse(
-            event,
-            'getAttachedMarkdownMemoryResponse'
+            'getAttachedFromTaskMemoryResponse'
         );
     }
 };

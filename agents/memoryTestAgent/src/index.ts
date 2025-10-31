@@ -5,33 +5,36 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     console.log('Received message:', reqMessage);
     
     try {
-        codebolt.chat.sendMessage("Starting memory test agent", {});
+
+       codebolt.chat.sendMessage("Startin Main Agent",{})
+        await codebolt.agent.startAgent("geminiAgent","Create Node js application")
+        // codebolt.chat.sendMessage("Starting memory test agent", {});
         
-        // Test JSON Memory
-        console.log('Testing JSON memory...');
-        const jsonData = {
-            testKey: 'testValue',
-            nested: {
-                data: [1, 2, 3],
-                timestamp: new Date().toISOString()
-            }
-        };
-        const jsonSaveResult = await codebolt.memory.json.save(jsonData);
-        console.log('JSON Save Result:', jsonSaveResult);
-        codebolt.chat.sendMessage(`JSON Memory Saved: ${jsonSaveResult.memoryId}`, {});
+        // // Test JSON Memory
+        // console.log('Testing JSON memory...');
+        // const jsonData = {
+        //     testKey: 'testValue',
+        //     nested: {
+        //         data: [1, 2, 3],
+        //         timestamp: new Date().toISOString()
+        //     }
+        // };
+        // const jsonSaveResult = await codebolt.memory.json.save(jsonData);
+        // console.log('JSON Save Result:', jsonSaveResult);
+        // codebolt.chat.sendMessage(`JSON Memory Saved: ${jsonSaveResult.memoryId}`, {});
         
-        if (jsonSaveResult.success && jsonSaveResult.memoryId) {
-            // Test JSON Update
-            const updatedJsonData = { ...jsonData, updated: true };
-            const jsonUpdateResult = await codebolt.memory.json.update(jsonSaveResult.memoryId, updatedJsonData);
-            console.log('JSON Update Result:', jsonUpdateResult);
-            codebolt.chat.sendMessage(`JSON Memory Updated: ${jsonUpdateResult.success}`, {});
+        // if (jsonSaveResult.success && jsonSaveResult.memoryId) {
+        //     // Test JSON Update
+        //     const updatedJsonData = { ...jsonData, updated: true };
+        //     const jsonUpdateResult = await codebolt.memory.json.update(jsonSaveResult.memoryId, updatedJsonData);
+        //     console.log('JSON Update Result:', jsonUpdateResult);
+        //     codebolt.chat.sendMessage(`JSON Memory Updated: ${jsonUpdateResult.success}`, {});
             
-            // Test JSON List
-            const jsonListResult = await codebolt.memory.json.list();
-            console.log('JSON List Result:', jsonListResult);
-            codebolt.chat.sendMessage(`JSON Memory Items: ${jsonListResult.items?.length || 0}`, {});
-        }
+        //     // Test JSON List
+        //     const jsonListResult = await codebolt.memory.json.list();
+        //     console.log('JSON List Result:', jsonListResult);
+        //     codebolt.chat.sendMessage(`JSON Memory Items: ${jsonListResult.items?.length || 0}`, {});
+        // }
         
         // Test Markdown Memory
         console.log('Testing Markdown memory...');
