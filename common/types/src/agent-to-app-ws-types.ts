@@ -149,6 +149,15 @@ export {
   type MemorySetEvent,
   type MemoryGetEvent,
   type MemoryEvent,
+  type MemoryFormat,
+  type TodoStatus,
+  type TodoPriority,
+  type TodoItem,
+  type TodoData,
+  type SaveMemoryEvent,
+  type UpdateMemoryEvent,
+  type DeleteMemoryEvent,
+  type ListMemoryEvent,
 } from './wstypes/agent-to-app-ws/actions/memoryEventSchemas';
 
 // projectEventSchemas

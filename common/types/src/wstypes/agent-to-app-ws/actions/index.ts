@@ -26,6 +26,40 @@ export * as HistoryEvents from './historyEventSchemas';
 export * as UtilsEvents from './utilsEventSchemas';
 export * as CodeUtilsEvents from './codeUtilsEventSchemas';
 
+// Direct type exports from memoryEventSchemas
+export type {
+  MemoryEventBase,
+  MemorySetEvent,
+  MemoryGetEvent,
+  MemoryEvent,
+  MemoryFormat,
+  TodoStatus,
+  TodoPriority,
+  TodoItem,
+  TodoData,
+  SaveMemoryEvent,
+  UpdateMemoryEvent,
+  DeleteMemoryEvent,
+  ListMemoryEvent
+} from './memoryEventSchemas';
+
+// Direct schema exports from memoryEventSchemas
+export {
+  memoryEventBaseSchema,
+  memoryFormatSchema,
+  todoStatusSchema,
+  todoPrioritySchema,
+  todoItemSchema,
+  todoDataSchema,
+  memorySetEventSchema,
+  memoryGetEventSchema,
+  saveMemoryEventSchema,
+  updateMemoryEventSchema,
+  deleteMemoryEventSchema,
+  listMemoryEventSchema,
+  memoryEventSchema
+} from './memoryEventSchemas';
+
 
 
 // Union of all agent-to-app event schemas

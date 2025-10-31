@@ -353,13 +353,6 @@ export {
 } from './wstypes/agent-to-app-ws/actions/mcpEventSchemas';
 
 export {
-  memoryEventBaseSchema,
-  memorySetEventSchema,
-  memoryGetEventSchema,
-  memoryEventSchema
-} from './wstypes/agent-to-app-ws/actions/memoryEventSchemas';
-
-export {
   projectEventBaseSchema,
   getProjectSettingsEventSchema,
   getProjectPathEventSchema,
@@ -450,6 +443,40 @@ export {
   type GetTaskDependencyChainEvent,
   type GetTaskStatsEvent
 } from './wstypes/agent-to-app-ws/actions/taskEventSchemas';
+
+// Memory Event Schemas
+export {
+  // Schema exports
+  memoryEventBaseSchema,
+  memoryFormatSchema,
+  todoStatusSchema,
+  todoPrioritySchema,
+  todoItemSchema,
+  todoDataSchema,
+  // Legacy set/get schemas
+  memorySetEventSchema,
+  memoryGetEventSchema,
+  // New save/update/delete/list schemas
+  saveMemoryEventSchema,
+  updateMemoryEventSchema,
+  deleteMemoryEventSchema,
+  listMemoryEventSchema,
+  memoryEventSchema,
+  // Type exports
+  type MemoryEventBase,
+  type MemoryFormat,
+  type TodoStatus,
+  type TodoPriority,
+  type TodoItem,
+  type TodoData,
+  type MemorySetEvent,
+  type MemoryGetEvent,
+  type SaveMemoryEvent,
+  type UpdateMemoryEvent,
+  type DeleteMemoryEvent,
+  type ListMemoryEvent,
+  type MemoryEvent
+} from './wstypes/agent-to-app-ws/actions/memoryEventSchemas';
 
 export {
   terminalEventBaseSchema,

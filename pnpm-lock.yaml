@@ -438,8 +438,8 @@ importers:
   packages/codeboltjs:
     dependencies:
       '@codebolt/types':
-        specifier: ^1.0.18
-        version: 1.0.18
+        specifier: workspace:*
+        version: link:../../common/types
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -1972,9 +1972,6 @@ packages:
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
-
-  '@codebolt/types@1.0.18':
-    resolution: {integrity: sha512-OxnyDYNv8z7uAqohXZWEhhfYhyudWaN5do4Drw5+f8xVnOWKgdZMYijEfng8d+84yKU/U4WE9iGRM6VYprRt3w==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -9105,10 +9102,6 @@ snapshots:
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
-
-  '@codebolt/types@1.0.18':
-    dependencies:
-      zod: 3.25.76
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

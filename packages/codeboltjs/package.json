@@ -33,7 +33,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@codebolt/types": "^1.0.18",
+    "@codebolt/types": "workspace:*",
     "@types/uuid": "^10.0.0",
     "buffer": "^6.0.3",
     "execa": "^9.5.2",
