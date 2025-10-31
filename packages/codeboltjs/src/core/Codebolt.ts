@@ -21,6 +21,7 @@ import tokenizer from '../modules/tokenizer';
 import WebSocket from 'ws';
 import { chatSummary } from '../modules/history';
 import codeboltTools from '../modules/mcp';
+import codebotMemory from '../modules/memory'
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
@@ -116,6 +117,7 @@ class Codebolt {
     agent = cbagent;
     utils = cbutils;
     notify = notificationFunctions;
+    memory=codebotMemory;
 
     /**
      * User message utilities for accessing current user message and context
