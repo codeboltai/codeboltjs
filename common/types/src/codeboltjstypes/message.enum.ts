@@ -15,6 +15,7 @@ export enum EventType {
     PROJECT_EVENT = "projectEvent",
     CHAT_SUMMARY_EVENT = "chatSummaryEvent",
     MEMORY_EVENT = "memoryEvent",
+    ACTION_PLAN="actionPlanEvent"
     
 }
 
@@ -23,6 +24,17 @@ export enum AgentAction {
     START_AGENT = "startAgent",
     LIST_AGENTS = "listAgents",
     AGENTS_DETAIL = "agentsDetail",
+}
+
+
+export enum ActionPlanAction{
+    GETALL_ACTION_PLAN="getAllActionPlan",
+    GET_PLAN_DETAIL="getPlanDetail"
+}
+
+export enum ActionPlanResponseType{
+    GETALL_ACTION_PLAN_RESPONSE="getAllActionPlanResponse",
+    GET_PLAN_DETAIL_RESPONSE="getPlanDetailResponse"
 }
 
 export enum AgentResponseType {

@@ -693,6 +693,22 @@ const taskService = {
             event,
             'getAttachedFromTaskMemoryResponse'
         );
+    },
+    createTaskGroup:(groupName:string,description:string)=>{
+
+        const requestId = randomUUID()
+        const event = {
+            type: 'taskEvent',
+            action: 'createTaskGroup',
+            requestId,
+            groupName,
+            description
+        };
+        
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'createTaskGroupResponse'
+        );
     }
 };
 

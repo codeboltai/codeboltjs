@@ -60,8 +60,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         // Send success notification
         // codebolt.notify.chat.AgentTextResponseNotify(`Scheduled task created successfully with ID: ${taskResponse.task?.id}`, false);
 
-       let startTaskResponse=   await codebolt.task.startTask("a1cd38ef-3095-4fb9-81f8-da5b2673f61f")
+      // let startTaskResponse=   await codebolt.task.startTask("a1cd38ef-3095-4fb9-81f8-da5b2673f61f")
         
+         let taskResponse= await codebolt.task.createTaskGroup("frontend","test")
+
         return {
             success: true,
             message: 'Scheduled task created successfully',
