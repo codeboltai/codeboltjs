@@ -28,13 +28,23 @@ export enum AgentAction {
 
 
 export enum ActionPlanAction{
-    GETALL_ACTION_PLAN="getAllActionPlan",
-    GET_PLAN_DETAIL="getPlanDetail"
+    GETALL_ACTION_PLAN="getAllActionPlans",
+    GET_PLAN_DETAIL="getPlanDetail",
+    GET_ACTION_PLAN_DETAIL="getActionPlanDetail",
+    CREATE_ACTION_PLAN="createActionPlan",
+    UPDATE_ACTION_PLAN="updateActionPlan",
+    ADD_TASK_TO_ACTION_PLAN="addTaskToActionPlan",
+    START_TASK_STEP="startTaskStep"
 }
 
 export enum ActionPlanResponseType{
     GETALL_ACTION_PLAN_RESPONSE="getAllActionPlanResponse",
-    GET_PLAN_DETAIL_RESPONSE="getPlanDetailResponse"
+    GET_PLAN_DETAIL_RESPONSE="getPlanDetailResponse",
+    GET_ACTION_PLAN_DETAIL_RESPONSE="getActionPlanDetailResponse",
+    CREATE_ACTION_PLAN_RESPONSE="createActionPlanResponse",
+    UPDATE_ACTION_PLAN_RESPONSE="updateActionPlanResponse",
+    ADD_TASK_TO_ACTION_PLAN_RESPONSE="addTaskToActionPlanResponse",
+    START_TASK_STEP_RESPONSE="startTaskStepResponse"
 }
 
 export enum AgentResponseType {

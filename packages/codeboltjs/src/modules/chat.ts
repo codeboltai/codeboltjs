@@ -55,7 +55,7 @@ const cbchat = {
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
      */
-    sendMessage: (message: string, payload: any) => {
+    sendMessage: (message: string, payload?: any) => {
         cbws.messageManager.send({
             "type": ChatEventType.SEND_MESSAGE,
             "message": message,

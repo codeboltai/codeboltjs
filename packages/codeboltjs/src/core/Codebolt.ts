@@ -24,6 +24,7 @@ import codeboltTools from '../modules/mcp';
 import codebotMemory from '../modules/memory'
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
+import codeboltActionPlans from '../modules/actionPlan';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
@@ -118,6 +119,7 @@ class Codebolt {
     utils = cbutils;
     notify = notificationFunctions;
     memory=codebotMemory;
+    actionPlan=codeboltActionPlans;
 
     /**
      * User message utilities for accessing current user message and context
