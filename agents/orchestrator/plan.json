@@ -1,0 +1,539 @@
+{
+  "actionPlans": [
+    {
+      "id": "c9f7b95c-7892-46fc-94da-0735941899e9",
+      "planId": "plan-de02c65e-a6e8-4acc-b164-6325fb0e206e",
+      "name": "test",
+      "description": "test",
+      "agentId": "agent-default",
+      "agentName": "Codebolt Assistant",
+      "status": "planned",
+      "createdAt": "2025-11-08T04:58:59.740Z",
+      "updatedAt": "2025-11-08T06:44:37.199Z",
+      "completedAt": null,
+      "taskCount": 1,
+      "completedTaskCount": 0,
+      "progress": {
+        "totalTasks": 1,
+        "completedTasks": 0,
+        "percentage": 0
+      },
+      "items": [
+        {
+          "id": 209,
+          "taskId": "1ef6aa42-9b64-4ca4-82f1-774f2e95b01c",
+          "threadId": "270aee12-751c-4aac-8608-66a61d31881d",
+          "projectId": null,
+          "projectPath": "/Users/ravirawat/Documents/residential-indigo",
+          "projectName": "residential-indigo",
+          "name": "hi",
+          "description": "Task with 1 steps",
+          "dueDate": null,
+          "status": "in_progress",
+          "completed": false,
+          "isRemoteTask": false,
+          "environment": null,
+          "isKanbanTask": true,
+          "taskType": "scheduled",
+          "executionType": "scheduled",
+          "environmentType": "local",
+          "groupId": "default",
+          "startOption": "immediately",
+          "assignedTo": null,
+          "priority": "medium",
+          "createdAt": "2025-11-08T04:59:14.000Z",
+          "updatedAt": "2025-11-08T06:44:37.199Z",
+          "statusUpdatedAt": "2025-11-08T06:44:37.199Z",
+          "completedAt": null,
+          "stepActivatedAt": null,
+          "progress": {
+            "totalSteps": 0,
+            "completedSteps": 0,
+            "percentage": 0
+          },
+          "activeStepId": null,
+          "flowData": {
+            "nodes": [
+              {
+                "id": "local_step_1762577958838_y1zeu2f98",
+                "type": "instructor",
+                "position": {
+                  "x": 200,
+                  "y": 40
+                },
+                "data": {
+                  "value": "hi",
+                  "userMessage": "hi",
+                  "metaData": {
+                    "mentionedFiles": [],
+                    "mentionedFullPaths": [],
+                    "mentionedFolders": [],
+                    "mentionedMultiFile": [],
+                    "mentionedMCPs": [],
+                    "uploadedImages": [],
+                    "mentionedAgents": [],
+                    "mentionedDocs": [],
+                    "links": [],
+                    "controlFiles": [],
+                    "isRemoteTask": false,
+                    "environment": null
+                  },
+                  "condition": "",
+                  "agentId": "",
+                  "isMainTask": true
+                }
+              }
+            ],
+            "edges": []
+          },
+          "tags": [],
+          "errorMessage": null,
+          "cancellationReason": null,
+          "steps": [
+            {
+              "type": "instructor",
+              "userMessage": "hi",
+              "value": "hi",
+              "metaData": {
+                "mentionedFiles": [],
+                "mentionedFullPaths": [],
+                "mentionedFolders": [],
+                "mentionedMultiFile": [],
+                "mentionedMCPs": [],
+                "uploadedImages": [],
+                "mentionedAgents": [],
+                "mentionedDocs": [],
+                "links": [],
+                "controlFiles": [],
+                "isRemoteTask": false,
+                "environment": null
+              },
+              "isMainTask": true,
+              "position": {
+                "x": 200,
+                "y": 40
+              },
+              "condition": "",
+              "agentId": "",
+              "status": "pending"
+            }
+          ],
+          "messages": [],
+          "eventSource": "scheduledTaskSave"
+        }
+      ]
+    },
+    {
+      "id": "f0aaa8c8-cee0-4bc4-95c6-3985aa30015a",
+      "planId": "plan-1cacddd0-28d7-4a0f-8010-243af4167366",
+      "name": "project runner",
+      "description": "project runner",
+      "agentId": "agent-default",
+      "agentName": "Codebolt Assistant",
+      "status": "planned",
+      "createdAt": "2025-11-08T06:45:19.051Z",
+      "updatedAt": "2025-11-08T06:47:32.344Z",
+      "completedAt": null,
+      "taskCount": 1,
+      "completedTaskCount": 0,
+      "progress": {
+        "totalTasks": 1,
+        "completedTasks": 0,
+        "percentage": 0
+      },
+      "items": [
+        {
+          "id": 214,
+          "taskId": "e5f277be-563f-4110-813c-d5ed6b00b457",
+          "threadId": "86757fc3-ef43-476e-b78c-62a5488c74b6",
+          "projectId": null,
+          "projectPath": "/Users/ravirawat/Documents/residential-indigo",
+          "projectName": "residential-indigo",
+          "name": "run this project",
+          "description": "Task with 1 steps",
+          "dueDate": null,
+          "status": "in_progress",
+          "completed": false,
+          "isRemoteTask": false,
+          "environment": null,
+          "isKanbanTask": true,
+          "taskType": "scheduled",
+          "executionType": "scheduled",
+          "environmentType": "local",
+          "groupId": "default",
+          "startOption": "immediately",
+          "assignedTo": null,
+          "priority": "medium",
+          "createdAt": "2025-11-08T06:45:26.000Z",
+          "updatedAt": "2025-11-08T06:47:32.344Z",
+          "statusUpdatedAt": "2025-11-08T06:47:32.344Z",
+          "completedAt": null,
+          "stepActivatedAt": null,
+          "progress": {
+            "totalSteps": 0,
+            "completedSteps": 0,
+            "percentage": 0
+          },
+          "activeStepId": null,
+          "flowData": {
+            "nodes": [
+              {
+                "id": "local_step_1762584337082_nm6b4xy0r",
+                "type": "instructor",
+                "position": {
+                  "x": 200,
+                  "y": 40
+                },
+                "data": {
+                  "value": "run this project",
+                  "userMessage": "run this project",
+                  "metaData": {
+                    "mentionedFiles": [],
+                    "mentionedFullPaths": [],
+                    "mentionedFolders": [],
+                    "mentionedMultiFile": [],
+                    "mentionedMCPs": [],
+                    "uploadedImages": [],
+                    "mentionedAgents": [],
+                    "mentionedDocs": [],
+                    "links": [],
+                    "controlFiles": [],
+                    "isRemoteTask": false,
+                    "environment": null
+                  },
+                  "condition": "",
+                  "agentId": "",
+                  "isMainTask": true
+                }
+              }
+            ],
+            "edges": []
+          },
+          "tags": [],
+          "errorMessage": null,
+          "cancellationReason": null,
+          "steps": [
+            {
+              "type": "instructor",
+              "userMessage": "run this project",
+              "value": "run this project",
+              "metaData": {
+                "mentionedFiles": [],
+                "mentionedFullPaths": [],
+                "mentionedFolders": [],
+                "mentionedMultiFile": [],
+                "mentionedMCPs": [],
+                "uploadedImages": [],
+                "mentionedAgents": [],
+                "mentionedDocs": [],
+                "links": [],
+                "controlFiles": [],
+                "isRemoteTask": false,
+                "environment": null
+              },
+              "isMainTask": true,
+              "position": {
+                "x": 200,
+                "y": 40
+              },
+              "condition": "",
+              "agentId": "",
+              "status": "pending"
+            }
+          ],
+          "messages": [],
+          "eventSource": "scheduledTaskSave"
+        }
+      ]
+    },
+    {
+      "id": "e42eb05e-7955-41ce-a15d-17d04d9b9833",
+      "planId": "plan-2a42743f-54a2-4689-bd7c-fd1219197d32",
+      "name": "Project testing",
+      "description": "testing",
+      "agentId": "agent-default",
+      "agentName": "Codebolt Assistant",
+      "status": "planned",
+      "createdAt": "2025-11-08T07:00:21.500Z",
+      "updatedAt": "2025-11-08T07:02:24.596Z",
+      "completedAt": null,
+      "taskCount": 1,
+      "completedTaskCount": 0,
+      "progress": {
+        "totalTasks": 1,
+        "completedTasks": 0,
+        "percentage": 0
+      },
+      "items": [
+        {
+          "id": 216,
+          "taskId": "65eada24-f1cc-45cc-b7b7-79fb4652e3de",
+          "threadId": "f5d00e5c-4050-44e0-90aa-ca2b27fec688",
+          "projectId": null,
+          "projectPath": "/Users/ravirawat/Documents/residential-indigo",
+          "projectName": "residential-indigo",
+          "name": "run this project",
+          "description": "Task with 1 steps",
+          "dueDate": null,
+          "status": "in_progress",
+          "completed": false,
+          "isRemoteTask": false,
+          "environment": null,
+          "isKanbanTask": true,
+          "taskType": "scheduled",
+          "executionType": "scheduled",
+          "environmentType": "local",
+          "groupId": "default",
+          "startOption": "immediately",
+          "assignedTo": null,
+          "priority": "medium",
+          "createdAt": "2025-11-08T07:00:29.000Z",
+          "updatedAt": "2025-11-08T07:02:24.596Z",
+          "statusUpdatedAt": "2025-11-08T07:02:24.596Z",
+          "completedAt": null,
+          "stepActivatedAt": null,
+          "progress": {
+            "totalSteps": 0,
+            "completedSteps": 0,
+            "percentage": 0
+          },
+          "activeStepId": null,
+          "flowData": {
+            "nodes": [
+              {
+                "id": "local_step_1762585246248_4z3woryik",
+                "type": "instructor",
+                "position": {
+                  "x": 200,
+                  "y": 40
+                },
+                "data": {
+                  "value": "run this project",
+                  "userMessage": "run this project",
+                  "metaData": {
+                    "mentionedFiles": [],
+                    "mentionedFullPaths": [],
+                    "mentionedFolders": [],
+                    "mentionedMultiFile": [],
+                    "mentionedMCPs": [],
+                    "uploadedImages": [],
+                    "mentionedAgents": [],
+                    "mentionedDocs": [],
+                    "links": [],
+                    "controlFiles": [],
+                    "isRemoteTask": false,
+                    "environment": null
+                  },
+                  "condition": "",
+                  "agentId": "",
+                  "isMainTask": true
+                }
+              }
+            ],
+            "edges": []
+          },
+          "tags": [],
+          "errorMessage": null,
+          "cancellationReason": null,
+          "steps": [
+            {
+              "type": "instructor",
+              "userMessage": "run this project",
+              "value": "run this project",
+              "metaData": {
+                "mentionedFiles": [],
+                "mentionedFullPaths": [],
+                "mentionedFolders": [],
+                "mentionedMultiFile": [],
+                "mentionedMCPs": [],
+                "uploadedImages": [],
+                "mentionedAgents": [],
+                "mentionedDocs": [],
+                "links": [],
+                "controlFiles": [],
+                "isRemoteTask": false,
+                "environment": null
+              },
+              "isMainTask": true,
+              "position": {
+                "x": 200,
+                "y": 40
+              },
+              "condition": "",
+              "agentId": "",
+              "status": "pending"
+            }
+          ],
+          "messages": [],
+          "eventSource": "scheduledTaskSave"
+        }
+      ]
+    },
+    {
+      "id": "bd516152-3e5d-4586-9219-ccf38792a252",
+      "planId": "plan-d232c283-a1e2-41db-bf29-64a288143bb7",
+      "name": "testing plan",
+      "description": "new testing plan",
+      "agentId": "agent-default",
+      "agentName": "Codebolt Assistant",
+      "status": "planned",
+      "createdAt": "2025-11-08T11:08:25.682Z",
+      "updatedAt": "2025-11-08T11:12:08.759Z",
+      "completedAt": null,
+      "taskCount": 5,
+      "completedTaskCount": 0,
+      "progress": {
+        "totalTasks": 5,
+        "completedTasks": 0,
+        "percentage": 0
+      },
+      "items": [
+        {
+          "id": 218,
+          "taskId": "2e24b443-6f84-46ad-a4cc-a08bce0d48b1",
+          "threadId": "c8c7c8e9-1c4c-4a6c-9c8d-749cd946f528",
+          "projectId": null,
+          "projectPath": "/Users/ravirawat/Documents/residential-indigo",
+          "projectName": "residential-indigo",
+          "name": "create node js application",
+          "description": "Task with 1 steps",
+          "dueDate": null,
+          "status": "planned",
+          "completed": false,
+          "isRemoteTask": false,
+          "environment": null,
+          "isKanbanTask": true,
+          "taskType": "scheduled",
+          "executionType": "scheduled",
+          "environmentType": "local",
+          "groupId": "default",
+          "startOption": "immediately",
+          "assignedTo": null,
+          "priority": "medium",
+          "createdAt": "2025-11-08T11:08:46.000Z",
+          "updatedAt": "2025-11-08T11:09:05.000Z",
+          "statusUpdatedAt": null,
+          "completedAt": null,
+          "stepActivatedAt": null,
+          "progress": {
+            "totalSteps": 0,
+            "completedSteps": 0,
+            "percentage": 0
+          },
+          "activeStepId": null,
+          "flowData": {
+            "nodes": [
+              {
+                "id": "local_step_1762600141480_t8jpdz67q",
+                "type": "instructor",
+                "position": {
+                  "x": 200,
+                  "y": 40
+                },
+                "data": {
+                  "value": "create node js application",
+                  "userMessage": "create node js application",
+                  "metaData": {
+                    "mentionedFiles": [],
+                    "mentionedFullPaths": [],
+                    "mentionedFolders": [],
+                    "mentionedMultiFile": [],
+                    "mentionedMCPs": [],
+                    "uploadedImages": [],
+                    "mentionedAgents": [],
+                    "mentionedDocs": [],
+                    "links": [],
+                    "controlFiles": [],
+                    "isRemoteTask": false,
+                    "environment": null
+                  },
+                  "condition": "",
+                  "agentId": "",
+                  "isMainTask": true
+                }
+              }
+            ],
+            "edges": []
+          },
+          "tags": [],
+          "errorMessage": null,
+          "cancellationReason": null,
+          "steps": [
+            {
+              "type": "instructor",
+              "userMessage": "create node js application",
+              "value": "create node js application",
+              "metaData": {
+                "mentionedFiles": [],
+                "mentionedFullPaths": [],
+                "mentionedFolders": [],
+                "mentionedMultiFile": [],
+                "mentionedMCPs": [],
+                "uploadedImages": [],
+                "mentionedAgents": [],
+                "mentionedDocs": [],
+                "links": [],
+                "controlFiles": [],
+                "isRemoteTask": false,
+                "environment": null
+              },
+              "isMainTask": true,
+              "position": {
+                "x": 200,
+                "y": 40
+              },
+              "condition": "",
+              "agentId": "",
+              "status": "pending"
+            }
+          ],
+          "messages": [],
+          "eventSource": "scheduledTaskSave"
+        },
+        {
+          "type": "parallelGroup",
+          "groupItems": {
+            "parallelTrack1": [
+              {
+                "type": "task",
+                "task": "parallel task for track 1"
+              }
+            ]
+          }
+        },
+        {
+          "type": "loopGroup",
+          "iterationListId": "thread_1762532497711_bypzhq2p1",
+          "loopTasks": [
+            {
+              "type": "task",
+              "task": "after loop task"
+            }
+          ]
+        },
+        {
+          "type": "ifGroup",
+          "condition": "if condition instruction",
+          "ifTasks": [
+            {
+              "type": "task",
+              "task": "task after condition return true"
+            }
+          ]
+        },
+        {
+          "type": "waitUntilGroup",
+          "waitSteps": [
+            "step2"
+          ],
+          "waitTasks": [
+            {
+              "type": "task",
+              "task": "final wait until group"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
