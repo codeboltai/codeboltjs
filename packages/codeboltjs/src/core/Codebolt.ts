@@ -40,6 +40,8 @@ class Codebolt {
     private isReady: boolean = false;
     private readyPromise: Promise<void>;
     private readyHandlers: Array<() => void | Promise<void>> = [];
+    private messageQueue: FlatUserMessage[] = [];
+    private messageResolvers: Array<(message: FlatUserMessage) => void> = [];
 
     /**
      * @constructor
@@ -152,6 +154,41 @@ class Codebolt {
     }
 
     /**
+     * Waits for and returns the next incoming message.
+     * If a message is already in the queue, returns it immediately.
+     * Otherwise, waits for the next message to arrive.
+     * @returns {Promise<FlatUserMessage>} A promise that resolves with the next message
+     */
+    getMessage(): Promise<FlatUserMessage> {
+        // If there are queued messages, return the first one
+        if (this.messageQueue.length > 0) {
+            const message = this.messageQueue.shift()!;
+            return Promise.resolve(message);
+        }
+        
+        // Otherwise, create a new promise that will be resolved when a message arrives
+        return new Promise<FlatUserMessage>((resolve) => {
+            this.messageResolvers.push(resolve);
+        });
+    }
+
+    /**
+     * Handles an incoming message by either resolving a waiting promise
+     * or adding it to the queue if no promises are waiting.
+     * @private
+     */
+    private handleIncomingMessage(message: FlatUserMessage) {
+        if (this.messageResolvers.length > 0) {
+            // If there are waiting resolvers, resolve the first one
+            const resolver = this.messageResolvers.shift()!;
+            resolver(message);
+        } else {
+            // Otherwise, add to the queue
+            this.messageQueue.push(message);
+        }
+    }
+
+    /**
      * Sets up a listener for incoming messages with a direct handler function.
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
@@ -188,6 +225,10 @@ class Codebolt {
                         // Automatically save the user message globally
                         userMessageManager.saveMessage(userMessage);
 
+                        // Handle the message in the queue system
+                        this.handleIncomingMessage(userMessage);
+
+                        // Call the original handler
                         const result = await handler(userMessage);
                         // Send processStoped with optional message
                         const message: any = {
