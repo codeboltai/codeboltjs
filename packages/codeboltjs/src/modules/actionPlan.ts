@@ -147,7 +147,7 @@ const codeboltActionPlan = {
         const listener = (response: any) => {
             // Filter responses related to this specific task
             if (response.type === ActionPlanResponseType.START_TASK_STEP_RESPONSE) {
-                if (response.message?.planId === planId && response.message?.taskId === taskId) {
+                if (response?.taskId === taskId) {
                     onResponse(response);
                 }
             }

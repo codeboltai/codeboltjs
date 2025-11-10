@@ -39,7 +39,22 @@ class PlanOrchestrator {
     private async processNode(node: PlanNode): Promise<void> {
         switch (node.type) {
             case 'task':
-                await this.executeTask(node as TaskNode);
+                // Handle nested task structure: { type: 'task', task: { taskId, name, ... } }
+                const taskNode = node as any;
+                
+                if (taskNode.task && typeof taskNode.task === 'object') {
+                    // Extract task data from nested structure
+                    const extractedTask: TaskNode = {
+                        type: 'task',
+                        taskId: taskNode.task.taskId,
+                        name: taskNode.task.name,
+                        task: taskNode.task.name,
+                        ...taskNode.task
+                    };
+                    await this.executeTask(extractedTask);
+                } else {
+                    await this.executeTask(node as TaskNode);
+                }
                 break;
             case 'parallelGroup':
                 await this.executeParallelGroup(node as ParallelGroupNode);
@@ -55,10 +70,21 @@ class PlanOrchestrator {
                 break;
             default:
                 // Handle regular task objects that don't have explicit type
-                if ((node as any).taskId) {
+                const anyNode = node as any;
+                if (anyNode.taskId) {
                     await this.executeTask(node as TaskNode);
+                } else if (anyNode.task && anyNode.task.taskId) {
+                    // Handle nested task structure in default case
+                    const extractedTask: TaskNode = {
+                        type: 'task',
+                        taskId: anyNode.task.taskId,
+                        name: anyNode.task.name,
+                        task: anyNode.task.name,
+                        ...anyNode.task
+                    };
+                    await this.executeTask(extractedTask);
                 } else {
-                    codebolt.chat.sendMessage(`⚠️ Unknown node type: ${node}`);
+                    codebolt.chat.sendMessage(`⚠️ Unknown node type: ${JSON.stringify(node)}`);
                 }
         }
     }
@@ -112,18 +138,36 @@ class PlanOrchestrator {
         codebolt.chat.sendMessage(`🔀 Starting parallel group with ${Object.keys(group.groupItems).length} tracks`);
         
         const trackPromises = Object.entries(group.groupItems).map(async ([trackName, tasks]) => {
-            codebolt.chat.sendMessage(`  ▶ Starting track: ${trackName}`);
-            
-            // Execute tasks in this track sequentially
-            for (const task of tasks) {
-                await this.processNode(task);
+            try {
+                codebolt.chat.sendMessage(`  ▶ Starting track: ${trackName}`);
+                
+                // Execute tasks in this track sequentially
+                for (const task of tasks) {
+                    try {
+                        await this.processNode(task);
+                    } catch (error) {
+                        codebolt.chat.sendMessage(`  ✗ Error in track "${trackName}" task: ${error instanceof Error ? error.message : String(error)}`);
+                        // Continue with next task even if one fails
+                    }
+                }
+                
+                codebolt.chat.sendMessage(`  ✓ Track "${trackName}" completed`);
+            } catch (error) {
+                codebolt.chat.sendMessage(`  ✗ Track "${trackName}" failed: ${error instanceof Error ? error.message : String(error)}`);
+                // Re-throw to be caught by Promise.allSettled
+                throw error;
             }
-            
-            codebolt.chat.sendMessage(`  ✓ Track "${trackName}" completed`);
         });
 
-        // Wait for all tracks to complete
-        await Promise.all(trackPromises);
+        // Wait for all tracks to complete (using allSettled to handle individual failures)
+        const results = await Promise.allSettled(trackPromises);
+        
+        // Check if any tracks failed
+        const failedTracks = results.filter(result => result.status === 'rejected');
+        if (failedTracks.length > 0) {
+            codebolt.chat.sendMessage(`⚠️ ${failedTracks.length} track(s) failed in parallel group, but continuing...`);
+        }
+        
         codebolt.chat.sendMessage(`✓ Parallel group completed`);
     }
 
@@ -259,7 +303,7 @@ class PlanOrchestrator {
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     try {
         codebolt.chat.sendMessage("🤖 Orchestrator Agent Started");
-        
+       
         // Get all plans
         const { response } = await codebolt.actionPlan.getAllPlans();
         const plans = response.data.actionPlans;
@@ -271,7 +315,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
         // For demonstration, execute the last plan (index 3 in your example)
         // You can modify this to execute a specific plan or all plans
-        const planToExecute = plans[plans.length - 1];
+        const planToExecute = plans[plans.length-1];
         
         if (!planToExecute) {
             codebolt.chat.sendMessage("⚠️ No plan to execute");
