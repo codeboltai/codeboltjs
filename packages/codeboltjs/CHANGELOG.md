@@ -1,5 +1,11 @@
 # @codebolt/codeboltjs
 
+## 5.0.2
+
+### Patch Changes
+
+- Update package
+
 ## 5.0.1
 
 ### Patch Changes
