@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/codeboltjs",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "",
   "keywords": [],
   "author": "",
@@ -33,7 +33,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@codebolt/types": "workspace:*",
+    "@codebolt/types": "latest",
     "@types/uuid": "^10.0.0",
     "buffer": "^6.0.3",
     "execa": "^9.5.2",

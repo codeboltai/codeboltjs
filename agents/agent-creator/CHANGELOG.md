@@ -1,5 +1,13 @@
 # act
 
+## 1.1.36
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.1
+  - @codebolt/agent@5.0.1
+
 ## 1.1.35
 
 ### Patch Changes

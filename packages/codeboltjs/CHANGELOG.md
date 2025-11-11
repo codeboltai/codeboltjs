@@ -1,5 +1,11 @@
 # @codebolt/codeboltjs
 
+## 5.0.1
+
+### Patch Changes
+
+- Add automatic background listener for messageResponse socket messages. The setupMessageListener method now ensures that getMessage() promises are always resolved even when onMessage() is not explicitly called.
+
 ## 5.0.0
 
 ### Minor Changes

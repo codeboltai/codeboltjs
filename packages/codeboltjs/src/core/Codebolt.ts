@@ -50,6 +50,7 @@ class Codebolt {
     constructor() {
         console.log("Codebolt Agent initialized");
         this.readyPromise = this.initializeConnection();
+        this.setupMessageListener();
     }
 
     /**
@@ -159,7 +160,11 @@ class Codebolt {
      * Otherwise, waits for the next message to arrive.
      * @returns {Promise<FlatUserMessage>} A promise that resolves with the next message
      */
-    getMessage(): Promise<FlatUserMessage> {
+    async getMessage(): Promise<FlatUserMessage> {
+        // Wait for WebSocket to be ready first
+        console.log('[Codebolt] getMessage ');
+        await this.waitForReady();
+        console.log('[Codebolt] getMessage ');
         // If there are queued messages, return the first one
         if (this.messageQueue.length > 0) {
             const message = this.messageQueue.shift()!;
@@ -189,7 +194,54 @@ class Codebolt {
     }
 
     /**
+     * Sets up a background listener for all messageResponse messages from the socket.
+     * This ensures that getMessage() promises are always resolved even if onMessage() is not called.
+     * @private
+     */
+    private setupMessageListener() {
+        this.waitForReady().then(() => {
+            const handleSocketMessage = async (response: any) => {
+                if (response.type === "messageResponse") {
+                    // Extract user-facing message from internal socket message
+                    const userMessage: FlatUserMessage = {
+                        userMessage: response.message.userMessage,
+                        currentFile: response.message.currentFile,
+                        mentionedFiles: response.message.mentionedFiles || [],
+                        mentionedFullPaths: response.message.mentionedFullPaths || [],
+                        mentionedFolders: response.message.mentionedFolders || [],
+                        uploadedImages: response.message.uploadedImages || [],
+                        mentionedMCPs: response.message.mentionedMCPs || [],
+                        selectedAgent: {
+                            id: response.message.selectedAgent?.id || '',
+                            name: response.message.selectedAgent?.name || ''
+                        },
+                        messageId: response.message.messageId,
+                        threadId: response.message.threadId,
+                        selection: response.message.selection,
+                        remixPrompt: response.message.remixPrompt,
+                        mentionedAgents: response.message.mentionedAgents || [],
+                        activeFile: response.message.activeFile,
+                        openedFiles: response.message.activeFile
+                    };
+
+                    // Automatically save the user message globally
+                    userMessageManager.saveMessage(userMessage);
+
+                    // Handle the message in the queue system for getMessage() resolvers
+                    this.handleIncomingMessage(userMessage);
+                }
+            };
+
+            cbws.messageManager.on('message', handleSocketMessage);
+        }).catch(error => {
+            console.error('Failed to set up background message listener:', error);
+        });
+    }
+
+    /**
      * Sets up a listener for incoming messages with a direct handler function.
+     * Note: Message extraction and resolver handling is done by setupMessageListener.
+     * This method only adds the custom handler logic and sends processStoped response.
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
@@ -222,14 +274,9 @@ class Codebolt {
                             openedFiles: response.message.activeFile
                         };
 
-                        // Automatically save the user message globally
-                        userMessageManager.saveMessage(userMessage);
-
-                        // Handle the message in the queue system
-                        this.handleIncomingMessage(userMessage);
-
-                        // Call the original handler
+                        // Call the custom handler
                         const result = await handler(userMessage);
+                        
                         // Send processStoped with optional message
                         const message: any = {
                             "type": "processStoped"

@@ -1,5 +1,13 @@
 # @codebolt/git-worktree-production
 
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.1
+  - @codebolt/provider@2.0.1
+
 ## 1.0.6
 
 ### Patch Changes
