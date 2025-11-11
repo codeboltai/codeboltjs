@@ -51,6 +51,7 @@ class Codebolt {
     constructor() {
         console.log("Codebolt Agent initialized");
         this.readyPromise = this.initializeConnection();
+        this.setupMessageListener()
         this.lastUserMessage=undefined
     }
 
