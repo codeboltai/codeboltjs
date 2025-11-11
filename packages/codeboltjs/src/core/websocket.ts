@@ -67,21 +67,21 @@ class cbws {
         const serverUrl = process.env.CODEBOLT_SERVER_URL || 'localhost';
         const threadToken =process.env.threadToken|| null
 
-        console.log('[WebSocket] Logging all relevant variables:');
-        console.log('uniqueConnectionId:', uniqueConnectionId);
+        // console.log('[WebSocket] Logging all relevant variables:');
+        // console.log('uniqueConnectionId:', uniqueConnectionId);
         // console.log('initialMessage:', initialMessage);
-        console.log('agentIdParam:', agentIdParam);
-        console.log('parentIdParam:', parentIdParam);
-        console.log('parentAgentInstanceIdParam:', parentAgentInstanceIdParam);
-        console.log('agentTask:', agentTask);
-        console.log('socketPort:', socketPort);
-        console.log('serverUrl:', serverUrl);
-        console.log('threadToken:', threadToken);
-        console.log('[WebSocket] Environment variables check:');
-        console.log('process.env.agentId:', process.env.agentId);
-        console.log('process.env.threadToken:', process.env.threadToken);
-        console.log('process.env.parentId:', process.env.parentId);
-        console.log('process.env.agentTask:', process.env.agentTask);
+        // console.log('agentIdParam:', agentIdParam);
+        // console.log('parentIdParam:', parentIdParam);
+        // console.log('parentAgentInstanceIdParam:', parentAgentInstanceIdParam);
+        // console.log('agentTask:', agentTask);
+        // console.log('socketPort:', socketPort);
+        // console.log('serverUrl:', serverUrl);
+        // console.log('threadToken:', threadToken);
+        // console.log('[WebSocket] Environment variables check:');
+        // console.log('process.env.agentId:', process.env.agentId);
+        // console.log('process.env.threadToken:', process.env.threadToken);
+        // console.log('process.env.parentId:', process.env.parentId);
+        // console.log('process.env.agentTask:', process.env.agentTask);
         
         const threadTokenParam = threadToken ? `&threadToken=${encodeURIComponent(threadToken)}` : '';
         
@@ -95,7 +95,7 @@ class cbws {
         }
         
         const wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${threadTokenParam}${customParams}${process.env.Is_Dev ? '&dev=true' : ''}`;
-        console.log('[WebSocket] Connecting to:', wsUrl);
+        console.log('[WebSocket] Connecting to:', serverUrl);
         
         this.websocket = new WebSocket(wsUrl);
 

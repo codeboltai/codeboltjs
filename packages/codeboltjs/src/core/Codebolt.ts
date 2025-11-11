@@ -42,6 +42,7 @@ class Codebolt {
     private readyHandlers: Array<() => void | Promise<void>> = [];
     private messageQueue: FlatUserMessage[] = [];
     private messageResolvers: Array<(message: FlatUserMessage) => void> = [];
+    private lastUserMessage:FlatUserMessage | undefined
 
     /**
      * @constructor
@@ -50,7 +51,7 @@ class Codebolt {
     constructor() {
         console.log("Codebolt Agent initialized");
         this.readyPromise = this.initializeConnection();
-        this.setupMessageListener();
+        this.lastUserMessage=undefined
     }
 
     /**
@@ -155,23 +156,40 @@ class Codebolt {
     }
 
     /**
-     * Waits for and returns the next incoming message.
-     * If a message is already in the queue, returns it immediately.
-     * Otherwise, waits for the next message to arrive.
-     * @returns {Promise<FlatUserMessage>} A promise that resolves with the next message
+     * Gets the current or next incoming message.
+     * Priority order:
+     * 1. Returns the current message being processed (if called during message handling)
+     * 2. Returns a queued message (if any are waiting)
+     * 3. Waits for the next message to arrive
+     * 
+     * This allows getMessage() to work both during active message processing
+     * and when waiting for new messages in a loop.
+     * 
+     * @returns {Promise<FlatUserMessage>} A promise that resolves with the message
      */
     async getMessage(): Promise<FlatUserMessage> {
         // Wait for WebSocket to be ready first
-        console.log('[Codebolt] getMessage ');
-        await this.waitForReady();
-        console.log('[Codebolt] getMessage ');
+        console.log('[Codebolt] getMessage called');
+        // await this.waitForReady();
+       
+        
+        // First, check if there's a current message being processed
+        const currentMessage = userMessageManager.getMessage();
+        if (currentMessage) {
+            console.log('[Codebolt] Returning current message');
+            return Promise.resolve(currentMessage);
+        }
+        
         // If there are queued messages, return the first one
-        if (this.messageQueue.length > 0) {
-            const message = this.messageQueue.shift()!;
+        if (this.messageQueue.length > 0 || this.lastUserMessage) {
+            console.log('[Codebolt] Returning queued message');
+            const message = this.messageQueue.shift() || this.lastUserMessage;
+            if(message)
             return Promise.resolve(message);
         }
         
         // Otherwise, create a new promise that will be resolved when a message arrives
+        console.log('[Codebolt] Waiting for next message');
         return new Promise<FlatUserMessage>((resolve) => {
             this.messageResolvers.push(resolve);
         });
@@ -199,8 +217,10 @@ class Codebolt {
      * @private
      */
     private setupMessageListener() {
+        console.log("listener setup")
         this.waitForReady().then(() => {
             const handleSocketMessage = async (response: any) => {
+                console.log(response)
                 if (response.type === "messageResponse") {
                     // Extract user-facing message from internal socket message
                     const userMessage: FlatUserMessage = {
@@ -226,7 +246,7 @@ class Codebolt {
 
                     // Automatically save the user message globally
                     userMessageManager.saveMessage(userMessage);
-
+                    this.lastUserMessage=userMessage;
                     // Handle the message in the queue system for getMessage() resolvers
                     this.handleIncomingMessage(userMessage);
                 }
