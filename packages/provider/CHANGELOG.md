@@ -1,5 +1,12 @@
 # @codebolt/provider
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.0
+
 ## 1.0.5
 
 ### Patch Changes

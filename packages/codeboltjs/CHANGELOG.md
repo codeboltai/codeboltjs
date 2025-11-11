@@ -1,5 +1,11 @@
 # @codebolt/codeboltjs
 
+## 5.0.0
+
+### Minor Changes
+
+- getMessage added
+
 ## 4.0.3
 
 ### Patch Changes

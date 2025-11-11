@@ -1,5 +1,11 @@
 # @tests
 
+## 1.0.5
+
+### Patch Changes
+
+- epoml@5.0.0
+
 ## 1.0.4
 
 ### Patch Changes
