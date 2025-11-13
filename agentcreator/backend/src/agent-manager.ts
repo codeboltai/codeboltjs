@@ -53,7 +53,7 @@ class AgentManager {
       this.writeGraphDataToFile(graphData, message);
 
       // Start the agent process
-      const agentPath = this.getDataFilePath();
+      const agentPath = join(__dirname, '../../agent/dist/index.js');
       console.log('Starting agent process from:', agentPath);
 
       return new Promise((resolve, reject) => {
