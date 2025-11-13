@@ -1,0 +1,87 @@
+/* Additional styles for proper context menu appearance */
+.litecontextmenu {
+  position: fixed !important;
+  background: #2a2a2a !important;
+  border: 1px solid #555 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  z-index: 10000 !important;
+  padding: 4px 0 !important;
+  min-width: 150px !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  font-size: 13px !important;
+}
+
+.litemenu-entry {
+  padding: 6px 12px !important;
+  color: #ddd !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease !important;
+  user-select: none !important;
+}
+
+.litemenu-entry:hover {
+  background-color: #444 !important;
+  color: #fff !important;
+}
+
+.litemenu-entry.disabled {
+  color: #666 !important;
+  cursor: default !important;
+  opacity: 0.5 !important;
+}
+
+.litemenu-entry.disabled:hover {
+  background-color: transparent !important;
+}
+
+.litemenu-entry.separator {
+  height: 1px !important;
+  background: #555 !important;
+  margin: 4px 0 !important;
+  padding: 0 !important;
+  cursor: default !important;
+  width: 100% !important;
+  border: none !important;
+}
+
+.litemenu-title {
+  padding: 8px 12px !important;
+  color: #aaa !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 1px solid #555 !important;
+  margin-bottom: 4px !important;
+}
+
+/* Ensure the context menu appears above other elements */
+.litegraph.litecontextmenu.litemenubar-panel {
+  position: fixed !important;
+  z-index: 10000 !important;
+}
+
+/* Canvas and container fixes for full-width background */
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.litegraph-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.litegraph-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}

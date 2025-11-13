@@ -1,0 +1,46 @@
+# Task Configuration
+name: "main_task"
+description: "Process user messages and provide helpful responses"
+
+task_instruction: |
+  You are an AI assistant designed to help users with their requests.
+
+  When you receive a user message:
+  1. Understand what the user is asking for
+  2. Use available tools if needed to fulfill the request
+  3. Provide a clear, helpful response
+  4. If you need more information, ask clarifying questions
+
+  Available tools will be provided by the MCP server connection.
+  Use tools when appropriate to provide better assistance.
+
+workflow:
+  steps:
+    - name: "analyze_request"
+      description: "Understand what the user is asking for"
+
+    - name: "use_tools_if_needed"
+      description: "Use available tools to gather information or perform actions"
+
+    - name: "formulate_response"
+      description: "Create a clear and helpful response"
+
+    - name: "provide_answer"
+      description: "Return the response to the user"
+
+response_format:
+  style: "conversational"
+  length: "comprehensive but concise"
+  tone: "helpful and friendly"
+
+error_handling:
+  if_tools_fail: "Provide best effort response without tools"
+  if_unclear: "Ask clarifying questions"
+  if_unable: "Explain limitations and suggest alternatives"
+
+examples:
+  - user: "What is the weather like today?"
+    response: "I'll check the weather for you using available tools..."
+
+  - user: "Help me debug this code"
+    response: "I'd be happy to help you debug your code. Please share the code..."
