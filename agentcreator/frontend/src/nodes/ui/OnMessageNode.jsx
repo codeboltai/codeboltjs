@@ -7,7 +7,7 @@ export class OnMessageNode extends BaseOnMessageNode {
     super();
 
     // Add display widget to show current message
-    this.addWidget("text", "Current Message", this.properties.message, "message");
+    // this.addWidget("text", "Current Message", this.properties.message, "message");
   }
 
   // Frontend UI rendering
@@ -42,10 +42,11 @@ export class OnMessageNode extends BaseOnMessageNode {
 
   // Update message when widget value changes
   onPropertyChanged(name, value) {
-    if (name === "message") {
-      this.properties.message = value;
-      this.trigger("message");
-    }
+    super.onPropertyChanged(name, value);
+    // if (name === "message") {
+    //   this.properties.message = value;
+    //   this.trigger("message");
+    // }
   }
 }
 
