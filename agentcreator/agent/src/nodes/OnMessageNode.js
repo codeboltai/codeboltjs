@@ -12,7 +12,7 @@ export class OnMessageNode extends BaseOnMessageNode {
     try {
 
       let message = await codebolt.getMessage();
-      // console.log('Agent: Received message:', message);  
+      console.log('[utkarsh1]: Agent: Received message:', message);  
       codebolt.chat.sendMessage("Executing OnMessageNode");
 
       this.setOutputData(0, message);

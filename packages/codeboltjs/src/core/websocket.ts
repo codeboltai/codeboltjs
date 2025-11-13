@@ -224,4 +224,9 @@ class cbws {
 }
 
 // console.log('[WebSocket] Creating cbws singleton instance');
-export default new cbws();
+const wsGlobalKey = '__codebolt_cbws_singleton__';
+const wg = globalThis as any;
+if (!wg[wsGlobalKey]) {
+    wg[wsGlobalKey] = new cbws();
+}
+export default wg[wsGlobalKey] as cbws;

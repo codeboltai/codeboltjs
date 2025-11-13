@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/codeboltjs":"5.0.2",
+    "@codebolt/codeboltjs":"workspace:*",
     "@comfyorg/litegraph": "^0.7.6",
     "@agent-creator/shared-nodes": "workspace:*"
   },

@@ -154,10 +154,17 @@ export type {
 } from './types/commonTypes';
 
 // ================================
-// Main Library Instance
+// Main Library Instance (process-wide singleton)
 // ================================
 
-const codebolt = new Codebolt();
+const globalKey = '__codebolt_singleton__';
+const g = globalThis as any;
+
+if (!g[globalKey]) {
+    g[globalKey] = new Codebolt();
+}
+
+const codebolt = g[globalKey] as Codebolt;
 
 // ================================
 // Export the Main Instance and Class
@@ -173,6 +180,3 @@ export { Codebolt };
 module.exports = codebolt;
 module.exports.default = codebolt;
 module.exports.Codebolt = Codebolt;
-
-
-
