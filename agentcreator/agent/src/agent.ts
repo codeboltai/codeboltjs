@@ -57,7 +57,7 @@ class AgentExecutor {
       // Configure the graph from the frontend data
       this.graph.configure(graphData);
 
-      // Execute the graph
+      // Execute the graph 
       this.graph.runStep(1, true);
 
       // Collect outputs from AgentRun nodes and other output nodes

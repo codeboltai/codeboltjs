@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode, LiteGraph } from '@comfyorg/litegraph';
 
 // Base OnMessage Node - Entry point for agent flows
 export class BaseOnMessageNode extends LGraphNode {
@@ -22,7 +22,10 @@ export class BaseOnMessageNode extends LGraphNode {
       eventType: "onMessage"
     };
 
-    // Single output slot to pass message to next nodes
+    // Event output to trigger connected nodes
+    this.addOutput("onTrigger", LiteGraph.EVENT);
+    
+    // Data output for the payload
     this.addOutput("message", "string");
   }
 
@@ -70,13 +73,28 @@ export class BaseOnMessageNode extends LGraphNode {
     // Frontend: do nothing
   }
 
-  // Handle message received
+  // Handle message received and trigger event
   onMessage(message) {
     this.properties.message = message;
-
-    // Trigger the flow execution
-    if (this.graph) {
-      this.graph.runStep(1, true);
-    }
+    
+    // Debug: log before triggering
+    try {
+      console.log('[BaseOnMessageNode] triggering onTrigger with message');
+      console.log('[BaseOnMessageNode] output[0] links:', this.outputs?.[0]?.links);
+      console.log('[BaseOnMessageNode] output[1] links:', this.outputs?.[1]?.links);
+    } catch {}
+    
+    // Compose payload with metadata for downstream nodes
+    const payload = {
+      message,
+      event: this.properties.eventType || 'onMessage',
+      timestamp: new Date().toISOString()
+    };
+    
+    // Set the data output at slot 1
+    this.setOutputData(1, payload);
+    
+    // Trigger the event output at slot 0 (onTrigger)
+    this.triggerSlot(0, payload);
   }
 }

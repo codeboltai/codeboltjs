@@ -4,24 +4,32 @@ import codebolt from '@codebolt/codeboltjs';
 export class OnMessageNode extends BaseOnMessageNode {
   constructor() {
     super();
-    // Backend doesn't need any additional UI widgets or setup
+    this._messageReceived = false;
   }
 
-  // Backend execution logic
+  // Backend execution logic - waits for message and triggers event
   async onExecute() {
-    try {
-
-      let message = await codebolt.getMessage();
-      console.log('[utkarsh1]: Agent: Received message:', message);  
-      codebolt.chat.sendMessage("Executing OnMessageNode");
-
-      this.setOutputData(0, message);
-    } catch (error) {
-      console.error('OnMessageNode: Error in onExecute:', error);
+    // Only execute once - don't wait for message on every step
+    if (this._messageReceived) {
+      return;
     }
-    // // console.log(`OnMessageNode ${this.id}: Processing message: ${message ? message.substring(0, 50) + '...' : 'empty'}`);
-
-    // This node is typically the entry point that triggers the flow
-    // It should pass the message to downstream nodes like UserMessageNode
+    
+    this._messageReceived = true;
+    
+    try {
+      // Wait for a message
+      const message = await codebolt.getMessage();
+      console.log('[Utkarsh]: Received message:', message);
+      
+      // Trigger the onMessage handler which will set outputs and trigger the event
+      this.onMessage(message);
+      
+      // Send a confirmation message
+      await codebolt.chat.sendMessage("Processing your message...");
+    } catch (error) {
+      console.error('OnMessageNode: Error in message handling:', error);
+      // Still trigger with error
+      this.onMessage({ error: error.message });
+    }
   }
 }
