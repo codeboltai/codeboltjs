@@ -9,28 +9,30 @@ export class SendMessageNode extends BaseSendMessageNode {
   }
 
 
-  // Handle the action - this will be called when triggered by the event
-  async onAction(action, param) {
+  // Handle execution - this will be called when triggered by the event
+  async onExecute() {
+    console.log('[Utkarsh1] onExecute called');
 
-    console.log('[Utkarsh1] onAction called with action:', action, 'param:', param);
+    // Get the message from input slot 1
+    // const message = this.getInputData(1);
+    const messageToSend =  "Hello";
+
+    console.log('SendMessageNode: Sending message:', messageToSend);
+
     try {
       // Call codebolt.chat.sendMessage
-      const response = await codebolt.chat.sendMessage("Hello");
+      const response = await codebolt.chat.sendMessage(messageToSend);
       console.log('SendMessageNode: Message sent successfully');
 
       // Update outputs with results
-      // this.properties.response = response;
-      this.setOutputData(0, "success");
+      this.setOutputData(0, "done");
       this.setOutputData(1, true);
 
-      // return response;
     } catch (error) {
-      const errorMessage = `Error sending message: ${error.message}`;
-      this.setOutputData(0, "failure");
+      const errorMessage = `Error`;
+      this.setOutputData(0, errorMessage);
       this.setOutputData(1, false);
       console.error('SendMessageNode error:', error);
-      // return { success: false, error: errorMessage };
     }
-    // return;
   }
 }
