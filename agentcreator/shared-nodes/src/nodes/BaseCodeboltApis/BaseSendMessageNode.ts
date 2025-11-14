@@ -1,8 +1,9 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../utils';
 
 // Base SendMessage Node - Calls codebolt.chat.sendMessage
 export class BaseSendMessageNode extends LGraphNode {
-  static metadata = {
+  static metadata: NodeMetadata = {
     type: "codebolt/chat/sendmessage",
     title: "Send Message",
     category: "codebolt",
@@ -12,9 +13,8 @@ export class BaseSendMessageNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseSendMessageNode.metadata.title, BaseSendMessageNode.metadata.type);
     this.title = BaseSendMessageNode.metadata.title;
-    this.desc = "Sends a message using codebolt.chat.sendMessage";
     this.size = [220, 100];
 
     // this.properties = {

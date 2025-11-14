@@ -33,11 +33,7 @@ export {
 // Widget nodes
 export { MarkdownNode } from './MarkdownNode.jsx';
 
-// Event nodes
-export { OnMessageNode } from './OnMessageNode.jsx';
 
-// Codebolt nodes
-export { SendMessageNode } from './SendMessageNode.jsx';
 
 // AI Agent nodes
 export {

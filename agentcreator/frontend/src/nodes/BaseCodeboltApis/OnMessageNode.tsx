@@ -1,4 +1,3 @@
-import React from 'react';
 import { BaseOnMessageNode } from '@agent-creator/shared-nodes';
 
 // Frontend OnMessage Node - UI only

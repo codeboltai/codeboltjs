@@ -1,3 +1,21 @@
+// Polyfill CustomEvent for Node.js environment
+if (typeof globalThis.CustomEvent === 'undefined') {
+  class CustomEvent extends Event {
+    detail: any;
+
+    constructor(type: string, options: any = {}) {
+      super(type, {
+        bubbles: options.bubbles || false,
+        cancelable: options.cancelable || false,
+        composed: options.composed || false
+      });
+      this.detail = options.detail || null;
+    }
+  }
+
+  globalThis.CustomEvent = CustomEvent as any;
+}
+
 import { spawn } from 'child_process';
 import { registerBackendNodes } from './nodes/index.js';
 import { readFileSync } from 'fs';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { BaseSendMessageNode } from '@agent-creator/shared-nodes';
 
 // Frontend SendMessage Node - UI only

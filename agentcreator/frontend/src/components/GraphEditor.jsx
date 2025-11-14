@@ -219,8 +219,8 @@ const PropertiesPanel = ({ selectedNode }) => {
 
       {selectedNode.widgets && selectedNode.widgets.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ 
-            color: '#fff', 
+          <h4 style={{
+            color: '#fff',
             margin: '0 0 10px 0',
             fontSize: '12px',
             fontWeight: '600'
@@ -230,6 +230,148 @@ const PropertiesPanel = ({ selectedNode }) => {
           <div style={{ color: '#888', fontSize: '12px' }}>
             {selectedNode.widgets.length} widget(s) available
           </div>
+        </div>
+      )}
+
+      {/* Inputs */}
+      {selectedNode.inputs && selectedNode.inputs.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{
+            color: '#fff',
+            margin: '0 0 10px 0',
+            fontSize: '12px',
+            fontWeight: '600'
+          }}>
+            Inputs
+          </h4>
+          {selectedNode.inputs.map((input, index) => (
+            <div key={`input_${index}`} style={{
+              marginBottom: '12px',
+              padding: '8px',
+              backgroundColor: '#333',
+              borderRadius: '4px',
+              border: '1px solid #444'
+            }}>
+              <div style={{
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: '500',
+                marginBottom: '4px'
+              }}>
+                {input.name || `Input ${index}`}
+                <span style={{
+                  color: '#888',
+                  fontSize: '10px',
+                  marginLeft: '6px',
+                  backgroundColor: '#444',
+                  padding: '2px 4px',
+                  borderRadius: '2px'
+                }}>
+                  {input.type || 'unknown'}
+                </span>
+              </div>
+              {input.extra_info && (
+                <div style={{ fontSize: '10px', color: '#aaa', lineHeight: '1.4' }}>
+                  {input.extra_info.dataType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Data Type:</strong> {input.extra_info.dataType}
+                    </div>
+                  )}
+                  {input.extra_info.arrayType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Array Type:</strong> {input.extra_info.arrayType}
+                    </div>
+                  )}
+                  {input.extra_info.elementType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Element Type:</strong> {input.extra_info.elementType}
+                    </div>
+                  )}
+                  {input.extra_info.acceptedTypes && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Accepts:</strong> {input.extra_info.acceptedTypes.join(', ')}
+                    </div>
+                  )}
+                  {input.extra_info.description && (
+                    <div style={{ marginBottom: '2px', fontStyle: 'italic' }}>
+                      {input.extra_info.description}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Outputs */}
+      {selectedNode.outputs && selectedNode.outputs.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{
+            color: '#fff',
+            margin: '0 0 10px 0',
+            fontSize: '12px',
+            fontWeight: '600'
+          }}>
+            Outputs
+          </h4>
+          {selectedNode.outputs.map((output, index) => (
+            <div key={`output_${index}`} style={{
+              marginBottom: '12px',
+              padding: '8px',
+              backgroundColor: '#333',
+              borderRadius: '4px',
+              border: '1px solid #444'
+            }}>
+              <div style={{
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: '500',
+                marginBottom: '4px'
+              }}>
+                {output.name || `Output ${index}`}
+                <span style={{
+                  color: '#888',
+                  fontSize: '10px',
+                  marginLeft: '6px',
+                  backgroundColor: '#444',
+                  padding: '2px 4px',
+                  borderRadius: '2px'
+                }}>
+                  {output.type || 'unknown'}
+                </span>
+              </div>
+              {output.extra_info && (
+                <div style={{ fontSize: '10px', color: '#aaa', lineHeight: '1.4' }}>
+                  {output.extra_info.dataType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Data Type:</strong> {output.extra_info.dataType}
+                    </div>
+                  )}
+                  {output.extra_info.arrayType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Array Type:</strong> {output.extra_info.arrayType}
+                    </div>
+                  )}
+                  {output.extra_info.elementType && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Element Type:</strong> {output.extra_info.elementType}
+                    </div>
+                  )}
+                  {output.extra_info.acceptedTypes && (
+                    <div style={{ marginBottom: '2px' }}>
+                      <strong>Accepts:</strong> {output.extra_info.acceptedTypes.join(', ')}
+                    </div>
+                  )}
+                  {output.extra_info.description && (
+                    <div style={{ marginBottom: '2px', fontStyle: 'italic' }}>
+                      {output.extra_info.description}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

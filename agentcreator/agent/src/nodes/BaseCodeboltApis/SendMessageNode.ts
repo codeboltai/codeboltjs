@@ -22,7 +22,7 @@ export class SendMessageNode extends BaseSendMessageNode {
     try {
       // Call codebolt.chat.sendMessage
       const response = await codebolt.chat.sendMessage(messageToSend);
-      console.log('SendMessageNode: Message sent successfully');
+      console.log('[utkarsh2]:SendMessageNode: Message sent successfully');
 
       // Update outputs with results
       this.setOutputData(0, "done");

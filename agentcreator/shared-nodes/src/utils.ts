@@ -10,5 +10,6 @@ export interface NodeMetadata {
   color: string;
 }
 
+
 // Import the runtime implementation
 export { nodeMetadata, registerNodeWithMetadata } from './utils-impl';

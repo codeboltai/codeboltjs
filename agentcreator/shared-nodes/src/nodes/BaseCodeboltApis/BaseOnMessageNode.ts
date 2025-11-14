@@ -1,8 +1,16 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
+import { DATA_TYPES, ARRAY_TYPES, ExtraInfo } from '../../types/DataTypes';
+import { NodeMetadata } from '../../utils';
+
+// Interface for node properties
+interface NodeProperties {
+  showSplitOutputs: boolean;
+  message: any;
+}
 
 // Base OnMessage Node - Entry point for agent flows
 export class BaseOnMessageNode extends LGraphNode {
-  static metadata = {
+  static metadata: NodeMetadata = {
     type: "events/onmessage",
     title: "OnMessage",
     category: "events",
@@ -11,11 +19,9 @@ export class BaseOnMessageNode extends LGraphNode {
     color: "#FF5722"
   };
 
-  
+
   constructor() {
-    super();
-    this.title = BaseOnMessageNode.metadata.title;
-    this.desc = "Entry point for agent flow - waits for incoming messages";
+    super(BaseOnMessageNode.metadata.title);
     this.size = [200, 60];
 
     // Event output to trigger connected nodes
@@ -30,24 +36,25 @@ export class BaseOnMessageNode extends LGraphNode {
     // Data output for the FlatUserMessage object with extra_info for type validation
     this.addOutput("message", "object", {
       extra_info: {
-        dataType: "FlatUserMessage",
+        dataType: DATA_TYPES.FLAT_USER_MESSAGE,
         description: "Complete user message object with all properties"
       }
-    });
+    } as any);
 
     // Add toggle widget for frontend
     this.addWidget("toggle", "", false, "showSplitOutputs", { on: "Unified", off: "Split" });
   }
 
   // Handle property changes (toggle between single and split outputs)
-  onPropertyChanged(name, value) {
+  onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
     if (name === "showSplitOutputs") {
-      this.updateOutputs(value);
+      this.updateOutputs(value as boolean);
     }
+    return true; // Return true to allow default behavior
   }
 
   // Update outputs based on toggle state
-  updateOutputs(showSplit) {
+  updateOutputs(showSplit: boolean): void {
     // Clear existing outputs (keep event output)
     const eventOutput = this.outputs[0];
     this.outputs = [eventOutput];
@@ -59,21 +66,21 @@ export class BaseOnMessageNode extends LGraphNode {
           dataType: "string",
           description: "The user's message text"
         }
-      });
+      } as any);
 
       this.addOutput("currentFile", "string", {
         extra_info: {
-          dataType: "filePath",
+          dataType: DATA_TYPES.FILE_PATH,
           description: "Path to the currently active file"
         }
-      });
+      } as any);
 
       this.addOutput("selectedAgent", "object", {
         extra_info: {
-          dataType: "selectedAgent",
+          dataType: DATA_TYPES.SELECTED_AGENT,
           description: "Selected agent information with id, name, type"
         }
-      });
+      } as any);
 
       this.addOutput("mentionedFiles", "array", {
         extra_info: {
@@ -82,7 +89,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "filePath",
           description: "Array of mentioned file names"
         }
-      });
+      } as any);
 
       this.addOutput("mentionedFullPaths", "array", {
         extra_info: {
@@ -91,7 +98,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "fullPath",
           description: "Array of mentioned file full paths"
         }
-      });
+      } as any);
 
       this.addOutput("mentionedFolders", "array", {
         extra_info: {
@@ -100,7 +107,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "folderPath",
           description: "Array of mentioned folder names"
         }
-      });
+      } as any);
 
       this.addOutput("mentionedMCPs", "array", {
         extra_info: {
@@ -109,7 +116,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "mcpServer",
           description: "Array of mentioned MCP server names"
         }
-      });
+      } as any);
 
       this.addOutput("uploadedImages", "array", {
         extra_info: {
@@ -118,7 +125,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "imagePath",
           description: "Array of uploaded image paths/URLs"
         }
-      });
+      } as any);
 
       this.addOutput("actions", "array", {
         extra_info: {
@@ -127,7 +134,7 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "action",
           description: "Array of action objects"
         }
-      });
+      } as any);
 
       this.addOutput("mentionedAgents", "array", {
         extra_info: {
@@ -136,14 +143,14 @@ export class BaseOnMessageNode extends LGraphNode {
           arrayType: "agent",
           description: "Array of mentioned agent objects"
         }
-      });
+      } as any);
 
       this.addOutput("selection", "object", {
         extra_info: {
           dataType: "selection",
           description: "Selection object with ranges and selected text"
         }
-      });
+      } as any);
 
       // Adjust node size for split outputs
       this.size = [240, 300];
@@ -154,7 +161,7 @@ export class BaseOnMessageNode extends LGraphNode {
           dataType: "FlatUserMessage",
           description: "Complete user message object with all properties"
         }
-      });
+      } as any);
 
       // Reset node size for single output
       this.size = [200, 60];
