@@ -8,14 +8,13 @@ import {
   OrNode, NotNode, SelectorNode,
   ToStringNode, CompareNode, ToUpperCaseNode, ContainsNode,
   MarkdownNode,
-  // Event nodes
-  OnMessageNode,
-  // Codebolt nodes
-  SendMessageNode,
   // AI Agent nodes
   UserMessageNode, SystemPromptNode, MCPToolsNode,
   TaskInstructionNode, AgentNode, AgentRunNode
 } from './ui/index.js';
+
+// Event and Codebolt nodes
+import { OnMessageNode, SendMessageNode } from './BaseCodeboltApis/index';
 import { registerNodeWithMetadata, nodeMetadata } from '@agent-creator/shared-nodes';
 
 // Base nodes (legacy - to be refactored)

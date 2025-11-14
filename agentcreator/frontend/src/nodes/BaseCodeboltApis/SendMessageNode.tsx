@@ -20,7 +20,7 @@ export class SendMessageNode extends BaseSendMessageNode {
   }
 
   // Frontend UI rendering
-  onDrawForeground(ctx) {
+  onDrawForeground(_ctx: CanvasRenderingContext2D) {
     // Draw node title
     // ctx.fillStyle = "#2196F3"; // Blue color for codebolt nodes
     // ctx.font = "12px Arial";
@@ -45,8 +45,8 @@ export class SendMessageNode extends BaseSendMessageNode {
   }
 
   // Handle property changes with UI updates
-  onPropertyChanged(name, value) {
-    super.onPropertyChanged(name, value);
+  onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? true;
 
     // if (name === 'message') {
     //   // Update widget if exists
@@ -63,11 +63,27 @@ export class SendMessageNode extends BaseSendMessageNode {
     //     responseWidget.value = value || '';
     //   }
     // }
+
+    return result;
   }
 }
 
 // React component for the SendMessage node palette card
-export default function SendMessageNodeComponent({ nodeType, title, description, icon, color, onClick }) {
+export default function SendMessageNodeComponent({
+  nodeType,
+  title,
+  description,
+  icon,
+  color,
+  onClick
+}: {
+  nodeType: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  onClick: (nodeType: string) => void;
+}) {
   return (
     <div
       onClick={() => onClick(nodeType)}
@@ -82,13 +98,13 @@ export default function SendMessageNodeComponent({ nodeType, title, description,
         alignItems: 'center',
         gap: '10px'
       }}
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#444';
-        e.target.style.borderColor = '#666';
+      onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = '#444';
+        e.currentTarget.style.borderColor = '#666';
       }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = '#333';
-        e.target.style.borderColor = '#555';
+      onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = '#333';
+        e.currentTarget.style.borderColor = '#555';
       }}
     >
       <div style={{

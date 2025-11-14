@@ -2,9 +2,10 @@ import { BaseOnMessageNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 // Backend-specific OnMessage Node - execution logic only
 export class OnMessageNode extends BaseOnMessageNode {
+  private _messageReceived = false;
+
   constructor() {
     super();
-    this._messageReceived = false;
   }
 
   // Backend execution logic - waits for message and triggers event
@@ -44,7 +45,7 @@ export class OnMessageNode extends BaseOnMessageNode {
       }
 
       // Trigger the event output at slot 0 (onTrigger)
-      this.triggerSlot(0, message);
+      this.triggerSlot(0, null, message);
 
       // Send a confirmation message
 

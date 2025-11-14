@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import dts from 'vite-plugin-dts';
 
 export default defineConfig({
   build: {
@@ -27,5 +28,17 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
-  }
+  },
+  plugins: [
+    dts({
+      include: ['src/**/*'],
+      exclude: ['**/*.test.*', '**/*.spec.*'],
+      outDir: 'dist',
+      insertTypesEntry: true,
+      rollupTypes: true,
+      outputDir: 'dist',
+      entryRoot: 'src',
+      fileName: 'index.d.ts'
+    })
+  ]
 });

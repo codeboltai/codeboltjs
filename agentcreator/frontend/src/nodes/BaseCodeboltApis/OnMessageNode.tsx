@@ -10,7 +10,7 @@ export class OnMessageNode extends BaseOnMessageNode {
   }
 
   // Frontend UI rendering
-  onDrawForeground(ctx) {
+  onDrawForeground(_ctx: CanvasRenderingContext2D) {
     // Draw node title and message preview
     // ctx.fillStyle = "#FF5722"; // Orange color for event nodes
     // ctx.font = "12px Arial";
@@ -40,17 +40,32 @@ export class OnMessageNode extends BaseOnMessageNode {
   }
 
   // Update message when widget value changes
-  onPropertyChanged(name, value) {
-    super.onPropertyChanged(name, value);
+  onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
+    const result = super.onPropertyChanged(name, value, prev_value);
     // if (name === "message") {
     //   this.properties.message = value;
     //   this.trigger("message");
     // }
+    return result;
   }
 }
 
 // React component for the OnMessage node palette card
-export default function OnMessageNodeComponent({ nodeType, title, description, icon, color, onClick }) {
+export default function OnMessageNodeComponent({
+  nodeType,
+  title,
+  description,
+  icon,
+  color,
+  onClick
+}: {
+  nodeType: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  onClick: (nodeType: string) => void;
+}) {
   return (
     <div
       onClick={() => onClick(nodeType)}
@@ -65,13 +80,13 @@ export default function OnMessageNodeComponent({ nodeType, title, description, i
         alignItems: 'center',
         gap: '10px'
       }}
-      onMouseEnter={(e) => {
-        e.target.style.backgroundColor = '#444';
-        e.target.style.borderColor = '#666';
+      onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = '#444';
+        e.currentTarget.style.borderColor = '#666';
       }}
-      onMouseLeave={(e) => {
-        e.target.style.backgroundColor = '#333';
-        e.target.style.borderColor = '#555';
+      onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+        e.currentTarget.style.backgroundColor = '#333';
+        e.currentTarget.style.borderColor = '#555';
       }}
     >
       <div style={{
