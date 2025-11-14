@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { LGraph, LGraphCanvas, LiteGraph } from '@codebolt/litegraph';
 import { registerNodes, ConstNode, SumNode } from '../nodes';
-import '../../node_modules/'@codebolt/litegraph'/dist/css/litegraph.css';
+import '../../node_modules/@codebolt/litegraph/dist/css/litegraph.css';
 import '../index.css';
 
 // NodeCard component for the palette
