@@ -6,81 +6,165 @@ export class BaseOnMessageNode extends LGraphNode {
     type: "events/onmessage",
     title: "OnMessage",
     category: "events",
-    description: "Entry point that waits for incoming messages and triggers agent flow",
+    description: "Entry point that waits for incoming messages and outputs either single message or split properties",
     icon: "📨",
     color: "#FF5722"
   };
 
-  // Custom type definitions for output restrictions
-  // These custom types ensure only compatible connections can be made in the UI
-  static typeDefinitions = {
-    // Object types
-    "selectedAgent": "Object with agent metadata (id, name, type, details)",
-    "selection": "Selection object (ranges, selected text, position)",
-    "remixPrompt": "Remix prompt configuration object",
-
-    // Array types
-    "fileArray": "Array of file names (strings)",
-    "pathArray": "Array of full file paths (strings)",
-    "folderArray": "Array of folder names (strings)",
-    "multiFileArray": "Array of multi-file selections",
-    "mcpArray": "Array of MCP server names",
-    "imageArray": "Array of uploaded image URLs/paths",
-    "actionArray": "Array of action objects",
-    "agentArray": "Array of agent metadata objects",
-    "documentArray": "Array of document references",
-    "linkArray": "Array of link objects",
-    "controlFileArray": "Array of control file references",
-    "openedFileArray": "Array of currently opened file paths",
-
-    // File types
-    "file": "File path string",
-
-    // ID types (for specific identification)
-    "messageId": "Unique message identifier string",
-    "threadId": "Conversation thread identifier string",
-    "templateType": "Template type identifier string",
-    "processId": "Process identifier string"
-  };
-
+  
   constructor() {
     super();
     this.title = BaseOnMessageNode.metadata.title;
     this.desc = "Entry point for agent flow - waits for incoming messages";
-    this.size = [200, 80];
+    this.size = [200, 60];
 
     // Event output to trigger connected nodes
     this.addOutput("message_received", LiteGraph.EVENT);
 
-    // Data outputs for individual FlatUserMessage properties with specific type restrictions
-    this.addOutput("userMessage", "string");
-    this.addOutput("currentFile", "file");
-    this.addOutput("selectedAgent", "selectedAgent");
-    this.addOutput("mentionedFiles", "fileArray");
-    this.addOutput("mentionedFullPaths", "pathArray");
-    this.addOutput("mentionedFolders", "folderArray");
-    this.addOutput("mentionedMultiFile", "multiFileArray");
-    this.addOutput("mentionedMCPs", "mcpArray");
-    this.addOutput("uploadedImages", "imageArray");
-    this.addOutput("actions", "actionArray");
-    this.addOutput("mentionedAgents", "agentArray");
-    this.addOutput("mentionedDocs", "documentArray");
-    this.addOutput("links", "linkArray");
-    this.addOutput("universalAgentLastMessage", "string");
-    this.addOutput("selection", "selection");
-    this.addOutput("controlFiles", "controlFileArray");
-    this.addOutput("feedbackMessage", "string");
-    this.addOutput("terminalMessage", "string");
-    this.addOutput("messageId", "messageId");
-    this.addOutput("threadId", "threadId");
-    this.addOutput("templateType", "templateType");
-    this.addOutput("processId", "processId");
-    this.addOutput("shadowGitHash", "string");
-    this.addOutput("remixPrompt", "remixPrompt");
-    this.addOutput("activeFile", "file");
-    this.addOutput("openedFiles", "openedFileArray");
+    // State for output mode
+    this.properties = {
+      showSplitOutputs: false,
+      message: null
+    };
+
+    // Data output for the FlatUserMessage object with extra_info for type validation
+    this.addOutput("message", "object", {
+      extra_info: {
+        dataType: "FlatUserMessage",
+        description: "Complete user message object with all properties"
+      }
+    });
+
+    // Add toggle widget for frontend
+    this.addWidget("toggle", "", false, "showSplitOutputs", { on: "Unified", off: "Split" });
   }
 
-  
+  // Handle property changes (toggle between single and split outputs)
+  onPropertyChanged(name, value) {
+    if (name === "showSplitOutputs") {
+      this.updateOutputs(value);
+    }
+  }
+
+  // Update outputs based on toggle state
+  updateOutputs(showSplit) {
+    // Clear existing outputs (keep event output)
+    const eventOutput = this.outputs[0];
+    this.outputs = [eventOutput];
+
+    if (showSplit) {
+      // Add split outputs with detailed extra_info
+      this.addOutput("userMessage", "string", {
+        extra_info: {
+          dataType: "string",
+          description: "The user's message text"
+        }
+      });
+
+      this.addOutput("currentFile", "string", {
+        extra_info: {
+          dataType: "filePath",
+          description: "Path to the currently active file"
+        }
+      });
+
+      this.addOutput("selectedAgent", "object", {
+        extra_info: {
+          dataType: "selectedAgent",
+          description: "Selected agent information with id, name, type"
+        }
+      });
+
+      this.addOutput("mentionedFiles", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "string",
+          arrayType: "filePath",
+          description: "Array of mentioned file names"
+        }
+      });
+
+      this.addOutput("mentionedFullPaths", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "string",
+          arrayType: "fullPath",
+          description: "Array of mentioned file full paths"
+        }
+      });
+
+      this.addOutput("mentionedFolders", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "string",
+          arrayType: "folderPath",
+          description: "Array of mentioned folder names"
+        }
+      });
+
+      this.addOutput("mentionedMCPs", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "string",
+          arrayType: "mcpServer",
+          description: "Array of mentioned MCP server names"
+        }
+      });
+
+      this.addOutput("uploadedImages", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "string",
+          arrayType: "imagePath",
+          description: "Array of uploaded image paths/URLs"
+        }
+      });
+
+      this.addOutput("actions", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "object",
+          arrayType: "action",
+          description: "Array of action objects"
+        }
+      });
+
+      this.addOutput("mentionedAgents", "array", {
+        extra_info: {
+          dataType: "array",
+          elementType: "object",
+          arrayType: "agent",
+          description: "Array of mentioned agent objects"
+        }
+      });
+
+      this.addOutput("selection", "object", {
+        extra_info: {
+          dataType: "selection",
+          description: "Selection object with ranges and selected text"
+        }
+      });
+
+      // Adjust node size for split outputs
+      this.size = [240, 300];
+    } else {
+      // Add single message output
+      this.addOutput("message", "object", {
+        extra_info: {
+          dataType: "FlatUserMessage",
+          description: "Complete user message object with all properties"
+        }
+      });
+
+      // Reset node size for single output
+      this.size = [200, 60];
+    }
+
+    // Update the graph to show the changes
+    if (this.graph) {
+      this.graph.setDirtyCanvas(true, true);
+    }
+  }
+
 
 }

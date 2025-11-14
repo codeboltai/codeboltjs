@@ -284,121 +284,89 @@ export default function GraphEditor() {
       setSelectedNode(null);
     };
 
-    // // Override the drawNode method to add custom type icons for OnMessageNode
-    // const originalDrawNode = graphCanvas.drawNode;
-    // graphCanvas.drawNode = function(node, ctx, drawtype, canvas, pos) {
-    //   // First call the original drawNode method
-    //   const result = originalDrawNode.apply(this, arguments);
+    // Custom connection validation using extra_info
+    graphCanvas.validateConnection = function(input_type, output_type, input_slot, output_slot, input_node, output_node) {
+      // Get the extra_info from input and output slots
+      const inputInfo = input_node.getInputInfo(input_slot);
+      const outputInfo = output_node.getOutputInfo(output_slot);
 
-    //   // Add custom drawing for OnMessageNode
-    //   if (node && node.type === "events/onmessage" && node.outputs && node.outputs.length > 1) {
-    //     ctx.save();
+      // If no extra_info, fall back to default LiteGraph validation
+      if (!inputInfo || !inputInfo.extra_info || !outputInfo || !outputInfo.extra_info) {
+        // Default validation: check basic type compatibility
+        if (input_type === output_type) return true;
+        if (input_type === "array" || input_type === "object") return true; // Arrays and objects accept any compatible type
+        return false;
+      }
 
-    //     // Set font for small icons
-    //     ctx.font = "9px Arial";
-    //     ctx.fillStyle = "#888";
-    //     ctx.textAlign = "left";
+      const inputExtraInfo = inputInfo.extra_info;
+      const outputExtraInfo = outputInfo.extra_info;
 
-    //     // Calculate positions for icons within the node
-    //     const nodeWidth = node.size[0];
-    //     const padding = 8;
+      // Specific type matching
+      if (inputExtraInfo.dataType && outputExtraInfo.dataType) {
+        // Exact match
+        if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
+          return true;
+        }
 
-    //     // Draw custom indicators for each output (skip first event output)
-    //     node.outputs.forEach((output, i) => {
-    //       if (i === 0) return; // Skip event output (message_received)
+        // Special cases: allow generic types for flexible nodes
+        if (inputExtraInfo.acceptedTypes && inputExtraInfo.acceptedTypes.includes(outputExtraInfo.dataType)) {
+          return true;
+        }
 
-    //       // Get the position of this output slot
-    //       const slotPos = node.getConnectionPos(false, i);
+        // Array type validation with element type checking
+        if (input_type === "array" && output_type === "array") {
+          // If input accepts any array
+          if (inputExtraInfo.dataType === "array" && !inputExtraInfo.arrayType) {
+            return true;
+          }
 
-    //       // Calculate Y position for this output (aligned with slot center)
-    //       const y = slotPos[1] + 4;
+          // If both have specific array types, they must match
+          if (inputExtraInfo.arrayType && outputExtraInfo.arrayType) {
+            return inputExtraInfo.arrayType === outputExtraInfo.arrayType;
+          }
 
-    //       // Calculate X position - position icons on the left side, away from output slots
-    //       const x = padding;
+          // If only input specifies array type, output must match
+          if (inputExtraInfo.arrayType) {
+            return outputExtraInfo.arrayType === inputExtraInfo.arrayType;
+          }
+        }
 
-    //       // Add small label to indicate the specific type
-    //       let label = "";
-    //       switch(output.name) {
-    //         case "currentFile":
-    //         case "activeFile":
-    //           label = "📄";
-    //           break;
-    //         case "selectedAgent":
-    //           label = "🤖";
-    //           break;
-    //         case "mentionedFiles":
-    //         case "openedFiles":
-    //           label = "📁";
-    //           break;
-    //         case "uploadedImages":
-    //           label = "🖼️";
-    //           break;
-    //         case "mentionedMCPs":
-    //           label = "⚙️";
-    //           break;
-    //         case "selection":
-    //           label = "📍";
-    //           break;
-    //         case "actions":
-    //           label = "⚡";
-    //           break;
-    //         case "userMessage":
-    //         case "feedbackMessage":
-    //         case "terminalMessage":
-    //         case "universalAgentLastMessage":
-    //           label = "💬";
-    //           break;
-    //         case "messageId":
-    //         case "threadId":
-    //         case "processId":
-    //         case "shadowGitHash":
-    //           label = "🔑";
-    //           break;
-    //         case "mentionedFullPaths":
-    //           label = "📂";
-    //           break;
-    //         case "mentionedFolders":
-    //           label = "📋";
-    //           break;
-    //         case "mentionedMultiFile":
-    //           label = "📎";
-    //           break;
-    //         case "mentionedAgents":
-    //           label = "👥";
-    //           break;
-    //         case "mentionedDocs":
-    //           label = "📖";
-    //           break;
-    //         case "links":
-    //           label = "🔗";
-    //           break;
-    //         case "controlFiles":
-    //           label = "🎮";
-    //           break;
-    //         case "remixPrompt":
-    //           label = "🎨";
-    //           break;
-    //         default:
-    //           // For arrays, show bracket icon
-    //           if (output.type === "array") {
-    //             label = "[]";
-    //           } else if (output.type === "object") {
-    //             label = "{}";
-    //           }
-    //       }
+        // Object type validation with specific object types
+        if (input_type === "object" && output_type === "object") {
+          // If input accepts any object
+          if (inputExtraInfo.dataType === "object" && !inputExtraInfo.objectType) {
+            return true;
+          }
 
-    //       if (label) {
-    //         // Draw icon within the node boundaries
-    //         ctx.fillText(label, x, y);
-    //       }
-    //     });
+          // Specific object type matching
+          if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
+            return true;
+          }
+        }
 
-    //     ctx.restore();
-    //   }
+        // String type validation with subtypes
+        if (input_type === "string" && output_type === "string") {
+          // Generic string accepts any string subtype
+          if (inputExtraInfo.dataType === "string" && !inputExtraInfo.stringSubtype) {
+            return true;
+          }
 
-    //   return result;
-    // };
+          // Specific string subtype matching
+          if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
+            return true;
+          }
+        }
+      }
 
+      // Fallback to basic type compatibility
+      return input_type === output_type ||
+             (input_type === "array" && output_type === "array") ||
+             (input_type === "object" && output_type === "object") ||
+             (input_type === "string" && output_type === "string");
+    };
+
+    
+    
     // Override the getCanvasMenuOptions method to add custom context menu items
     const originalGetCanvasMenuOptions = graphCanvas.getCanvasMenuOptions;
     graphCanvas.getCanvasMenuOptions = function() {
@@ -780,7 +748,7 @@ export default function GraphEditor() {
               <NodeCard
                 nodeType="events/onmessage"
                 title="OnMessage"
-                description="Entry point that waits for incoming messages"
+                description="Entry point that waits for incoming messages - toggle between single/split outputs"
                 icon="📨"
                 color="#FF5722"
                 onClick={addNodeFromPalette}
