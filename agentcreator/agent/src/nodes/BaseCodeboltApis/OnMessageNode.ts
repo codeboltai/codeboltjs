@@ -47,8 +47,6 @@ export class OnMessageNode extends BaseOnMessageNode {
       // Trigger the event output at slot 0 (onTrigger)
       this.triggerSlot(0, null, message);
 
-      // Send a confirmation message
-
     } catch (error) {
       console.error('OnMessageNode: Error in message handling:', error);
       // Still trigger with error

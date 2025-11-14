@@ -1,4 +1,3 @@
-import React from 'react';
 import { BaseAgentNode } from '@agent-creator/shared-nodes';
 
 // Frontend UI-specific Agent Node

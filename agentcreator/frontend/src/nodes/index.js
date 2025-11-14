@@ -18,42 +18,42 @@ import { OnMessageNode, SendMessageNode } from './BaseCodeboltApis/index';
 import { registerNodeWithMetadata, nodeMetadata } from '@agent-creator/shared-nodes';
 
 // Base nodes (legacy - to be refactored)
-import ConstantBooleanNode from './base/ConstantBooleanNode';
-import ConstantStringNode from './base/ConstantStringNode';
-import ConstantObjectNode from './base/ConstantObjectNode';
-import JSONParseNode from './base/JSONParseNode';
-import SubgraphNode from './base/SubgraphNode';
-import GraphInputNode from './base/GraphInputNode';
-import GraphOutputNode from './base/GraphOutputNode';
+import ConstantBooleanNode from './base/ConstantBooleanNode.jsx';
+import ConstantStringNode from './base/ConstantStringNode.jsx';
+import ConstantObjectNode from './base/ConstantObjectNode.jsx';
+import JSONParseNode from './base/JSONParseNode.jsx';
+import SubgraphNode from './base/SubgraphNode.jsx';
+import GraphInputNode from './base/GraphInputNode.jsx';
+import GraphOutputNode from './base/GraphOutputNode.jsx';
 
 // Math nodes (legacy - not refactored yet)
-import ConverterNode from './math/ConverterNode';
-import RangeNode from './math/RangeNode';
-import LerpNode from './math/LerpNode';
-import FloorNode from './math/FloorNode';
-import FracNode from './math/FracNode';
-import SmoothStepNode from './math/SmoothStepNode';
-import ScaleNode from './math/ScaleNode';
-import GateNode from './math/GateNode';
-import OperationNode from './math/OperationNode';
+import ConverterNode from './math/ConverterNode.jsx';
+import RangeNode from './math/RangeNode.jsx';
+import LerpNode from './math/LerpNode.jsx';
+import FloorNode from './math/FloorNode.jsx';
+import FracNode from './math/FracNode.jsx';
+import SmoothStepNode from './math/SmoothStepNode.jsx';
+import ScaleNode from './math/ScaleNode.jsx';
+import GateNode from './math/GateNode.jsx';
+import OperationNode from './math/OperationNode.jsx';
 
 // Logic nodes (legacy - not refactored yet)
-import SequenceNode from './logic/SequenceNode';
-import AndNode from './logic/AndNode';
-import BranchNode from './logic/BranchNode';
+import SequenceNode from './logic/SequenceNode.jsx';
+import AndNode from './logic/AndNode.jsx';
+import BranchNode from './logic/BranchNode.jsx';
 
 // String nodes (legacy - not refactored yet)
-import ConcatenateNode from './strings/ConcatenateNode';
-import SplitNode from './strings/SplitNode';
-import ToFixedNode from './strings/ToFixedNode';
-import StringToTableNode from './strings/StringToTableNode';
+import ConcatenateNode from './strings/ConcatenateNode.jsx';
+import SplitNode from './strings/SplitNode.jsx';
+import ToFixedNode from './strings/ToFixedNode.jsx';
+import StringToTableNode from './strings/StringToTableNode.jsx';
 
 // Interface nodes
-import WidgetKnobNode from './interface/WidgetKnobNode';
-import WidgetHSliderNode from './interface/WidgetHSliderNode';
-import WidgetProgressNode from './interface/WidgetProgressNode';
-import WidgetTextNode from './interface/WidgetTextNode';
-import WidgetPanelNode from './interface/WidgetPanelNode';
+import WidgetKnobNode from './interface/WidgetKnobNode.jsx';
+import WidgetHSliderNode from './interface/WidgetHSliderNode.jsx';
+import WidgetProgressNode from './interface/WidgetProgressNode.jsx';
+import WidgetTextNode from './interface/WidgetTextNode.jsx';
+import WidgetPanelNode from './interface/WidgetPanelNode.jsx';
 
 // Register all node types
 export const registerNodes = () => {
