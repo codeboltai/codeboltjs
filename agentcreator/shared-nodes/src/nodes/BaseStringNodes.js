@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base ToString Node
 export class BaseToStringNode extends LGraphNode {

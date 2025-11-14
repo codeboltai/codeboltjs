@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import { registerBackendNodes } from './nodes/index.js';
 import { readFileSync } from 'fs';
-import { LGraph } from '@comfyorg/litegraph';
+import { LGraph } from '@codebolt/litegraph';
 import codebolt from '@codebolt/codeboltjs';
 // import codebolt from '@codebolt/codeboltjs';
 

@@ -48,7 +48,7 @@ export { AgentNode } from './AgentNode.js';
 export { AgentRunNode } from './AgentRunNode.js';
 
 // Backend node registration utility
-import { LiteGraph } from '@comfyorg/litegraph';
+import { LiteGraph } from '@codebolt/litegraph';
 import { registerNodeWithMetadata, nodeMetadata } from '@agent-creator/shared-nodes';
 import { ConstNode as BackendConstNode } from './ConstNode.js';
 import { SumNode as BackendSumNode } from './SumNode.js';

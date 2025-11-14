@@ -1,4 +1,4 @@
-import { LGraphNode, LiteGraph } from '@comfyorg/litegraph';
+import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
 
 class ConstantStringNode extends LGraphNode {
   constructor() {

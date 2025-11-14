@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base Constant String Node - shared metadata and structure
 export class BaseConstantStringNode extends LGraphNode {

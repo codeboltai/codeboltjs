@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base Markdown Node - shared metadata and structure
 export class BaseMarkdownNode extends LGraphNode {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { LGraph, LGraphCanvas, LiteGraph } from '@comfyorg/litegraph';
+import { LGraph, LGraphCanvas, LiteGraph } from '@codebolt/litegraph';
 import { registerNodes, ConstNode, SumNode } from '../nodes';
-import '../../node_modules/@comfyorg/litegraph/dist/css/litegraph.css';
+import '../../node_modules/'@codebolt/litegraph'/dist/css/litegraph.css';
 import '../index.css';
 
 // NodeCard component for the palette
@@ -284,11 +284,126 @@ export default function GraphEditor() {
       setSelectedNode(null);
     };
 
+    // Override the drawNode method to add custom type icons for OnMessageNode
+    const originalDrawNode = graphCanvas.drawNode;
+    graphCanvas.drawNode = function(node, ctx, drawtype, canvas, pos) {
+      // First call the original drawNode method
+      const result = originalDrawNode.apply(this, arguments);
+
+      // Add custom drawing for OnMessageNode
+      if (node && node.type === "events/onmessage" && node.outputs && node.outputs.length > 1) {
+        ctx.save();
+
+        // Set font for small icons
+        ctx.font = "9px Arial";
+        ctx.fillStyle = "#888";
+        ctx.textAlign = "left";
+
+        // Calculate positions for icons within the node
+        const nodeWidth = node.size[0];
+        const padding = 8;
+
+        // Draw custom indicators for each output (skip first event output)
+        node.outputs.forEach((output, i) => {
+          if (i === 0) return; // Skip event output (message_received)
+
+          // Get the position of this output slot
+          const slotPos = node.getConnectionPos(false, i);
+
+          // Calculate Y position for this output (aligned with slot center)
+          const y = slotPos[1] + 4;
+
+          // Calculate X position - position icons on the left side, away from output slots
+          const x = padding;
+
+          // Add small label to indicate the specific type
+          let label = "";
+          switch(output.name) {
+            case "currentFile":
+            case "activeFile":
+              label = "📄";
+              break;
+            case "selectedAgent":
+              label = "🤖";
+              break;
+            case "mentionedFiles":
+            case "openedFiles":
+              label = "📁";
+              break;
+            case "uploadedImages":
+              label = "🖼️";
+              break;
+            case "mentionedMCPs":
+              label = "⚙️";
+              break;
+            case "selection":
+              label = "📍";
+              break;
+            case "actions":
+              label = "⚡";
+              break;
+            case "userMessage":
+            case "feedbackMessage":
+            case "terminalMessage":
+            case "universalAgentLastMessage":
+              label = "💬";
+              break;
+            case "messageId":
+            case "threadId":
+            case "processId":
+            case "shadowGitHash":
+              label = "🔑";
+              break;
+            case "mentionedFullPaths":
+              label = "📂";
+              break;
+            case "mentionedFolders":
+              label = "📋";
+              break;
+            case "mentionedMultiFile":
+              label = "📎";
+              break;
+            case "mentionedAgents":
+              label = "👥";
+              break;
+            case "mentionedDocs":
+              label = "📖";
+              break;
+            case "links":
+              label = "🔗";
+              break;
+            case "controlFiles":
+              label = "🎮";
+              break;
+            case "remixPrompt":
+              label = "🎨";
+              break;
+            default:
+              // For arrays, show bracket icon
+              if (output.type === "array") {
+                label = "[]";
+              } else if (output.type === "object") {
+                label = "{}";
+              }
+          }
+
+          if (label) {
+            // Draw icon within the node boundaries
+            ctx.fillText(label, x, y);
+          }
+        });
+
+        ctx.restore();
+      }
+
+      return result;
+    };
+
     // Override the getCanvasMenuOptions method to add custom context menu items
     const originalGetCanvasMenuOptions = graphCanvas.getCanvasMenuOptions;
     graphCanvas.getCanvasMenuOptions = function() {
       const options = originalGetCanvasMenuOptions ? originalGetCanvasMenuOptions.apply(this) : [];
-      
+
       // Add our custom menu items
       options.push(
         null, // separator
@@ -309,7 +424,7 @@ export default function GraphEditor() {
           }
         }
       );
-      
+
       return options;
     };
 

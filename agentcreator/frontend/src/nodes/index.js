@@ -1,4 +1,4 @@
-import { LiteGraph } from '@comfyorg/litegraph';
+import { LiteGraph } from '@codebolt/litegraph';
 
 // UI-specific nodes (refactored)
 import {

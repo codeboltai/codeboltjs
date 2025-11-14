@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base class for SystemPrompt node
 export class BaseSystemPromptNode extends LGraphNode {

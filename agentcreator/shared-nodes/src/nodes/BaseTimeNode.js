@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base Time Node - shared metadata and structure
 export class BaseTimeNode extends LGraphNode {

@@ -1,5 +1,5 @@
 // Type definitions for the utilities
-import { LiteGraph } from '@comfyorg/litegraph';
+import { LiteGraph } from '@codebolt/litegraph';
 
 export interface NodeMetadata {
   type: string;

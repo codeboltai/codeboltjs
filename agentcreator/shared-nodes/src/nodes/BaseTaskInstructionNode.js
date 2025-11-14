@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base class for TaskInstruction node
 export class BaseTaskInstructionNode extends LGraphNode {

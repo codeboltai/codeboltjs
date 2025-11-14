@@ -48,9 +48,9 @@ importers:
       '@codebolt/codeboltjs':
         specifier: workspace:*
         version: link:../../packages/codeboltjs
-      '@comfyorg/litegraph':
-        specifier: ^0.7.6
-        version: 0.7.84
+      '@codebolt/litegraph':
+        specifier: 0.0.1
+        version: 0.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -98,9 +98,9 @@ importers:
       '@agent-creator/shared-nodes':
         specifier: workspace:*
         version: link:../shared-nodes
-      '@comfyorg/litegraph':
-        specifier: ^0.7.6
-        version: 0.7.84
+      '@codebolt/litegraph':
+        specifier: 0.0.1
+        version: 0.0.1
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -141,9 +141,9 @@ importers:
 
   agentcreator/shared-nodes:
     dependencies:
-      '@comfyorg/litegraph':
-        specifier: ^0.7.6
-        version: 0.7.84
+      '@codebolt/litegraph':
+        specifier: 0.0.1
+        version: 0.0.1
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -2159,12 +2159,11 @@ packages:
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
 
+  '@codebolt/litegraph@0.0.1':
+    resolution: {integrity: sha512-ir8DRb8524M/NG4cCQtXn5MHdQPAPQPdfog9vpJEsxW0EZ2GJBsGD6vYdVpF9vJ+6m0PNgBjpnFaXhT8xJhgLA==}
+
   '@codebolt/types@1.0.22':
     resolution: {integrity: sha512-WbImq/vbWY9aEtQR0Q2XDG7jQdXEO5nHmNy/n0qnLSfxws0sm+GqYv9V6ex9cJl2xGX63PYGs0jQDSIOeUrkzw==}
-
-  '@comfyorg/litegraph@0.7.84':
-    resolution: {integrity: sha512-gataCzqlLsfw0G7VoJpaMrbBOY18pQ8nQGMOm0CJhiZy7Pp+IGTPhVi0d+tvBwW08ILkfYVqevxXs+rrwyzzAg==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -9576,11 +9575,11 @@ snapshots:
     dependencies:
       globby: 14.1.0
 
+  '@codebolt/litegraph@0.0.1': {}
+
   '@codebolt/types@1.0.22':
     dependencies:
       zod: 3.25.76
-
-  '@comfyorg/litegraph@0.7.84': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

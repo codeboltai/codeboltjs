@@ -1,4 +1,4 @@
-import { LGraphNode } from '@comfyorg/litegraph';
+import { LGraphNode } from '@codebolt/litegraph';
 
 // Base Sum Node - shared metadata and structure
 export class BaseSumNode extends LGraphNode {

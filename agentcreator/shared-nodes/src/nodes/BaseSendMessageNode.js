@@ -1,4 +1,4 @@
-import { LGraphNode, LiteGraph } from '@comfyorg/litegraph';
+import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
 
 // Base SendMessage Node - Calls codebolt.chat.sendMessage
 export class BaseSendMessageNode extends LGraphNode {

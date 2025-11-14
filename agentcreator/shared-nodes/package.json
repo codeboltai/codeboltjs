@@ -11,7 +11,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@comfyorg/litegraph": "^0.7.6"
+    "@codebolt/litegraph": "0.0.1"
   },
   "devDependencies": {
     "typescript": "^5.2.2",
