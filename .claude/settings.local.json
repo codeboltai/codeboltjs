@@ -6,7 +6,8 @@
       "WebFetch(domain:github.com)",
       "Bash(npm run build:*)",
       "Bash(pnpm add:*)",
-      "Bash(npx turbo run:*)"
+      "Bash(npx turbo run:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

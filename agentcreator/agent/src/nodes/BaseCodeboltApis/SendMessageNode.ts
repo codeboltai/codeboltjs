@@ -13,9 +13,8 @@ export class SendMessageNode extends BaseSendMessageNode {
   async onExecute() {
     console.log('[Utkarsh1] onExecute called');
 
-    // Get the message from input slot 1
-    // const message = this.getInputData(1);
-    const messageToSend =  "Hello";
+    // Get the message from input slot 1 and ensure it's a string
+    const messageToSend = this.getInputData(1) as string;
 
     console.log('SendMessageNode: Sending message:', messageToSend);
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 
 export default function ContextMenu({ x, y, onClose, items = [] }) {

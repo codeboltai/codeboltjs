@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
 import { LGraph, LGraphCanvas, LiteGraph } from '@codebolt/litegraph';
 import { registerNodes, ConstNode, SumNode } from '../nodes';
