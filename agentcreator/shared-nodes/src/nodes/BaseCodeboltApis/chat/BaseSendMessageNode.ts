@@ -6,7 +6,7 @@ export class BaseSendMessageNode extends LGraphNode {
   static metadata: NodeMetadata = {
     type: "codebolt/chat/sendmessage",
     title: "Send Message",
-    category: "codebolt",
+    category: "codebolt/chat",
     description: "Sends a message using codebolt.chat.sendMessage",
     icon: "💬",
     color: "#2196F3"

@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../utils';
 
 // Base class for Agent node
 export class BaseAgentNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/agent",
+    title: "Agent",
+    category: "agent",
+    description: "Creates an Agent with tools and system prompt",
+    icon: "🤖",
+    color: "#E91E63"
+  };
   constructor() {
-    super();
+    super(BaseAgentNode.metadata.title, BaseAgentNode.metadata.type);
+    this.title = BaseAgentNode.metadata.title;
     this.properties = {
       agentConfig: {
         model: 'default',

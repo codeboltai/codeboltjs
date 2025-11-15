@@ -13,7 +13,7 @@ export class BaseOnMessageNode extends LGraphNode {
   static metadata: NodeMetadata = {
     type: "events/onmessage",
     title: "OnMessage",
-    category: "events",
+    category: "codebolt/events",
     description: "Entry point that waits for incoming messages and outputs either single message or split properties",
     icon: "📨",
     color: "#FF5722"

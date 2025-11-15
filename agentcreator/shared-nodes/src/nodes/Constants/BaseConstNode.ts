@@ -12,7 +12,7 @@ export class BaseConstNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseConstNode.metadata.title, BaseConstNode.metadata.type);
     this.title = BaseConstNode.metadata.title;
     this.properties = { value: 1 };
     this.addOutput("", "number");

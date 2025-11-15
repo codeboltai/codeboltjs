@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../utils';
 
 // Base class for Agent Run node
 export class BaseAgentRunNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/agent_run",
+    title: "Agent Run",
+    category: "agent",
+    description: "Executes an agent with a task instruction",
+    icon: "▶️",
+    color: "#4CAF50"
+  };
   constructor() {
-    super();
+    super(BaseAgentRunNode.metadata.title, BaseAgentRunNode.metadata.type);
+    this.title = BaseAgentRunNode.metadata.title;
     this.properties = {
       timeout: 30000, // 30 seconds timeout
       retries: 1

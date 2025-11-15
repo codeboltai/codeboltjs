@@ -12,7 +12,7 @@ export class BaseConstantBooleanNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseConstantBooleanNode.metadata.title, BaseConstantBooleanNode.metadata.type);
     this.title = BaseConstantBooleanNode.metadata.title;
     this.addOutput("value", "boolean");
     this.addProperty("value", false);

@@ -13,18 +13,16 @@ import {
   TaskInstructionNode, AgentNode, AgentRunNode
 } from './ui/index';
 
-// Event and Codebolt nodes
-import { OnMessageNode, SendMessageNode } from './BaseCodeboltApis/index';
 
-// File System nodes
-import {
+// Event and Codebolt nodes
+import { OnMessageNode, SendMessageNode,
   CreateFileNode, CreateFolderNode, ReadFileNode, UpdateFileNode,
   DeleteFileNode, DeleteFolderNode, ListFileNode, SearchFilesNode,
   WriteToFileNode, GrepSearchNode, FileSearchNode, EditFileWithDiffNode,
   ReadManyFilesNode, ListDirectoryNode
-} from './BaseCodeboltApis/fs/index';
+} from './BaseCodeboltApis/index';
 
-import { registerNodeWithMetadata, nodeMetadata } from '@agent-creator/shared-nodes';
+import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
 
 // Base nodes (legacy - to be refactored)
 import ConstantBooleanNode from './base/ConstantBooleanNode';
@@ -92,38 +90,41 @@ export {
 
 // Register all node types
 export const registerNodes = () => {
-  // Register refactored nodes using shared base classes
-  registerNodeWithMetadata(LiteGraph, ConstNode, nodeMetadata['basic/const']);
-  registerNodeWithMetadata(LiteGraph, SumNode, nodeMetadata['basic/sum']);
-  registerNodeWithMetadata(LiteGraph, TimeNode, nodeMetadata['basic/time']);
-  registerNodeWithMetadata(LiteGraph, ConstantNumberNode, nodeMetadata['basic/const_number']);
+  // Register refactored nodes using their .metadata property
+  registerNodeWithMetadata(LiteGraph, ConstNode, ConstNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SumNode, SumNode.metadata);
+  registerNodeWithMetadata(LiteGraph, TimeNode, TimeNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ConstantNumberNode, ConstantNumberNode.metadata);
 
   // Math nodes
-  registerNodeWithMetadata(LiteGraph, BypassNode, nodeMetadata['math/bypass']);
-  registerNodeWithMetadata(LiteGraph, ToNumberNode, nodeMetadata['math/to_number']);
-  registerNodeWithMetadata(LiteGraph, RandNode, nodeMetadata['math/rand']);
-  registerNodeWithMetadata(LiteGraph, AbsNode, nodeMetadata['math/abs']);
-  registerNodeWithMetadata(LiteGraph, ClampNode, nodeMetadata['math/clamp']);
+  registerNodeWithMetadata(LiteGraph, BypassNode, BypassNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ToNumberNode, ToNumberNode.metadata);
+  registerNodeWithMetadata(LiteGraph, RandNode, RandNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AbsNode, AbsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ClampNode, ClampNode.metadata);
 
   // Logic nodes
-  registerNodeWithMetadata(LiteGraph, OrNode, nodeMetadata['logic/OR']);
-  registerNodeWithMetadata(LiteGraph, NotNode, nodeMetadata['logic/NOT']);
-  registerNodeWithMetadata(LiteGraph, SelectorNode, nodeMetadata['logic/selector']);
+  registerNodeWithMetadata(LiteGraph, OrNode, OrNode.metadata);
+  registerNodeWithMetadata(LiteGraph, NotNode, NotNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SelectorNode, SelectorNode.metadata);
 
   // String nodes
-  registerNodeWithMetadata(LiteGraph, ToStringNode, nodeMetadata['string/toString']);
-  registerNodeWithMetadata(LiteGraph, CompareNode, nodeMetadata['string/compare']);
-  registerNodeWithMetadata(LiteGraph, ToUpperCaseNode, nodeMetadata['string/toUpperCase']);
-  registerNodeWithMetadata(LiteGraph, ContainsNode, nodeMetadata['string/contains']);
+  registerNodeWithMetadata(LiteGraph, ToStringNode, ToStringNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CompareNode, CompareNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ToUpperCaseNode, ToUpperCaseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ContainsNode, ContainsNode.metadata);
 
   // Widget nodes
-  registerNodeWithMetadata(LiteGraph, MarkdownNode, nodeMetadata['widget/markdown']);
+  registerNodeWithMetadata(LiteGraph, MarkdownNode, MarkdownNode.metadata);
 
-  // Event nodes
-  registerNodeWithMetadata(LiteGraph, OnMessageNode, nodeMetadata['events/onmessage']);
-
+  //
   // Codebolt nodes
-  registerNodeWithMetadata(LiteGraph, SendMessageNode, nodeMetadata['codebolt/chat/sendmessage']);
+  //
+  // Event nodes
+  registerNodeWithMetadata(LiteGraph, OnMessageNode, OnMessageNode.metadata);
+
+  // Chat nodes
+  registerNodeWithMetadata(LiteGraph, SendMessageNode, SendMessageNode.metadata);
 
   // File System nodes
   registerNodeWithMetadata(LiteGraph, CreateFileNode, CreateFileNode.metadata);
@@ -142,12 +143,12 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, ListDirectoryNode, ListDirectoryNode.metadata);
 
   // AI Agent nodes
-  registerNodeWithMetadata(LiteGraph, UserMessageNode, nodeMetadata['agent/user_message']);
-  registerNodeWithMetadata(LiteGraph, SystemPromptNode, nodeMetadata['agent/system_prompt']);
-  registerNodeWithMetadata(LiteGraph, MCPToolsNode, nodeMetadata['agent/mcp_tools']);
-  registerNodeWithMetadata(LiteGraph, TaskInstructionNode, nodeMetadata['agent/task_instruction']);
-  registerNodeWithMetadata(LiteGraph, AgentNode, nodeMetadata['agent/agent']);
-  registerNodeWithMetadata(LiteGraph, AgentRunNode, nodeMetadata['agent/agent_run']);
+  registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SystemPromptNode, SystemPromptNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPToolsNode, MCPToolsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, TaskInstructionNode, TaskInstructionNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentNode, AgentNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentRunNode, AgentRunNode.metadata);
 
   // Other existing nodes (these can be refactored later using the same pattern)
   LiteGraph.registerNodeType("basic/const_boolean", ConstantBooleanNode);

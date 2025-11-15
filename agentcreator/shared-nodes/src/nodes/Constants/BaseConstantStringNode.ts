@@ -12,8 +12,7 @@ export class BaseConstantStringNode extends LGraphNode {
   };
 
   constructor() {
-    super();
-    this.title = BaseConstantStringNode.metadata.title;
+    super(BaseConstantStringNode.metadata.title, BaseConstantStringNode.metadata.type);
     this.addOutput("value", "string");
     this.addProperty("value", "");
     this.size = [180, 30];
