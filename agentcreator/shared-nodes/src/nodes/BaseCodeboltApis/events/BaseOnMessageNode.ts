@@ -1,6 +1,6 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { DATA_TYPES, ARRAY_TYPES, ExtraInfo } from '../../types/DataTypes';
-import { NodeMetadata } from '../../utils';
+import { DATA_TYPES, ARRAY_TYPES, ExtraInfo } from '../../../types/DataTypes';
+import { NodeMetadata } from '../../../utils';
 
 // Interface for node properties
 interface NodeProperties {

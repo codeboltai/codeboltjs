@@ -17,7 +17,7 @@ export class SendMessageNode extends BaseSendMessageNode {
     } else {
       const errorMessage = 'Error: Message cannot be empty';
       console.error('SendMessageNode error:', errorMessage);
-      this.setOutputData(0, false);
+      this.setOutputData(1, false);
       return;
     }
 
@@ -32,7 +32,7 @@ export class SendMessageNode extends BaseSendMessageNode {
 
     } catch (error) {
       const errorMessage = `Error: Failed to send message`;
-      this.setOutputData(0, false);
+      this.setOutputData(1, false);
       console.error('SendMessageNode error:', error);
     }
   }

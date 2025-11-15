@@ -1,7 +1,7 @@
 // Export all base node classes
 export { BaseConstNode } from './BaseConstNode.js';
-export { BaseOnMessageNode } from './BaseCodeboltApis/BaseOnMessageNode.js';
-export { BaseSendMessageNode } from './BaseCodeboltApis/BaseSendMessageNode.js';
+export * from './BaseCodeboltApis/index.js';
+
 export { BaseSumNode } from './BaseSumNode.js';
 export { BaseTimeNode } from './BaseTimeNode.js';
 export { BaseConstantNumberNode } from './BaseConstantNumberNode.js';

@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { useEffect, useRef, useState } from 'react';
 import { LGraph, LGraphCanvas, LiteGraph } from '@codebolt/litegraph';
-import { registerNodes, ConstNode, SumNode } from '../nodes';
+import { registerNodes } from '../nodes';
+import { ConstNode, SumNode } from '../nodes/registerNodes';
 import '../../node_modules/@codebolt/litegraph/dist/css/litegraph.css';
 import '../index.css';
 

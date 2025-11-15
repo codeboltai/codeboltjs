@@ -33,11 +33,8 @@ export {
 // Widget nodes
 export { MarkdownNode } from './MarkdownNode.js';
 
-// Event nodes
-export { OnMessageNode } from './BaseCodeboltApis/OnMessageNode.js';
-
 // Codebolt nodes
-export { SendMessageNode } from './BaseCodeboltApis/SendMessageNode.js';
+export * from './BaseCodeboltApis/index.js';
 
 // AI Agent nodes
 export { UserMessageNode } from './UserMessageNode.js';
@@ -79,8 +76,8 @@ import { MCPToolsNode as BackendMCPToolsNode } from './MCPToolsNode.js';
 import { TaskInstructionNode as BackendTaskInstructionNode } from './TaskInstructionNode.js';
 import { AgentNode as BackendAgentNode } from './AgentNode.js';
 import { AgentRunNode as BackendAgentRunNode } from './AgentRunNode.js';
-import { OnMessageNode as BackendOnMessageNode } from './BaseCodeboltApis/OnMessageNode.js';
-import { SendMessageNode as BackendSendMessageNode } from './BaseCodeboltApis/SendMessageNode.js';
+import { OnMessageNode as BackendOnMessageNode } from './BaseCodeboltApis/events/OnMessageNode.js';
+import { SendMessageNode as BackendSendMessageNode } from './BaseCodeboltApis/chat/SendMessageNode.js';
 
 export function registerBackendNodes() {
   // Register backend execution nodes
