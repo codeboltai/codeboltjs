@@ -10,12 +10,6 @@ export class OnMessageNode extends BaseOnMessageNode {
 
   // Backend execution logic - waits for message and triggers event
   async onExecute() {
-    // Only execute once - don't wait for message on every step
-    if (this._messageReceived) {
-      return;
-    }
-
-    this._messageReceived = true;
 
     try {
       // Wait for a message
@@ -23,7 +17,7 @@ export class OnMessageNode extends BaseOnMessageNode {
       console.log('[Utkarsh]: Received message:', message);
       // Store the message for both modes
       this.properties.message = message;
-
+      console.log('[Utkarsh]: set to properties message:', this.properties.message);
       if (this.properties.showSplitOutputs) {
         // Set individual output data for split mode
         let outputIndex = 1; // Skip event output
@@ -45,7 +39,20 @@ export class OnMessageNode extends BaseOnMessageNode {
       }
 
       // Trigger the event output at slot 0 (onTrigger)
-      this.triggerSlot(0, null, message);
+      console.log('[OnMessageNode] Triggering slot 0 with message:', message);
+      console.log('[OnMessageNode] Output slots:', this.outputs);
+      console.log('[OnMessageNode] Output slot 0:', this.outputs[0]);
+
+      // Set output data first
+      this.setOutputData(1, message.userMessage || message);
+
+      try {
+        // Correct triggerSlot call: slot_index, param, force_execution
+        this.triggerSlot(0, message, 0);
+        console.log('[OnMessageNode] triggerSlot completed successfully');
+      } catch (triggerError) {
+        console.error('[OnMessageNode] triggerSlot failed:', triggerError);
+      }
 
     } catch (error) {
       console.error('OnMessageNode: Error in message handling:', error);
