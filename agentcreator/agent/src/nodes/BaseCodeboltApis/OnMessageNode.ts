@@ -50,9 +50,14 @@ export class OnMessageNode extends BaseOnMessageNode {
 
       // Trigger the event output at slot 0 (onTrigger) to trigger connected nodes
       console.log('[OnMessageNode] Triggering slot 0...');
+      console.log('[OnMessageNode] Available outputs:', this.outputs?.map((out, idx) => ({ slot: idx, name: out.name, type: out.type })));
+      
       try {
-        // triggerSlot triggers connected nodes but doesn't propagate data
-        this.triggerSlot(0, message.userMessage, null);
+        // First, ensure all output data is set
+        console.log('[OnMessageNode] All output data set, triggering connected nodes...');
+        
+        // triggerSlot triggers connected nodes - they will read input data in their onExecute
+        this.triggerSlot(0, null, null);
         console.log('[OnMessageNode] triggerSlot completed successfully');
 
       } catch (triggerError) {

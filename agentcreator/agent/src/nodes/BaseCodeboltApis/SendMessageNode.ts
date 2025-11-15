@@ -12,18 +12,77 @@ export class SendMessageNode extends BaseSendMessageNode {
   // Handle execution - this will be called when triggered by the event
   async onExecute() {
     console.log('[Utkarsh1] SendMessageNode onExecute called');
-    console.log('[Utkarsh1] Logging Input' + this.getInputData(1) + ' ' + this.getInputData(0));
     console.log('[Utkarsh1] Node inputs count:', this.inputs?.length);
-    console.log('[Utkarsh1] All input data:', this.inputs?.map((input, idx) => ({ slot: idx, data: this.getInputData(idx), name: input.name })));
+    console.log('[Utkarsh1] Input connections:', this.inputs?.map((input, idx) => ({ 
+      slot: idx, 
+      name: input.name, 
+      type: input.type,
+      connected: input.link !== null,
+      data: this.getInputData(idx) 
+    })));
+    
+    // Get the message from input named "message" (or property fallback)
+    let messageToSend: any = (this as any).getInputOrProperty?.('message') ?? this.getInputData(1);
+    console.log('[Utkarsh1] Raw input data (by name "message"):', messageToSend);
+    console.log('[Utkarsh1] Type of input data:', typeof messageToSend);
 
-    // Get the message from input slot 1 and validate it
-    // const messageToSend = this.getInputData(1);
+    // Fallback: if still undefined, try to read from the triggering OnMessageNode
+    if (messageToSend === undefined || messageToSend === null) {
+      try {
+        const triggerInput = this.inputs?.[0]; // onTrigger
+        if (triggerInput?.link != null && (this as any).graph?._links) {
+          const graph = (this as any).graph;
+          const link = graph._links.get(triggerInput.link);
+          if (link) {
+            const originNode = graph.getNodeById(link.origin_id) as any;
+            if (originNode) {
+              const fromOutput = originNode.getOutputData?.(1); // userMessage or message
+              const fromProps = originNode.properties?.message;
+              messageToSend = fromOutput ?? fromProps ?? messageToSend;
+              console.log('[SendMessageNode] Fallback message from origin node:', {
+                fromOutput,
+                fromProps,
+                final: messageToSend,
+              });
 
-    console.log("[utkarsh4] the message is ", this.getInputData(1));
-    const messageToSend = "Hi Data";
-    console.log('[utkarsh3] the message is ', messageToSend)
+              // Also propagate this value into our "message" input link so getInputData works
+              const messageInput = this.inputs?.[1];
+              if (messageInput?.link != null) {
+                const msgLink = graph._links.get(messageInput.link);
+                if (msgLink) {
+                  msgLink.data = messageToSend;
+                  console.log('[SendMessageNode] Wrote fallback message into input link.data');
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[SendMessageNode] Fallback origin message lookup failed', e);
+      }
+    }
+
+    console.log("[utkarsh4] the message is ", messageToSend);
+    
+    // Handle different types of input data
+    let finalMessage = "Hi Data"; // default fallback
+    
+    if (messageToSend) {
+      if (typeof messageToSend === 'string') {
+        finalMessage = messageToSend;
+      } else if (typeof messageToSend === 'object' && messageToSend.userMessage) {
+        // If we get the full message object, extract the userMessage
+        finalMessage = messageToSend.userMessage;
+      } else {
+        // Convert to string if it's something else
+        finalMessage = String(messageToSend);
+      }
+    }
+    
+    console.log('[utkarsh3] the final message is ', finalMessage);
+    console.log('[utkarsh3] final message type:', typeof finalMessage);
     // Validate the input message
-    if (typeof messageToSend !== 'string' || !messageToSend.trim()) {
+    if (typeof finalMessage !== 'string' || !finalMessage.trim()) {
       const errorMessage = 'Error: Message cannot be empty';
       console.error('SendMessageNode error:', errorMessage);
       this.setOutputData(0, errorMessage);
@@ -31,11 +90,11 @@ export class SendMessageNode extends BaseSendMessageNode {
       return;
     }
 
-    console.log('SendMessageNode: Sending message:', messageToSend);
+    console.log('SendMessageNode: Sending message:', finalMessage);
 
     try {
       // Call codebolt.chat.sendMessage with the validated message
-      await codebolt.chat.sendMessage(messageToSend);
+      await codebolt.chat.sendMessage(finalMessage);
       console.log('[utkarsh2]:SendMessageNode: Message sent successfully');
 
       // Update outputs with success results

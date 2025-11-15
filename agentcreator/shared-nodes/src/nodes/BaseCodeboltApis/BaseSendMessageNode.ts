@@ -25,8 +25,8 @@ export class BaseSendMessageNode extends LGraphNode {
     // Generic action input for event triggering
     this.addInput("onTrigger", LiteGraph.ACTION);
 
-    // Data input for the message to send
-    this.addInput("message", "string");
+    // Data input for the message to send - accept both string and object
+    this.addInput("message", 0 as any);
 
     // Output for the response
     this.addOutput("response", "string");
