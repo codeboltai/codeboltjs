@@ -12,7 +12,7 @@ export class BaseTimeNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseTimeNode.metadata.title, BaseTimeNode.metadata.type);
     this.title = BaseTimeNode.metadata.title;
     this.addOutput("in ms", "number");
     this.addOutput("in sec", "number");

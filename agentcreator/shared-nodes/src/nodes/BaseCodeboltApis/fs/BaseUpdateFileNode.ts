@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base UpdateFile Node - Calls cbfs.updateFile
 export class BaseUpdateFileNode extends LGraphNode {

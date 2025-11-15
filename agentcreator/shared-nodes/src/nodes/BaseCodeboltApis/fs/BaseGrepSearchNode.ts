@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base GrepSearch Node - Calls cbfs.grepSearch
 export class BaseGrepSearchNode extends LGraphNode {

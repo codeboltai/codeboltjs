@@ -12,7 +12,7 @@ export class BaseConcatenateNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseConcatenateNode.metadata.title, BaseConcatenateNode.metadata.type);
     this.title = BaseConcatenateNode.metadata.title;
     this.addInput("a", "string");
     this.addInput("b", "string");

@@ -3,16 +3,16 @@ import { LGraphNode } from '@codebolt/litegraph';
 // Base Markdown Node - shared metadata and structure
 export class BaseMarkdownNode extends LGraphNode {
   static metadata = {
-    type: "widget/markdown",
+    type: "assets/markdown",
     title: "Markdown",
-    category: "widget",
+    category: "assets",
     description: "Display markdown-formatted text",
     icon: "📝",
     color: "#9C27B0"
   };
 
   constructor() {
-    super();
+    super(BaseMarkdownNode.metadata.title, BaseMarkdownNode.metadata.type);
     this.title = BaseMarkdownNode.metadata.title;
     this.addProperty("content", "# Heading\n\nSome **markdown** text here");
     this.addProperty("width", 300);

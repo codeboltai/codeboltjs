@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base ReadManyFiles Node - Calls cbfs.readManyFiles
 export class BaseReadManyFilesNode extends LGraphNode {

@@ -46,7 +46,7 @@ export { AgentRunNode } from './AgentRunNode.js';
 
 // Backend node registration utility
 import { LiteGraph } from '@codebolt/litegraph';
-import { registerNodeWithMetadata, nodeMetadata } from '@agent-creator/shared-nodes';
+import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
 import { ConstNode as BackendConstNode } from './ConstNode.js';
 import { SumNode as BackendSumNode } from './SumNode.js';
 import { TimeNode as BackendTimeNode } from './TimeNode.js';
@@ -81,35 +81,35 @@ import { SendMessageNode as BackendSendMessageNode } from './BaseCodeboltApis/ch
 
 export function registerBackendNodes() {
   // Register backend execution nodes
-  registerNodeWithMetadata(LiteGraph, BackendConstNode, nodeMetadata['basic/const']);
-  registerNodeWithMetadata(LiteGraph, BackendSumNode, nodeMetadata['basic/sum']);
-  registerNodeWithMetadata(LiteGraph, BackendTimeNode, nodeMetadata['basic/time']);
-  registerNodeWithMetadata(LiteGraph, BackendConstantNumberNode, nodeMetadata['basic/const_number']);
-  registerNodeWithMetadata(LiteGraph, BackendBypassNode, nodeMetadata['math/bypass']);
-  registerNodeWithMetadata(LiteGraph, BackendToNumberNode, nodeMetadata['math/to_number']);
-  registerNodeWithMetadata(LiteGraph, BackendRandNode, nodeMetadata['math/rand']);
-  registerNodeWithMetadata(LiteGraph, BackendAbsNode, nodeMetadata['math/abs']);
-  registerNodeWithMetadata(LiteGraph, BackendClampNode, nodeMetadata['math/clamp']);
-  registerNodeWithMetadata(LiteGraph, BackendOrNode, nodeMetadata['logic/OR']);
-  registerNodeWithMetadata(LiteGraph, BackendNotNode, nodeMetadata['logic/NOT']);
-  registerNodeWithMetadata(LiteGraph, BackendSelectorNode, nodeMetadata['logic/selector']);
-  registerNodeWithMetadata(LiteGraph, BackendToStringNode, nodeMetadata['string/toString']);
-  registerNodeWithMetadata(LiteGraph, BackendCompareNode, nodeMetadata['string/compare']);
-  registerNodeWithMetadata(LiteGraph, BackendToUpperCaseNode, nodeMetadata['string/toUpperCase']);
-  registerNodeWithMetadata(LiteGraph, BackendContainsNode, nodeMetadata['string/contains']);
-  registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, nodeMetadata['widget/markdown']);
+  registerNodeWithMetadata(LiteGraph, BackendConstNode, BackendConstNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSumNode, BackendSumNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendTimeNode, BackendTimeNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConstantNumberNode, BackendConstantNumberNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendBypassNode, BackendBypassNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendToNumberNode, BackendToNumberNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendRandNode, BackendRandNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAbsNode, BackendAbsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendClampNode, BackendClampNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendOrNode, BackendOrNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendNotNode, BackendNotNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSelectorNode, BackendSelectorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendToStringNode, BackendToStringNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCompareNode, BackendCompareNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendToUpperCaseNode, BackendToUpperCaseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendContainsNode, BackendContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, BackendMarkdownNode.metadata);
 
   // Register Event nodes
-  registerNodeWithMetadata(LiteGraph, BackendOnMessageNode, nodeMetadata['events/onmessage']);
+  registerNodeWithMetadata(LiteGraph, BackendOnMessageNode, BackendOnMessageNode.metadata);
 
   // Register Codebolt nodes
-  registerNodeWithMetadata(LiteGraph, BackendSendMessageNode, nodeMetadata['codebolt/chat/sendmessage']);
+  registerNodeWithMetadata(LiteGraph, BackendSendMessageNode, BackendSendMessageNode.metadata);
 
   // Register AI Agent nodes
-  registerNodeWithMetadata(LiteGraph, BackendUserMessageNode, nodeMetadata['agent/user_message']);
-  registerNodeWithMetadata(LiteGraph, BackendSystemPromptNode, nodeMetadata['agent/system_prompt']);
-  registerNodeWithMetadata(LiteGraph, BackendMCPToolsNode, nodeMetadata['agent/mcp_tools']);
-  registerNodeWithMetadata(LiteGraph, BackendTaskInstructionNode, nodeMetadata['agent/task_instruction']);
-  registerNodeWithMetadata(LiteGraph, BackendAgentNode, nodeMetadata['agent/agent']);
-  registerNodeWithMetadata(LiteGraph, BackendAgentRunNode, nodeMetadata['agent/agent_run']);
+  registerNodeWithMetadata(LiteGraph, BackendUserMessageNode, BackendUserMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSystemPromptNode, BackendSystemPromptNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendMCPToolsNode, BackendMCPToolsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendTaskInstructionNode, BackendTaskInstructionNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentNode, BackendAgentNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentRunNode, BackendAgentRunNode.metadata);
 }

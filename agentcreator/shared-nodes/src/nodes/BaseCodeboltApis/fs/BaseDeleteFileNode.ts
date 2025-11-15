@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base DeleteFile Node - Calls cbfs.deleteFile
 export class BaseDeleteFileNode extends LGraphNode {

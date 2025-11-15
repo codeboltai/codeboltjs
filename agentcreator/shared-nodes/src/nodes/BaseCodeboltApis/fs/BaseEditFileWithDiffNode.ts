@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base EditFileWithDiff Node - Calls cbfs.editFileWithDiff
 export class BaseEditFileWithDiffNode extends LGraphNode {

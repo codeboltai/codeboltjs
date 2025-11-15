@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base FileSearch Node - Calls cbfs.fileSearch
 export class BaseFileSearchNode extends LGraphNode {

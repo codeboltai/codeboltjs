@@ -12,7 +12,7 @@ export class BaseAndNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseAndNode.metadata.title, BaseAndNode.metadata.type);
     this.title = BaseAndNode.metadata.title;
     this.properties = {};
     this.addInput("a", "boolean");

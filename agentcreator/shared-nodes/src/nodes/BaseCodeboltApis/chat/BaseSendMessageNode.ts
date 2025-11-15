@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../utils';
+import { NodeMetadata } from '../../../types';
 
 // Base SendMessage Node - Calls codebolt.chat.sendMessage
 export class BaseSendMessageNode extends LGraphNode {

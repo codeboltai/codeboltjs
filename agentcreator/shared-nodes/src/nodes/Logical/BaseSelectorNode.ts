@@ -1,5 +1,5 @@
 import { LGraphNode } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../utils';
+import { NodeMetadata } from '../../types';
 
 // Base Selector Node
 export class BaseSelectorNode extends LGraphNode {

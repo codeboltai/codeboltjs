@@ -3,16 +3,16 @@ import { LGraphNode } from '@codebolt/litegraph';
 // Base Sum Node - shared metadata and structure
 export class BaseSumNode extends LGraphNode {
   static metadata = {
-    type: "basic/sum",
+    type: "math/sum",
     title: "Sum",
-    category: "basic",
+    category: "math",
     description: "Adds two numbers together",
     icon: "Σ",
     color: "#2196F3"
   };
 
   constructor() {
-    super();
+    super(BaseSumNode.metadata.title, BaseSumNode.metadata.type);
     this.title = BaseSumNode.metadata.title;
     this.properties = { precision: 1 };
     this.addInput("A", "number");

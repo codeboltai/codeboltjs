@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../types';
 
 // Base class for TaskInstruction node
 export class BaseTaskInstructionNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/task_instruction",
+    title: "Task Instruction",
+    category: "agent",
+    description: "Creates a TaskInstruction with tools and user message",
+    icon: "📝",
+    color: "#FF9800"
+  };
   constructor() {
-    super();
+    super(BaseTaskInstructionNode.metadata.title, BaseTaskInstructionNode.metadata.type);
+    this.title = BaseTaskInstructionNode.metadata.title;
     this.properties = {
       taskContent: '',
       filePath: './task.yaml',

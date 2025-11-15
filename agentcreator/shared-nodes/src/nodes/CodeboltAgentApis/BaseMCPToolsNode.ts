@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../types';
 
 // Base class for MCP Tools node
 export class BaseMCPToolsNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/mcp_tools",
+    title: "MCP Tools",
+    category: "agent",
+    description: "Fetches available tools from MCP servers",
+    icon: "🔧",
+    color: "#9C27B0"
+  };
   constructor() {
-    super();
+    super(BaseMCPToolsNode.metadata.title, BaseMCPToolsNode.metadata.type);
+    this.title = BaseMCPToolsNode.metadata.title;
     this.properties = {
       servers: ['codebolt']
     };

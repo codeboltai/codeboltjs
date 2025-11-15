@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../types';
 
 // Base class for UserMessage node
 export class BaseUserMessageNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/user_message",
+    title: "User Message",
+    category: "agent",
+    description: "Creates a UserMessage with content and timestamp",
+    icon: "💬",
+    color: "#2196F3"
+  };
   constructor() {
-    super();
+    super(BaseUserMessageNode.metadata.title, BaseUserMessageNode.metadata.type);
+    this.title = BaseUserMessageNode.metadata.title;
     this.properties = {
       defaultMessage: ''
     };

@@ -12,7 +12,7 @@ export class BaseConverterNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseConverterNode.metadata.title, BaseConverterNode.metadata.type);
     this.title = BaseConverterNode.metadata.title;
     this.addInput("in", 0);
     this.size = [80, 30];
