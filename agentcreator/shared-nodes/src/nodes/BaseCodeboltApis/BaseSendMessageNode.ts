@@ -17,11 +17,6 @@ export class BaseSendMessageNode extends LGraphNode {
     this.title = BaseSendMessageNode.metadata.title;
     this.size = [220, 100];
 
-    // this.properties = {
-    //   message: "",
-    //   response: null
-    // };
-
     // Generic action input for event triggering
     this.addInput("onTrigger", LiteGraph.ACTION);
 
@@ -34,16 +29,7 @@ export class BaseSendMessageNode extends LGraphNode {
     // Output for success status
     this.addOutput("success", "boolean");
   }
-
-
+  
   // Enable ON_TRIGGER mode so onExecute only runs when triggered
   mode = LiteGraph.ON_TRIGGER;
-
-
-  // // Handle property changes
-  // onPropertyChanged(name, value) {
-  //   if (name === 'message') {
-  //     this.properties.message = this.validateMessage(value);
-  //   }
-  // }
 }
