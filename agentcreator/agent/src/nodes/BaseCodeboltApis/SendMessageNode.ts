@@ -63,6 +63,15 @@ export class SendMessageNode extends BaseSendMessageNode {
     }
 
     console.log("[utkarsh4] the message is ", messageToSend);
+
+    // Debug inputs after fallback so getInputData reflects any propagated value
+    console.log('[SendMessageNode] Input connections after fallback:', this.inputs?.map((input, idx) => ({
+      slot: idx,
+      name: input.name,
+      type: input.type,
+      connected: input.link !== null,
+      data: this.getInputData(idx)
+    })));
     
     // Handle different types of input data
     let finalMessage = "Hi Data"; // default fallback
