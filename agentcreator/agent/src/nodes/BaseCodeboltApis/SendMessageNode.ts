@@ -12,11 +12,15 @@ export class SendMessageNode extends BaseSendMessageNode {
   // Handle execution - this will be called when triggered by the event
   async onExecute() {
     console.log('[Utkarsh1] SendMessageNode onExecute called');
+    console.log('[Utkarsh1] Logging Input' + this.getInputData(1) + ' ' + this.getInputData(0));
     console.log('[Utkarsh1] Node inputs count:', this.inputs?.length);
     console.log('[Utkarsh1] All input data:', this.inputs?.map((input, idx) => ({ slot: idx, data: this.getInputData(idx), name: input.name })));
 
     // Get the message from input slot 1 and validate it
-    const messageToSend = this.getInputData(1);
+    // const messageToSend = this.getInputData(1);
+
+    console.log("[utkarsh4] the message is ", this.getInputData(1));
+    const messageToSend = "Hi Data";
     console.log('[utkarsh3] the message is ', messageToSend)
     // Validate the input message
     if (typeof messageToSend !== 'string' || !messageToSend.trim()) {
