@@ -6,10 +6,16 @@ export class OnMessageNode extends BaseOnMessageNode {
 
   constructor() {
     super();
+    this._messageReceived = false;
   }
 
   // Backend execution logic - waits for message and triggers event
   async onExecute() {
+    if (this._messageReceived) {
+      return;
+    }
+
+    this._messageReceived = true;
 
     try {
       // Wait for a message
@@ -48,7 +54,7 @@ export class OnMessageNode extends BaseOnMessageNode {
 
       try {
         // Correct triggerSlot call: slot_index, param, force_execution
-        this.triggerSlot(0, message, 0);
+        this.triggerSlot(0, message, null);
         console.log('[OnMessageNode] triggerSlot completed successfully');
       } catch (triggerError) {
         console.error('[OnMessageNode] triggerSlot failed:', triggerError);

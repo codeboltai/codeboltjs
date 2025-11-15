@@ -17,7 +17,7 @@ export class SendMessageNode extends BaseSendMessageNode {
 
     // Get the message from input slot 1 and validate it
     const messageToSend = this.getInputData(1);
-    
+    console.log('[utkarsh3] the message is ', messageToSend)
     // Validate the input message
     if (typeof messageToSend !== 'string' || !messageToSend.trim()) {
       const errorMessage = 'Error: Message cannot be empty';
