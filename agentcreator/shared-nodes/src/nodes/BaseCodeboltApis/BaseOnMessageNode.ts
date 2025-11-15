@@ -48,7 +48,7 @@ export class BaseOnMessageNode extends LGraphNode {
   // Handle property changes (toggle between single and split outputs)
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
     if (name === "showSplitOutputs") {
-     // In the frontend editor, we rebuild outputs when the toggle changes.
+      // In the frontend editor, we rebuild outputs when the toggle changes.
       // On the backend, outputs (and their links) come from the saved graphData
       // and must be preserved so Litegraph can propagate values correctly.
       const isBrowser = typeof window !== "undefined";
