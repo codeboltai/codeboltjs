@@ -1,26 +1,25 @@
-import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
+import { BaseConverterNode } from '@agent-creator/shared-nodes';
 
-class ConverterNode extends LGraphNode {
+class ConverterNode extends BaseConverterNode {
   constructor() {
     super();
     this.addInput("in", 0);
-    this.size = [80, 30];
   }
 
   onExecute() {
-    var v = this.getInputData(0);
+    const v = this.getInputData(0);
     if (v == null) {
       return;
     }
 
     if (this.outputs) {
-      for (var i = 0; i < this.outputs.length; i++) {
-        var output = this.outputs[i];
+      for (let i = 0; i < this.outputs.length; i++) {
+        const output = this.outputs[i];
         if (!output.links || !output.links.length) {
           continue;
         }
 
-        var outputResult = null;
+        let outputResult = null;
         switch (output.name) {
           case "number":
             outputResult = v.length ? v[0] : parseFloat(v);
@@ -28,7 +27,7 @@ class ConverterNode extends LGraphNode {
           case "vec2":
           case "vec3":
           case "vec4":
-            var count = 1;
+            let count = 1;
             switch (output.name) {
               case "vec2":
                 count = 2;
@@ -43,7 +42,7 @@ class ConverterNode extends LGraphNode {
 
             outputResult = new Float32Array(count);
             if (v.length) {
-              for (var j = 0; j < v.length && j < outputResult.length; j++) {
+              for (let j = 0; j < v.length && j < outputResult.length; j++) {
                 outputResult[j] = v[j];
               }
             } else {
@@ -67,6 +66,5 @@ class ConverterNode extends LGraphNode {
 }
 
 ConverterNode.title = "Converter";
-ConverterNode.desc = "type A to type B";
 
 export default ConverterNode;

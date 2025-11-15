@@ -22,8 +22,11 @@ export class BaseRandNode extends LGraphNode {
     this.addProperty("max", this.maxValue);
     this.addInput("min", "number");
     this.addInput("max", "number");
-    this.addOutput("out", "number");
+    this.addOutput("value", "number");
     this.size = [120, 60];
+
+    // Properties used by frontend
+    (this as any)._last_v = 0;
   }
 
   // Shared random generation
@@ -31,5 +34,25 @@ export class BaseRandNode extends LGraphNode {
     const finalMin = min !== undefined ? min : Number(this.properties.min) || this.minValue;
     const finalMax = max !== undefined ? max : Number(this.properties.max) || this.maxValue;
     return Math.random() * (finalMax - finalMin) + finalMin;
+  }
+
+  // Default implementation
+  onExecute() {
+    if (this.inputs) {
+      for (let i = 0; i < this.inputs.length; i++) {
+        const input = this.inputs[i];
+        const v = this.getInputData(i);
+        if (v !== undefined) {
+          this.properties[input.name] = v;
+        }
+      }
+    }
+
+    (this as any)._last_v = this.generateRandom();
+    this.setOutputData(0, (this as any)._last_v);
+  }
+
+  onGetInputs() {
+    return [["min", "number"], ["max", "number"]];
   }
 }

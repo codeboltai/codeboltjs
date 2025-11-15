@@ -30,6 +30,12 @@ export {
   ContainsNode
 } from './StringNodes.js';
 
+// Variable nodes
+export {
+  GetStringVariableNode,
+  SetStringVariableNode
+} from './Variables/index.js';
+
 // Widget nodes
 export { MarkdownNode } from './MarkdownNode.js';
 
@@ -69,6 +75,10 @@ import {
   ToUpperCaseNode as BackendToUpperCaseNode,
   ContainsNode as BackendContainsNode
 } from './StringNodes.js';
+import {
+  GetStringVariableNode as BackendGetStringVariableNode,
+  SetStringVariableNode as BackendSetStringVariableNode
+} from './Variables/index.js';
 import { MarkdownNode as BackendMarkdownNode } from './MarkdownNode.js';
 import { UserMessageNode as BackendUserMessageNode } from './UserMessageNode.js';
 import { SystemPromptNode as BackendSystemPromptNode } from './SystemPromptNode.js';
@@ -97,6 +107,8 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendCompareNode, BackendCompareNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendToUpperCaseNode, BackendToUpperCaseNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendContainsNode, BackendContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetStringVariableNode, BackendGetStringVariableNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSetStringVariableNode, BackendSetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, BackendMarkdownNode.metadata);
 
   // Register Event nodes

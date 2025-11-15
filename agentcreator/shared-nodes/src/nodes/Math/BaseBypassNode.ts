@@ -19,4 +19,10 @@ export class BaseBypassNode extends LGraphNode {
     this.addOutput("out", 0);
     this.size = [80, 30];
   }
+
+  // Default implementation
+  onExecute() {
+    const v = this.getInputData(0);
+    this.setOutputData(0, v);
+  }
 }

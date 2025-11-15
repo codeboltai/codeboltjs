@@ -1,13 +1,11 @@
-import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
+import { BaseLerpNode } from '@agent-creator/shared-nodes';
 
-class LerpNode extends LGraphNode {
+export class LerpNode extends BaseLerpNode {
   constructor() {
     super();
-    this.properties = { f: 0.5 };
     this.addInput("A", "number");
     this.addInput("B", "number");
     this.addOutput("out", "number");
-    this.size = [80, 60];
   }
 
   onExecute() {
@@ -27,15 +25,10 @@ class LerpNode extends LGraphNode {
       f = _f;
     }
 
-    this.setOutputData(0, v1 * (1 - f) + v2 * f);
+    this.setOutputData(0, this.lerp(v1, v2, f));
   }
 
   onGetInputs() {
     return [["f", "number"]];
   }
 }
-
-LerpNode.title = "Lerp";
-LerpNode.desc = "Linear Interpolation";
-
-export default LerpNode;

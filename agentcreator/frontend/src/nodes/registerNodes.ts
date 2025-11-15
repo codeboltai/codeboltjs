@@ -62,6 +62,11 @@ import WidgetProgressNode from './interface/WidgetProgressNode';
 import WidgetTextNode from './interface/WidgetTextNode';
 import WidgetPanelNode from './interface/WidgetPanelNode';
 
+import {
+  GetStringVariableNode,
+  SetStringVariableNode
+} from './variables/index.ts';
+
 // Export nodes for direct use
 export {
   // UI-specific nodes (refactored)
@@ -72,6 +77,7 @@ export {
   // AI Agent nodes
   UserMessageNode, SystemPromptNode, MCPToolsNode,
   TaskInstructionNode, AgentNode, AgentRunNode,
+  GetStringVariableNode, SetStringVariableNode,
   // Event and Codebolt nodes
   OnMessageNode, SendMessageNode,
   // File System nodes
@@ -113,6 +119,8 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, CompareNode, CompareNode.metadata);
   registerNodeWithMetadata(LiteGraph, ToUpperCaseNode, ToUpperCaseNode.metadata);
   registerNodeWithMetadata(LiteGraph, ContainsNode, ContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetStringVariableNode, GetStringVariableNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SetStringVariableNode, SetStringVariableNode.metadata);
 
   // Widget nodes
   registerNodeWithMetadata(LiteGraph, MarkdownNode, MarkdownNode.metadata);

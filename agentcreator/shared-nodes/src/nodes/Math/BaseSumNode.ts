@@ -26,4 +26,11 @@ export class BaseSumNode extends LGraphNode {
     const sum = (a || 0) + (b || 0);
     return Math.round(sum * Math.pow(10, precision)) / Math.pow(10, precision);
   }
+
+  // Default implementation
+  onExecute() {
+    const A = this.getInputData(0) || 0;
+    const B = this.getInputData(1) || 0;
+    this.setOutputData(0, this.calculateSum(A, B));
+  }
 }

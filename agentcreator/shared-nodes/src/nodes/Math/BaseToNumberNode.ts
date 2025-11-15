@@ -27,4 +27,10 @@ export class BaseToNumberNode extends LGraphNode {
     if (typeof value === 'boolean') return value ? 1 : 0;
     return 0;
   }
+
+  // Default implementation
+  onExecute() {
+    const v = this.getInputData(0);
+    this.setOutputData(0, this.convertToNumber(v));
+  }
 }

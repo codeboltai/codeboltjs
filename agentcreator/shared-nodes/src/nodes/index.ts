@@ -7,3 +7,4 @@ export * from './CodeboltAgentApis';
 export * from './String';
 export * from './Utility';
 export * from './Assets';
+export * from './Variables';
