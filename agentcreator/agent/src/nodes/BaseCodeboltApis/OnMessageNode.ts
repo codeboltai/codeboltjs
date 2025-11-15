@@ -51,16 +51,10 @@ export class OnMessageNode extends BaseOnMessageNode {
       // Trigger the event output at slot 0 (onTrigger) to trigger connected nodes
       console.log('[OnMessageNode] Triggering slot 0...');
       try {
-
-        this.graph.runStep(1, true);
-
         // triggerSlot triggers connected nodes but doesn't propagate data
         this.triggerSlot(0, message.userMessage, null);
         console.log('[OnMessageNode] triggerSlot completed successfully');
 
-        // Now run a graph step to propagate data from outputs to inputs
-        console.log('[OnMessageNode] Running graph step to propagate data...');
-        console.log('[OnMessageNode] Graph step completed');
       } catch (triggerError) {
         console.error('[OnMessageNode] triggerSlot failed:', triggerError);
       }
