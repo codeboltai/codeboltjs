@@ -23,13 +23,13 @@ export class BaseSendMessageNode extends LGraphNode {
     // Data input for the message to send - accept both string and object
     this.addInput("message", 0 as any);
 
-    // Output for the response
-    this.addOutput("response", "string");
+    // Event output for messageSent
+    this.addOutput("messageSent", LiteGraph.EVENT);
 
     // Output for success status
     this.addOutput("success", "boolean");
   }
-  
+
   // Enable ON_TRIGGER mode so onExecute only runs when triggered
   mode = LiteGraph.ON_TRIGGER;
 }

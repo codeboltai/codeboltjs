@@ -17,8 +17,7 @@ export class SendMessageNode extends BaseSendMessageNode {
     } else {
       const errorMessage = 'Error: Message cannot be empty';
       console.error('SendMessageNode error:', errorMessage);
-      this.setOutputData(0, errorMessage);
-      this.setOutputData(1, false);
+      this.setOutputData(0, false);
       return;
     }
 
@@ -26,13 +25,14 @@ export class SendMessageNode extends BaseSendMessageNode {
       await codebolt.chat.sendMessage(finalMessage);
 
       // Update outputs with success results
-      this.setOutputData(0, "done");
       this.setOutputData(1, true);
+
+      // Trigger the messageSent event
+      this.triggerSlot(0, null, null);
 
     } catch (error) {
       const errorMessage = `Error: Failed to send message`;
-      this.setOutputData(0, errorMessage);
-      this.setOutputData(1, false);
+      this.setOutputData(0, false);
       console.error('SendMessageNode error:', error);
     }
   }
