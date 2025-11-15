@@ -21,57 +21,15 @@ export class SendMessageNode extends BaseSendMessageNode {
       data: this.getInputData(idx) 
     })));
     
-    // Get the message from input named "message" (or property fallback)
-    let messageToSend: any = (this as any).getInputOrProperty?.('message') ?? this.getInputData(1);
-    console.log('[Utkarsh1] Raw input data (by name "message"):', messageToSend);
-    console.log('[Utkarsh1] Type of input data:', typeof messageToSend);
+    // Check if we're connected to the OnMessageNode output
+    const messageInput = this.getInputData(1);
+    console.log('[Utkarsh1] Raw input data from slot 1:', messageInput);
+    console.log('[Utkarsh1] Type of input data:', typeof messageInput);
 
-    // Fallback: if still undefined, try to read from the triggering OnMessageNode
-    if (messageToSend === undefined || messageToSend === null) {
-      try {
-        const triggerInput = this.inputs?.[0]; // onTrigger
-        if (triggerInput?.link != null && (this as any).graph?._links) {
-          const graph = (this as any).graph;
-          const link = graph._links.get(triggerInput.link);
-          if (link) {
-            const originNode = graph.getNodeById(link.origin_id) as any;
-            if (originNode) {
-              const fromOutput = originNode.getOutputData?.(1); // userMessage or message
-              const fromProps = originNode.properties?.message;
-              messageToSend = fromOutput ?? fromProps ?? messageToSend;
-              console.log('[SendMessageNode] Fallback message from origin node:', {
-                fromOutput,
-                fromProps,
-                final: messageToSend,
-              });
-
-              // Also propagate this value into our "message" input link so getInputData works
-              const messageInput = this.inputs?.[1];
-              if (messageInput?.link != null) {
-                const msgLink = graph._links.get(messageInput.link);
-                if (msgLink) {
-                  msgLink.data = messageToSend;
-                  console.log('[SendMessageNode] Wrote fallback message into input link.data');
-                }
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.error('[SendMessageNode] Fallback origin message lookup failed', e);
-      }
-    }
+    // Get the message from input slot 1 and validate it
+    const messageToSend :any = this.getInputData(1);
 
     console.log("[utkarsh4] the message is ", messageToSend);
-
-    // Debug inputs after fallback so getInputData reflects any propagated value
-    console.log('[SendMessageNode] Input connections after fallback:', this.inputs?.map((input, idx) => ({
-      slot: idx,
-      name: input.name,
-      type: input.type,
-      connected: input.link !== null,
-      data: this.getInputData(idx)
-    })));
     
     // Handle different types of input data
     let finalMessage = "Hi Data"; // default fallback
