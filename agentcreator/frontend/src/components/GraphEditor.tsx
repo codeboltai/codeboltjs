@@ -399,6 +399,9 @@ export default function GraphEditor() {
     // Register all node types
     registerNodes();
 
+    // Enable release link on empty space shows menu
+    LiteGraph.release_link_on_empty_shows_menu = true;
+
     // Create a canvas element
     const canvas = document.createElement('canvas');
     canvas.style.width = '100%';
@@ -408,7 +411,7 @@ export default function GraphEditor() {
 
     // Initialize the graph
     const graph = new LGraph();
-    
+
     // Create the graph canvas
     const graphCanvas = new LGraphCanvas(canvas, graph);
     
