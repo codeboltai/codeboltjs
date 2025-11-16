@@ -8,10 +8,24 @@ export class ConverterNode extends BaseConverterNode {
 
   // Backend execution logic
   onExecute() {
-    const v = this.getInputData(0);
-    if (v == null) {
+    const value = this.getInputData(0);
+    if (value == null) {
       return;
     }
+
+    const isArrayLike = (val: unknown): val is ArrayLike<number> => {
+      return Array.isArray(val) || ArrayBuffer.isView(val);
+    };
+
+    const toNumber = (val: unknown): number => {
+      if (typeof val === 'number') {
+        return val;
+      }
+      const parsed = parseFloat(String(val ?? 0));
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    const arrayValue = isArrayLike(value) ? Array.from(value) : undefined;
 
     if (this.outputs) {
       for (let i = 0; i < this.outputs.length; i++) {
@@ -20,10 +34,14 @@ export class ConverterNode extends BaseConverterNode {
           continue;
         }
 
-        let outputResult = null;
+        let outputResult: number | Float32Array | null = null;
         switch (output.name) {
           case "number":
-            outputResult = v.length ? v[0] : parseFloat(v);
+            if (arrayValue && arrayValue.length) {
+              outputResult = toNumber(arrayValue[0]);
+            } else {
+              outputResult = toNumber(value);
+            }
             break;
           case "vec2":
           case "vec3":
@@ -42,16 +60,16 @@ export class ConverterNode extends BaseConverterNode {
             }
 
             outputResult = new Float32Array(count);
-            if (v.length) {
-              for (let j = 0; j < v.length && j < outputResult.length; j++) {
-                outputResult[j] = v[j];
+            if (arrayValue && arrayValue.length) {
+              for (let j = 0; j < arrayValue.length && j < outputResult.length; j++) {
+                outputResult[j] = toNumber(arrayValue[j]);
               }
             } else {
-              outputResult[0] = parseFloat(v);
+              outputResult[0] = toNumber(value);
             }
             break;
         }
-        this.setOutputData(i, outputResult);
+        this.setOutputData(i, outputResult as any);
       }
     }
   }

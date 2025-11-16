@@ -5,10 +5,7 @@ class FloorNode extends BaseFloorNode {
     super();
   }
 
-  onExecute() {
-    var v = this.getInputData(0);
-    this.setOutputData(0, this.floor(v));
-  }
+  // Frontend uses default implementation from base class
 }
 
 FloorNode.title = "Floor";

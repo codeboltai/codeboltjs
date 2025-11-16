@@ -3,29 +3,21 @@ import { BaseLerpNode } from '@agent-creator/shared-nodes';
 export class LerpNode extends BaseLerpNode {
   constructor() {
     super();
-    this.addInput("A", "number");
-    this.addInput("B", "number");
-    this.addOutput("out", "number");
   }
 
+  // Backend execution logic
   onExecute() {
-    var v1 = this.getInputData(0);
-    if (v1 == null) {
-      v1 = 0;
-    }
-    var v2 = this.getInputData(1);
-    if (v2 == null) {
-      v2 = 0;
-    }
+    const v1 = this.getInputData(0);
+    const v2 = this.getInputData(1);
+    let f = (this.properties as any).f;
 
-    var f = this.properties.f;
-
-    var _f = this.getInputData(2);
+    const _f = this.getInputData(2);
     if (_f !== undefined) {
+      (this.properties as any).f = _f;
       f = _f;
     }
 
-    this.setOutputData(0, this.lerp(v1, v2, f));
+    this.setOutputData(0, this.lerp(Number(v1) || 0, Number(v2) || 0, Number(f) || 0));
   }
 
   onGetInputs() {

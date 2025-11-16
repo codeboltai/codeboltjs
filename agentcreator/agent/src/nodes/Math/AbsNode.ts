@@ -8,6 +8,6 @@ export class AbsNode extends BaseAbsNode {
   // Backend execution logic
   onExecute() {
     const v = this.getInputData(0);
-    this.setOutputData(0, this.calculateAbs(v));
+    this.setOutputData(0, this.calculateAbs(Number(v) || 0));
   }
 }

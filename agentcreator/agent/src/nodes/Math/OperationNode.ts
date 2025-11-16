@@ -1,53 +1,32 @@
+import { LiteGraph } from '@codebolt/litegraph';
 import { BaseOperationNode } from '@agent-creator/shared-nodes';
 
 export class OperationNode extends BaseOperationNode {
   constructor() {
     super();
-    this.addInput("A", "number,array,object");
-    this.addInput("B", "number");
-    this.addOutput("=", "number");
   }
 
-  getTitle() {
-    if (this.properties.OP == "max" || this.properties.OP == "min")
-      return this.properties.OP + "(A,B)";
-    return "A " + this.properties.OP + " B";
-  }
-
-  setValue(v) {
-    if (typeof v == "string") {
-      v = parseFloat(v);
-    }
-    this.properties["value"] = v;
-  }
-
-  onPropertyChanged(name, value) {
-    if (name != "OP")
-      return;
-    this._func = BaseOperationNode.operationFuncs[this.properties.OP];
-    if (!this._func) {
-      console.warn("Unknown operation: " + this.properties.OP);
-      this._func = function(A) { return A; };
-    }
-  }
-
+  // Backend execution logic - override base if needed
   onExecute() {
-    var A = this.getInputData(0);
-    var B = this.getInputData(1);
+    let A = this.getInputData(0);
+    let B = this.getInputData(1);
+    let finalA = A;
+    let finalB = B;
+
     if (A != null) {
       if (A.constructor === Number)
-        this.properties["A"] = A;
+        (this.properties as any)["A"] = A;
     } else {
-      A = this.properties["A"];
+      finalA = (this.properties as any)["A"];
     }
 
     if (B != null) {
-      this.properties["B"] = B;
+      (this.properties as any)["B"] = B;
     } else {
-      B = this.properties["B"];
+      finalB = (this.properties as any)["B"];
     }
 
-    var result = this.performOperation(A, B, this.properties.OP);
+    const result = this.performOperation(finalA, finalB, (this.properties as any).OP);
     this.setOutputData(0, result);
   }
 
@@ -60,7 +39,7 @@ export class OperationNode extends BaseOperationNode {
     ctx.fillStyle = "#666";
     ctx.textAlign = "center";
     ctx.fillText(
-      this.properties.OP,
+      (this.properties as any).OP,
       this.size[0] * 0.5,
       (this.size[1] + LiteGraph.NODE_TITLE_HEIGHT) * 0.5
     );

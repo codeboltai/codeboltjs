@@ -3,10 +3,10 @@ import { BaseSetStringVariableNode } from '@agent-creator/shared-nodes';
 export class SetStringVariableNode extends BaseSetStringVariableNode {
   constructor() {
     super();
-    this.addWidget("text", "Variable", this.properties.variable_name, (value?: string) => {
+    this.addWidget("text", "Variable", String(this.properties.variable_name || ""), (value?: string) => {
       this.setProperty("variable_name", value ?? "");
     });
-    this.addWidget("text", "Initial", this.properties.initial_value ?? "", (value?: string) => {
+    this.addWidget("text", "Initial", String(this.properties.initial_value || ""), (value?: string) => {
       this.setProperty("initial_value", value ?? "");
     });
   }

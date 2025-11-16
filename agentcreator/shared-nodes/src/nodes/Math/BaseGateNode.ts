@@ -12,12 +12,13 @@ export class BaseGateNode extends LGraphNode {
   };
 
   constructor() {
-    super(BaseGateNode.metadata.title, BaseGateNode.metadata.type);
+    super();
     this.title = BaseGateNode.metadata.title;
     this.addProperty("open", true);
-    this.addInput("in", "number");
-    this.addInput("open", "boolean");
-    this.addOutput("out", "number");
+    this.addInput("v", "boolean");
+    this.addInput("A");
+    this.addInput("B");
+    this.addOutput("out");
     this.size = [80, 50];
   }
 
@@ -25,5 +26,11 @@ export class BaseGateNode extends LGraphNode {
   gate(value: any, open?: any): any {
     const isOpen = open !== undefined ? Boolean(open) : this.properties.open !== false;
     return isOpen ? value : null;
+  }
+
+  // Default implementation
+  onExecute() {
+    const v = this.getInputData(0);
+    this.setOutputData(0, this.gate(this.getInputData(v ? 1 : 2), v));
   }
 }

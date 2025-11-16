@@ -1,5 +1,9 @@
-// Math nodes
-export { BypassNode, ToNumberNode, RandNode, AbsNode, ClampNode } from './MathNodes.js';
+// Math nodes - export individual files
+export { BypassNode } from './BypassNode';
+export { ToNumberNode } from './ToNumberNode';
+export { RandNode } from './RandNode';
+export { AbsNode } from './AbsNode';
+export { ClampNode } from './ClampNode';
 export { SumNode } from './SumNode.js';
 export { RangeNode } from './RangeNode.js';
 export { LerpNode } from './LerpNode.js';

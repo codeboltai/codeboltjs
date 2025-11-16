@@ -3,25 +3,22 @@ import { BaseSmoothStepNode } from '@agent-creator/shared-nodes';
 export class SmoothStepNode extends BaseSmoothStepNode {
   constructor() {
     super();
-    this.addInput("edge0", "number");
-    this.addInput("edge1", "number");
-    this.addInput("x", "number");
-    this.addOutput("out", "number");
   }
 
+  // Backend execution logic
   onExecute() {
-    var edge0 = this.getInputData(0);
-    var edge1 = this.getInputData(1);
-    var x = this.getInputData(2);
+    let edge0 = this.getInputData(0);
+    let edge1 = this.getInputData(1);
+    let x = this.getInputData(2);
 
-    if (edge0 !== undefined) this.properties.edge0 = edge0;
-    if (edge1 !== undefined) this.properties.edge1 = edge1;
-    if (x !== undefined) this.properties.x = x;
+    if (edge0 !== undefined) (this.properties as any).edge0 = edge0;
+    if (edge1 !== undefined) (this.properties as any).edge1 = edge1;
+    if (x !== undefined) (this.properties as any).x = x;
 
     this.setOutputData(0, this.smoothStep(
-      this.properties.edge0,
-      this.properties.edge1,
-      this.properties.x
+      Number((this.properties as any).edge0) || 0,
+      Number((this.properties as any).edge1) || 1,
+      Number((this.properties as any).x) || 0
     ));
   }
 }

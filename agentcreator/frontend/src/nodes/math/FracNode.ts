@@ -5,13 +5,9 @@ class FracNode extends BaseFracNode {
     super();
   }
 
-  title = "Frac"
-
-  onExecute() {
-    const v = this.getInputData(0);
-    this.setOutputData(0, this.fraction(v));
-  }
+  // Frontend uses default implementation from base class
 }
 
+FracNode.title = "Frac";
 
 export default FracNode;
