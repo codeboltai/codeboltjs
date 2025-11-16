@@ -1,0 +1,18 @@
+import { BaseProcessFinishedNode } from '@agent-creator/shared-nodes';
+import codebolt from '@codebolt/codeboltjs';
+import { emitChatFailure, emitChatSuccess } from './utils';
+
+export class ProcessFinishedNode extends BaseProcessFinishedNode {
+  constructor() {
+    super();
+  }
+
+  async onExecute() {
+    try {
+      await codebolt.chat.processFinished();
+      emitChatSuccess(this, { finished: true });
+    } catch (error) {
+      emitChatFailure(this, 'Failed to signal process finished', error);
+    }
+  }
+}

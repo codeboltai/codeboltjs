@@ -1,1 +1,9 @@
 export { SendMessageNode } from './SendMessageNode';
+export { GetChatHistoryNode } from './GetChatHistoryNode';
+export { WaitForReplyNode } from './WaitForReplyNode';
+export { ProcessStartedNode } from './ProcessStartedNode';
+export { StopProcessNode } from './StopProcessNode';
+export { ProcessFinishedNode } from './ProcessFinishedNode';
+export { SendConfirmationRequestNode } from './SendConfirmationRequestNode';
+export { AskQuestionNode } from './AskQuestionNode';
+export { SendNotificationEventNode } from './SendNotificationEventNode';

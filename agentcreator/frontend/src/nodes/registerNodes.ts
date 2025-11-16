@@ -16,10 +16,42 @@ import {
 
 // Event and Codebolt nodes
 import { OnMessageNode, SendMessageNode,
+  GetChatHistoryNode, WaitForReplyNode, ProcessStartedNode,
+  StopProcessNode, ProcessFinishedNode, SendConfirmationRequestNode,
+  AskQuestionNode, SendNotificationEventNode,
   CreateFileNode, CreateFolderNode, ReadFileNode, UpdateFileNode,
   DeleteFileNode, DeleteFolderNode, ListFileNode, SearchFilesNode,
   WriteToFileNode, GrepSearchNode, FileSearchNode, EditFileWithDiffNode,
-  ReadManyFilesNode, ListDirectoryNode
+  ReadManyFilesNode, ListDirectoryNode,
+  GitInitNode, GitPullNode, GitPushNode, GitStatusNode, GitAddNode,
+  GitCommitNode, GitCheckoutNode, GitBranchNode, GitLogsNode, GitDiffNode,
+  FindAgentNode, StartAgentNode, ListAgentsNode, AgentsDetailNode,
+  CrawlerStartNode, CrawlerScreenshotNode, CrawlerGoToPageNode,
+  CrawlerScrollNode, CrawlerClickNode,
+  MemoryAddNode, MemoryGetNode,
+  MemoryJsonSaveNode, MemoryJsonUpdateNode, MemoryJsonDeleteNode, MemoryJsonListNode,
+  MemoryTodoSaveNode, MemoryTodoUpdateNode, MemoryTodoDeleteNode, MemoryTodoListNode,
+  MemoryMarkdownSaveNode, MemoryMarkdownUpdateNode, MemoryMarkdownDeleteNode, MemoryMarkdownListNode,
+  SummarizeAllNode, SummarizePartNode,
+  MCPGetEnabledNode, MCPLocalServersNode, MCPMentionedServersNode,
+  MCPSearchServersNode, MCPListToolsNode, MCPConfigureNode,
+  MCPGetToolsNode, MCPExecuteToolNode,
+  SearchNode, GetFirstLinkNode,
+  // RAG nodes
+  AddFileNode, RetrieveRelatedKnowledgeNode,
+  // Task Management nodes
+  CreateTaskNode, GetTaskListNode, StartTaskNode, CompleteTaskNode, DeleteTaskNode,
+  UpdateTaskNode, GetTaskDetailNode, AddStepToTaskNode, GetTaskMessagesNode,
+  GetAllStepsNode, GetCurrentRunningStepNode, UpdateStepStatusNode, CompleteStepNode,
+  SendSteeringMessageNode, CanTaskStartNode, GetTasksDependentOnNode, GetTasksReadyToStartNode,
+  GetTaskDependencyChainNode, GetTaskStatsNode, GetTasksStartedByMeNode, AttachMemoryToTaskNode,
+  GetAttachedMemoryForTaskNode, CreateTaskGroupNode,
+  // User Message Manager nodes
+  GetCurrentUserMessageNode, GetUserMessageTextNode, HasCurrentUserMessageNode, ClearUserMessageNode,
+  GetMentionedFilesNode, GetMentionedMCPsNode, GetCurrentFileNode, GetSelectionNode, GetRemixPromptNode,
+  GetUploadedImagesNode, SetUserSessionDataNode, GetUserSessionDataNode,
+  // VectorDB nodes
+  GetVectorNode, AddVectorItemNode, QueryVectorItemNode, QueryVectorItemsNode
 } from './BaseCodeboltApis/index';
 
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
@@ -79,12 +111,48 @@ export {
   TaskInstructionNode, AgentNode, AgentRunNode,
   GetStringVariableNode, SetStringVariableNode,
   // Event and Codebolt nodes
-  OnMessageNode, SendMessageNode,
+  OnMessageNode, SendMessageNode, GetChatHistoryNode, WaitForReplyNode,
+  ProcessStartedNode, StopProcessNode, ProcessFinishedNode,
+  SendConfirmationRequestNode, AskQuestionNode, SendNotificationEventNode,
   // File System nodes
   CreateFileNode, CreateFolderNode, ReadFileNode, UpdateFileNode,
   DeleteFileNode, DeleteFolderNode, ListFileNode, SearchFilesNode,
   WriteToFileNode, GrepSearchNode, FileSearchNode, EditFileWithDiffNode,
   ReadManyFilesNode, ListDirectoryNode,
+  // Git nodes
+  GitInitNode, GitPullNode, GitPushNode, GitStatusNode, GitAddNode,
+  GitCommitNode, GitCheckoutNode, GitBranchNode, GitLogsNode, GitDiffNode,
+  // Agent service nodes
+  FindAgentNode, StartAgentNode, ListAgentsNode, AgentsDetailNode,
+  // Crawler nodes
+  CrawlerStartNode, CrawlerScreenshotNode, CrawlerGoToPageNode,
+  CrawlerScrollNode, CrawlerClickNode,
+  // Memory nodes
+  MemoryAddNode, MemoryGetNode,
+  MemoryJsonSaveNode, MemoryJsonUpdateNode, MemoryJsonDeleteNode, MemoryJsonListNode,
+  MemoryTodoSaveNode, MemoryTodoUpdateNode, MemoryTodoDeleteNode, MemoryTodoListNode,
+  MemoryMarkdownSaveNode, MemoryMarkdownUpdateNode, MemoryMarkdownDeleteNode, MemoryMarkdownListNode,
+  // History nodes
+  SummarizeAllNode, SummarizePartNode,
+  // MCP nodes
+  MCPGetEnabledNode, MCPLocalServersNode, MCPMentionedServersNode,
+  MCPSearchServersNode, MCPListToolsNode, MCPConfigureNode,
+  MCPGetToolsNode, MCPExecuteToolNode,
+  // Search nodes
+  SearchNode, GetFirstLinkNode,
+  // Task Management nodes
+  CreateTaskNode, GetTaskListNode, StartTaskNode, CompleteTaskNode, DeleteTaskNode,
+  UpdateTaskNode, GetTaskDetailNode, AddStepToTaskNode, GetTaskMessagesNode,
+  GetAllStepsNode, GetCurrentRunningStepNode, UpdateStepStatusNode, CompleteStepNode,
+  SendSteeringMessageNode, CanTaskStartNode, GetTasksDependentOnNode, GetTasksReadyToStartNode,
+  GetTaskDependencyChainNode, GetTaskStatsNode, GetTasksStartedByMeNode, AttachMemoryToTaskNode,
+  GetAttachedMemoryForTaskNode, CreateTaskGroupNode,
+  // User Message Manager nodes
+  GetCurrentUserMessageNode, GetUserMessageTextNode, HasCurrentUserMessageNode, ClearUserMessageNode,
+  GetMentionedFilesNode, GetMentionedMCPsNode, GetCurrentFileNode, GetSelectionNode, GetRemixPromptNode,
+  GetUploadedImagesNode, SetUserSessionDataNode, GetUserSessionDataNode,
+  // VectorDB nodes
+  GetVectorNode, AddVectorItemNode, QueryVectorItemNode, QueryVectorItemsNode,
   // Legacy nodes
   ConstantBooleanNode, ConstantStringNode, ConstantObjectNode, JSONParseNode,
   SubgraphNode, GraphInputNode, GraphOutputNode, ConverterNode, RangeNode,
@@ -133,6 +201,14 @@ export const registerNodes = () => {
 
   // Chat nodes
   registerNodeWithMetadata(LiteGraph, SendMessageNode, SendMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetChatHistoryNode, GetChatHistoryNode.metadata);
+  registerNodeWithMetadata(LiteGraph, WaitForReplyNode, WaitForReplyNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ProcessStartedNode, ProcessStartedNode.metadata);
+  registerNodeWithMetadata(LiteGraph, StopProcessNode, StopProcessNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ProcessFinishedNode, ProcessFinishedNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SendConfirmationRequestNode, SendConfirmationRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AskQuestionNode, AskQuestionNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SendNotificationEventNode, SendNotificationEventNode.metadata);
 
   // File System nodes
   registerNodeWithMetadata(LiteGraph, CreateFileNode, CreateFileNode.metadata);
@@ -149,6 +225,108 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, EditFileWithDiffNode, EditFileWithDiffNode.metadata);
   registerNodeWithMetadata(LiteGraph, ReadManyFilesNode, ReadManyFilesNode.metadata);
   registerNodeWithMetadata(LiteGraph, ListDirectoryNode, ListDirectoryNode.metadata);
+
+  // Git nodes
+  registerNodeWithMetadata(LiteGraph, GitInitNode, GitInitNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitPullNode, GitPullNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitPushNode, GitPushNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitStatusNode, GitStatusNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitAddNode, GitAddNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitCommitNode, GitCommitNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitCheckoutNode, GitCheckoutNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitBranchNode, GitBranchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitLogsNode, GitLogsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GitDiffNode, GitDiffNode.metadata);
+
+  // Agent service nodes
+  registerNodeWithMetadata(LiteGraph, FindAgentNode, FindAgentNode.metadata);
+  registerNodeWithMetadata(LiteGraph, StartAgentNode, StartAgentNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ListAgentsNode, ListAgentsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentsDetailNode, AgentsDetailNode.metadata);
+
+  // Crawler nodes
+  registerNodeWithMetadata(LiteGraph, CrawlerStartNode, CrawlerStartNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerScreenshotNode, CrawlerScreenshotNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerGoToPageNode, CrawlerGoToPageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerScrollNode, CrawlerScrollNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerClickNode, CrawlerClickNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryAddNode, MemoryAddNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryGetNode, MemoryGetNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryJsonSaveNode, MemoryJsonSaveNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryJsonUpdateNode, MemoryJsonUpdateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryJsonDeleteNode, MemoryJsonDeleteNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryJsonListNode, MemoryJsonListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryTodoSaveNode, MemoryTodoSaveNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryTodoUpdateNode, MemoryTodoUpdateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryTodoDeleteNode, MemoryTodoDeleteNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryTodoListNode, MemoryTodoListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryMarkdownSaveNode, MemoryMarkdownSaveNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryMarkdownUpdateNode, MemoryMarkdownUpdateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryMarkdownDeleteNode, MemoryMarkdownDeleteNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MemoryMarkdownListNode, MemoryMarkdownListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SummarizeAllNode, SummarizeAllNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SummarizePartNode, SummarizePartNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPGetEnabledNode, MCPGetEnabledNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPLocalServersNode, MCPLocalServersNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPMentionedServersNode, MCPMentionedServersNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPSearchServersNode, MCPSearchServersNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPListToolsNode, MCPListToolsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPConfigureNode, MCPConfigureNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPGetToolsNode, MCPGetToolsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MCPExecuteToolNode, MCPExecuteToolNode.metadata);
+
+  // Search nodes
+  registerNodeWithMetadata(LiteGraph, SearchNode, SearchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetFirstLinkNode, GetFirstLinkNode.metadata);
+
+  // RAG nodes
+  registerNodeWithMetadata(LiteGraph, AddFileNode, AddFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, RetrieveRelatedKnowledgeNode, RetrieveRelatedKnowledgeNode.metadata);
+
+  // Task Management nodes
+  registerNodeWithMetadata(LiteGraph, CreateTaskNode, CreateTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTaskListNode, GetTaskListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, StartTaskNode, StartTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CompleteTaskNode, CompleteTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, DeleteTaskNode, DeleteTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UpdateTaskNode, UpdateTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTaskDetailNode, GetTaskDetailNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AddStepToTaskNode, AddStepToTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTaskMessagesNode, GetTaskMessagesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetAllStepsNode, GetAllStepsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetCurrentRunningStepNode, GetCurrentRunningStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UpdateStepStatusNode, UpdateStepStatusNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CompleteStepNode, CompleteStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SendSteeringMessageNode, SendSteeringMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CanTaskStartNode, CanTaskStartNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTasksDependentOnNode, GetTasksDependentOnNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTasksReadyToStartNode, GetTasksReadyToStartNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTaskDependencyChainNode, GetTaskDependencyChainNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTaskStatsNode, GetTaskStatsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTasksStartedByMeNode, GetTasksStartedByMeNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AttachMemoryToTaskNode, AttachMemoryToTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetAttachedMemoryForTaskNode, GetAttachedMemoryForTaskNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CreateTaskGroupNode, CreateTaskGroupNode.metadata);
+
+  // User Message Manager nodes
+  registerNodeWithMetadata(LiteGraph, GetCurrentUserMessageNode, GetCurrentUserMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetUserMessageTextNode, GetUserMessageTextNode.metadata);
+  registerNodeWithMetadata(LiteGraph, HasCurrentUserMessageNode, HasCurrentUserMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ClearUserMessageNode, ClearUserMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetMentionedFilesNode, GetMentionedFilesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetMentionedMCPsNode, GetMentionedMCPsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetCurrentFileNode, GetCurrentFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetSelectionNode, GetSelectionNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetRemixPromptNode, GetRemixPromptNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetUploadedImagesNode, GetUploadedImagesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SetUserSessionDataNode, SetUserSessionDataNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetUserSessionDataNode, GetUserSessionDataNode.metadata);
+
+  // VectorDB nodes
+  registerNodeWithMetadata(LiteGraph, GetVectorNode, GetVectorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AddVectorItemNode, AddVectorItemNode.metadata);
+  registerNodeWithMetadata(LiteGraph, QueryVectorItemNode, QueryVectorItemNode.metadata);
+  registerNodeWithMetadata(LiteGraph, QueryVectorItemsNode, QueryVectorItemsNode.metadata);
 
   // AI Agent nodes
   registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
