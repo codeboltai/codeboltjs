@@ -22,7 +22,7 @@ export class GetChatHistoryResultNode extends BaseGetChatHistoryResultNode {
 
     try {
       // Call the actual notification function
-      chatNotifications.GetChatHistoryResultNotify(content, isError, toolUseId);
+      chatNotifications.GetChatHistoryResultNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

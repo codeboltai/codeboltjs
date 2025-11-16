@@ -1,5 +1,5 @@
 import { BaseLoopDetectionModifierNode } from '@agent-creator/shared-nodes';
-import { LoopDetectionModifier } from '@agent-creator/message-modifiers';
+import { LoopDetectionModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Loop Detection Modifier Node - actual implementation
 export class LoopDetectionModifierNode extends BaseLoopDetectionModifierNode {
@@ -36,7 +36,7 @@ export class LoopDetectionModifierNode extends BaseLoopDetectionModifierNode {
       }
 
       // Apply the modifier
-      const result = await this.modifier.modify(message, processedMessage);
+      const result = await this.modifier.modify(message, processedMessage, processedMessage);
 
       // Analyze for loops and extract results
       const { loopDetected, isLoop, similarityScore } = this.analyzeForLoops(result);

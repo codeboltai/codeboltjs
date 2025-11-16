@@ -1,5 +1,5 @@
 import { BaseShellProcessorModifierNode } from '@agent-creator/shared-nodes';
-import { ShellProcessorModifier } from '@agent-creator/message-modifiers';
+import { ShellProcessorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Shell Processor Modifier Node - actual implementation
 export class ShellProcessorModifierNode extends BaseShellProcessorModifierNode {
@@ -35,7 +35,7 @@ export class ShellProcessorModifierNode extends BaseShellProcessorModifierNode {
       };
 
       // Apply the modifier
-      const result = await this.modifier.modify(message, processedMessage);
+      const result = await this.modifier.modify(processedMessage);
 
       // Extract shell execution results and statistics
       const { shellConfig, commandResults, executionSummary } = this.extractShellResults(result);

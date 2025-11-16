@@ -15,7 +15,7 @@ export class FileCreateRequestNode extends BaseFileCreateRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileCreateRequestNotify(fileName, source, filePath, toolUseId);
+      fsNotifications.FileCreateRequestNotify(fileName as string, source as string, filePath as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

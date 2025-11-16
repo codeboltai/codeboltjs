@@ -8,12 +8,12 @@ export class SearchInitRequestNode extends BaseSearchInitRequestNode {
   }
 
   async onExecute() {
-    const engine = this.getInputData(1);
+    const engine = this.getInputData(1) as string;
     const toolUseId = this.getInputData(2);
 
     try {
       // Call the actual notification function
-      searchNotifications.SearchInitRequestNotify(engine, toolUseId);
+      searchNotifications.SearchInitRequestNotify(engine, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

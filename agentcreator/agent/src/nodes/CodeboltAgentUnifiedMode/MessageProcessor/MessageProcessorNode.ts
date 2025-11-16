@@ -1,5 +1,5 @@
 import { BaseMessageProcessorNode } from '@agent-creator/shared-nodes';
-import { createDefaultMessageProcessor } from '@codebolt/unified';
+import { createDefaultMessageProcessor } from '@codebolt/agent/unified';
 
 // Backend-specific Message Processor Node - actual implementation
 export class MessageProcessorNode extends BaseMessageProcessorNode {
@@ -18,7 +18,7 @@ export class MessageProcessorNode extends BaseMessageProcessorNode {
       if (this.properties.baseSystemPrompt) {
         // Set base system prompt if available
         if (this.processor.setMetaData) {
-          this.processor.setMetaData('baseSystemPrompt', this.properties.baseSystemPrompt);
+          this.processor.setMetaData('baseSystemPrompt', this.properties.baseSystemPrompt as string);
         }
       }
 

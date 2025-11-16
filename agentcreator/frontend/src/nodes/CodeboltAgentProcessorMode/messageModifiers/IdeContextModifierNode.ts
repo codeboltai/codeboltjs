@@ -8,7 +8,7 @@ export class IdeContextModifierNode extends BaseIdeContextModifierNode {
 
   // Update node display when properties change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update node appearance based on configuration
     this.updateNodeAppearance();
@@ -92,7 +92,7 @@ export class IdeContextModifierNode extends BaseIdeContextModifierNode {
     let xOffset = 35;
     let yOffset = 20;
 
-    features.forEach((feature, index) => {
+    features.forEach((feature, _index) => {
       if (feature.enabled) {
         ctx.fillStyle = feature.color;
         ctx.beginPath();

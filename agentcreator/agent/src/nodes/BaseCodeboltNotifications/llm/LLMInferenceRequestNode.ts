@@ -11,10 +11,10 @@ export class LLMInferenceRequestNode extends BaseLLMInferenceRequestNode {
     const data = this.getInputData(1);
     
     // If data object is not provided, try to construct from individual inputs
-    let finalData = data;
+    let finalData = data as any;
     if (!finalData) {
       finalData = {};
-      
+
       // Try to get data from individual inputs
       const messages = this.getInputData(2);
       const tools = this.getInputData(3);
@@ -25,16 +25,16 @@ export class LLMInferenceRequestNode extends BaseLLMInferenceRequestNode {
       const temperature = this.getInputData(8);
       const stream = this.getInputData(9);
       const prompt = this.getInputData(10);
-      
-      if (messages) finalData.messages = messages;
-      if (tools) finalData.tools = tools;
-      if (tool_choice) finalData.tool_choice = tool_choice;
-      if (full !== undefined) finalData.full = full;
-      if (llmrole) finalData.llmrole = llmrole;
-      if (max_tokens) finalData.max_tokens = max_tokens;
-      if (temperature) finalData.temperature = temperature;
-      if (stream !== undefined) finalData.stream = stream;
-      if (prompt) finalData.prompt = prompt;
+
+      if (messages) (finalData as any).messages = messages;
+      if (tools) (finalData as any).tools = tools;
+      if (tool_choice) (finalData as any).tool_choice = tool_choice;
+      if (full !== undefined) (finalData as any).full = full;
+      if (llmrole) (finalData as any).llmrole = llmrole;
+      if (max_tokens) (finalData as any).max_tokens = max_tokens;
+      if (temperature) (finalData as any).temperature = temperature;
+      if (stream !== undefined) (finalData as any).stream = stream;
+      if (prompt) (finalData as any).prompt = prompt;
     }
 
     try {

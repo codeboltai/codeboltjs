@@ -14,7 +14,7 @@ export class FolderCreateRequestNode extends BaseFolderCreateRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FolderCreateRequestNotify(folderName, folderPath, toolUseId);
+      fsNotifications.FolderCreateRequestNotify(folderName as string, folderPath as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

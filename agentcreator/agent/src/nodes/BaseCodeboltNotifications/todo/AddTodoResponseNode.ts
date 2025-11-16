@@ -29,7 +29,7 @@ export class AddTodoResponseNode extends BaseAddTodoResponseNode {
 
     try {
       // Call the actual notification function
-      todoNotifications.AddTodoResponseNotify(content, isError, toolUseId);
+      todoNotifications.AddTodoResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

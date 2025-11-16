@@ -32,6 +32,4 @@ export class BaseGetChatHistoryResultNode extends LGraphNode {
     this.addOutput("success", "boolean");
   }
 
-  // Enable ON_TRIGGER mode so onExecute only runs when triggered
-  mode = LiteGraph.ON_TRIGGER;
-}
+  }

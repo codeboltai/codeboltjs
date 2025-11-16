@@ -36,7 +36,7 @@ export class AddTodoRequestNode extends BaseAddTodoRequestNode {
       }
 
       // Call the actual notification function
-      todoNotifications.AddTodoRequestNotify(title, agentId, description, phase, category, priority, tags, toolUseId);
+      todoNotifications.AddTodoRequestNotify(title as string, agentId as string, description as string, phase as string, category as string, priority as string, tags, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

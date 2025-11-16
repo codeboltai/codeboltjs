@@ -24,7 +24,7 @@ export class WebFetchResponseNode extends BaseWebFetchResponseNode {
       // Call the browser notification function
       codebolt.notify.browser.WebFetchResponseNotify(
         content,
-        isError,
+        isError as boolean,
         undefined, // toolUseId - let it auto-generate
         data
       );

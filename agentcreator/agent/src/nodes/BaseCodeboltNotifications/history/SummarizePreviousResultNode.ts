@@ -9,7 +9,7 @@ export class SummarizePreviousResultNode extends BaseSummarizePreviousResultNode
 
   async onExecute() {
     const content = this.getInputData(1);
-    const isError = this.getInputData(2) || false;
+    const isError = (this.getInputData(2) as boolean) || false;
     const toolUseId = this.getInputData(3);
 
     // Validate required parameters
@@ -29,7 +29,7 @@ export class SummarizePreviousResultNode extends BaseSummarizePreviousResultNode
 
     try {
       // Call the actual notification function
-      historyNotifications.sendSummarizePreviousResult(content, isError, toolUseId);
+      historyNotifications.sendSummarizePreviousResult(content as string, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

@@ -1,5 +1,5 @@
 import { BaseToolParameterModifierNode } from '@agent-creator/shared-nodes';
-import { ToolParameterModifier } from '@agent-creator/message-modifiers';
+import { ToolParameterModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Parameter Modifier Node - actual implementation
 export class ToolParameterModifierNode extends BaseToolParameterModifierNode {
@@ -7,7 +7,9 @@ export class ToolParameterModifierNode extends BaseToolParameterModifierNode {
 
   constructor() {
     super();
-    this.modifier = new ToolParameterModifier(this.getToolParameterModifierConfig());
+    const config = this.getToolParameterModifierConfig();
+    (config as any).parameterTransformations = {};
+    this.modifier = new ToolParameterModifier(config as any);
   }
 
   async onExecute() {
@@ -26,7 +28,9 @@ export class ToolParameterModifierNode extends BaseToolParameterModifierNode {
       if (customRules) {
         config.customRules = customRules;
       }
-      this.modifier = new ToolParameterModifier(config);
+      // Add required parameterTransformations property
+      (config as any).parameterTransformations = {};
+      this.modifier = new ToolParameterModifier(config as any);
 
       // Create modification context
       const modificationContext = {
@@ -37,7 +41,7 @@ export class ToolParameterModifierNode extends BaseToolParameterModifierNode {
       };
 
       // Apply the modification
-      const result = await this.modifier.modify(toolCall, modificationContext);
+      const result = await this.modifier.modify(toolCall);
 
       // Extract modification log and final parameters
       const { modificationLog, finalParameters } = this.extractModificationResults(toolCall, result);

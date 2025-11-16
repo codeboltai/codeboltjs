@@ -1,5 +1,5 @@
 import { BaseAgentNode } from '@agent-creator/shared-nodes';
-import { Agent } from '@codebolt/unified';
+import { Agent } from '@codebolt/agent/unified';
 
 // Backend-specific Agent Node - actual implementation
 export class AgentNode extends BaseAgentNode {
@@ -25,11 +25,11 @@ export class AgentNode extends BaseAgentNode {
       // Create agent configuration from properties and input
       const config = {
         ...agentConfig,
-        name: this.properties.agentName || agentConfig?.name || 'Agent',
-        instructions: this.properties.instructions || agentConfig?.instructions || 'You are a helpful assistant.',
-        maxIterations: this.properties.maxIterations || agentConfig?.maxIterations || 10,
-        maxConversationLength: this.properties.maxConversationLength || agentConfig?.maxConversationLength || 50,
-        enableLogging: this.properties.enableLogging !== undefined ? this.properties.enableLogging : (agentConfig?.enableLogging ?? true)
+        name: (this.properties.agentName as string) || agentConfig?.name || 'Agent',
+        instructions: (this.properties.instructions as string) || agentConfig?.instructions || 'You are a helpful assistant.',
+        maxIterations: (this.properties.maxIterations as number) || agentConfig?.maxIterations || 10,
+        maxConversationLength: (this.properties.maxConversationLength as number) || agentConfig?.maxConversationLength || 50,
+        enableLogging: this.properties.enableLogging !== undefined ? (this.properties.enableLogging as boolean) : (agentConfig?.enableLogging ?? true)
       };
 
       // Create agent instance

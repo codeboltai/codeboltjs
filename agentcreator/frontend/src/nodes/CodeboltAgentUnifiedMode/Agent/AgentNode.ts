@@ -8,7 +8,7 @@ export class AgentNode extends BaseAgentNode {
 
   // Update agent configuration when widget values change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update properties based on widget changes
     if (name === 'agentName') {
@@ -29,7 +29,7 @@ export class AgentNode extends BaseAgentNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget values from properties
     if (this.widgets) {

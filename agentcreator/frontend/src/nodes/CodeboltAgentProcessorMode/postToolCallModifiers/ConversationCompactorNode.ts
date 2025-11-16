@@ -8,7 +8,7 @@ export class ConversationCompactorNode extends BaseConversationCompactorNode {
 
   // Update node display when properties change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update node appearance based on configuration
     this.updateNodeAppearance();
@@ -19,7 +19,6 @@ export class ConversationCompactorNode extends BaseConversationCompactorNode {
   // Update node appearance based on current configuration
   private updateNodeAppearance(): void {
     const strategy = this.properties.compactionStrategy as string;
-    const compressionRatio = this.properties.compressionRatio as number;
 
     // Change node color based on compaction strategy
     switch (strategy) {

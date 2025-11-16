@@ -1,5 +1,5 @@
 import { BaseInitialPromptGeneratorNode } from '@agent-creator/shared-nodes';
-import { InitialPromptGenerator } from '@codebolt/unified';
+import { InitialPromptGenerator } from '@codebolt/agent/unified';
 
 // Backend-specific Initial Prompt Generator Node - actual implementation
 export class InitialPromptGeneratorNode extends BaseInitialPromptGeneratorNode {
@@ -25,9 +25,9 @@ export class InitialPromptGeneratorNode extends BaseInitialPromptGeneratorNode {
       // Create initial prompt generator instance
       this.promptGenerator = new InitialPromptGenerator({
         processors,
-        baseSystemPrompt: this.properties.baseSystemPrompt || 'You are a helpful assistant.',
-        enableLogging: this.properties.enableLogging !== undefined ? this.properties.enableLogging : true,
-        enableTemplating: this.properties.enableTemplating !== undefined ? this.properties.enableTemplating : true
+        baseSystemPrompt: (this.properties.baseSystemPrompt as string) || 'You are a helpful assistant.',
+        enableLogging: (this.properties.enableLogging as boolean) !== undefined ? this.properties.enableLogging as boolean : true,
+        templating: (this.properties.enableTemplating as boolean) !== undefined ? this.properties.enableTemplating as boolean : true
       });
 
       // Process the message

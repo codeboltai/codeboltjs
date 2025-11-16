@@ -14,7 +14,7 @@ export class FileDeleteRequestNode extends BaseFileDeleteRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileDeleteRequestNotify(fileName, filePath, toolUseId);
+      fsNotifications.FileDeleteRequestNotify(fileName as string, filePath as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

@@ -15,7 +15,7 @@ export class FileReadRequestNode extends BaseFileReadRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileReadRequestNotify(filePath, startLine, endLine, toolUseId);
+      fsNotifications.FileReadRequestNotify(filePath as string, startLine as string, endLine as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

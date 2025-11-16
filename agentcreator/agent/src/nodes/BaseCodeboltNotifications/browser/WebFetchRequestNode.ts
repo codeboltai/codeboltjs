@@ -26,10 +26,10 @@ export class WebFetchRequestNode extends BaseWebFetchRequestNode {
       // Call the browser notification function
       codebolt.notify.browser.WebFetchRequestNotify(
         url,
-        method,
-        headers,
+        method as string,
+        headers as Record<string, string>,
         body,
-        timeout
+        timeout as number
       );
 
       // Update outputs with success results

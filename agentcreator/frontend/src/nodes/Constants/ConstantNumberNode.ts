@@ -7,21 +7,21 @@ export class ConstantNumberNode extends BaseConstantNumberNode {
   constructor() {
     super();
     // Frontend-specific widget
-    this.widget = this.addWidget("number", "value", this.properties.value, "value");
+    this.widget = this.addWidget("number", "value", this.properties.value as number, "value");
     this.widgets_up = true;
   }
 
   // Frontend-specific title display
-  getTitle() {
+  getTitle(): string {
     if (this.flags.collapsed) {
-      return this.properties.value;
+      return String(this.properties.value || 0);
     }
-    return this.title;
+    return this.title || "Const Number";
   }
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget value when property changes
     if (name === 'value' && this.widget) {
@@ -37,7 +37,7 @@ export class ConstantNumberNode extends BaseConstantNumberNode {
   }
 
   // Frontend-specific drawing for output label
-  onDrawBackground(ctx: CanvasRenderingContext2D): void {
+  onDrawBackground(_ctx: CanvasRenderingContext2D): void {
     // Show the current value formatted
     if (this.outputs[0]) {
       this.outputs[0].label = this.formatValue(this.properties.value);
@@ -46,7 +46,7 @@ export class ConstantNumberNode extends BaseConstantNumberNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget value from properties
     if (this.widget) {

@@ -14,7 +14,7 @@ export class WriteToFileRequestNode extends BaseWriteToFileRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.WriteToFileRequestNotify(filePath, text, toolUseId);
+      fsNotifications.WriteToFileRequestNotify(filePath as string, text as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

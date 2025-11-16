@@ -221,3 +221,56 @@ export const queryVectorItems = (items: any[], dbPath: string) => VectorDB.query
 // Export utils functions
 import cbutils from './modules/utils';
 export const editFileAndApplyDiff = (filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel?: string) => cbutils.editFileAndApplyDiff(filePath, diff, diffIdentifier, prompt, applyModel);
+
+// Export notification functions
+export {
+    agentNotifications,
+    browserNotifications,
+    chatNotifications,
+    codeutilsNotifications,
+    crawlerNotifications,
+    dbmemoryNotifications,
+    fsNotifications,
+    gitNotifications,
+    historyNotifications,
+    llmNotifications,
+    mcpNotifications,
+    searchNotifications,
+    systemNotifications,
+    terminalNotifications,
+    todoNotifications,
+    notificationFunctions,
+    type NotificationFunctions
+} from './notificationfunctions';
+
+// Export specific agent notification functions that are commonly imported
+export {
+    StartSubagentTaskRequestNotify,
+    StartSubagentTaskResponseNotify,
+    SubagentTaskCompletedNotify
+} from './notificationfunctions/agent';
+
+// Export specific system and terminal notification functions that are commonly imported
+export {
+    AgentInitNotify,
+    AgentCompletionNotify
+} from './notificationfunctions/system';
+
+export {
+    CommandExecutionRequestNotify
+} from './notificationfunctions/terminal';
+
+export {
+    GitAddRequestNotify,
+    GitBranchRequestNotify,
+    GitCheckoutRequestNotify,
+    GitCloneRequestNotify,
+    GitCommitRequestNotify,
+    GitDiffRequestNotify,
+    GitInitRequestNotify,
+    GitLogsRequestNotify,
+    GitPullRequestNotify,
+    GitPushRequestNotify,
+    GitRemoteAddRequestNotify,
+    GitStatusRequestNotify
+} from './notificationfunctions/git';

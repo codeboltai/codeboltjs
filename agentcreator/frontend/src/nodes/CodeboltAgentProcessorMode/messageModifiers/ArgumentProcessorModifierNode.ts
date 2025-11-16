@@ -8,7 +8,7 @@ export class ArgumentProcessorModifierNode extends BaseArgumentProcessorModifier
 
   // Update node display when properties change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update node appearance based on configuration
     this.updateNodeAppearance();
@@ -18,8 +18,6 @@ export class ArgumentProcessorModifierNode extends BaseArgumentProcessorModifier
 
   // Update node appearance based on current configuration
   private updateNodeAppearance(): void {
-    const appendRaw = this.properties.appendRawInvocation as boolean;
-    const includeCommand = this.properties.includeCommandName as boolean;
     const formatStyle = this.properties.formatStyle as string;
 
     // Change node color based on format style

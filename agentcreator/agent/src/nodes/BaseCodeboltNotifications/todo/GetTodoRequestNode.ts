@@ -29,7 +29,7 @@ export class GetTodoRequestNode extends BaseGetTodoRequestNode {
       }
 
       // Call the actual notification function
-      todoNotifications.GetTodoRequestNotify(filters, toolUseId);
+      todoNotifications.GetTodoRequestNotify(filters as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

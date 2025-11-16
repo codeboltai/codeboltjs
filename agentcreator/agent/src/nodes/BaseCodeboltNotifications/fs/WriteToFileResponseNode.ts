@@ -14,7 +14,7 @@ export class WriteToFileResponseNode extends BaseWriteToFileResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.WriteToFileResponseNotify(content, isError, toolUseId);
+      fsNotifications.WriteToFileResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

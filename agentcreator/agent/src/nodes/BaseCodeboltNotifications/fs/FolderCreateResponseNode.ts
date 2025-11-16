@@ -14,7 +14,7 @@ export class FolderCreateResponseNode extends BaseFolderCreateResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FolderCreateResponseNotify(content, isError, toolUseId);
+      fsNotifications.FolderCreateResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

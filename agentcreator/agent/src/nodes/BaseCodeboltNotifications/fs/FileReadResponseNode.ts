@@ -14,7 +14,7 @@ export class FileReadResponseNode extends BaseFileReadResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileReadResponseNotify(content, isError, toolUseId);
+      fsNotifications.FileReadResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

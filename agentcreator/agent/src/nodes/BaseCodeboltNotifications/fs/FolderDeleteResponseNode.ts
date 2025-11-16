@@ -14,7 +14,7 @@ export class FolderDeleteResponseNode extends BaseFolderDeleteResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FolderDeleteResponseNotify(content, isError, toolUseId);
+      fsNotifications.FolderDeleteResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

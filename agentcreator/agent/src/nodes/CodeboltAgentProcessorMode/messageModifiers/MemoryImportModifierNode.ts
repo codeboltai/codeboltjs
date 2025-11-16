@@ -1,5 +1,5 @@
 import { BaseMemoryImportModifierNode } from '@agent-creator/shared-nodes';
-import { MemoryImportModifier } from '@agent-creator/message-modifiers';
+import { MemoryImportModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Memory Import Modifier Node - actual implementation
 export class MemoryImportModifierNode extends BaseMemoryImportModifierNode {

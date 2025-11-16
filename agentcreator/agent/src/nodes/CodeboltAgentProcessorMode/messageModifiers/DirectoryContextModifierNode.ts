@@ -1,5 +1,5 @@
 import { BaseDirectoryContextModifierNode } from '@agent-creator/shared-nodes';
-import { DirectoryContextModifier } from '@agent-creator/message-modifiers';
+import { DirectoryContextModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Directory Context Modifier Node - actual implementation
 export class DirectoryContextModifierNode extends BaseDirectoryContextModifierNode {

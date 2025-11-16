@@ -1,5 +1,5 @@
 import { BaseEnvironmentContextModifierNode } from '@agent-creator/shared-nodes';
-import { EnvironmentContextModifier } from '@agent-creator/message-modifiers';
+import { EnvironmentContextModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Environment Context Modifier Node - actual implementation
 export class EnvironmentContextModifierNode extends BaseEnvironmentContextModifierNode {

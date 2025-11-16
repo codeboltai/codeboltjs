@@ -14,7 +14,7 @@ export class FileDeleteResponseNode extends BaseFileDeleteResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileDeleteResponseNotify(content, isError, toolUseId);
+      fsNotifications.FileDeleteResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

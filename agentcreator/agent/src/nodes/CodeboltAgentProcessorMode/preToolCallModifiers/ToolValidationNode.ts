@@ -1,5 +1,5 @@
 import { BaseToolValidationNode } from '@agent-creator/shared-nodes';
-import { ToolValidationModifier } from '@agent-creator/message-modifiers';
+import { ToolValidationModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Validation Node - actual implementation
 export class ToolValidationNode extends BaseToolValidationNode {
@@ -7,7 +7,9 @@ export class ToolValidationNode extends BaseToolValidationNode {
 
   constructor() {
     super();
-    this.modifier = new ToolValidationModifier(this.getToolValidationConfig());
+    const config = this.getToolValidationConfig();
+    (config as any).validationRules = [];
+    this.modifier = new ToolValidationModifier(config as any);
   }
 
   async onExecute() {
@@ -27,7 +29,8 @@ export class ToolValidationNode extends BaseToolValidationNode {
         // Merge custom validation rules with existing ones
         config.customRules = customValidationRules;
       }
-      this.modifier = new ToolValidationModifier(config);
+      (config as any).validationRules = [];
+      this.modifier = new ToolValidationModifier(config as any);
 
       // Create validation context
       const validationContext = {
@@ -37,7 +40,7 @@ export class ToolValidationNode extends BaseToolValidationNode {
       };
 
       // Apply the validation
-      const result = await this.modifier.validate(toolCall, validationContext);
+      const result = await this.modifier.modify(toolCall);
 
       // Extract validation results and errors
       const { validationResults, validationErrors, success } = this.extractValidationResults(result);

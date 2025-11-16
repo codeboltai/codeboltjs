@@ -8,7 +8,7 @@ export class SearchRequestNode extends BaseSearchRequestNode {
   }
 
   async onExecute() {
-    const query = this.getInputData(1);
+    const query = this.getInputData(1) as string;
     const toolUseId = this.getInputData(2);
 
     // Validate required parameters
@@ -21,7 +21,7 @@ export class SearchRequestNode extends BaseSearchRequestNode {
 
     try {
       // Call the actual notification function
-      searchNotifications.SearchRequestNotify(query, toolUseId);
+      searchNotifications.SearchRequestNotify(query, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

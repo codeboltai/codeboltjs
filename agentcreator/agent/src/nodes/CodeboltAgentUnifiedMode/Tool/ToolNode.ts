@@ -1,5 +1,5 @@
 import { BaseToolNode } from '@agent-creator/shared-nodes';
-import { Tool, createTool } from '@codebolt/unified';
+import { Tool } from '@codebolt/agent/unified';
 
 // Backend-specific Tool Node - actual implementation
 export class ToolNode extends BaseToolNode {
@@ -20,8 +20,8 @@ export class ToolNode extends BaseToolNode {
         // Create tool with configuration
         this.tool = new Tool({
           ...toolConfig,
-          id: this.properties.toolId || toolConfig.id || 'custom_tool',
-          description: this.properties.toolDescription || toolConfig.description || 'A custom tool for specific tasks'
+          id: (this.properties.toolId as string) || toolConfig.id || 'custom_tool',
+          description: (this.properties.toolDescription as string) || toolConfig.description || 'A custom tool for specific tasks'
         });
 
         // Update outputs with created tool

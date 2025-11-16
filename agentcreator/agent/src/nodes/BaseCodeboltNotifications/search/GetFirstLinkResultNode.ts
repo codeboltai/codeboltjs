@@ -9,7 +9,7 @@ export class GetFirstLinkResultNode extends BaseGetFirstLinkResultNode {
 
   async onExecute() {
     const content = this.getInputData(1);
-    const isError = this.getInputData(2) || false;
+    const isError = (this.getInputData(2) as boolean) || false;
     const toolUseId = this.getInputData(3);
 
     // Validate required parameters
@@ -29,7 +29,7 @@ export class GetFirstLinkResultNode extends BaseGetFirstLinkResultNode {
 
     try {
       // Call the actual notification function
-      searchNotifications.GetFirstLinkResultNotify(content, isError, toolUseId);
+      searchNotifications.GetFirstLinkResultNotify(content, isError, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

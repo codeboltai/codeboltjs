@@ -14,7 +14,7 @@ export class AppendToFileResponseNode extends BaseAppendToFileResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.AppendToFileResponseNotify(content, isError, toolUseId);
+      fsNotifications.AppendToFileResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

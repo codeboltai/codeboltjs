@@ -1,4 +1,16 @@
 // Message Modifier Nodes - Base implementations for shared functionality
+export { BaseEnvironmentContextModifierNode } from './BaseEnvironmentContextModifierNode';
+export { BaseCoreSystemPromptModifierNode } from './BaseCoreSystemPromptModifierNode';
+export { BaseDirectoryContextModifierNode } from './BaseDirectoryContextModifierNode';
+export { BaseIdeContextModifierNode } from './BaseIdeContextModifierNode';
+export { BaseAtFileProcessorModifierNode } from './BaseAtFileProcessorModifierNode';
+export { BaseArgumentProcessorModifierNode } from './BaseArgumentProcessorModifierNode';
+export { BaseMemoryImportModifierNode } from './BaseMemoryImportModifierNode';
+export { BaseToolInjectionModifierNode } from './BaseToolInjectionModifierNode';
+export { BaseChatRecordingModifierNode } from './BaseChatRecordingModifierNode';
+export { BaseChatHistoryMessageModifierNode } from './BaseChatHistoryMessageModifierNode';
+
+// Import for internal use
 import { BaseEnvironmentContextModifierNode } from './BaseEnvironmentContextModifierNode';
 import { BaseCoreSystemPromptModifierNode } from './BaseCoreSystemPromptModifierNode';
 import { BaseDirectoryContextModifierNode } from './BaseDirectoryContextModifierNode';

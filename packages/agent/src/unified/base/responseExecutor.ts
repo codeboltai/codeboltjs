@@ -5,17 +5,17 @@ import codebolt from '@codebolt/codeboltjs';
 
 export class ResponseExecutor implements AgentResponseExecutor {
 
-    private preToolCalProcessors: PreToolCallProcessor[] = []
+    private preToolCallProcessors: PreToolCallProcessor[] = []
     private postToolCallProcessors: PostToolCallProcessor[] = []
     private completed: boolean = false;
 
     constructor(options: {
-        preToolCalProcessors: PreToolCallProcessor[]
+        preToolCallProcessors: PreToolCallProcessor[]
         postToolCallProcessors: PostToolCallProcessor[],
 
     }) {
 
-        this.preToolCalProcessors = options.preToolCalProcessors
+        this.preToolCallProcessors = options.preToolCallProcessors
         this.postToolCallProcessors = options.postToolCallProcessors
 
     }
@@ -23,7 +23,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         let nextMessage: ProcessedMessage = input.nextMessage;
 
-        for (const preToolCallProcessor of this.preToolCalProcessors) {
+        for (const preToolCallProcessor of this.preToolCallProcessors) {
             try {
                 // TODO: Extract required properties from input for PreToolCallProcessorInput
                 let { nextPrompt, shouldExit } = await preToolCallProcessor.modify({ llmMessageSent: input.actualMessageSentToLLM, rawLLMResponseMessage: input.rawLLMOutput, nextPrompt: input.nextMessage });
@@ -320,14 +320,14 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
 
     setPreToolCallProcessors(processors: PreToolCallProcessor[]): void {
-        this.preToolCalProcessors = processors
+        this.preToolCallProcessors = processors
     }
     setPostToolCallProcessors(processors: PostToolCallProcessor[]): void {
         this.postToolCallProcessors = processors
 
     }
     getPreToolCallProcessors(): PreToolCallProcessor[] {
-        return this.preToolCalProcessors
+        return this.preToolCallProcessors
     }
     getPostToolCallProcessors(): PostToolCallProcessor[] {
         return this.postToolCallProcessors

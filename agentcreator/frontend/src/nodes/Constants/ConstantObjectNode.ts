@@ -7,14 +7,14 @@ export class ConstantObjectNode extends BaseConstantObjectNode {
   constructor() {
     super();
     // Frontend-specific widget for JSON editing
-    this.widget = this.addWidget("textarea", "value", this.formatValue(this.properties.value), "value");
+    this.widget = this.addWidget("text", "value", this.formatValue(this.properties.value), "value");
     this.widgets_up = true;
     this.size = [200, 100]; // Larger for object editing
   }
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget value when property changes
     if (name === 'value' && this.widget) {
@@ -46,7 +46,7 @@ export class ConstantObjectNode extends BaseConstantObjectNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget value from properties
     if (this.widget) {

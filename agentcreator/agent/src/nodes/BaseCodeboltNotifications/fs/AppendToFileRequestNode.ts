@@ -14,7 +14,7 @@ export class AppendToFileRequestNode extends BaseAppendToFileRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.AppendToFileRequestNotify(filePath, text, toolUseId);
+      fsNotifications.AppendToFileRequestNotify(filePath as string, text as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

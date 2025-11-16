@@ -10,7 +10,7 @@ export class LLMInferenceResponseNode extends BaseLLMInferenceResponseNode {
   async onExecute() {
     const content = this.getInputData(1);
     const toolUseId = this.getInputData(2);
-    const isError = this.getInputData(3) || false;
+    const isError = (this.getInputData(3) as boolean) || false;
 
     // Validate required inputs
     if (content === null || content === undefined) {

@@ -22,7 +22,7 @@ export class UserMessageRequestNode extends BaseUserMessageRequestNode {
 
     try {
       // Call the actual notification function
-      chatNotifications.UserMessageRequestNotify(message, payload, toolUseId);
+      chatNotifications.UserMessageRequestNotify(message, payload as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

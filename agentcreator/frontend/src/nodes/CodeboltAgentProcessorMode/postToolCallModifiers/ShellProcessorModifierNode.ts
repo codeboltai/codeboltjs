@@ -8,7 +8,7 @@ export class ShellProcessorModifierNode extends BaseShellProcessorModifierNode {
 
   // Update node display when properties change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update node appearance based on configuration
     this.updateNodeAppearance();
@@ -65,7 +65,7 @@ export class ShellProcessorModifierNode extends BaseShellProcessorModifierNode {
   // Render custom visualization
   onDrawForeground(ctx: CanvasRenderingContext2D): void {
     // Draw terminal/computer icon
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = this.color as string;
     ctx.fillRect(12, 12, 24, 18);
     ctx.fillStyle = '#000';
     ctx.fillRect(14, 14, 20, 14);

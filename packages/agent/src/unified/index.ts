@@ -46,6 +46,11 @@ export {AgentStep} from './base/agentStep'
 
 export {ResponseExecutor} from './base/responseExecutor'
 
+// Agent framework components
+export { Agent } from './agent/agent';
+export { Tool, createTool } from './agent/tools';
+export { Workflow } from './agent/workflow';
+
 // export {
 
 //     createUnifiedAgentStep,

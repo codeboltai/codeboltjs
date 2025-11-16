@@ -10,19 +10,17 @@ export class DelayNode extends BaseDelayNode {
   constructor() {
     super();
     // Frontend-specific widgets
-    this.delayWidget = this.addWidget("number", "delay (ms)", this.properties.delay, "delay", { min: 0, max: 60000 });
-    this.asyncWidget = this.addWidget("toggle", "async", this.properties.async, "async");
-    this.statusWidget = this.addWidget("text", "status", "ready", "status", { disabled: true });
+    this.delayWidget = this.addWidget("number", "delay (ms)", this.properties.delay as number, "delay", { min: 0, max: 60000 });
+    this.asyncWidget = this.addWidget("toggle", "async", this.properties.async as boolean, "async");
+    this.statusWidget = this.addWidget("text", "status", "ready", "status", {} as any);
 
     this.widgets_up = true;
     this.size = [160, 120];
-
-    this.status = "ready";
   }
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget values when properties change
     if (name === 'delay' && this.delayWidget) {
@@ -52,7 +50,7 @@ export class DelayNode extends BaseDelayNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget values from properties
     if (this.delayWidget) {
@@ -67,7 +65,7 @@ export class DelayNode extends BaseDelayNode {
   }
 
   // Visual feedback for delay status
-  onDrawForeground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  onDrawForeground(ctx: CanvasRenderingContext2D, _canvas: any) {
     if (this.flags.collapsed) return;
 
     const delay = this.properties.delay;

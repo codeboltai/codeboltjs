@@ -1,4 +1,5 @@
 import { BaseRandomNode } from '@agent-creator/shared-nodes';
+import { LGraphCanvas } from '@codebolt/litegraph';
 
 // Frontend Random Node - UI only
 export class RandomNode extends BaseRandomNode {
@@ -10,10 +11,10 @@ export class RandomNode extends BaseRandomNode {
   constructor() {
     super();
     // Frontend-specific widgets
-    this.minWidget = this.addWidget("number", "min", this.properties.min, "min");
-    this.maxWidget = this.addWidget("number", "max", this.properties.max, "max");
-    this.seedWidget = this.addWidget("number", "seed", this.properties.seed, "seed");
-    this.integerWidget = this.addWidget("toggle", "integer", this.properties.integer, "integer");
+    this.minWidget = this.addWidget("number", "min", this.properties.min as number, "min");
+    this.maxWidget = this.addWidget("number", "max", this.properties.max as number, "max");
+    this.seedWidget = this.addWidget("number", "seed", this.properties.seed as number, "seed");
+    this.integerWidget = this.addWidget("toggle", "integer", this.properties.integer as boolean, "integer");
 
     this.widgets_up = true;
     this.size = [180, 120];
@@ -21,42 +22,38 @@ export class RandomNode extends BaseRandomNode {
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget values when properties change
     if (name === 'min' && this.minWidget) {
-      this.minWidget.value = this.properties.min;
+      this.minWidget.value = this.properties.min as number;
     } else if (name === 'max' && this.maxWidget) {
-      this.maxWidget.value = this.properties.max;
+      this.maxWidget.value = this.properties.max as number;
     } else if (name === 'seed' && this.seedWidget) {
-      this.seedWidget.value = this.properties.seed;
+      this.seedWidget.value = this.properties.seed as number;
     } else if (name === 'integer' && this.integerWidget) {
-      this.integerWidget.value = this.properties.integer;
+      this.integerWidget.value = this.properties.integer as boolean;
     }
 
     return result;
   }
 
   // Frontend display
-  onExecute() {
+  onExecute(): void {
     if (this.graph) {
-      const min = this.properties.min;
-      const max = this.properties.max;
-      const seed = this.properties.seed;
-      const isInteger = this.properties.integer;
+      const min = this.properties.min as number;
+      const max = this.properties.max as number;
+      const seed = this.properties.seed as number;
+      const isInteger = this.properties.integer as boolean;
 
-      const value = this.generateRandom(min, max, seed, isInteger);
-
-      // Update a display widget if we want to show the current value
-      if (this.minWidget && this.maxWidget) {
-        // We could add a display widget here if needed
-      }
+      // Generate random value
+      this.generateRandom?.(min, max, seed, isInteger);
     }
   }
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget values from properties
     if (this.minWidget) {
@@ -74,19 +71,19 @@ export class RandomNode extends BaseRandomNode {
   }
 
   // Visual feedback for range
-  onDrawForeground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  onDrawForeground(ctx: CanvasRenderingContext2D, _canvas: LGraphCanvas): void {
     if (this.flags.collapsed) return;
 
-    const min = this.properties.min;
-    const max = this.properties.max;
-    const isInteger = this.properties.integer;
+    const min = this.properties.min as number;
+    const max = this.properties.max as number;
+    const isInteger = this.properties.integer as boolean;
 
     ctx.font = "9px Arial";
     ctx.fillStyle = "#666";
 
     const rangeText = isInteger
       ? `[${Math.floor(min)}-${Math.floor(max)}]`
-      : `[${min.toFixed(2)}-${max.toFixed(2)}]`;
+      : `[${(min as number).toFixed(2)}-${(max as number).toFixed(2)}]`;
 
     ctx.fillText(rangeText, 5, this.size[1] - 5);
 

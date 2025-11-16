@@ -14,7 +14,7 @@ export class FileEditResponseNode extends BaseFileEditResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileEditResponseNotify(content, isError, toolUseId);
+      fsNotifications.FileEditResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

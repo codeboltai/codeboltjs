@@ -14,7 +14,7 @@ export class MoveFileRequestNode extends BaseMoveFileRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.MoveFileRequestNotify(sourceFile, destinationFile, toolUseId);
+      fsNotifications.MoveFileRequestNotify(sourceFile as string, destinationFile as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

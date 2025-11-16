@@ -55,7 +55,8 @@ export class SummarizeCurrentRequestNode extends BaseSummarizeCurrentRequestNode
       }
 
       // Validate depth
-      if (depth === undefined || depth === null || depth <= 0) {
+      const depthNumber = depth as number;
+      if (depth === undefined || depth === null || depthNumber <= 0) {
         const errorMessage = 'Error: depth must be a positive number';
         console.error('SummarizeCurrentRequestNode error:', errorMessage);
         this.setOutputData(1, false);
@@ -65,11 +66,11 @@ export class SummarizeCurrentRequestNode extends BaseSummarizeCurrentRequestNode
       // Create the data object for the notification
       const data = {
         messages: messages,
-        depth: depth
+        depth: depthNumber
       };
 
       // Call the actual notification function
-      historyNotifications.summarizeCurrentMessage(data, toolUseId);
+      historyNotifications.summarizeCurrentMessage(data, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

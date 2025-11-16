@@ -11,10 +11,10 @@ export class RandomNode extends BaseRandomNode {
 
   // Backend execution logic
   onExecute() {
-    const min = this.properties.min;
-    const max = this.properties.max;
-    const seed = this.properties.seed;
-    const isInteger = this.properties.integer;
+    const min = this.properties.min as number;
+    const max = this.properties.max as number;
+    const seed = this.properties.seed as number;
+    const isInteger = this.properties.integer as boolean;
 
     // Use persistent seed if provided, otherwise generate new seed
     const currentSeed = seed !== null ? seed : (this.lastSeed = Date.now());

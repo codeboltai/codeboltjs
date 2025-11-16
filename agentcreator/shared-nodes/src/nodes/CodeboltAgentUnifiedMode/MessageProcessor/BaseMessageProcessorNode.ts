@@ -49,9 +49,9 @@ export class BaseMessageProcessorNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("textarea", "base system prompt", this.properties.baseSystemPrompt, "baseSystemPrompt");
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
-    this.addWidget("toggle", "enable templating", this.properties.enableTemplating, "enableTemplating");
+    this.addWidget("text", "base system prompt", this.properties.baseSystemPrompt as string, "baseSystemPrompt");
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
+    this.addWidget("toggle", "enable templating", this.properties.enableTemplating as boolean, "enableTemplating");
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

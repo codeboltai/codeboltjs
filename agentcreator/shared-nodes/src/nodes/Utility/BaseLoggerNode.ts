@@ -34,9 +34,9 @@ export class BaseLoggerNode extends LGraphNode {
     // Store log history
     this.logs = [];
   }
-  
+
   // Log entries storage
-  private logs: Array<{ timestamp: number; level: string; message: string }>;
+  protected logs: Array<{ timestamp: number; level: string; message: string }>;
 
   // Shared logging logic
   formatMessage(data: any, prefix: string, timestamp: boolean): string {

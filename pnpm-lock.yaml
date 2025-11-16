@@ -45,6 +45,9 @@ importers:
       '@agent-creator/shared-nodes':
         specifier: workspace:*
         version: link:../shared-nodes
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@codebolt/codeboltjs':
         specifier: workspace:*
         version: link:../../packages/codeboltjs

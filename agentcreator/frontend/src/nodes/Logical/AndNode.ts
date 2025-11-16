@@ -5,7 +5,7 @@ export class AndNode extends BaseAndNode {
   constructor() {
     super();
     // Add UI control for adding more inputs
-    this.addWidget("button", "Add Input", null, () => {
+    this.addWidget("button", "Add Input", undefined, () => {
       this.addInput(`and${this.inputs.length}`, "boolean");
     });
   }

@@ -14,7 +14,7 @@ export class CopyFileRequestNode extends BaseCopyFileRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.CopyFileRequestNotify(sourceFile, destinationFile, toolUseId);
+      fsNotifications.CopyFileRequestNotify(sourceFile as string, destinationFile as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

@@ -13,7 +13,7 @@ export class ListDirectoryRequestNode extends BaseListDirectoryRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.ListDirectoryRequestNotify(dirPath, toolUseId);
+      fsNotifications.ListDirectoryRequestNotify(dirPath as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

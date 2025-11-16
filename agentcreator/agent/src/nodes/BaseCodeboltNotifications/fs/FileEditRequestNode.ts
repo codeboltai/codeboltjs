@@ -15,7 +15,7 @@ export class FileEditRequestNode extends BaseFileEditRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileEditRequestNotify(fileName, filePath, newContent, toolUseId);
+      fsNotifications.FileEditRequestNotify(fileName as string, filePath as string, newContent as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

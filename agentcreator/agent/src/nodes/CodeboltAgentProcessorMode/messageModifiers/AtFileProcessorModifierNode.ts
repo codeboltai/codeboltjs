@@ -1,5 +1,5 @@
 import { BaseAtFileProcessorModifierNode } from '@agent-creator/shared-nodes';
-import { AtFileProcessorModifier } from '@agent-creator/message-modifiers';
+import { AtFileProcessorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend @File Processor Modifier Node - actual implementation
 export class AtFileProcessorModifierNode extends BaseAtFileProcessorModifierNode {

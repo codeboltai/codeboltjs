@@ -11,13 +11,13 @@ export class LoggerNode extends BaseLoggerNode {
   constructor() {
     super();
     // Frontend-specific widgets
-    this.prefixWidget = this.addWidget("text", "prefix", this.properties.prefix, "prefix");
-    this.levelWidget = this.addWidget("combo", "level", this.properties.level, "level", {
+    this.prefixWidget = this.addWidget("text", "prefix", this.properties.prefix as string, "prefix");
+    this.levelWidget = this.addWidget("combo", "level", this.properties.level as string, "level", {
       values: ["debug", "info", "warn", "error"]
     });
-    this.consoleWidget = this.addWidget("toggle", "console", this.properties.console, "console");
-    this.timestampWidget = this.addWidget("toggle", "timestamp", this.properties.timestamp, "timestamp");
-    this.statusWidget = this.addWidget("text", "logs", "0 entries", "status", { disabled: true });
+    this.consoleWidget = this.addWidget("toggle", "console", this.properties.console as boolean, "console");
+    this.timestampWidget = this.addWidget("toggle", "timestamp", this.properties.timestamp as boolean, "timestamp");
+    this.statusWidget = this.addWidget("text", "logs", "0 entries", "status", {} as any);
 
     this.widgets_up = true;
     this.size = [180, 150];
@@ -25,7 +25,7 @@ export class LoggerNode extends BaseLoggerNode {
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget values when properties change
     if (name === 'prefix' && this.prefixWidget) {
@@ -44,7 +44,8 @@ export class LoggerNode extends BaseLoggerNode {
   // Update log count display
   updateLogCount() {
     if (this.statusWidget) {
-      const count = this.logs.length;
+      const recentLogs = this.getRecentLogs();
+      const count = recentLogs.length;
       this.statusWidget.value = `${count} entr${count !== 1 ? 'ies' : 'y'}`;
     }
   }
@@ -56,7 +57,7 @@ export class LoggerNode extends BaseLoggerNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget values from properties
     if (this.prefixWidget) {
@@ -76,14 +77,15 @@ export class LoggerNode extends BaseLoggerNode {
   }
 
   // Visual feedback for log level
-  onDrawForeground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  onDrawForeground(ctx: CanvasRenderingContext2D, _canvas: any) {
     if (this.flags.collapsed) return;
 
-    const level = this.properties.level;
-    const logCount = this.logs.length;
+    const level = String(this.properties.level || 'info');
+    const recentLogs = this.getRecentLogs();
+    const logCount = recentLogs.length;
 
     // Set color based on log level
-    const levelColors = {
+    const levelColors: Record<string, string> = {
       debug: "#607D8B",
       info: "#2196F3",
       warn: "#FF9800",

@@ -8,7 +8,7 @@ export class GetFirstLinkRequestNode extends BaseGetFirstLinkRequestNode {
   }
 
   async onExecute() {
-    const query = this.getInputData(1);
+    const query = this.getInputData(1) as string;
     const toolUseId = this.getInputData(2);
 
     // Validate required parameters
@@ -21,7 +21,7 @@ export class GetFirstLinkRequestNode extends BaseGetFirstLinkRequestNode {
 
     try {
       // Call the actual notification function
-      searchNotifications.GetFirstLinkRequestNotify(query, toolUseId);
+      searchNotifications.GetFirstLinkRequestNotify(query, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

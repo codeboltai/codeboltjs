@@ -67,11 +67,11 @@ export class BaseAgentNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("text", "name", this.properties.agentName, "agentName");
-    this.addWidget("textarea", "instructions", this.properties.instructions, "instructions");
-    this.addWidget("number", "max iterations", this.properties.maxIterations, "maxIterations", { min: 1, max: 100 });
-    this.addWidget("number", "max conversation length", this.properties.maxConversationLength, "maxConversationLength", { min: 1, max: 1000 });
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
+    this.addWidget("text", "name", this.properties.agentName as string, "agentName");
+    this.addWidget("text", "instructions", this.properties.instructions as string, "instructions");
+    this.addWidget("number", "max iterations", this.properties.maxIterations as number, "maxIterations", { min: 1, max: 100 } as any);
+    this.addWidget("number", "max conversation length", this.properties.maxConversationLength as number, "maxConversationLength", { min: 1, max: 1000 } as any);
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

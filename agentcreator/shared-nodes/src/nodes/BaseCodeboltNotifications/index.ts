@@ -9,3 +9,7 @@ export * from "./terminal";
 export * from "./system";
 export * from "./dbmemory";
 export * from "./codeutils";
+export * from "./chat";
+export * from "./history";
+export * from "./search";
+export * from "./todo";

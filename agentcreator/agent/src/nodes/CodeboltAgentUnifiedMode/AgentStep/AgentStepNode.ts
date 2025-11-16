@@ -1,5 +1,5 @@
 import { BaseAgentStepNode } from '@agent-creator/shared-nodes';
-import { AgentStep } from '@codebolt/unified';
+import { AgentStep } from '@codebolt/agent/unified';
 
 // Backend-specific Agent Step Node - actual implementation
 export class AgentStepNode extends BaseAgentStepNode {
@@ -35,7 +35,7 @@ export class AgentStepNode extends BaseAgentStepNode {
       this.agentStep = new AgentStep({
         preInferenceProcessors,
         postInferenceProcessors,
-        llmRole: this.properties.llmRole || 'assistant'
+        llmRole: (this.properties.llmRole as string) || 'assistant'
       });
 
       // Execute the agent step

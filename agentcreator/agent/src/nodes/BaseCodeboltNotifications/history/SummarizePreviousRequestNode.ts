@@ -24,7 +24,7 @@ export class SummarizePreviousRequestNode extends BaseSummarizePreviousRequestNo
       }
 
       // Call the actual notification function
-      historyNotifications.summarizePreviousConversation(parsedData, toolUseId);
+      historyNotifications.summarizePreviousConversation(parsedData as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

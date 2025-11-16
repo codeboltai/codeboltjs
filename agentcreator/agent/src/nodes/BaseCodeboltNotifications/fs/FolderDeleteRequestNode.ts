@@ -14,7 +14,7 @@ export class FolderDeleteRequestNode extends BaseFolderDeleteRequestNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FolderDeleteRequestNotify(folderName, folderPath, toolUseId);
+      fsNotifications.FolderDeleteRequestNotify(folderName as string, folderPath as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

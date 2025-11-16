@@ -82,11 +82,11 @@ export class BaseWorkflowNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("text", "workflow name", this.properties.workflowName, "workflowName");
-    this.addWidget("toggle", "enable validation", this.properties.enableValidation, "enableValidation");
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
-    this.addWidget("number", "max execution time (ms)", this.properties.maxExecutionTime, "maxExecutionTime", { min: 1000, max: 3600000 });
-    this.addWidget("toggle", "continue on error", this.properties.continueOnError, "continueOnError");
+    this.addWidget("text", "workflow name", this.properties.workflowName as string, "workflowName");
+    this.addWidget("toggle", "enable validation", this.properties.enableValidation as boolean, "enableValidation");
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
+    this.addWidget("number", "max execution time (ms)", this.properties.maxExecutionTime as number, "maxExecutionTime", { min: 1000, max: 3600000 } as any);
+    this.addWidget("toggle", "continue on error", this.properties.continueOnError as boolean, "continueOnError");
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

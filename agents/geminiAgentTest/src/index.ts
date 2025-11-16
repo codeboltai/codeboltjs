@@ -353,7 +353,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             prompt = result.nextMessage;
        
             let responseExecutor = new ResponseExecutor({
-                preToolCalProcessors: [],
+                preToolCallProcessors: [],
                 postToolCallProcessors: []
 
             })

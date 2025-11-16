@@ -1,5 +1,5 @@
 import { BaseChatCompressionModifierNode } from '@agent-creator/shared-nodes';
-import { ChatCompressionModifier } from '@agent-creator/message-modifiers';
+import { ChatCompressionModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Chat Compression Modifier Node - actual implementation
 export class ChatCompressionModifierNode extends BaseChatCompressionModifierNode {
@@ -7,7 +7,7 @@ export class ChatCompressionModifierNode extends BaseChatCompressionModifierNode
 
   constructor() {
     super();
-    this.modifier = new ChatCompressionModifier(this.getChatCompressionConfig());
+    this.modifier = new ChatCompressionModifier(this.getChatCompressionConfig() as any);
   }
 
   async onExecute() {
@@ -26,7 +26,7 @@ export class ChatCompressionModifierNode extends BaseChatCompressionModifierNode
       if (customThreshold) {
         config.tokenThreshold = customThreshold;
       }
-      this.modifier = new ChatCompressionModifier(config);
+      this.modifier = new ChatCompressionModifier(config as any);
 
       // Create a processed message object
       const processedMessage = {

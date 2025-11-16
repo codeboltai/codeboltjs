@@ -5,7 +5,7 @@ export class OrNode extends BaseOrNode {
   constructor() {
     super();
     // Add UI control for adding more inputs
-    this.addWidget("button", "Add Input", null, () => {
+    this.addWidget("button", "Add Input", undefined, () => {
       this.addInput(`or${this.inputs.length}`, "boolean");
     });
   }

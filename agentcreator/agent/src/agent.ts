@@ -83,7 +83,7 @@ class AgentExecutor {
 
       // Collect from SumNode (existing logic)
       try {
-        const { SumNode } = await import('./nodes/SumNode.js');
+        const { SumNode } = await import('./nodes/Math/SumNode');
         this.graph.findNodesByClass(SumNode).forEach((node, index) => {
           outputs[`output_${index}`] = node.outputs[0]?._data || node.outputs[0]?.data;
         });
@@ -91,23 +91,23 @@ class AgentExecutor {
         console.log('No SumNode found or error importing SumNode:', error.message);
       }
 
-      // Collect from AgentRunNode (AI agent results)
-      try {
-        const { AgentRunNode } = await import('./nodes/AgentRunNode.js');
-        const agentRunNodes = this.graph.findNodesByClass(AgentRunNode);
-        agentRunNodes.forEach((node, index) => {
-          const result = node.outputs[0]?._data || node.outputs[0]?.data;
-          if (result) {
-            outputs[`agent_result_${index}`] = result;
-            outputs[`agent_message_${index}`] = result.message || '';
-            outputs[`agent_success_${index}`] = result.success || false;
-            outputs[`agent_error_${index}`] = result.error || '';
-            outputs[`agent_execution_time_${index}`] = node.outputs[4]?._data || node.outputs[4]?.data || 0;
-          }
-        });
-      } catch (error) {
-        console.log('No AgentRunNode found or error importing AgentRunNode:', error.message);
-      }
+      // Collect from AgentRunNode (AI agent results) - TODO: Implement AgentRunNode
+      // try {
+      //   const { AgentRunNode } = await import('./nodes/AgentRunNode.ts');
+      //   const agentRunNodes = this.graph.findNodesByClass(AgentRunNode);
+      //   agentRunNodes.forEach((node, index) => {
+      //     const result = node.outputs[0]?._data || node.outputs[0]?.data;
+      //     if (result) {
+      //       outputs[`agent_result_${index}`] = result;
+      //       outputs[`agent_message_${index}`] = result.message || '';
+      //       outputs[`agent_success_${index}`] = result.success || false;
+      //       outputs[`agent_error_${index}`] = result.error || '';
+      //       outputs[`agent_execution_time_${index}`] = node.outputs[4]?._data || node.outputs[4]?.data || 0;
+      //     }
+      //   });
+      // } catch (error) {
+      //   console.log('No AgentRunNode found or error importing AgentRunNode:', error.message);
+      // }
 
       this.isRunning = false;
       // console.log('Agent: Graph execution completed');

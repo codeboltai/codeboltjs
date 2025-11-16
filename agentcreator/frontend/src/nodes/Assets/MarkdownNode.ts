@@ -1,38 +1,42 @@
 import { BaseMarkdownNode } from '@agent-creator/shared-nodes';
+import { LGraphCanvas } from '@codebolt/litegraph';
 
 // Frontend-specific Markdown Node - UI and rendering only
 export class MarkdownNode extends BaseMarkdownNode {
+  private _resizing?: boolean;
+  private _resizeStart?: [number, number];
+
   constructor() {
     super();
     // Frontend-specific UI setup
-    this.addWidget("text", "content", this.properties.content, (value) => {
+    this.addWidget("text", "content", this.properties.content as string, (value) => {
       this.setProperty("content", value);
     }, { multiline: true });
 
-    this.addWidget("number", "width", this.properties.width, (value) => {
-      this.updateSize(value, this.properties.height);
+    this.addWidget("number", "width", this.properties.width as number, (value) => {
+      this.updateSize(value, this.properties.height as number);
     });
 
-    this.addWidget("number", "height", this.properties.height, (value) => {
-      this.updateSize(this.properties.width, value);
+    this.addWidget("number", "height", this.properties.height as number, (value) => {
+      this.updateSize(this.properties.width as number, value);
     });
 
     // Set initial size
-    this.updateSize(this.properties.width, this.properties.height);
+    this.updateSize(this.properties.width as number, this.properties.height as number);
   }
 
   // Frontend rendering
-  onDrawForeground(ctx, canvas) {
+  onDrawForeground(ctx: CanvasRenderingContext2D, _canvas: LGraphCanvas): void {
     if (this.flags.collapsed) return;
 
-    const content = this.processContent(this.getInputData(0), this.properties.content);
+    const content = this.processContent(this.getInputData(0), this.properties.content as string);
     if (!content) return;
 
     // Create a rendering area within the node
     const x = 10;
     const y = 40;
-    const width = this.properties.width;
-    const height = this.properties.height;
+    const width = this.properties.width as number;
+    const height = this.properties.height as number;
 
     // Draw markdown content background
     ctx.fillStyle = "#ffffff";
@@ -91,7 +95,8 @@ export class MarkdownNode extends BaseMarkdownNode {
           if (index % 2 === 1) {
             // This is bold content
             ctx.save();
-            ctx.font = `${ctx.font.replace(/\d+px/, (match) => parseInt(match) + 1)}px ${ctx.font.split(' ').slice(1).join(' ')}`;
+            const fontSize = parseInt(ctx.font.match(/\d+px/)?.[0] || '12px');
+            ctx.font = `${fontSize + 1}px ${ctx.font.split(' ').slice(1).join(' ')}`;
             ctx.fillText(segment, currentX, currentY);
             const metrics = ctx.measureText(segment);
             currentX += metrics.width;
@@ -114,7 +119,7 @@ export class MarkdownNode extends BaseMarkdownNode {
   }
 
   // Handle mouse events for resizing
-  onMouseDown(e, pos) {
+  onMouseDown(_e: any, pos: [number, number]): boolean {
     if (this.flags.collapsed) return false;
 
     // Check if clicking on resize handle (bottom-right corner)
@@ -131,8 +136,8 @@ export class MarkdownNode extends BaseMarkdownNode {
     return false;
   }
 
-  onMouseMove(e, pos) {
-    if (this._resizing) {
+  onMouseMove(_e: any, pos: [number, number]): boolean {
+    if (this._resizing && this._resizeStart) {
       const newWidth = Math.max(100, pos[0] - this._resizeStart[0]);
       const newHeight = Math.max(50, pos[1] - this._resizeStart[1]);
       this.updateSize(newWidth - 20, newHeight - 50); // Account for padding
@@ -141,7 +146,7 @@ export class MarkdownNode extends BaseMarkdownNode {
     return false;
   }
 
-  onMouseUp(e, pos) {
+  onMouseUp(_e: any, _pos: [number, number]): boolean {
     if (this._resizing) {
       this._resizing = false;
       delete this._resizeStart;
@@ -156,7 +161,7 @@ export class MarkdownNode extends BaseMarkdownNode {
   }
 
   // Handle property changes with UI updates
-  setProperty(name, value) {
+  setProperty(name: string, value: any): void {
     super.setProperty(name, value);
 
     // Update widgets if they exist
@@ -172,7 +177,7 @@ export class MarkdownNode extends BaseMarkdownNode {
   }
 
   // Draw resize handle
-  onDrawBackground(ctx) {
+  onDrawBackground(ctx: CanvasRenderingContext2D): void {
     if (!this.flags.collapsed) {
       const handleSize = 10;
       const handleX = this.size[0] - handleSize;

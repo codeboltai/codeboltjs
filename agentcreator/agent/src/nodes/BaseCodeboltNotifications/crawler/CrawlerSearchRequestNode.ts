@@ -37,11 +37,11 @@ export class CrawlerSearchRequestNode extends BaseCrawlerSearchRequestNode {
       // Call the crawler notification function
       codebolt.notify.crawler.CrawlerSearchRequestNotify(
         url,
-        searchQuery,
-        maxDepth,
-        maxPages,
-        includeSubdomains,
-        followRedirects
+        searchQuery as string,
+        maxDepth as number,
+        maxPages as number,
+        includeSubdomains as boolean,
+        followRedirects as boolean
       );
 
       // Update outputs with success results

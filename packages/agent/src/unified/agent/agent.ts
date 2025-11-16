@@ -59,7 +59,7 @@ export class Agent implements AgentInterface {
                 }
                 
                 const responseExecutor = new ResponseExecutor({
-                    preToolCalProcessors: this.preToolCallProcessors,
+                    preToolCallProcessors: this.preToolCallProcessors,
                     postToolCallProcessors: this.postToolCallProcessors
                 });
                 

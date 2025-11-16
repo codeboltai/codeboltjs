@@ -32,9 +32,9 @@ export class CrawlerStartResponseNode extends BaseCrawlerStartResponseNode {
       // Call the crawler notification function
       codebolt.notify.crawler.CrawlerStartResponseNotify(
         content,
-        isError,
+        isError as boolean,
         toolUseId,
-        data
+        data as { sessionId: string; status: string; }
       );
 
       // Update outputs with success results

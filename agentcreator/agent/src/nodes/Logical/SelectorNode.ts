@@ -7,7 +7,7 @@ export class SelectorNode extends BaseSelectorNode {
   }
 
   onExecute() {
-    const selector = this.getInputData(0);
+    const selector = this.getInputData(0) as number;
     const inputs: any[] = [];
 
     // Collect all input values starting from index 1

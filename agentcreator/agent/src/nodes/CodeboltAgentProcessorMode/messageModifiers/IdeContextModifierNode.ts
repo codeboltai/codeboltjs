@@ -1,5 +1,5 @@
 import { BaseIdeContextModifierNode } from '@agent-creator/shared-nodes';
-import { IdeContextModifier } from '@agent-creator/message-modifiers';
+import { IdeContextModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend IDE Context Modifier Node - actual implementation
 export class IdeContextModifierNode extends BaseIdeContextModifierNode {

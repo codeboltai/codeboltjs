@@ -84,8 +84,8 @@ export class BaseAgentStepNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("text", "LLM role", this.properties.llmRole, "llmRole");
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
+    this.addWidget("text", "LLM role", this.properties.llmRole as string, "llmRole");
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

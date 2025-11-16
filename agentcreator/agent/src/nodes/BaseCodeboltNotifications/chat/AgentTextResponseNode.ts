@@ -23,7 +23,7 @@ export class AgentTextResponseNode extends BaseAgentTextResponseNode {
 
     try {
       // Call the actual notification function
-      chatNotifications.AgentTextResponseNotify(content, isError, toolUseId, data);
+      chatNotifications.AgentTextResponseNotify(content, isError as boolean, toolUseId as string, data as { message: string; timestamp?: string; agentId?: string; conversationId?: string; });
 
       // Update outputs with success results
       this.setOutputData(1, true);

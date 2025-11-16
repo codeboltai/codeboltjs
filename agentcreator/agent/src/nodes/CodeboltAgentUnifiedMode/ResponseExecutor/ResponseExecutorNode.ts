@@ -1,5 +1,5 @@
 import { BaseResponseExecutorNode } from '@agent-creator/shared-nodes';
-import { ResponseExecutor } from '@codebolt/unified';
+import { ResponseExecutor } from '@codebolt/agent/unified';
 
 // Backend-specific Response Executor Node - actual implementation
 export class ResponseExecutorNode extends BaseResponseExecutorNode {

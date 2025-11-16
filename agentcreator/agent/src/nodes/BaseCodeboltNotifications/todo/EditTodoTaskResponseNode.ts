@@ -29,7 +29,7 @@ export class EditTodoTaskResponseNode extends BaseEditTodoTaskResponseNode {
 
     try {
       // Call the actual notification function
-      todoNotifications.EditTodoTaskResponseNotify(content, isError, toolUseId);
+      todoNotifications.EditTodoTaskResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

@@ -2,7 +2,7 @@ import { BaseDelayNode } from '@agent-creator/shared-nodes';
 
 // Backend-specific Delay Node - execution logic only
 export class DelayNode extends BaseDelayNode {
-  private activeDelays: Map<number, { startTime: number; data: any }> = new Map();
+  private activeDelays: Map<string, { startTime: number; data: any }> = new Map();
 
   constructor() {
     super();
@@ -11,9 +11,9 @@ export class DelayNode extends BaseDelayNode {
 
   // Backend execution logic
   async onExecute() {
-    const delay = this.getInputData(2) ?? this.properties.delay;
+    const delay = this.getInputData(2) ?? (this.properties.delay as number);
     const data = this.getInputData(1);
-    const isAsync = this.properties.async;
+    const isAsync = this.properties.async as boolean;
 
     // Validate delay
     const validatedDelay = this.validateDelay(delay);
@@ -21,7 +21,7 @@ export class DelayNode extends BaseDelayNode {
     if (isAsync) {
       // Asynchronous delay
       try {
-        const nodeId = this.id;
+        const nodeId = String(this.id);
         this.activeDelays.set(nodeId, { startTime: Date.now(), data });
 
         await this.executeDelay(validatedDelay, data);
@@ -37,7 +37,7 @@ export class DelayNode extends BaseDelayNode {
         // console.log(`DelayNode ${this.id}: completed async ${validatedDelay}ms delay`);
       } catch (error) {
         // console.error(`DelayNode ${this.id}: async delay failed:`, error);
-        this.activeDelays.delete(this.id);
+        this.activeDelays.delete(String(this.id));
       }
     } else {
       // Synchronous delay (for non-real-time execution)
@@ -50,7 +50,7 @@ export class DelayNode extends BaseDelayNode {
   }
 
   // Get active delay info
-  getActiveDelays(): Array<{ nodeId: number; startTime: number; elapsedTime: number }> {
+  getActiveDelays(): Array<{ nodeId: string; startTime: number; elapsedTime: number }> {
     const now = Date.now();
     return Array.from(this.activeDelays.entries()).map(([nodeId, info]) => ({
       nodeId,

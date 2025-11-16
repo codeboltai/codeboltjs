@@ -93,10 +93,10 @@ export class BaseToolNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("text", "tool ID", this.properties.toolId, "toolId");
-    this.addWidget("textarea", "description", this.properties.toolDescription, "toolDescription");
-    this.addWidget("toggle", "enable validation", this.properties.enableValidation, "enableValidation");
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
+    this.addWidget("text", "tool ID", this.properties.toolId as string, "toolId");
+    this.addWidget("text", "description", this.properties.toolDescription as string, "toolDescription");
+    this.addWidget("toggle", "enable validation", this.properties.enableValidation as boolean, "enableValidation");
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

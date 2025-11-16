@@ -5,25 +5,29 @@ export class ConstantStringNode extends BaseConstantStringNode {
   constructor() {
     super();
     // Frontend-specific widget
-    this.widget = this.addWidget("text", "value", this.properties.value, "value"); // link to property value
+    if (this.widgets && this.widgets.length > 0) {
+      this.widgets[0] = this.addWidget("text", "value", this.properties.value as string, "value"); // link to property value
+    } else {
+      this.addWidget("text", "value", this.properties.value as string, "value"); // link to property value
+    }
     this.widgets_up = true;
   }
 
   // Frontend-specific title display
-  getTitle() {
+  getTitle(): string {
     if (this.flags.collapsed) {
-      return this.properties.value;
+      return String(this.properties.value ?? "");
     }
-    return this.title;
+    return this.title || "Const String";
   }
 
   // Frontend-specific property change handling
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update widget value when property changes
-    if (name === 'value' && this.widget) {
-      this.widget.value = value as string;
+    if (name === 'value' && this.widgets && this.widgets[0]) {
+      this.widgets[0].value = value as string;
     }
 
     return result;
@@ -45,11 +49,11 @@ export class ConstantStringNode extends BaseConstantStringNode {
 
   // Handle node configuration in the frontend
   onConfigure(info: any): void {
-    super.onConfigure(info);
+    super.onConfigure?.(info);
 
     // Restore widget value from properties
-    if (this.widget) {
-      this.widget.value = this.properties.value || "";
+    if (this.widgets && this.widgets[0]) {
+      this.widgets[0].value = this.properties.value || "";
     }
   }
 }

@@ -41,7 +41,7 @@ export class BaseOnChatNotificationNode extends LGraphNode {
 
     // Add widgets for frontend configuration
     this.addWidget("toggle", "", false, "showSplitOutputs", { on: "Split", off: "Unified" });
-    this.addWidget("text", "Type Filter", "", "notificationType", { placeholder: "e.g., sendMessageRequest" });
+    this.addWidget("text", "Type Filter", "", "notificationType", {} as any);
   }
 
   // Handle property changes

@@ -15,7 +15,7 @@ export class CompareNode extends BaseCompareNode {
   onExecute() {
     const a = this.getInputData(0);
     const b = this.getInputData(1);
-    const caseSensitive = this.properties.case_sensitive;
+    const caseSensitive = this.properties.case_sensitive as boolean;
     const result = this.compareStrings(a, b, caseSensitive);
     this.setOutputData(0, result);
     // // console.log(`CompareNode ${this.id}: "${a}" == "${b}" (case: ${caseSensitive}) = ${result}`);
@@ -37,7 +37,7 @@ export class ContainsNode extends BaseContainsNode {
   onExecute() {
     const str = this.getInputData(0);
     const substr = this.getInputData(1);
-    const caseSensitive = this.properties.case_sensitive;
+    const caseSensitive = this.properties.case_sensitive as boolean;
     const result = this.containsSubstring(str, substr, caseSensitive);
     this.setOutputData(0, result);
     // // console.log(`ContainsNode ${this.id}: "${str}" contains "${substr}" (case: ${caseSensitive}) = ${result}`);

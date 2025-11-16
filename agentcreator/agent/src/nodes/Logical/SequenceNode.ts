@@ -9,11 +9,11 @@ export class SequenceNode extends BaseSequenceNode {
   }
 
   onExecute() {
-    const index = this.getInputData(0);
+    const index = this.getInputData(0) as number;
     const sequence = this.getInputData(1);
 
     // Use input sequence if provided, otherwise use property
-    const finalSequence = (sequence as string) || this.properties.sequence;
+    const finalSequence = (sequence as string) || (this.properties.sequence as string);
 
     // Update current sequence if it changed
     if (sequence && sequence !== this.current_sequence) {

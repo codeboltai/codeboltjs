@@ -14,7 +14,7 @@ export class CopyFileResponseNode extends BaseCopyFileResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.CopyFileResponseNotify(content, isError, toolUseId);
+      fsNotifications.CopyFileResponseNotify(content as string, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

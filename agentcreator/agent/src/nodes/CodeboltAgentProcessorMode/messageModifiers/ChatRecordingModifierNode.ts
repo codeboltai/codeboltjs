@@ -1,5 +1,5 @@
 import { BaseChatRecordingModifierNode } from '@agent-creator/shared-nodes';
-import { ChatRecordingModifier } from '@agent-creator/message-modifiers';
+import { ChatRecordingModifier } from '@codebolt/agent/processor-pieces';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -9,7 +9,7 @@ export class ChatRecordingModifierNode extends BaseChatRecordingModifierNode {
 
   constructor() {
     super();
-    this.modifier = new ChatRecordingModifier(this.getChatRecordingConfig());
+    this.modifier = new ChatRecordingModifier(this.getChatRecordingConfig() as any);
   }
 
   async onExecute() {
@@ -28,7 +28,7 @@ export class ChatRecordingModifierNode extends BaseChatRecordingModifierNode {
       if (customPath) {
         config.recordingPath = customPath;
       }
-      this.modifier = new ChatRecordingModifier(config);
+      this.modifier = new ChatRecordingModifier(config as any);
 
       // Create a processed message object
       const processedMessage = {

@@ -13,7 +13,7 @@ export class GetChatHistoryRequestNode extends BaseGetChatHistoryRequestNode {
 
     try {
       // Call the actual notification function
-      chatNotifications.GetChatHistoryRequestNotify(data, toolUseId);
+      chatNotifications.GetChatHistoryRequestNotify(data as { sessionId?: string; }, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

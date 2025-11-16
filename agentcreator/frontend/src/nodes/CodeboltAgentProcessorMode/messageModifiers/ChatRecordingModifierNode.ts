@@ -8,7 +8,7 @@ export class ChatRecordingModifierNode extends BaseChatRecordingModifierNode {
 
   // Update node display when properties change
   onPropertyChanged(name: string, value: unknown, prev_value?: unknown): boolean {
-    const result = super.onPropertyChanged(name, value, prev_value);
+    const result = super.onPropertyChanged?.(name, value, prev_value) ?? false;
 
     // Update node appearance based on configuration
     this.updateNodeAppearance();
@@ -67,7 +67,7 @@ export class ChatRecordingModifierNode extends BaseChatRecordingModifierNode {
   // Render custom visualization
   onDrawForeground(ctx: CanvasRenderingContext2D): void {
     // Draw recording icon (disk/tape)
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = this.color as string;
     ctx.beginPath();
     ctx.arc(20, 20, 12, 0, 2 * Math.PI);
     ctx.fill();

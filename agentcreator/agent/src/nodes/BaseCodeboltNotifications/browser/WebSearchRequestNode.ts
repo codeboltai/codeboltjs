@@ -25,8 +25,8 @@ export class WebSearchRequestNode extends BaseWebSearchRequestNode {
       // Call the browser notification function
       codebolt.notify.browser.WebSearchRequestNotify(
         query,
-        maxResults,
-        searchEngine,
+        maxResults as number,
+        searchEngine as string,
         filters
       );
 

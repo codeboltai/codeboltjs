@@ -78,7 +78,7 @@ export class BaseRandomNode extends LGraphNode {
       case 'min':
       case 'max':
         this.properties[name] = parseFloat(value) || 0;
-        const range = this.validateRange(this.properties.min, this.properties.max);
+        const range = this.validateRange(this.properties.min as number, this.properties.max as number);
         this.properties.min = range.min;
         this.properties.max = range.max;
         break;

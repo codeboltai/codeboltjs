@@ -32,9 +32,9 @@ export class CrawlerSearchResponseNode extends BaseCrawlerSearchResponseNode {
       // Call the crawler notification function
       codebolt.notify.crawler.CrawlerSearchResponseNotify(
         content,
-        isError,
+        isError as boolean,
         toolUseId,
-        data
+        data as { pages: { url: string; title: string; content: string; depth: number; timestamp: string; }[]; totalPages?: number; crawlTime?: number; }
       );
 
       // Update outputs with success results

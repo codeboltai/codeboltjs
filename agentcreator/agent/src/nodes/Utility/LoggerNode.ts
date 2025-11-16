@@ -10,10 +10,10 @@ export class LoggerNode extends BaseLoggerNode {
   // Backend execution logic
   onExecute() {
     const data = this.getInputData(1);
-    const prefix = this.properties.prefix;
-    const level = this.properties.level;
-    const useConsole = this.properties.console;
-    const useTimestamp = this.properties.timestamp;
+    const prefix = this.properties.prefix as string;
+    const level = this.properties.level as string;
+    const useConsole = this.properties.console as boolean;
+    const useTimestamp = this.properties.timestamp as boolean;
 
     // Skip if no data provided
     if (data === undefined || data === null) {

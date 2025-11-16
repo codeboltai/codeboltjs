@@ -24,9 +24,9 @@ export class WebSearchResponseNode extends BaseWebSearchResponseNode {
       // Call the browser notification function
       codebolt.notify.browser.WebSearchResponseNotify(
         content,
-        isError,
+        isError as boolean,
         undefined, // toolUseId - let it auto-generate
-        data
+        data as { results: { title: string; url: string; snippet: string; rank?: number; }[]; totalResults?: number; searchTime?: number; }
       );
 
       // Update outputs with success results

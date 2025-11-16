@@ -14,7 +14,7 @@ export class FileCreateResponseNode extends BaseFileCreateResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.FileCreateResponseNotify(content, isError, toolUseId);
+      fsNotifications.FileCreateResponseNotify(content as string, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

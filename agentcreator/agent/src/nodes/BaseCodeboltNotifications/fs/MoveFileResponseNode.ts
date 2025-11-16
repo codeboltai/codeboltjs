@@ -14,7 +14,7 @@ export class MoveFileResponseNode extends BaseMoveFileResponseNode {
 
     try {
       // Call the actual notification function
-      fsNotifications.MoveFileResponseNotify(content, isError, toolUseId);
+      fsNotifications.MoveFileResponseNotify(content, isError as boolean, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

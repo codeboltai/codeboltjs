@@ -1,5 +1,5 @@
 import { BaseArgumentProcessorModifierNode } from '@agent-creator/shared-nodes';
-import { ArgumentProcessorModifier } from '@agent-creator/message-modifiers';
+import { ArgumentProcessorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Argument Processor Modifier Node - actual implementation
 export class ArgumentProcessorModifierNode extends BaseArgumentProcessorModifierNode {

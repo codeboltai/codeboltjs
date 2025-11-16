@@ -93,9 +93,9 @@ export class BaseResponseExecutorNode extends LGraphNode {
     };
 
     // Add widgets for configuration
-    this.addWidget("toggle", "enable logging", this.properties.enableLogging, "enableLogging");
-    this.addWidget("toggle", "continue on tool error", this.properties.continueOnToolError, "continueOnToolError");
-    this.addWidget("number", "max tool retries", this.properties.maxToolRetries, "maxToolRetries", { min: 0, max: 10 });
+    this.addWidget("toggle", "enable logging", this.properties.enableLogging as boolean, "enableLogging");
+    this.addWidget("toggle", "continue on tool error", this.properties.continueOnToolError as boolean, "continueOnToolError");
+    this.addWidget("number", "max tool retries", this.properties.maxToolRetries as number, "maxToolRetries", { min: 0, max: 10 } as any);
   }
 
   // Enable ON_TRIGGER mode so onExecute only runs when triggered

@@ -37,7 +37,7 @@ export class EditTodoTaskRequestNode extends BaseEditTodoTaskRequestNode {
       }
 
       // Call the actual notification function
-      todoNotifications.EditTodoTaskRequestNotify(taskId, title, description, phase, category, priority, tags, status, toolUseId);
+      todoNotifications.EditTodoTaskRequestNotify(taskId as string, title as string, description as string, phase as string, category as string, priority as string, tags, status as string, toolUseId as string);
 
       // Update outputs with success results
       this.setOutputData(1, true);

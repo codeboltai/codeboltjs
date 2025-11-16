@@ -1,5 +1,5 @@
 import { BaseToolInjectionModifierNode } from '@agent-creator/shared-nodes';
-import { ToolInjectionModifier } from '@agent-creator/message-modifiers';
+import { ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Injection Modifier Node - actual implementation
 export class ToolInjectionModifierNode extends BaseToolInjectionModifierNode {
@@ -7,7 +7,7 @@ export class ToolInjectionModifierNode extends BaseToolInjectionModifierNode {
 
   constructor() {
     super();
-    this.modifier = new ToolInjectionModifier(this.getToolInjectionConfig());
+    this.modifier = new ToolInjectionModifier(this.getToolInjectionConfig() as any);
   }
 
   async onExecute() {
@@ -26,7 +26,7 @@ export class ToolInjectionModifierNode extends BaseToolInjectionModifierNode {
       if (toolFilters) {
         config.enabledCategories = toolFilters.split(',').map(cat => cat.trim()).filter(cat => cat);
       }
-      this.modifier = new ToolInjectionModifier(config);
+      this.modifier = new ToolInjectionModifier(config as any);
 
       // Create a processed message object
       const processedMessage = {

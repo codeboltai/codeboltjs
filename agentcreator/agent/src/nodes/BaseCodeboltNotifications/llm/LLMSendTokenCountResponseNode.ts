@@ -10,7 +10,7 @@ export class LLMSendTokenCountResponseNode extends BaseLLMSendTokenCountResponse
   async onExecute() {
     const content = this.getInputData(1);
     const toolUseId = this.getInputData(2);
-    const isError = this.getInputData(3) || false;
+    const isError = (this.getInputData(3) as boolean) || false;
     const data = this.getInputData(4);
 
     // Validate required inputs
@@ -29,12 +29,19 @@ export class LLMSendTokenCountResponseNode extends BaseLLMSendTokenCountResponse
     }
 
     try {
+      // Ensure data has required tokenCount property
+      const tokenData = {
+        tokenCount: (data as any)?.tokenCount || 0,
+        model: (data as any)?.model,
+        encoding: (data as any)?.encoding
+      };
+
       // Call the LLM notification function
       codebolt.notify.llm.sendTokenCountResponse(
         content,
         isError,
         toolUseId,
-        data
+        tokenData
       );
 
       // Update outputs with success results

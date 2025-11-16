@@ -2,6 +2,8 @@ import { LGraphNode } from '@codebolt/litegraph';
 
 // Base Markdown Node - shared metadata and structure
 export class BaseMarkdownNode extends LGraphNode {
+  protected _lastProcessedContent?: string;
+
   static metadata = {
     type: "assets/markdown",
     title: "Markdown",

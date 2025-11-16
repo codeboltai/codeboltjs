@@ -1,5 +1,5 @@
 import { BaseConversationCompactorNode } from '@agent-creator/shared-nodes';
-import { ConversationCompactorModifier } from '@agent-creator/message-modifiers';
+import { ConversationCompactorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Conversation Compactor Node - actual implementation
 export class ConversationCompactorNode extends BaseConversationCompactorNode {
@@ -7,7 +7,7 @@ export class ConversationCompactorNode extends BaseConversationCompactorNode {
 
   constructor() {
     super();
-    this.modifier = new ConversationCompactorModifier(this.getConversationCompactorConfig());
+    this.modifier = new ConversationCompactorModifier(this.getConversationCompactorConfig() as any);
   }
 
   async onExecute() {
@@ -22,7 +22,7 @@ export class ConversationCompactorNode extends BaseConversationCompactorNode {
 
     try {
       // Update modifier configuration with current node properties
-      this.modifier = new ConversationCompactorModifier(this.getConversationCompactorConfig());
+      this.modifier = new ConversationCompactorModifier(this.getConversationCompactorConfig() as any);
 
       // Create a processed message object
       let processedMessage = {
@@ -37,7 +37,7 @@ export class ConversationCompactorNode extends BaseConversationCompactorNode {
       }
 
       // Apply the modifier
-      const result = await this.modifier.modify(message, processedMessage);
+      const result = await this.modifier.modify(processedMessage);
 
       // Extract compaction statistics and compacted conversation
       const { compactionConfig, compactionStats, compactedConversation } = this.extractCompactionResults(result, processedMessage);

@@ -1,5 +1,5 @@
 import { BaseWorkflowNode } from '@agent-creator/shared-nodes';
-import { Workflow } from '@codebolt/unified';
+import { Workflow } from '@codebolt/agent/unified';
 
 // Backend-specific Workflow Node - actual implementation
 export class WorkflowNode extends BaseWorkflowNode {
@@ -41,7 +41,7 @@ export class WorkflowNode extends BaseWorkflowNode {
 
       // Execute workflow asynchronously
       try {
-        const result = await this.workflow.executeAsync(data);
+        const result = this.workflow.execute();
 
         // Update outputs with final result
         this.setOutputData(3, result); // result
