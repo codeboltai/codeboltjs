@@ -8,6 +8,7 @@ interface CoreSystemPromptModifierProperties {
   userMemory: string;
   enableCustomPrompt: boolean;
   enableUserMemory: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Core System Prompt Modifier Node - Adds system prompts to guide AI behavior
@@ -71,8 +72,7 @@ export class BaseCoreSystemPromptModifierNode extends LGraphNode {
     });
 
     this.addWidget("text", "Custom System Prompt", "", "customSystemPrompt", {
-      multiline: true,
-      rows: 4
+      multiline: true
     });
 
     this.addWidget("toggle", "User Memory", false, "enableUserMemory", {
@@ -81,8 +81,7 @@ export class BaseCoreSystemPromptModifierNode extends LGraphNode {
     });
 
     this.addWidget("text", "User Memory", "", "userMemory", {
-      multiline: true,
-      rows: 3
+      multiline: true
     });
 
     // Enable ON_TRIGGER mode so onExecute only runs when triggered

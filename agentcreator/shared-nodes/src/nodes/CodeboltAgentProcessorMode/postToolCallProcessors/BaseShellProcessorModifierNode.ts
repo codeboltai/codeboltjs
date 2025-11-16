@@ -12,6 +12,7 @@ interface ShellProcessorModifierProperties {
   enableOutputCapture: boolean;
   maxOutputLength: number;
   allowFileModification: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Shell Processor Modifier Node - Executes shell commands with security controls

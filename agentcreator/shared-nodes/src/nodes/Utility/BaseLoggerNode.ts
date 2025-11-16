@@ -32,8 +32,11 @@ export class BaseLoggerNode extends LGraphNode {
     this.mode = LiteGraph.ON_TRIGGER;
 
     // Store log history
-    this.logs: Array<{ timestamp: number; level: string; message: string }> = [];
+    this.logs = [];
   }
+  
+  // Log entries storage
+  private logs: Array<{ timestamp: number; level: string; message: string }>;
 
   // Shared logging logic
   formatMessage(data: any, prefix: string, timestamp: boolean): string {

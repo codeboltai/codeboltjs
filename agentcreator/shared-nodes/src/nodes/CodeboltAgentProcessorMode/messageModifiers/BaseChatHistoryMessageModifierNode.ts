@@ -11,6 +11,7 @@ interface ChatHistoryMessageModifierProperties {
   historyWindow: 'all' | 'last' | 'smart';
   includeTimestamps: boolean;
   compressHistory: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Chat History Message Modifier Node - Adds previous conversation history

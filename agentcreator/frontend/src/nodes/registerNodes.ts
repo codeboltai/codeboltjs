@@ -133,15 +133,15 @@ import GraphInputNode from './base/GraphInputNode';
 import GraphOutputNode from './base/GraphOutputNode';
 
 // Math nodes (legacy - not refactored yet)
-import ConverterNode from './math/ConverterNode';
-import RangeNode from './math/RangeNode';
-import LerpNode from './math/LerpNode';
-import FloorNode from './math/FloorNode';
-import FracNode from './math/FracNode';
-import SmoothStepNode from './math/SmoothStepNode';
-import ScaleNode from './math/ScaleNode';
-import GateNode from './math/GateNode';
-import OperationNode from './math/OperationNode';
+import ConverterNode from './Math/ConverterNode';
+import RangeNode from './Math/RangeNode';
+import LerpNode from './Math/LerpNode';
+import FloorNode from './Math/FloorNode';
+import FracNode from './Math/FracNode';
+import SmoothStepNode from './Math/SmoothStepNode';
+import ScaleNode from './Math/ScaleNode';
+import GateNode from './Math/GateNode';
+import OperationNode from './Math/OperationNode';
 
 // Logic nodes (legacy - not refactored yet)
 import SequenceNode from './logic/SequenceNode';
@@ -164,7 +164,7 @@ import WidgetPanelNode from './interface/WidgetPanelNode';
 import {
   GetStringVariableNode,
   SetStringVariableNode
-} from './variables/index.ts';
+} from './Variables/index.ts';
 
 // Export nodes for direct use
 export {

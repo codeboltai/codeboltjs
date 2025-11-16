@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base CrawlerSearchRequest Node - Calls codebolt.notify.crawler.CrawlerSearchRequestNotify
 export class BaseCrawlerSearchRequestNode extends LGraphNode {

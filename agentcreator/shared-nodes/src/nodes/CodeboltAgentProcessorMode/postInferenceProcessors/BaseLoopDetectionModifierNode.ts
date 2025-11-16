@@ -10,6 +10,7 @@ interface LoopDetectionModifierProperties {
   detectionMode: 'content' | 'semantic' | 'hybrid';
   enableAutoBreak: boolean;
   breakMessage: string;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Loop Detection Modifier Node - Detects conversational loops using similarity analysis
@@ -122,8 +123,7 @@ export class BaseLoopDetectionModifierNode extends LGraphNode {
     });
 
     this.addWidget("text", "Break Message", "I notice we might be going in circles. Let me try a different approach to help you better.", "breakMessage", {
-      multiline: true,
-      rows: 3
+      multiline: true
     });
 
     // Enable ON_TRIGGER mode so onExecute only runs when triggered

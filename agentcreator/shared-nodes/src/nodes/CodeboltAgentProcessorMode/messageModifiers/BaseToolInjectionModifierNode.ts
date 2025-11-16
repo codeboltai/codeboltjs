@@ -10,6 +10,7 @@ interface ToolInjectionModifierProperties {
   giveToolExamples: boolean;
   maxToolExamples: number;
   enabledCategories: string[];
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Tool Injection Modifier Node - Injects available tools into the conversation

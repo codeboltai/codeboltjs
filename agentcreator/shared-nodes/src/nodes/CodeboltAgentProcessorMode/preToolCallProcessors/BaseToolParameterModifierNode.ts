@@ -13,6 +13,7 @@ interface ToolParameterModifierProperties {
   transformationRules: string[];
   validationEnabled: boolean;
   validationRules: string[];
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Tool Parameter Modifier Node - Transforms tool parameters before execution

@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base LLMGetTokenCount Node - Calls codebolt.notify.llm.getTokenCount
 export class BaseLLMGetTokenCountNode extends LGraphNode {

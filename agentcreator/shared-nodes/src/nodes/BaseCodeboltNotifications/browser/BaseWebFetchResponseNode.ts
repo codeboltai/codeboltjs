@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base WebFetchResponse Node - Calls codebolt.notify.browser.WebFetchResponseNotify
 export class BaseWebFetchResponseNode extends LGraphNode {

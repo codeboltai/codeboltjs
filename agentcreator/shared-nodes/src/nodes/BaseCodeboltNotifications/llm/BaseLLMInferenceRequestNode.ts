@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base LLMInferenceRequest Node - Calls codebolt.notify.llm.sendInferenceRequest
 export class BaseLLMInferenceRequestNode extends LGraphNode {

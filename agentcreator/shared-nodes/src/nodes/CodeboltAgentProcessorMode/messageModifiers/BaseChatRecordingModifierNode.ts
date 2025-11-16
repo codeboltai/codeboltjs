@@ -11,6 +11,7 @@ interface ChatRecordingModifierProperties {
   recordingFormat: 'jsonl' | 'markdown' | 'json';
   autoRotateFiles: boolean;
   compressionEnabled: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Chat Recording Modifier Node - Records conversations to files

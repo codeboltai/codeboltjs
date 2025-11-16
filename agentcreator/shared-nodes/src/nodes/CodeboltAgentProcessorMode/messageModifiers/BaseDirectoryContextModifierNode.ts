@@ -9,6 +9,7 @@ interface DirectoryContextModifierProperties {
   maxDepth: number;
   includeHidden: boolean;
   showFileSizes: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Directory Context Modifier Node - Provides folder structure context for code projects

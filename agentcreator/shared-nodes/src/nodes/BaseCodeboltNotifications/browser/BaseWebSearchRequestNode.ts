@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base WebSearchRequest Node - Calls codebolt.notify.browser.WebSearchRequestNotify
 export class BaseWebSearchRequestNode extends LGraphNode {

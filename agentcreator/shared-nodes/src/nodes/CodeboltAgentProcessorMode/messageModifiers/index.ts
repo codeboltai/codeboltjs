@@ -1,29 +1,27 @@
 // Message Modifier Nodes - Base implementations for shared functionality
-
-export * from './BaseEnvironmentContextModifierNode';
-export * from './BaseCoreSystemPromptModifierNode';
-export * from './BaseDirectoryContextModifierNode';
-export * from './BaseIdeContextModifierNode';
-export * from './BaseAtFileProcessorModifierNode';
-export * from './BaseArgumentProcessorModifierNode';
-export * from './BaseMemoryImportModifierNode';
-export * from './BaseToolInjectionModifierNode';
-export * from './BaseChatRecordingModifierNode';
-export * from './BaseChatHistoryMessageModifierNode';
+import { BaseEnvironmentContextModifierNode } from './BaseEnvironmentContextModifierNode';
+import { BaseCoreSystemPromptModifierNode } from './BaseCoreSystemPromptModifierNode';
+import { BaseDirectoryContextModifierNode } from './BaseDirectoryContextModifierNode';
+import { BaseIdeContextModifierNode } from './BaseIdeContextModifierNode';
+import { BaseAtFileProcessorModifierNode } from './BaseAtFileProcessorModifierNode';
+import { BaseArgumentProcessorModifierNode } from './BaseArgumentProcessorModifierNode';
+import { BaseMemoryImportModifierNode } from './BaseMemoryImportModifierNode';
+import { BaseToolInjectionModifierNode } from './BaseToolInjectionModifierNode';
+import { BaseChatRecordingModifierNode } from './BaseChatRecordingModifierNode';
+import { BaseChatHistoryMessageModifierNode } from './BaseChatHistoryMessageModifierNode';
 
 // Array of all message modifier node classes for easy registration
 export const MessageModifierNodes = [
-  // Import classes dynamically when needed
-  () => import('./BaseEnvironmentContextModifierNode'),
-  () => import('./BaseCoreSystemPromptModifierNode'),
-  () => import('./BaseDirectoryContextModifierNode'),
-  () => import('./BaseIdeContextModifierNode'),
-  () => import('./BaseAtFileProcessorModifierNode'),
-  () => import('./BaseArgumentProcessorModifierNode'),
-  () => import('./BaseMemoryImportModifierNode'),
-  () => import('./BaseToolInjectionModifierNode'),
-  () => import('./BaseChatRecordingModifierNode'),
-  () => import('./BaseChatHistoryMessageModifierNode')
+  BaseEnvironmentContextModifierNode,
+  BaseCoreSystemPromptModifierNode,
+  BaseDirectoryContextModifierNode,
+  BaseIdeContextModifierNode,
+  BaseAtFileProcessorModifierNode,
+  BaseArgumentProcessorModifierNode,
+  BaseMemoryImportModifierNode,
+  BaseToolInjectionModifierNode,
+  BaseChatRecordingModifierNode,
+  BaseChatHistoryMessageModifierNode
 ];
 
 // Message modifier node types for registration

@@ -8,6 +8,7 @@ interface ArgumentProcessorModifierProperties {
   argumentSeparator: string;
   includeCommandName: boolean;
   formatStyle: 'simple' | 'detailed' | 'json';
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Argument Processor Modifier Node - Processes command invocation arguments

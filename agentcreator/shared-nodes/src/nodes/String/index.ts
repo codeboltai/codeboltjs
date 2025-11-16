@@ -1,23 +1,33 @@
 // String Nodes - Base implementations for shared functionality
-export { BaseToStringNode } from './BaseToStringNode';
-export { BaseCompareNode } from './BaseCompareNode';
-export { BaseToUpperCaseNode } from './BaseToUpperCaseNode';
-export { BaseContainsNode } from './BaseContainsNode';
-export { BaseConcatenateNode } from './BaseConcatenateNode';
-export { BaseSplitNode } from './BaseSplitNode';
-export { BaseStringToTableNode } from './BaseStringToTableNode';
-export { BaseToFixedNode } from './BaseToFixedNode';
+import { BaseToStringNode } from './BaseToStringNode';
+import { BaseCompareNode } from './BaseCompareNode';
+import { BaseToUpperCaseNode } from './BaseToUpperCaseNode';
+import { BaseContainsNode } from './BaseContainsNode';
+import { BaseConcatenateNode } from './BaseConcatenateNode';
+import { BaseSplitNode } from './BaseSplitNode';
+import { BaseStringToTableNode } from './BaseStringToTableNode';
+import { BaseToFixedNode } from './BaseToFixedNode';
+
+// Export all string node classes
+export { BaseToStringNode };
+export { BaseCompareNode };
+export { BaseToUpperCaseNode };
+export { BaseContainsNode };
+export { BaseConcatenateNode };
+export { BaseSplitNode };
+export { BaseStringToTableNode };
+export { BaseToFixedNode };
 
 // Array of all string node classes for easy registration
 export const StringNodes = [
-  () => import('./BaseToStringNode'),
-  () => import('./BaseCompareNode'),
-  () => import('./BaseToUpperCaseNode'),
-  () => import('./BaseContainsNode'),
-  () => import('./BaseConcatenateNode'),
-  () => import('./BaseSplitNode'),
-  () => import('./BaseStringToTableNode'),
-  () => import('./BaseToFixedNode')
+  BaseToStringNode,
+  BaseCompareNode,
+  BaseToUpperCaseNode,
+  BaseContainsNode,
+  BaseConcatenateNode,
+  BaseSplitNode,
+  BaseStringToTableNode,
+  BaseToFixedNode
 ];
 
 // String node types for registration

@@ -10,6 +10,7 @@ interface AtFileProcessorModifierProperties {
   basePath: string;
   includeLineNumbers: boolean;
   maxFileContent: number;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base @File Processor Modifier Node - Processes @file and @folder references

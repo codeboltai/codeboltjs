@@ -9,6 +9,7 @@ interface EnvironmentContextModifierProperties {
   maxFileSize: number;
   includePatterns: string[];
   excludePatterns: string[];
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Environment Context Modifier Node - Adds system environment and project context

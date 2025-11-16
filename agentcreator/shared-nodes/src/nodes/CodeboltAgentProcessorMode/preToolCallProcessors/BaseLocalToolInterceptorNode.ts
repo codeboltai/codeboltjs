@@ -12,6 +12,7 @@ interface LocalToolInterceptorProperties {
   cacheTimeout: number;
   enableLogging: boolean;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Local Tool Interceptor Node - Intercepts local tools with custom handlers

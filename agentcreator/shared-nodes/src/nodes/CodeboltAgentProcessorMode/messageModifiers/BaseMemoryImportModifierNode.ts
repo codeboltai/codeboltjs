@@ -10,6 +10,7 @@ interface MemoryImportModifierProperties {
   basePath: string;
   maxImports: number;
   recursiveSearch: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Memory Import Modifier Node - Processes @file syntax to import file contents

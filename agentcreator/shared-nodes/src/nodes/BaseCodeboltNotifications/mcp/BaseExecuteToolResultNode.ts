@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base ExecuteToolResult Node - Calls codebolt.notify.mcp.ExecuteToolResultNotify
 export class BaseExecuteToolResultNode extends LGraphNode {

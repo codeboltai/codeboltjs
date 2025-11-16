@@ -11,6 +11,7 @@ interface ConversationCompactorProperties {
   preserveErrors: boolean;
   summaryStyle: 'brief' | 'detailed' | 'bullet';
   compressionRatio: number;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Conversation Compactor Node - Compacts conversation after tool calls

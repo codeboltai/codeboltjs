@@ -12,6 +12,7 @@ interface ConversationContinuityProperties {
   maxMemoryItems: number;
   contextDecay: number;
   enableLearning: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Conversation Continuity Node - Maintains context across tool calls

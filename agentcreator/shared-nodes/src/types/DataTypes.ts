@@ -111,11 +111,11 @@ export const ARRAY_TYPES = {
   COMMAND_LIST: 'commandList',
 
   // Unified Agent array types
-  TOOL_LIST: 'toolList',
   MESSAGE_MODIFIER: 'messageModifier',
   PRE_INFERENCE_PROCESSOR: 'preInferenceProcessor',
   POST_INFERENCE_PROCESSOR: 'postInferenceProcessor',
-  WORKFLOW_STEP: 'workflowStep'
+  WORKFLOW_STEP: 'workflowStep',
+  TOOL_RESULT: 'toolResult'
 } as const;
 
 // Utility functions for type validation

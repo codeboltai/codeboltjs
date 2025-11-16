@@ -13,6 +13,7 @@ interface ToolValidationProperties {
   blockedToolTypes: string[];
   maxParameterCount: number;
   enableParameterSanitization: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Tool Validation Node - Validates tool parameters and schemas

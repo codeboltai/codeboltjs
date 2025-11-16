@@ -1,5 +1,5 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
-import { NodeMetadata } from '../../../../types';
+import { NodeMetadata } from '../../../types';
 
 // Base GetEnabledMCPServersRequest Node - Calls codebolt.notify.mcp.GetEnabledMCPServersRequestNotify
 export class BaseGetEnabledMCPServersRequestNode extends LGraphNode {

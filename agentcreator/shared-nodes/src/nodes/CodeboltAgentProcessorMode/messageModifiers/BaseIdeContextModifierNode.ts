@@ -9,6 +9,7 @@ interface IdeContextModifierProperties {
   includeCursorPosition: boolean;
   includeSelectedText: boolean;
   maxOpenFiles: number;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base IDE Context Modifier Node - Integrates IDE/editor context

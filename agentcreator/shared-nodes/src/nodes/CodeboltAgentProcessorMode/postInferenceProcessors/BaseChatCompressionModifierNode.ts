@@ -9,6 +9,7 @@ interface ChatCompressionModifierProperties {
   preserveRecentMessages: number;
   compressionStrategy: 'simple' | 'semantic' | 'hybrid';
   includeSystemMessages: boolean;
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Chat Compression Modifier Node - Compresses chat history when exceeding token limits

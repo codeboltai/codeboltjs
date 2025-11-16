@@ -12,6 +12,7 @@ interface FollowUpConversationProperties {
   includeContext: boolean;
   contextWindow: number;
   personalizationLevel: 'low' | 'medium' | 'high';
+  [key: string]: any; // Index signature to satisfy Dictionary<NodeProperty>
 }
 
 // Base Follow Up Conversation Node - Handles follow-up conversations after tool calls
