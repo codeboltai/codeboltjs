@@ -9,7 +9,7 @@ export class GetProjectStateNode extends BaseGetProjectStateNode {
 
   async onExecute() {
     try {
-      const result = await codebolt.state.getProjectState();
+      const result = await codebolt.cbstate.getProjectState();
 
       // Update outputs with success results
       this.setOutputData(1, result);

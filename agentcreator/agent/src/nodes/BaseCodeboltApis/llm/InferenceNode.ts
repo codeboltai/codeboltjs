@@ -30,14 +30,14 @@ export class InferenceNode extends BaseInferenceNode {
     try {
       // Construct inference parameters
       const params: LLMInferenceParams = {
-        messages,
-        tools,
-        tool_choice,
-        llmrole,
-        max_tokens,
-        temperature,
-        stream,
-        full
+        messages: messages as MessageObject[],
+        tools: tools as Tool[],
+        tool_choice: tool_choice as any,
+        llmrole: llmrole as string,
+        max_tokens: max_tokens as number,
+        temperature: temperature as number,
+        stream: stream as boolean,
+        full: full as boolean
       };
 
       const result = await codebolt.llm.inference(params);

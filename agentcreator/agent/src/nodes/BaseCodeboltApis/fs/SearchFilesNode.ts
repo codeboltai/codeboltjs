@@ -22,7 +22,7 @@ export class SearchFilesNode extends BaseSearchFilesNode {
     try {
       const result = await codebolt.fs.searchFiles(path, regex, filePattern || '');
       this.setOutputData(1, true);
-      this.setOutputData(2, result.files || null);
+      this.setOutputData(2, (result as any).files || null);
       this.triggerSlot(0, null, null);
     } catch (error) {
       console.error('SearchFilesNode error:', error);

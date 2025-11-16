@@ -20,7 +20,7 @@ export class FileSearchNode extends BaseFileSearchNode {
     try {
       const result = await codebolt.fs.fileSearch(query);
       this.setOutputData(1, true);
-      this.setOutputData(2, result.files || null);
+      this.setOutputData(2, (result as any).files || null);
       this.triggerSlot(0, null, null);
     } catch (error) {
       console.error('FileSearchNode error:', error);

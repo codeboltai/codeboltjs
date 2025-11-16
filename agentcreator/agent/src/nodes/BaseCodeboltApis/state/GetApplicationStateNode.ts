@@ -9,7 +9,7 @@ export class GetApplicationStateNode extends BaseGetApplicationStateNode {
 
   async onExecute() {
     try {
-      const result = await codebolt.state.getApplicationState();
+      const result = await codebolt.cbstate.getApplicationState();
 
       // Update outputs with success results
       this.setOutputData(1, result);

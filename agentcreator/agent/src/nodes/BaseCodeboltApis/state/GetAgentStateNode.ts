@@ -9,7 +9,7 @@ export class GetAgentStateNode extends BaseGetAgentStateNode {
 
   async onExecute() {
     try {
-      const result = await codebolt.state.getAgentState();
+      const result = await codebolt.cbstate.getAgentState();
 
       // Update outputs with success results
       this.setOutputData(1, result);

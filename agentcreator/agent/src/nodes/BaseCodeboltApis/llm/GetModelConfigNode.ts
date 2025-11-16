@@ -11,7 +11,7 @@ export class GetModelConfigNode extends BaseGetModelConfigNode {
     const modelId = this.getInputData(1); // Optional parameter
 
     try {
-      const result = await codebolt.llm.getModelConfig(modelId);
+      const result = await codebolt.llm.getModelConfig(modelId as string);
 
       // Update outputs based on result
       this.setOutputData(1, result.config);

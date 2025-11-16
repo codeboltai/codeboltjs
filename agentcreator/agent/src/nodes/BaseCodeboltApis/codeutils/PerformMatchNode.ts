@@ -8,9 +8,9 @@ export class PerformMatchNode extends BasePerformMatchNode {
   }
 
   async onExecute() {
-    const matcherDefinition = this.getInputData(1);
-    const problemPatterns = this.getInputData(2) || [];
-    const problems = this.getInputData(3) || [];
+    const matcherDefinition = this.getInputData(1) as any;
+    const problemPatterns = (this.getInputData(2) || []) as any[];
+    const problems = this.getInputData(3) as any[];
 
     if (!matcherDefinition || typeof matcherDefinition !== 'object') {
       const errorMessage = 'Error: Matcher definition is required and must be an object';

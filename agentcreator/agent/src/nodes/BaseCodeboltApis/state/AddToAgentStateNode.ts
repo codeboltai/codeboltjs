@@ -28,7 +28,7 @@ export class AddToAgentStateNode extends BaseAddToAgentStateNode {
     }
 
     try {
-      const result = await codebolt.state.addToAgentState(key, String(value));
+      const result = await codebolt.cbstate.addToAgentState(key, String(value));
 
       // Update outputs with success results
       this.setOutputData(1, result);

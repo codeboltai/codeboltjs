@@ -8,12 +8,12 @@ export class AddTaskToActionPlanNode extends BaseAddTaskToActionPlanNode {
   }
 
   async onExecute() {
-    const planId = this.getInputData(1);
-    const task = this.getInputData(2);
-    const taskName = this.getInputData(3);
-    const taskDescription = this.getInputData(4);
-    const taskPriority = this.getInputData(5);
-    const taskType = this.getInputData(6);
+    const planId = this.getInputData(1) as string;
+    const task = this.getInputData(2) as { [key: string]: any; name: string; description?: string; priority?: string; taskType?: string; } | undefined;
+    const taskName = this.getInputData(3) as string;
+    const taskDescription = this.getInputData(4) as string;
+    const taskPriority = this.getInputData(5) as string;
+    const taskType = this.getInputData(6) as string;
 
     if (!planId || typeof planId !== 'string' || !planId.trim()) {
       const errorMessage = 'Error: Plan ID cannot be empty';

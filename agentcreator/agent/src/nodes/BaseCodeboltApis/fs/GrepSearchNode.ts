@@ -30,7 +30,7 @@ export class GrepSearchNode extends BaseGrepSearchNode {
         caseSensitive
       );
       this.setOutputData(1, true);
-      this.setOutputData(2, result.matches || null);
+      this.setOutputData(2, (result as any).matches || null);
       this.triggerSlot(0, null, null);
     } catch (error) {
       console.error('GrepSearchNode error:', error);

@@ -61,7 +61,7 @@ export class StartTaskStepWithListenerNode extends BaseStartTaskStepWithListener
       this.cleanupFunction = codebolt.actionPlan.startTaskStepWithListener(planId, taskId, onResponse);
 
       // Set the cleanup function output
-      this.setOutputData(2, this.cleanupFunction);
+      this.setOutputData(3, true);
       this.setOutputData(4, true);
 
       // Trigger the initial task started event

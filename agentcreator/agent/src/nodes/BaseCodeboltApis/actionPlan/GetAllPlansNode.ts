@@ -12,16 +12,16 @@ export class GetAllPlansNode extends BaseGetAllPlansNode {
       const result = await codebolt.actionPlan.getAllPlans();
 
       // Update outputs with success results
-      this.setOutputData(1, result);
-      this.setOutputData(2, true);
+      this.setOutputData(0, result as unknown as string);
+      this.setOutputData(1, true);
 
       // Trigger the plansRetrieved event
       this.triggerSlot(0, null, null);
 
     } catch (error) {
       const errorMessage = `Error getting all action plans: ${error}`;
-      this.setOutputData(1, []);
-      this.setOutputData(2, false);
+      this.setOutputData(0, [] as unknown as string);
+      this.setOutputData(1, false);
       console.error('GetAllPlansNode error:', error);
     }
   }

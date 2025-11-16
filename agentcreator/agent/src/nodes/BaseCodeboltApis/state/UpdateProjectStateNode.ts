@@ -28,7 +28,7 @@ export class UpdateProjectStateNode extends BaseUpdateProjectStateNode {
     }
 
     try {
-      const result = await codebolt.state.updateProjectState(key, value);
+      const result = await codebolt.cbstate.updateProjectState(key, value);
 
       // Update outputs with success results
       this.setOutputData(1, result);
