@@ -6,6 +6,16 @@ export { SumNode } from './SumNode.js';
 export { TimeNode } from './TimeNode.js';
 export { ConstantNumberNode } from './ConstantNumberNode.js';
 
+// Constants nodes
+export { ConstantStringNode } from './Constants/ConstantStringNode.js';
+export { ConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
+export { ConstantObjectNode } from './Constants/ConstantObjectNode.js';
+
+// Utility nodes
+export { RandomNode } from './Utility/RandomNode.js';
+export { DelayNode } from './Utility/DelayNode.js';
+export { LoggerNode } from './Utility/LoggerNode.js';
+
 // Math nodes
 export {
   BypassNode,
@@ -42,6 +52,9 @@ export { MarkdownNode } from './MarkdownNode.js';
 // Codebolt nodes
 export * from './BaseCodeboltApis/index.js';
 export * from './BaseCodeboltNotifications/index.js';
+
+// Unified Agent nodes
+export * from './CodeboltAgentUnifiedMode/index.js';
 
 // AI Agent nodes
 export { UserMessageNode } from './UserMessageNode.js';
@@ -212,12 +225,42 @@ import {
   EditFileAndApplyDiffNode as BackendEditFileAndApplyDiffNode
 } from './BaseCodeboltApis/utils/index.js';
 
+// Unified Agent nodes
+import {
+  AgentNode as BackendAgentUnifiedNode,
+  AgentStepNode as BackendAgentStepNode,
+  InitialPromptGeneratorNode as BackendInitialPromptGeneratorNode,
+  ResponseExecutorNode as BackendResponseExecutorNode,
+  ToolNode as BackendToolNode,
+  WorkflowNode as BackendWorkflowNode,
+  MessageProcessorNode as BackendMessageProcessorNode
+} from './CodeboltAgentUnifiedMode/index.js';
+
+// Constants nodes
+import { ConstantStringNode as BackendConstantStringNode } from './Constants/ConstantStringNode.js';
+import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
+import { ConstantObjectNode as BackendConstantObjectNode } from './Constants/ConstantObjectNode.js';
+
+// Utility nodes
+import { RandomNode as BackendRandomNode } from './Utility/RandomNode.js';
+import { DelayNode as BackendDelayNode } from './Utility/DelayNode.js';
+import { LoggerNode as BackendLoggerNode } from './Utility/LoggerNode.js';
+
 export function registerBackendNodes() {
   // Register backend execution nodes
   registerNodeWithMetadata(LiteGraph, BackendConstNode, BackendConstNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSumNode, BackendSumNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendTimeNode, BackendTimeNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendConstantNumberNode, BackendConstantNumberNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConstantStringNode, BackendConstantStringNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConstantBooleanNode, BackendConstantBooleanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConstantObjectNode, BackendConstantObjectNode.metadata);
+
+  // Utility nodes
+  registerNodeWithMetadata(LiteGraph, BackendRandomNode, BackendRandomNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendDelayNode, BackendDelayNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLoggerNode, BackendLoggerNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendBypassNode, BackendBypassNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendToNumberNode, BackendToNumberNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendRandNode, BackendRandNode.metadata);
@@ -354,4 +397,13 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendTaskInstructionNode, BackendTaskInstructionNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAgentNode, BackendAgentNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAgentRunNode, BackendAgentRunNode.metadata);
+
+  // Register Unified Agent nodes
+  registerNodeWithMetadata(LiteGraph, BackendAgentUnifiedNode, BackendAgentUnifiedNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentStepNode, BackendAgentStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendInitialPromptGeneratorNode, BackendInitialPromptGeneratorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendResponseExecutorNode, BackendResponseExecutorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendToolNode, BackendToolNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWorkflowNode, BackendWorkflowNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendMessageProcessorNode, BackendMessageProcessorNode.metadata);
 }

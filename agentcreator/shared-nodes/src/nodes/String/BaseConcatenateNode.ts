@@ -1,8 +1,9 @@
-import { LGraphNode } from '@codebolt/litegraph';
+import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../types';
 
 // Base Concatenate Node - shared metadata and structure
 export class BaseConcatenateNode extends LGraphNode {
-  static metadata = {
+  static metadata: NodeMetadata = {
     type: "string/concatenate",
     title: "Concatenate",
     category: "string",
@@ -21,11 +22,11 @@ export class BaseConcatenateNode extends LGraphNode {
   }
 
   // Shared concatenation logic
-  concatenateStrings(a, b) {
-    if (a === undefined) {
-      return b;
-    } else if (b === undefined) {
-      return a;
+  concatenateStrings(a: string | undefined, b: string | undefined): string {
+    if (a === undefined || a === null) {
+      return b || "";
+    } else if (b === undefined || b === null) {
+      return a || "";
     } else {
       return a + b;
     }

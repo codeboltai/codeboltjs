@@ -3,7 +3,7 @@ import { LiteGraph } from '@codebolt/litegraph';
 // UI-specific nodes (refactored)
 import {
   ConstNode, SumNode,
-  TimeNode, ConstantNumberNode,
+  ConstantNumberNode,
   BypassNode, ToNumberNode, RandNode, AbsNode, ClampNode,
   OrNode, NotNode, SelectorNode,
   ToStringNode, CompareNode, ToUpperCaseNode, ContainsNode,
@@ -96,12 +96,37 @@ import {
   CrawlerStartResponseNode
 } from './BaseCodeboltNotifications/index';
 
+// Unified Agent nodes
+import {
+  AgentNode,
+  AgentStepNode,
+  InitialPromptGeneratorNode,
+  ResponseExecutorNode,
+  ToolNode,
+  WorkflowNode,
+  MessageProcessorNode
+} from './CodeboltAgentUnifiedMode/index';
+
+// Constants nodes
+import {
+  ConstNode,
+  ConstantNumberNode,
+  ConstantStringNode,
+  ConstantBooleanNode,
+  ConstantObjectNode
+} from './Constants/index';
+
+// Utility nodes
+import {
+  TimeNode,
+  RandomNode,
+  DelayNode,
+  LoggerNode
+} from './Utility/index';
+
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
 
 // Base nodes (legacy - to be refactored)
-import ConstantBooleanNode from './base/ConstantBooleanNode';
-import ConstantStringNode from './base/ConstantStringNode';
-import ConstantObjectNode from './base/ConstantObjectNode';
 import JSONParseNode from './base/JSONParseNode';
 import SubgraphNode from './base/SubgraphNode';
 import GraphInputNode from './base/GraphInputNode';
@@ -208,11 +233,18 @@ export {
   // Crawler Notification nodes
   CrawlerSearchRequestNode, CrawlerSearchResponseNode, CrawlerStartRequestNode, CrawlerStartResponseNode,
   // MCP Notification nodes
-  GetEnabledMCPServersRequestNode, GetEnabledMCPServersResultNode, 
+  GetEnabledMCPServersRequestNode, GetEnabledMCPServersResultNode,
   ListToolsFromMCPServersRequestNode, ListToolsFromMCPServersResultNode,
   GetToolsRequestNode, GetToolsResultNode, ExecuteToolRequestNode, ExecuteToolResultNode,
+  // Unified Agent nodes
+  AgentNode, AgentStepNode, InitialPromptGeneratorNode, ResponseExecutorNode,
+  ToolNode, WorkflowNode, MessageProcessorNode,
+  // Constants nodes
+  ConstNode, ConstantNumberNode, ConstantStringNode, ConstantBooleanNode, ConstantObjectNode,
+  // Utility nodes
+  TimeNode, RandomNode, DelayNode, LoggerNode,
   // Legacy nodes
-  ConstantBooleanNode, ConstantStringNode, ConstantObjectNode, JSONParseNode,
+  JSONParseNode,
   SubgraphNode, GraphInputNode, GraphOutputNode, ConverterNode, RangeNode,
   LerpNode, FloorNode, FracNode, SmoothStepNode, ScaleNode, GateNode,
   OperationNode, SequenceNode, AndNode, BranchNode, ConcatenateNode,
@@ -227,6 +259,16 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, SumNode, SumNode.metadata);
   registerNodeWithMetadata(LiteGraph, TimeNode, TimeNode.metadata);
   registerNodeWithMetadata(LiteGraph, ConstantNumberNode, ConstantNumberNode.metadata);
+
+  // Utility nodes
+  registerNodeWithMetadata(LiteGraph, RandomNode, RandomNode.metadata);
+  registerNodeWithMetadata(LiteGraph, DelayNode, DelayNode.metadata);
+  registerNodeWithMetadata(LiteGraph, LoggerNode, LoggerNode.metadata);
+
+  // Constants nodes
+  registerNodeWithMetadata(LiteGraph, ConstantStringNode, ConstantStringNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ConstantBooleanNode, ConstantBooleanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ConstantObjectNode, ConstantObjectNode.metadata);
 
   // Math nodes
   registerNodeWithMetadata(LiteGraph, BypassNode, BypassNode.metadata);
@@ -435,6 +477,15 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, GetToolsResultNode, GetToolsResultNode.metadata);
   registerNodeWithMetadata(LiteGraph, ExecuteToolRequestNode, ExecuteToolRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, ExecuteToolResultNode, ExecuteToolResultNode.metadata);
+
+  // Unified Agent nodes
+  registerNodeWithMetadata(LiteGraph, AgentNode, AgentNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentStepNode, AgentStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, InitialPromptGeneratorNode, InitialPromptGeneratorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ResponseExecutorNode, ResponseExecutorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ToolNode, ToolNode.metadata);
+  registerNodeWithMetadata(LiteGraph, WorkflowNode, WorkflowNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MessageProcessorNode, MessageProcessorNode.metadata);
 
   // AI Agent nodes
   registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);

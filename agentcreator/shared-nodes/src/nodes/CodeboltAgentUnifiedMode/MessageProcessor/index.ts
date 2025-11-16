@@ -1,0 +1,1 @@
+export { BaseMessageProcessorNode } from './BaseMessageProcessorNode';
