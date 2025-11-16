@@ -1,5 +1,6 @@
 // Export all base node classes
 export * from './BaseCodeboltApis';
+export * from './BaseCodeboltNotifications';
 export * from './Math';
 export * from './Logical';
 export * from './Constants';

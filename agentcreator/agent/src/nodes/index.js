@@ -41,6 +41,7 @@ export { MarkdownNode } from './MarkdownNode.js';
 
 // Codebolt nodes
 export * from './BaseCodeboltApis/index.js';
+export * from './BaseCodeboltNotifications/index.js';
 
 // AI Agent nodes
 export { UserMessageNode } from './UserMessageNode.js';

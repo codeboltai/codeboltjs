@@ -60,6 +60,42 @@ import { OnMessageNode, SendMessageNode,
   GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode
 } from './BaseCodeboltApis/index';
 
+// Browser Notification nodes
+import {
+  WebFetchRequestNode,
+  WebFetchResponseNode,
+  WebSearchRequestNode,
+  WebSearchResponseNode
+} from './BaseCodeboltNotifications/index';
+
+// LLM Notification nodes
+import {
+  LLMInferenceRequestNode,
+  LLMInferenceResponseNode,
+  LLMGetTokenCountNode,
+  LLMSendTokenCountResponseNode
+} from './BaseCodeboltNotifications/index';
+
+// MCP Notification nodes
+import {
+  GetEnabledMCPServersRequestNode,
+  GetEnabledMCPServersResultNode,
+  ListToolsFromMCPServersRequestNode,
+  ListToolsFromMCPServersResultNode,
+  GetToolsRequestNode,
+  GetToolsResultNode,
+  ExecuteToolRequestNode,
+  ExecuteToolResultNode
+} from './BaseCodeboltNotifications/index';
+
+// Crawler Notification nodes
+import {
+  CrawlerSearchRequestNode,
+  CrawlerSearchResponseNode,
+  CrawlerStartRequestNode,
+  CrawlerStartResponseNode
+} from './BaseCodeboltNotifications/index';
+
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
 
 // Base nodes (legacy - to be refactored)
@@ -165,6 +201,16 @@ export {
   ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
   // Action Plan nodes
   GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode,
+  // Browser Notification nodes
+  WebFetchRequestNode, WebFetchResponseNode, WebSearchRequestNode, WebSearchResponseNode,
+  // LLM Notification nodes
+  LLMInferenceRequestNode, LLMInferenceResponseNode, LLMGetTokenCountNode, LLMSendTokenCountResponseNode,
+  // Crawler Notification nodes
+  CrawlerSearchRequestNode, CrawlerSearchResponseNode, CrawlerStartRequestNode, CrawlerStartResponseNode,
+  // MCP Notification nodes
+  GetEnabledMCPServersRequestNode, GetEnabledMCPServersResultNode, 
+  ListToolsFromMCPServersRequestNode, ListToolsFromMCPServersResultNode,
+  GetToolsRequestNode, GetToolsResultNode, ExecuteToolRequestNode, ExecuteToolResultNode,
   // Legacy nodes
   ConstantBooleanNode, ConstantStringNode, ConstantObjectNode, JSONParseNode,
   SubgraphNode, GraphInputNode, GraphOutputNode, ConverterNode, RangeNode,
@@ -262,6 +308,13 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, CrawlerGoToPageNode, CrawlerGoToPageNode.metadata);
   registerNodeWithMetadata(LiteGraph, CrawlerScrollNode, CrawlerScrollNode.metadata);
   registerNodeWithMetadata(LiteGraph, CrawlerClickNode, CrawlerClickNode.metadata);
+
+  // Crawler Notification nodes
+  registerNodeWithMetadata(LiteGraph, CrawlerSearchRequestNode, CrawlerSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerSearchResponseNode, CrawlerSearchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerStartRequestNode, CrawlerStartRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CrawlerStartResponseNode, CrawlerStartResponseNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, MemoryAddNode, MemoryAddNode.metadata);
   registerNodeWithMetadata(LiteGraph, MemoryGetNode, MemoryGetNode.metadata);
   registerNodeWithMetadata(LiteGraph, MemoryJsonSaveNode, MemoryJsonSaveNode.metadata);
@@ -360,6 +413,28 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, AddTaskToActionPlanNode, AddTaskToActionPlanNode.metadata);
   registerNodeWithMetadata(LiteGraph, StartTaskStepNode, StartTaskStepNode.metadata);
   registerNodeWithMetadata(LiteGraph, StartTaskStepWithListenerNode, StartTaskStepWithListenerNode.metadata);
+
+  // Browser Notification nodes
+  registerNodeWithMetadata(LiteGraph, WebFetchRequestNode, WebFetchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, WebFetchResponseNode, WebFetchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, WebSearchRequestNode, WebSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, WebSearchResponseNode, WebSearchResponseNode.metadata);
+
+  // LLM Notification nodes
+  registerNodeWithMetadata(LiteGraph, LLMInferenceRequestNode, LLMInferenceRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, LLMInferenceResponseNode, LLMInferenceResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, LLMGetTokenCountNode, LLMGetTokenCountNode.metadata);
+  registerNodeWithMetadata(LiteGraph, LLMSendTokenCountResponseNode, LLMSendTokenCountResponseNode.metadata);
+
+  // MCP Notification nodes
+  registerNodeWithMetadata(LiteGraph, GetEnabledMCPServersRequestNode, GetEnabledMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetEnabledMCPServersResultNode, GetEnabledMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ListToolsFromMCPServersRequestNode, ListToolsFromMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ListToolsFromMCPServersResultNode, ListToolsFromMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetToolsRequestNode, GetToolsRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetToolsResultNode, GetToolsResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ExecuteToolRequestNode, ExecuteToolRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ExecuteToolResultNode, ExecuteToolResultNode.metadata);
 
   // AI Agent nodes
   registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
