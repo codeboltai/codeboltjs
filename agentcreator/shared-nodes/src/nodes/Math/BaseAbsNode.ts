@@ -27,7 +27,7 @@ export class BaseAbsNode extends LGraphNode {
 
   // Default implementation
   onExecute() {
-    const v = this.getInputData(0);
+    const v = Number(this.getInputData(0));
     this.setOutputData(0, this.calculateAbs(v));
   }
 }

@@ -9,7 +9,7 @@ export class BaseParseXMLNode extends LGraphNode {
     category: "codebolt/outputparsers",
     description: "Parses XML string and returns a result object",
     icon: "🏷️",
-    color": "#FF9800"
+    color: "#FF9800"
   };
 
   constructor() {

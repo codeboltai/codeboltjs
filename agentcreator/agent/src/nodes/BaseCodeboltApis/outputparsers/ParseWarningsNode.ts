@@ -1,5 +1,6 @@
 import { BaseParseWarningsNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceParsableOutput } from './utils';
 
 // Backend-specific ParseWarnings Node - actual implementation
 export class ParseWarningsNode extends BaseParseWarningsNode {
@@ -8,9 +9,10 @@ export class ParseWarningsNode extends BaseParseWarningsNode {
   }
 
   async onExecute() {
-    const output = this.getInputData(1);
+    const rawOutput = this.getInputData(1);
+    const output = coerceParsableOutput(rawOutput);
 
-    if (output === null || output === undefined) {
+    if (!output) {
       const errorMessage = 'Error: Output input is required';
       console.error('ParseWarningsNode error:', errorMessage);
       this.setOutputData(2, false);

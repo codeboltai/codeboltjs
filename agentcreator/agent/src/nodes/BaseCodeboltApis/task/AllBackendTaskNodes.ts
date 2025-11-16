@@ -20,6 +20,7 @@ import {
   BaseCreateTaskGroupNode
 } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { normalizeTaskStatus, TaskStatus } from './statusHelpers';
 
 // Backend-specific DeleteTask Node - actual implementation
 export class DeleteTaskNode extends BaseDeleteTaskNode {
@@ -174,10 +175,15 @@ export class GetTaskMessagesNode extends BaseGetTaskMessagesNode {
     }
 
     try {
-      const result = await codebolt.task.getTaskMessages({ taskId });
+      const result: any = await codebolt.task.getTaskMessages({ taskId });
 
       // Update outputs with success results
-      this.setOutputData(1, result.messages || []); // messages output
+      const messages = Array.isArray(result?.messages)
+        ? result.messages
+        : Array.isArray(result?.data?.messages)
+          ? result.data.messages
+          : [];
+      this.setOutputData(1, messages); // messages output
       this.setOutputData(2, true); // success output
 
       // Trigger the messagesRetrieved event
@@ -202,15 +208,16 @@ export class GetAllStepsNode extends BaseGetAllStepsNode {
     const taskId: any = this.getInputData(1);
     const status: any = this.getInputData(2);
 
-    const options = {};
-    if (taskId) options.taskId = taskId;
-    if (status) options.status = status;
+    const options: { taskId?: string; status?: TaskStatus } = {};
+    if (typeof taskId === 'string' && taskId.trim()) options.taskId = taskId.trim();
+    const normalizedStatus = normalizeTaskStatus(status);
+    if (normalizedStatus) options.status = normalizedStatus;
 
     try {
-      const result = await codebolt.task.getAllSteps(options);
+      const result: any = await codebolt.task.getAllSteps(options);
 
       // Update outputs with success results
-      this.setOutputData(1, result.steps || []); // steps output
+      this.setOutputData(1, (result?.steps ?? []) as any); // steps output
       this.setOutputData(2, true); // success output
 
       // Trigger the stepsRetrieved event
@@ -235,12 +242,12 @@ export class GetCurrentRunningStepNode extends BaseGetCurrentRunningStepNode {
     const taskId: any = this.getInputData(1);
     const agentId: any = this.getInputData(2);
 
-    const options = {};
-    if (taskId) options.taskId = taskId;
-    if (agentId) options.agentId = agentId;
+    const options: { taskId?: string; agentId?: string } = {};
+    if (typeof taskId === 'string' && taskId.trim()) options.taskId = taskId.trim();
+    if (typeof agentId === 'string' && agentId.trim()) options.agentId = agentId.trim();
 
     try {
-      const result = await codebolt.task.getCurrentRunningStep(options);
+      const result: any = await codebolt.task.getCurrentRunningStep(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // step output
@@ -385,10 +392,10 @@ export class CanTaskStartNode extends BaseCanTaskStartNode {
     }
 
     try {
-      const result = await codebolt.task.canTaskStart(taskId);
+      const result: any = await codebolt.task.canTaskStart(taskId);
 
       // Update outputs with success results
-      this.setOutputData(1, result.canStart || false); // canStart output
+      this.setOutputData(1, !!result?.canStart); // canStart output
       this.setOutputData(2, true); // success output
 
       // Trigger the canStartChecked event
@@ -419,10 +426,10 @@ export class GetTasksDependentOnNode extends BaseGetTasksDependentOnNode {
     }
 
     try {
-      const result = await codebolt.task.getTasksDependentOn(taskId);
+      const result: any = await codebolt.task.getTasksDependentOn(taskId);
 
       // Update outputs with success results
-      this.setOutputData(1, result.tasks || []); // tasks output
+      this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
       this.setOutputData(2, true); // success output
 
       // Trigger the dependentTasksRetrieved event
@@ -447,15 +454,15 @@ export class GetTasksReadyToStartNode extends BaseGetTasksReadyToStartNode {
     const threadId: any = this.getInputData(1);
     const environmentType: any = this.getInputData(2);
 
-    const options = {};
-    if (threadId) options.threadId = threadId;
-    if (environmentType) options.environmentType = environmentType;
+    const options: { threadId?: string; environmentType?: string } = {};
+    if (typeof threadId === 'string' && threadId.trim()) options.threadId = threadId.trim();
+    if (typeof environmentType === 'string' && environmentType.trim()) options.environmentType = environmentType.trim();
 
     try {
-      const result = await codebolt.task.getTasksReadyToStart(options);
+      const result: any = await codebolt.task.getTasksReadyToStart(options);
 
       // Update outputs with success results
-      this.setOutputData(1, result.tasks || []); // tasks output
+      this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
       this.setOutputData(2, true); // success output
 
       // Trigger the readyTasksRetrieved event
@@ -486,10 +493,10 @@ export class GetTaskDependencyChainNode extends BaseGetTaskDependencyChainNode {
     }
 
     try {
-      const result = await codebolt.task.getTaskDependencyChain(taskId);
+      const result: any = await codebolt.task.getTaskDependencyChain(taskId);
 
       // Update outputs with success results
-      this.setOutputData(1, result.chain || []); // chain output
+      this.setOutputData(1, (result?.chain ?? []) as any); // chain output
       this.setOutputData(2, true); // success output
 
       // Trigger the dependencyChainRetrieved event
@@ -514,12 +521,12 @@ export class GetTaskStatsNode extends BaseGetTaskStatsNode {
     const threadId: any = this.getInputData(1);
     const timeRange: any = this.getInputData(2);
 
-    const options = {};
-    if (threadId) options.threadId = threadId;
-    if (timeRange) options.timeRange = timeRange;
+    const options: { threadId?: string; timeRange?: string } = {};
+    if (typeof threadId === 'string' && threadId.trim()) options.threadId = threadId.trim();
+    if (typeof timeRange === 'string' && timeRange.trim()) options.timeRange = timeRange.trim();
 
     try {
-      const result = await codebolt.task.getTaskStats(options);
+      const result: any = await codebolt.task.getTaskStats(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // stats output
@@ -553,14 +560,15 @@ export class GetTasksStartedByMeNode extends BaseGetTasksStartedByMeNode {
       return;
     }
 
-    const options = { userId };
-    if (status) options.status = status;
+    const filters: { status?: TaskStatus } = {};
+    const normalizedStatus = normalizeTaskStatus(status);
+    if (normalizedStatus) filters.status = normalizedStatus;
 
     try {
-      const result = await codebolt.task.getTasksStartedByMe(userId, options);
+      const result: any = await codebolt.task.getTasksStartedByMe(userId, filters);
 
       // Update outputs with success results
-      this.setOutputData(1, result.tasks || []); // tasks output
+      this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
       this.setOutputData(2, true); // success output
 
       // Trigger the tasksRetrieved event

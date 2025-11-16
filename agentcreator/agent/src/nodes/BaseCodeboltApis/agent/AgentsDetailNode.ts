@@ -8,15 +8,26 @@ export class AgentsDetailNode extends BaseAgentsDetailNode {
   }
 
   async onExecute() {
-    const agentList = getArrayInput(this, 1, 'agentList', []);
+    const agentList = getArrayInput(this, 1, 'agentList', []) as unknown[];
+    const normalizedAgents: string[] = agentList
+      .map((value): string => {
+        if (typeof value === 'string') {
+          return value.trim();
+        }
+        if (value === null || value === undefined) {
+          return '';
+        }
+        return String(value).trim();
+      })
+      .filter((value) => value.length > 0);
 
-    if (!agentList.length) {
+    if (!normalizedAgents.length) {
       emitAgentFailure(this, 'Agent list is required to fetch details');
       return;
     }
 
     try {
-      const response = await codebolt.agent.getAgentsDetail(agentList);
+      const response = await codebolt.agent.getAgentsDetail(normalizedAgents as never[]);
       emitAgentSuccess(this, response);
     } catch (error) {
       emitAgentFailure(this, 'Failed to fetch agents detail', error);

@@ -43,7 +43,7 @@ export class BaseRandNode extends LGraphNode {
         const input = this.inputs[i];
         const v = this.getInputData(i);
         if (v !== undefined) {
-          this.properties[input.name] = v;
+          (this.properties as any)[input.name] = v;
         }
       }
     }

@@ -20,7 +20,7 @@ export class ExecuteCommandRunUntilErrorNode extends BaseExecuteCommandRunUntilE
     }
 
     try {
-      const errorResult = await codebolt.terminal.executeCommandRunUntilError(command, executeInMain);
+      const errorResult = await codebolt.terminal.executeCommandRunUntilError(command, executeInMain as boolean);
 
       // Update outputs with error results (this function resolves when error occurs)
       this.setOutputData(1, errorResult);

@@ -28,9 +28,9 @@ export class BaseTaskInstructionNode extends LGraphNode {
     this.addOutput("TaskInstruction", "object");
 
     // Add widgets for UI
-    this.addWidget("text", "Task Content", this.properties.taskContent, "onTaskContentChange");
-    this.addWidget("text", "File Path", this.properties.filePath, "onFilePathChange");
-    this.addWidget("text", "Task Name", this.properties.taskName, "onTaskNameChange");
+    this.addWidget("text", "Task Content", String(this.properties.taskContent), "onTaskContentChange");
+    this.addWidget("text", "File Path", String(this.properties.filePath), "onFilePathChange");
+    this.addWidget("text", "Task Name", String(this.properties.taskName), "onTaskNameChange");
   }
 
   onTaskContentChange(value) {

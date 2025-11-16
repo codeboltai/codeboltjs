@@ -20,7 +20,7 @@ export class ExecuteCommandNode extends BaseExecuteCommandNode {
     }
 
     try {
-      const result = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
+      const result = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess as boolean);
 
       // Update outputs with success results
       this.setOutputData(1, result);

@@ -21,16 +21,16 @@ export class BaseSumNode extends LGraphNode {
   }
 
   // Shared calculation logic
-  calculateSum(a, b) {
-    const precision = this.properties.precision || 1;
+  calculateSum(a: number, b: number) {
+    const precision = Number(this.properties.precision) || 1;
     const sum = (a || 0) + (b || 0);
     return Math.round(sum * Math.pow(10, precision)) / Math.pow(10, precision);
   }
 
   // Default implementation
   onExecute() {
-    const A = this.getInputData(0) || 0;
-    const B = this.getInputData(1) || 0;
+    const A = Number(this.getInputData(0)) || 0;
+    const B = Number(this.getInputData(1)) || 0;
     this.setOutputData(0, this.calculateSum(A, B));
   }
 }

@@ -1,6 +1,16 @@
 import { LGraphNode } from '@codebolt/litegraph';
 import { NodeMetadata } from '../../types/NodeMetadata';
 
+// Define extended properties interface for RangeNode
+interface RangeNodeProperties {
+  in?: number;
+  in_min?: number;
+  in_max?: number;
+  out_min?: number;
+  out_max?: number;
+  [key: string]: any;
+}
+
 export class BaseRangeNode extends LGraphNode {
   static metadata: NodeMetadata = {
     type: "math/range",
@@ -11,14 +21,21 @@ export class BaseRangeNode extends LGraphNode {
     color: "#2196F3"
   };
 
+  // Override properties type
+  properties: RangeNodeProperties;
+
   constructor() {
     super(BaseRangeNode.metadata.title, BaseRangeNode.metadata.type);
     this.title = BaseRangeNode.metadata.title;
-    this.addProperty("in", 0);
-    this.addProperty("in_min", 0);
-    this.addProperty("in_max", 1);
-    this.addProperty("out_min", 0);
-    this.addProperty("out_max", 1);
+
+    // Initialize properties with proper type
+    this.properties = {
+      in: 0,
+      in_min: 0,
+      in_max: 1,
+      out_min: 0,
+      out_max: 1
+    } as RangeNodeProperties;
 
     // Define inputs and outputs
     this.addInput("in", "number", { locked: true });
@@ -48,19 +65,19 @@ export class BaseRangeNode extends LGraphNode {
         const input = this.inputs[i];
         const v = this.getInputData(i);
         if (v !== undefined) {
-          this.properties[input.name] = v;
+          (this.properties as RangeNodeProperties)[input.name] = v;
         }
       }
     }
 
-    const inputValue = this.properties.in || 0;
-    const in_min = this.properties.in_min || 0;
-    const in_max = this.properties.in_max || 1;
-    const out_min = this.properties.out_min || 0;
-    const out_max = this.properties.out_max || 1;
+    const inputValue = Number((this.properties as RangeNodeProperties).in) || 0;
+    const in_min = Number((this.properties as RangeNodeProperties).in_min) || 0;
+    const in_max = Number((this.properties as RangeNodeProperties).in_max) || 1;
+    const out_min = Number((this.properties as RangeNodeProperties).out_min) || 0;
+    const out_max = Number((this.properties as RangeNodeProperties).out_max) || 1;
 
     (this as any)._last_v = this.convertRange(inputValue, in_min, in_max, out_min, out_max);
     this.setOutputData(0, (this as any)._last_v);
-    this.setOutputData(1, this.clamp((this as any)._last_v, out_min, out_max));
+    this.setOutputData(1, this.clamp(Number((this as any)._last_v), out_min, out_max));
   }
 }

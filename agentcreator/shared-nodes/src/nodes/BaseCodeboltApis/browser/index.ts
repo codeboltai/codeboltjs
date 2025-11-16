@@ -15,4 +15,4 @@ export { BaseScrollNode } from './BaseScrollNode';
 export { BaseTypeNode } from './BaseTypeNode';
 export { BaseClickNode } from './BaseClickNode';
 export { BaseEnterNode } from './BaseEnterNode';
-export { BaseSearchNode } from './BaseSearchNode';
+export { BaseBrowserSearchNode } from './BaseBrowserSearchNode';

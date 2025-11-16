@@ -1,4 +1,5 @@
-import { BaseRetrieveRelatedKnowledgeNode } from '../../../../../shared-nodes/src/nodes/BaseCodeboltApis/rag/BaseRetrieveRelatedKnowledgeNode';
+import { BaseRetrieveRelatedKnowledgeNode } from  '@agent-creator/shared-nodes';
+import codebolt from '@codebolt/codeboltjs';
 
 export class BackendRetrieveRelatedKnowledgeNode extends BaseRetrieveRelatedKnowledgeNode {
   constructor() {
@@ -7,9 +8,15 @@ export class BackendRetrieveRelatedKnowledgeNode extends BaseRetrieveRelatedKnow
 
   async onAction() {
     try {
-      const query = this.properties.query || this.getInputData(1);
-      const filename = this.properties.filename || this.getInputData(2);
-      const maxResults = this.properties.maxResults || 5;
+      const rawQuery = this.properties.query ?? this.getInputData(1);
+      const rawFilename = this.properties.filename ?? this.getInputData(2);
+      const rawMaxResults = this.properties.maxResults ?? this.getInputData(3) ?? 5;
+
+      const query = typeof rawQuery === 'string' ? rawQuery.trim() : String(rawQuery ?? '').trim();
+      const filename = rawFilename === null || rawFilename === undefined
+        ? undefined
+        : (typeof rawFilename === 'string' ? rawFilename.trim() : String(rawFilename).trim());
+      const maxResults = Number(rawMaxResults);
 
       if (!query) {
         throw new Error('Query is required');
@@ -17,11 +24,12 @@ export class BackendRetrieveRelatedKnowledgeNode extends BaseRetrieveRelatedKnow
 
       // Call the RAG API to retrieve related knowledge
       const result = await codebolt.rag.retrieve_related_knowledge(query, filename);
+      const resultsArray = Array.isArray(result) ? result : [];
       
       // If maxResults is specified, limit the results
-      const limitedResults = maxResults && result.length > maxResults 
-        ? result.slice(0, maxResults) 
-        : result;
+      const limitedResults = Number.isFinite(maxResults) && maxResults > 0 && resultsArray.length > maxResults
+        ? resultsArray.slice(0, maxResults)
+        : resultsArray;
       
       // Set outputs
       this.setOutputData(1, limitedResults);

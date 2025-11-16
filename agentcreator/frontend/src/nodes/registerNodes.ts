@@ -51,7 +51,13 @@ import { OnMessageNode, SendMessageNode,
   GetMentionedFilesNode, GetMentionedMCPsNode, GetCurrentFileNode, GetSelectionNode, GetRemixPromptNode,
   GetUploadedImagesNode, SetUserSessionDataNode, GetUserSessionDataNode,
   // VectorDB nodes
-  GetVectorNode, AddVectorItemNode, QueryVectorItemNode, QueryVectorItemsNode
+  GetVectorNode, AddVectorItemNode, QueryVectorItemNode, QueryVectorItemsNode,
+  // Utils nodes
+  EditFileAndApplyDiffNode,
+  // Output Parser nodes
+  ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
+  // Action Plan nodes
+  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode
 } from './BaseCodeboltApis/index';
 
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
@@ -153,6 +159,12 @@ export {
   GetUploadedImagesNode, SetUserSessionDataNode, GetUserSessionDataNode,
   // VectorDB nodes
   GetVectorNode, AddVectorItemNode, QueryVectorItemNode, QueryVectorItemsNode,
+  // Utils nodes
+  EditFileAndApplyDiffNode,
+  // Output Parser nodes
+  ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
+  // Action Plan nodes
+  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode,
   // Legacy nodes
   ConstantBooleanNode, ConstantStringNode, ConstantObjectNode, JSONParseNode,
   SubgraphNode, GraphInputNode, GraphOutputNode, ConverterNode, RangeNode,
@@ -327,6 +339,27 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, AddVectorItemNode, AddVectorItemNode.metadata);
   registerNodeWithMetadata(LiteGraph, QueryVectorItemNode, QueryVectorItemNode.metadata);
   registerNodeWithMetadata(LiteGraph, QueryVectorItemsNode, QueryVectorItemsNode.metadata);
+
+  // Utils nodes
+  registerNodeWithMetadata(LiteGraph, EditFileAndApplyDiffNode, EditFileAndApplyDiffNode.metadata);
+
+  // Output Parser nodes
+  registerNodeWithMetadata(LiteGraph, ParseCSVNode, ParseCSVNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ParseJSONNode, ParseJSONNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ParseXMLNode, ParseXMLNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ParseTextNode, ParseTextNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ParseErrorsNode, ParseErrorsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ParseWarningsNode, ParseWarningsNode.metadata);
+
+  // Action Plan nodes
+  registerNodeWithMetadata(LiteGraph, GetAllPlansNode, GetAllPlansNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetPlanDetailNode, GetPlanDetailNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetActionPlanDetailNode, GetActionPlanDetailNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CreateActionPlanNode, CreateActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UpdateActionPlanNode, UpdateActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AddTaskToActionPlanNode, AddTaskToActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, StartTaskStepNode, StartTaskStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, StartTaskStepWithListenerNode, StartTaskStepWithListenerNode.metadata);
 
   // AI Agent nodes
   registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);

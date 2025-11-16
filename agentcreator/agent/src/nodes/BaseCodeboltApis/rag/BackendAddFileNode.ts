@@ -1,4 +1,5 @@
-import { BaseAddFileNode } from '../../../../../shared-nodes/src/nodes/BaseCodeboltApis/rag/BaseAddFileNode';
+import { BaseAddFileNode } from '@agent-creator/shared-nodes';
+import codebolt from '@codebolt/codeboltjs';
 
 export class BackendAddFileNode extends BaseAddFileNode {
   constructor() {
@@ -7,8 +8,11 @@ export class BackendAddFileNode extends BaseAddFileNode {
 
   async onAction() {
     try {
-      const filename = this.properties.filename || this.getInputData(1);
-      const filePath = this.properties.filePath || this.getInputData(2);
+      const rawFilename = this.properties.filename ?? this.getInputData(1);
+      const rawFilePath = this.properties.filePath ?? this.getInputData(2);
+
+      const filename = typeof rawFilename === 'string' ? rawFilename.trim() : String(rawFilename ?? '').trim();
+      const filePath = typeof rawFilePath === 'string' ? rawFilePath.trim() : String(rawFilePath ?? '').trim();
 
       if (!filename || !filePath) {
         throw new Error('Filename and filePath are required');

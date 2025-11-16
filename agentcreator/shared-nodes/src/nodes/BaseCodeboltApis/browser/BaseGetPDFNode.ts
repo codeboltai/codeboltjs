@@ -9,7 +9,7 @@ export class BaseGetPDFNode extends LGraphNode {
     category: "codebolt/browser",
     description: "Retrieves the PDF content of the current page",
     icon: "📄",
-    color": "#F44336"
+    color: "#F44336"
   };
 
   constructor() {

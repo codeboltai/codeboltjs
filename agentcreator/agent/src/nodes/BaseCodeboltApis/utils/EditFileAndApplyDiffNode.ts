@@ -1,5 +1,5 @@
 import { BaseEditFileAndApplyDiffNode } from '@agent-creator/shared-nodes';
-import codebolt from '@codebolt/codeboltjs';
+import { editFileAndApplyDiff } from '@codebolt/codeboltjs';
 
 // Backend-specific EditFileAndApplyDiff Node - actual implementation
 export class EditFileAndApplyDiffNode extends BaseEditFileAndApplyDiffNode {
@@ -8,47 +8,20 @@ export class EditFileAndApplyDiffNode extends BaseEditFileAndApplyDiffNode {
   }
 
   async onExecute() {
-    const filePath = this.getInputData(1) || this.properties.filePath;
-    const diff = this.getInputData(2) || this.properties.diff;
-    const diffIdentifier = this.getInputData(3) || this.properties.diffIdentifier;
-    const prompt = this.getInputData(4) || this.properties.prompt;
-    const applyModel = this.getInputData(5) || this.properties.applyModel;
+    const filePath: any = this.getInputData(1);
+    const diff: any = this.getInputData(2);
+    const diffIdentifier: any = this.getInputData(3);
+    const prompt: any = this.getInputData(4);
+    const applyModel: any = this.getInputData(5);
 
-    // Validate required parameters
-    if (!filePath || typeof filePath !== 'string' || !filePath.trim()) {
-      const errorMessage = 'Error: File path cannot be empty';
-      console.error('EditFileAndApplyDiffNode error:', errorMessage);
+    if (!filePath || !diff || !diffIdentifier || !prompt) {
+      console.error('EditFileAndApplyDiffNode error: filePath, diff, diffIdentifier, and prompt are required');
       this.setOutputData(2, false);
-      this.setOutputData(1, null);
-      return;
-    }
-
-    if (!diff || typeof diff !== 'string' || !diff.trim()) {
-      const errorMessage = 'Error: Diff cannot be empty';
-      console.error('EditFileAndApplyDiffNode error:', errorMessage);
-      this.setOutputData(2, false);
-      this.setOutputData(1, null);
-      return;
-    }
-
-    if (!diffIdentifier || typeof diffIdentifier !== 'string' || !diffIdentifier.trim()) {
-      const errorMessage = 'Error: Diff identifier cannot be empty';
-      console.error('EditFileAndApplyDiffNode error:', errorMessage);
-      this.setOutputData(2, false);
-      this.setOutputData(1, null);
-      return;
-    }
-
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-      const errorMessage = 'Error: Prompt cannot be empty';
-      console.error('EditFileAndApplyDiffNode error:', errorMessage);
-      this.setOutputData(2, false);
-      this.setOutputData(1, null);
       return;
     }
 
     try {
-      const result = await codebolt.utils.editFileAndApplyDiff(
+      const result = await editFileAndApplyDiff(
         filePath,
         diff,
         diffIdentifier,
@@ -57,16 +30,16 @@ export class EditFileAndApplyDiffNode extends BaseEditFileAndApplyDiffNode {
       );
 
       // Update outputs with success results
-      this.setOutputData(1, result);
-      this.setOutputData(2, true);
+      this.setOutputData(1, result); // result output
+      this.setOutputData(2, true); // success output
 
-      // Trigger the fileEdited event
+      // Trigger the diffApplied event
       this.triggerSlot(0, null, null);
 
     } catch (error) {
-      const errorMessage = `Error editing file and applying diff: ${error}`;
-      this.setOutputData(1, null);
-      this.setOutputData(2, false);
+      const errorMessage = `Error: Failed to edit file and apply diff`;
+      this.setOutputData(1, null); // result output
+      this.setOutputData(2, false); // success output
       console.error('EditFileAndApplyDiffNode error:', error);
     }
   }

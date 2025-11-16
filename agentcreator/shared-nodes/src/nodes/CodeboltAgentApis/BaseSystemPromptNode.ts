@@ -1,9 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
+import { NodeMetadata } from '../../types';
 
 // Base class for SystemPrompt node
 export class BaseSystemPromptNode extends LGraphNode {
+  static metadata: NodeMetadata = {
+    type: "agent/system_prompt",
+    title: "System Prompt",
+    category: "agent",
+    description: "Creates a system prompt payload for agents",
+    icon: "🧠",
+    color: "#3F51B5"
+  };
   constructor() {
-    super();
+    super(BaseSystemPromptNode.metadata.title, BaseSystemPromptNode.metadata.type);
+    this.title = BaseSystemPromptNode.metadata.title;
     this.properties = {
       promptContent: '',
       filePath: './agent.yaml',
@@ -16,9 +26,9 @@ export class BaseSystemPromptNode extends LGraphNode {
     this.addOutput("SystemPrompt", "object");
 
     // Add widgets for UI
-    this.addWidget("text", "Prompt Content", this.properties.promptContent, "onPromptChange");
-    this.addWidget("text", "File Path", this.properties.filePath, "onFilePathChange");
-    this.addWidget("text", "Profile", this.properties.profile, "onProfileChange");
+    this.addWidget("text", "Prompt Content", String(this.properties.promptContent), "onPromptChange");
+    this.addWidget("text", "File Path", String(this.properties.filePath), "onFilePathChange");
+    this.addWidget("text", "Profile", String(this.properties.profile), "onProfileChange");
   }
 
   onPromptChange(value) {

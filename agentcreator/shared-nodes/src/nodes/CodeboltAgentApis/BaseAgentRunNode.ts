@@ -28,8 +28,8 @@ export class BaseAgentRunNode extends LGraphNode {
     this.addOutput("Execution Time", "number");
 
     // Add widgets for UI
-    this.addWidget("number", "Timeout (ms)", this.properties.timeout, "onTimeoutChange", { min: 5000, max: 300000, step: 5000 });
-    this.addWidget("number", "Retries", this.properties.retries, "onRetriesChange", { min: 0, max: 5, step: 1 });
+    this.addWidget("number", "Timeout (ms)", Number(this.properties.timeout), "onTimeoutChange", { min: 5000, max: 300000, step: 5000 });
+    this.addWidget("number", "Retries", Number(this.properties.retries), "onRetriesChange", { min: 0, max: 5, step: 1 });
   }
 
   onTimeoutChange(value) {
@@ -66,9 +66,9 @@ export class BaseAgentRunNode extends LGraphNode {
       const executionTime = Date.now() - startTime;
 
       this.setOutputData(0, result);
-      this.setOutputData(1, result.message || '');
-      this.setOutputData(2, result.success || false);
-      this.setOutputData(3, result.error || '');
+      this.setOutputData(1, (result as any).message || '');
+      this.setOutputData(2, (result as any).success || false);
+      this.setOutputData(3, (result as any).error || '');
       this.setOutputData(4, executionTime);
 
       console.log(`AgentRunNode ${this.id}: Execution completed in ${executionTime}ms`);

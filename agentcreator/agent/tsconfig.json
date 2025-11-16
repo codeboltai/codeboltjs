@@ -4,22 +4,23 @@
     "module": "ES2020",
     "lib": ["ES2020", "DOM"],
     "types": ["node"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
     "strict": false,
+    "noImplicitAny": false,
     "noEmit": false,
     "declaration": false,
     "outDir": "dist",
-    "rootDir": "src",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@codebolt/types"
-    ]
+      "./node_modules/@types"
+    ],
+    "preserveSymlinks": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "../shared-nodes/**/*.ts"]
+  "include": ["src/**/*", "../shared-nodes/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

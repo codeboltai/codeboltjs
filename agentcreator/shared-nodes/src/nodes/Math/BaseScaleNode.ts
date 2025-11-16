@@ -24,7 +24,7 @@ export class BaseScaleNode extends LGraphNode {
   // Shared scale logic
   scale(value: any, factor?: any): number {
     const val = value !== undefined ? Number(value) : 0;
-    const fac = factor !== undefined ? Number(factor) : this.properties.factor || 1;
+    const fac = factor !== undefined ? Number(factor) : Number(this.properties.factor) || 1;
     return val * fac;
   }
 }

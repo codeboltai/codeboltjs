@@ -13,13 +13,31 @@ export class CreateTaskNode extends BaseCreateTaskNode {
     const taskType: any = this.getInputData(3);
     const executionType: any = this.getInputData(4);
 
+    const normalizedName = typeof name === 'string' && name.trim() ? name.trim() : 'Unnamed Task';
+    const normalizedThreadId = typeof threadId === 'string' && threadId.trim() ? threadId.trim() : 'default-thread';
+
+    const allowedTaskTypes: Array<'interactive' | 'scheduled'> = ['interactive', 'scheduled'];
+    const normalizedTaskType: 'interactive' | 'scheduled' = allowedTaskTypes.includes(taskType)
+      ? taskType
+      : 'interactive';
+
+    const allowedExecutionTypes: Array<'manual' | 'scheduled' | 'immediate' | 'conditional'> = [
+      'manual',
+      'scheduled',
+      'immediate',
+      'conditional'
+    ];
+    const normalizedExecutionType: 'manual' | 'scheduled' | 'immediate' | 'conditional' = allowedExecutionTypes.includes(executionType)
+      ? executionType
+      : 'manual';
+
     const options = {
-      name: name || "Unnamed Task",
-      threadId: threadId || "default-thread",
-      taskType: taskType || "interactive",
-      executionType: executionType || "manual",
-      environmentType: "local",
-      startOption: "manual"
+      name: normalizedName,
+      threadId: normalizedThreadId,
+      taskType: normalizedTaskType,
+      executionType: normalizedExecutionType,
+      environmentType: 'local' as const,
+      startOption: 'manual' as const
     };
 
     try {

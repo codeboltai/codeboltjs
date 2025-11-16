@@ -1,5 +1,6 @@
 import { BaseParseXMLNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceStringInput } from './utils';
 
 // Backend-specific ParseXML Node - actual implementation
 export class ParseXMLNode extends BaseParseXMLNode {
@@ -8,9 +9,10 @@ export class ParseXMLNode extends BaseParseXMLNode {
   }
 
   async onExecute() {
-    const xmlString = this.getInputData(1);
+    const rawXml = this.getInputData(1) ?? this.properties?.xmlString;
+    const xmlString = coerceStringInput(rawXml);
 
-    if (xmlString === null || xmlString === undefined) {
+    if (xmlString === null) {
       const errorMessage = 'Error: XML string input is required';
       console.error('ParseXMLNode error:', errorMessage);
       this.setOutputData(4, false);

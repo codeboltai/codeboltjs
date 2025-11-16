@@ -13,7 +13,6 @@ export default defineConfig({
     rollupOptions: {
       external: ['@codebolt/litegraph'],
       output: {
-        preserveModules: true,
         entryFileNames: '[name].js',
         chunkFileNames: '[name].js',
         assetFileNames: '[name].[ext]'
@@ -36,9 +35,7 @@ export default defineConfig({
       outDir: 'dist',
       insertTypesEntry: true,
       rollupTypes: true,
-      outputDir: 'dist',
-      entryRoot: 'src',
-      fileName: 'index.d.ts'
+      entryRoot: 'src'
     })
   ]
 });

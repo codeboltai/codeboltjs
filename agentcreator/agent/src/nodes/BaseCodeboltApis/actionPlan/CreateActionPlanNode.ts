@@ -8,14 +8,26 @@ export class CreateActionPlanNode extends BaseCreateActionPlanNode {
   }
 
   async onExecute() {
-    const name = this.getInputData(1) || this.properties.name;
-    const description = this.getInputData(2) || this.properties.description;
-    const agentId = this.getInputData(3) || this.properties.agentId;
-    const agentName = this.getInputData(4) || this.properties.agentName;
-    const status = this.getInputData(5) || this.properties.status;
-    const planId = this.getInputData(6) || this.properties.planId;
+    const getStringInput = (index: number, propertyKey: keyof typeof this.properties) => {
+      const inputValue = this.getInputData(index);
+      if (typeof inputValue === 'string' && inputValue.trim()) {
+        return inputValue.trim();
+      }
 
-    if (!name || typeof name !== 'string' || !name.trim()) {
+      const propertyValue = this.properties?.[propertyKey];
+      return typeof propertyValue === 'string' && propertyValue.trim()
+        ? propertyValue.trim()
+        : undefined;
+    };
+
+    const name = getStringInput(1, 'name');
+    const description = getStringInput(2, 'description');
+    const agentId = getStringInput(3, 'agentId');
+    const agentName = getStringInput(4, 'agentName');
+    const status = getStringInput(5, 'status') ?? 'pending';
+    const planId = getStringInput(6, 'planId');
+
+    if (!name) {
       const errorMessage = 'Error: Action plan name cannot be empty';
       console.error('CreateActionPlanNode error:', errorMessage);
       this.setOutputData(2, false);
@@ -24,19 +36,25 @@ export class CreateActionPlanNode extends BaseCreateActionPlanNode {
     }
 
     try {
-      const payload = {
-        name,
-        description,
-        agentId,
-        agentName,
-        status,
-        planId
-      };
+      const payload: {
+        name: string;
+        description?: string;
+        agentId?: string;
+        agentName?: string;
+        status?: string;
+        planId?: string;
+      } = { name };
+
+      if (description) payload.description = description;
+      if (agentId) payload.agentId = agentId;
+      if (agentName) payload.agentName = agentName;
+      if (status) payload.status = status;
+      if (planId) payload.planId = planId;
 
       const result = await codebolt.actionPlan.createActionPlan(payload);
 
       // Update outputs with success results
-      this.setOutputData(1, result);
+      this.setOutputData(1, result as unknown as string);
       this.setOutputData(2, true);
 
       // Trigger the planCreated event

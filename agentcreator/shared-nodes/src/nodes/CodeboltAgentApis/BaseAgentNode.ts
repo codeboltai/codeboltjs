@@ -1,6 +1,19 @@
 import { LGraphNode } from '@codebolt/litegraph';
 import { NodeMetadata } from '../../types';
 
+// Define agent configuration interface
+interface AgentConfig {
+  model: string;
+  temperature: number;
+  maxTokens: number;
+}
+
+// Extended properties interface for AgentNode
+interface AgentNodeProperties {
+  agentConfig: AgentConfig;
+  [key: string]: any;
+}
+
 // Base class for Agent node
 export class BaseAgentNode extends LGraphNode {
   static metadata: NodeMetadata = {
@@ -11,16 +24,22 @@ export class BaseAgentNode extends LGraphNode {
     icon: "🤖",
     color: "#E91E63"
   };
+
+  // Override properties type
+  properties: AgentNodeProperties;
+
   constructor() {
     super(BaseAgentNode.metadata.title, BaseAgentNode.metadata.type);
     this.title = BaseAgentNode.metadata.title;
+
+    // Initialize properties with proper type
     this.properties = {
       agentConfig: {
         model: 'default',
         temperature: 0.7,
         maxTokens: 1000
       }
-    };
+    } as AgentNodeProperties;
 
     this.addInput("Agent Tools", "array");
     this.addInput("System Prompt", "object");
@@ -32,16 +51,16 @@ export class BaseAgentNode extends LGraphNode {
     this.addWidget("number", "Max Tokens", this.properties.agentConfig.maxTokens, "onMaxTokensChange", { min: 100, max: 4000, step: 100 });
   }
 
-  onModelChange(value) {
-    this.properties.agentConfig.model = value;
+  onModelChange(value: string) {
+    (this.properties as AgentNodeProperties).agentConfig.model = value;
   }
 
-  onTemperatureChange(value) {
-    this.properties.agentConfig.temperature = parseFloat(value);
+  onTemperatureChange(value: number) {
+    (this.properties as AgentNodeProperties).agentConfig.temperature = parseFloat(value.toString());
   }
 
-  onMaxTokensChange(value) {
-    this.properties.agentConfig.maxTokens = parseInt(value);
+  onMaxTokensChange(value: number) {
+    (this.properties as AgentNodeProperties).agentConfig.maxTokens = parseInt(value.toString());
   }
 
   async onExecute() {

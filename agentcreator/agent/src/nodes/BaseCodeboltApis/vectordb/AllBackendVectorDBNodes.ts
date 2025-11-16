@@ -3,7 +3,7 @@ import {
   BaseQueryVectorItemNode,
   BaseQueryVectorItemsNode
 } from '@agent-creator/shared-nodes';
-import VectorDB from '@codebolt/codeboltjs';
+import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetVector Node - actual implementation
 import { BaseGetVectorNode } from '@agent-creator/shared-nodes';
@@ -23,7 +23,7 @@ export class GetVectorNode extends BaseGetVectorNode {
     }
 
     try {
-      const result = await VectorDB.getVector(key);
+      const result = await codebolt.vectordb.getVector(key);
 
       // Update outputs with success results
       this.setOutputData(1, result); // vector output
@@ -57,7 +57,7 @@ export class AddVectorItemNode extends BaseAddVectorItemNode {
     }
 
     try {
-      const result = await VectorDB.addVectorItem(item);
+      const result = await codebolt.vectordb.addVectorItem(item);
 
       // Update outputs with success results
       this.setOutputData(1, result); // item output
@@ -91,7 +91,7 @@ export class QueryVectorItemNode extends BaseQueryVectorItemNode {
     }
 
     try {
-      const result = await VectorDB.queryVectorItem(key);
+      const result = await codebolt.vectordb.queryVectorItem(key);
 
       // Update outputs with success results
       this.setOutputData(1, result); // item output
@@ -116,17 +116,21 @@ export class QueryVectorItemsNode extends BaseQueryVectorItemsNode {
   }
 
   async onExecute() {
-    const items: any = this.getInputData(1);
-    const dbPath: any = this.getInputData(2);
+    const items: unknown = this.getInputData(1);
+    const dbPath: unknown = this.getInputData(2);
 
-    if (!items || !Array.isArray(items)) {
+    if (!Array.isArray(items)) {
       console.error('QueryVectorItemsNode error: items array is required');
       this.setOutputData(2, false);
       return;
     }
 
     try {
-      const result = await VectorDB.queryVectorItems(items, dbPath || "");
+      const normalizedItems = items.filter((item) => item !== undefined && item !== null);
+      const path = typeof dbPath === 'string' && dbPath.trim().length ? dbPath.trim() : '';
+
+      const queryVectorItems = codebolt.vectordb.queryVectorItems as unknown as (payload: any[], destination: string) => Promise<any>;
+      const result = await queryVectorItems(normalizedItems, path);
 
       // Update outputs with success results
       this.setOutputData(1, result); // items output

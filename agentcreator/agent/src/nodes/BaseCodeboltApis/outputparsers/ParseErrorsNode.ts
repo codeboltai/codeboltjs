@@ -1,5 +1,6 @@
 import { BaseParseErrorsNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceParsableOutput } from './utils';
 
 // Backend-specific ParseErrors Node - actual implementation
 export class ParseErrorsNode extends BaseParseErrorsNode {
@@ -8,9 +9,10 @@ export class ParseErrorsNode extends BaseParseErrorsNode {
   }
 
   async onExecute() {
-    const output = this.getInputData(1);
+    const rawOutput = this.getInputData(1);
+    const output = coerceParsableOutput(rawOutput);
 
-    if (output === null || output === undefined) {
+    if (!output) {
       const errorMessage = 'Error: Output input is required';
       console.error('ParseErrorsNode error:', errorMessage);
       this.setOutputData(2, false);

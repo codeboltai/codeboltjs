@@ -12,7 +12,7 @@ export class BaseGateNode extends LGraphNode {
   };
 
   constructor() {
-    super();
+    super(BaseGateNode.metadata.title, BaseGateNode.metadata.type);
     this.title = BaseGateNode.metadata.title;
     this.addProperty("open", true);
     this.addInput("v", "boolean");

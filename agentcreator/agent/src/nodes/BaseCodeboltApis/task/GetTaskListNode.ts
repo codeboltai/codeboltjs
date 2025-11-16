@@ -1,5 +1,6 @@
 import { BaseGetTaskListNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { normalizeTaskStatus, TaskStatus } from './statusHelpers';
 
 // Backend-specific GetTaskList Node - actual implementation
 export class GetTaskListNode extends BaseGetTaskListNode {
@@ -11,15 +12,21 @@ export class GetTaskListNode extends BaseGetTaskListNode {
     const threadId: any = this.getInputData(1);
     const status: any = this.getInputData(2);
 
-    const options = {};
-    if (threadId) options.threadId = threadId;
-    if (status) options.status = status;
+    const options: { threadId?: string; status?: TaskStatus } = {};
+    if (typeof threadId === 'string' && threadId.trim()) options.threadId = threadId.trim();
+    const normalizedStatus = normalizeTaskStatus(status);
+    if (normalizedStatus) options.status = normalizedStatus;
 
     try {
-      const result = await codebolt.task.getTaskList(options);
+      const result: any = await codebolt.task.getTaskList(options);
 
       // Update outputs with success results
-      this.setOutputData(1, result.tasks || []); // tasks output
+      const tasks = Array.isArray(result?.tasks)
+        ? result.tasks
+        : Array.isArray(result?.data?.tasks)
+          ? result.data.tasks
+          : [];
+      this.setOutputData(1, tasks); // tasks output
       this.setOutputData(2, true); // success output
 
       // Trigger the taskListRetrieved event

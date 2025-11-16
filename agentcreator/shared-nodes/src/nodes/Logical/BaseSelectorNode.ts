@@ -26,6 +26,6 @@ export class BaseSelectorNode extends LGraphNode {
   selectInput(inputs: any[], selectedIndex?: number): any {
     if (!inputs || inputs.length === 0) return null;
     const index = selectedIndex !== undefined ? selectedIndex : this.properties.index;
-    return inputs[Math.min(Math.max(0, Math.floor(index)), inputs.length - 1)];
+    return inputs[Math.min(Math.max(0, Math.floor(Number(index))), inputs.length - 1)];
   }
 }

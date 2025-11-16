@@ -1,5 +1,6 @@
 import { BaseParseTextNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceStringInput } from './utils';
 
 // Backend-specific ParseText Node - actual implementation
 export class ParseTextNode extends BaseParseTextNode {
@@ -8,9 +9,10 @@ export class ParseTextNode extends BaseParseTextNode {
   }
 
   async onExecute() {
-    const text = this.getInputData(1);
+    const rawText = this.getInputData(1) ?? this.properties?.text;
+    const text = coerceStringInput(rawText);
 
-    if (text === null || text === undefined) {
+    if (text === null) {
       const errorMessage = 'Error: Text input is required';
       console.error('ParseTextNode error:', errorMessage);
       this.setOutputData(4, false);

@@ -7,8 +7,20 @@ export class SumNode extends BaseSumNode {
 
   // Backend execution logic
   onExecute() {
-    const A = this.getInputData(0) || 0;
-    const B = this.getInputData(1) || 0;
-    this.setOutputData(0, this.calculateSum(A, B));
+    const toNumber = (value: unknown): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === 'string' && value.trim().length) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+      return 0;
+    };
+
+    const A = toNumber(this.getInputData(0));
+    const B = toNumber(this.getInputData(1));
+
+    this.setOutputData(0, this.calculateSum(A as number, B as number));
   }
 }

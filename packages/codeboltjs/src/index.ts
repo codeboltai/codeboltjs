@@ -180,3 +180,44 @@ export { Codebolt };
 module.exports = codebolt;
 module.exports.default = codebolt;
 module.exports.Codebolt = Codebolt;
+
+// ================================
+// Export specific utilities and enums
+// ================================
+
+// Export logType enum from debug module
+export { logType } from './modules/debug';
+
+// Export user message utilities
+export { userMessageUtilities } from './modules/user-message-utilities';
+
+// Export specific functions for backward compatibility
+import { userMessageUtilities } from './modules/user-message-utilities';
+export const getCurrentUserMessage = () => userMessageUtilities.getCurrent();
+export const getUserMessageText = () => userMessageUtilities.getText();
+export const hasCurrentUserMessage = () => userMessageUtilities.hasMessage();
+export const clearUserMessage = () => userMessageUtilities.clear();
+export const getMentionedFiles = () => userMessageUtilities.getMentionedFiles();
+export const getMentionedMCPs = () => userMessageUtilities.getMentionedMCPs();
+export const getCurrentFile = () => userMessageUtilities.getCurrentFile();
+export const getSelection = () => userMessageUtilities.getSelection();
+export const getRemixPrompt = () => userMessageUtilities.getRemixPrompt();
+export const getUploadedImages = () => userMessageUtilities.getUploadedImages();
+export const setUserSessionData = (key: string, value: any) => userMessageUtilities.setSessionData(key, value);
+export const getUserSessionData = (key: string) => userMessageUtilities.getSessionData(key);
+export const getUserMessageTimestamp = () => userMessageUtilities.getTimestamp();
+export const getMessageId = () => userMessageUtilities.getMessageId();
+
+// Export utilities functions
+export { default as utils } from './modules/utils';
+
+// Export vectordb functions
+import VectorDB from './modules/vectordb';
+export const getVector = (key: string) => VectorDB.getVector(key);
+export const addVectorItem = (item: any) => VectorDB.addVectorItem(item);
+export const queryVectorItem = (key: string) => VectorDB.queryVectorItem(key);
+export const queryVectorItems = (items: any[], dbPath: string) => VectorDB.queryVectorItems(items as [], dbPath);
+
+// Export utils functions
+import cbutils from './modules/utils';
+export const editFileAndApplyDiff = (filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel?: string) => cbutils.editFileAndApplyDiff(filePath, diff, diffIdentifier, prompt, applyModel);

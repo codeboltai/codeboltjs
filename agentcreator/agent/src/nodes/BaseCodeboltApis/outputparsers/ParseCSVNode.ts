@@ -1,5 +1,6 @@
 import { BaseParseCSVNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceStringInput } from './utils';
 
 // Backend-specific ParseCSV Node - actual implementation
 export class ParseCSVNode extends BaseParseCSVNode {
@@ -8,9 +9,10 @@ export class ParseCSVNode extends BaseParseCSVNode {
   }
 
   async onExecute() {
-    const csvString = this.getInputData(1);
+    const rawCsv = this.getInputData(1) ?? this.properties?.csvString;
+    const csvString = coerceStringInput(rawCsv);
 
-    if (csvString === null || csvString === undefined) {
+    if (csvString === null) {
       const errorMessage = 'Error: CSV string input is required';
       console.error('ParseCSVNode error:', errorMessage);
       this.setOutputData(4, false);

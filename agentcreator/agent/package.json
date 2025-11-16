@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@codebolt/codeboltjs":"workspace:*",
+    "@codebolt/types":"workspace:*",
     "@codebolt/litegraph": "workspace:*",
     "@agent-creator/shared-nodes": "workspace:*"
   },

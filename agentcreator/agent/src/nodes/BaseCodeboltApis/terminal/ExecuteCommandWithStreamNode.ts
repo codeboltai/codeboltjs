@@ -34,7 +34,7 @@ export class ExecuteCommandWithStreamNode extends BaseExecuteCommandWithStreamNo
 
     try {
       // Get the stream emitter
-      this.streamEmitter = codebolt.terminal.executeCommandWithStream(command, executeInMain);
+      this.streamEmitter = codebolt.terminal.executeCommandWithStream(command, executeInMain as boolean);
 
       // Set the stream emitter output
       this.setOutputData(7, this.streamEmitter);

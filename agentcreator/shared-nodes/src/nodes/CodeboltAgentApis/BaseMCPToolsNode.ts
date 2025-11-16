@@ -23,7 +23,7 @@ export class BaseMCPToolsNode extends LGraphNode {
     this.addOutput("Tools Count", "number");
 
     // Add widgets for UI
-    this.addWidget("text", "Servers (comma separated)", this.properties.servers.join(','), "onServersChange");
+    this.addWidget("text", "Servers (comma separated)", (this.properties.servers as string[]).join(','), "onServersChange");
   }
 
   onServersChange(value) {
@@ -31,7 +31,7 @@ export class BaseMCPToolsNode extends LGraphNode {
   }
 
   async onExecute() {
-    const servers = this.getInputData(0) || this.properties.servers;
+    const servers = (this.getInputData(0) || this.properties.servers) as string[];
 
     if (!servers || servers.length === 0) {
       console.error('MCPToolsNode: At least one server is required');

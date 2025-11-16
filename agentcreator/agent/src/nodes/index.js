@@ -207,6 +207,9 @@ import {
   QueryVectorItemNode as BackendQueryVectorItemNode,
   QueryVectorItemsNode as BackendQueryVectorItemsNode
 } from './BaseCodeboltApis/vectordb/index.js';
+import {
+  EditFileAndApplyDiffNode as BackendEditFileAndApplyDiffNode
+} from './BaseCodeboltApis/utils/index.js';
 
 export function registerBackendNodes() {
   // Register backend execution nodes
@@ -335,6 +338,9 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendAddVectorItemNode, BackendAddVectorItemNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendQueryVectorItemNode, BackendQueryVectorItemNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendQueryVectorItemsNode, BackendQueryVectorItemsNode.metadata);
+
+  // Register Utils nodes
+  registerNodeWithMetadata(LiteGraph, BackendEditFileAndApplyDiffNode, BackendEditFileAndApplyDiffNode.metadata);
 
   // Register RAG nodes
   registerNodeWithMetadata(LiteGraph, BackendAddFileNode, BackendAddFileNode.metadata);

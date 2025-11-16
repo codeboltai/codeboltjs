@@ -1,8 +1,8 @@
 import { LGraphNode, LiteGraph } from '@codebolt/litegraph';
 import { NodeMetadata } from '../../../types';
 
-// Base Search Node - Calls codebolt.browser.search
-export class BaseSearchNode extends LGraphNode {
+// Base Browser Search Node - Calls codebolt.browser.search
+export class BaseBrowserSearchNode extends LGraphNode {
   static metadata: NodeMetadata = {
     type: "codebolt/browser/search",
     title: "Search in Element",
@@ -13,8 +13,8 @@ export class BaseSearchNode extends LGraphNode {
   };
 
   constructor() {
-    super(BaseSearchNode.metadata.title, BaseSearchNode.metadata.type);
-    this.title = BaseSearchNode.metadata.title;
+    super(BaseBrowserSearchNode.metadata.title, BaseBrowserSearchNode.metadata.type);
+    this.title = BaseBrowserSearchNode.metadata.title;
     this.size = [180, 120];
 
     // Generic action input for event triggering

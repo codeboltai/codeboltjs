@@ -1,5 +1,6 @@
 import { BaseParseJSONNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { coerceStringInput } from './utils';
 
 // Backend-specific ParseJSON Node - actual implementation
 export class ParseJSONNode extends BaseParseJSONNode {
@@ -8,9 +9,10 @@ export class ParseJSONNode extends BaseParseJSONNode {
   }
 
   async onExecute() {
-    const jsonString = this.getInputData(1);
+    const rawJson = this.getInputData(1) ?? this.properties?.jsonString;
+    const jsonString = coerceStringInput(rawJson);
 
-    if (jsonString === null || jsonString === undefined) {
+    if (jsonString === null) {
       const errorMessage = 'Error: JSON string input is required';
       console.error('ParseJSONNode error:', errorMessage);
       this.setOutputData(4, false);

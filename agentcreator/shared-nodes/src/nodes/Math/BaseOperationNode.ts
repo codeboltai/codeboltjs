@@ -29,7 +29,7 @@ export class BaseOperationNode extends LGraphNode {
     this.title = BaseOperationNode.metadata.title;
     this.addProperty("A", 0);
     this.addProperty("B", 0);
-    this.addProperty("OP", "+", "enum", { values: BaseOperationNode.operations });
+    this.addProperty("OP", "+", "enum");
     this.addInput("A", "number,array,object");
     this.addInput("B", "number");
     this.addOutput("=", "number");
@@ -37,7 +37,7 @@ export class BaseOperationNode extends LGraphNode {
 
     // Properties used by frontend
     (this as any)._result = [];
-    (this as any)._func = BaseOperationNode.operationFuncs[this.properties.OP];
+    (this as any)._func = BaseOperationNode.operationFuncs[this.properties.OP as string];
   }
 
   // Shared operation logic
@@ -63,7 +63,7 @@ export class BaseOperationNode extends LGraphNode {
     if (name != "OP") {
       return false;
     }
-    (this as any)._func = BaseOperationNode.operationFuncs[this.properties.OP];
+    (this as any)._func = BaseOperationNode.operationFuncs[this.properties.OP as string];
     if (!(this as any)._func) {
       console.warn("Unknown operation: " + this.properties.OP);
       (this as any)._func = function(A: number) { return A; };
