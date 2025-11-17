@@ -15,7 +15,8 @@
       "Bash(npm run)",
       "Bash(node:*)",
       "Bash(timeout:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
