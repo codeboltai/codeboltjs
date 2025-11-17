@@ -1,6 +1,6 @@
 import { BaseStartAgentNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitAgentFailure, emitAgentSuccess, getStringInput } from './utils';
+import { emitAgentFailure, emitAgentSuccess, getStringInput } from './utils.js';
 
 export class StartAgentNode extends BaseStartAgentNode {
   constructor() {

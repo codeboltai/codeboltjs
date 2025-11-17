@@ -1,1 +1,1 @@
-export { AgentNode } from './AgentNode';
+export { AgentNode } from './AgentNode.js';

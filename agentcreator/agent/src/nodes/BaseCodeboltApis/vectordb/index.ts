@@ -3,4 +3,4 @@ export {
   AddVectorItemNode,
   QueryVectorItemNode,
   QueryVectorItemsNode
-} from './AllBackendVectorDBNodes';
+} from './AllBackendVectorDBNodes.js';

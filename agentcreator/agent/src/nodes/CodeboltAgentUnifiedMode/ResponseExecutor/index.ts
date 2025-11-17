@@ -1,1 +1,1 @@
-export { ResponseExecutorNode } from './ResponseExecutorNode';
+export { ResponseExecutorNode } from './ResponseExecutorNode.js';

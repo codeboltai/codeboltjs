@@ -1,9 +1,9 @@
 // Math nodes - export individual files
-export { BypassNode } from './BypassNode';
-export { ToNumberNode } from './ToNumberNode';
-export { RandNode } from './RandNode';
-export { AbsNode } from './AbsNode';
-export { ClampNode } from './ClampNode';
+export { BypassNode } from './BypassNode.js';
+export { ToNumberNode } from './ToNumberNode.js';
+export { RandNode } from './RandNode.js';
+export { AbsNode } from './AbsNode.js';
+export { ClampNode } from './ClampNode.js';
 export { SumNode } from './SumNode.js';
 export { RangeNode } from './RangeNode.js';
 export { LerpNode } from './LerpNode.js';
@@ -13,8 +13,4 @@ export { SmoothStepNode } from './SmoothStepNode.js';
 export { ScaleNode } from './ScaleNode.js';
 export { GateNode } from './GateNode.js';
 export { OperationNode } from './OperationNode.js';
-export { AbsNode as BackendAbsNode } from './AbsNode.js';
-export { ClampNode as BackendClampNode } from './ClampNode.js';
 export { ConverterNode } from './ConverterNode.js';
-export { RandNode as BackendRandNode } from './RandNode.js';
-export { ToNumberNode as BackendToNumberNode } from './ToNumberNode.js';

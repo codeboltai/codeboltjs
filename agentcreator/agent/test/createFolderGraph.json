@@ -1,0 +1,236 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000008",
+    "revision": 0,
+    "last_node_id": 90,
+    "last_link_id": 215,
+    "nodes": [
+      {
+        "id": 83,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [205]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 84,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 220.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [209]
+          }
+        ],
+        "properties": {
+          "value": "new_project"
+        }
+      },
+      {
+        "id": 85,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 300.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [211]
+          }
+        ],
+        "properties": {
+          "value": "./workspace/"
+        }
+      },
+      {
+        "id": 86,
+        "type": "codebolt/fs/createfolder",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 140],
+        "flags": {},
+        "order": 3,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 205
+          },
+          {
+            "name": "folderName",
+            "type": "string",
+            "link": 209
+          },
+          {
+            "name": "folderPath",
+            "type": "string",
+            "link": 211
+          }
+        ],
+        "outputs": [
+          {
+            "name": "folderCreated",
+            "type": -1,
+            "links": [207]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 87,
+        "type": "basic/const_string",
+        "pos": [432.703125, 416.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 4,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [213]
+          }
+        ],
+        "properties": {
+          "value": "Folder created successfully"
+        }
+      },
+      {
+        "id": 88,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 5,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 207
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 213
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [205, 83, 0, 86, 0, -1],
+      [207, 86, 0, 88, 0, -1],
+      [209, 84, 0, 86, 1, "string"],
+      [211, 85, 0, 86, 2, "string"],
+      [213, 87, 0, 88, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

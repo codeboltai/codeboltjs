@@ -1,0 +1,262 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000003",
+    "revision": 0,
+    "last_node_id": 52,
+    "last_link_id": 115,
+    "nodes": [
+      {
+        "id": 49,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [105]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 50,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 200.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [109]
+          }
+        ],
+        "properties": {
+          "value": "config.json"
+        }
+      },
+      {
+        "id": 51,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 280.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [111]
+          }
+        ],
+        "properties": {
+          "value": "./src/"
+        }
+      },
+      {
+        "id": 52,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 360.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 3,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [113]
+          }
+        ],
+        "properties": {
+          "value": "{\"version\": \"2.0.0\", \"updated\": true}"
+        }
+      },
+      {
+        "id": 53,
+        "type": "codebolt/fs/updatefile",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 160],
+        "flags": {},
+        "order": 4,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 105
+          },
+          {
+            "name": "filename",
+            "type": "string",
+            "link": 109
+          },
+          {
+            "name": "filePath",
+            "type": "string",
+            "link": 111
+          },
+          {
+            "name": "newContent",
+            "type": "string",
+            "link": 113
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fileUpdated",
+            "type": -1,
+            "links": [107]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 54,
+        "type": "basic/const_string",
+        "pos": [432.703125, 476.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 5,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [115]
+          }
+        ],
+        "properties": {
+          "value": "File updated successfully"
+        }
+      },
+      {
+        "id": 55,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 6,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 107
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 115
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [105, 49, 0, 53, 0, -1],
+      [107, 53, 0, 55, 0, -1],
+      [109, 50, 0, 53, 1, "string"],
+      [111, 51, 0, 53, 2, "string"],
+      [113, 52, 0, 53, 3, "string"],
+      [115, 54, 0, 55, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

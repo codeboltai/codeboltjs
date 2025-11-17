@@ -1,0 +1,340 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "revision": 0,
+    "last_node_id": 33,
+    "last_link_id": 69,
+    "nodes": [
+      {
+        "id": 32,
+        "type": "codebolt/fs/readfile",
+        "pos": [
+          450.7421875,
+          91.63671875
+        ],
+        "size": [
+          220,
+          100
+        ],
+        "flags": {},
+        "order": 3,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 63
+          },
+          {
+            "name": "filePath",
+            "type": "string",
+            "link": 69
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fileRead",
+            "type": -1,
+            "links": [
+              65
+            ]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          },
+          {
+            "name": "content",
+            "type": "string",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 28,
+        "type": "events/onmessage",
+        "pos": [
+          18.140625,
+          73.5546875
+        ],
+        "size": [
+          240,
+          300
+        ],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [
+              63
+            ]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 24,
+        "type": "basic/const_string",
+        "pos": [
+          432.703125,
+          356.859375
+        ],
+        "size": [
+          210,
+          58
+        ],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [
+              67
+            ]
+          }
+        ],
+        "properties": {
+          "value": "File Read Success"
+        }
+      },
+      {
+        "id": 33,
+        "type": "basic/const_string",
+        "pos": [
+          206.41015625,
+          310.1640625
+        ],
+        "size": [
+          210,
+          58
+        ],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [
+              69
+            ]
+          }
+        ],
+        "properties": {
+          "value": "test.js"
+        }
+      },
+      {
+        "id": 22,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [
+          714.171875,
+          207.94921875
+        ],
+        "size": [
+          220,
+          100
+        ],
+        "flags": {},
+        "order": 4,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 65
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 67
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [
+        1,
+        1,
+        1,
+        2,
+        1,
+        "string"
+      ],
+      [
+        35,
+        6,
+        1,
+        19,
+        1,
+        "string"
+      ],
+      [
+        52,
+        28,
+        1,
+        29,
+        1,
+        "string"
+      ],
+      [
+        53,
+        28,
+        1,
+        29,
+        2,
+        "string"
+      ],
+      [
+        54,
+        28,
+        1,
+        29,
+        3,
+        "string"
+      ],
+      [
+        59,
+        28,
+        1,
+        31,
+        1,
+        "string"
+      ],
+      [
+        60,
+        28,
+        1,
+        31,
+        2,
+        "string"
+      ],
+      [
+        63,
+        28,
+        0,
+        32,
+        0,
+        -1
+      ],
+      [
+        65,
+        32,
+        0,
+        22,
+        0,
+        -1
+      ],
+      [
+        67,
+        24,
+        0,
+        22,
+        1,
+        "string"
+      ],
+      [
+        69,
+        33,
+        0,
+        32,
+        1,
+        "string"
+      ]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [
+          0,
+          0.12109375
+        ]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

@@ -1,6 +1,6 @@
 import { BaseParseErrorsNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { coerceParsableOutput } from './utils';
+import { coerceParsableOutput } from './utils.js';
 
 // Backend-specific ParseErrors Node - actual implementation
 export class ParseErrorsNode extends BaseParseErrorsNode {

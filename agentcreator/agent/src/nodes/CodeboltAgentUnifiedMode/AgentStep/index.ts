@@ -1,1 +1,1 @@
-export { AgentStepNode } from './AgentStepNode';
+export { AgentStepNode } from './AgentStepNode.js';

@@ -10,7 +10,13 @@
       "Bash(find:*)",
       "Bash(cat:*)",
       "Bash(mkdir:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:agent:*)",
+      "Bash(npm run)",
+      "Bash(node:*)",
+      "Bash(timeout:*)",
+      "Bash(echo:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

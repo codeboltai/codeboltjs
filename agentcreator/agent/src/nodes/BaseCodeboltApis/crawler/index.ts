@@ -1,5 +1,5 @@
-export { CrawlerStartNode } from './CrawlerStartNode';
-export { CrawlerScreenshotNode } from './CrawlerScreenshotNode';
-export { CrawlerGoToPageNode } from './CrawlerGoToPageNode';
-export { CrawlerScrollNode } from './CrawlerScrollNode';
-export { CrawlerClickNode } from './CrawlerClickNode';
+export { CrawlerStartNode } from './CrawlerStartNode.js';
+export { CrawlerScreenshotNode } from './CrawlerScreenshotNode.js';
+export { CrawlerGoToPageNode } from './CrawlerGoToPageNode.js';
+export { CrawlerScrollNode } from './CrawlerScrollNode.js';
+export { CrawlerClickNode } from './CrawlerClickNode.js';

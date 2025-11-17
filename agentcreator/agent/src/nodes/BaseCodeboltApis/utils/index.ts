@@ -1,1 +1,1 @@
-export { EditFileAndApplyDiffNode } from './EditFileAndApplyDiffNode';
+export { EditFileAndApplyDiffNode } from './EditFileAndApplyDiffNode.js';

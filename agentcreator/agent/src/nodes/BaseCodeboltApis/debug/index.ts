@@ -1,2 +1,2 @@
-export { DebugNode } from './DebugNode';
-export { OpenDebugBrowserNode } from './OpenDebugBrowserNode';
+export { DebugNode } from './DebugNode.js';
+export { OpenDebugBrowserNode } from './OpenDebugBrowserNode.js';

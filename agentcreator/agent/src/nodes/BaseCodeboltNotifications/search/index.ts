@@ -1,9 +1,9 @@
 // Request Nodes
-export { SearchInitRequestNode } from './SearchInitRequestNode';
-export { SearchRequestNode } from './SearchRequestNode';
-export { GetFirstLinkRequestNode } from './GetFirstLinkRequestNode';
+export { SearchInitRequestNode } from './SearchInitRequestNode.js';
+export { SearchRequestNode } from './SearchRequestNode.js';
+export { GetFirstLinkRequestNode } from './GetFirstLinkRequestNode.js';
 
 // Response Nodes
-export { SearchInitResultNode } from './SearchInitResultNode';
-export { SearchResultNode } from './SearchResultNode';
-export { GetFirstLinkResultNode } from './GetFirstLinkResultNode';
+export { SearchInitResultNode } from './SearchInitResultNode.js';
+export { SearchResultNode } from './SearchResultNode.js';
+export { GetFirstLinkResultNode } from './GetFirstLinkResultNode.js';

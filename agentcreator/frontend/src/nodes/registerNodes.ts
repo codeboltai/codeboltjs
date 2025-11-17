@@ -62,7 +62,20 @@ import { OnMessageNode, SendMessageNode,
   // Output Parser nodes
   ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
   // Action Plan nodes
-  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode
+  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode,
+  // Terminal nodes
+  ExecuteCommandNode, ExecuteCommandRunUntilErrorNode, SendManualInterruptNode, ExecuteCommandWithStreamNode,
+  // Code Utils nodes
+  GetAllFilesAsMarkDownNode, PerformMatchNode, GetMatcherListNode, MatchDetailNode,
+  // Debug nodes
+  DebugNode, OpenDebugBrowserNode,
+  // State nodes
+  GetApplicationStateNode, AddToAgentStateNode, GetAgentStateNode, GetProjectStateNode, UpdateProjectStateNode,
+  // Tokenizer nodes
+  AddTokenNode, GetTokenNode,
+
+  // Inference nodes
+  InferenceNode, GetModelConfigNode
 } from './BaseCodeboltApis/index';
 
 // Browser Notification nodes
@@ -231,6 +244,16 @@ export {
   ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
   // Action Plan nodes
   GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode,
+  // Terminal nodes
+  ExecuteCommandNode, ExecuteCommandRunUntilErrorNode, SendManualInterruptNode, ExecuteCommandWithStreamNode,
+  // Code Utils nodes
+  GetAllFilesAsMarkDownNode, PerformMatchNode, GetMatcherListNode, MatchDetailNode,
+  // Debug nodes
+  DebugNode, OpenDebugBrowserNode,
+  // State nodes
+  GetApplicationStateNode, AddToAgentStateNode, GetAgentStateNode, GetProjectStateNode, UpdateProjectStateNode,
+  // Tokenizer nodes
+  AddTokenNode, GetTokenNode,
   // Browser Notification nodes
   WebFetchRequestNode, WebFetchResponseNode, WebSearchRequestNode, WebSearchResponseNode,
   // LLM Notification nodes
@@ -255,6 +278,8 @@ export {
   OperationNode, SequenceNode, AndNode, BranchNode, /* ConcatenateNode, */
   /* SplitNode, ToFixedNode, StringToTableNode, */ /* WidgetKnobNode, WidgetHSliderNode,
   WidgetProgressNode, WidgetTextNode, WidgetPanelNode */
+  // Inference nodes
+  InferenceNode, GetModelConfigNode
 };
 
 // Register all node types
@@ -492,6 +517,36 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, WorkflowNode, WorkflowNode.metadata);
   registerNodeWithMetadata(LiteGraph, MessageProcessorNode, MessageProcessorNode.metadata);
 
+  // Terminal nodes
+  registerNodeWithMetadata(LiteGraph, ExecuteCommandNode, ExecuteCommandNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ExecuteCommandRunUntilErrorNode, ExecuteCommandRunUntilErrorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SendManualInterruptNode, SendManualInterruptNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ExecuteCommandWithStreamNode, ExecuteCommandWithStreamNode.metadata);
+
+  // Code Utils nodes
+  registerNodeWithMetadata(LiteGraph, GetAllFilesAsMarkDownNode, GetAllFilesAsMarkDownNode.metadata);
+  registerNodeWithMetadata(LiteGraph, PerformMatchNode, PerformMatchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetMatcherListNode, GetMatcherListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, MatchDetailNode, MatchDetailNode.metadata);
+
+  // Debug nodes
+  registerNodeWithMetadata(LiteGraph, DebugNode, DebugNode.metadata);
+  registerNodeWithMetadata(LiteGraph, OpenDebugBrowserNode, OpenDebugBrowserNode.metadata);
+
+  // State nodes
+  registerNodeWithMetadata(LiteGraph, GetApplicationStateNode, GetApplicationStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AddToAgentStateNode, AddToAgentStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetAgentStateNode, GetAgentStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetProjectStateNode, GetProjectStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UpdateProjectStateNode, UpdateProjectStateNode.metadata);
+
+  // Tokenizer nodes
+  registerNodeWithMetadata(LiteGraph, AddTokenNode, AddTokenNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetTokenNode, GetTokenNode.metadata);
+
+  // Inference nodes
+  registerNodeWithMetadata(LiteGraph, InferenceNode, InferenceNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetModelConfigNode, GetModelConfigNode.metadata);
   // // AI Agent nodes
   // registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
   // registerNodeWithMetadata(LiteGraph, SystemPromptNode, SystemPromptNode.metadata);

@@ -1,6 +1,6 @@
 import { BaseProcessFinishedNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitChatFailure, emitChatSuccess } from './utils';
+import { emitChatFailure, emitChatSuccess } from './utils.js';
 
 export class ProcessFinishedNode extends BaseProcessFinishedNode {
   constructor() {

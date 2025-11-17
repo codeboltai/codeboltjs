@@ -1,6 +1,6 @@
 import { BaseMemoryTodoSaveNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitMemoryFailure, emitMemorySuccess, getObjectInput } from './utils';
+import { emitMemoryFailure, emitMemorySuccess, getObjectInput } from './utils.js';
 
 export class MemoryTodoSaveNode extends BaseMemoryTodoSaveNode {
   constructor() {

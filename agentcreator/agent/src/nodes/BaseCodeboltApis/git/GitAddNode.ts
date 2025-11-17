@@ -1,6 +1,6 @@
 import { BaseGitAddNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitGitFailure, emitGitSuccess } from './utils';
+import { emitGitFailure, emitGitSuccess } from './utils.js';
 
 export class GitAddNode extends BaseGitAddNode {
   constructor() {

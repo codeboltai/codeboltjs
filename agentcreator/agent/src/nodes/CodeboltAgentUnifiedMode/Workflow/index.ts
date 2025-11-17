@@ -1,1 +1,1 @@
-export { WorkflowNode } from './WorkflowNode';
+export { WorkflowNode } from './WorkflowNode.js';

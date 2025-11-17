@@ -1,6 +1,6 @@
 import { BaseMCPLocalServersNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitMCPFailure, emitMCPSuccess } from './utils';
+import { emitMCPFailure, emitMCPSuccess } from './utils.js';
 
 export class MCPLocalServersNode extends BaseMCPLocalServersNode {
   constructor() {

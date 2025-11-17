@@ -6,7 +6,7 @@ export class BaseSequenceNode extends LGraphNode {
   static metadata: NodeMetadata = {
     type: "logic/sequence",
     title: "Sequence",
-    category: "logic",
+    category: "logic/loop",
     description: "Selects one element from a sequence",
     icon: "≡",
     color: "#4CAF50"

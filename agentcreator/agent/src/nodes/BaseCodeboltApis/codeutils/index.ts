@@ -1,4 +1,4 @@
-export { GetAllFilesAsMarkDownNode } from './GetAllFilesAsMarkDownNode';
-export { PerformMatchNode } from './PerformMatchNode';
-export { GetMatcherListNode } from './GetMatcherListNode';
-export { MatchDetailNode } from './MatchDetailNode';
+export { GetAllFilesAsMarkDownNode } from './GetAllFilesAsMarkDownNode.js';
+export { PerformMatchNode } from './PerformMatchNode.js';
+export { GetMatcherListNode } from './GetMatcherListNode.js';
+export { MatchDetailNode } from './MatchDetailNode.js';

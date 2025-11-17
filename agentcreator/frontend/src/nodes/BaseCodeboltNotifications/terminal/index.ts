@@ -1,2 +1,2 @@
 // Terminal Notification Request Nodes - Frontend Implementations
-export { CommandExecutionRequestNode } from './CommandExecutionRequestNode';
+export { CommandExecutionRequestNode } from './CommandExecutionRequestNode.js';

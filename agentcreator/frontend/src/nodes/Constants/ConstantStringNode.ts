@@ -4,12 +4,22 @@ import { BaseConstantStringNode } from '@agent-creator/shared-nodes';
 export class ConstantStringNode extends BaseConstantStringNode {
   constructor() {
     super();
-    // Frontend-specific widget
-    if (this.widgets && this.widgets.length > 0) {
-      this.widgets[0] = this.addWidget("text", "value", this.properties.value as string, "value"); // link to property value
-    } else {
-      this.addWidget("text", "value", this.properties.value as string, "value"); // link to property value
-    }
+    // Frontend-specific widget with proper property synchronization
+    const widget = this.addWidget("text", "value", this.properties.value as string, "value");
+
+    // Set up widget change callback to update properties
+    widget.callback = (value: string) => {
+      this.properties.value = value; // Direct property update
+      // Also trigger property change notification
+      if (this.onPropertyChanged) {
+        this.onPropertyChanged("value", value, this.properties.value);
+      }
+      // Mark the graph as modified to ensure serialization picks up changes
+      if (this.graph) {
+        this.graph.change();
+      }
+    };
+
     this.widgets_up = true;
   }
 
@@ -33,9 +43,27 @@ export class ConstantStringNode extends BaseConstantStringNode {
     return result;
   }
 
+  
+  
+
+
+
   // Frontend-specific value setter
   setValue(v: string) {
-    this.setProperty("value", v);
+    this.properties.value = v; // Direct property update
+    if (this.widgets && this.widgets[0]) {
+      this.widgets[0].value = v; // Update widget as well
+    }
+    if (this.graph) {
+      this.graph.change(); // Mark graph as modified
+    }
+  }
+
+  // Force sync widget to property - call this before serialization
+  syncWidgetToProperty() {
+    if (this.widgets && this.widgets[0]) {
+      this.properties.value = this.widgets[0].value || "";
+    }
   }
 
   // Frontend-specific file drop handling
@@ -51,9 +79,32 @@ export class ConstantStringNode extends BaseConstantStringNode {
   onConfigure(info: any): void {
     super.onConfigure?.(info);
 
+    // Debug log to see what properties are loaded
+    console.log(`Frontend ConstantStringNode ${this.id}: configured with value="${this.properties.value}"`);
+
     // Restore widget value from properties
     if (this.widgets && this.widgets[0]) {
       this.widgets[0].value = this.properties.value || "";
     }
+  }
+
+  // Override serialize to ensure properties are included
+  serialize() {
+    // Sync widget value to property before serializing
+    this.syncWidgetToProperty();
+
+    const data = super.serialize();
+
+    // Force include the current value in serialization
+    if (!data.properties) {
+      data.properties = {};
+    }
+
+    // Double-check that the value is properly set
+    data.properties.value = this.properties.value || "";
+
+    console.log(`Frontend ConstantStringNode ${this.id}: serializing with final value="${data.properties.value}"`);
+
+    return data;
   }
 }

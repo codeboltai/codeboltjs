@@ -1,2 +1,2 @@
-export { GetStringVariableNode } from './GetStringVariableNode';
-export { SetStringVariableNode } from './SetStringVariableNode';
+export { GetStringVariableNode } from './GetStringVariableNode.js';
+export { SetStringVariableNode } from './SetStringVariableNode.js';

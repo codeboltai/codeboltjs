@@ -8,6 +8,7 @@ export class WriteToFileNode extends BaseWriteToFileNode {
   }
 
   async onExecute() {
+    console.log('WriteToFileNode executing:');
     const relPath = this.getInputData(1) as string;
     const newContent = this.getInputData(2) as string;
 

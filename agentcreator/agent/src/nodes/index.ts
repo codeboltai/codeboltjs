@@ -1,15 +1,8 @@
-// Backend execution nodes
-export { ConstNode } from './ConstNode.js';
-export { SumNode } from './SumNode.js';
+// Backend execution nodes and Constants nodes
+export * from './Constants/index.js';
 
 // Base nodes
-export { TimeNode } from './TimeNode.js';
-export { ConstantNumberNode } from './ConstantNumberNode.js';
-
-// Constants nodes
-export { ConstantStringNode } from './Constants/ConstantStringNode.js';
-export { ConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
-export { ConstantObjectNode } from './Constants/ConstantObjectNode.js';
+export { TimeNode } from './Utility/TimeNode.js';
 
 // Utility nodes
 export { RandomNode } from './Utility/RandomNode.js';
@@ -22,23 +15,31 @@ export {
   ToNumberNode,
   RandNode,
   AbsNode,
-  ClampNode
-} from './MathNodes.js';
+  ClampNode,
+  SumNode,
+  RangeNode,
+  LerpNode,
+  FloorNode,
+  FracNode,
+  SmoothStepNode,
+  ScaleNode,
+  GateNode,
+  OperationNode,
+  ConverterNode
+} from './Math/index.js';
 
 // Logic nodes
 export {
+  AndNode,
   OrNode,
   NotNode,
-  SelectorNode
-} from './LogicNodes.js';
+  SelectorNode,
+  SequenceNode,
+  BranchNode
+} from './Logical/index.js';
 
 // String nodes
-export {
-  ToStringNode,
-  CompareNode,
-  ToUpperCaseNode,
-  ContainsNode
-} from './StringNodes.js';
+export * from './String/index.js';
 
 // Variable nodes
 export {
@@ -47,7 +48,7 @@ export {
 } from './Variables/index.js';
 
 // Widget nodes
-export { MarkdownNode } from './MarkdownNode.js';
+export { MarkdownNode } from './Assets/MarkdownNode.js';
 
 // Codebolt nodes
 export * from './BaseCodeboltApis/index.js';
@@ -56,50 +57,45 @@ export * from './BaseCodeboltNotifications/index.js';
 // Unified Agent nodes
 export * from './CodeboltAgentUnifiedMode/index.js';
 
-// AI Agent nodes
-export { UserMessageNode } from './UserMessageNode.js';
-export { SystemPromptNode } from './SystemPromptNode.js';
-export { MCPToolsNode } from './MCPToolsNode.js';
-export { TaskInstructionNode } from './TaskInstructionNode.js';
-export { AgentNode } from './AgentNode.js';
-export { AgentRunNode } from './AgentRunNode.js';
+// AI Agent nodes - now exported from Unified Mode
 
 // Backend node registration utility
 import { LiteGraph } from '@codebolt/litegraph';
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
-import { ConstNode as BackendConstNode } from './ConstNode.js';
-import { SumNode as BackendSumNode } from './SumNode.js';
-import { TimeNode as BackendTimeNode } from './TimeNode.js';
-import { ConstantNumberNode as BackendConstantNumberNode } from './ConstantNumberNode.js';
+import { ConstNode as BackendConstNode } from './Constants/index.js';
+import { TimeNode as BackendTimeNode } from './Utility/TimeNode.js';
+import { ConstantNumberNode as BackendConstantNumberNode } from './Constants/index.js';
 import {
   BypassNode as BackendBypassNode,
   ToNumberNode as BackendToNumberNode,
   RandNode as BackendRandNode,
   AbsNode as BackendAbsNode,
-  ClampNode as BackendClampNode
-} from './MathNodes.js';
+  ClampNode as BackendClampNode,
+  SumNode as BackendSumNode,
+  RangeNode as BackendRangeNode,
+  LerpNode as BackendLerpNode,
+  FloorNode as BackendFloorNode,
+  FracNode as BackendFracNode,
+  SmoothStepNode as BackendSmoothStepNode,
+  ScaleNode as BackendScaleNode,
+  GateNode as BackendGateNode,
+  OperationNode as BackendOperationNode,
+  ConverterNode as BackendConverterNode
+} from './Math/index.js';
 import {
+  AndNode as BackendAndNode,
   OrNode as BackendOrNode,
   NotNode as BackendNotNode,
-  SelectorNode as BackendSelectorNode
-} from './LogicNodes.js';
-import {
-  ToStringNode as BackendToStringNode,
-  CompareNode as BackendCompareNode,
-  ToUpperCaseNode as BackendToUpperCaseNode,
-  ContainsNode as BackendContainsNode
-} from './StringNodes.js';
+  SelectorNode as BackendSelectorNode,
+  SequenceNode as BackendSequenceNode,
+  BranchNode as BackendBranchNode
+} from './Logical/index.js';
+import * as BackendStringNodes from './String/index.js';
 import {
   GetStringVariableNode as BackendGetStringVariableNode,
   SetStringVariableNode as BackendSetStringVariableNode
 } from './Variables/index.js';
-import { MarkdownNode as BackendMarkdownNode } from './MarkdownNode.js';
-import { UserMessageNode as BackendUserMessageNode } from './UserMessageNode.js';
-import { SystemPromptNode as BackendSystemPromptNode } from './SystemPromptNode.js';
-import { MCPToolsNode as BackendMCPToolsNode } from './MCPToolsNode.js';
-import { TaskInstructionNode as BackendTaskInstructionNode } from './TaskInstructionNode.js';
-import { AgentNode as BackendAgentNode } from './AgentNode.js';
-import { AgentRunNode as BackendAgentRunNode } from './AgentRunNode.js';
+import { MarkdownNode as BackendMarkdownNode } from './Assets/MarkdownNode.js';
 import { OnMessageNode as BackendOnMessageNode } from './BaseCodeboltApis/events/OnMessageNode.js';
 import {
   SendMessageNode as BackendSendMessageNode,
@@ -113,6 +109,32 @@ import {
   SendNotificationEventNode as BackendSendNotificationEventNode
 } from './BaseCodeboltApis/chat/index.js';
 import {
+  ReadFileNode as BackendReadFileNode,
+  WriteToFileNode as BackendWriteToFileNode,
+  CreateFileNode as BackendCreateFileNode,
+  ListFileNode as BackendListFileNode,
+  CreateFolderNode as BackendCreateFolderNode,
+  UpdateFileNode as BackendUpdateFileNode,
+  DeleteFileNode as BackendDeleteFileNode,
+  DeleteFolderNode as BackendDeleteFolderNode,
+  SearchFilesNode as BackendSearchFilesNode,
+  GrepSearchNode as BackendGrepSearchNode,
+  FileSearchNode as BackendFileSearchNode,
+  EditFileWithDiffNode as BackendEditFileWithDiffNode,
+  ReadManyFilesNode as BackendReadManyFilesNode,
+  ListDirectoryNode as BackendListDirectoryNode
+} from './BaseCodeboltApis/fs/index.js';
+import {
+  GetAllPlansNode as BackendGetAllPlansNode,
+  GetPlanDetailNode as BackendGetPlanDetailNode,
+  GetActionPlanDetailNode as BackendGetActionPlanDetailNode,
+  CreateActionPlanNode as BackendCreateActionPlanNode,
+  UpdateActionPlanNode as BackendUpdateActionPlanNode,
+  AddTaskToActionPlanNode as BackendAddTaskToActionPlanNode,
+  StartTaskStepNode as BackendStartTaskStepNode,
+  StartTaskStepWithListenerNode as BackendStartTaskStepWithListenerNode
+} from './BaseCodeboltApis/actionPlan/index.js';
+import {
   GitInitNode as BackendGitInitNode,
   GitPullNode as BackendGitPullNode,
   GitPushNode as BackendGitPushNode,
@@ -124,6 +146,12 @@ import {
   GitLogsNode as BackendGitLogsNode,
   GitDiffNode as BackendGitDiffNode
 } from './BaseCodeboltApis/git/index.js';
+import {
+  ExecuteCommandNode as BackendExecuteCommandNode,
+  ExecuteCommandRunUntilErrorNode as BackendExecuteCommandRunUntilErrorNode,
+  SendManualInterruptNode as BackendSendManualInterruptNode,
+  ExecuteCommandWithStreamNode as BackendExecuteCommandWithStreamNode
+} from './BaseCodeboltApis/terminal/index.js';
 import {
   FindAgentNode as BackendFindAgentNode,
   StartAgentNode as BackendStartAgentNode,
@@ -141,6 +169,12 @@ import {
   BackendAddFileNode,
   BackendRetrieveRelatedKnowledgeNode
 } from './BaseCodeboltApis/rag/index.js';
+import {
+  GetAllFilesAsMarkDownNode as BackendGetAllFilesAsMarkDownNode,
+  PerformMatchNode as BackendPerformMatchNode,
+  GetMatcherListNode as BackendGetMatcherListNode,
+  MatchDetailNode as BackendMatchDetailNode
+} from './BaseCodeboltApis/codeutils/index.js';
 
 import {
   MemoryAddNode as BackendMemoryAddNode,
@@ -163,6 +197,10 @@ import {
   SummarizePartNode as BackendSummarizePartNode
 } from './BaseCodeboltApis/history/index.js';
 import {
+  InferenceNode as BackendInferenceNode,
+  GetModelConfigNode as BackendGetModelConfigNode
+} from './BaseCodeboltApis/llm/index.js';
+import {
   MCPGetEnabledNode as BackendMCPGetEnabledNode,
   MCPLocalServersNode as BackendMCPLocalServersNode,
   MCPMentionedServersNode as BackendMCPMentionedServersNode,
@@ -176,6 +214,10 @@ import {
   SearchNode as BackendSearchNode,
   GetFirstLinkNode as BackendGetFirstLinkNode
 } from './BaseCodeboltApis/search/index.js';
+import {
+  DebugNode as BackendDebugNode,
+  OpenDebugBrowserNode as BackendOpenDebugBrowserNode
+} from './BaseCodeboltApis/debug/index.js';
 import {
   CreateTaskNode as BackendCreateTaskNode,
   GetTaskListNode as BackendGetTaskListNode,
@@ -202,6 +244,13 @@ import {
   CreateTaskGroupNode as BackendCreateTaskGroupNode
 } from './BaseCodeboltApis/task/index.js';
 import {
+  GetApplicationStateNode as BackendGetApplicationStateNode,
+  AddToAgentStateNode as BackendAddToAgentStateNode,
+  GetAgentStateNode as BackendGetAgentStateNode,
+  GetProjectStateNode as BackendGetProjectStateNode,
+  UpdateProjectStateNode as BackendUpdateProjectStateNode
+} from './BaseCodeboltApis/state/index.js';
+import {
   GetCurrentUserMessageNode as BackendGetCurrentUserMessageNode,
   GetUserMessageTextNode as BackendGetUserMessageTextNode,
   HasCurrentUserMessageNode as BackendHasCurrentUserMessageNode,
@@ -224,6 +273,18 @@ import {
 import {
   EditFileAndApplyDiffNode as BackendEditFileAndApplyDiffNode
 } from './BaseCodeboltApis/utils/index.js';
+import {
+  AddTokenNode as BackendAddTokenNode,
+  GetTokenNode as BackendGetTokenNode
+} from './BaseCodeboltApis/tokenizer/index.js';
+import {
+  ParseJSONNode as BackendParseJSONNode,
+  ParseXMLNode as BackendParseXMLNode,
+  ParseCSVNode as BackendParseCSVNode,
+  ParseTextNode as BackendParseTextNode,
+  ParseErrorsNode as BackendParseErrorsNode,
+  ParseWarningsNode as BackendParseWarningsNode
+} from './BaseCodeboltApis/outputparsers/index.js';
 
 // Unified Agent nodes
 import {
@@ -236,10 +297,40 @@ import {
   MessageProcessorNode as BackendMessageProcessorNode
 } from './CodeboltAgentUnifiedMode/index.js';
 
+// Notification nodes
+import {
+  LLMInferenceRequestNode as BackendLLMInferenceRequestNode,
+  LLMInferenceResponseNode as BackendLLMInferenceResponseNode,
+  LLMGetTokenCountNode as BackendLLMGetTokenCountNode,
+  LLMSendTokenCountResponseNode as BackendLLMSendTokenCountResponseNode
+} from './BaseCodeboltNotifications/llm/index.js';
+import {
+  WebFetchRequestNode as BackendWebFetchRequestNode,
+  WebFetchResponseNode as BackendWebFetchResponseNode,
+  WebSearchRequestNode as BackendWebSearchRequestNode,
+  WebSearchResponseNode as BackendWebSearchResponseNode
+} from './BaseCodeboltNotifications/browser/index.js';
+import {
+  GetEnabledMCPServersRequestNode as BackendGetEnabledMCPServersRequestNode,
+  GetEnabledMCPServersResultNode as BackendGetEnabledMCPServersResultNode,
+  ListToolsFromMCPServersRequestNode as BackendListToolsFromMCPServersRequestNode,
+  ListToolsFromMCPServersResultNode as BackendListToolsFromMCPServersResultNode,
+  GetToolsRequestNode as BackendGetToolsRequestNode,
+  GetToolsResultNode as BackendGetToolsResultNode,
+  ExecuteToolRequestNode as BackendExecuteToolRequestNode,
+  ExecuteToolResultNode as BackendExecuteToolResultNode
+} from './BaseCodeboltNotifications/mcp/index.js';
+import {
+  CrawlerSearchRequestNode as BackendCrawlerSearchRequestNode,
+  CrawlerSearchResponseNode as BackendCrawlerSearchResponseNode,
+  CrawlerStartRequestNode as BackendCrawlerStartRequestNode,
+  CrawlerStartResponseNode as BackendCrawlerStartResponseNode
+} from './BaseCodeboltNotifications/crawler/index.js';
+
 // Constants nodes
-import { ConstantStringNode as BackendConstantStringNode } from './Constants/ConstantStringNode.js';
-import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
-import { ConstantObjectNode as BackendConstantObjectNode } from './Constants/ConstantObjectNode.js';
+import { ConstantStringNode as BackendConstantStringNode } from './Constants/index.js';
+import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/index.js';
+import { ConstantObjectNode as BackendConstantObjectNode } from './Constants/index.js';
 
 // Utility nodes
 import { RandomNode as BackendRandomNode } from './Utility/RandomNode.js';
@@ -266,13 +357,27 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendRandNode, BackendRandNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAbsNode, BackendAbsNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendClampNode, BackendClampNode.metadata);
+
+  // Register additional Math nodes
+  registerNodeWithMetadata(LiteGraph, BackendSumNode, BackendSumNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendRangeNode, BackendRangeNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLerpNode, BackendLerpNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFloorNode, BackendFloorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFracNode, BackendFracNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSmoothStepNode, BackendSmoothStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendScaleNode, BackendScaleNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGateNode, BackendGateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendOperationNode, BackendOperationNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConverterNode, BackendConverterNode.metadata);
+
+  // Register Logical nodes
+  registerNodeWithMetadata(LiteGraph, BackendAndNode, BackendAndNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendOrNode, BackendOrNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendNotNode, BackendNotNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSelectorNode, BackendSelectorNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendToStringNode, BackendToStringNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendCompareNode, BackendCompareNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendToUpperCaseNode, BackendToUpperCaseNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendContainsNode, BackendContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSequenceNode, BackendSequenceNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendBranchNode, BackendBranchNode.metadata);
+  // String nodes are registered via export * from './String' - they handle their own registration
   registerNodeWithMetadata(LiteGraph, BackendGetStringVariableNode, BackendGetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSetStringVariableNode, BackendSetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, BackendMarkdownNode.metadata);
@@ -282,6 +387,23 @@ export function registerBackendNodes() {
 
   // Register Codebolt nodes
   registerNodeWithMetadata(LiteGraph, BackendSendMessageNode, BackendSendMessageNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendReadFileNode, BackendReadFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWriteToFileNode, BackendWriteToFileNode.metadata);
+
+  // Register additional File System nodes
+  registerNodeWithMetadata(LiteGraph, BackendCreateFileNode, BackendCreateFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListFileNode, BackendListFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCreateFolderNode, BackendCreateFolderNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendUpdateFileNode, BackendUpdateFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendDeleteFileNode, BackendDeleteFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendDeleteFolderNode, BackendDeleteFolderNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSearchFilesNode, BackendSearchFilesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGrepSearchNode, BackendGrepSearchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFileSearchNode, BackendFileSearchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendEditFileWithDiffNode, BackendEditFileWithDiffNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendReadManyFilesNode, BackendReadManyFilesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListDirectoryNode, BackendListDirectoryNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendGetChatHistoryNode, BackendGetChatHistoryNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWaitForReplyNode, BackendWaitForReplyNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendProcessStartedNode, BackendProcessStartedNode.metadata);
@@ -300,10 +422,28 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendGitBranchNode, BackendGitBranchNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitLogsNode, BackendGitLogsNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitDiffNode, BackendGitDiffNode.metadata);
+
+  // Register Terminal nodes
+  registerNodeWithMetadata(LiteGraph, BackendExecuteCommandNode, BackendExecuteCommandNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteCommandRunUntilErrorNode, BackendExecuteCommandRunUntilErrorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSendManualInterruptNode, BackendSendManualInterruptNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteCommandWithStreamNode, BackendExecuteCommandWithStreamNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendFindAgentNode, BackendFindAgentNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendStartAgentNode, BackendStartAgentNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendListAgentsNode, BackendListAgentsNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAgentsDetailNode, BackendAgentsDetailNode.metadata);
+
+  // Register ActionPlan nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetAllPlansNode, BackendGetAllPlansNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetPlanDetailNode, BackendGetPlanDetailNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetActionPlanDetailNode, BackendGetActionPlanDetailNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCreateActionPlanNode, BackendCreateActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendUpdateActionPlanNode, BackendUpdateActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAddTaskToActionPlanNode, BackendAddTaskToActionPlanNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStartTaskStepNode, BackendStartTaskStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStartTaskStepWithListenerNode, BackendStartTaskStepWithListenerNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendCrawlerStartNode, BackendCrawlerStartNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendCrawlerScreenshotNode, BackendCrawlerScreenshotNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendCrawlerGoToPageNode, BackendCrawlerGoToPageNode.metadata);
@@ -325,6 +465,11 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendMemoryMarkdownListNode, BackendMemoryMarkdownListNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSummarizeAllNode, BackendSummarizeAllNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSummarizePartNode, BackendSummarizePartNode.metadata);
+
+  // Register LLM nodes
+  registerNodeWithMetadata(LiteGraph, BackendInferenceNode, BackendInferenceNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetModelConfigNode, BackendGetModelConfigNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendMCPGetEnabledNode, BackendMCPGetEnabledNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMCPLocalServersNode, BackendMCPLocalServersNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMCPMentionedServersNode, BackendMCPMentionedServersNode.metadata);
@@ -337,6 +482,10 @@ export function registerBackendNodes() {
   // Register Search nodes
   registerNodeWithMetadata(LiteGraph, BackendSearchNode, BackendSearchNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGetFirstLinkNode, BackendGetFirstLinkNode.metadata);
+
+  // Register Debug nodes
+  registerNodeWithMetadata(LiteGraph, BackendDebugNode, BackendDebugNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendOpenDebugBrowserNode, BackendOpenDebugBrowserNode.metadata);
 
   // Register Task Management nodes
   registerNodeWithMetadata(LiteGraph, BackendCreateTaskNode, BackendCreateTaskNode.metadata);
@@ -363,6 +512,13 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendGetAttachedMemoryForTaskNode, BackendGetAttachedMemoryForTaskNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendCreateTaskGroupNode, BackendCreateTaskGroupNode.metadata);
 
+  // Register State nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetApplicationStateNode, BackendGetApplicationStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAddToAgentStateNode, BackendAddToAgentStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetAgentStateNode, BackendGetAgentStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetProjectStateNode, BackendGetProjectStateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendUpdateProjectStateNode, BackendUpdateProjectStateNode.metadata);
+
   // Register User Message Manager nodes
   registerNodeWithMetadata(LiteGraph, BackendGetCurrentUserMessageNode, BackendGetCurrentUserMessageNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGetUserMessageTextNode, BackendGetUserMessageTextNode.metadata);
@@ -386,17 +542,29 @@ export function registerBackendNodes() {
   // Register Utils nodes
   registerNodeWithMetadata(LiteGraph, BackendEditFileAndApplyDiffNode, BackendEditFileAndApplyDiffNode.metadata);
 
+  // Register Tokenizer nodes
+  registerNodeWithMetadata(LiteGraph, BackendAddTokenNode, BackendAddTokenNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetTokenNode, BackendGetTokenNode.metadata);
+
+  // Register Output parser nodes
+  registerNodeWithMetadata(LiteGraph, BackendParseJSONNode, BackendParseJSONNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendParseXMLNode, BackendParseXMLNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendParseCSVNode, BackendParseCSVNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendParseTextNode, BackendParseTextNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendParseErrorsNode, BackendParseErrorsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendParseWarningsNode, BackendParseWarningsNode.metadata);
+
+  // Register Codeutils nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetAllFilesAsMarkDownNode, BackendGetAllFilesAsMarkDownNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendPerformMatchNode, BackendPerformMatchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetMatcherListNode, BackendGetMatcherListNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendMatchDetailNode, BackendMatchDetailNode.metadata);
+
   // Register RAG nodes
   registerNodeWithMetadata(LiteGraph, BackendAddFileNode, BackendAddFileNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendRetrieveRelatedKnowledgeNode, BackendRetrieveRelatedKnowledgeNode.metadata);
 
-  // Register AI Agent nodes
-  registerNodeWithMetadata(LiteGraph, BackendUserMessageNode, BackendUserMessageNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendSystemPromptNode, BackendSystemPromptNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendMCPToolsNode, BackendMCPToolsNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendTaskInstructionNode, BackendTaskInstructionNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendAgentNode, BackendAgentNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendAgentRunNode, BackendAgentRunNode.metadata);
+  // AI Agent nodes are now handled by the Unified Agent nodes export
 
   // Register Unified Agent nodes
   registerNodeWithMetadata(LiteGraph, BackendAgentUnifiedNode, BackendAgentUnifiedNode.metadata);
@@ -406,4 +574,33 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendToolNode, BackendToolNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWorkflowNode, BackendWorkflowNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMessageProcessorNode, BackendMessageProcessorNode.metadata);
+
+  // Register Notification nodes
+  // Browser Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendWebFetchRequestNode, BackendWebFetchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebFetchResponseNode, BackendWebFetchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebSearchRequestNode, BackendWebSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebSearchResponseNode, BackendWebSearchResponseNode.metadata);
+
+  // LLM Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendLLMInferenceRequestNode, BackendLLMInferenceRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMInferenceResponseNode, BackendLLMInferenceResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMGetTokenCountNode, BackendLLMGetTokenCountNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMSendTokenCountResponseNode, BackendLLMSendTokenCountResponseNode.metadata);
+
+  // MCP Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetEnabledMCPServersRequestNode, BackendGetEnabledMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetEnabledMCPServersResultNode, BackendGetEnabledMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListToolsFromMCPServersRequestNode, BackendListToolsFromMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListToolsFromMCPServersResultNode, BackendListToolsFromMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetToolsRequestNode, BackendGetToolsRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetToolsResultNode, BackendGetToolsResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteToolRequestNode, BackendExecuteToolRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteToolResultNode, BackendExecuteToolResultNode.metadata);
+
+  // Crawler Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerSearchRequestNode, BackendCrawlerSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerSearchResponseNode, BackendCrawlerSearchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerStartRequestNode, BackendCrawlerStartRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerStartResponseNode, BackendCrawlerStartResponseNode.metadata);
 }

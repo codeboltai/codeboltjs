@@ -1,6 +1,6 @@
 import { BaseMCPConfigureNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitMCPFailure, emitMCPSuccess, getObjectInput, getStringInput } from './utils';
+import { emitMCPFailure, emitMCPSuccess, getObjectInput, getStringInput } from './utils.js';
 
 export class MCPConfigureNode extends BaseMCPConfigureNode {
   constructor() {

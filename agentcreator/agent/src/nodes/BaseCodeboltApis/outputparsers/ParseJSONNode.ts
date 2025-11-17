@@ -1,6 +1,6 @@
 import { BaseParseJSONNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { coerceStringInput } from './utils';
+import { coerceStringInput } from './utils.js';
 
 // Backend-specific ParseJSON Node - actual implementation
 export class ParseJSONNode extends BaseParseJSONNode {

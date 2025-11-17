@@ -1,7 +1,7 @@
 // Logical Nodes - Backend Implementations
-export { AndNode } from './AndNode';
-export { OrNode } from './OrNode';
-export { NotNode } from './NotNode';
-export { SelectorNode } from './SelectorNode';
-export { SequenceNode } from './SequenceNode';
-export { BranchNode } from './BranchNode';
+export { AndNode } from './AndNode.js';
+export { OrNode } from './OrNode.js';
+export { NotNode } from './NotNode.js';
+export { SelectorNode } from './SelectorNode.js';
+export { SequenceNode } from './SequenceNode.js';
+export { BranchNode } from './BranchNode.js';
