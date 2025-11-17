@@ -110,8 +110,19 @@ import {
 } from './BaseCodeboltApis/chat/index.js';
 import {
   ReadFileNode as BackendReadFileNode,
-  WriteToFileNode as BackendWriteToFileNode
-
+  WriteToFileNode as BackendWriteToFileNode,
+  CreateFileNode as BackendCreateFileNode,
+  ListFileNode as BackendListFileNode,
+  CreateFolderNode as BackendCreateFolderNode,
+  UpdateFileNode as BackendUpdateFileNode,
+  DeleteFileNode as BackendDeleteFileNode,
+  DeleteFolderNode as BackendDeleteFolderNode,
+  SearchFilesNode as BackendSearchFilesNode,
+  GrepSearchNode as BackendGrepSearchNode,
+  FileSearchNode as BackendFileSearchNode,
+  EditFileWithDiffNode as BackendEditFileWithDiffNode,
+  ReadManyFilesNode as BackendReadManyFilesNode,
+  ListDirectoryNode as BackendListDirectoryNode
 } from './BaseCodeboltApis/fs/index.js';
 import {
   GetAllPlansNode as BackendGetAllPlansNode,
@@ -263,6 +274,10 @@ import {
   EditFileAndApplyDiffNode as BackendEditFileAndApplyDiffNode
 } from './BaseCodeboltApis/utils/index.js';
 import {
+  AddTokenNode as BackendAddTokenNode,
+  GetTokenNode as BackendGetTokenNode
+} from './BaseCodeboltApis/tokenizer/index.js';
+import {
   ParseJSONNode as BackendParseJSONNode,
   ParseXMLNode as BackendParseXMLNode,
   ParseCSVNode as BackendParseCSVNode,
@@ -344,6 +359,21 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendSendMessageNode, BackendSendMessageNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendReadFileNode, BackendReadFileNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWriteToFileNode, BackendWriteToFileNode.metadata);
+
+  // Register additional File System nodes
+  registerNodeWithMetadata(LiteGraph, BackendCreateFileNode, BackendCreateFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListFileNode, BackendListFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCreateFolderNode, BackendCreateFolderNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendUpdateFileNode, BackendUpdateFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendDeleteFileNode, BackendDeleteFileNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendDeleteFolderNode, BackendDeleteFolderNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSearchFilesNode, BackendSearchFilesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGrepSearchNode, BackendGrepSearchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFileSearchNode, BackendFileSearchNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendEditFileWithDiffNode, BackendEditFileWithDiffNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendReadManyFilesNode, BackendReadManyFilesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListDirectoryNode, BackendListDirectoryNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendGetChatHistoryNode, BackendGetChatHistoryNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWaitForReplyNode, BackendWaitForReplyNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendProcessStartedNode, BackendProcessStartedNode.metadata);
@@ -481,6 +511,10 @@ export function registerBackendNodes() {
 
   // Register Utils nodes
   registerNodeWithMetadata(LiteGraph, BackendEditFileAndApplyDiffNode, BackendEditFileAndApplyDiffNode.metadata);
+
+  // Register Tokenizer nodes
+  registerNodeWithMetadata(LiteGraph, BackendAddTokenNode, BackendAddTokenNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetTokenNode, BackendGetTokenNode.metadata);
 
   // Register Output parser nodes
   registerNodeWithMetadata(LiteGraph, BackendParseJSONNode, BackendParseJSONNode.metadata);
