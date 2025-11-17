@@ -62,7 +62,10 @@ import { OnMessageNode, SendMessageNode,
   // Output Parser nodes
   ParseCSVNode, ParseJSONNode, ParseXMLNode, ParseTextNode, ParseErrorsNode, ParseWarningsNode,
   // Action Plan nodes
-  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode
+  GetAllPlansNode, GetPlanDetailNode, GetActionPlanDetailNode, CreateActionPlanNode, UpdateActionPlanNode, AddTaskToActionPlanNode, StartTaskStepNode, StartTaskStepWithListenerNode,
+
+  // Inference nodes
+  InferenceNode
 } from './BaseCodeboltApis/index';
 
 // Browser Notification nodes
@@ -255,6 +258,8 @@ export {
   OperationNode, SequenceNode, AndNode, BranchNode, /* ConcatenateNode, */
   /* SplitNode, ToFixedNode, StringToTableNode, */ /* WidgetKnobNode, WidgetHSliderNode,
   WidgetProgressNode, WidgetTextNode, WidgetPanelNode */
+  // Inference nodes
+  InferenceNode
 };
 
 // Register all node types
@@ -492,6 +497,9 @@ export const registerNodes = () => {
   registerNodeWithMetadata(LiteGraph, WorkflowNode, WorkflowNode.metadata);
   registerNodeWithMetadata(LiteGraph, MessageProcessorNode, MessageProcessorNode.metadata);
 
+  // Inference nodes
+  registerNodeWithMetadata(LiteGraph, InferenceNode, InferenceNode.metadata);
+  // registerNodeWithMetadata(LiteGraph, GetModelConfigNode, GetModelConfigNode.metadata);
   // // AI Agent nodes
   // registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
   // registerNodeWithMetadata(LiteGraph, SystemPromptNode, SystemPromptNode.metadata);

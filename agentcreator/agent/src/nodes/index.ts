@@ -297,6 +297,36 @@ import {
   MessageProcessorNode as BackendMessageProcessorNode
 } from './CodeboltAgentUnifiedMode/index.js';
 
+// Notification nodes
+import {
+  LLMInferenceRequestNode as BackendLLMInferenceRequestNode,
+  LLMInferenceResponseNode as BackendLLMInferenceResponseNode,
+  LLMGetTokenCountNode as BackendLLMGetTokenCountNode,
+  LLMSendTokenCountResponseNode as BackendLLMSendTokenCountResponseNode
+} from './BaseCodeboltNotifications/llm/index.js';
+import {
+  WebFetchRequestNode as BackendWebFetchRequestNode,
+  WebFetchResponseNode as BackendWebFetchResponseNode,
+  WebSearchRequestNode as BackendWebSearchRequestNode,
+  WebSearchResponseNode as BackendWebSearchResponseNode
+} from './BaseCodeboltNotifications/browser/index.js';
+import {
+  GetEnabledMCPServersRequestNode as BackendGetEnabledMCPServersRequestNode,
+  GetEnabledMCPServersResultNode as BackendGetEnabledMCPServersResultNode,
+  ListToolsFromMCPServersRequestNode as BackendListToolsFromMCPServersRequestNode,
+  ListToolsFromMCPServersResultNode as BackendListToolsFromMCPServersResultNode,
+  GetToolsRequestNode as BackendGetToolsRequestNode,
+  GetToolsResultNode as BackendGetToolsResultNode,
+  ExecuteToolRequestNode as BackendExecuteToolRequestNode,
+  ExecuteToolResultNode as BackendExecuteToolResultNode
+} from './BaseCodeboltNotifications/mcp/index.js';
+import {
+  CrawlerSearchRequestNode as BackendCrawlerSearchRequestNode,
+  CrawlerSearchResponseNode as BackendCrawlerSearchResponseNode,
+  CrawlerStartRequestNode as BackendCrawlerStartRequestNode,
+  CrawlerStartResponseNode as BackendCrawlerStartResponseNode
+} from './BaseCodeboltNotifications/crawler/index.js';
+
 // Constants nodes
 import { ConstantStringNode as BackendConstantStringNode } from './Constants/index.js';
 import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/index.js';
@@ -544,4 +574,33 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendToolNode, BackendToolNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWorkflowNode, BackendWorkflowNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMessageProcessorNode, BackendMessageProcessorNode.metadata);
+
+  // Register Notification nodes
+  // Browser Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendWebFetchRequestNode, BackendWebFetchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebFetchResponseNode, BackendWebFetchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebSearchRequestNode, BackendWebSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendWebSearchResponseNode, BackendWebSearchResponseNode.metadata);
+
+  // LLM Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendLLMInferenceRequestNode, BackendLLMInferenceRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMInferenceResponseNode, BackendLLMInferenceResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMGetTokenCountNode, BackendLLMGetTokenCountNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLLMSendTokenCountResponseNode, BackendLLMSendTokenCountResponseNode.metadata);
+
+  // MCP Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetEnabledMCPServersRequestNode, BackendGetEnabledMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetEnabledMCPServersResultNode, BackendGetEnabledMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListToolsFromMCPServersRequestNode, BackendListToolsFromMCPServersRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendListToolsFromMCPServersResultNode, BackendListToolsFromMCPServersResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetToolsRequestNode, BackendGetToolsRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGetToolsResultNode, BackendGetToolsResultNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteToolRequestNode, BackendExecuteToolRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendExecuteToolResultNode, BackendExecuteToolResultNode.metadata);
+
+  // Crawler Notification nodes
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerSearchRequestNode, BackendCrawlerSearchRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerSearchResponseNode, BackendCrawlerSearchResponseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerStartRequestNode, BackendCrawlerStartRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCrawlerStartResponseNode, BackendCrawlerStartResponseNode.metadata);
 }
