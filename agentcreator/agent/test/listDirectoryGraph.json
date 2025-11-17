@@ -1,0 +1,220 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000009",
+    "revision": 0,
+    "last_node_id": 98,
+    "last_link_id": 235,
+    "nodes": [
+      {
+        "id": 89,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [225]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 90,
+        "type": "basic/const_object",
+        "pos": [206.41015625, 250.1640625],
+        "size": [210, 100],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "object",
+            "links": [229]
+          }
+        ],
+        "properties": {
+          "value": {
+            "path": "./src",
+            "recursive": true,
+            "includeHidden": false,
+            "detailedInfo": true
+          }
+        }
+      },
+      {
+        "id": 91,
+        "type": "codebolt/fs/listdirectory",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 2,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 225
+          },
+          {
+            "name": "params",
+            "type": "object",
+            "link": 229
+          }
+        ],
+        "outputs": [
+          {
+            "name": "directoryListed",
+            "type": -1,
+            "links": [227]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          },
+          {
+            "name": "contents",
+            "type": "array",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 92,
+        "type": "basic/const_string",
+        "pos": [432.703125, 416.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 3,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [231]
+          }
+        ],
+        "properties": {
+          "value": "Directory listed successfully"
+        }
+      },
+      {
+        "id": 93,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 4,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 227
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 231
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [225, 89, 0, 91, 0, -1],
+      [227, 91, 0, 93, 0, -1],
+      [229, 90, 0, 91, 1, "object"],
+      [231, 92, 0, 93, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

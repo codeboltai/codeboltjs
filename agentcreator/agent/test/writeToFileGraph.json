@@ -1,0 +1,236 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "revision": 0,
+    "last_node_id": 46,
+    "last_link_id": 95,
+    "nodes": [
+      {
+        "id": 43,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [85]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 44,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 250.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [89]
+          }
+        ],
+        "properties": {
+          "value": "output.txt"
+        }
+      },
+      {
+        "id": 45,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 350.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [91]
+          }
+        ],
+        "properties": {
+          "value": "Hello, this is the file content!"
+        }
+      },
+      {
+        "id": 46,
+        "type": "codebolt/fs/writetofile",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 140],
+        "flags": {},
+        "order": 3,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 85
+          },
+          {
+            "name": "relPath",
+            "type": "string",
+            "link": 89
+          },
+          {
+            "name": "newContent",
+            "type": "string",
+            "link": 91
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fileWritten",
+            "type": -1,
+            "links": [87]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 47,
+        "type": "basic/const_string",
+        "pos": [432.703125, 456.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 4,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [93]
+          }
+        ],
+        "properties": {
+          "value": "File written successfully"
+        }
+      },
+      {
+        "id": 48,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 5,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 87
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 93
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [85, 43, 0, 46, 0, -1],
+      [87, 46, 0, 48, 0, -1],
+      [89, 44, 0, 46, 1, "string"],
+      [91, 45, 0, 46, 2, "string"],
+      [93, 47, 0, 48, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}
