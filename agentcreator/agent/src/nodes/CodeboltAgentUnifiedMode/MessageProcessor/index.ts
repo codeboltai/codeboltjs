@@ -1,1 +1,1 @@
-export { MessageProcessorNode } from './MessageProcessorNode';
+export { MessageProcessorNode } from './MessageProcessorNode.js';

@@ -1,7 +1,7 @@
 // Request Nodes
-export { SummarizePreviousRequestNode } from './SummarizePreviousRequestNode';
-export { SummarizeCurrentRequestNode } from './SummarizeCurrentRequestNode';
+export { SummarizePreviousRequestNode } from './SummarizePreviousRequestNode.js';
+export { SummarizeCurrentRequestNode } from './SummarizeCurrentRequestNode.js';
 
 // Response Nodes
-export { SummarizePreviousResultNode } from './SummarizePreviousResultNode';
-export { SummarizeCurrentResultNode } from './SummarizeCurrentResultNode';
+export { SummarizePreviousResultNode } from './SummarizePreviousResultNode.js';
+export { SummarizeCurrentResultNode } from './SummarizeCurrentResultNode.js';

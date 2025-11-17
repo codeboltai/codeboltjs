@@ -1,15 +1,8 @@
-// Backend execution nodes
-export { ConstNode } from './ConstNode.js';
-export { SumNode } from './SumNode.js';
+// Backend execution nodes and Constants nodes
+export * from './Constants/index.js';
 
 // Base nodes
-export { TimeNode } from './TimeNode.js';
-export { ConstantNumberNode } from './ConstantNumberNode.js';
-
-// Constants nodes
-export { ConstantStringNode } from './Constants/ConstantStringNode.js';
-export { ConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
-export { ConstantObjectNode } from './Constants/ConstantObjectNode.js';
+export { TimeNode } from './Utility/TimeNode.js';
 
 // Utility nodes
 export { RandomNode } from './Utility/RandomNode.js';
@@ -22,23 +15,31 @@ export {
   ToNumberNode,
   RandNode,
   AbsNode,
-  ClampNode
-} from './MathNodes.js';
+  ClampNode,
+  SumNode,
+  RangeNode,
+  LerpNode,
+  FloorNode,
+  FracNode,
+  SmoothStepNode,
+  ScaleNode,
+  GateNode,
+  OperationNode,
+  ConverterNode
+} from './Math/index.js';
 
 // Logic nodes
 export {
+  AndNode,
   OrNode,
   NotNode,
-  SelectorNode
-} from './LogicNodes.js';
+  SelectorNode,
+  SequenceNode,
+  BranchNode
+} from './Logical/index.js';
 
 // String nodes
-export {
-  ToStringNode,
-  CompareNode,
-  ToUpperCaseNode,
-  ContainsNode
-} from './StringNodes.js';
+export * from './String/index.js';
 
 // Variable nodes
 export {
@@ -47,7 +48,7 @@ export {
 } from './Variables/index.js';
 
 // Widget nodes
-export { MarkdownNode } from './MarkdownNode.js';
+export { MarkdownNode } from './Assets/MarkdownNode.js';
 
 // Codebolt nodes
 export * from './BaseCodeboltApis/index.js';
@@ -56,50 +57,45 @@ export * from './BaseCodeboltNotifications/index.js';
 // Unified Agent nodes
 export * from './CodeboltAgentUnifiedMode/index.js';
 
-// AI Agent nodes
-export { UserMessageNode } from './UserMessageNode.js';
-export { SystemPromptNode } from './SystemPromptNode.js';
-export { MCPToolsNode } from './MCPToolsNode.js';
-export { TaskInstructionNode } from './TaskInstructionNode.js';
-export { AgentNode } from './AgentNode.js';
-export { AgentRunNode } from './AgentRunNode.js';
+// AI Agent nodes - now exported from Unified Mode
 
 // Backend node registration utility
 import { LiteGraph } from '@codebolt/litegraph';
 import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
-import { ConstNode as BackendConstNode } from './ConstNode.js';
-import { SumNode as BackendSumNode } from './SumNode.js';
-import { TimeNode as BackendTimeNode } from './TimeNode.js';
-import { ConstantNumberNode as BackendConstantNumberNode } from './ConstantNumberNode.js';
+import { ConstNode as BackendConstNode } from './Constants/index.js';
+import { TimeNode as BackendTimeNode } from './Utility/TimeNode.js';
+import { ConstantNumberNode as BackendConstantNumberNode } from './Constants/index.js';
 import {
   BypassNode as BackendBypassNode,
   ToNumberNode as BackendToNumberNode,
   RandNode as BackendRandNode,
   AbsNode as BackendAbsNode,
-  ClampNode as BackendClampNode
-} from './MathNodes.js';
+  ClampNode as BackendClampNode,
+  SumNode as BackendSumNode,
+  RangeNode as BackendRangeNode,
+  LerpNode as BackendLerpNode,
+  FloorNode as BackendFloorNode,
+  FracNode as BackendFracNode,
+  SmoothStepNode as BackendSmoothStepNode,
+  ScaleNode as BackendScaleNode,
+  GateNode as BackendGateNode,
+  OperationNode as BackendOperationNode,
+  ConverterNode as BackendConverterNode
+} from './Math/index.js';
 import {
+  AndNode as BackendAndNode,
   OrNode as BackendOrNode,
   NotNode as BackendNotNode,
-  SelectorNode as BackendSelectorNode
-} from './LogicNodes.js';
-import {
-  ToStringNode as BackendToStringNode,
-  CompareNode as BackendCompareNode,
-  ToUpperCaseNode as BackendToUpperCaseNode,
-  ContainsNode as BackendContainsNode
-} from './StringNodes.js';
+  SelectorNode as BackendSelectorNode,
+  SequenceNode as BackendSequenceNode,
+  BranchNode as BackendBranchNode
+} from './Logical/index.js';
+import * as BackendStringNodes from './String/index.js';
 import {
   GetStringVariableNode as BackendGetStringVariableNode,
   SetStringVariableNode as BackendSetStringVariableNode
 } from './Variables/index.js';
-import { MarkdownNode as BackendMarkdownNode } from './MarkdownNode.js';
-import { UserMessageNode as BackendUserMessageNode } from './UserMessageNode.js';
-import { SystemPromptNode as BackendSystemPromptNode } from './SystemPromptNode.js';
-import { MCPToolsNode as BackendMCPToolsNode } from './MCPToolsNode.js';
-import { TaskInstructionNode as BackendTaskInstructionNode } from './TaskInstructionNode.js';
-import { AgentNode as BackendAgentNode } from './AgentNode.js';
-import { AgentRunNode as BackendAgentRunNode } from './AgentRunNode.js';
+import { MarkdownNode as BackendMarkdownNode } from './Assets/MarkdownNode.js';
 import { OnMessageNode as BackendOnMessageNode } from './BaseCodeboltApis/events/OnMessageNode.js';
 import {
   SendMessageNode as BackendSendMessageNode,
@@ -237,9 +233,9 @@ import {
 } from './CodeboltAgentUnifiedMode/index.js';
 
 // Constants nodes
-import { ConstantStringNode as BackendConstantStringNode } from './Constants/ConstantStringNode.js';
-import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/ConstantBooleanNode.js';
-import { ConstantObjectNode as BackendConstantObjectNode } from './Constants/ConstantObjectNode.js';
+import { ConstantStringNode as BackendConstantStringNode } from './Constants/index.js';
+import { ConstantBooleanNode as BackendConstantBooleanNode } from './Constants/index.js';
+import { ConstantObjectNode as BackendConstantObjectNode } from './Constants/index.js';
 
 // Utility nodes
 import { RandomNode as BackendRandomNode } from './Utility/RandomNode.js';
@@ -266,13 +262,27 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendRandNode, BackendRandNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAbsNode, BackendAbsNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendClampNode, BackendClampNode.metadata);
+
+  // Register additional Math nodes
+  registerNodeWithMetadata(LiteGraph, BackendSumNode, BackendSumNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendRangeNode, BackendRangeNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendLerpNode, BackendLerpNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFloorNode, BackendFloorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendFracNode, BackendFracNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSmoothStepNode, BackendSmoothStepNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendScaleNode, BackendScaleNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendGateNode, BackendGateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendOperationNode, BackendOperationNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendConverterNode, BackendConverterNode.metadata);
+
+  // Register Logical nodes
+  registerNodeWithMetadata(LiteGraph, BackendAndNode, BackendAndNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendOrNode, BackendOrNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendNotNode, BackendNotNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSelectorNode, BackendSelectorNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendToStringNode, BackendToStringNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendCompareNode, BackendCompareNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendToUpperCaseNode, BackendToUpperCaseNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendContainsNode, BackendContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendSequenceNode, BackendSequenceNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendBranchNode, BackendBranchNode.metadata);
+  // String nodes are registered via export * from './String' - they handle their own registration
   registerNodeWithMetadata(LiteGraph, BackendGetStringVariableNode, BackendGetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSetStringVariableNode, BackendSetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, BackendMarkdownNode.metadata);
@@ -390,13 +400,7 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendAddFileNode, BackendAddFileNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendRetrieveRelatedKnowledgeNode, BackendRetrieveRelatedKnowledgeNode.metadata);
 
-  // Register AI Agent nodes
-  registerNodeWithMetadata(LiteGraph, BackendUserMessageNode, BackendUserMessageNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendSystemPromptNode, BackendSystemPromptNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendMCPToolsNode, BackendMCPToolsNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendTaskInstructionNode, BackendTaskInstructionNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendAgentNode, BackendAgentNode.metadata);
-  registerNodeWithMetadata(LiteGraph, BackendAgentRunNode, BackendAgentRunNode.metadata);
+  // AI Agent nodes are now handled by the Unified Agent nodes export
 
   // Register Unified Agent nodes
   registerNodeWithMetadata(LiteGraph, BackendAgentUnifiedNode, BackendAgentUnifiedNode.metadata);

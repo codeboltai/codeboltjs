@@ -1,6 +1,6 @@
-export { ParseJSONNode } from './ParseJSONNode';
-export { ParseXMLNode } from './ParseXMLNode';
-export { ParseCSVNode } from './ParseCSVNode';
-export { ParseTextNode } from './ParseTextNode';
-export { ParseErrorsNode } from './ParseErrorsNode';
-export { ParseWarningsNode } from './ParseWarningsNode';
+export { ParseJSONNode } from './ParseJSONNode.js';
+export { ParseXMLNode } from './ParseXMLNode.js';
+export { ParseCSVNode } from './ParseCSVNode.js';
+export { ParseTextNode } from './ParseTextNode.js';
+export { ParseErrorsNode } from './ParseErrorsNode.js';
+export { ParseWarningsNode } from './ParseWarningsNode.js';

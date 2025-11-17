@@ -1,6 +1,6 @@
 import { BaseParseTextNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { coerceStringInput } from './utils';
+import { coerceStringInput } from './utils.js';
 
 // Backend-specific ParseText Node - actual implementation
 export class ParseTextNode extends BaseParseTextNode {

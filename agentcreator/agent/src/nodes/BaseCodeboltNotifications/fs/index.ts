@@ -1,25 +1,25 @@
 // Request Nodes
-export { FileCreateRequestNode } from './FileCreateRequestNode';
-export { FolderCreateRequestNode } from './FolderCreateRequestNode';
-export { FileReadRequestNode } from './FileReadRequestNode';
-export { FileEditRequestNode } from './FileEditRequestNode';
-export { FileDeleteRequestNode } from './FileDeleteRequestNode';
-export { FolderDeleteRequestNode } from './FolderDeleteRequestNode';
-export { ListDirectoryRequestNode } from './ListDirectoryRequestNode';
-export { WriteToFileRequestNode } from './WriteToFileRequestNode';
-export { AppendToFileRequestNode } from './AppendToFileRequestNode';
-export { CopyFileRequestNode } from './CopyFileRequestNode';
-export { MoveFileRequestNode } from './MoveFileRequestNode';
+export { FileCreateRequestNode } from './FileCreateRequestNode.js';
+export { FolderCreateRequestNode } from './FolderCreateRequestNode.js';
+export { FileReadRequestNode } from './FileReadRequestNode.js';
+export { FileEditRequestNode } from './FileEditRequestNode.js';
+export { FileDeleteRequestNode } from './FileDeleteRequestNode.js';
+export { FolderDeleteRequestNode } from './FolderDeleteRequestNode.js';
+export { ListDirectoryRequestNode } from './ListDirectoryRequestNode.js';
+export { WriteToFileRequestNode } from './WriteToFileRequestNode.js';
+export { AppendToFileRequestNode } from './AppendToFileRequestNode.js';
+export { CopyFileRequestNode } from './CopyFileRequestNode.js';
+export { MoveFileRequestNode } from './MoveFileRequestNode.js';
 
 // Response Nodes
-export { FileCreateResponseNode } from './FileCreateResponseNode';
-export { FolderCreateResponseNode } from './FolderCreateResponseNode';
-export { FileReadResponseNode } from './FileReadResponseNode';
-export { FileEditResponseNode } from './FileEditResponseNode';
-export { FileDeleteResponseNode } from './FileDeleteResponseNode';
-export { FolderDeleteResponseNode } from './FolderDeleteResponseNode';
-export { ListDirectoryResponseNode } from './ListDirectoryResponseNode';
-export { WriteToFileResponseNode } from './WriteToFileResponseNode';
-export { AppendToFileResponseNode } from './AppendToFileResponseNode';
-export { CopyFileResponseNode } from './CopyFileResponseNode';
-export { MoveFileResponseNode } from './MoveFileResponseNode';
+export { FileCreateResponseNode } from './FileCreateResponseNode.js';
+export { FolderCreateResponseNode } from './FolderCreateResponseNode.js';
+export { FileReadResponseNode } from './FileReadResponseNode.js';
+export { FileEditResponseNode } from './FileEditResponseNode.js';
+export { FileDeleteResponseNode } from './FileDeleteResponseNode.js';
+export { FolderDeleteResponseNode } from './FolderDeleteResponseNode.js';
+export { ListDirectoryResponseNode } from './ListDirectoryResponseNode.js';
+export { WriteToFileResponseNode } from './WriteToFileResponseNode.js';
+export { AppendToFileResponseNode } from './AppendToFileResponseNode.js';
+export { CopyFileResponseNode } from './CopyFileResponseNode.js';
+export { MoveFileResponseNode } from './MoveFileResponseNode.js';

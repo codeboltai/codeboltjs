@@ -1,6 +1,6 @@
 import { BaseCrawlerClickNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitCrawlerFailure, emitCrawlerSuccess, getStringInput } from './utils';
+import { emitCrawlerFailure, emitCrawlerSuccess, getStringInput } from './utils.js';
 
 export class CrawlerClickNode extends BaseCrawlerClickNode {
   constructor() {

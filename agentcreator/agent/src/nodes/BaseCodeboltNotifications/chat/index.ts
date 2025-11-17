@@ -1,10 +1,10 @@
 // Request Nodes
-export { UserMessageRequestNode } from './UserMessageRequestNode';
-export { GetChatHistoryRequestNode } from './GetChatHistoryRequestNode';
+export { UserMessageRequestNode } from './UserMessageRequestNode.js';
+export { GetChatHistoryRequestNode } from './GetChatHistoryRequestNode.js';
 
 // Response/Result Nodes
-export { AgentTextResponseNode } from './AgentTextResponseNode';
-export { GetChatHistoryResultNode } from './GetChatHistoryResultNode';
+export { AgentTextResponseNode } from './AgentTextResponseNode.js';
+export { GetChatHistoryResultNode } from './GetChatHistoryResultNode.js';
 
 // Event Listener Nodes
-export { OnChatNotificationNode } from './OnChatNotificationNode';
+export { OnChatNotificationNode } from './OnChatNotificationNode.js';

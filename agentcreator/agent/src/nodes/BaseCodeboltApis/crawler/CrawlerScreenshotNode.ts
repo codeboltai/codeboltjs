@@ -1,6 +1,6 @@
 import { BaseCrawlerScreenshotNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitCrawlerFailure, emitCrawlerSuccess } from './utils';
+import { emitCrawlerFailure, emitCrawlerSuccess } from './utils.js';
 
 export class CrawlerScreenshotNode extends BaseCrawlerScreenshotNode {
   constructor() {

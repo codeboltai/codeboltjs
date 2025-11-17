@@ -1,2 +1,2 @@
-export { InferenceNode } from './InferenceNode';
-export { GetModelConfigNode } from './GetModelConfigNode';
+export { InferenceNode } from './InferenceNode.js';
+export { GetModelConfigNode } from './GetModelConfigNode.js';

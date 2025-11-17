@@ -21,6 +21,6 @@
     ],
     "preserveSymlinks": true
   },
-  "include": ["src/**/*", "../shared-nodes/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

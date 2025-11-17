@@ -1,20 +1,20 @@
 // Export all unified agent nodes
-export * from './Agent';
-export * from './AgentStep';
-export * from './InitialPromptGenerator';
-export * from './ResponseExecutor';
-export * from './Tool';
-export * from './Workflow';
-export * from './MessageProcessor';
+export * from './Agent/index.js';
+export * from './AgentStep/index.js';
+export * from './InitialPromptGenerator/index.js';
+export * from './ResponseExecutor/index.js';
+export * from './Tool/index.js';
+export * from './Workflow/index.js';
+export * from './MessageProcessor/index.js';
 
 // Import all node classes for registration
-import { AgentNode } from './Agent';
-import { AgentStepNode } from './AgentStep';
-import { InitialPromptGeneratorNode } from './InitialPromptGenerator';
-import { ResponseExecutorNode } from './ResponseExecutor';
-import { ToolNode } from './Tool';
-import { WorkflowNode } from './Workflow';
-import { MessageProcessorNode } from './MessageProcessor';
+import { AgentNode } from './Agent/index.js';
+import { AgentStepNode } from './AgentStep/index.js';
+import { InitialPromptGeneratorNode } from './InitialPromptGenerator/index.js';
+import { ResponseExecutorNode } from './ResponseExecutor/index.js';
+import { ToolNode } from './Tool/index.js';
+import { WorkflowNode } from './Workflow/index.js';
+import { MessageProcessorNode } from './MessageProcessor/index.js';
 
 // Array of all unified agent nodes for easy registration
 export const UnifiedAgentNodes = [

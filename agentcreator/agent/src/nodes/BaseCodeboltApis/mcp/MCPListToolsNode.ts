@@ -1,6 +1,6 @@
 import { BaseMCPListToolsNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitMCPFailure, emitMCPSuccess, getArrayInput } from './utils';
+import { emitMCPFailure, emitMCPSuccess, getArrayInput } from './utils.js';
 
 export class MCPListToolsNode extends BaseMCPListToolsNode {
   constructor() {

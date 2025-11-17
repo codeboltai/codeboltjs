@@ -1,6 +1,6 @@
 import { BaseFindAgentNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitAgentFailure, emitAgentSuccess, getArrayInput, getNumberInput, getStringInput } from './utils';
+import { emitAgentFailure, emitAgentSuccess, getArrayInput, getNumberInput, getStringInput } from './utils.js';
 
 export class FindAgentNode extends BaseFindAgentNode {
   constructor() {

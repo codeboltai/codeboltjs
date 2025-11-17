@@ -1,6 +1,6 @@
 import { BaseMemoryAddNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitMemoryFailure, emitMemorySuccess, getJsonInput, getStringInput } from './utils';
+import { emitMemoryFailure, emitMemorySuccess, getJsonInput, getStringInput } from './utils.js';
 
 export class MemoryAddNode extends BaseMemoryAddNode {
   constructor() {

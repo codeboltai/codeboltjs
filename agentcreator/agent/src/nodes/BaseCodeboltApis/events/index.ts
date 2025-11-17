@@ -1,1 +1,1 @@
-export { OnMessageNode } from './OnMessageNode';
+export { OnMessageNode } from './OnMessageNode.js';

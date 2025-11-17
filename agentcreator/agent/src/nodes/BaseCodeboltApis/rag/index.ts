@@ -1,2 +1,2 @@
-export * from './BackendAddFileNode';
-export * from './BackendRetrieveRelatedKnowledgeNode';
+export * from './BackendAddFileNode.js';
+export * from './BackendRetrieveRelatedKnowledgeNode.js';

@@ -1,8 +1,8 @@
 // Task Management Nodes
-export { CreateTaskNode } from './CreateTaskNode';
-export { GetTaskListNode } from './GetTaskListNode';
-export { StartTaskNode } from './StartTaskNode';
-export { CompleteTaskNode } from './CompleteTaskNode';
+export { CreateTaskNode } from './CreateTaskNode.js';
+export { GetTaskListNode } from './GetTaskListNode.js';
+export { StartTaskNode } from './StartTaskNode.js';
+export { CompleteTaskNode } from './CompleteTaskNode.js';
 
 // All other backend task nodes with implementations
 export {
@@ -25,4 +25,4 @@ export {
   AttachMemoryToTaskNode,
   GetAttachedMemoryForTaskNode,
   CreateTaskGroupNode
-} from './AllBackendTaskNodes';
+} from './AllBackendTaskNodes.js';

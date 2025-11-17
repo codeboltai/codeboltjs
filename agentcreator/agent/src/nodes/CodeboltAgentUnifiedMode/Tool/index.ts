@@ -1,1 +1,1 @@
-export { ToolNode } from './ToolNode';
+export { ToolNode } from './ToolNode.js';

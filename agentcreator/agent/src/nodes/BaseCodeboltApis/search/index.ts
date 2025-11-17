@@ -1,2 +1,2 @@
-export { SearchNode } from './SearchNode';
-export { GetFirstLinkNode } from './GetFirstLinkNode';
+export { SearchNode } from './SearchNode.js';
+export { GetFirstLinkNode } from './GetFirstLinkNode.js';

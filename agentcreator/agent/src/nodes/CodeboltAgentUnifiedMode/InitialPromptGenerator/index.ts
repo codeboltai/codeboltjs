@@ -1,1 +1,1 @@
-export { InitialPromptGeneratorNode } from './InitialPromptGeneratorNode';
+export { InitialPromptGeneratorNode } from './InitialPromptGeneratorNode.js';

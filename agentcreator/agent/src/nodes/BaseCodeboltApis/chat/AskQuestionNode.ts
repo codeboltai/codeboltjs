@@ -1,6 +1,6 @@
 import { BaseAskQuestionNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitChatFailure, emitChatSuccess, getArrayInput, getBooleanInput, getStringInput, setNamedOutput } from './utils';
+import { emitChatFailure, emitChatSuccess, getArrayInput, getBooleanInput, getStringInput, setNamedOutput } from './utils.js';
 
 export class AskQuestionNode extends BaseAskQuestionNode {
   constructor() {

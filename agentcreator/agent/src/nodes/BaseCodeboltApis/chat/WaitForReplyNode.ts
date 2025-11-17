@@ -1,6 +1,6 @@
 import { BaseWaitForReplyNode } from '@agent-creator/shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
-import { emitChatFailure, emitChatSuccess, getStringInput, setNamedOutput } from './utils';
+import { emitChatFailure, emitChatSuccess, getStringInput, setNamedOutput } from './utils.js';
 
 export class WaitForReplyNode extends BaseWaitForReplyNode {
   constructor() {
