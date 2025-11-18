@@ -391,13 +391,13 @@ export default function GraphEditor() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [userMessage, setUserMessage] = useState('');
 
-  useEffect(() => {
+  useEffect(async () => {
     if (!canvasContainerRef.current) return;
 
     let isMounted = true;
 
     // Register all node types
-    registerNodes();
+    await registerNodes();
 
     // Enable release link on empty space shows menu
     LiteGraph.release_link_on_empty_shows_menu = true;

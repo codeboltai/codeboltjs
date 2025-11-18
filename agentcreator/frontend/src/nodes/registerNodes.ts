@@ -1,4 +1,5 @@
 import { LiteGraph } from '@codebolt/litegraph';
+import PluginRegistry from '../services/PluginRegistry';
 
 // UI-specific nodes (refactored)
 import {
@@ -283,7 +284,7 @@ export {
 };
 
 // Register all node types
-export const registerNodes = () => {
+export const registerNodes = async () => {
   // Register refactored nodes using their .metadata property
   registerNodeWithMetadata(LiteGraph, ConstNode, ConstNode.metadata);
   registerNodeWithMetadata(LiteGraph, SumNode, SumNode.metadata);
@@ -588,4 +589,14 @@ export const registerNodes = () => {
   // LiteGraph.registerNodeType("widget/progress", WidgetProgressNode);
   // LiteGraph.registerNodeType("widget/text", WidgetTextNode);
   // LiteGraph.registerNodeType("widget/panel", WidgetPanelNode);
+
+  // Register plugin nodes
+  try {
+    const pluginRegistry = PluginRegistry.getInstance();
+    await pluginRegistry.initialize();
+    await pluginRegistry.registerNodesWithLiteGraph(LiteGraph);
+    console.log('All plugin nodes registered successfully');
+  } catch (error) {
+    console.error('Failed to register plugin nodes:', error);
+  }
 };

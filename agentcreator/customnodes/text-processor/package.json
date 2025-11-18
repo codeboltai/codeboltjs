@@ -1,0 +1,56 @@
+{
+  "name": "@codebolt/plugin-text-processor",
+  "version": "1.0.0",
+  "description": "Text processing and manipulation plugin",
+  "main": "./dist/backend.js",
+  "browser": "./dist/ui.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist"
+  },
+  "codebolt": {
+    "plugin": {
+      "displayName": "Text Processing",
+      "description": "Text manipulation and processing operations including split, join, replace, and format",
+      "category": "Text",
+      "version": "1.0.0",
+      "author": "CodeBolt Team",
+      "nodes": [
+        {
+          "name": "SplitTextNode",
+          "type": "text/split",
+          "description": "Split string by delimiter",
+          "icon": "⧸"
+        },
+        {
+          "name": "JoinTextNode",
+          "type": "text/join",
+          "description": "Join array of strings with separator",
+          "icon": "⧹"
+        },
+        {
+          "name": "ReplaceTextNode",
+          "type": "text/replace",
+          "description": "Find and replace text operations",
+          "icon": "⟶"
+        },
+        {
+          "name": "FormatTextNode",
+          "type": "text/format",
+          "description": "Template string formatting",
+          "icon": "{}"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/litegraph": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}

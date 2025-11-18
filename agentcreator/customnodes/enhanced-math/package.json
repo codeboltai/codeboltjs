@@ -1,0 +1,50 @@
+{
+  "name": "@codebolt/plugin-enhanced-math",
+  "version": "1.0.0",
+  "description": "Enhanced mathematical operations plugin",
+  "main": "./dist/backend.js",
+  "browser": "./dist/ui.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist"
+  },
+  "codebolt": {
+    "plugin": {
+      "displayName": "Enhanced Math Operations",
+      "description": "Advanced mathematical operations including power, modulo, and range generation",
+      "category": "Math",
+      "version": "1.0.0",
+      "author": "CodeBolt Team",
+      "nodes": [
+        {
+          "name": "PowerNode",
+          "type": "math/power",
+          "description": "Calculate base raised to exponent",
+          "icon": "x^y"
+        },
+        {
+          "name": "ModuloNode",
+          "type": "math/modulo",
+          "description": "Calculate remainder of division",
+          "icon": "%"
+        },
+        {
+          "name": "RangeNode",
+          "type": "math/range",
+          "description": "Generate array of numbers in range",
+          "icon": "[...]"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/litegraph": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}
