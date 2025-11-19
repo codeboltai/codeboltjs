@@ -5,7 +5,6 @@ import { registerNodes } from '../nodes';
 import { ConstNode, SumNode } from '../nodes/registerNodes';
 import '../../node_modules/@codebolt/litegraph/dist/css/litegraph.css';
 import '../index.css';
-
 // NodeCard component for the palette
 const NodeCard = ({ nodeType, title, description, icon, color, onClick }) => (
   <div
@@ -54,7 +53,6 @@ const NodeCard = ({ nodeType, title, description, icon, color, onClick }) => (
     </div>
   </div>
 );
-
 // Properties Panel component
 const PropertiesPanel = ({ selectedNode }) => {
   if (!selectedNode) {
@@ -86,7 +84,6 @@ const PropertiesPanel = ({ selectedNode }) => {
       </div>
     );
   }
-
   const handlePropertyChange = (propertyName, value) => {
     if (selectedNode.setProperty) {
       selectedNode.setProperty(propertyName, value);
@@ -100,7 +97,6 @@ const PropertiesPanel = ({ selectedNode }) => {
       });
     }
   };
-
   return (
     <div style={{
       width: '250px',
@@ -123,7 +119,6 @@ const PropertiesPanel = ({ selectedNode }) => {
       }}>
         {selectedNode.title || 'Node Properties'}
       </h3>
-      
       <div style={{ marginBottom: '20px' }}>
         <div style={{ 
           color: '#aaa', 
@@ -140,7 +135,6 @@ const PropertiesPanel = ({ selectedNode }) => {
           ID: {selectedNode.id}
         </div>
       </div>
-
       <div style={{ marginBottom: '20px' }}>
         <h4 style={{ 
           color: '#fff', 
@@ -150,7 +144,6 @@ const PropertiesPanel = ({ selectedNode }) => {
         }}>
           Properties
         </h4>
-        
         {selectedNode.properties && Object.keys(selectedNode.properties).length > 0 ? (
           Object.entries(selectedNode.properties).map(([key, value]) => (
             <div key={key} style={{ marginBottom: '15px' }}>
@@ -218,7 +211,6 @@ const PropertiesPanel = ({ selectedNode }) => {
           </div>
         )}
       </div>
-
       {selectedNode.widgets && selectedNode.widgets.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
           <h4 style={{
@@ -234,7 +226,6 @@ const PropertiesPanel = ({ selectedNode }) => {
           </div>
         </div>
       )}
-
       {/* Inputs */}
       {selectedNode.inputs && selectedNode.inputs.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
@@ -305,7 +296,6 @@ const PropertiesPanel = ({ selectedNode }) => {
           ))}
         </div>
       )}
-
       {/* Outputs */}
       {selectedNode.outputs && selectedNode.outputs.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
@@ -379,7 +369,6 @@ const PropertiesPanel = ({ selectedNode }) => {
     </div>
   );
 };
-
 export default function GraphEditor() {
   const graphRef = useRef(null);
   const canvasRef = useRef(null);
@@ -390,53 +379,46 @@ export default function GraphEditor() {
   const [isPaletteVisible, setIsPaletteVisible] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [userMessage, setUserMessage] = useState('');
-
-  useEffect(async () => {
+  useEffect(() => {
     if (!canvasContainerRef.current) return;
-
     let isMounted = true;
-
-    // Register all node types
-    await registerNodes();
-
-    // Enable release link on empty space shows menu
-    LiteGraph.release_link_on_empty_shows_menu = true;
-
-    // Create a canvas element
-    const canvas = document.createElement('canvas');
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.display = 'block';
-    canvasContainerRef.current.appendChild(canvas);
-
-    // Initialize the graph
-    const graph = new LGraph();
-
-    // Create the graph canvas
-    const graphCanvas = new LGraphCanvas(canvas, graph);
-    
+    // Initialize nodes and setup graph
+    const initializeGraph = async () => {
+      try {
+        // Register all node types
+        await registerNodes();
+      } catch (error) {
+        console.error('Failed to register nodes:', error);
+      }
+      // Enable release link on empty space shows menu
+      LiteGraph.release_link_on_empty_shows_menu = true;
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.display = 'block';
+      canvasContainerRef.current.appendChild(canvas);
+      // Initialize the graph
+      const graph = new LGraph();
+      // Create the graph canvas
+      const graphCanvas = new LGraphCanvas(canvas, graph);
     // Store references
-    graphRef.current = graph;
-    canvasRef.current = graphCanvas;
-
+      graphRef.current = graph;
+      canvasRef.current = graphCanvas;
     // Configure canvas
     graphCanvas.background_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkEEjIXHvZq6QAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAJUlEQVQ4y2NgGAWjYBSMglEwCkbBKBgFgwUwQjUfZ4BpBgB7CgUeY1JHKQAAAABJRU5ErkJggg==";
-    
     // Handle node selection
     graphCanvas.onNodeSelected = (node) => {
       setSelectedNode(node);
     };
-    
     graphCanvas.onNodeDeselected = () => {
       setSelectedNode(null);
     };
-
     // Custom connection validation using extra_info
     graphCanvas.validateConnection = function(input_type, output_type, input_slot, output_slot, input_node, output_node) {
       // Get the extra_info from input and output slots
       const inputInfo = input_node.getInputInfo(input_slot);
       const outputInfo = output_node.getOutputInfo(output_slot);
-
       // If no extra_info, fall back to default LiteGraph validation
       if (!inputInfo || !inputInfo.extra_info || !outputInfo || !outputInfo.extra_info) {
         // Default validation: check basic type compatibility
@@ -444,81 +426,66 @@ export default function GraphEditor() {
         if (input_type === "array" || input_type === "object") return true; // Arrays and objects accept any compatible type
         return false;
       }
-
       const inputExtraInfo = inputInfo.extra_info;
       const outputExtraInfo = outputInfo.extra_info;
-
       // Specific type matching
       if (inputExtraInfo.dataType && outputExtraInfo.dataType) {
         // Exact match
         if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
           return true;
         }
-
         // Special cases: allow generic types for flexible nodes
         if (inputExtraInfo.acceptedTypes && inputExtraInfo.acceptedTypes.includes(outputExtraInfo.dataType)) {
           return true;
         }
-
         // Array type validation with element type checking
         if (input_type === "array" && output_type === "array") {
           // If input accepts any array
           if (inputExtraInfo.dataType === "array" && !inputExtraInfo.arrayType) {
             return true;
           }
-
           // If both have specific array types, they must match
           if (inputExtraInfo.arrayType && outputExtraInfo.arrayType) {
             return inputExtraInfo.arrayType === outputExtraInfo.arrayType;
           }
-
           // If only input specifies array type, output must match
           if (inputExtraInfo.arrayType) {
             return outputExtraInfo.arrayType === inputExtraInfo.arrayType;
           }
         }
-
         // Object type validation with specific object types
         if (input_type === "object" && output_type === "object") {
           // If input accepts any object
           if (inputExtraInfo.dataType === "object" && !inputExtraInfo.objectType) {
             return true;
           }
-
           // Specific object type matching
           if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
             return true;
           }
         }
-
         // String type validation with subtypes
         if (input_type === "string" && output_type === "string") {
           // Generic string accepts any string subtype
           if (inputExtraInfo.dataType === "string" && !inputExtraInfo.stringSubtype) {
             return true;
           }
-
           // Specific string subtype matching
           if (inputExtraInfo.dataType === outputExtraInfo.dataType) {
             return true;
           }
         }
       }
-
       // Fallback to basic type compatibility
       return input_type === output_type ||
              (input_type === "array" && output_type === "array") ||
              (input_type === "object" && output_type === "object") ||
              (input_type === "string" && output_type === "string");
     };
-
-    
-    
     // Override the getCanvasMenuOptions method to add custom context menu items
     const originalGetCanvasMenuOptions = graphCanvas.getCanvasMenuOptions;
     graphCanvas.getCanvasMenuOptions = function() {
       const options = originalGetCanvasMenuOptions ? originalGetCanvasMenuOptions.apply(this) : [];
-
       // Add our custom menu items
       options.push(
         null, // separator
@@ -539,24 +506,19 @@ export default function GraphEditor() {
           }
         }
       );
-
       return options;
     };
-
     const loadSavedGraph = async () => {
       try {
         const response = await fetch('http://localhost:3002/api/graph');
         if (!response.ok) {
           throw new Error('Failed to fetch saved graph');
         }
-
         const result = await response.json();
-
         if (result.success && result.graphData) {
           graph.clear();
           graph.configure(result.graphData);
         }
-
         if (isMounted && result.success) {
           setUserMessage(result.message || '');
         }
@@ -565,74 +527,66 @@ export default function GraphEditor() {
       } finally {
         if (isMounted) {
           graph.start();
+          // Initial canvas sizing to ensure proper dimensions
+          setTimeout(() => {
+            if (graphCanvas && canvasContainerRef.current) {
+              const container = canvasContainerRef.current;
+              const canvas = graphCanvas.canvas;
+              const rect = container.getBoundingClientRect();
+              canvas.width = rect.width;
+              canvas.height = rect.height;
+              canvas.style.width = '100%';
+              canvas.style.height = '100%';
+              graphCanvas.setDirty(true, true);
+            }
+          }, 100);
         }
       }
     };
+      await loadSavedGraph();
+    };
 
-    loadSavedGraph();
-
-    // Initial canvas sizing to ensure proper dimensions
-    setTimeout(() => {
-      if (graphCanvas && canvasContainerRef.current) {
-        const container = canvasContainerRef.current;
-        const canvas = graphCanvas.canvas;
-        const rect = container.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        graphCanvas.setDirty(true, true);
-      }
-    }, 100);
-
+    // Call the async initialization function
+    initializeGraph();
     // Handle window resize
     const onResize = () => {
-      if (graphCanvas && canvasContainerRef.current) {
+      if (canvasRef.current && canvasContainerRef.current) {
         const container = canvasContainerRef.current;
-        const canvas = graphCanvas.canvas;
-        
+        const canvas = canvasRef.current.canvas;
         // Ensure container has proper dimensions
         const rect = container.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
-        
         // Set canvas style dimensions to match
         canvas.style.width = '100%';
         canvas.style.height = '100%';
-        
-        graphCanvas.setDirty(true, true);
+        canvasRef.current.setDirty(true, true);
       }
     };
-    
     window.addEventListener('resize', onResize);
     onResize();
-    
     // Store the current container ref in a variable for cleanup
     const container = canvasContainerRef.current;
-    
     // Cleanup function
     return () => {
       isMounted = false;
       window.removeEventListener('resize', onResize);
-      if (graph) {
-        graph.stop();
+      if (graphRef.current) {
+        graphRef.current.stop();
       }
-      if (graphCanvas) {
-        graphCanvas.clear();
+      if (canvasRef.current) {
+        canvasRef.current.clear();
       }
-      if (container && canvas && container.contains(canvas)) {
-        container.removeChild(canvas);
+      if (container && canvasRef.current?.canvas && container.contains(canvasRef.current.canvas)) {
+        container.removeChild(canvasRef.current.canvas);
       }
     };
   }, []);
-
   const executeGraph = async () => {
     if (!graphRef.current) return;
-    
     try {
       setIsExecuting(true);
       setExecutionResult(null);
-      
       // Serialize the graph
       const graphData = graphRef.current.serialize();
       console.log(graphData); // Send to backend for execution
@@ -643,10 +597,8 @@ export default function GraphEditor() {
         },
         body: JSON.stringify({ graphData, message: userMessage }),
       });
-      
       const result = await response.json();
       setExecutionResult(result);
-      
       if (result.success) {
         console.log('Graph executed successfully:', result.outputs);
       } else {
@@ -662,14 +614,11 @@ export default function GraphEditor() {
       setIsExecuting(false);
     }
   };
-
   const saveGraph = async () => {
     if (!graphRef.current) return;
-
     try {
       setIsSaving(true);
       const graphData = graphRef.current.serialize();
-
       const response = await fetch('http://localhost:3002/api/save', {
         method: 'POST',
         headers: {
@@ -677,13 +626,10 @@ export default function GraphEditor() {
         },
         body: JSON.stringify({ graphData, message: userMessage }),
       });
-
       const result = await response.json();
-
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Failed to save graph');
       }
-
       setExecutionResult(result);
     } catch (error) {
       console.error('Error saving graph:', error);
@@ -695,42 +641,33 @@ export default function GraphEditor() {
       setIsSaving(false);
     }
   };
-
   const addNodeFromPalette = (nodeType) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
     const graph = graphRef.current;
     if (!graph) return;
-    
     // Create new node at center of canvas
     const canvasRect = canvas.canvas.getBoundingClientRect();
     const centerX = canvasRect.width / 2;
     const centerY = canvasRect.height / 2;
-    
     const newNode = LiteGraph.createNode(nodeType);
     if (newNode) {
       newNode.pos = [centerX, centerY];
       graph.add(newNode);
     }
   };
-
   const refreshCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas || !canvasContainerRef.current) return;
-    
     const container = canvasContainerRef.current;
     const canvasElement = canvas.canvas;
-    
     // Force canvas to resize and redraw using container dimensions
     const rect = container.getBoundingClientRect();
     canvasElement.width = rect.width;
     canvasElement.height = rect.height;
     canvasElement.style.width = '100%';
     canvasElement.style.height = '100%';
-    
     canvas.setDirty(true, true);
-    
     // Also trigger a resize on the graph canvas
     setTimeout(() => {
       if (canvas.onResize) {
@@ -738,7 +675,6 @@ export default function GraphEditor() {
       }
     }, 50);
   };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <div style={{ 
@@ -823,7 +759,6 @@ export default function GraphEditor() {
           </div>
         </div>
       </div>
-      
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Canvas Container */}
         <div style={{ 
@@ -850,7 +785,6 @@ export default function GraphEditor() {
             }}
           />
         </div>
-        
         {/* Node Palette Overlay */}
         {isPaletteVisible && (
           <div style={{
@@ -875,7 +809,6 @@ export default function GraphEditor() {
           }}>
             Node Palette
           </h3>
-
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{
               color: '#aaa',
@@ -886,7 +819,6 @@ export default function GraphEditor() {
             }}>
               Event Nodes
             </h4>
-
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -902,7 +834,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{
               color: '#aaa',
@@ -913,7 +844,6 @@ export default function GraphEditor() {
             }}>
               Codebolt Nodes
             </h4>
-
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -929,7 +859,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{
               color: '#aaa',
@@ -940,7 +869,6 @@ export default function GraphEditor() {
             }}>
               Basic Nodes
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -964,7 +892,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-          
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ 
               color: '#aaa', 
@@ -975,7 +902,6 @@ export default function GraphEditor() {
             }}>
               Base Nodes
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1055,7 +981,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-          
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ 
               color: '#aaa', 
@@ -1066,7 +991,6 @@ export default function GraphEditor() {
             }}>
               Math Nodes
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1186,7 +1110,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-          
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ 
               color: '#aaa', 
@@ -1197,7 +1120,6 @@ export default function GraphEditor() {
             }}>
               Logic Nodes
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1253,7 +1175,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-          
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ 
               color: '#aaa', 
@@ -1264,7 +1185,6 @@ export default function GraphEditor() {
             }}>
               String Nodes
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1336,7 +1256,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-          
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ 
               color: '#aaa', 
@@ -1347,7 +1266,6 @@ export default function GraphEditor() {
             }}>
               Interface Widgets
             </h4>
-            
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1395,7 +1313,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{
               color: '#aaa',
@@ -1406,7 +1323,6 @@ export default function GraphEditor() {
             }}>
               AI Agents
             </h4>
-
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -1462,7 +1378,6 @@ export default function GraphEditor() {
               />
             </div>
           </div>
-
           <div>
             <h4 style={{
               color: '#aaa',
@@ -1489,10 +1404,8 @@ export default function GraphEditor() {
           </div>
           </div>
         )}
-      
       {/* Properties Panel */}
       <PropertiesPanel selectedNode={selectedNode} />
-      
       {executionResult && (
         <div style={{ 
           padding: '10px',

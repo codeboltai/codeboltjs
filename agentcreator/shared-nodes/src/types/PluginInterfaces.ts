@@ -36,9 +36,13 @@ export interface Plugin {
   registerHandlers?: (agentManager: any) => void;
 }
 
-export interface PluginHandler {
+export type PluginHandlerFunction = (nodeData: any, inputData: any[]) => any;
+
+export interface PluginHandlerObject {
   execute(nodeData: any, inputData: any[]): any;
 }
+
+export type PluginHandler = PluginHandlerObject | PluginHandlerFunction;
 
 export interface PluginRegistry {
   [pluginName: string]: Plugin;

@@ -70,6 +70,9 @@ importers:
       '@agent-creator/agent':
         specifier: workspace:*
         version: link:../agent
+      '@agent-creator/shared-nodes':
+        specifier: workspace:*
+        version: link:../shared-nodes
       body-parser:
         specifier: ^1.20.2
         version: 1.20.3

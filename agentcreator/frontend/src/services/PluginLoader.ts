@@ -125,7 +125,7 @@ export class PluginLoader {
   /**
    * Load UI module for plugin
    */
-  private async loadUIModule(pluginDir: string, manifest: PluginManifest): Promise<any> {
+  private async loadUIModule(pluginDir: string, _manifest: PluginManifest): Promise<any> {
     try {
       const modulePath = `${this.CUSTOM_NODES_PATH}${pluginDir}/dist/ui.js`;
 

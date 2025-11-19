@@ -1,4 +1,4 @@
-import { Plugin, PluginNodeMetadata, PluginHandlerRegistry } from '../../../shared-nodes/src/types';
+import { Plugin, PluginNodeMetadata } from '../../../shared-nodes/src/types';
 import PluginLoader from './PluginLoader';
 
 export class PluginRegistry {

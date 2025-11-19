@@ -1,7 +1,7 @@
 // Type definitions for the utilities
 import { LiteGraph } from '@codebolt/litegraph';
 import { NodeMetadata } from './types';
-import { PluginValidator } from './utils/PluginValidator';
+import { PluginValidator } from './PluginValidator';
 
 // Utility function to register node types with metadata
 export function registerNodeWithMetadata(LiteGraph, NodeClass, metadata: NodeMetadata) {

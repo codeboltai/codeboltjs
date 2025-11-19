@@ -1,4 +1,4 @@
-import { Plugin, PluginManifest, PluginHandlerRegistry } from '../../../../shared-nodes/src/types';
+import { Plugin, PluginManifest, PluginHandlerRegistry } from '@agent-creator/shared-nodes';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -8,7 +8,7 @@ export class PluginHandlerLoader {
   private handlers: PluginHandlerRegistry = {};
   private readonly CUSTOM_NODES_PATH = path.join(process.cwd(), 'agentcreator', 'customnodes');
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): PluginHandlerLoader {
     if (!PluginHandlerLoader.instance) {
@@ -132,7 +132,7 @@ export class PluginHandlerLoader {
 
       return {
         manifest,
-        registerNodes: backendModule.registerNodes || (() => {}),
+        registerNodes: backendModule.registerNodes || (() => { }),
         registerHandlers: backendModule.registerHandlers
       };
     } catch (error) {
@@ -249,10 +249,10 @@ export class PluginHandlerLoader {
     }
 
     try {
-      if (typeof handler.execute === 'function') {
-        return await handler.execute(nodeData, inputData);
-      } else if (typeof handler === 'function') {
+      if (typeof handler === 'function') {
         return await handler(nodeData, inputData);
+      } else if (typeof handler === 'object' && handler !== null && 'execute' in handler) {
+        return await handler.execute(nodeData, inputData);
       } else {
         throw new Error(`Invalid handler for node type: ${nodeType}`);
       }
