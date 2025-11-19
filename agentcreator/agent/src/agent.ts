@@ -18,6 +18,7 @@ if (typeof globalThis.CustomEvent === 'undefined') {
 
 import { spawn } from 'child_process';
 import { registerBackendNodes } from './nodes/index.js';
+import { loadPluginBackends } from './plugin-loader.js';
 import { readFileSync } from 'fs';
 import { LGraph } from '@codebolt/litegraph';
 import codebolt from '@codebolt/codeboltjs';
@@ -33,9 +34,12 @@ class AgentExecutor {
   }
 
   // Initialize the agent with nodes
-  initialize() {
+  async initialize() {
     // Register backend execution nodes
     registerBackendNodes();
+
+    // Load and register plugin backends
+    await loadPluginBackends();
   }
 
   // Configure and execute a graph
@@ -152,7 +156,7 @@ class AgentExecutor {
 (async () => {
 
   const agent = new AgentExecutor();
-  agent.initialize();
+  await agent.initialize();
 
   // Signal that agent is ready
   process.stdout.write(JSON.stringify({ ready: true }) + '\n');
@@ -162,9 +166,9 @@ class AgentExecutor {
     const result = await agent.executeGraph();
     // codebolt.chat.sendMessage(result.message);
     process.stdout.write(JSON.stringify(result) + '\n');
-    
+
     // process.exit(0);
-    
+
   } catch (error) {
     process.stdout.write(JSON.stringify({
       success: false,

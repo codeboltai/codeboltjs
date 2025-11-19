@@ -3,9 +3,9 @@ import { Plugin, PluginManifest, PluginRegistry } from '../../../shared-nodes/sr
 export class PluginLoader {
   private static instance: PluginLoader;
   private plugins: PluginRegistry = {};
-  private readonly CUSTOM_NODES_PATH = '/customnodes/';
+  private readonly CUSTOM_NODES_PATH = 'http://localhost:3002/customnodes/';
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): PluginLoader {
     if (!PluginLoader.instance) {

@@ -1,37 +1,31 @@
-import { PowerNodeHandler } from './processors/PowerNode';
-import { ModuloNodeHandler } from './processors/ModuloNode';
-import { RangeNodeHandler } from './processors/RangeNode';
+import { PowerNode } from './nodes/PowerNode';
+import { ModuloNode } from './nodes/ModuloNode';
+import { RangeNode } from './nodes/RangeNode';
 
 /**
- * Register plugin backend handlers with agent manager
+ * Register plugin backend nodes with LiteGraph
  */
-export const registerHandlers = (agentManager: any) => {
-  console.log('Registering Enhanced Math plugin handlers...');
+export const registerNodes = (LiteGraph: any) => {
+  console.log('Registering Enhanced Math plugin backend nodes...');
 
-  // Register PowerNode handler
-  agentManager.registerHandler("math/power", {
-    execute: PowerNodeHandler.execute
-  });
-  console.log('Registered PowerNode handler');
+  // Register PowerNode
+  LiteGraph.registerNodeType("math/power", PowerNode);
+  console.log('Registered PowerNode (backend)');
 
-  // Register ModuloNode handler
-  agentManager.registerHandler("math/modulo", {
-    execute: ModuloNodeHandler.execute
-  });
-  console.log('Registered ModuloNode handler');
+  // Register ModuloNode
+  LiteGraph.registerNodeType("math/modulo", ModuloNode);
+  console.log('Registered ModuloNode (backend)');
 
-  // Register RangeNode handler
-  agentManager.registerHandler("math/range", {
-    execute: RangeNodeHandler.execute
-  });
-  console.log('Registered RangeNode handler');
+  // Register RangeNode
+  LiteGraph.registerNodeType("math/range", RangeNode);
+  console.log('Registered RangeNode (backend)');
 
-  console.log('Enhanced Math plugin handlers registered successfully');
+  console.log('Enhanced Math plugin backend nodes registered successfully');
 };
 
-// Export handlers for potential direct usage
+// Export node classes for potential direct usage
 export {
-  PowerNodeHandler,
-  ModuloNodeHandler,
-  RangeNodeHandler
+  PowerNode,
+  ModuloNode,
+  RangeNode
 };
