@@ -1,4 +1,4 @@
-import { BaseStartSubagentTaskRequestNode } from '@agent-creator/shared-nodes';
+import { BaseStartSubagentTaskRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend StartSubagentTaskRequestNode - UI only
 export class StartSubagentTaskRequestNode extends BaseStartSubagentTaskRequestNode {

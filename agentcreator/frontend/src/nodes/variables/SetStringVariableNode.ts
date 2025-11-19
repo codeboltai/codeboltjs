@@ -1,4 +1,4 @@
-import { BaseSetStringVariableNode } from '@agent-creator/shared-nodes';
+import { BaseSetStringVariableNode } from '@codebolt/agent-shared-nodes';
 
 export class SetStringVariableNode extends BaseSetStringVariableNode {
   constructor() {
@@ -11,7 +11,7 @@ export class SetStringVariableNode extends BaseSetStringVariableNode {
     });
   }
 
-  onExecute() {}
+  onExecute() { }
 
   setProperty(name: string, value: any) {
     super.setProperty(name, value);

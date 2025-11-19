@@ -1,4 +1,4 @@
-import { BaseCreateActionPlanNode } from '@agent-creator/shared-nodes';
+import { BaseCreateActionPlanNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend CreateActionPlan Node - UI only
 export class CreateActionPlanNode extends BaseCreateActionPlanNode {

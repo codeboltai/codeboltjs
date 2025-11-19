@@ -1,4 +1,4 @@
-import { BaseFracNode } from '@agent-creator/shared-nodes';
+import { BaseFracNode } from '@codebolt/agent-shared-nodes';
 
 export class FracNode extends BaseFracNode {
   constructor() {

@@ -1,4 +1,4 @@
-import { BaseMCPExecuteToolNode } from '@agent-creator/shared-nodes';
+import { BaseMCPExecuteToolNode } from '@codebolt/agent-shared-nodes';
 
 export class MCPExecuteToolNode extends BaseMCPExecuteToolNode {
   constructor() {

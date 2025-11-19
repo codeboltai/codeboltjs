@@ -1,4 +1,4 @@
-import { BaseParseCSVNode } from '@agent-creator/shared-nodes';
+import { BaseParseCSVNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ParseCSV Node - UI only
 export class ParseCSVNode extends BaseParseCSVNode {

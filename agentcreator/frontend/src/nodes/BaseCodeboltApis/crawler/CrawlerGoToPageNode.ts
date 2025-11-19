@@ -1,4 +1,4 @@
-import { BaseCrawlerGoToPageNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerGoToPageNode } from '@codebolt/agent-shared-nodes';
 
 export class CrawlerGoToPageNode extends BaseCrawlerGoToPageNode {
   constructor() {

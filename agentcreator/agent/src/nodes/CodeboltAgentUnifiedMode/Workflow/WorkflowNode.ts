@@ -1,4 +1,4 @@
-import { BaseWorkflowNode } from '@agent-creator/shared-nodes';
+import { BaseWorkflowNode } from '@codebolt/agent-shared-nodes';
 import { Workflow } from '@codebolt/agent/unified';
 
 // Backend-specific Workflow Node - actual implementation

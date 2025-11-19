@@ -1,4 +1,4 @@
-import { BaseScaleNode } from '@agent-creator/shared-nodes';
+import { BaseScaleNode } from '@codebolt/agent-shared-nodes';
 
 class ScaleNode extends BaseScaleNode {
   constructor() {

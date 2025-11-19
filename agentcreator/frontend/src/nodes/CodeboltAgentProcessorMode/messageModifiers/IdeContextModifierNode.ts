@@ -1,4 +1,4 @@
-import { BaseIdeContextModifierNode } from '@agent-creator/shared-nodes';
+import { BaseIdeContextModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend IDE Context Modifier Node - UI only
 export class IdeContextModifierNode extends BaseIdeContextModifierNode {

@@ -1,4 +1,4 @@
-import { BaseWriteToFileNode } from '@agent-creator/shared-nodes';
+import { BaseWriteToFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific WriteToFile Node - actual implementation

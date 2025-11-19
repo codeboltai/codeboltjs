@@ -1,4 +1,4 @@
-import { BaseBypassNode } from '@agent-creator/shared-nodes';
+import { BaseBypassNode } from '@codebolt/agent-shared-nodes';
 
 class BypassNode extends BaseBypassNode {
   constructor() {

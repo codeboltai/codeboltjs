@@ -1,4 +1,4 @@
-import { BaseOrNode } from '@agent-creator/shared-nodes';
+import { BaseOrNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific OR Node - execution logic only
 export class OrNode extends BaseOrNode {

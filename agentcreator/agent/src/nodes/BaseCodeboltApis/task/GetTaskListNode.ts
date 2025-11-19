@@ -1,4 +1,4 @@
-import { BaseGetTaskListNode } from '@agent-creator/shared-nodes';
+import { BaseGetTaskListNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { normalizeTaskStatus, TaskStatus } from './statusHelpers.js';
 

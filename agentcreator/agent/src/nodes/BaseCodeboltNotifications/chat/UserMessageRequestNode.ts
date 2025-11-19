@@ -1,4 +1,4 @@
-import { BaseUserMessageRequestNode } from '@agent-creator/shared-nodes';
+import { BaseUserMessageRequestNode } from '@codebolt/agent-shared-nodes';
 import { chatNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific UserMessageRequest Node - actual implementation

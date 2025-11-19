@@ -1,4 +1,4 @@
-import { BaseSumNode } from '@agent-creator/shared-nodes';
+import { BaseSumNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend-specific SumNode - UI and interaction only
 export class SumNode extends BaseSumNode {

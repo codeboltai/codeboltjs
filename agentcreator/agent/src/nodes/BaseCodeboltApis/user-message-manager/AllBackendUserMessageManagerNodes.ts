@@ -10,7 +10,7 @@ import {
   BaseGetUploadedImagesNode,
   BaseSetUserSessionDataNode,
   BaseGetUserSessionDataNode
-} from '@agent-creator/shared-nodes';
+} from '@codebolt/agent-shared-nodes';
 import {
   getCurrentUserMessage,
   getUserMessageText,
@@ -29,7 +29,7 @@ import {
 } from '@codebolt/codeboltjs';
 
 // Backend-specific GetCurrentUserMessage Node - actual implementation
-import { BaseGetCurrentUserMessageNode } from '@agent-creator/shared-nodes';
+import { BaseGetCurrentUserMessageNode } from '@codebolt/agent-shared-nodes';
 
 export class GetCurrentUserMessageNode extends BaseGetCurrentUserMessageNode {
   constructor() {

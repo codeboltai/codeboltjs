@@ -1,4 +1,4 @@
-import { BaseToolParameterModifierNode } from '@agent-creator/shared-nodes';
+import { BaseToolParameterModifierNode } from '@codebolt/agent-shared-nodes';
 import { ToolParameterModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Parameter Modifier Node - actual implementation

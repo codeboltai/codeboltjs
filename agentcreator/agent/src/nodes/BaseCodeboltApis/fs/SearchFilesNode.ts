@@ -1,4 +1,4 @@
-import { BaseSearchFilesNode } from '@agent-creator/shared-nodes';
+import { BaseSearchFilesNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific SearchFiles Node - actual implementation

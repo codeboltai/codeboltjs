@@ -1,4 +1,4 @@
-import { BaseToolInjectionModifierNode } from '@agent-creator/shared-nodes';
+import { BaseToolInjectionModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Tool Injection Modifier Node - UI only
 export class ToolInjectionModifierNode extends BaseToolInjectionModifierNode {

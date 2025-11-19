@@ -1,4 +1,4 @@
-import { BaseMCPConfigureNode } from '@agent-creator/shared-nodes';
+import { BaseMCPConfigureNode } from '@codebolt/agent-shared-nodes';
 
 export class MCPConfigureNode extends BaseMCPConfigureNode {
   constructor() {

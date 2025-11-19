@@ -1,4 +1,4 @@
-import { BaseCrawlerStartResponseNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerStartResponseNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific CrawlerStartResponse Node - actual implementation

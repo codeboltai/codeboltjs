@@ -1,4 +1,4 @@
-import { BaseChatRecordingModifierNode } from '@agent-creator/shared-nodes';
+import { BaseChatRecordingModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Chat Recording Modifier Node - UI only
 export class ChatRecordingModifierNode extends BaseChatRecordingModifierNode {

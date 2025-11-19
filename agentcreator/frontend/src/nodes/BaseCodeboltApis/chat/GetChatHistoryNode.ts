@@ -1,4 +1,4 @@
-import { BaseGetChatHistoryNode } from '@agent-creator/shared-nodes';
+import { BaseGetChatHistoryNode } from '@codebolt/agent-shared-nodes';
 
 export class GetChatHistoryNode extends BaseGetChatHistoryNode {
   constructor() {

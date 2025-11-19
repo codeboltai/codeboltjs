@@ -1,4 +1,4 @@
-import { BaseGitCheckoutRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitCheckoutRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitCheckoutRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitCheckoutRequestNode - actual implementation

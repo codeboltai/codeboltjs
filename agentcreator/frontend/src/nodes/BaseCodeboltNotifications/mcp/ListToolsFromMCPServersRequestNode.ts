@@ -1,4 +1,4 @@
-import { BaseListToolsFromMCPServersRequestNode } from '@agent-creator/shared-nodes';
+import { BaseListToolsFromMCPServersRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ListToolsFromMCPServersRequest Node - UI only
 export class ListToolsFromMCPServersRequestNode extends BaseListToolsFromMCPServersRequestNode {

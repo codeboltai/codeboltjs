@@ -1,4 +1,4 @@
-import { BaseReadManyFilesNode } from '@agent-creator/shared-nodes';
+import { BaseReadManyFilesNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ReadManyFiles Node - actual implementation

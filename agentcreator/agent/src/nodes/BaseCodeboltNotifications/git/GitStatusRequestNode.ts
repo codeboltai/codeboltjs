@@ -1,4 +1,4 @@
-import { BaseGitStatusRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitStatusRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitStatusRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitStatusRequestNode - actual implementation

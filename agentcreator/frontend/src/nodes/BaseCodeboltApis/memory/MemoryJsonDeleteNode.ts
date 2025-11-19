@@ -1,4 +1,4 @@
-import { BaseMemoryJsonDeleteNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryJsonDeleteNode } from '@codebolt/agent-shared-nodes';
 
 export class MemoryJsonDeleteNode extends BaseMemoryJsonDeleteNode {
   constructor() {

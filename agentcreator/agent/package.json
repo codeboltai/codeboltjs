@@ -12,11 +12,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/codeboltjs":"workspace:*",
-    "@codebolt/agent":"workspace:*",
-    "@codebolt/types":"workspace:*",
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/agent": "workspace:*",
+    "@codebolt/types": "workspace:*",
     "@codebolt/litegraph": "workspace:*",
-    "@agent-creator/shared-nodes": "workspace:*"
+    "@codebolt/agent-shared-nodes": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

@@ -1,4 +1,4 @@
-import { BaseGetModelConfigNode } from '@agent-creator/shared-nodes';
+import { BaseGetModelConfigNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetModelConfig Node - UI only
 export class GetModelConfigNode extends BaseGetModelConfigNode {

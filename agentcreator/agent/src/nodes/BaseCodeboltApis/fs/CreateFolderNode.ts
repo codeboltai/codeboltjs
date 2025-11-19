@@ -1,4 +1,4 @@
-import { BaseCreateFolderNode } from '@agent-creator/shared-nodes';
+import { BaseCreateFolderNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific CreateFolder Node - actual implementation

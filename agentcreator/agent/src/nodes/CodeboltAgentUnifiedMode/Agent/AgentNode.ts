@@ -1,4 +1,4 @@
-import { BaseAgentNode } from '@agent-creator/shared-nodes';
+import { BaseAgentNode } from '@codebolt/agent-shared-nodes';
 import { Agent } from '@codebolt/agent/unified';
 
 // Backend-specific Agent Node - actual implementation

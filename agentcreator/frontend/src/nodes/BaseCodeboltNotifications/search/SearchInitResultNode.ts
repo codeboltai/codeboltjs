@@ -1,4 +1,4 @@
-import { BaseSearchInitResultNode } from '@agent-creator/shared-nodes';
+import { BaseSearchInitResultNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend SearchInitResult Node - UI only
 export class SearchInitResultNode extends BaseSearchInitResultNode {

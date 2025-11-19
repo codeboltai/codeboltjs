@@ -1,4 +1,4 @@
-import { BaseWebFetchResponseNode } from '@agent-creator/shared-nodes';
+import { BaseWebFetchResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend WebFetchResponse Node - UI only
 export class WebFetchResponseNode extends BaseWebFetchResponseNode {

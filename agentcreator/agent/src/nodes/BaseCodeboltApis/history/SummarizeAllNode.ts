@@ -1,4 +1,4 @@
-import { BaseSummarizeAllNode } from '@agent-creator/shared-nodes';
+import { BaseSummarizeAllNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitHistoryFailure, emitHistorySuccess } from './utils.js';
 

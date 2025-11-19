@@ -1,5 +1,5 @@
 import React from 'react';
-import { BaseMCPToolsNode } from '@agent-creator/shared-nodes';
+import { BaseMCPToolsNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend UI-specific MCP Tools Node
 export class MCPToolsNode extends BaseMCPToolsNode {

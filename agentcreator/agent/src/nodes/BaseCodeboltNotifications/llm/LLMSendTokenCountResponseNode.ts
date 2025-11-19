@@ -1,4 +1,4 @@
-import { BaseLLMSendTokenCountResponseNode } from '@agent-creator/shared-nodes';
+import { BaseLLMSendTokenCountResponseNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific LLMSendTokenCountResponse Node - actual implementation

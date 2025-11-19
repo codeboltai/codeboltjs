@@ -1,4 +1,4 @@
-import { BaseConstantStringNode } from '@agent-creator/shared-nodes';
+import { BaseConstantStringNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Constant String Node - UI only
 export class ConstantStringNode extends BaseConstantStringNode {
@@ -43,8 +43,8 @@ export class ConstantStringNode extends BaseConstantStringNode {
     return result;
   }
 
-  
-  
+
+
 
 
 

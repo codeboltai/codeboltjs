@@ -1,4 +1,4 @@
-import { BaseMemoryJsonDeleteNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryJsonDeleteNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitMemoryFailure, emitMemorySuccess, getStringInput } from './utils.js';
 

@@ -1,4 +1,4 @@
-import { BaseConverterNode } from '@agent-creator/shared-nodes';
+import { BaseConverterNode } from '@codebolt/agent-shared-nodes';
 
 export class ConverterNode extends BaseConverterNode {
   constructor() {

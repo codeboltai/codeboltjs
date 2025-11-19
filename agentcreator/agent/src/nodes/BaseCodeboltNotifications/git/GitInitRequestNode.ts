@@ -1,4 +1,4 @@
-import { BaseGitInitRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitInitRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitInitRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitInitRequestNode - actual implementation

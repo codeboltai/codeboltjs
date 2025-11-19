@@ -1,4 +1,4 @@
-import { BaseGateNode } from '@agent-creator/shared-nodes';
+import { BaseGateNode } from '@codebolt/agent-shared-nodes';
 
 export class GateNode extends BaseGateNode {
   constructor() {

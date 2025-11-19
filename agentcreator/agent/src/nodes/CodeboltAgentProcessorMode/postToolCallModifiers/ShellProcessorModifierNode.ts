@@ -1,4 +1,4 @@
-import { BaseShellProcessorModifierNode } from '@agent-creator/shared-nodes';
+import { BaseShellProcessorModifierNode } from '@codebolt/agent-shared-nodes';
 import { ShellProcessorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Shell Processor Modifier Node - actual implementation

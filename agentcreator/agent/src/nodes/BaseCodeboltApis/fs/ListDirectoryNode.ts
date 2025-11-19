@@ -1,4 +1,4 @@
-import { BaseListDirectoryNode } from '@agent-creator/shared-nodes';
+import { BaseListDirectoryNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ListDirectory Node - actual implementation

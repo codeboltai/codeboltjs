@@ -1,4 +1,4 @@
-import { BaseEditTodoTaskRequestNode } from '@agent-creator/shared-nodes';
+import { BaseEditTodoTaskRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend EditTodoTaskRequest Node - UI only
 export class EditTodoTaskRequestNode extends BaseEditTodoTaskRequestNode {

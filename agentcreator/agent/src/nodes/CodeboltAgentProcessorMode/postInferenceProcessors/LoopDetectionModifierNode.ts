@@ -1,4 +1,4 @@
-import { BaseLoopDetectionModifierNode } from '@agent-creator/shared-nodes';
+import { BaseLoopDetectionModifierNode } from '@codebolt/agent-shared-nodes';
 import { LoopDetectionModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Loop Detection Modifier Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseParseWarningsNode } from '@agent-creator/shared-nodes';
+import { BaseParseWarningsNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { coerceParsableOutput } from './utils.js';
 

@@ -1,4 +1,4 @@
-import { BaseStartSubagentTaskRequestNode } from '@agent-creator/shared-nodes';
+import { BaseStartSubagentTaskRequestNode } from '@codebolt/agent-shared-nodes';
 import { StartSubagentTaskRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend StartSubagentTaskRequestNode - actual implementation

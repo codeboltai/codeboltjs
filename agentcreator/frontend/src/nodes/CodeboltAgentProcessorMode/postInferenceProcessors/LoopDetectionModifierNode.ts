@@ -1,4 +1,4 @@
-import { BaseLoopDetectionModifierNode } from '@agent-creator/shared-nodes';
+import { BaseLoopDetectionModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Loop Detection Modifier Node - UI only
 export class LoopDetectionModifierNode extends BaseLoopDetectionModifierNode {

@@ -1,4 +1,4 @@
-import { BaseAppendToFileResponseNode } from '@agent-creator/shared-nodes';
+import { BaseAppendToFileResponseNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific AppendToFileResponse Node - actual implementation

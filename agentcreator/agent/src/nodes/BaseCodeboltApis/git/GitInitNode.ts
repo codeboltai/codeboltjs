@@ -1,4 +1,4 @@
-import { BaseGitInitNode } from '@agent-creator/shared-nodes';
+import { BaseGitInitNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitGitFailure, emitGitSuccess, getInputOrProperty } from './utils.js';
 

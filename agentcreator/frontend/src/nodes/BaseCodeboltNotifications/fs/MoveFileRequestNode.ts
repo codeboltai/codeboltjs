@@ -1,4 +1,4 @@
-import { BaseMoveFileRequestNode } from '@agent-creator/shared-nodes';
+import { BaseMoveFileRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend MoveFileRequest Node - UI only
 export class MoveFileRequestNode extends BaseMoveFileRequestNode {

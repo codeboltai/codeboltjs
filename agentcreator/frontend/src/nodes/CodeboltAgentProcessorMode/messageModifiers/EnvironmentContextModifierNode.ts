@@ -1,4 +1,4 @@
-import { BaseEnvironmentContextModifierNode } from '@agent-creator/shared-nodes';
+import { BaseEnvironmentContextModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Environment Context Modifier Node - UI only
 export class EnvironmentContextModifierNode extends BaseEnvironmentContextModifierNode {

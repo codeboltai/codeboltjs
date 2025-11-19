@@ -1,4 +1,4 @@
-import { BaseEditFileAndApplyDiffNode } from '@agent-creator/shared-nodes';
+import { BaseEditFileAndApplyDiffNode } from '@codebolt/agent-shared-nodes';
 import { editFileAndApplyDiff } from '@codebolt/codeboltjs';
 
 // Backend-specific EditFileAndApplyDiff Node - actual implementation

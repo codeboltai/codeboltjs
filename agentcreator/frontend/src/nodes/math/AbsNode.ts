@@ -1,4 +1,4 @@
-import { BaseAbsNode } from '@agent-creator/shared-nodes';
+import { BaseAbsNode } from '@codebolt/agent-shared-nodes';
 
 class AbsNode extends BaseAbsNode {
   constructor() {

@@ -1,4 +1,4 @@
-import { BaseStopProcessNode } from '@agent-creator/shared-nodes';
+import { BaseStopProcessNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitChatFailure, emitChatSuccess } from './utils.js';
 

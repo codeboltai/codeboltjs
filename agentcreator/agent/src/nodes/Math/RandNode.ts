@@ -1,4 +1,4 @@
-import { BaseRandNode } from '@agent-creator/shared-nodes';
+import { BaseRandNode } from '@codebolt/agent-shared-nodes';
 
 export class RandNode extends BaseRandNode {
   constructor() {

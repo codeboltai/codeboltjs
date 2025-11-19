@@ -1,4 +1,4 @@
-import { BaseGetModelConfigNode } from '@agent-creator/shared-nodes';
+import { BaseGetModelConfigNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetModelConfig Node - actual implementation

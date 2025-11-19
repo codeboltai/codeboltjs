@@ -1,4 +1,4 @@
-import { BaseCrawlerGoToPageNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerGoToPageNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitCrawlerFailure, emitCrawlerSuccess, getStringInput } from './utils.js';
 

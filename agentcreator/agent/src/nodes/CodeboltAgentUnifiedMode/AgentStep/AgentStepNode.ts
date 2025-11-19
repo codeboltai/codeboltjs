@@ -1,4 +1,4 @@
-import { BaseAgentStepNode } from '@agent-creator/shared-nodes';
+import { BaseAgentStepNode } from '@codebolt/agent-shared-nodes';
 import { AgentStep } from '@codebolt/agent/unified';
 
 // Backend-specific Agent Step Node - actual implementation

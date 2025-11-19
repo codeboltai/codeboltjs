@@ -1,4 +1,4 @@
-import { BaseFolderDeleteRequestNode } from '@agent-creator/shared-nodes';
+import { BaseFolderDeleteRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend FolderDeleteRequest Node - UI only
 export class FolderDeleteRequestNode extends BaseFolderDeleteRequestNode {

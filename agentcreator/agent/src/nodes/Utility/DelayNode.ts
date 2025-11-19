@@ -1,4 +1,4 @@
-import { BaseDelayNode } from '@agent-creator/shared-nodes';
+import { BaseDelayNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Delay Node - execution logic only
 export class DelayNode extends BaseDelayNode {

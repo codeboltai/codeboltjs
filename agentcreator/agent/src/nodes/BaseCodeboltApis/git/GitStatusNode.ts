@@ -1,4 +1,4 @@
-import { BaseGitStatusNode } from '@agent-creator/shared-nodes';
+import { BaseGitStatusNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitGitFailure, emitGitSuccess } from './utils.js';
 

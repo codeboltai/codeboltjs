@@ -1,4 +1,4 @@
-import { BaseCoreSystemPromptModifierNode } from '@agent-creator/shared-nodes';
+import { BaseCoreSystemPromptModifierNode } from '@codebolt/agent-shared-nodes';
 import { CoreSystemPromptModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Core System Prompt Modifier Node - actual implementation

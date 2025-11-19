@@ -1,4 +1,4 @@
-import { BaseCreateFileNode } from '@agent-creator/shared-nodes';
+import { BaseCreateFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific CreateFile Node - actual implementation

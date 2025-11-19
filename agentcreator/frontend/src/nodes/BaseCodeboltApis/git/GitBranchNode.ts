@@ -1,4 +1,4 @@
-import { BaseGitBranchNode } from '@agent-creator/shared-nodes';
+import { BaseGitBranchNode } from '@codebolt/agent-shared-nodes';
 
 export class GitBranchNode extends BaseGitBranchNode {
   constructor() {

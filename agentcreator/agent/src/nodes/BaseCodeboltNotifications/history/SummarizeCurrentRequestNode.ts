@@ -1,4 +1,4 @@
-import { BaseSummarizeCurrentRequestNode } from '@agent-creator/shared-nodes';
+import { BaseSummarizeCurrentRequestNode } from '@codebolt/agent-shared-nodes';
 import { historyNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific SummarizeCurrentRequest Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseGetMemoryRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetMemoryRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetMemoryRequestNode - UI only
 export class GetMemoryRequestNode extends BaseGetMemoryRequestNode {

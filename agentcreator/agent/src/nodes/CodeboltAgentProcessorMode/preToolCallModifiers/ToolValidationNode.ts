@@ -1,4 +1,4 @@
-import { BaseToolValidationNode } from '@agent-creator/shared-nodes';
+import { BaseToolValidationNode } from '@codebolt/agent-shared-nodes';
 import { ToolValidationModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Validation Node - actual implementation

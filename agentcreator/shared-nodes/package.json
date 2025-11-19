@@ -1,7 +1,9 @@
 {
-  "name": "@agent-creator/shared-nodes",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@codebolt/agent-shared-nodes",
+  "version": "0.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.es.d.ts",

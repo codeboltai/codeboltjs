@@ -1,4 +1,4 @@
-import { BaseRandomNode } from '@agent-creator/shared-nodes';
+import { BaseRandomNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Random Node - execution logic only
 export class RandomNode extends BaseRandomNode {

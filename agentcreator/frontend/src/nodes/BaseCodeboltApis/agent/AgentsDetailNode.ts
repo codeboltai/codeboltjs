@@ -1,4 +1,4 @@
-import { BaseAgentsDetailNode } from '@agent-creator/shared-nodes';
+import { BaseAgentsDetailNode } from '@codebolt/agent-shared-nodes';
 
 export class AgentsDetailNode extends BaseAgentsDetailNode {
   constructor() {

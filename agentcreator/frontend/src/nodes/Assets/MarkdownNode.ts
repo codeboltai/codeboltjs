@@ -1,4 +1,4 @@
-import { BaseMarkdownNode } from '@agent-creator/shared-nodes';
+import { BaseMarkdownNode } from '@codebolt/agent-shared-nodes';
 import { LGraphCanvas } from '@codebolt/litegraph';
 
 // Frontend-specific Markdown Node - UI and rendering only

@@ -1,4 +1,4 @@
-import { BaseDebugNode } from '@agent-creator/shared-nodes';
+import { BaseDebugNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { logType } from '@codebolt/codeboltjs';
 

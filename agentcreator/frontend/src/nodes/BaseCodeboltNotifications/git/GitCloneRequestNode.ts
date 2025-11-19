@@ -1,4 +1,4 @@
-import { BaseGitCloneRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitCloneRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GitCloneRequestNode - UI only
 export class GitCloneRequestNode extends BaseGitCloneRequestNode {

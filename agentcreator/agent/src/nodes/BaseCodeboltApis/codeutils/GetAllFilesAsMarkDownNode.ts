@@ -1,4 +1,4 @@
-import { BaseGetAllFilesAsMarkDownNode } from '@agent-creator/shared-nodes';
+import { BaseGetAllFilesAsMarkDownNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetAllFilesAsMarkDown Node - actual implementation

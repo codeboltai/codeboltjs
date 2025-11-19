@@ -1,4 +1,4 @@
-import { BaseCrawlerStartRequestNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerStartRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific CrawlerStartRequest Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseToolInjectionModifierNode } from '@agent-creator/shared-nodes';
+import { BaseToolInjectionModifierNode } from '@codebolt/agent-shared-nodes';
 import { ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Tool Injection Modifier Node - actual implementation

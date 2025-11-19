@@ -1,4 +1,4 @@
-import { BaseDeleteFileNode } from '@agent-creator/shared-nodes';
+import { BaseDeleteFileNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend DeleteFile Node - UI only
 export class DeleteFileNode extends BaseDeleteFileNode {

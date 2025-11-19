@@ -1,4 +1,4 @@
-import { BaseLLMInferenceRequestNode } from '@agent-creator/shared-nodes';
+import { BaseLLMInferenceRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific LLMInferenceRequest Node - actual implementation
@@ -9,7 +9,7 @@ export class LLMInferenceRequestNode extends BaseLLMInferenceRequestNode {
 
   async onExecute() {
     const data = this.getInputData(1);
-    
+
     // If data object is not provided, try to construct from individual inputs
     let finalData = data as any;
     if (!finalData) {

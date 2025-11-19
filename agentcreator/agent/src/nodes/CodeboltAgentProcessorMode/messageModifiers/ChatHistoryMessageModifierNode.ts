@@ -1,4 +1,4 @@
-import { BaseChatHistoryMessageModifierNode } from '@agent-creator/shared-nodes';
+import { BaseChatHistoryMessageModifierNode } from '@codebolt/agent-shared-nodes';
 import { ChatHistoryMessageModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Chat History Message Modifier Node - actual implementation

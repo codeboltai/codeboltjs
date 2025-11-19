@@ -1,4 +1,4 @@
-import { BaseCrawlerScreenshotNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerScreenshotNode } from '@codebolt/agent-shared-nodes';
 
 export class CrawlerScreenshotNode extends BaseCrawlerScreenshotNode {
   constructor() {

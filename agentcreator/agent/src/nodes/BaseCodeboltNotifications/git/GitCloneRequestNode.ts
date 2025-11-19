@@ -1,4 +1,4 @@
-import { BaseGitCloneRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitCloneRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitCloneRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitCloneRequestNode - actual implementation

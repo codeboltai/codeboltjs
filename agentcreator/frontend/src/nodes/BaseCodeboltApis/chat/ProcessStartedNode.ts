@@ -1,4 +1,4 @@
-import { BaseProcessStartedNode } from '@agent-creator/shared-nodes';
+import { BaseProcessStartedNode } from '@codebolt/agent-shared-nodes';
 
 export class ProcessStartedNode extends BaseProcessStartedNode {
   constructor() {

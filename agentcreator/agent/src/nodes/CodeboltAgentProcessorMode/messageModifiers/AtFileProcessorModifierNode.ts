@@ -1,4 +1,4 @@
-import { BaseAtFileProcessorModifierNode } from '@agent-creator/shared-nodes';
+import { BaseAtFileProcessorModifierNode } from '@codebolt/agent-shared-nodes';
 import { AtFileProcessorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend @File Processor Modifier Node - actual implementation

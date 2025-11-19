@@ -1,4 +1,4 @@
-import { BaseSummarizePartNode } from '@agent-creator/shared-nodes';
+import { BaseSummarizePartNode } from '@codebolt/agent-shared-nodes';
 
 export class SummarizePartNode extends BaseSummarizePartNode {
   constructor() {

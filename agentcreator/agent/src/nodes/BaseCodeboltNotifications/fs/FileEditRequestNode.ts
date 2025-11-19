@@ -1,4 +1,4 @@
-import { BaseFileEditRequestNode } from '@agent-creator/shared-nodes';
+import { BaseFileEditRequestNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FileEditRequest Node - actual implementation

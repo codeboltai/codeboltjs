@@ -1,4 +1,4 @@
-import { BasePerformMatchNode } from '@agent-creator/shared-nodes';
+import { BasePerformMatchNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend PerformMatch Node - UI only
 export class PerformMatchNode extends BasePerformMatchNode {

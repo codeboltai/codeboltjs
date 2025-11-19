@@ -1,4 +1,4 @@
-import { BaseGetAllPlansNode } from '@agent-creator/shared-nodes';
+import { BaseGetAllPlansNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetAllPlans Node - actual implementation

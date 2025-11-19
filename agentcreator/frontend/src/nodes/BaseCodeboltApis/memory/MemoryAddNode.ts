@@ -1,4 +1,4 @@
-import { BaseMemoryAddNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryAddNode } from '@codebolt/agent-shared-nodes';
 
 export class MemoryAddNode extends BaseMemoryAddNode {
   constructor() {

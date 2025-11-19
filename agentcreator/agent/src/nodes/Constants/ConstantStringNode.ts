@@ -1,4 +1,4 @@
-import { BaseConstantStringNode } from '@agent-creator/shared-nodes';
+import { BaseConstantStringNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Constant String Node - execution logic only
 export class ConstantStringNode extends BaseConstantStringNode {

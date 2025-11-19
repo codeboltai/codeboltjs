@@ -1,4 +1,4 @@
-import { BaseFolderCreateResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFolderCreateResponseNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FolderCreateResponse Node - actual implementation

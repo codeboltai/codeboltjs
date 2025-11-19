@@ -1,4 +1,4 @@
-import { BaseAddToAgentStateNode } from '@agent-creator/shared-nodes';
+import { BaseAddToAgentStateNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AddToAgentState Node - UI only
 export class AddToAgentStateNode extends BaseAddToAgentStateNode {

@@ -1,4 +1,4 @@
-import { BaseToolNode } from '@agent-creator/shared-nodes';
+import { BaseToolNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Tool Node - UI only
 export class ToolNode extends BaseToolNode {

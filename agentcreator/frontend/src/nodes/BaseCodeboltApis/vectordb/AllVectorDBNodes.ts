@@ -4,7 +4,7 @@ import {
   BaseAddVectorItemNode,
   BaseQueryVectorItemNode,
   BaseQueryVectorItemsNode
-} from '@agent-creator/shared-nodes';
+} from '@codebolt/agent-shared-nodes';
 
 // Frontend GetVector Node - UI only
 export class GetVectorNode extends BaseGetVectorNode {

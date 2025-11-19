@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@agent-creator/agent": "workspace:*",
-    "@agent-creator/shared-nodes": "workspace:*",
+    "@codebolt/agent-shared-nodes": "workspace:*",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.18.2"

@@ -1,4 +1,4 @@
-import { BaseMCPListToolsNode } from '@agent-creator/shared-nodes';
+import { BaseMCPListToolsNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitMCPFailure, emitMCPSuccess, getArrayInput } from './utils.js';
 

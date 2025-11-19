@@ -1,4 +1,4 @@
-import { BaseFloorNode } from '@agent-creator/shared-nodes';
+import { BaseFloorNode } from '@codebolt/agent-shared-nodes';
 
 export class FloorNode extends BaseFloorNode {
   constructor() {

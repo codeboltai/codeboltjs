@@ -1,4 +1,4 @@
-import { BaseMCPGetEnabledNode } from '@agent-creator/shared-nodes';
+import { BaseMCPGetEnabledNode } from '@codebolt/agent-shared-nodes';
 
 export class MCPGetEnabledNode extends BaseMCPGetEnabledNode {
   constructor() {

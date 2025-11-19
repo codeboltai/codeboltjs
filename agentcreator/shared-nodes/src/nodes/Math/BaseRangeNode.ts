@@ -22,7 +22,7 @@ export class BaseRangeNode extends LGraphNode {
   };
 
   // Override properties type
-  properties: RangeNodeProperties;
+  declare properties: RangeNodeProperties;
 
   constructor() {
     super(BaseRangeNode.metadata.title, BaseRangeNode.metadata.type);

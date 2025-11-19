@@ -1,4 +1,4 @@
-import { BaseParseXMLNode } from '@agent-creator/shared-nodes';
+import { BaseParseXMLNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { coerceStringInput } from './utils.js';
 

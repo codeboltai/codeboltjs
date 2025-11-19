@@ -1,4 +1,4 @@
-import { BaseCoreSystemPromptModifierNode } from '@agent-creator/shared-nodes';
+import { BaseCoreSystemPromptModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Core System Prompt Modifier Node - UI only
 export class CoreSystemPromptModifierNode extends BaseCoreSystemPromptModifierNode {

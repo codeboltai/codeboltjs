@@ -1,4 +1,4 @@
-import { BaseShellProcessorModifierNode } from '@agent-creator/shared-nodes';
+import { BaseShellProcessorModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Shell Processor Modifier Node - UI only
 export class ShellProcessorModifierNode extends BaseShellProcessorModifierNode {

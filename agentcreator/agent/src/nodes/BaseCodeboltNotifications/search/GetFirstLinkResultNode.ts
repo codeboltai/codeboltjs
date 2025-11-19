@@ -1,4 +1,4 @@
-import { BaseGetFirstLinkResultNode } from '@agent-creator/shared-nodes';
+import { BaseGetFirstLinkResultNode } from '@codebolt/agent-shared-nodes';
 import { searchNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific GetFirstLinkResult Node - actual implementation

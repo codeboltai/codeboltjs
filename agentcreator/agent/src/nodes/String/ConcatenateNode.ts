@@ -1,4 +1,4 @@
-import { BaseConcatenateNode } from '@agent-creator/shared-nodes';
+import { BaseConcatenateNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Concatenate Node - execution logic only
 export class ConcatenateNode extends BaseConcatenateNode {

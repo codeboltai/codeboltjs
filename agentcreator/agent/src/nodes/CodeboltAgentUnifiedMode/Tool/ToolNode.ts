@@ -1,4 +1,4 @@
-import { BaseToolNode } from '@agent-creator/shared-nodes';
+import { BaseToolNode } from '@codebolt/agent-shared-nodes';
 import { Tool } from '@codebolt/agent/unified';
 
 // Backend-specific Tool Node - actual implementation

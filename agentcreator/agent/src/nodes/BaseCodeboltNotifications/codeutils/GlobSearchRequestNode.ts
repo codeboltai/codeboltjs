@@ -1,4 +1,4 @@
-import { BaseGlobSearchRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGlobSearchRequestNode } from '@codebolt/agent-shared-nodes';
 import { codeutilsNotifications } from '@codebolt/codeboltjs';
 
 // Backend GlobSearchRequestNode - actual implementation

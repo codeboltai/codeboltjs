@@ -1,4 +1,4 @@
-import { BaseInferenceNode } from '@agent-creator/shared-nodes';
+import { BaseInferenceNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import type { MessageObject, Tool, LLMInferenceParams } from '@codebolt/types/sdk';
 

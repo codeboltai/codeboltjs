@@ -1,4 +1,4 @@
-import { BaseSplitNode } from '@agent-creator/shared-nodes';
+import { BaseSplitNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Split Node - execution logic only
 export class SplitNode extends BaseSplitNode {

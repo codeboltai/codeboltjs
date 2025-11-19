@@ -1,4 +1,4 @@
-import { BaseFolderDeleteResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFolderDeleteResponseNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FolderDeleteResponse Node - actual implementation

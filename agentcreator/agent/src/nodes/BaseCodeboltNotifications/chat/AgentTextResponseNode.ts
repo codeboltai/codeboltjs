@@ -1,4 +1,4 @@
-import { BaseAgentTextResponseNode } from '@agent-creator/shared-nodes';
+import { BaseAgentTextResponseNode } from '@codebolt/agent-shared-nodes';
 import { chatNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific AgentTextResponse Node - actual implementation

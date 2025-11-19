@@ -1,4 +1,4 @@
-import { BaseGetProjectStateNode } from '@agent-creator/shared-nodes';
+import { BaseGetProjectStateNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetProjectState Node - actual implementation

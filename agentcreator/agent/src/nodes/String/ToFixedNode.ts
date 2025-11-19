@@ -1,4 +1,4 @@
-import { BaseToFixedNode } from '@agent-creator/shared-nodes';
+import { BaseToFixedNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific ToFixed Node - execution logic only
 export class ToFixedNode extends BaseToFixedNode {

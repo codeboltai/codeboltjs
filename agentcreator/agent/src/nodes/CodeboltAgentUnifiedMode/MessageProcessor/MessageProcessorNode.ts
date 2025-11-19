@@ -1,4 +1,4 @@
-import { BaseMessageProcessorNode } from '@agent-creator/shared-nodes';
+import { BaseMessageProcessorNode } from '@codebolt/agent-shared-nodes';
 import { createDefaultMessageProcessor } from '@codebolt/agent/unified';
 
 // Backend-specific Message Processor Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseLoggerNode } from '@agent-creator/shared-nodes';
+import { BaseLoggerNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Logger Node - UI only
 export class LoggerNode extends BaseLoggerNode {

@@ -1,4 +1,4 @@
-import { BaseConversationCompactorNode } from '@agent-creator/shared-nodes';
+import { BaseConversationCompactorNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Conversation Compactor Node - UI only
 export class ConversationCompactorNode extends BaseConversationCompactorNode {

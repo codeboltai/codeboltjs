@@ -1,4 +1,4 @@
-import { BaseChatCompressionModifierNode } from '@agent-creator/shared-nodes';
+import { BaseChatCompressionModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Chat Compression Modifier Node - UI only
 export class ChatCompressionModifierNode extends BaseChatCompressionModifierNode {

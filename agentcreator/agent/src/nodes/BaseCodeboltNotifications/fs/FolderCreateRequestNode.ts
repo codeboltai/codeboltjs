@@ -1,4 +1,4 @@
-import { BaseFolderCreateRequestNode } from '@agent-creator/shared-nodes';
+import { BaseFolderCreateRequestNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FolderCreateRequest Node - actual implementation

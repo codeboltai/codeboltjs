@@ -2,11 +2,11 @@ import {
   BaseAddVectorItemNode,
   BaseQueryVectorItemNode,
   BaseQueryVectorItemsNode
-} from '@agent-creator/shared-nodes';
+} from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetVector Node - actual implementation
-import { BaseGetVectorNode } from '@agent-creator/shared-nodes';
+import { BaseGetVectorNode } from '@codebolt/agent-shared-nodes';
 
 export class GetVectorNode extends BaseGetVectorNode {
   constructor() {

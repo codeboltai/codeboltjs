@@ -1,4 +1,4 @@
-import { BaseAgentInitRequestNode } from '@agent-creator/shared-nodes';
+import { BaseAgentInitRequestNode } from '@codebolt/agent-shared-nodes';
 import { AgentInitNotify } from '@codebolt/codeboltjs';
 
 // Backend AgentInitRequestNode - actual implementation

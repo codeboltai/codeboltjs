@@ -1,4 +1,4 @@
-import { BaseSequenceNode } from '@agent-creator/shared-nodes';
+import { BaseSequenceNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Sequence Node - UI only
 export class SequenceNode extends BaseSequenceNode {

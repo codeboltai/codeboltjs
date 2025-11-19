@@ -1,4 +1,4 @@
-import { BaseLerpNode } from '@agent-creator/shared-nodes';
+import { BaseLerpNode } from '@codebolt/agent-shared-nodes';
 
 class LerpNode extends BaseLerpNode {
   constructor() {

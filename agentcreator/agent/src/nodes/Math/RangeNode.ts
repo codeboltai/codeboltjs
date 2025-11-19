@@ -1,4 +1,4 @@
-import { BaseRangeNode } from '@agent-creator/shared-nodes';
+import { BaseRangeNode } from '@codebolt/agent-shared-nodes';
 
 export class RangeNode extends BaseRangeNode {
   constructor() {

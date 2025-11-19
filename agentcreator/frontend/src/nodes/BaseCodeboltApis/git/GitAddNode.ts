@@ -1,4 +1,4 @@
-import { BaseGitAddNode } from '@agent-creator/shared-nodes';
+import { BaseGitAddNode } from '@codebolt/agent-shared-nodes';
 
 export class GitAddNode extends BaseGitAddNode {
   constructor() {

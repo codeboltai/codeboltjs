@@ -1,4 +1,4 @@
-import { BaseOnMessageNode } from '@agent-creator/shared-nodes';
+import { BaseOnMessageNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 export class OnMessageNode extends BaseOnMessageNode {

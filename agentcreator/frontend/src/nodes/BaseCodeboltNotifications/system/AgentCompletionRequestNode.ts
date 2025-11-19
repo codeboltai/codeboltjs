@@ -1,4 +1,4 @@
-import { BaseAgentCompletionRequestNode } from '@agent-creator/shared-nodes';
+import { BaseAgentCompletionRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AgentCompletionRequestNode - UI only
 export class AgentCompletionRequestNode extends BaseAgentCompletionRequestNode {

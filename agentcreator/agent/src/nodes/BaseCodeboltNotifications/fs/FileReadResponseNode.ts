@@ -1,4 +1,4 @@
-import { BaseFileReadResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFileReadResponseNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FileReadResponse Node - actual implementation

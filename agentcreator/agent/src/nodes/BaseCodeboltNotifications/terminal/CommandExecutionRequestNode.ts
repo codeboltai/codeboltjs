@@ -1,4 +1,4 @@
-import { BaseCommandExecutionRequestNode } from '@agent-creator/shared-nodes';
+import { BaseCommandExecutionRequestNode } from '@codebolt/agent-shared-nodes';
 import { CommandExecutionRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend CommandExecutionRequestNode - actual implementation

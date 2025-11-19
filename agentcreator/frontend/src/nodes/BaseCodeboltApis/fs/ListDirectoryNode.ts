@@ -1,4 +1,4 @@
-import { BaseListDirectoryNode } from '@agent-creator/shared-nodes';
+import { BaseListDirectoryNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ListDirectory Node - UI only
 export class ListDirectoryNode extends BaseListDirectoryNode {

@@ -1,4 +1,4 @@
-import { BaseBypassNode, BaseToNumberNode, BaseRandNode, BaseAbsNode, BaseClampNode } from '@agent-creator/shared-nodes';
+import { BaseBypassNode, BaseToNumberNode, BaseRandNode, BaseAbsNode, BaseClampNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend-specific Bypass Node - UI only
 export class BypassNode extends BaseBypassNode {

@@ -1,4 +1,4 @@
-import { BaseSendMessageNode } from '@agent-creator/shared-nodes';
+import { BaseSendMessageNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific SendMessage Node - actual implementation
@@ -9,9 +9,9 @@ export class SendMessageNode extends BaseSendMessageNode {
 
   async onExecute() {
 
-    const messageToSend :any = this.getInputData(1);
-        
-    let finalMessage = ""; 
+    const messageToSend: any = this.getInputData(1);
+
+    let finalMessage = "";
     if (messageToSend && typeof messageToSend === 'string' && messageToSend.trim()) {
       finalMessage = messageToSend;
     } else {

@@ -1,4 +1,4 @@
-import { BaseGetMatcherListNode } from '@agent-creator/shared-nodes';
+import { BaseGetMatcherListNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetMatcherList Node - actual implementation

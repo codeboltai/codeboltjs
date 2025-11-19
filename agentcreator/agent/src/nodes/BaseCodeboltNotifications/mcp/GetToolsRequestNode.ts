@@ -1,4 +1,4 @@
-import { BaseGetToolsRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetToolsRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetToolsRequest Node - actual implementation

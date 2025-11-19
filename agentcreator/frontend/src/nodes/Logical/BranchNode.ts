@@ -1,4 +1,4 @@
-import { BaseBranchNode } from '@agent-creator/shared-nodes';
+import { BaseBranchNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Branch Node - UI only
 export class BranchNode extends BaseBranchNode {

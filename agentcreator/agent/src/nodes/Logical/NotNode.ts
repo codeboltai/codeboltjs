@@ -1,4 +1,4 @@
-import { BaseNotNode } from '@agent-creator/shared-nodes';
+import { BaseNotNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific NOT Node - execution logic only
 export class NotNode extends BaseNotNode {

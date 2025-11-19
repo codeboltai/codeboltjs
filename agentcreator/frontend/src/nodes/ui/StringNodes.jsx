@@ -1,4 +1,4 @@
-import { BaseToStringNode, BaseCompareNode, BaseToUpperCaseNode, BaseContainsNode, BaseConcatenateNode, BaseSplitNode, BaseStringToTableNode, BaseToFixedNode } from '@agent-creator/shared-nodes';
+import { BaseToStringNode, BaseCompareNode, BaseToUpperCaseNode, BaseContainsNode, BaseConcatenateNode, BaseSplitNode, BaseStringToTableNode, BaseToFixedNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend-specific ToString Node - UI only
 export class ToStringNode extends BaseToStringNode {

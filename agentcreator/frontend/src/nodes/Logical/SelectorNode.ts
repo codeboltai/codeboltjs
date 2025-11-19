@@ -1,4 +1,4 @@
-import { BaseSelectorNode } from '@agent-creator/shared-nodes';
+import { BaseSelectorNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Selector Node - UI only
 export class SelectorNode extends BaseSelectorNode {

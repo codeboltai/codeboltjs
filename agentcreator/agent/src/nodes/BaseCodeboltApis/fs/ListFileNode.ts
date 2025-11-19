@@ -1,4 +1,4 @@
-import { BaseListFileNode } from '@agent-creator/shared-nodes';
+import { BaseListFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ListFile Node - actual implementation

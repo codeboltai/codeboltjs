@@ -1,4 +1,4 @@
-import { BaseStartTaskNode } from '@agent-creator/shared-nodes';
+import { BaseStartTaskNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific StartTask Node - actual implementation

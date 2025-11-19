@@ -1,4 +1,4 @@
-import { BaseGitPushRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitPushRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GitPushRequestNode - UI only
 export class GitPushRequestNode extends BaseGitPushRequestNode {

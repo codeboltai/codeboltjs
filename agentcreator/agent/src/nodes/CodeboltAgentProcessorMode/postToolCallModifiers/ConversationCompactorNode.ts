@@ -1,4 +1,4 @@
-import { BaseConversationCompactorNode } from '@agent-creator/shared-nodes';
+import { BaseConversationCompactorNode } from '@codebolt/agent-shared-nodes';
 import { ConversationCompactorModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Conversation Compactor Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseInitialPromptGeneratorNode } from '@agent-creator/shared-nodes';
+import { BaseInitialPromptGeneratorNode } from '@codebolt/agent-shared-nodes';
 import { InitialPromptGenerator } from '@codebolt/agent/unified';
 
 // Backend-specific Initial Prompt Generator Node - actual implementation

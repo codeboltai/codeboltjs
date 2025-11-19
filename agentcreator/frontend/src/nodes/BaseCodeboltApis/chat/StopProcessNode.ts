@@ -1,4 +1,4 @@
-import { BaseStopProcessNode } from '@agent-creator/shared-nodes';
+import { BaseStopProcessNode } from '@codebolt/agent-shared-nodes';
 
 export class StopProcessNode extends BaseStopProcessNode {
   constructor() {

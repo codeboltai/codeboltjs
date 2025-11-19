@@ -1,4 +1,4 @@
-import { BaseTimeNode } from '@agent-creator/shared-nodes';
+import { BaseTimeNode } from '@codebolt/agent-shared-nodes';
 import { LGraphCanvas } from '@codebolt/litegraph';
 
 // Frontend-specific Time Node - UI only

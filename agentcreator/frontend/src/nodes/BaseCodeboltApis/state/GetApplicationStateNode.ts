@@ -1,4 +1,4 @@
-import { BaseGetApplicationStateNode } from '@agent-creator/shared-nodes';
+import { BaseGetApplicationStateNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetApplicationState Node - UI only
 export class GetApplicationStateNode extends BaseGetApplicationStateNode {

@@ -1,4 +1,4 @@
-import { BaseSendConfirmationRequestNode } from '@agent-creator/shared-nodes';
+import { BaseSendConfirmationRequestNode } from '@codebolt/agent-shared-nodes';
 
 export class SendConfirmationRequestNode extends BaseSendConfirmationRequestNode {
   constructor() {

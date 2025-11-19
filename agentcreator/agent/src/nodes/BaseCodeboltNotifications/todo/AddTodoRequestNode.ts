@@ -1,4 +1,4 @@
-import { BaseAddTodoRequestNode } from '@agent-creator/shared-nodes';
+import { BaseAddTodoRequestNode } from '@codebolt/agent-shared-nodes';
 import { todoNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific AddTodoRequest Node - actual implementation

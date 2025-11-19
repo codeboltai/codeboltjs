@@ -1,4 +1,4 @@
-import { BaseParseJSONNode } from '@agent-creator/shared-nodes';
+import { BaseParseJSONNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { coerceStringInput } from './utils.js';
 

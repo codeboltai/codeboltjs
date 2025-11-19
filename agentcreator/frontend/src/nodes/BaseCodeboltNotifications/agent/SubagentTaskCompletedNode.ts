@@ -1,4 +1,4 @@
-import { BaseSubagentTaskCompletedNode } from '@agent-creator/shared-nodes';
+import { BaseSubagentTaskCompletedNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend SubagentTaskCompletedNode - UI only
 export class SubagentTaskCompletedNode extends BaseSubagentTaskCompletedNode {

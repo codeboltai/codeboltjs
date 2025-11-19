@@ -1,4 +1,4 @@
-import { BaseAddTodoResponseNode } from '@agent-creator/shared-nodes';
+import { BaseAddTodoResponseNode } from '@codebolt/agent-shared-nodes';
 import { todoNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific AddTodoResponse Node - actual implementation

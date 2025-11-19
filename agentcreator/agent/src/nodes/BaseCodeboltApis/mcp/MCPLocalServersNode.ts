@@ -1,4 +1,4 @@
-import { BaseMCPLocalServersNode } from '@agent-creator/shared-nodes';
+import { BaseMCPLocalServersNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitMCPFailure, emitMCPSuccess } from './utils.js';
 

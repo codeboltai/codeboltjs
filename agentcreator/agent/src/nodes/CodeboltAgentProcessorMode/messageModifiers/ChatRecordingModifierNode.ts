@@ -1,4 +1,4 @@
-import { BaseChatRecordingModifierNode } from '@agent-creator/shared-nodes';
+import { BaseChatRecordingModifierNode } from '@codebolt/agent-shared-nodes';
 import { ChatRecordingModifier } from '@codebolt/agent/processor-pieces';
 import * as fs from 'fs';
 import * as path from 'path';

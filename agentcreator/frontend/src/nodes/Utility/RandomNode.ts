@@ -1,4 +1,4 @@
-import { BaseRandomNode } from '@agent-creator/shared-nodes';
+import { BaseRandomNode } from '@codebolt/agent-shared-nodes';
 import { LGraphCanvas } from '@codebolt/litegraph';
 
 // Frontend Random Node - UI only

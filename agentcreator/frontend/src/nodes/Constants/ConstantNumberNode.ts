@@ -1,4 +1,4 @@
-import { BaseConstantNumberNode } from '@agent-creator/shared-nodes';
+import { BaseConstantNumberNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Constant Number Node - UI only
 export class ConstantNumberNode extends BaseConstantNumberNode {

@@ -1,4 +1,4 @@
-import { BaseLLMGetTokenCountNode } from '@agent-creator/shared-nodes';
+import { BaseLLMGetTokenCountNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend LLMGetTokenCount Node - UI only
 export class LLMGetTokenCountNode extends BaseLLMGetTokenCountNode {

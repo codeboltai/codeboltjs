@@ -1,4 +1,4 @@
-import { BaseSendConfirmationRequestNode } from '@agent-creator/shared-nodes';
+import { BaseSendConfirmationRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitChatFailure, emitChatSuccess, getArrayInput, getBooleanInput, getStringInput, setNamedOutput } from './utils.js';
 

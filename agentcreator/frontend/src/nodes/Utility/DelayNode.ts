@@ -1,4 +1,4 @@
-import { BaseDelayNode } from '@agent-creator/shared-nodes';
+import { BaseDelayNode } from '@codebolt/agent-shared-nodes';
 import { LiteGraph } from '@codebolt/litegraph';
 
 // Frontend Delay Node - UI only

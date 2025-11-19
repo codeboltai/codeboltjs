@@ -1,4 +1,4 @@
-import { BaseGetFirstLinkRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetFirstLinkRequestNode } from '@codebolt/agent-shared-nodes';
 import { searchNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific GetFirstLinkRequest Node - actual implementation

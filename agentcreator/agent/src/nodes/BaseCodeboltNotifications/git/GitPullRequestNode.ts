@@ -1,4 +1,4 @@
-import { BaseGitPullRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitPullRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitPullRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitPullRequestNode - actual implementation

@@ -1,4 +1,4 @@
-import { BaseSendNotificationEventNode } from '@agent-creator/shared-nodes';
+import { BaseSendNotificationEventNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitChatFailure, emitChatSuccess, getStringInput } from './utils.js';
 

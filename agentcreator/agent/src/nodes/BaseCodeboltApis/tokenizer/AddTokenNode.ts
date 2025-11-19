@@ -1,4 +1,4 @@
-import { BaseAddTokenNode } from '@agent-creator/shared-nodes';
+import { BaseAddTokenNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific AddToken Node - actual implementation

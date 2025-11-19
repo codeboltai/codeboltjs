@@ -1,4 +1,4 @@
-import { BaseAgentCompletionRequestNode } from '@agent-creator/shared-nodes';
+import { BaseAgentCompletionRequestNode } from '@codebolt/agent-shared-nodes';
 import { AgentCompletionNotify } from '@codebolt/codeboltjs';
 
 // Backend AgentCompletionRequestNode - actual implementation

@@ -1,4 +1,4 @@
-import { BaseMemoryImportModifierNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryImportModifierNode } from '@codebolt/agent-shared-nodes';
 import { MemoryImportModifier } from '@codebolt/agent/processor-pieces';
 
 // Backend Memory Import Modifier Node - actual implementation

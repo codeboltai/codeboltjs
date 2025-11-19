@@ -1,4 +1,4 @@
-import { BaseGitDiffNode } from '@agent-creator/shared-nodes';
+import { BaseGitDiffNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitGitFailure, emitGitSuccess, getInputOrProperty } from './utils.js';
 

@@ -1,4 +1,4 @@
-import { BaseDeleteFolderNode } from '@agent-creator/shared-nodes';
+import { BaseDeleteFolderNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific DeleteFolder Node - actual implementation

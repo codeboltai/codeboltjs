@@ -1,4 +1,4 @@
-import { BaseReadFileNode } from '@agent-creator/shared-nodes';
+import { BaseReadFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ReadFile Node - actual implementation
@@ -8,7 +8,7 @@ export class ReadFileNode extends BaseReadFileNode {
   }
 
   async onExecute() {
-     console.log('ReadFileNode executing:');
+    console.log('ReadFileNode executing:');
     // const triggerInput = this.getInputData(0);
     const filePath = this.getInputData(1) as string;
 

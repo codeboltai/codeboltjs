@@ -18,7 +18,7 @@ import {
   BaseAttachMemoryToTaskNode,
   BaseGetAttachedMemoryForTaskNode,
   BaseCreateTaskGroupNode
-} from '@agent-creator/shared-nodes';
+} from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { normalizeTaskStatus, TaskStatus } from './statusHelpers.js';
 

@@ -1,4 +1,4 @@
-import { BaseParseXMLNode } from '@agent-creator/shared-nodes';
+import { BaseParseXMLNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ParseXML Node - UI only
 export class ParseXMLNode extends BaseParseXMLNode {

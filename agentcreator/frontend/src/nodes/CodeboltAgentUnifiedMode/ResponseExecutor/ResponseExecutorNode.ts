@@ -1,4 +1,4 @@
-import { BaseResponseExecutorNode } from '@agent-creator/shared-nodes';
+import { BaseResponseExecutorNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Response Executor Node - UI only
 export class ResponseExecutorNode extends BaseResponseExecutorNode {

@@ -1,4 +1,4 @@
-import { BaseToolValidationNode } from '@agent-creator/shared-nodes';
+import { BaseToolValidationNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Tool Validation Node - UI only
 export class ToolValidationNode extends BaseToolValidationNode {

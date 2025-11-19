@@ -1,4 +1,4 @@
-import { BaseMemoryMarkdownDeleteNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryMarkdownDeleteNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitMemoryFailure, emitMemorySuccess, getStringInput } from './utils.js';
 

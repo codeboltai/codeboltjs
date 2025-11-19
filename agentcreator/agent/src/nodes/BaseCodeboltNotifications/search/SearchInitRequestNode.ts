@@ -1,4 +1,4 @@
-import { BaseSearchInitRequestNode } from '@agent-creator/shared-nodes';
+import { BaseSearchInitRequestNode } from '@codebolt/agent-shared-nodes';
 import { searchNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific SearchInitRequest Node - actual implementation

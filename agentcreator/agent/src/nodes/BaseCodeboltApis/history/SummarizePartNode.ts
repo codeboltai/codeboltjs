@@ -1,4 +1,4 @@
-import { BaseSummarizePartNode } from '@agent-creator/shared-nodes';
+import { BaseSummarizePartNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitHistoryFailure, emitHistorySuccess, getArrayInput, getNumberInput } from './utils.js';
 

@@ -1,4 +1,4 @@
-import { BaseExecuteToolResultNode } from '@agent-creator/shared-nodes';
+import { BaseExecuteToolResultNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ExecuteToolResult Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseMCPMentionedServersNode } from '@agent-creator/shared-nodes';
+import { BaseMCPMentionedServersNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitMCPFailure, emitMCPSuccess, getObjectInput } from './utils.js';
 

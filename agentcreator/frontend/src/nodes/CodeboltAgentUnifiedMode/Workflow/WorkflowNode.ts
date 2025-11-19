@@ -1,4 +1,4 @@
-import { BaseWorkflowNode } from '@agent-creator/shared-nodes';
+import { BaseWorkflowNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Workflow Node - UI only
 export class WorkflowNode extends BaseWorkflowNode {

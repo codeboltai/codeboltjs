@@ -1,4 +1,4 @@
-import { BaseMarkdownNode } from '@agent-creator/shared-nodes';
+import { BaseMarkdownNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Markdown Node - minimal execution logic
 export class MarkdownNode extends BaseMarkdownNode {

@@ -1,4 +1,4 @@
-import { BaseRetrieveRelatedKnowledgeNode } from  '@agent-creator/shared-nodes';
+import { BaseRetrieveRelatedKnowledgeNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 export class BackendRetrieveRelatedKnowledgeNode extends BaseRetrieveRelatedKnowledgeNode {
@@ -25,12 +25,12 @@ export class BackendRetrieveRelatedKnowledgeNode extends BaseRetrieveRelatedKnow
       // Call the RAG API to retrieve related knowledge
       const result = await codebolt.rag.retrieve_related_knowledge(query, filename);
       const resultsArray = Array.isArray(result) ? result : [];
-      
+
       // If maxResults is specified, limit the results
       const limitedResults = Number.isFinite(maxResults) && maxResults > 0 && resultsArray.length > maxResults
         ? resultsArray.slice(0, maxResults)
         : resultsArray;
-      
+
       // Set outputs
       this.setOutputData(1, limitedResults);
       this.setOutputData(2, true); // success

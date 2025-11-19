@@ -1,4 +1,4 @@
-import { BaseCrawlerStartResponseNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerStartResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend CrawlerStartResponse Node - UI only
 export class CrawlerStartResponseNode extends BaseCrawlerStartResponseNode {

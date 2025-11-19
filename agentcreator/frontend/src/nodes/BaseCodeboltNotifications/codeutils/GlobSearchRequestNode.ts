@@ -1,4 +1,4 @@
-import { BaseGlobSearchRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGlobSearchRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GlobSearchRequestNode - UI only
 export class GlobSearchRequestNode extends BaseGlobSearchRequestNode {

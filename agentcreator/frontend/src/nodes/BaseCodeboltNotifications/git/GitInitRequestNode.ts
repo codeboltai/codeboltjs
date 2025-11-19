@@ -1,4 +1,4 @@
-import { BaseGitInitRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitInitRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GitInitRequestNode - UI only
 export class GitInitRequestNode extends BaseGitInitRequestNode {

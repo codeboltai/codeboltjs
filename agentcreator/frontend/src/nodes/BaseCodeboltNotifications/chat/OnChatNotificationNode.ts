@@ -1,4 +1,4 @@
-import { BaseOnChatNotificationNode } from '@agent-creator/shared-nodes';
+import { BaseOnChatNotificationNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend OnChatNotification Node - UI only
 export class OnChatNotificationNode extends BaseOnChatNotificationNode {

@@ -1,4 +1,4 @@
-import { BaseMemoryMarkdownUpdateNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryMarkdownUpdateNode } from '@codebolt/agent-shared-nodes';
 
 export class MemoryMarkdownUpdateNode extends BaseMemoryMarkdownUpdateNode {
   constructor() {

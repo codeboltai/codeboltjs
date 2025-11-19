@@ -1,4 +1,4 @@
-import { BaseGetEnabledMCPServersResultNode } from '@agent-creator/shared-nodes';
+import { BaseGetEnabledMCPServersResultNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetEnabledMCPServersResult Node - UI only
 export class GetEnabledMCPServersResultNode extends BaseGetEnabledMCPServersResultNode {

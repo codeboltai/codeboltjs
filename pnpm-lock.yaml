@@ -42,12 +42,12 @@ importers:
 
   agentcreator/agent:
     dependencies:
-      '@agent-creator/shared-nodes':
-        specifier: workspace:*
-        version: link:../shared-nodes
       '@codebolt/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@codebolt/agent-shared-nodes':
+        specifier: workspace:*
+        version: link:../shared-nodes
       '@codebolt/codeboltjs':
         specifier: workspace:*
         version: link:../../packages/codeboltjs
@@ -70,7 +70,7 @@ importers:
       '@agent-creator/agent':
         specifier: workspace:*
         version: link:../agent
-      '@agent-creator/shared-nodes':
+      '@codebolt/agent-shared-nodes':
         specifier: workspace:*
         version: link:../shared-nodes
       body-parser:
@@ -174,7 +174,7 @@ importers:
 
   agentcreator/frontend:
     dependencies:
-      '@agent-creator/shared-nodes':
+      '@codebolt/agent-shared-nodes':
         specifier: workspace:*
         version: link:../shared-nodes
       '@codebolt/litegraph':

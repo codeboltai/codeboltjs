@@ -61,7 +61,7 @@ export * from './CodeboltAgentUnifiedMode/index.js';
 
 // Backend node registration utility
 import { LiteGraph } from '@codebolt/litegraph';
-import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
+import { registerNodeWithMetadata } from '@codebolt/agent-shared-nodes';
 import { ConstNode as BackendConstNode } from './Constants/index.js';
 import { TimeNode as BackendTimeNode } from './Utility/TimeNode.js';
 import { ConstantNumberNode as BackendConstantNumberNode } from './Constants/index.js';

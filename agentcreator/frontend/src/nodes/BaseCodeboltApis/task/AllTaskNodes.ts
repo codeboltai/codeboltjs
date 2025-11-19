@@ -1,24 +1,24 @@
 // Step Management Nodes
-import { BaseAddStepToTaskNode } from '@agent-creator/shared-nodes';
-import { BaseGetTaskMessagesNode } from '@agent-creator/shared-nodes';
-import { BaseGetAllStepsNode } from '@agent-creator/shared-nodes';
-import { BaseGetCurrentRunningStepNode } from '@agent-creator/shared-nodes';
-import { BaseUpdateStepStatusNode } from '@agent-creator/shared-nodes';
-import { BaseCompleteStepNode } from '@agent-creator/shared-nodes';
-import { BaseSendSteeringMessageNode } from '@agent-creator/shared-nodes';
+import { BaseAddStepToTaskNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetTaskMessagesNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetAllStepsNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetCurrentRunningStepNode } from '@codebolt/agent-shared-nodes';
+import { BaseUpdateStepStatusNode } from '@codebolt/agent-shared-nodes';
+import { BaseCompleteStepNode } from '@codebolt/agent-shared-nodes';
+import { BaseSendSteeringMessageNode } from '@codebolt/agent-shared-nodes';
 
 // Task Dependency Nodes
-import { BaseCanTaskStartNode } from '@agent-creator/shared-nodes';
-import { BaseGetTasksDependentOnNode } from '@agent-creator/shared-nodes';
-import { BaseGetTasksReadyToStartNode } from '@agent-creator/shared-nodes';
-import { BaseGetTaskDependencyChainNode } from '@agent-creator/shared-nodes';
+import { BaseCanTaskStartNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetTasksDependentOnNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetTasksReadyToStartNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetTaskDependencyChainNode } from '@codebolt/agent-shared-nodes';
 
 // Utility and Statistics Nodes
-import { BaseGetTaskStatsNode } from '@agent-creator/shared-nodes';
-import { BaseGetTasksStartedByMeNode } from '@agent-creator/shared-nodes';
-import { BaseAttachMemoryToTaskNode } from '@agent-creator/shared-nodes';
-import { BaseGetAttachedMemoryForTaskNode } from '@agent-creator/shared-nodes';
-import { BaseCreateTaskGroupNode } from '@agent-creator/shared-nodes';
+import { BaseGetTaskStatsNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetTasksStartedByMeNode } from '@codebolt/agent-shared-nodes';
+import { BaseAttachMemoryToTaskNode } from '@codebolt/agent-shared-nodes';
+import { BaseGetAttachedMemoryForTaskNode } from '@codebolt/agent-shared-nodes';
+import { BaseCreateTaskGroupNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AddStepToTask Node - UI only
 export class AddStepToTaskNode extends BaseAddStepToTaskNode {

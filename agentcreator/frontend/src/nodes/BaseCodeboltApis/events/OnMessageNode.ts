@@ -1,4 +1,4 @@
-import { BaseOnMessageNode } from '@agent-creator/shared-nodes';
+import { BaseOnMessageNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend OnMessage Node - UI only
 export class OnMessageNode extends BaseOnMessageNode {

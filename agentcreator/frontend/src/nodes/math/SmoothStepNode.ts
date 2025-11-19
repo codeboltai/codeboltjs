@@ -1,4 +1,4 @@
-import { BaseSmoothStepNode } from '@agent-creator/shared-nodes';
+import { BaseSmoothStepNode } from '@codebolt/agent-shared-nodes';
 
 class SmoothStepNode extends BaseSmoothStepNode {
   constructor() {

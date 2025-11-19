@@ -1,4 +1,4 @@
-import { BaseGetEnabledMCPServersRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetEnabledMCPServersRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetEnabledMCPServersRequest Node - actual implementation

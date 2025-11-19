@@ -1,4 +1,4 @@
-import { BaseStartTaskStepWithListenerNode } from '@agent-creator/shared-nodes';
+import { BaseStartTaskStepWithListenerNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { ActionPlanResponseType } from '@codebolt/types/enum';
 

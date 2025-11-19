@@ -1,4 +1,4 @@
-import { BaseGitPushNode } from '@agent-creator/shared-nodes';
+import { BaseGitPushNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitGitFailure, emitGitSuccess } from './utils.js';
 

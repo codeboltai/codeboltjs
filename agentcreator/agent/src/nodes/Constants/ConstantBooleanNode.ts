@@ -1,4 +1,4 @@
-import { BaseConstantBooleanNode } from '@agent-creator/shared-nodes';
+import { BaseConstantBooleanNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Constant Boolean Node - execution logic only
 export class ConstantBooleanNode extends BaseConstantBooleanNode {

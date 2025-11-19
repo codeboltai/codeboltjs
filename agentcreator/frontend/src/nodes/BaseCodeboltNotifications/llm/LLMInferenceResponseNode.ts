@@ -1,4 +1,4 @@
-import { BaseLLMInferenceResponseNode } from '@agent-creator/shared-nodes';
+import { BaseLLMInferenceResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend LLMInferenceResponse Node - UI only
 export class LLMInferenceResponseNode extends BaseLLMInferenceResponseNode {

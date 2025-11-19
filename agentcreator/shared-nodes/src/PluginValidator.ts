@@ -1,4 +1,3 @@
-import { PluginManifest, PluginNodeMetadata } from '../types/PluginInterfaces';
 
 export class PluginValidator {
   /**

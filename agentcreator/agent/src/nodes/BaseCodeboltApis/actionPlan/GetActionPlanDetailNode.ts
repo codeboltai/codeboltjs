@@ -1,4 +1,4 @@
-import { BaseGetActionPlanDetailNode } from '@agent-creator/shared-nodes';
+import { BaseGetActionPlanDetailNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetActionPlanDetail Node - actual implementation

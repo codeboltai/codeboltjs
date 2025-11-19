@@ -1,4 +1,4 @@
-import { BaseGetStringVariableNode } from '@agent-creator/shared-nodes';
+import { BaseGetStringVariableNode } from '@codebolt/agent-shared-nodes';
 
 export class GetStringVariableNode extends BaseGetStringVariableNode {
   constructor() {
@@ -11,7 +11,7 @@ export class GetStringVariableNode extends BaseGetStringVariableNode {
     });
   }
 
-  onExecute() {}
+  onExecute() { }
 
   setProperty(name: string, value: any) {
     super.setProperty(name, value);

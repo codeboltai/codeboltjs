@@ -1,4 +1,4 @@
-import { BaseAskQuestionNode } from '@agent-creator/shared-nodes';
+import { BaseAskQuestionNode } from '@codebolt/agent-shared-nodes';
 
 export class AskQuestionNode extends BaseAskQuestionNode {
   constructor() {

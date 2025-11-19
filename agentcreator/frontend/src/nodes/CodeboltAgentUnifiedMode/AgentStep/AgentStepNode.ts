@@ -1,4 +1,4 @@
-import { BaseAgentStepNode } from '@agent-creator/shared-nodes';
+import { BaseAgentStepNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Agent Step Node - UI only
 export class AgentStepNode extends BaseAgentStepNode {

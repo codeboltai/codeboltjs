@@ -1,4 +1,4 @@
-import { BaseConstantBooleanNode } from '@agent-creator/shared-nodes';
+import { BaseConstantBooleanNode } from '@codebolt/agent-shared-nodes';
 import { LiteGraph } from '@codebolt/litegraph';
 
 // Frontend Constant Boolean Node - UI only

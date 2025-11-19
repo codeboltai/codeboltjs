@@ -1,4 +1,4 @@
-import { BaseListDirectoryRequestNode } from '@agent-creator/shared-nodes';
+import { BaseListDirectoryRequestNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific ListDirectoryRequest Node - actual implementation

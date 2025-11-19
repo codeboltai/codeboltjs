@@ -1,4 +1,4 @@
-import { BaseDirectoryContextModifierNode } from '@agent-creator/shared-nodes';
+import { BaseDirectoryContextModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Directory Context Modifier Node - UI only
 export class DirectoryContextModifierNode extends BaseDirectoryContextModifierNode {

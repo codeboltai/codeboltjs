@@ -1,4 +1,4 @@
-import { BaseStringToTableNode } from '@agent-creator/shared-nodes';
+import { BaseStringToTableNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific String to Table Node - execution logic only
 export class StringToTableNode extends BaseStringToTableNode {

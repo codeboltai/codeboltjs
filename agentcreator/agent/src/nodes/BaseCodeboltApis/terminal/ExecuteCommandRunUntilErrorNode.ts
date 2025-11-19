@@ -1,4 +1,4 @@
-import { BaseExecuteCommandRunUntilErrorNode } from '@agent-creator/shared-nodes';
+import { BaseExecuteCommandRunUntilErrorNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific ExecuteCommandRunUntilError Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseExecuteCommandNode } from '@agent-creator/shared-nodes';
+import { BaseExecuteCommandNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ExecuteCommand Node - UI only
 export class ExecuteCommandNode extends BaseExecuteCommandNode {

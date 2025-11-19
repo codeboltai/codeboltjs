@@ -1,4 +1,4 @@
-import { BaseGetApplicationStateNode } from '@agent-creator/shared-nodes';
+import { BaseGetApplicationStateNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GetApplicationState Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseOpenDebugBrowserNode } from '@agent-creator/shared-nodes';
+import { BaseOpenDebugBrowserNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific OpenDebugBrowser Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseTimeNode } from '@agent-creator/shared-nodes';
+import { BaseTimeNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Time Node - execution logic only
 export class TimeNode extends BaseTimeNode {

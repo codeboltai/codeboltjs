@@ -1,4 +1,4 @@
-import { BaseFileDeleteResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFileDeleteResponseNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FileDeleteResponse Node - actual implementation

@@ -1,4 +1,4 @@
-import { BaseGetAllPlansNode } from '@agent-creator/shared-nodes';
+import { BaseGetAllPlansNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetAllPlans Node - UI only
 export class GetAllPlansNode extends BaseGetAllPlansNode {

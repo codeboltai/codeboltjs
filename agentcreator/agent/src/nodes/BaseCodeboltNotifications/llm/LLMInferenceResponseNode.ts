@@ -1,4 +1,4 @@
-import { BaseLLMInferenceResponseNode } from '@agent-creator/shared-nodes';
+import { BaseLLMInferenceResponseNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific LLMInferenceResponse Node - actual implementation

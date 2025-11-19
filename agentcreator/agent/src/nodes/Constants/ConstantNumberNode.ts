@@ -1,4 +1,4 @@
-import { BaseConstantNumberNode } from '@agent-creator/shared-nodes';
+import { BaseConstantNumberNode } from '@codebolt/agent-shared-nodes';
 
 // Backend-specific Constant Number Node - execution logic only
 export class ConstantNumberNode extends BaseConstantNumberNode {

@@ -1,4 +1,4 @@
-import { BaseClampNode } from '@agent-creator/shared-nodes';
+import { BaseClampNode } from '@codebolt/agent-shared-nodes';
 
 export class ClampNode extends BaseClampNode {
   constructor() {

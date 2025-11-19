@@ -1,4 +1,4 @@
-import { BaseToNumberNode } from '@agent-creator/shared-nodes';
+import { BaseToNumberNode } from '@codebolt/agent-shared-nodes';
 
 class ToNumberNode extends BaseToNumberNode {
   constructor() {

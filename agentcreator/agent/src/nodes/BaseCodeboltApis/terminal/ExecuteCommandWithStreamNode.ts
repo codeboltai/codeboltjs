@@ -1,4 +1,4 @@
-import { BaseExecuteCommandWithStreamNode } from '@agent-creator/shared-nodes';
+import { BaseExecuteCommandWithStreamNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { TerminalResponseType } from '@codebolt/types/enum';
 

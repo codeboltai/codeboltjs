@@ -1,4 +1,4 @@
-import { BaseGrepSearchNode } from '@agent-creator/shared-nodes';
+import { BaseGrepSearchNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific GrepSearch Node - actual implementation

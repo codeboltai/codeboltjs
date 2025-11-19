@@ -1,4 +1,4 @@
-import { BaseGitRemoteAddRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitRemoteAddRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitRemoteAddRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitRemoteAddRequestNode - actual implementation

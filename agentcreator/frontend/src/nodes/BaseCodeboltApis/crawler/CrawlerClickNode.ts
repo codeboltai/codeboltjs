@@ -1,4 +1,4 @@
-import { BaseCrawlerClickNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerClickNode } from '@codebolt/agent-shared-nodes';
 
 export class CrawlerClickNode extends BaseCrawlerClickNode {
   constructor() {

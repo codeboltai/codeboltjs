@@ -1,4 +1,4 @@
-import { BaseUpdateFileNode } from '@agent-creator/shared-nodes';
+import { BaseUpdateFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific UpdateFile Node - actual implementation

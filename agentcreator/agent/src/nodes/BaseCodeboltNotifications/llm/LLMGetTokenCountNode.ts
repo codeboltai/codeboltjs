@@ -1,4 +1,4 @@
-import { BaseLLMGetTokenCountNode } from '@agent-creator/shared-nodes';
+import { BaseLLMGetTokenCountNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific LLMGetTokenCount Node - actual implementation

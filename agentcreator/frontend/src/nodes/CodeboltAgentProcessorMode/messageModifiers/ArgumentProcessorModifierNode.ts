@@ -1,4 +1,4 @@
-import { BaseArgumentProcessorModifierNode } from '@agent-creator/shared-nodes';
+import { BaseArgumentProcessorModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Argument Processor Modifier Node - UI only
 export class ArgumentProcessorModifierNode extends BaseArgumentProcessorModifierNode {

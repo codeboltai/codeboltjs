@@ -1,4 +1,4 @@
-import { BaseFolderCreateResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFolderCreateResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend FolderCreateResponse Node - UI only
 export class FolderCreateResponseNode extends BaseFolderCreateResponseNode {

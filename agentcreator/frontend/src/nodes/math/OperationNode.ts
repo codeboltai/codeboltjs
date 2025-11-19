@@ -1,5 +1,5 @@
 import { LiteGraph } from '@codebolt/litegraph';
-import { BaseOperationNode } from '@agent-creator/shared-nodes';
+import { BaseOperationNode } from '@codebolt/agent-shared-nodes';
 
 class OperationNode extends BaseOperationNode {
   constructor() {

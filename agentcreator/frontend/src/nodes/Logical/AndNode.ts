@@ -1,4 +1,4 @@
-import { BaseAndNode } from '@agent-creator/shared-nodes';
+import { BaseAndNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AND Node - UI only
 export class AndNode extends BaseAndNode {

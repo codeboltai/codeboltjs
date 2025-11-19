@@ -1,4 +1,4 @@
-import { BaseInitialPromptGeneratorNode } from '@agent-creator/shared-nodes';
+import { BaseInitialPromptGeneratorNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Initial Prompt Generator Node - UI only
 export class InitialPromptGeneratorNode extends BaseInitialPromptGeneratorNode {

@@ -1,4 +1,4 @@
-import { BaseMessageProcessorNode } from '@agent-creator/shared-nodes';
+import { BaseMessageProcessorNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Message Processor Node - UI only
 export class MessageProcessorNode extends BaseMessageProcessorNode {

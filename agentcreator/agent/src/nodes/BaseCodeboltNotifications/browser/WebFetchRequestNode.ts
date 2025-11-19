@@ -1,4 +1,4 @@
-import { BaseWebFetchRequestNode } from '@agent-creator/shared-nodes';
+import { BaseWebFetchRequestNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific WebFetchRequest Node - actual implementation

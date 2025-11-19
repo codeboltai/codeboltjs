@@ -1,4 +1,4 @@
-import { BaseFileReadResponseNode } from '@agent-creator/shared-nodes';
+import { BaseFileReadResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend FileReadResponse Node - UI only
 export class FileReadResponseNode extends BaseFileReadResponseNode {

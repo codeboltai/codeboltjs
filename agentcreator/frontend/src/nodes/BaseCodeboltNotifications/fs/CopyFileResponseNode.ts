@@ -1,4 +1,4 @@
-import { BaseCopyFileResponseNode } from '@agent-creator/shared-nodes';
+import { BaseCopyFileResponseNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend CopyFileResponse Node - UI only
 export class CopyFileResponseNode extends BaseCopyFileResponseNode {

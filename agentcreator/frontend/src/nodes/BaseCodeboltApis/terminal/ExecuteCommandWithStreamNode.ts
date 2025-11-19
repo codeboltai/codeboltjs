@@ -1,4 +1,4 @@
-import { BaseExecuteCommandWithStreamNode } from '@agent-creator/shared-nodes';
+import { BaseExecuteCommandWithStreamNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend ExecuteCommandWithStream Node - UI only
 export class ExecuteCommandWithStreamNode extends BaseExecuteCommandWithStreamNode {

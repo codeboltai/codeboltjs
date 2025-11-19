@@ -1,4 +1,4 @@
-import { BaseAddTokenNode } from '@agent-creator/shared-nodes';
+import { BaseAddTokenNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AddToken Node - UI only
 export class AddTokenNode extends BaseAddTokenNode {

@@ -1,4 +1,4 @@
-import { BaseAddTaskToActionPlanNode } from '@agent-creator/shared-nodes';
+import { BaseAddTaskToActionPlanNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific AddTaskToActionPlan Node - actual implementation

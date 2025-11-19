@@ -1,4 +1,4 @@
-import { BaseAgentInitRequestNode } from '@agent-creator/shared-nodes';
+import { BaseAgentInitRequestNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend AgentInitRequestNode - UI only
 export class AgentInitRequestNode extends BaseAgentInitRequestNode {

@@ -1,4 +1,4 @@
-import { BaseGetChatHistoryRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetChatHistoryRequestNode } from '@codebolt/agent-shared-nodes';
 import { chatNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific GetChatHistoryRequest Node - actual implementation

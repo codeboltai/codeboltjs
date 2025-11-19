@@ -1,4 +1,4 @@
-import { BaseFileCreateRequestNode } from '@agent-creator/shared-nodes';
+import { BaseFileCreateRequestNode } from '@codebolt/agent-shared-nodes';
 import { fsNotifications } from '@codebolt/codeboltjs';
 
 // Backend-specific FileCreateRequest Node - actual implementation

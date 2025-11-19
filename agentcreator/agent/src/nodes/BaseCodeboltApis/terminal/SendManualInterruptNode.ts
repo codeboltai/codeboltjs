@@ -1,4 +1,4 @@
-import { BaseSendManualInterruptNode } from '@agent-creator/shared-nodes';
+import { BaseSendManualInterruptNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 // Backend-specific SendManualInterrupt Node - actual implementation

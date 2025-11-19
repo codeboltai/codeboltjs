@@ -1,4 +1,4 @@
-import { BaseAgentsDetailNode } from '@agent-creator/shared-nodes';
+import { BaseAgentsDetailNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { emitAgentFailure, emitAgentSuccess, getArrayInput } from './utils.js';
 

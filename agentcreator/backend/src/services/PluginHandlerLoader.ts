@@ -1,4 +1,4 @@
-import { Plugin, PluginManifest, PluginHandlerRegistry } from '@agent-creator/shared-nodes';
+import { Plugin, PluginManifest, PluginHandlerRegistry } from '@codebolt/agent-shared-nodes';
 import * as fs from 'fs';
 import * as path from 'path';
 

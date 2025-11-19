@@ -1,4 +1,4 @@
-import { BaseGitBranchRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGitBranchRequestNode } from '@codebolt/agent-shared-nodes';
 import { GitBranchRequestNotify } from '@codebolt/codeboltjs';
 
 // Backend GitBranchRequestNode - actual implementation

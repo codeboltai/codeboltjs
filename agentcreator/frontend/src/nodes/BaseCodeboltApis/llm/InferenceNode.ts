@@ -1,4 +1,4 @@
-import { BaseInferenceNode } from '@agent-creator/shared-nodes';
+import { BaseInferenceNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Inference Node - UI only
 export class InferenceNode extends BaseInferenceNode {

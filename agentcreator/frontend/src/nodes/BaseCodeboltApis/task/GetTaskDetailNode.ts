@@ -1,4 +1,4 @@
-import { BaseGetTaskDetailNode } from '@agent-creator/shared-nodes';
+import { BaseGetTaskDetailNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend GetTaskDetail Node - UI only
 export class GetTaskDetailNode extends BaseGetTaskDetailNode {

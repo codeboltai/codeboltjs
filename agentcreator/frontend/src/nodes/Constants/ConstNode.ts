@@ -1,4 +1,4 @@
-import { BaseConstNode } from '@agent-creator/shared-nodes';
+import { BaseConstNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Const Node - UI only
 export class ConstNode extends BaseConstNode {

@@ -1,4 +1,4 @@
-import { BaseMemoryImportModifierNode } from '@agent-creator/shared-nodes';
+import { BaseMemoryImportModifierNode } from '@codebolt/agent-shared-nodes';
 
 // Frontend Memory Import Modifier Node - UI only
 export class MemoryImportModifierNode extends BaseMemoryImportModifierNode {

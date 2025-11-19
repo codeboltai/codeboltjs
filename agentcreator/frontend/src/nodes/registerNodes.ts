@@ -21,7 +21,8 @@ import {
 
 
 // Event and Codebolt nodes
-import { OnMessageNode, SendMessageNode,
+import {
+  OnMessageNode, SendMessageNode,
   GetChatHistoryNode, WaitForReplyNode, ProcessStartedNode,
   StopProcessNode, ProcessFinishedNode, SendConfirmationRequestNode,
   AskQuestionNode, SendNotificationEventNode,
@@ -143,7 +144,7 @@ import {
   LoggerNode
 } from './Utility/index';
 
-import { registerNodeWithMetadata } from '@agent-creator/shared-nodes';
+import { registerNodeWithMetadata } from '@codebolt/agent-shared-nodes';
 
 // Base nodes (legacy - to be refactored)
 import JSONParseNode from './base/JSONParseNode';
@@ -266,7 +267,7 @@ export {
   ListToolsFromMCPServersRequestNode, ListToolsFromMCPServersResultNode,
   GetToolsRequestNode, GetToolsResultNode, ExecuteToolRequestNode, ExecuteToolResultNode,
   // Unified Agent nodes
-   AgentStepNode, InitialPromptGeneratorNode, ResponseExecutorNode,
+  AgentStepNode, InitialPromptGeneratorNode, ResponseExecutorNode,
   ToolNode, WorkflowNode, MessageProcessorNode,
   // Constants nodes
   ConstantStringNode, ConstantBooleanNode, ConstantObjectNode,

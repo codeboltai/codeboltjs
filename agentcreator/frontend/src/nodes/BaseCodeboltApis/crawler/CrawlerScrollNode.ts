@@ -1,4 +1,4 @@
-import { BaseCrawlerScrollNode } from '@agent-creator/shared-nodes';
+import { BaseCrawlerScrollNode } from '@codebolt/agent-shared-nodes';
 
 export class CrawlerScrollNode extends BaseCrawlerScrollNode {
   constructor() {

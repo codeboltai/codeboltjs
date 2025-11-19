@@ -1,4 +1,4 @@
-import { BaseAddFileNode } from '@agent-creator/shared-nodes';
+import { BaseAddFileNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 
 export class BackendAddFileNode extends BaseAddFileNode {
@@ -20,7 +20,7 @@ export class BackendAddFileNode extends BaseAddFileNode {
 
       // Call the RAG API to add the file
       const result = await codebolt.rag.add_file(filename, filePath);
-      
+
       // Set outputs
       this.setOutputData(1, result);
       this.setOutputData(2, true); // success

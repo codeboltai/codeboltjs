@@ -1,4 +1,4 @@
-import { BaseGetMemoryRequestNode } from '@agent-creator/shared-nodes';
+import { BaseGetMemoryRequestNode } from '@codebolt/agent-shared-nodes';
 import { dbmemoryNotifications } from '@codebolt/codeboltjs';
 
 // Backend GetMemoryRequestNode - actual implementation

@@ -1,4 +1,4 @@
-import { BaseFindAgentNode } from '@agent-creator/shared-nodes';
+import { BaseFindAgentNode } from '@codebolt/agent-shared-nodes';
 
 export class FindAgentNode extends BaseFindAgentNode {
   constructor() {
