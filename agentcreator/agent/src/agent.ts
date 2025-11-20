@@ -51,15 +51,17 @@ class AgentExecutor {
       // Always read from data.json file
       let graphData, message;
       try {
-        const fileContent = readFileSync('data.json', 'utf8');
+        const dataPath = process.env.agentFlowPath || 'data.json';
+        // console.log(`Reading graph data from: ${dataPath}`);
+        const fileContent = readFileSync(dataPath, 'utf8');
         const data = JSON.parse(fileContent);
         graphData = data.graphData;
         message = data.message;
       } catch (error) {
-        console.error('Failed to read data.json file:', error);
+        console.error('Failed to read data file:', error);
         return {
           success: false,
-          error: 'Failed to read data.json file: ' + error.message,
+          error: 'Failed to read data file: ' + error.message,
           message: 'Graph execution failed'
         };
       }
