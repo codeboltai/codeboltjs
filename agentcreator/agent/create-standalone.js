@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync } from 'fs';
+import { build } from 'esbuild';
+import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync, copyFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -9,156 +10,152 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 async function createStandaloneAgent() {
-  console.log('🔨 Creating standalone agent with embedded dependencies...');
+  console.log('🔨 Creating standalone single-file agent bundle...');
 
   try {
-    // 1. Build the agent normally first
-    console.log('📦 Building agent...');
-    execSync('pnpm run build', { stdio: 'inherit' });
+    // Build with esbuild to create a single CommonJS file
+    console.log('📦 Building with esbuild...');
 
-    // 2. Create a standalone package structure
-    console.log('📁 Creating standalone package...');
-
-    const standaloneDir = 'dist/standalone-agent';
-    if (!existsSync(standaloneDir)) {
-      mkdirSync(standaloneDir, { recursive: true });
-    }
-
-    // 3. Copy the built agent files
-    execSync('cp -r dist/* ' + standaloneDir + '/', { stdio: 'inherit' });
-
-    // 4. Create a package.json for the standalone version with all dependencies
-    const originalPackage = JSON.parse(readFileSync('package.json', 'utf8'));
-
-    // Get all dependencies from workspace packages
-    const codeboltPackage = JSON.parse(readFileSync('../../packages/codeboltjs/package.json', 'utf8'));
-    const typesPackage = JSON.parse(readFileSync('../../common/types/package.json', 'utf8'));
-
-    const standalonePackage = {
-      name: 'agent-standalone',
-      version: '1.0.0',
-      type: 'module',
-      main: 'agent.js',
-      scripts: {
-        start: 'node agent.js'
-      },
-      dependencies: {
-        // Include actual published versions instead of workspace
-        'ws': '^8.18.3',
-        'uuid': '^11.1.0',
-        'js-yaml': '^4.1.0',
-        'yargs': '^17.7.2',
-        'execa': '^9.5.2',
-        'zod': '^3.25.76'
-      },
-      engines: {
-        'node': '>=20.0.0'
+    await build({
+      entryPoints: ['src/agent.ts'],
+      bundle: true,
+      platform: 'node',
+      target: 'node20',
+      format: 'cjs',
+      outfile: 'dist/index-temp.cjs',
+      minify: false,
+      sourcemap: false,
+      external: [], // Bundle everything except Node.js built-ins
+      treeShaking: true,
+      define: {
+        'process.env.NODE_ENV': '"production"',
       }
-    };
+    });
 
-    writeFileSync(
-      join(standaloneDir, 'package.json'),
-      JSON.stringify(standalonePackage, null, 2)
+    console.log('✅ Temporary bundle created');
+
+    // Read the temporary bundle
+    let tempContent = readFileSync('dist/index-temp.cjs', 'utf8');
+
+    // Replace import_meta.url with __filename (CommonJS compatible)
+    // esbuild creates: var import_meta = {}; var __filename = fileURLToPath(import_meta.url);
+    // We need to replace import_meta.url with __filename
+    tempContent = tempContent.replace(
+      /var __filename = \(0, import_url\.fileURLToPath\)\(import_meta\.url\);/g,
+      'var __filename = typeof __filename !== "undefined" ? __filename : require("url").fileURLToPath("file://" + __dirname + "/index.cjs");'
     );
 
-    // 5. Create a launcher script that handles dependencies
-    const launcherContent = `#!/usr/bin/env node
+    // Also replace any other import_meta.url references
+    tempContent = tempContent.replace(/import_meta\.url/g, '"file://" + __filename');
 
-import { readFileSync, existsSync } from 'fs';
-import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+    // Create the final single file with shebang and polyfills
+    const finalContent = `#!/usr/bin/env node
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// ========================================
+// SINGLE FILE AGENT BUNDLE
+// All dependencies included - Node.js built-ins are external
+// No npm install required
+// ========================================
 
-// Check if dependencies are installed
-function checkDependencies() {
-  try {
-    require('ws');
-    require('uuid');
-    return true;
-  } catch (e) {
-    return false;
-  }
+// Polyfills and setup for CommonJS
+if (typeof globalThis.window === 'undefined') {
+  globalThis.window = globalThis;
 }
 
-// Auto-install dependencies if needed
-if (!checkDependencies()) {
-  console.log('📦 Installing dependencies...');
-  try {
-    execSync('npm install', { cwd: __dirname, stdio: 'inherit' });
-    console.log('✅ Dependencies installed');
-  } catch (e) {
-    console.error('❌ Failed to install dependencies:', e.message);
-    process.exit(1);
+// Override require to provide WebSocket polyfill
+const originalRequire = require;
+require = function(id) {
+  if (id === 'ws') {
+    try {
+      return originalRequire('ws');
+    } catch (e) {
+      console.log('Warning: WebSocket (ws) module not found - providing polyfill...');
+      // Provide minimal WebSocket polyfill
+      return {
+        WebSocket: class {
+          constructor() { this.readyState = 1; }
+          addEventListener() {}
+          send() {}
+          close() {}
+        }
+      };
+    }
   }
+  return originalRequire(id);
+};
+
+// Get WebSocket using our patched require
+let WebSocket;
+try {
+  WebSocket = require('ws').WebSocket;
+} catch (e) {
+  // This should not happen with our require override, but just in case
+  WebSocket = class {
+    constructor() { this.readyState = 1; }
+    addEventListener() {}
+    send() {}
+    close() {}
+  };
 }
 
-// Import and run the agent
-import('./agent.js').catch(err => {
-  console.error('Failed to start agent:', err);
-  process.exit(1);
-});
+// Make WebSocket globally available
+global.WebSocket = WebSocket;
+
+// Ensure process is available
+if (typeof process === 'undefined') {
+  global.process = {
+    env: {},
+    cwd: () => '.',
+    platform: 'node',
+    argv: []
+  };
+}
+
+// ========================================
+// START OF BUNDLED AGENT CODE
+// ========================================
+
+${tempContent}
 `;
 
-    writeFileSync(join(standaloneDir, 'run-agent.js'), launcherContent);
+    // Write the final bundle
+    writeFileSync('dist/index.cjs', finalContent);
 
-    // 6. Make the launcher executable
-    execSync('chmod +x ' + join(standaloneDir, 'run-agent.js'), { stdio: 'inherit' });
+    // Clean up temp file
+    unlinkSync('dist/index-temp.cjs');
 
-    // 7. Create installation instructions
-    const instructions = `
-# Standalone Agent Bundle
+    // Make it executable
+    try {
+      execSync('chmod +x dist/index.cjs');
+    } catch (e) {
+      console.log('Could not make file executable');
+    }
 
-This is a self-contained agent bundle that handles its own dependencies.
+    // Copy data.json to dist if it exists
+    if (existsSync('test/readFileGraph.json')) {
+      copyFileSync('test/readFileGraph.json', 'dist/data.json');
+      console.log('✅ Copied test data to dist/data.json');
+    }
 
-## Usage
+    // Get file size
+    const stats = readFileSync('dist/index.cjs');
+    const sizeInMB = (stats.length / 1024 / 1024).toFixed(2);
 
-### Method 1: Auto-install (Recommended)
-\`\`\`bash
-node run-agent.js
-\`\`\`
-This will automatically install required dependencies on first run.
-
-### Method 2: Manual install
-\`\`\`bash
-# Install dependencies
-npm install
-
-# Run the agent
-node agent.js
-\`\`\`
-
-### Method 3: With custom data file
-\`\`\`bash
-AGENT_FLOW_PATH=your-data.json node run-agent.js
-\`\`\`
-
-## Requirements
-- Node.js 20.0.0 or higher
-- Internet connection for initial dependency installation
-
-## Bundle Contents
-- \`${standaloneDir}/agent.js\` - Main agent executable
-- \`${standaloneDir}/run-agent.js\` - Auto-installing launcher
-- \`${standaloneDir}/nodes/\` - Agent node definitions
-- \`${standaloneDir}/package.json\` - Dependencies specification
-`;
-
-    writeFileSync(join(standaloneDir, 'README.md'), instructions);
-
-    console.log(`✅ Standalone agent created: ${standaloneDir}/`);
+    console.log(`✅ Single file bundle created: dist/index.cjs`);
+    console.log(`📦 Bundle size: ${sizeInMB} MB`);
     console.log('');
-    console.log('🚀 To run the agent:');
-    console.log(`  cd ${standaloneDir}`);
-    console.log('  node run-agent.js');
+    console.log('🚀 Usage:');
+    console.log('  # Run with default data.json in same directory');
+    console.log('  node dist/index.cjs');
     console.log('');
-    console.log('📋 The agent will auto-install its dependencies on first run.');
-    console.log('📁 See README.md for more usage instructions.');
+    console.log('  # Run with custom data file');
+    console.log('  agentFlowPath=custom-data.json node dist/index.cjs');
+    console.log('');
+    console.log('📋 You can now move dist/index.cjs and dist/data.json anywhere!');
 
   } catch (error) {
     console.error('❌ Build failed:', error);
+    console.error(error.stack);
     process.exit(1);
   }
 }
