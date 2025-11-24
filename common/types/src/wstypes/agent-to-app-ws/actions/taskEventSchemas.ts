@@ -96,6 +96,8 @@ const createTaskOptionsSchema = z.object({
   dependsOnTaskId: z.string().optional(),
   dependsOnTaskName: z.string().optional(),
   steps: z.array(stepSchema).optional(),
+  assignedTo: z.string().optional(),
+  selectedAgent: z.any().optional(),
 });
 
 // Task update options schema
@@ -114,6 +116,8 @@ const updateTaskOptionsSchema = z.object({
   startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
   dependsOnTaskId: z.string().optional(),
   dependsOnTaskName: z.string().optional(),
+  assignedTo: z.string().optional(),
+  selectedAgent: z.any().optional(),
 });
 
 // Get task list options schema

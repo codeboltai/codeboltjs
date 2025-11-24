@@ -121,6 +121,12 @@ const taskSchema = z.object({
   startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']),
   dependsOnTaskId: z.string().optional(),
   dependsOnTaskName: z.string().optional(),
+  status: z.string().optional(),
+  description: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  assignedTo: z.string().optional(),
+  selectedAgent: z.any().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 // Extended task schema

@@ -775,8 +775,8 @@ importers:
   packages/codeboltjs:
     dependencies:
       '@codebolt/types':
-        specifier: latest
-        version: 1.0.22
+        specifier: workspace:*
+        version: link:../../common/types
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -1069,37 +1069,6 @@ importers:
         version: 5.9.3
 
   providers/gitWorkTreeProvider:
-    dependencies:
-      '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
-      '@codebolt/provider':
-        specifier: workspace:*
-        version: link:../../packages/provider
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      '@e2b/sdk':
-        specifier: ^0.16.0
-        version: 0.16.2
-      ws:
-        specifier: ^8.18.0
-        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.2
-        version: 20.19.19
-      '@types/ws':
-        specifier: ^8.5.13
-        version: 8.18.1
-      ts-node:
-        specifier: ^10.9.1
-        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-
-  providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -2368,9 +2337,6 @@ packages:
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
-
-  '@codebolt/types@1.0.22':
-    resolution: {integrity: sha512-WbImq/vbWY9aEtQR0Q2XDG7jQdXEO5nHmNy/n0qnLSfxws0sm+GqYv9V6ex9cJl2xGX63PYGs0jQDSIOeUrkzw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -10906,10 +10872,6 @@ snapshots:
     dependencies:
       globby: 14.1.0
 
-  '@codebolt/types@1.0.22':
-    dependencies:
-      zod: 3.25.76
-
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
@@ -13623,7 +13585,7 @@ snapshots:
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -13633,7 +13595,7 @@ snapshots:
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -13643,7 +13605,7 @@ snapshots:
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -18573,7 +18535,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-cli@5.1.4(webpack@5.103.0):

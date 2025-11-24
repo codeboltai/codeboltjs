@@ -217,4 +217,39 @@ export {
   type GetTaskDependencyChainResponse,
   type GetTaskStatsResponse,
   type PlannerTaskResponse
-} from './wstypes/app-to-agent-ws/taskServiceResponses'; 
+} from './wstypes/app-to-agent-ws/taskServiceResponses';
+
+// Thread service response schemas and types
+export {
+  threadServiceResponseSchema,
+  threadResponseSchema,
+  threadListResponseSchema,
+  threadMessagesResponseSchema,
+  deleteThreadResponseSchema,
+  createThreadResponseSchema,
+  getThreadListResponseSchema,
+  getThreadDetailResponseSchema,
+  getThreadMessagesResponseSchema,
+  updateThreadResponseSchema,
+  startThreadResponseSchema,
+  updateThreadStatusResponseSchema,
+  // Thread service response types
+  type ThreadMessage,
+  type ThreadResponseMessageData,
+  type Thread,
+  type ExtendedThread,
+  type ThreadStats,
+  type ThreadServiceResponse,
+  type ThreadResponse,
+  type ThreadListResponse,
+  type ThreadMessagesResponse,
+  type DeleteThreadResponse,
+  type CreateThreadResponse,
+  type GetThreadListResponse,
+  type GetThreadDetailResponse,
+  type GetThreadMessagesResponse,
+  type UpdateThreadResponse,
+  type StartThreadResponse,
+  type UpdateThreadStatusResponse
+} from './wstypes/app-to-agent-ws/threadServiceResponses';
+
