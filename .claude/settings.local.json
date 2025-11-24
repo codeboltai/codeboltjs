@@ -17,7 +17,9 @@
       "Bash(timeout:*)",
       "Bash(echo:*)",
       "Bash(tree:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(npm whoami:*)",
+      "Bash(npm publish:*)"
     ],
     "deny": [],
     "ask": []
