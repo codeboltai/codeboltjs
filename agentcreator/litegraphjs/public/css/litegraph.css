@@ -180,12 +180,8 @@
 .litegraph.litesearchbox {
   font-family: Tahoma, sans-serif;
   position: absolute;
-  background-color: #2e2e2e;
-  padding: 8px;
-  box-shadow: 0 0 10px black !important;
-  border-radius: 6px;
-  min-width: 300px;
-  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding-top: 4px;
 }
 
 .litegraph.litesearchbox input,
@@ -193,20 +189,12 @@
   margin-top: 3px;
   min-width: 60px;
   min-height: 1.5em;
-  background-color: #1a1a1a;
-  border: 1px solid #444;
-  color: #aaa;
-  padding: 4px 10px;
+  background-color: black;
+  border: 0;
+  color: white;
+  padding-left: 10px;
   margin-right: 5px;
   max-width: 300px;
-  border-radius: 4px;
-  outline: none;
-}
-
-.litegraph.litesearchbox input:focus,
-.litegraph.litesearchbox select:focus {
-  border-color: #666;
-  color: #fff;
 }
 
 .litegraph.litesearchbox .name {
@@ -214,86 +202,52 @@
   min-width: 60px;
   min-height: 1.5em;
   padding-left: 10px;
-  color: #dde;
-  font-weight: bold;
 }
 
 .litegraph.litesearchbox .helper {
   overflow: auto;
   max-height: 200px;
-  margin-top: 8px;
-  border-radius: 4px;
-}
-
-/* Custom scrollbar for searchbox helper */
-.litegraph.litesearchbox .helper::-webkit-scrollbar {
-  width: 8px;
-}
-
-.litegraph.litesearchbox .helper::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-.litegraph.litesearchbox .helper::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
-}
-
-.litegraph.litesearchbox .helper::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-/* Firefox scrollbar styling */
-.litegraph.litesearchbox .helper {
-  scrollbar-width: thin;
-  scrollbar-color: #555 #1a1a1a;
+  margin-top: 2px;
 }
 
 .litegraph.lite-search-item {
   font-family: Tahoma, sans-serif;
-  background-color: transparent;
-  color: #aaa;
-  padding: 4px 8px;
-  margin: 2px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 12px;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding-top: 2px;
 }
 
 .litegraph.lite-search-item.not_in_filter {
-  color: #999;
+  /*background-color: rgba(50, 50, 50, 0.5);*/
+  /*color: #999;*/
+  color: #b99;
   font-style: italic;
-  opacity: 0.7;
 }
 
 .litegraph.lite-search-item.generic_type {
+  /*background-color: rgba(50, 50, 50, 0.5);*/
+  /*color: #DD9;*/
   color: #999;
   font-style: italic;
-  opacity: 0.7;
 }
 
 .litegraph.lite-search-item:hover,
 .litegraph.lite-search-item.selected {
-  background-color: #444 !important;
-  color: #eee;
-  transition: all 0.2s;
+  cursor: pointer;
+  background-color: white;
+  color: black;
 }
 
 .litegraph.lite-search-item-type {
   display: inline-block;
-  background: #1a1a1a;
+  background: rgba(0, 0, 0, 0.2);
   margin-left: 5px;
-  font-size: 10px;
+  font-size: 14px;
   padding: 2px 5px;
   position: relative;
-  top: -1px;
+  top: -2px;
   opacity: 0.8;
-  border-radius: 3px;
-  border: 1px solid #444;
+  border-radius: 4px;
 }
 
 /* DIALOGs ******/
@@ -539,6 +493,16 @@
 .litemenu-entry.event {
   border-left: 8px solid orange;
   padding-left: 12px;
+}
+
+.graphmenu-entry.danger,
+.litemenu-entry.danger {
+  color: var(--error-text) !important;
+}
+
+.litegraph .litemenu-entry.danger:hover:not(.disabled) {
+  color: var(--error-text) !important;
+  opacity: 0.8;
 }
 
 .graphmenu-entry.disabled {
