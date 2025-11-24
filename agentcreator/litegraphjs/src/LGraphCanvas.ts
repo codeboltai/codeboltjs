@@ -144,7 +144,7 @@ interface IDialogExtensions extends ICloseable {
   is_modified: boolean
 }
 
-interface IDialog extends HTMLDivElement, IDialogExtensions {}
+interface IDialog extends HTMLDivElement, IDialogExtensions { }
 type PromptDialog = Omit<IDialog, "modified">
 
 interface IDialogOptions {
@@ -1049,8 +1049,8 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     }
   }
 
-  static onMenuCollapseAll() {}
-  static onMenuNodeEdit() {}
+  static onMenuCollapseAll() { }
+  static onMenuNodeEdit() { }
 
   /** @param _options Parameter is never used */
   static showMenuNodeOptionalOutputs(
@@ -1153,8 +1153,8 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       value = LGraphCanvas.decodeHTML(stringOrEmpty(value))
       entries.push({
         content:
-         `<span class='property_name'>${info.label || i}</span>` +
-         `<span class='property_value'>${value}</span>`,
+          `<span class='property_name'>${info.label || i}</span>` +
+          `<span class='property_value'>${value}</span>`,
         value: i,
       })
     }
@@ -2006,13 +2006,13 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         if (node) {
           this.processSelect(node, e, true)
         } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
-        // Reroutes
+          // Reroutes
           const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
           if (reroute) {
             if (e.altKey) {
               pointer.onClick = (upEvent) => {
                 if (upEvent.altKey) {
-                // Ensure deselected
+                  // Ensure deselected
                   if (reroute.selected) {
                     this.deselect(reroute)
                     this.onSelectionChange?.(this.selected_nodes)
@@ -2124,7 +2124,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
             }
             pointer.onDragEnd = e => this.#processDraggedItems(e)
           } else {
-          // TODO: Check if before/after change are necessary here.
+            // TODO: Check if before/after change are necessary here.
             graph.beforeChange()
             graph.add(cloned, false)
             graph.afterChange()
@@ -2480,7 +2480,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       if (node.onMouseDown?.(e, pos, this)) {
         // Node handled the event (e.g., title button clicked)
         // Set a no-op click handler to prevent fallback canvas dragging
-        pointer.onClick = () => {}
+        pointer.onClick = () => { }
         return
       }
 
@@ -2508,26 +2508,26 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
             // Handle resize based on the direction
             switch (resizeDirection) {
-            case "NE": // North-East (top-right)
-              newBounds.y = startBounds.y + deltaY
-              newBounds.width = startBounds.width + deltaX
-              newBounds.height = startBounds.height - deltaY
-              break
-            case "SE": // South-East (bottom-right)
-              newBounds.width = startBounds.width + deltaX
-              newBounds.height = startBounds.height + deltaY
-              break
-            case "SW": // South-West (bottom-left)
-              newBounds.x = startBounds.x + deltaX
-              newBounds.width = startBounds.width - deltaX
-              newBounds.height = startBounds.height + deltaY
-              break
-            case "NW": // North-West (top-left)
-              newBounds.x = startBounds.x + deltaX
-              newBounds.y = startBounds.y + deltaY
-              newBounds.width = startBounds.width - deltaX
-              newBounds.height = startBounds.height - deltaY
-              break
+              case "NE": // North-East (top-right)
+                newBounds.y = startBounds.y + deltaY
+                newBounds.width = startBounds.width + deltaX
+                newBounds.height = startBounds.height - deltaY
+                break
+              case "SE": // South-East (bottom-right)
+                newBounds.width = startBounds.width + deltaX
+                newBounds.height = startBounds.height + deltaY
+                break
+              case "SW": // South-West (bottom-left)
+                newBounds.x = startBounds.x + deltaX
+                newBounds.width = startBounds.width - deltaX
+                newBounds.height = startBounds.height + deltaY
+                break
+              case "NW": // North-West (top-left)
+                newBounds.x = startBounds.x + deltaX
+                newBounds.y = startBounds.y + deltaY
+                newBounds.width = startBounds.width - deltaX
+                newBounds.height = startBounds.height - deltaY
+                break
             }
 
             // Apply snapping to position changes
@@ -2910,7 +2910,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
               // Not over a valid widget - treat drop on invalid widget same as node background
               if (!linkConnector.overWidget) {
                 if (inputId === -1 && outputId === -1) {
-                // Node background / title under the pointer
+                  // Node background / title under the pointer
                   const result = node.findInputByType(firstLink.fromSlot.type)
                   if (result) {
                     highlightInput = result.slot
@@ -4174,7 +4174,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     if (this.bgcanvas == this.canvas) {
       this.drawBackCanvas()
     } else {
-      const scale = window.devicePixelRatio
+      const scale = 1 // window.devicePixelRatio
       ctx.drawImage(
         this.bgcanvas,
         0,
@@ -4291,7 +4291,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         if (eDown && eMove) {
           // Do not scale the selection box
           const transform = ctx.getTransform()
-          const ratio = Math.max(1, window.devicePixelRatio)
+          const ratio = 1 // Math.max(1, window.devicePixelRatio)
           ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
 
           const x = eDown.safeOffsetX
@@ -4522,7 +4522,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     // reset in case of error
     if (!this.viewport) {
-      const scale = window.devicePixelRatio
+      const scale = 1 // window.devicePixelRatio
       ctx.restore()
       ctx.setTransform(scale, 0, 0, scale, 0, 0)
     }
@@ -5335,9 +5335,9 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       link != null && this.highlighted_links[link.id]
         ? "#FFF"
         : color ||
-          link?.color ||
-          (link?.type != null && LGraphCanvas.link_type_colors[link.type]) ||
-          this.default_link_color
+        link?.color ||
+        (link?.type != null && LGraphCanvas.link_type_colors[link.type]) ||
+        this.default_link_color
     const startDir = start_dir || LinkDirection.RIGHT
     const endDir = end_dir || LinkDirection.LEFT
 
@@ -5411,32 +5411,32 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       } else {
         const l = this.links_render_mode == LinkRenderType.LINEAR_LINK ? 15 : 10
         switch (startDir) {
-        case LinkDirection.LEFT:
-          innerA[0] += -l
-          break
-        case LinkDirection.RIGHT:
-          innerA[0] += l
-          break
-        case LinkDirection.UP:
-          innerA[1] += -l
-          break
-        case LinkDirection.DOWN:
-          innerA[1] += l
-          break
+          case LinkDirection.LEFT:
+            innerA[0] += -l
+            break
+          case LinkDirection.RIGHT:
+            innerA[0] += l
+            break
+          case LinkDirection.UP:
+            innerA[1] += -l
+            break
+          case LinkDirection.DOWN:
+            innerA[1] += l
+            break
         }
         switch (endDir) {
-        case LinkDirection.LEFT:
-          innerB[0] += -l
-          break
-        case LinkDirection.RIGHT:
-          innerB[0] += l
-          break
-        case LinkDirection.UP:
-          innerB[1] += -l
-          break
-        case LinkDirection.DOWN:
-          innerB[1] += l
-          break
+          case LinkDirection.LEFT:
+            innerB[0] += -l
+            break
+          case LinkDirection.RIGHT:
+            innerB[0] += l
+            break
+          case LinkDirection.UP:
+            innerB[1] += -l
+            break
+          case LinkDirection.DOWN:
+            innerB[1] += l
+            break
         }
         if (this.links_render_mode == LinkRenderType.LINEAR_LINK) {
           path.moveTo(a[0], a[1] + offsety)
@@ -5648,18 +5648,18 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     factor = 0.25,
   ): void {
     switch (direction) {
-    case LinkDirection.LEFT:
-      point[0] += dist * -factor
-      break
-    case LinkDirection.RIGHT:
-      point[0] += dist * factor
-      break
-    case LinkDirection.UP:
-      point[1] += dist * -factor
-      break
-    case LinkDirection.DOWN:
-      point[1] += dist * factor
-      break
+      case LinkDirection.LEFT:
+        point[0] += dist * -factor
+        break
+      case LinkDirection.RIGHT:
+        point[0] += dist * factor
+        break
+      case LinkDirection.UP:
+        point[1] += dist * -factor
+        break
+      case LinkDirection.DOWN:
+        point[1] += dist * factor
+        break
     }
   }
 
@@ -5763,7 +5763,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     this.setDirty(true, true)
   }
 
-  onNodeSelectionChange(): void {}
+  onNodeSelectionChange(): void { }
 
   /**
    * Determines the furthest nodes in each direction for the currently selected nodes
@@ -5806,36 +5806,36 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       if (!graph) throw new NullGraphError()
 
       switch (v) {
-      case "Add Node":
-        LGraphCanvas.onMenuAdd(null, null, e, menu, (node) => {
-          if (!node?.inputs?.length || !node?.outputs?.length || origin_slot == null) return
+        case "Add Node":
+          LGraphCanvas.onMenuAdd(null, null, e, menu, (node) => {
+            if (!node?.inputs?.length || !node?.outputs?.length || origin_slot == null) return
 
-          // leave the connection type checking inside connectByType
-          const options = { afterRerouteId: segment.parentId }
-          if (node_left?.connectByType(origin_slot, node, fromType ?? "*", options)) {
-            node.pos[0] -= node.size[0] * 0.5
+            // leave the connection type checking inside connectByType
+            const options = { afterRerouteId: segment.parentId }
+            if (node_left?.connectByType(origin_slot, node, fromType ?? "*", options)) {
+              node.pos[0] -= node.size[0] * 0.5
+            }
+          })
+          break
+
+        case "Add Reroute": {
+          try {
+            this.emitBeforeChange()
+            this.adjustMouseEvent(e)
+            graph.createReroute(segment._pos, segment)
+            this.setDirty(false, true)
+          } catch (error) {
+            console.error(error)
+          } finally {
+            this.emitAfterChange()
           }
-        })
-        break
-
-      case "Add Reroute": {
-        try {
-          this.emitBeforeChange()
-          this.adjustMouseEvent(e)
-          graph.createReroute(segment._pos, segment)
-          this.setDirty(false, true)
-        } catch (error) {
-          console.error(error)
-        } finally {
-          this.emitAfterChange()
+          break
         }
-        break
-      }
 
-      case "Delete":
-        graph.removeLink(segment.id)
-        break
-      default:
+        case "Delete":
+          graph.removeLink(segment.id)
+          break
+        default:
       }
     }
   }
@@ -5890,27 +5890,27 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       }
     } else {
       switch (typeof slotX) {
-      case "string":
-        iSlotConn = isFrom ? nodeX.findOutputSlot(slotX, false) : nodeX.findInputSlot(slotX, false)
-        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-        break
-      case "object":
-        if (slotX === null) {
+        case "string":
+          iSlotConn = isFrom ? nodeX.findOutputSlot(slotX, false) : nodeX.findInputSlot(slotX, false)
+          slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+          break
+        case "object":
+          if (slotX === null) {
+            console.warn("Cant get slot information", slotX)
+            return false
+          }
+
+          // ok slotX
+          iSlotConn = isFrom ? nodeX.findOutputSlot(slotX.name) : nodeX.findInputSlot(slotX.name)
+          break
+        case "number":
+          iSlotConn = slotX
+          slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+          break
+        case "undefined":
+        default:
           console.warn("Cant get slot information", slotX)
           return false
-        }
-
-        // ok slotX
-        iSlotConn = isFrom ? nodeX.findOutputSlot(slotX.name) : nodeX.findInputSlot(slotX.name)
-        break
-      case "number":
-        iSlotConn = slotX
-        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-        break
-      case "undefined":
-      default:
-        console.warn("Cant get slot information", slotX)
-        return false
       }
     }
 
@@ -6065,30 +6065,30 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       }
     } else {
       switch (typeof slotX) {
-      case "string":
-        iSlotConn = isFrom
-          ? nodeX.findOutputSlot(slotX, false)
-          : nodeX.findInputSlot(slotX, false)
-        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-        break
-      case "object":
-        if (slotX === null) {
+        case "string":
+          iSlotConn = isFrom
+            ? nodeX.findOutputSlot(slotX, false)
+            : nodeX.findInputSlot(slotX, false)
+          slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+          break
+        case "object":
+          if (slotX === null) {
+            console.warn("Cant get slot information", slotX)
+            return
+          }
+
+          // ok slotX
+          iSlotConn = isFrom
+            ? nodeX.findOutputSlot(slotX.name)
+            : nodeX.findInputSlot(slotX.name)
+          break
+        case "number":
+          iSlotConn = slotX
+          slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+          break
+        default:
           console.warn("Cant get slot information", slotX)
           return
-        }
-
-        // ok slotX
-        iSlotConn = isFrom
-          ? nodeX.findOutputSlot(slotX.name)
-          : nodeX.findInputSlot(slotX.name)
-        break
-      case "number":
-        iSlotConn = slotX
-        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-        break
-      default:
-        console.warn("Cant get slot information", slotX)
-        return
       }
     }
 
@@ -6129,60 +6129,60 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     // callback
     function inner_clicked(v: string | undefined, options: IContextMenuOptions<string, INodeInputSlot | INodeOutputSlot>, e: MouseEvent) {
       switch (v) {
-      case "Add Node":
-        LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
-          if (!node) return
+        case "Add Node":
+          LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
+            if (!node) return
 
-          if (isFrom) {
-            if (!opts.nodeFrom) throw new TypeError("Cannot add node to SubgraphInputNode: nodeFrom was null")
-            const slot = opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
-            if (!slot) console.warn("Failed to make new connection.")
-            // }
-          } else {
-            if (!opts.nodeTo) throw new TypeError("Cannot add node to SubgraphInputNode: nodeTo was null")
-            opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
-          }
-        })
-        break
-      case "Add Reroute":{
-        const node = isFrom ? opts.nodeFrom : opts.nodeTo
-        const slot = options.extra
-
-        if (!graph) throw new NullGraphError()
-        if (!node) throw new TypeError("Cannot add reroute: node was null")
-        if (!slot) throw new TypeError("Cannot add reroute: slot was null")
-        if (!opts.e) throw new TypeError("Cannot add reroute: CanvasPointerEvent was null")
-
-        if (node instanceof SubgraphIONodeBase) {
-          throw new TypeError("Cannot add floating reroute to Subgraph IO Nodes")
-        } else {
-          const reroute = node.connectFloatingReroute([opts.e.canvasX, opts.e.canvasY], slot, afterRerouteId)
-          if (!reroute) throw new Error("Failed to create reroute")
-        }
-
-        dirty()
-        break
-      }
-      case "Search":
-        if (isFrom) {
-          // @ts-expect-error Subgraph
-          opts.showSearchBox(e, { node_from: opts.nodeFrom, slot_from: slotX, type_filter_in: fromSlotType })
-        } else {
-          // @ts-expect-error Subgraph
-          opts.showSearchBox(e, { node_to: opts.nodeTo, slot_from: slotX, type_filter_out: fromSlotType })
-        }
-        break
-      default: {
-        const customProps = {
-          position: [opts.e?.canvasX ?? 0, opts.e?.canvasY ?? 0],
-          nodeType: v,
-          afterRerouteId,
-        } satisfies Partial<ICreateDefaultNodeOptions>
-
-        const options = Object.assign(opts, customProps)
-        if (!that.createDefaultNodeForSlot(options))
+            if (isFrom) {
+              if (!opts.nodeFrom) throw new TypeError("Cannot add node to SubgraphInputNode: nodeFrom was null")
+              const slot = opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
+              if (!slot) console.warn("Failed to make new connection.")
+              // }
+            } else {
+              if (!opts.nodeTo) throw new TypeError("Cannot add node to SubgraphInputNode: nodeTo was null")
+              opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
+            }
+          })
           break
-      }
+        case "Add Reroute": {
+          const node = isFrom ? opts.nodeFrom : opts.nodeTo
+          const slot = options.extra
+
+          if (!graph) throw new NullGraphError()
+          if (!node) throw new TypeError("Cannot add reroute: node was null")
+          if (!slot) throw new TypeError("Cannot add reroute: slot was null")
+          if (!opts.e) throw new TypeError("Cannot add reroute: CanvasPointerEvent was null")
+
+          if (node instanceof SubgraphIONodeBase) {
+            throw new TypeError("Cannot add floating reroute to Subgraph IO Nodes")
+          } else {
+            const reroute = node.connectFloatingReroute([opts.e.canvasX, opts.e.canvasY], slot, afterRerouteId)
+            if (!reroute) throw new Error("Failed to create reroute")
+          }
+
+          dirty()
+          break
+        }
+        case "Search":
+          if (isFrom) {
+            // @ts-expect-error Subgraph
+            opts.showSearchBox(e, { node_from: opts.nodeFrom, slot_from: slotX, type_filter_in: fromSlotType })
+          } else {
+            // @ts-expect-error Subgraph
+            opts.showSearchBox(e, { node_to: opts.nodeTo, slot_from: slotX, type_filter_out: fromSlotType })
+          }
+          break
+        default: {
+          const customProps = {
+            position: [opts.e?.canvasX ?? 0, opts.e?.canvasY ?? 0],
+            nodeType: v,
+            afterRerouteId,
+          } satisfies Partial<ICreateDefaultNodeOptions>
+
+          const options = Object.assign(opts, customProps)
+          if (!that.createDefaultNodeForSlot(options))
+            break
+        }
       }
     }
   }
@@ -6591,24 +6591,24 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
             // FIXME: any
             let iS: any = false
             switch (typeof options.slot_from) {
-            case "string":
-              iS = options.node_from.findOutputSlot(options.slot_from)
-              break
-            case "object":
-              if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
+              case "string":
+                iS = options.node_from.findOutputSlot(options.slot_from)
+                break
+              case "object":
+                if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
 
-              iS = options.slot_from.name
-                ? options.node_from.findOutputSlot(options.slot_from.name)
-                : -1
-              // @ts-expect-error change interface check
-              if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
-              break
-            case "number":
-              iS = options.slot_from
-              break
-            default:
-              // try with first if no name set
-              iS = 0
+                iS = options.slot_from.name
+                  ? options.node_from.findOutputSlot(options.slot_from.name)
+                  : -1
+                // @ts-expect-error change interface check
+                if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
+                break
+              case "number":
+                iS = options.slot_from
+                break
+              default:
+                // try with first if no name set
+                iS = 0
             }
             if (options.node_from.outputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
@@ -6624,24 +6624,24 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
             // FIXME: any
             let iS: any = false
             switch (typeof options.slot_from) {
-            case "string":
-              iS = options.node_to.findInputSlot(options.slot_from)
-              break
-            case "object":
-              if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
+              case "string":
+                iS = options.node_to.findInputSlot(options.slot_from)
+                break
+              case "object":
+                if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
 
-              iS = options.slot_from.name
-                ? options.node_to.findInputSlot(options.slot_from.name)
-                : -1
-              // @ts-expect-error change interface check
-              if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
-              break
-            case "number":
-              iS = options.slot_from
-              break
-            default:
-              // try with first if no name set
-              iS = 0
+                iS = options.slot_from.name
+                  ? options.node_to.findInputSlot(options.slot_from.name)
+                  : -1
+                // @ts-expect-error change interface check
+                if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
+                break
+              case "number":
+                iS = options.slot_from
+                break
+              default:
+                // try with first if no name set
+                iS = 0
             }
             if (options.node_to.inputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
@@ -7313,35 +7313,35 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         if (!this.graph) throw new NullGraphError()
         this.graph.beforeChange(node)
         switch (name) {
-        case "Title":
-          if (typeof value !== "string") throw new TypeError("Attempting to set title to non-string value.")
+          case "Title":
+            if (typeof value !== "string") throw new TypeError("Attempting to set title to non-string value.")
 
-          node.title = value
-          break
-        case "Mode": {
-          if (typeof value !== "string") throw new TypeError("Attempting to set mode to non-string value.")
+            node.title = value
+            break
+          case "Mode": {
+            if (typeof value !== "string") throw new TypeError("Attempting to set mode to non-string value.")
 
-          const kV = Object.values(LiteGraph.NODE_MODES).indexOf(value)
-          if (kV !== -1 && LiteGraph.NODE_MODES[kV]) {
-            node.changeMode(kV)
-          } else {
-            console.warn(`unexpected mode: ${value}`)
+            const kV = Object.values(LiteGraph.NODE_MODES).indexOf(value)
+            if (kV !== -1 && LiteGraph.NODE_MODES[kV]) {
+              node.changeMode(kV)
+            } else {
+              console.warn(`unexpected mode: ${value}`)
+            }
+            break
           }
-          break
-        }
-        case "Color":
-          if (typeof value !== "string") throw new TypeError("Attempting to set colour to non-string value.")
+          case "Color":
+            if (typeof value !== "string") throw new TypeError("Attempting to set colour to non-string value.")
 
-          if (LGraphCanvas.node_colors[value]) {
-            node.color = LGraphCanvas.node_colors[value].color
-            node.bgcolor = LGraphCanvas.node_colors[value].bgcolor
-          } else {
-            console.warn(`unexpected color: ${value}`)
-          }
-          break
-        default:
-          node.setProperty(name, value)
-          break
+            if (LGraphCanvas.node_colors[value]) {
+              node.color = LGraphCanvas.node_colors[value].color
+              node.bgcolor = LGraphCanvas.node_colors[value].bgcolor
+            } else {
+              console.warn(`unexpected color: ${value}`)
+            }
+            break
+          default:
+            node.setProperty(name, value)
+            break
         }
         this.graph.afterChange()
         this.dirty_canvas = true

@@ -17,7 +17,7 @@ export class StartTaskNode extends BaseStartTaskNode {
     }
 
     try {
-      const result = await codebolt.task.startTask(taskId);
+      // const result = await codebolt.task.startTask(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, true); // success output

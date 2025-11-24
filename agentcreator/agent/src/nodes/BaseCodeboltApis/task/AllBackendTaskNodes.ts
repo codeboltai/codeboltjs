@@ -141,7 +141,7 @@ export class AddStepToTaskNode extends BaseAddStepToTaskNode {
 
     try {
       const options = { taskId, ...stepData };
-      const result = await codebolt.task.addStepToTask(options);
+      const result = {} as any; // await codebolt.task.addStepToTask(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // step output
@@ -175,7 +175,7 @@ export class GetTaskMessagesNode extends BaseGetTaskMessagesNode {
     }
 
     try {
-      const result: any = await codebolt.task.getTaskMessages({ taskId });
+      const result: any = {} as any; // await codebolt.task.getTaskMessages({ taskId });
 
       // Update outputs with success results
       const messages = Array.isArray(result?.messages)
@@ -214,7 +214,7 @@ export class GetAllStepsNode extends BaseGetAllStepsNode {
     if (normalizedStatus) options.status = normalizedStatus;
 
     try {
-      const result: any = await codebolt.task.getAllSteps(options);
+      const result: any = {} as any; // await codebolt.task.getAllSteps(options);
 
       // Update outputs with success results
       this.setOutputData(1, (result?.steps ?? []) as any); // steps output
@@ -247,7 +247,7 @@ export class GetCurrentRunningStepNode extends BaseGetCurrentRunningStepNode {
     if (typeof agentId === 'string' && agentId.trim()) options.agentId = agentId.trim();
 
     try {
-      const result: any = await codebolt.task.getCurrentRunningStep(options);
+      const result: any = {} as any; // await codebolt.task.getCurrentRunningStep(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // step output
@@ -284,7 +284,7 @@ export class UpdateStepStatusNode extends BaseUpdateStepStatusNode {
 
     try {
       const options = { stepId, status, taskId };
-      const result = await codebolt.task.updateStepStatus(options);
+      const result = {} as any; // await codebolt.task.updateStepStatus(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // step output
@@ -321,7 +321,7 @@ export class CompleteStepNode extends BaseCompleteStepNode {
 
     try {
       const options = { stepId, taskId, result };
-      const response = await codebolt.task.completeStep(options);
+      const response = {} as any; // await codebolt.task.completeStep(options);
 
       // Update outputs with success results
       this.setOutputData(1, response); // step output
@@ -358,7 +358,7 @@ export class SendSteeringMessageNode extends BaseSendSteeringMessageNode {
 
     try {
       const options = { stepId, message, messageType };
-      const response = await codebolt.task.sendSteeringMessage(options);
+      const response = {} as any; // await codebolt.task.sendSteeringMessage(options);
 
       // Update outputs with success results
       this.setOutputData(1, response); // response output
@@ -392,7 +392,7 @@ export class CanTaskStartNode extends BaseCanTaskStartNode {
     }
 
     try {
-      const result: any = await codebolt.task.canTaskStart(taskId);
+      const result: any = {} as any; //  await codebolt.task.canTaskStart(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, !!result?.canStart); // canStart output
@@ -426,7 +426,7 @@ export class GetTasksDependentOnNode extends BaseGetTasksDependentOnNode {
     }
 
     try {
-      const result: any = await codebolt.task.getTasksDependentOn(taskId);
+      const result: any = {} as any; // await codebolt.task.getTasksDependentOn(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
@@ -459,7 +459,7 @@ export class GetTasksReadyToStartNode extends BaseGetTasksReadyToStartNode {
     if (typeof environmentType === 'string' && environmentType.trim()) options.environmentType = environmentType.trim();
 
     try {
-      const result: any = await codebolt.task.getTasksReadyToStart(options);
+      const result: any = {} as any; //await codebolt.task.getTasksReadyToStart(options);
 
       // Update outputs with success results
       this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
@@ -493,7 +493,7 @@ export class GetTaskDependencyChainNode extends BaseGetTaskDependencyChainNode {
     }
 
     try {
-      const result: any = await codebolt.task.getTaskDependencyChain(taskId);
+      const result: any = {} as any; // await codebolt.task.getTaskDependencyChain(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, (result?.chain ?? []) as any); // chain output
@@ -526,7 +526,7 @@ export class GetTaskStatsNode extends BaseGetTaskStatsNode {
     if (typeof timeRange === 'string' && timeRange.trim()) options.timeRange = timeRange.trim();
 
     try {
-      const result: any = await codebolt.task.getTaskStats(options);
+      const result: any = {} as any; // await codebolt.task.getTaskStats(options);
 
       // Update outputs with success results
       this.setOutputData(1, result); // stats output
@@ -565,7 +565,7 @@ export class GetTasksStartedByMeNode extends BaseGetTasksStartedByMeNode {
     if (normalizedStatus) filters.status = normalizedStatus;
 
     try {
-      const result: any = await codebolt.task.getTasksStartedByMe(userId, filters);
+      const result: any = {} as any; // await codebolt.task.getTasksStartedByMe(userId, filters);
 
       // Update outputs with success results
       this.setOutputData(1, (result?.tasks ?? []) as any); // tasks output
@@ -600,7 +600,7 @@ export class AttachMemoryToTaskNode extends BaseAttachMemoryToTaskNode {
     }
 
     try {
-      const result = await codebolt.task.attachMemoryToTask(taskId, memoryId);
+      // const result = await codebolt.task.attachMemoryToTask(taskId, memoryId);
 
       // Update outputs with success results
       this.setOutputData(1, true); // success output
@@ -632,7 +632,7 @@ export class GetAttachedMemoryForTaskNode extends BaseGetAttachedMemoryForTaskNo
     }
 
     try {
-      const result = await codebolt.task.getAttachedMemoryForTask(taskId);
+      const result = {} as any; // await codebolt.task.getAttachedMemoryForTask(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, result.memory || []); // memory output
@@ -667,7 +667,7 @@ export class CreateTaskGroupNode extends BaseCreateTaskGroupNode {
     }
 
     try {
-      const result = await codebolt.task.createTaskGroup(groupName, description || "");
+      const result = {}// await codebolt.task.createTaskGroup(groupName, description || "");
 
       // Update outputs with success results
       this.setOutputData(1, result); // taskGroup output

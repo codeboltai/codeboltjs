@@ -17,7 +17,7 @@ export class CompleteTaskNode extends BaseCompleteTaskNode {
     }
 
     try {
-      const result = await codebolt.task.completeTask(taskId);
+      // const result = await codebolt.task.completeTask(taskId);
 
       // Update outputs with success results
       this.setOutputData(1, true); // success output
