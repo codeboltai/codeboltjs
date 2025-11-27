@@ -20,9 +20,9 @@ import type {
     CreateTaskResponse,
     UpdateTaskResponse,
     DeleteTaskResponse,
-    GetTaskListResponse,
-    GetTaskDetailResponse,
-    StartTaskResponse,
+    ListTasksResponse,
+    GetTaskResponse,
+    StartTaskWithAgentResponse,
     Task
 } from '@codebolt/types/app-to-agent-ws-schema';
 
@@ -106,9 +106,9 @@ const taskService = {
     /**
      * Retrieves a list of tasks.
      * @param {GetTaskListOptions} options - Optional filters for tasks
-     * @returns {Promise<GetTaskListResponse>}
+     * @returns {Promise<ListTasksResponse>}
      */
-    getTaskList: async (options: GetTaskListOptions = {}): Promise<GetTaskListResponse> => {
+    getTaskList: async (options: GetTaskListOptions = {}): Promise<ListTasksResponse> => {
         const requestId = randomUUID();
 
         const event: GetTaskListEvent = {
@@ -120,16 +120,16 @@ const taskService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'getTaskListResponse'
+            'listTasksResponse'
         );
     },
 
     /**
      * Retrieves detailed information about a specific task.
      * @param {GetTaskDetailOptions} options - The task detail options
-     * @returns {Promise<GetTaskDetailResponse>}
+     * @returns {Promise<GetTaskResponse>}
      */
-    getTaskDetail: async (options: GetTaskDetailOptions): Promise<GetTaskDetailResponse> => {
+    getTaskDetail: async (options: GetTaskDetailOptions): Promise<GetTaskResponse> => {
         const requestId = randomUUID();
 
         const event: GetTaskDetailEvent = {
@@ -141,7 +141,7 @@ const taskService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'getTaskDetailResponse'
+            'getTaskResponse'
         );
     },
 
@@ -162,9 +162,9 @@ const taskService = {
      * Assigns the agent and then starts the task.
      * @param {string} taskId - The task ID
      * @param {string} agentId - The agent ID
-     * @returns {Promise<StartTaskResponse>}
+     * @returns {Promise<StartTaskWithAgentResponse>}
      */
-    executeTaskWithAgent: async (taskId: string, agentId: string): Promise<StartTaskResponse> => {
+    executeTaskWithAgent: async (taskId: string, agentId: string): Promise<StartTaskWithAgentResponse> => {
         await taskService.assignAgentToTask(taskId, agentId);
 
         const requestId = randomUUID();
@@ -179,7 +179,7 @@ const taskService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'startTaskResponse'
+            'startTaskWithAgentResponse'
         );
     },
 
@@ -190,7 +190,7 @@ const taskService = {
      */
     getTaskStatus: async (taskId: string): Promise<string | undefined> => {
         const response = await taskService.getTaskDetail({ taskId });
-        return response.data?.task?.status;
+        return response.task?.status;
     },
 
     /**
@@ -200,7 +200,7 @@ const taskService = {
      */
     getTaskSummary: async (taskId: string): Promise<string | undefined> => {
         const response = await taskService.getTaskDetail({ taskId });
-        return response.data?.task?.description;
+        return response.task?.description;
     }
 
 }

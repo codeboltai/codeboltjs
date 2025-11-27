@@ -180,8 +180,8 @@ import {
   type GetEditorFileStatusResponse,
   type ProjectServiceResponse,
   // Task service responses
-  type TaskResponse,
- 
+
+
   type TaskServiceResponse,
   // LLM service responses
   type LLMResponse,
@@ -664,7 +664,7 @@ import {
   GetEditorFileStatusResponseSchema,
   ProjectServiceResponseSchema,
   // Task service response schemas
- 
+
   // LLM service response schemas
   LLMResponseSchema,
   LLMServiceResponseSchema,
@@ -1357,7 +1357,7 @@ export const codeboltApiMapping = {
     "notificationTypes": [{} as CommandExecutionRequestNotification, {} as CommandExecutionResponseNotification]
   },
   "terminal.sendManualInterrupt": {
-    "name": "sendManualInterrupt", 
+    "name": "sendManualInterrupt",
     "description": "Sends a manual interrupt signal to the terminal",
     "functionTypings": {} as TerminalModule['sendManualInterrupt'],
     "websocketSendType": {} as SendInterruptToTerminalEvent,
@@ -1392,7 +1392,7 @@ export const codeboltApiMapping = {
     "notificationTypes": [] as unknown[]
   },
   "taskplaner.addSimpleTask": {
-    "name": "addSimpleTask", 
+    "name": "addSimpleTask",
     "description": "Adds a task using simple string parameter (legacy support)",
     "functionTypings": {} as TaskModule['addSimpleTask'],
     // "websocketSendType": {} as AddTaskEvent,
@@ -2008,7 +2008,7 @@ export const codeboltApiMapping = {
   "chat.sendConfirmationRequest": {
     "name": "sendConfirmationRequest",
     "description": "Sends a confirmation request to the user",
-    "functionTypings": {} as ChatModule['sendConfirmationRequest'], 
+    "functionTypings": {} as ChatModule['sendConfirmationRequest'],
     "websocketSendType": {} as ConfirmationRequestEvent,
     "websocketReceiveType": {} as ConfirmationResponse,
     "websocketSendSchema": confirmationRequestEventSchema,
@@ -2295,7 +2295,7 @@ export const codeboltApiMapping = {
     "description": "Gets project settings and configuration",
     "functionTypings": {} as ProjectModule['getProjectSettings'],
     "websocketReceiveType": {} as GetProjectSettingsResponse,
-    "websocketSendSchema": getProjectSettingsEventSchema, 
+    "websocketSendSchema": getProjectSettingsEventSchema,
     "websocketReceiveSchema": GetProjectSettingsResponseSchema,
     "notificationSchemas": [] as z.ZodSchema[],
     "notificationTypes": [] as unknown[]

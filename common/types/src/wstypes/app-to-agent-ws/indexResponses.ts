@@ -4,6 +4,7 @@ export * from './chatHistoryServiceResponses';
 export * from './terminalServiceResponses';
 export * from './projectServiceResponses';
 export * from './taskServiceResponses';
+export * from './threadServiceResponses';
 export * from './llmServiceResponses';
 export * from './stateServiceResponses';
 export * from './vectordbServiceResponses';

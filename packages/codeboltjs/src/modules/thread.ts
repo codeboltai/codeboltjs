@@ -13,12 +13,13 @@ import type {
 // Import response types from app-to-agent-ws-schema
 import type {
     CreateThreadResponse,
-    GetThreadListResponse,
-    GetThreadDetailResponse,
+    ListThreadsResponse,
+    GetThreadResponse,
     GetThreadMessagesResponse,
     UpdateThreadResponse,
     DeleteThreadResponse,
     StartThreadResponse,
+    UpdateThreadStatusResponse,
 } from '@codebolt/types/app-to-agent-ws-schema';
 
 /**
@@ -51,9 +52,9 @@ const threadService = {
     /**
      * Retrieves a list of threads with optional filtering.
      * @param {GetThreadListOptions} options - Optional filters for threads
-     * @returns {Promise<GetThreadListResponse>} A promise that resolves with the thread list response
+     * @returns {Promise<ListThreadsResponse>} A promise that resolves with the thread list response
      */
-    getThreadList: async (options: GetThreadListOptions = {}): Promise<GetThreadListResponse> => {
+    getThreadList: async (options: GetThreadListOptions = {}): Promise<ListThreadsResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -65,16 +66,16 @@ const threadService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'getThreadListResponse'
+            'listThreadsResponse'
         );
     },
 
     /**
      * Retrieves detailed information about a specific thread.
      * @param {GetThreadDetailOptions} options - The thread detail options
-     * @returns {Promise<GetThreadDetailResponse>} A promise that resolves with the thread detail response
+     * @returns {Promise<GetThreadResponse>} A promise that resolves with the thread detail response
      */
-    getThreadDetail: async (options: GetThreadDetailOptions): Promise<GetThreadDetailResponse> => {
+    getThreadDetail: async (options: GetThreadDetailOptions): Promise<GetThreadResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -86,7 +87,7 @@ const threadService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'getThreadDetailResponse'
+            'getThreadResponse'
         );
     },
 
@@ -165,9 +166,9 @@ const threadService = {
      * Updates the status of a thread.
      * @param {string} threadId - The thread ID
      * @param {string} status - The new status
-     * @returns {Promise<UpdateThreadResponse>} A promise that resolves with the thread status update response
+     * @returns {Promise<UpdateThreadStatusResponse>} A promise that resolves with the thread status update response
      */
-    updateThreadStatus: async (threadId: string, status: string): Promise<UpdateThreadResponse> => {
+    updateThreadStatus: async (threadId: string, status: string): Promise<UpdateThreadStatusResponse> => {
         const requestId = randomUUID();
 
         const event = {
