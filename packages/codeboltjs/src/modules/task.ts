@@ -51,7 +51,7 @@ const taskService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'createTaskResponse'
+            'addTaskResponse'
         );
     },
 
@@ -120,7 +120,7 @@ const taskService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'listTasksResponse'
+            'getTasksResponse'
         );
     },
 
