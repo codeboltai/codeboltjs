@@ -45,6 +45,13 @@ export const terminalEventSchema = z.union([
   sendInterruptToTerminalEventSchema,
 ]);
 
+// Execute Command Options Schema (for CLI service usage)
+export const ExecuteCommandOptionsSchema = z.object({
+  command: z.string(),
+  returnEmptyStringOnSuccess: z.boolean().optional(),
+  executeInMain: z.boolean().optional(),
+});
+
 // Inferred TypeScript types for events
 export type TerminalEventBase = z.infer<typeof terminalEventBaseSchema>;
 export type ExecuteCommandEvent = z.infer<typeof executeCommandEventSchema>;
@@ -52,3 +59,4 @@ export type ExecuteCommandRunUntilErrorEvent = z.infer<typeof executeCommandRunU
 export type ExecuteCommandWithStreamEvent = z.infer<typeof executeCommandWithStreamEventSchema>;
 export type SendInterruptToTerminalEvent = z.infer<typeof sendInterruptToTerminalEventSchema>;
 export type TerminalEvent = z.infer<typeof terminalEventSchema>;
+export type ExecuteCommandOptions = z.infer<typeof ExecuteCommandOptionsSchema>;

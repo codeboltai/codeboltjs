@@ -153,3 +153,4 @@ export type ClickEvent = z.infer<typeof clickEventSchema>;
 export type EnterEvent = z.infer<typeof enterEventSchema>;
 export type SearchEvent = z.infer<typeof searchEventSchema>;
 export type BrowserEvent = z.infer<typeof browserEventSchema>;
+export type BrowserActionOptions = BrowserEvent;

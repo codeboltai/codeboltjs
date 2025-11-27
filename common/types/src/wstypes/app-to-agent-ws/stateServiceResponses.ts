@@ -20,6 +20,7 @@ export const GetAppStateResponseSchema = z.object({
 export const AddToAgentStateResponseSchema = z.object({
   type: z.literal('addToAgentStateResponse'),
   requestId: z.string(),
+  timestamp: z.string(),
   payload: z.object({
     success: z.boolean()
   }).optional(),
@@ -33,6 +34,7 @@ export const AddToAgentStateResponseSchema = z.object({
 export const GetAgentStateResponseSchema = z.object({
   type: z.literal('getAgentStateResponse'),
   requestId: z.string(),
+  timestamp: z.string(),
   payload: z.record(z.any()).optional(),
   success: z.boolean().optional(),
   message: z.string().optional(),
@@ -62,13 +64,24 @@ export const UpdateProjectStateResponseSchema = z.object({
   error: z.string().optional()
 });
 
+// State operation error response schema
+export const StateOperationErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  success: z.literal(false),
+  message: z.string(),
+  error: z.string(),
+  timestamp: z.string(),
+  requestId: z.string()
+});
+
 // Union of all state service response schemas
 export const StateServiceResponseSchema = z.union([
   GetAppStateResponseSchema,
   AddToAgentStateResponseSchema,
   GetAgentStateResponseSchema,
   GetProjectStateResponseSchema,
-  UpdateProjectStateResponseSchema
+  UpdateProjectStateResponseSchema,
+  StateOperationErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -80,4 +93,5 @@ export type AddToAgentStateResponse = z.infer<typeof AddToAgentStateResponseSche
 export type GetAgentStateResponse = z.infer<typeof GetAgentStateResponseSchema>;
 export type GetProjectStateResponse = z.infer<typeof GetProjectStateResponseSchema>;
 export type UpdateProjectStateResponse = z.infer<typeof UpdateProjectStateResponseSchema>;
+export type StateOperationErrorResponse = z.infer<typeof StateOperationErrorResponseSchema>;
 export type StateServiceResponse = z.infer<typeof StateServiceResponseSchema>; 
