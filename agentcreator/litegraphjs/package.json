@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/litegraph",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "description": "A graph node editor similar to PD or UDK Blueprints. It works in an HTML5 Canvas and allows to export graphs to be included in applications.",
   "keywords": [

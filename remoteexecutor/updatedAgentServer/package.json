@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/agentserver",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
   "main": "dist/server.mjs",
   "bin": {

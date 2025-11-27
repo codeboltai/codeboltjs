@@ -1,5 +1,14 @@
 # @codebolt/provider
 
+## 2.0.3
+
+### Patch Changes
+
+- Updated dependencies [5506908]
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.3
+  - @codebolt/types@1.0.23
+
 ## 2.0.2
 
 ### Patch Changes

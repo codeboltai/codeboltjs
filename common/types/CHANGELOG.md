@@ -1,5 +1,11 @@
 # @codebolt/types
 
+## 1.0.23
+
+### Patch Changes
+
+- Prepare @codebolt/types package for npm publishing with proper configuration and exports
+
 ## 1.0.22
 
 ### Patch Changes

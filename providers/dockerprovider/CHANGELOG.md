@@ -1,5 +1,12 @@
 # dockerprovideragent
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.23
+
 ## 1.0.4
 
 ### Patch Changes

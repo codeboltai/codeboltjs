@@ -1,5 +1,13 @@
 # @codebolt/codeboltjs
 
+## 5.0.3
+
+### Patch Changes
+
+- 5506908: Update package
+- Updated dependencies
+  - @codebolt/types@1.0.23
+
 ## 5.0.2
 
 ### Patch Changes
