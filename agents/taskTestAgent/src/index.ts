@@ -1,5 +1,7 @@
 import codebolt from '@codebolt/codeboltjs';
 import { FlatUserMessage } from "@codebolt/types/sdk";
+import { FileMessage, FilePayload } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
+import { GetAppStateResponse, StateServiceResponse } from '@codebolt/types/wstypes/app-to-agent-ws/stateServiceResponses';
 
 // Helper function to log test results
 const logTest = (testName: string, success: boolean, data?: any, error?: any) => {
