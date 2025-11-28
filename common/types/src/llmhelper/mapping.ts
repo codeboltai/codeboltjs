@@ -198,7 +198,7 @@ import {
   type AddVectorItemResponse,
   type QueryVectorItemResponse,
   type QueryVectorItemsResponse,
-  type VectorDBServiceResponse,
+  type VectordbServiceResponse,
   // Utils service responses
   type UtilsServiceResponse,
   type EditFileAndApplyDiffResponse,
@@ -219,11 +219,11 @@ import {
   // DB Memory service responses
   type MemorySetResponse,
   type MemoryGetResponse,
-  type DBMemoryServiceResponse,
+  type DbMemoryServiceResponse,
   // Code Utils service responses
   type GetJsTreeResponse,
-  type GetAllFilesAsMarkdownResponse,
-  type MatchProblemResponse,
+  type GetAllFilesMarkdownResponse,
+  type CodeUtilsMatchProblemResponse,
   type GetMatcherListTreeResponse,
   type GetMatchDetailResponse,
   type CodeUtilsServiceResponse,
@@ -333,16 +333,14 @@ import {
   searchEventSchema,
   pdfToTextEventSchema,
   // Additional Browser Event Schemas - these are not available in current schema exports
-} from '../agent-to-app-ws-schema';
-
-// Import Code Utils Event Schemas
-import {
   GetAllFilesMarkdownEventSchema,
   PerformMatchEventSchema,
   GetMatcherListEventSchema,
   GetMatchDetailEventSchema,
   codeUtilsEventSchema
-} from '../wstypes/agent-to-app-ws/actions/codeUtilsEventSchemas';
+} from '../agent-to-app-ws-schema';
+
+
 
 // Import notification schemas
 import {
@@ -2376,11 +2374,11 @@ export const codeboltApiMapping = {
     "description": "Gets all files as markdown",
     "functionTypings": {} as CodeUtilsModule['getAllFilesAsMarkDown'],
     "websocketSendType": {} as GetAllFilesMarkdownEvent,
-    "websocketReceiveType": {} as GetAllFilesAsMarkdownResponse,
+    "websocketReceiveType": {} as GetAllFilesMarkdownResponse,
     "websocketSendSchema": GetAllFilesMarkdownEventSchema,
     "websocketReceiveSchema": GetAllFilesAsMarkdownResponseSchema,
-    "notificationSchemas": [grepSearchRequestNotificationSchema, grepSearchResponseNotificationSchema],
-    "notificationTypes": [{} as GrepSearchRequestNotification, {} as GrepSearchResponseNotification]
+    "notificationSchemas": [] as z.ZodSchema[],
+    "notificationTypes": [] as unknown[]
   },
   "codeutils.getMatcherList": {
     "name": "getMatcherList",
@@ -2409,7 +2407,7 @@ export const codeboltApiMapping = {
     "description": "Performs a matching operation based on the provided matcher definition and problem patterns",
     "functionTypings": {} as CodeUtilsModule['performMatch'],
     "websocketSendType": {} as PerformMatchEvent,
-    "websocketReceiveType": {} as MatchProblemResponse,
+    "websocketReceiveType": {} as CodeUtilsMatchProblemResponse,
     "websocketSendSchema": PerformMatchEventSchema,
     "websocketReceiveSchema": MatchProblemResponseSchema,
     "notificationSchemas": [] as z.ZodSchema[],

@@ -3,33 +3,59 @@
  * TypeScript types exported from their original source files
  */
 
-// Re-export types from their original source files
+// Browser service responses
 export type {
-  // Browser service responses
+  NewPageResponse,
+  ScrollResponse,
+  TypeResponse,
+  ClickResponse,
+  EnterResponse,
+  SearchResponse,
+  BrowserActionResponseData,
+  GetUrlResponse,
+  GoToPageResponse,
+  ScreenshotResponse,
+  HtmlReceived,
+  GetMarkdownResponse,
+  GetContentResponse,
+  GetSnapShotResponse,
+  GetBrowserInfoResponse,
+  ExtractTextResponse,
+  BrowserServiceResponse
+} from './wstypes/app-to-agent-ws/browserServiceResponses';
 
-
-  // Chat service responses
+// Chat service responses
+export type {
   ChatHistoryResponse,
   WaitForReplyResponse,
   ConfirmationResponse,
   FeedbackResponse,
   GetSummarizeAllResponse,
   GetSummarizeResponse,
-  ChatHistoryServiceResponse,
-  // Terminal service responses
+  ChatHistoryServiceResponse
+} from './wstypes/app-to-agent-ws/chatHistoryServiceResponses';
+
+// Terminal service responses
+export type {
   CommandOutputResponse,
   CommandErrorResponse,
   CommandFinishResponse,
   TerminalInterruptResponse,
   TerminalServiceResponse,
-  // Project service responses
+  ExecuteCommandResponse
+} from './wstypes/app-to-agent-ws/terminalServiceResponses';
+
+// Project service responses
+export type {
   GetProjectSettingsResponse,
   GetProjectPathResponse,
   GetRepoMapResponse,
   GetEditorFileStatusResponse,
-  ProjectServiceResponse,
-  // Task service responses
-  // Task service responses
+  ProjectServiceResponse
+} from './wstypes/app-to-agent-ws/projectServiceResponses';
+
+// Task service responses
+export type {
   TaskStatus,
   TaskPriority,
   Task,
@@ -41,7 +67,6 @@ export type {
   AssignAgentResponse,
   StartTaskWithAgentResponse,
   TaskErrorResponse,
-  // Legacy types
   AddTaskResponse,
   UpdateTasksResponse,
   AddSubTaskResponse,
@@ -49,9 +74,11 @@ export type {
   GetTasksByCategoryResponse,
   CreateTasksFromMarkdownResponse,
   ExportTasksToMarkdownResponse,
-  TaskServiceResponse,
+  TaskServiceResponse
+} from './wstypes/app-to-agent-ws/taskServiceResponses';
 
-  // Thread service responses
+// Thread service responses
+export type {
   ThreadStatus,
   ThreadStepStatus,
   ThreadPriority,
@@ -73,27 +100,49 @@ export type {
   UpdateThreadStatusResponse,
   GetThreadMessagesResponse,
   ThreadErrorResponse,
-  ThreadServiceResponse,
-  // LLM service responses
+  ThreadServiceResponse
+} from './wstypes/app-to-agent-ws/threadServiceResponses';
+
+// LLM service responses
+export type {
   LLMResponse,
-  LLMServiceResponse,
-  // State service responses
+  LLMServiceResponse
+} from './wstypes/app-to-agent-ws/llmServiceResponses';
+
+// State service responses
+export type {
   GetAppStateResponse,
   AddToAgentStateResponse,
   GetAgentStateResponse,
   GetProjectStateResponse,
   UpdateProjectStateResponse,
-  StateServiceResponse,
-  // VectorDB service responses
+  StateServiceResponse
+} from './wstypes/app-to-agent-ws/stateServiceResponses';
 
-  // Utils service responses
+// VectorDB service responses
+export type {
+  GetVectorResponse,
+  AddVectorItemResponse,
+  QueryVectorItemResponse,
+  QueryVectorItemsResponse,
+  VectordbServiceResponse
+} from './wstypes/app-to-agent-ws/vectordbServiceResponses';
+
+// Utils service responses
+export type {
   EditFileAndApplyDiffResponse,
-  UtilsServiceResponse,
-  // Tokenizer service responses
+  UtilsServiceResponse
+} from './wstypes/app-to-agent-ws/utilsServiceResponses';
+
+// Tokenizer service responses
+export type {
   AddTokenResponse,
   GetTokenResponse,
-  TokenizerServiceResponse,
-  // MCP service responses
+  TokenizerServiceResponse
+} from './wstypes/app-to-agent-ws/tokenizerServiceResponses';
+
+// MCP service responses
+export type {
   GetEnabledToolBoxesResponse,
   GetLocalToolBoxesResponse,
   GetAvailableToolBoxesResponse,
@@ -102,16 +151,42 @@ export type {
   ConfigureToolBoxResponse,
   GetToolsResponse,
   ExecuteToolResponse,
-  MCPServiceResponse,
-  // Debug service responses
+  MCPServiceResponse
+} from './wstypes/app-to-agent-ws/mcpServiceResponses';
 
-  // DB Memory service responses
+// Debug service responses
+export type {
+  OpenDebugBrowserResponse,
+  DebugAddLogResponse,
+  GetDebugLogsResponse,
+  DebugServiceResponse
+} from './wstypes/app-to-agent-ws/debugServiceResponses';
 
-  // Code Utils service responses
+// DB Memory service responses
+export type {
+  MemorySetResponse,
+  MemoryGetResponse,
+  DbMemoryServiceResponse
+} from './wstypes/app-to-agent-ws/dbMemoryServiceResponses';
 
-  // Crawler service responses
+// Code Utils service responses
+export type {
+  GetJsTreeResponse,
+  GetAllFilesMarkdownResponse,
+  CodeUtilsMatchProblemResponse,
+  GetMatcherListTreeResponse,
+  GetMatchDetailResponse,
+  CodeUtilsServiceResponse
+} from './wstypes/app-to-agent-ws/codeUtilsServiceResponses';
 
-  // FS service responses
+// Crawler service responses
+export type {
+  CrawlResponse,
+  CrawlerServiceResponse
+} from './wstypes/app-to-agent-ws/crawlerServiceResponses';
+
+// FS service responses
+export type {
   CreateFileSuccessResponse,
   CreateFileErrorResponse,
   CreateFolderSuccessResponse,
@@ -138,8 +213,11 @@ export type {
   FileSearchErrorResponse,
   EditFileAndApplyDiffSuccessResponse,
   EditFileAndApplyDiffErrorResponse,
-  FsServiceResponse,
-  // Git service responses
+  FsServiceResponse
+} from './wstypes/app-to-agent-ws/fsServiceResponses';
+
+// Git service responses
+export type {
   GitInitResponse,
   GitPullResponse,
   GitPushResponse,
@@ -150,14 +228,21 @@ export type {
   GitBranchResponse,
   GitLogsResponse,
   GitDiffResponse,
-  GitServiceResponse,
-  // Agent service responses
+  GitServiceResponse
+} from './wstypes/app-to-agent-ws/gitServiceResponses';
 
-  // Index service responses
+// Agent service responses
+export type {
+  FindAgentByTaskResponse,
+  ListAgentsResponse,
+  AgentsDetailResponse,
+  TaskCompletionResponse
+} from './wstypes/app-to-agent-ws/agentServiceResponses';
+
+// Index service responses
+export type {
   GetChatHistoryResponse,
   ErrorResponse,
   IndexServiceResponse,
-  BaseApplicationResponse,
-  // Additional missing types
+  BaseApplicationResponse
 } from './wstypes/app-to-agent-ws/indexResponses';
-
