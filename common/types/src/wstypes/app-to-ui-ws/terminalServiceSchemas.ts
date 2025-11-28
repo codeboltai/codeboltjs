@@ -79,14 +79,101 @@ export const terminalMcpToolRejectedSchema = baseMessageSchema.extend({
   }),
 });
 
+// Terminal service response schemas
+export const executeCommandResponseSchema = z.object({
+  type: z.literal('executeCommandResponse'),
+  success: z.boolean(),
+  output: z.string(),
+  error: z.string().optional(),
+  exitCode: z.number().optional(),
+});
+
+export const executeCommandRunUntilInterruptResponseSchema = z.object({
+  type: z.literal('executeCommandRunUntilInterruptResponse'),
+  success: z.boolean(),
+  output: z.string(),
+  error: z.string().optional(),
+  processId: z.number().optional(),
+});
+
+export const executeCommandRunUntilErrorResponseSchema = z.object({
+  type: z.literal('executeCommandRunUntilErrorResponse'),
+  success: z.boolean(),
+  output: z.string(),
+  error: z.string().optional(),
+  exitCode: z.number().optional(),
+});
+
+export const executeCommandWithStreamResponseSchema = z.object({
+  type: z.literal('executeCommandWithStreamResponse'),
+  success: z.boolean(),
+  output: z.string(),
+  error: z.string().optional(),
+  streamId: z.string().optional(),
+});
+
+export const sendInterruptToTerminalResponseSchema = z.object({
+  type: z.literal('sendInterruptToTerminalResponse'),
+  success: z.boolean(),
+  message: z.string(),
+  error: z.string().optional(),
+});
+
+export const getTerminalStatusResponseSchema = z.object({
+  type: z.literal('getTerminalStatusResponse'),
+  status: z.object({
+    isActive: z.boolean(),
+    currentDirectory: z.string(),
+    runningProcesses: z.array(z.object({
+      pid: z.number(),
+      command: z.string(),
+    })),
+  }),
+  error: z.string().optional(),
+});
+
+export const setTerminalDirectoryResponseSchema = z.object({
+  type: z.literal('setTerminalDirectoryResponse'),
+  success: z.boolean(),
+  message: z.string(),
+  currentDirectory: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export const getTerminalHistoryResponseSchema = z.object({
+  type: z.literal('getTerminalHistoryResponse'),
+  history: z.array(z.object({
+    command: z.string(),
+    output: z.string(),
+    timestamp: z.string(),
+    exitCode: z.number().optional(),
+  })),
+  error: z.string().optional(),
+});
+
+export const clearTerminalResponseSchema = z.object({
+  type: z.literal('clearTerminalResponse'),
+  success: z.boolean(),
+  message: z.string(),
+  error: z.string().optional(),
+});
 
 // Union of all terminal service schemas
-export const terminalServiceSchema = z.union([
+export const terminalServiceMessageSchema = z.union([
   terminalMcpToolConfirmationSchema,
   terminalMcpToolExecutingSchema,
   terminalMcpToolSuccessSchema,
   terminalMcpToolErrorSchema,
-  terminalMcpToolRejectedSchema
+  terminalMcpToolRejectedSchema,
+  executeCommandResponseSchema,
+  executeCommandRunUntilInterruptResponseSchema,
+  executeCommandRunUntilErrorResponseSchema,
+  executeCommandWithStreamResponseSchema,
+  sendInterruptToTerminalResponseSchema,
+  getTerminalStatusResponseSchema,
+  setTerminalDirectoryResponseSchema,
+  getTerminalHistoryResponseSchema,
+  clearTerminalResponseSchema,
 ]);
 
 // Inferred TypeScript types
@@ -95,5 +182,13 @@ export type TerminalMcpToolExecuting = z.infer<typeof terminalMcpToolExecutingSc
 export type TerminalMcpToolSuccess = z.infer<typeof terminalMcpToolSuccessSchema>;
 export type TerminalMcpToolError = z.infer<typeof terminalMcpToolErrorSchema>;
 export type TerminalMcpToolRejected = z.infer<typeof terminalMcpToolRejectedSchema>;
-
-export type TerminalService = z.infer<typeof terminalServiceSchema>; 
+export type ExecuteCommandResponse = z.infer<typeof executeCommandResponseSchema>;
+export type ExecuteCommandRunUntilInterruptResponse = z.infer<typeof executeCommandRunUntilInterruptResponseSchema>;
+export type ExecuteCommandRunUntilErrorResponse = z.infer<typeof executeCommandRunUntilErrorResponseSchema>;
+export type ExecuteCommandWithStreamResponse = z.infer<typeof executeCommandWithStreamResponseSchema>;
+export type SendInterruptToTerminalResponse = z.infer<typeof sendInterruptToTerminalResponseSchema>;
+export type GetTerminalStatusResponse = z.infer<typeof getTerminalStatusResponseSchema>;
+export type SetTerminalDirectoryResponse = z.infer<typeof setTerminalDirectoryResponseSchema>;
+export type GetTerminalHistoryResponse = z.infer<typeof getTerminalHistoryResponseSchema>;
+export type ClearTerminalResponse = z.infer<typeof clearTerminalResponseSchema>;
+export type TerminalServiceMessage = z.infer<typeof terminalServiceMessageSchema>; 

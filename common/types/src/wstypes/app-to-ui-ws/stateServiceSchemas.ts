@@ -14,7 +14,7 @@ export const getAgentStateResponseSchema = z.object({
 export const addToAgentStateResponseSchema = z.object({
   type: z.literal('addToAgentStateResponse'),
   payload: z.object({
-    sucess: z.boolean(),
+    success: z.boolean(),
   }),
 });
 
@@ -32,3 +32,6 @@ export const stateServiceMessageSchema = z.union([
 
 // TypeScript types
 export type GetAgentStateResponse = z.infer<typeof getAgentStateResponseSchema>;
+export type AddToAgentStateResponse = z.infer<typeof addToAgentStateResponseSchema>;
+export type StateErrorResponse = z.infer<typeof stateErrorResponseSchema>;
+export type StateServiceMessage = z.infer<typeof stateServiceMessageSchema>; 

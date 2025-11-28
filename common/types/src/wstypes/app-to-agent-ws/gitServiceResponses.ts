@@ -12,27 +12,30 @@ export const GitInitResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Git pull response schema
 export const GitPullResponseSchema = z.object({
-  type: z.literal('PullResponse'),
+  type: z.literal('gitPullResponse'),
   requestId: z.string(),
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Git push response schema
 export const GitPushResponseSchema = z.object({
-  type: z.literal('PushResponse'),
+  type: z.literal('gitPushResponse'),
   requestId: z.string(),
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Git status response schema
@@ -43,7 +46,8 @@ export const GitStatusResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Git add response schema
@@ -53,7 +57,9 @@ export const GitAddResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  content: z.string().optional()
 });
 
 // Git commit response schema
@@ -63,7 +69,9 @@ export const GitCommitResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  content: z.string().optional()
 });
 
 // Git checkout response schema
@@ -73,7 +81,9 @@ export const GitCheckoutResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  branch: z.string().optional()
 });
 
 // Git branch response schema
@@ -84,7 +94,9 @@ export const GitBranchResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  branch: z.string().optional()
 });
 
 // Git logs response schema
@@ -95,7 +107,8 @@ export const GitLogsResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Git diff response schema
@@ -106,7 +119,31 @@ export const GitDiffResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
+});
+
+// Git clone response schema
+export const GitCloneResponseSchema = z.object({
+  type: z.literal('gitCloneResponse'),
+  requestId: z.string(),
+  url: z.string().optional(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  timestamp: z.string().optional()
+});
+
+// Git error response schema
+export const GitErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Union of all git service response schemas
@@ -120,7 +157,9 @@ export const GitServiceResponseSchema = z.union([
   GitCheckoutResponseSchema,
   GitBranchResponseSchema,
   GitLogsResponseSchema,
-  GitDiffResponseSchema
+  GitDiffResponseSchema,
+  GitCloneResponseSchema,
+  GitErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -137,4 +176,6 @@ export type GitCheckoutResponse = z.infer<typeof GitCheckoutResponseSchema>;
 export type GitBranchResponse = z.infer<typeof GitBranchResponseSchema>;
 export type GitLogsResponse = z.infer<typeof GitLogsResponseSchema>;
 export type GitDiffResponse = z.infer<typeof GitDiffResponseSchema>;
+export type GitCloneResponse = z.infer<typeof GitCloneResponseSchema>;
+export type GitErrorResponse = z.infer<typeof GitErrorResponseSchema>;
 export type GitServiceResponse = z.infer<typeof GitServiceResponseSchema>; 

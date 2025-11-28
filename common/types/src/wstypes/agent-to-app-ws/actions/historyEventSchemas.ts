@@ -24,8 +24,8 @@ export const summarizeAllEventSchema = chatSummaryEventBaseSchema.extend({
 export const summarizeEventSchema = chatSummaryEventBaseSchema.extend({
   action: z.literal('summarize'),
   messages: z.array(z.object({
-    role: z.string(),
-    content: z.string(),
+    role: z.string().min(1),
+    content: z.string().min(1),
   })),
   depth: z.number(),
 });

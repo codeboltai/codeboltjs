@@ -12,7 +12,9 @@ export const CreateFileSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Create file error response schema
@@ -22,7 +24,9 @@ export const CreateFileErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Create folder success response schema
@@ -32,7 +36,9 @@ export const CreateFolderSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Create folder error response schema
@@ -42,7 +48,9 @@ export const CreateFolderErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Read file success response schema
@@ -53,7 +61,9 @@ export const ReadFileSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Read file success result response schema
@@ -64,7 +74,9 @@ export const ReadFileSuccessResultResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Update file success response schema
@@ -74,7 +86,9 @@ export const UpdateFileSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Update file error response schema
@@ -84,7 +98,9 @@ export const UpdateFileErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Delete file success response schema
@@ -94,7 +110,9 @@ export const DeleteFileSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Delete file error response schema
@@ -104,7 +122,9 @@ export const DeleteFileErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Delete folder success response schema
@@ -114,7 +134,9 @@ export const DeleteFolderSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Delete folder error response schema
@@ -124,7 +146,9 @@ export const DeleteFolderErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // File list success response schema
@@ -135,7 +159,9 @@ export const FileListSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // File list error response schema
@@ -145,7 +171,9 @@ export const FileListErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Search files success response schema
@@ -156,7 +184,9 @@ export const SearchFilesSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Search files error response schema
@@ -166,7 +196,9 @@ export const SearchFilesErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Write to file success response schema
@@ -176,7 +208,9 @@ export const WriteToFileSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Write to file error response schema
@@ -186,7 +220,9 @@ export const WriteToFileErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Grep search success response schema
@@ -197,7 +233,9 @@ export const GrepSearchSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Grep search error response schema
@@ -207,7 +245,9 @@ export const GrepSearchErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // List code definition names success response schema
@@ -218,7 +258,9 @@ export const ListCodeDefinitionNamesSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // List code definition names error response schema
@@ -228,7 +270,9 @@ export const ListCodeDefinitionNamesErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // File search success response schema
@@ -239,7 +283,9 @@ export const FileSearchSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // File search error response schema
@@ -249,7 +295,9 @@ export const FileSearchErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Edit file and apply diff success response schema
@@ -259,7 +307,9 @@ export const EditFileAndApplyDiffSuccessResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Edit file and apply diff error response schema
@@ -269,7 +319,68 @@ export const EditFileAndApplyDiffErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
+});
+
+// Read many files success response schema
+export const ReadManyFilesSuccessResponseSchema = z.object({
+  type: z.literal('readManyFilesResponse'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
+});
+
+// Read many files error response schema
+export const ReadManyFilesErrorResponseSchema = z.object({
+  type: z.literal('readManyFilesResponse'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
+});
+
+// List directory success response schema
+export const ListDirectorySuccessResponseSchema = z.object({
+  type: z.literal('listDirectoryResponse'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
+});
+
+// List directory error response schema
+export const ListDirectoryErrorResponseSchema = z.object({
+  type: z.literal('listDirectoryResponse'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  result: z.any().optional(),
+  timestamp: z.string().optional()
+});
+
+// Generic FS error response schema
+export const FsErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Union of all FS service response schemas
@@ -299,7 +410,12 @@ export const FsServiceResponseSchema = z.union([
   FileSearchSuccessResponseSchema,
   FileSearchErrorResponseSchema,
   EditFileAndApplyDiffSuccessResponseSchema,
-  EditFileAndApplyDiffErrorResponseSchema
+  EditFileAndApplyDiffErrorResponseSchema,
+  ReadManyFilesSuccessResponseSchema,
+  ReadManyFilesErrorResponseSchema,
+  ListDirectorySuccessResponseSchema,
+  ListDirectoryErrorResponseSchema,
+  FsErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -332,4 +448,9 @@ export type FileSearchSuccessResponse = z.infer<typeof FileSearchSuccessResponse
 export type FileSearchErrorResponse = z.infer<typeof FileSearchErrorResponseSchema>;
 export type EditFileAndApplyDiffSuccessResponse = z.infer<typeof EditFileAndApplyDiffSuccessResponseSchema>;
 export type EditFileAndApplyDiffErrorResponse = z.infer<typeof EditFileAndApplyDiffErrorResponseSchema>;
+export type ReadManyFilesSuccessResponse = z.infer<typeof ReadManyFilesSuccessResponseSchema>;
+export type ReadManyFilesErrorResponse = z.infer<typeof ReadManyFilesErrorResponseSchema>;
+export type ListDirectorySuccessResponse = z.infer<typeof ListDirectorySuccessResponseSchema>;
+export type ListDirectoryErrorResponse = z.infer<typeof ListDirectoryErrorResponseSchema>;
+export type FsErrorResponse = z.infer<typeof FsErrorResponseSchema>;
 export type FsServiceResponse = z.infer<typeof FsServiceResponseSchema>;
