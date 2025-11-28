@@ -55,7 +55,8 @@ class AgentExecutor {
         // console.log(`Reading graph data from: ${dataPath}`);
         const fileContent = readFileSync(dataPath, 'utf8');
         const data = JSON.parse(fileContent);
-        graphData = data.graphData;
+        graphData = data;
+        console.log('Graph data:', graphData);
         message = data.message;
       } catch (error) {
         console.error('Failed to read data file:', error);
@@ -77,6 +78,7 @@ class AgentExecutor {
       // Import and create a new graph
       ;
       this.graph = new LGraph();
+      console.log('Agent: Graph created');
 
       // Configure the graph from the frontend data
       this.graph.configure(graphData);
@@ -88,14 +90,14 @@ class AgentExecutor {
       const outputs = {};
 
       // Collect from SumNode (existing logic)
-      try {
-        const { SumNode } = await import('./nodes/Math/SumNode');
-        this.graph.findNodesByClass(SumNode).forEach((node, index) => {
-          outputs[`output_${index}`] = node.outputs[0]?._data || node.outputs[0]?.data;
-        });
-      } catch (error) {
-        console.log('No SumNode found or error importing SumNode:', error.message);
-      }
+      // try {
+      //   const { SumNode } = await import('./nodes/Math/SumNode');
+      //   this.graph.findNodesByClass(SumNode).forEach((node, index) => {
+      //     outputs[`output_${index}`] = node.outputs[0]?._data || node.outputs[0]?.data;
+      //   });
+      // } catch (error) {
+      //   console.log('No SumNode found or error importing SumNode:', error.message);
+      // }
 
       // Collect from AgentRunNode (AI agent results) - TODO: Implement AgentRunNode
       // try {
