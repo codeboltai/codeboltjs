@@ -6,23 +6,7 @@
 // Re-export types from their original source files
 export type {
   // Browser service responses
-  BrowserActionResponseData,
-  NewPageResponse,
-  ScrollResponse,
-  TypeResponse,
-  ClickResponse,
-  EnterResponse,
-  SearchResponse,
-  GetUrlResponse,
-  GoToPageResponse,
-  ScreenshotResponse,
-  HtmlReceived,
-  GetMarkdownResponse,
-  GetContentResponse,
-  GetSnapShotResponse,
-  GetBrowserInfoResponse,
-  ExtractTextResponse,
-  BrowserServiceResponse,
+
 
   // Chat service responses
   ChatHistoryResponse,
@@ -101,11 +85,7 @@ export type {
   UpdateProjectStateResponse,
   StateServiceResponse,
   // VectorDB service responses
-  GetVectorResponse,
-  AddVectorItemResponse,
-  QueryVectorItemResponse,
-  QueryVectorItemsResponse,
-  VectorDBServiceResponse,
+
   // Utils service responses
   EditFileAndApplyDiffResponse,
   UtilsServiceResponse,
@@ -124,23 +104,13 @@ export type {
   ExecuteToolResponse,
   MCPServiceResponse,
   // Debug service responses
-  DebugAddLogResponse,
-  OpenDebugBrowserResponse,
-  GetDebugLogsResponse,
-  DebugServiceResponse,
+
   // DB Memory service responses
-  MemorySetResponse,
-  MemoryGetResponse,
-  DBMemoryServiceResponse,
+
   // Code Utils service responses
-  GetJsTreeResponse,
-  GetAllFilesAsMarkdownResponse,
-  MatchProblemResponse,
-  GetMatcherListTreeResponse,
-  GetMatchDetailResponse,
-  CodeUtilsServiceResponse,
+
   // Crawler service responses
-  CrawlerServiceResponse,
+
   // FS service responses
   CreateFileSuccessResponse,
   CreateFileErrorResponse,
@@ -182,17 +152,12 @@ export type {
   GitDiffResponse,
   GitServiceResponse,
   // Agent service responses
-  FindAgentByTaskResponse,
-  ListAgentsResponse,
-  AgentsDetailResponse,
-  TaskCompletionResponse,
-  AgentServiceResponse,
+
   // Index service responses
   GetChatHistoryResponse,
   ErrorResponse,
   IndexServiceResponse,
   BaseApplicationResponse,
   // Additional missing types
-  CrawlResponse
 } from './wstypes/app-to-agent-ws/indexResponses';
 
