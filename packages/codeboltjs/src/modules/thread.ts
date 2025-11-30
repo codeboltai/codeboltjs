@@ -33,7 +33,7 @@ const threadService = {
      * @param {CreateThreadOptions} options - The thread creation parameters
      * @returns {Promise<CreateThreadResponse>} A promise that resolves with the thread creation response
      */
-    createThread: async (options: CreateThreadOptions): Promise<CreateThreadResponse> => {
+    createThread: async (options:any): Promise<CreateThreadResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -46,6 +46,21 @@ const threadService = {
         return cbws.messageManager.sendAndWaitForResponse(
             event,
             'createThreadResponse'
+        );
+    },
+// TODO create typing for options and response 
+    crdateAndStart: async (options:any)=>{
+        const requestId = randomUUID();
+        const event = {
+            type: 'threadEvent',
+            action: 'createAndStartThread',
+            requestId,
+            message: options
+        };
+
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'createAndStartThreadResponse'
         );
     },
 

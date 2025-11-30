@@ -30,7 +30,7 @@ import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
 import { RawMessageForAgent, AgentStartMessage, ProviderInitVars } from '@codebolt/types/provider'
-
+import thread from '../modules/thread'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -115,6 +115,7 @@ class Codebolt {
     dbmemory = dbmemory;
     cbstate = cbstate;
     task = task;
+    thread=thread;
     vectordb = vectorDB;
     debug = debug;
     tokenizer = tokenizer;

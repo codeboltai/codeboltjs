@@ -96,6 +96,25 @@ const createThreadOptionsSchema = z.object({
     dependsOnTaskId: z.string().optional(),
     dependsOnTaskName: z.string().optional(),
     steps: z.array(stepSchema).optional(),
+
+    // Message processing parameters
+    userMessage: z.string().optional(),
+    selectedAgent: z.any().optional(),
+    mentionedAgents: z.array(z.any()).optional(),
+    mentionedMCPs: z.array(z.any()).optional(),
+    remixPrompt: z.string().optional(),
+    remoteProvider: z.object({
+        id: z.string(),
+        name: z.string().optional(),
+    }).optional(),
+    activeStepId: z.string().optional(),
+    currentStep: z.any().optional(),
+    messageId: z.string().optional(),
+    selection: z.object({
+        selectedText: z.string().optional(),
+    }).optional(),
+    processId: z.string().optional(),
+    stepId: z.string().optional(),
 });
 
 // Thread update options schema
@@ -114,6 +133,25 @@ const updateThreadOptionsSchema = z.object({
     startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
     dependsOnTaskId: z.string().optional(),
     dependsOnTaskName: z.string().optional(),
+
+    // Message processing parameters
+    userMessage: z.string().optional(),
+    selectedAgent: z.any().optional(),
+    mentionedAgents: z.array(z.any()).optional(),
+    mentionedMCPs: z.array(z.any()).optional(),
+    remixPrompt: z.string().optional(),
+    remoteProvider: z.object({
+        id: z.string(),
+        name: z.string().optional(),
+    }).optional(),
+    activeStepId: z.string().optional(),
+    currentStep: z.any().optional(),
+    messageId: z.string().optional(),
+    selection: z.object({
+        selectedText: z.string().optional(),
+    }).optional(),
+    processId: z.string().optional(),
+    stepId: z.string().optional(),
 });
 
 // Get thread list options schema
@@ -155,6 +193,41 @@ const startThreadOptionsSchema = z.object({
 const updateThreadStatusOptionsSchema = z.object({
     threadId: z.string(),
     status: z.string(),
+});
+
+// Create and start thread options schema (combines creation and starting with optional message processing)
+const createAndStartThreadOptionsSchema = z.object({
+    // Basic thread parameters
+    title: z.string().optional(),
+    description: z.string().optional(),
+    taskId: z.string().optional(),
+    agentId: z.string().optional(),
+    status: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    metadata: z.record(z.any()).optional(),
+
+    // Message processing parameters
+    userMessage: z.string().optional(),
+    selectedAgent: z.any().optional(),
+    mentionedAgents: z.array(z.any()).optional(),
+    mentionedMCPs: z.array(z.any()).optional(),
+    remixPrompt: z.string().optional(),
+    isRemoteTask: z.boolean().optional(),
+    remoteProvider: z.object({
+        id: z.string(),
+        name: z.string().optional(),
+    }).optional(),
+    activeStepId: z.string().optional(),
+    currentStep: z.any().optional(),
+    steps: z.array(z.any()).optional(),
+    messageId: z.string().optional(),
+    selection: z.object({
+        selectedText: z.string().optional(),
+    }).optional(),
+    environment: z.any().optional(),
+    groupId: z.string().optional(),
+    processId: z.string().optional(),
+    stepId: z.string().optional(),
 });
 
 // Create Thread Event Schema
@@ -207,6 +280,12 @@ export const updateThreadStatusEventSchema = threadEventBaseSchema.extend({
     message: updateThreadStatusOptionsSchema,
 });
 
+// Create And Start Thread Event Schema
+export const createAndStartThreadEventSchema = threadEventBaseSchema.extend({
+    action: z.literal('createAndStartThread'),
+    message: createAndStartThreadOptionsSchema,
+});
+
 // Union of all thread event schemas
 export const threadEventSchema = z.union([
     createThreadEventSchema,
@@ -217,6 +296,7 @@ export const threadEventSchema = z.union([
     deleteThreadEventSchema,
     startThreadEventSchema,
     updateThreadStatusEventSchema,
+    createAndStartThreadEventSchema,
 ]);
 
 // Inferred TypeScript types for events
@@ -235,6 +315,7 @@ export type GetThreadMessagesOptions = z.infer<typeof getThreadMessagesOptionsSc
 export type DeleteThreadOptions = z.infer<typeof deleteThreadOptionsSchema>;
 export type StartThreadOptions = z.infer<typeof startThreadOptionsSchema>;
 export type UpdateThreadStatusOptions = z.infer<typeof updateThreadStatusOptionsSchema>;
+export type CreateAndStartThreadOptions = z.infer<typeof createAndStartThreadOptionsSchema>;
 
 export type CreateThreadEvent = z.infer<typeof createThreadEventSchema>;
 export type GetThreadListEvent = z.infer<typeof getThreadListEventSchema>;
@@ -244,4 +325,5 @@ export type UpdateThreadEvent = z.infer<typeof updateThreadEventSchema>;
 export type DeleteThreadEvent = z.infer<typeof deleteThreadEventSchema>;
 export type StartThreadEvent = z.infer<typeof startThreadEventSchema>;
 export type UpdateThreadStatusEvent = z.infer<typeof updateThreadStatusEventSchema>;
+export type CreateAndStartThreadEvent = z.infer<typeof createAndStartThreadEventSchema>;
 export type ThreadEvent = z.infer<typeof threadEventSchema>;
