@@ -456,6 +456,7 @@ export {
   deleteThreadEventSchema,
   startThreadEventSchema,
   updateThreadStatusEventSchema,
+  createAndStartThreadEventSchema,
   threadEventSchema,
   // Type exports
   type ThreadEventBase,
@@ -467,6 +468,7 @@ export {
   type DeleteThreadOptions,
   type StartThreadOptions,
   type UpdateThreadStatusOptions,
+  type CreateAndStartThreadOptions,
   type CreateThreadEvent,
   type GetThreadListEvent,
   type GetThreadDetailEvent,
@@ -475,6 +477,7 @@ export {
   type DeleteThreadEvent,
   type StartThreadEvent,
   type UpdateThreadStatusEvent,
+  type CreateAndStartThreadEvent,
   type ThreadEvent
 } from './wstypes/agent-to-app-ws/actions/threadEventSchemas';
 

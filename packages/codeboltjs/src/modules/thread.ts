@@ -8,6 +8,7 @@ import type {
     GetThreadListOptions,
     GetThreadDetailOptions,
     GetThreadMessagesOptions,
+    CreateAndStartThreadOptions,
 } from '@codebolt/types/agent-to-app-ws-schema';
 
 // Import response types from app-to-agent-ws-schema
@@ -33,7 +34,7 @@ const threadService = {
      * @param {CreateThreadOptions} options - The thread creation parameters
      * @returns {Promise<CreateThreadResponse>} A promise that resolves with the thread creation response
      */
-    createThread: async (options:any): Promise<CreateThreadResponse> => {
+    createThread: async (options: any): Promise<CreateThreadResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -48,8 +49,12 @@ const threadService = {
             'createThreadResponse'
         );
     },
-// TODO create typing for options and response 
-    crdateAndStart: async (options:any)=>{
+    /**
+     * Creates and immediately starts a new thread.
+     * @param {CreateAndStartThreadOptions} options - The thread creation and start parameters
+     * @returns {Promise<StartThreadResponse>} A promise that resolves with the thread start response
+     */
+    createAndStartThread: async (options: CreateAndStartThreadOptions): Promise<StartThreadResponse> => {
         const requestId = randomUUID();
         const event = {
             type: 'threadEvent',
@@ -60,7 +65,7 @@ const threadService = {
 
         return cbws.messageManager.sendAndWaitForResponse(
             event,
-            'createAndStartThreadResponse'
+            'startThreadResponse'
         );
     },
 
