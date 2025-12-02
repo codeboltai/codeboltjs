@@ -1,35 +1,3 @@
-// import codebolt from '@codebolt/codeboltjs';
-// import fs from 'fs'
-
-// import { FlatUserMessage } from "@codebolt/types/sdk";
-
-// import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
-// import { any } from 'zod/v4';
-
-
-// codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-//   let plans = await codebolt.actionPlan.getAllPlans();
-//   let planId = plans.response.data.actionPlans[0].planId;
-//   codebolt.chat.sendMessage(planId)
-
-//   let planDetail = await codebolt.actionPlan.getActionPlanDetail(planId);
-
-
-//   codebolt.chat.sendMessage(JSON.stringify(planDetail.response.data.actionPlan))
-
-//   // Use createAndStartThread instead of createThread
-// //   let response = await codebolt.thread.createAndStartThread({
-// //     title: "Thread From Agent",
-// //     description: `Processing task: ${planDetail.response.data.actionPlan.items[0].name}`,
-// //     userMessage: planDetail.response.data.actionPlan.items[0].name,
-// //     selectedAgent: {
-// //       id: 'actionPlan',
-// //       name: 'Action Plan Agent'
-// //     }
-// //   })
-
-// //   codebolt.chat.sendMessage(JSON.stringify(response))
-// })
 
 
 import codebolt from '@codebolt/codeboltjs';
@@ -110,6 +78,9 @@ async function processTask(task: Task, context: TaskContext = {}): Promise<void>
     await codebolt.chat.sendMessage(`🔵 Starting${contextMsg}: ${task.name}`);
 
     try {
+        // Update task status to running
+        await codebolt.task.updateTask(task.taskId, { status: 'running' } as any);
+
         // Start the thread
         const threadPromise = codebolt.thread.createAndStartThread({
             title: task.name,
@@ -123,7 +94,26 @@ async function processTask(task: Task, context: TaskContext = {}): Promise<void>
                 projectPath: task.projectPath,
                 trackName: trackName,
                 context: context
-            }
+            },
+            // Pass all other available parameters from task
+            taskId: task.taskId,
+            agentId: task.agentId,
+            status: task.status,
+            tags: task.tags,
+            mentionedAgents: task.mentionedAgents,
+            mentionedMCPs: task.mentionedMCPs,
+            remixPrompt: task.remixPrompt,
+            isRemoteTask: task.isRemoteTask,
+            remoteProvider: task.remoteProvider,
+            activeStepId: task.activeStepId,
+            currentStep: task.currentStep,
+            steps: task.steps,
+            messageId: task.messageId,
+            selection: task.selection,
+            environment: task.environment,
+            groupId: task.groupId,
+            processId: task.processId,
+            stepId: task.stepId
         });
 
         // For parallel execution, return the promise without waiting
@@ -133,13 +123,15 @@ async function processTask(task: Task, context: TaskContext = {}): Promise<void>
             await codebolt.chat.sendMessage(`🚀 Started${contextMsg}: ${task.name}`);
 
             // Return a promise that waits for completion and sends completion message
-            return threadPromise.then(result => {
+            return threadPromise.then(async result => {
                 if (result.success) {
                     console.log(`[Orchestrator] Task completed: ${task.name}${contextMsg}`);
+                    await codebolt.task.updateTask(task.taskId, { status: 'completed' } as any);
                     codebolt.chat.sendMessage(`✅ Completed${contextMsg}: ${task.name}`);
                 } else {
                     console.error(`[Orchestrator] Task failed: ${task.name}${contextMsg}`, result.error);
                     codebolt.chat.sendMessage(`❌ Failed${contextMsg}: ${task.name} - ${result.error}`);
+                    await codebolt.task.updateTask(task.taskId, { status: 'failed' } as any);
                     throw new Error(`Task failed: ${result.error}`);
                 }
             });
@@ -150,10 +142,12 @@ async function processTask(task: Task, context: TaskContext = {}): Promise<void>
 
         if (result.success) {
             console.log(`[Orchestrator] Task completed successfully: ${task.name}${contextMsg}`);
+            await codebolt.task.updateTask(task.taskId, { status: 'completed' } as any);
             await codebolt.chat.sendMessage(`✅ Completed${contextMsg}: ${task.name}`);
         } else {
             console.error(`[Orchestrator] Task failed: ${task.name}${contextMsg}`, result.error);
             await codebolt.chat.sendMessage(`❌ Failed${contextMsg}: ${task.name} - ${result.error}`);
+            await codebolt.task.updateTask(task.taskId, { status: 'failed' } as any);
             throw new Error(`Task failed: ${result.error}`);
         }
     } catch (error) {
