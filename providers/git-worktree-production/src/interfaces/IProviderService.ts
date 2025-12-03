@@ -68,6 +68,11 @@ export interface IProviderService {
   onProviderStop(initvars: ProviderInitVars): Promise<void>;
   onGetDiffFiles(): Promise<DiffResult>;
   onCloseSignal(): Promise<void>;
+  onReadFile(path: string): Promise<string>;
+  onWriteFile(path: string, content: string): Promise<void>;
+  onGetProject(): Promise<any>;
+  onMergeAsPatch(): Promise<void>;
+  onSendPR(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
   onUserMessage(userMessage: RawMessageForAgent): Promise<void>;

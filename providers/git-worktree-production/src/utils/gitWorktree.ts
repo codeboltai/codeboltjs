@@ -123,3 +123,66 @@ export async function removeWorktree(options: RemoveWorktreeOptions): Promise<Wo
     isCreated: false,
   };
 }
+
+export async function mergeWorktreeAsPatch(options: WorktreeOptions): Promise<void> {
+  const { projectPath, environmentName, providerConfig, logger } = options;
+  const worktreeBaseDir = await ensureWorktreeBaseDir(options);
+  const worktreePath = path.join(worktreeBaseDir, environmentName);
+
+  logger.log('Merging worktree as patch:', worktreePath);
+
+  // 1. Get the diff from the worktree
+  const diffCommand = `git diff HEAD`;
+  const { stdout: diffOutput } = await execAsync(diffCommand, {
+    cwd: worktreePath,
+    timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+  });
+
+  if (!diffOutput.trim()) {
+    logger.log('No changes to merge');
+    return;
+  }
+
+  // 2. Apply the patch to the base repo
+  // We need to be careful about the path. The patch paths are relative to the worktree root.
+  // We can use 'git apply' in the base repo.
+
+  // Create a temporary patch file
+  const patchFilePath = path.join(worktreeBaseDir, `${environmentName}.patch`);
+  await fs.promises.writeFile(patchFilePath, diffOutput);
+
+  try {
+    const applyCommand = `git apply "${patchFilePath}"`;
+    logger.log('Applying patch to base repo:', applyCommand);
+    await execAsync(applyCommand, {
+      cwd: projectPath,
+      timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+    });
+    logger.log('Patch applied successfully');
+  } catch (error) {
+    logger.error('Failed to apply patch:', error);
+    throw error;
+  } finally {
+    // Cleanup patch file
+    await fs.promises.unlink(patchFilePath).catch(() => { });
+  }
+}
+
+export async function pushWorktreeBranch(options: WorktreeOptions): Promise<void> {
+  const { projectPath, environmentName, providerConfig, logger } = options;
+  const worktreeBaseDir = await ensureWorktreeBaseDir(options);
+  const worktreePath = path.join(worktreeBaseDir, environmentName);
+
+  logger.log('Pushing worktree branch:', environmentName);
+
+  const pushCommand = `git push origin "${environmentName}"`;
+  logger.log('Executing command:', pushCommand);
+
+  const { stdout, stderr } = await execAsync(pushCommand, {
+    cwd: worktreePath,
+    timeout: providerConfig.timeouts?.gitOperations ?? 60_000,
+  });
+
+  if (stdout) logger.log('Push output:', stdout.trim());
+  if (stderr) logger.log('Push stderr:', stderr.trim());
+}

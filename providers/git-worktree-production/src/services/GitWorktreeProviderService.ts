@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'child_process';
 import * as path from 'path';
+import * as fs from 'fs/promises';
 import WebSocket from 'ws';
 import codebolt from '@codebolt/codeboltjs';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
@@ -15,7 +16,7 @@ import {
   ProviderConfig
 } from '../interfaces/IProviderService';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
-import { createWorktree as createWorktreeUtil, removeWorktree as removeWorktreeUtil } from '../utils/gitWorktree';
+import { createWorktree as createWorktreeUtil, removeWorktree as removeWorktreeUtil, mergeWorktreeAsPatch as mergeWorktreeAsPatchUtil, pushWorktreeBranch as pushWorktreeBranchUtil } from '../utils/gitWorktree';
 import { getDiff } from '../utils/gitDiff';
 import {
   startAgentServer as startAgentServerUtil,
@@ -68,16 +69,16 @@ export class GitWorktreeProviderService
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
-    
+
     // Initialize base repo path from initVars
     const projectPath = initVars.projectPath as string | undefined;
     if (!projectPath) {
       throw new Error('Project path is not available in initVars');
     }
     this.baseRepoPath = projectPath;
-    
+
     const result = await super.onProviderStart(initVars);
-    this.logger.log('Started Environment with :',  this.worktreeInfo.path ?? result.workspacePath);
+    this.logger.log('Started Environment with :', this.worktreeInfo.path ?? result.workspacePath);
 
     return {
       ...result,
@@ -95,22 +96,22 @@ export class GitWorktreeProviderService
    */
   async onProviderStop(initVars: ProviderInitVars): Promise<void> {
     this.logger.log('Provider stop requested for environment:', initVars.environmentName);
-    
+
     try {
       // Stop the agent server
       await this.stopAgentServer();
-      
+
       // Remove the worktree
       if (this.state.projectPath) {
         await this.removeWorktree(this.state.projectPath);
       }
-      
+
       // Disconnect transport
       await this.disconnectTransport();
-      
+
       // Reset state
       this.resetState();
-      
+
       this.logger.log('Provider stopped successfully for environment:', initVars.environmentName);
     } catch (error) {
       this.logger.error('Error stopping provider for environment:', initVars.environmentName, error);
@@ -136,6 +137,107 @@ export class GitWorktreeProviderService
       if (error.stdout) this.logger.error('stdout:', error.stdout);
       if (error.stderr) this.logger.error('stderr:', error.stderr);
       throw new Error(`Failed to get diff files: ${error.message}`);
+    }
+  }
+
+  async onReadFile(filePath: string): Promise<string> {
+    this.logger.log('Reading file:', filePath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      return await fs.readFile(fullPath, 'utf-8');
+    } catch (error: any) {
+      this.logger.error('Error reading file:', error);
+      throw new Error(`Failed to read file: ${error.message}`);
+    }
+  }
+
+  async onWriteFile(filePath: string, content: string): Promise<void> {
+    this.logger.log('Writing file:', filePath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      await fs.mkdir(path.dirname(fullPath), { recursive: true });
+      await fs.writeFile(fullPath, content, 'utf-8');
+    } catch (error: any) {
+      this.logger.error('Error writing file:', error);
+      throw new Error(`Failed to write file: ${error.message}`);
+    }
+  }
+
+  async onGetProject(): Promise<any> {
+    this.logger.log('Getting project structure');
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+
+      const getFiles = async (dir: string): Promise<any[]> => {
+        const dirents = await fs.readdir(dir, { withFileTypes: true });
+        const files = await Promise.all(dirents.map(async (dirent) => {
+          const res = path.resolve(dir, dirent.name);
+          if (dirent.isDirectory()) {
+            return {
+              name: dirent.name,
+              path: path.relative(this.worktreeInfo.path!, res),
+              type: 'directory',
+              children: await getFiles(res)
+            };
+          } else {
+            return {
+              name: dirent.name,
+              path: path.relative(this.worktreeInfo.path!, res),
+              type: 'file'
+            };
+          }
+        }));
+        return files;
+      };
+
+      return await getFiles(this.worktreeInfo.path);
+    } catch (error: any) {
+      this.logger.error('Error getting project structure:', error);
+      throw new Error(`Failed to get project structure: ${error.message}`);
+    }
+  }
+
+  async onMergeAsPatch(): Promise<void> {
+    this.logger.log('Merging worktree as patch');
+    try {
+      if (!this.baseRepoPath || !this.worktreeInfo.branch) {
+        throw new Error('Base repo path or worktree branch not available');
+      }
+      await mergeWorktreeAsPatchUtil({
+        projectPath: this.baseRepoPath,
+        environmentName: this.worktreeInfo.branch,
+        providerConfig: this.providerConfig,
+        logger: this.logger,
+      });
+    } catch (error: any) {
+      this.logger.error('Error merging worktree as patch:', error);
+      throw new Error(`Failed to merge worktree as patch: ${error.message}`);
+    }
+  }
+
+  async onSendPR(): Promise<void> {
+    this.logger.log('Sending PR (pushing branch)');
+    try {
+      if (!this.baseRepoPath || !this.worktreeInfo.branch) {
+        throw new Error('Base repo path or worktree branch not available');
+      }
+      await pushWorktreeBranchUtil({
+        projectPath: this.baseRepoPath,
+        environmentName: this.worktreeInfo.branch,
+        providerConfig: this.providerConfig,
+        logger: this.logger,
+      });
+    } catch (error: any) {
+      this.logger.error('Error sending PR:', error);
+      throw new Error(`Failed to send PR: ${error.message}`);
     }
   }
 
@@ -248,10 +350,10 @@ export class GitWorktreeProviderService
     if (!this.baseRepoPath) {
       throw new Error('Base repository path is not available');
     }
-    
+
     // Construct the worktree path
     const worktreePath = path.join(this.baseRepoPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
-    
+
     // Use the worktree path as the project path (this is the actual worktree project path)
     this.state.projectPath = worktreePath;
   }
@@ -274,7 +376,7 @@ export class GitWorktreeProviderService
     // Create worktree using the base repo path
     const worktreeInfo = await this.createWorktree(this.baseRepoPath, initVars.environmentName);
     this.worktreeInfo = worktreeInfo;
-    
+
     // Set workspace path to the worktree path
     if (worktreeInfo.path) {
       this.state.workspacePath = worktreeInfo.path;
