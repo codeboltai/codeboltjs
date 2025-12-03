@@ -14,6 +14,7 @@ import { ModelRoutes } from '../routes/modelRoutes';
 import { AgentRoutes } from '../routes/agentRoutes';
 import { ProviderRoutes } from '../routes/llmProviderRoutes';
 import { ConversationRoutes } from '../routes/conversationRoutes';
+import { EnvironmentRoutes } from '../routes/EnvironmentRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,7 @@ export class HttpHandler {
   private agentRoutes: AgentRoutes;
   private providerRoutes: ProviderRoutes;
   private conversationRoutes: ConversationRoutes;
+  private environmentRoutes: EnvironmentRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
@@ -40,6 +42,7 @@ export class HttpHandler {
     this.agentRoutes = new AgentRoutes();
     this.providerRoutes = new ProviderRoutes();
     this.conversationRoutes = new ConversationRoutes();
+    this.environmentRoutes = new EnvironmentRoutes();
     this.setupRoutes();
   }
 
@@ -48,10 +51,10 @@ export class HttpHandler {
    */
   private setupRoutes(): void {
     this.app.use(express.json());
-    
+
     // Mount MCP routes
     this.app.use('/mcp', this.mcpRoutes.router);
-    
+
     // Mount Todo routes
     this.app.use('/todos', this.todoRoutes.router);
 
@@ -63,10 +66,13 @@ export class HttpHandler {
 
     // Mount Conversation routes
     this.app.use('/conversations', this.conversationRoutes.router);
-    
+
     // Mount Provider routes
     this.app.use('/providers', this.providerRoutes.router);
-    
+
+    // Mount Environment routes
+    this.app.use('/environments', this.environmentRoutes.router);
+
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
 
@@ -89,7 +95,7 @@ export class HttpHandler {
   private handleHealthCheck(req: Request, res: Response): void {
     const uptime = Date.now() - this.startTime.getTime();
     const connectionCounts = this.connectionManager.getConnectionCounts();
-    
+
     const response: HealthCheckResponse = {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -114,13 +120,13 @@ export class HttpHandler {
     const agentManager = this.connectionManager.getAgentConnectionManager();
     const apps = appManager.getAllApps();
     const agents = agentManager.getAllAgents();
-    
+
     const appList = apps.map((app) => ({
       id: app.id,
       type: app.type,
       connectedAt: app.connectedAt
     }));
-    
+
     const agentList = agents.map((agent) => ({
       id: agent.id,
       type: agent.type,
@@ -143,7 +149,7 @@ export class HttpHandler {
   private handleServerInfo(req: Request, res: Response): void {
     const uptime = Date.now() - this.startTime.getTime();
     const connectionCounts = this.connectionManager.getConnectionCounts();
-    
+
     res.json({
       name: 'Codebolt Agent Server',
       version: process.env.npm_package_version || '1.0.0',
@@ -165,7 +171,7 @@ export class HttpHandler {
    */
   private handleBundleDownload(req: Request, res: Response): void {
     const bundleFile = path.join(__dirname, '../../../sampleagent/dist/bundle/sampleclient.js');
-    
+
     res.download(bundleFile, 'sampleagent.js', (err) => {
       if (err) {
         logger.error(formatLogMessage('error', 'HttpHandler', `Error downloading bundle: ${err}`));

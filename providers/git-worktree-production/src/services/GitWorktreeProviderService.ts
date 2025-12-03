@@ -55,11 +55,11 @@ export class GitWorktreeProviderService
       agentServerHost: config.agentServerHost ?? 'localhost',
       worktreeBaseDir: config.worktreeBaseDir ?? '.worktree',
       timeouts: {
-        agentServerStartup: config.timeouts?.agentServerStartup ?? 30_000,
-        wsConnection: config.timeouts?.wsConnection ?? 10_000,
+        agentServerStartup: config.timeouts?.agentServerStartup ?? 60_000,
+        wsConnection: config.timeouts?.wsConnection ?? 30_000,
         gitOperations: config.timeouts?.gitOperations ?? 30_000,
         cleanup: config.timeouts?.cleanup ?? 15_000,
-      },
+      }
     };
 
     this.logger = createPrefixedLogger('[Git WorkTree Provider]');
@@ -356,6 +356,12 @@ export class GitWorktreeProviderService
     }
 
     this.agentServer.process = await startAgentServerUtil({ logger: this.logger });
+
+    this.agentServer.process.on('exit', (code, signal) => {
+      this.logger.warn(`Agent server process exited unexpectedly with code ${code} and signal ${signal}`);
+      this.agentServer.process = null;
+      this.agentServer.isConnected = false;
+    });
   }
 
   async connectToAgentServer(worktreePath: string, environmentName: string): Promise<void> {
