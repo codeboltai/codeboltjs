@@ -578,6 +578,246 @@ class Codebolt {
     }
 
     /**
+     * Sets up a listener for delete file events.
+     * @param {Function} handler - The handler function to call when delete file is requested.
+     * @returns {void}
+     */
+    onDeleteFile(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleDeleteFile = async (response: any) => {
+                console.log("Delete file event received");
+                if (response.type === "providerDeleteFile") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in delete file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleDeleteFile);
+        }).catch(error => {
+            console.error('Failed to set up delete file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for delete folder events.
+     * @param {Function} handler - The handler function to call when delete folder is requested.
+     * @returns {void}
+     */
+    onDeleteFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleDeleteFolder = async (response: any) => {
+                console.log("Delete folder event received");
+                if (response.type === "providerDeleteFolder") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in delete folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleDeleteFolder);
+        }).catch(error => {
+            console.error('Failed to set up delete folder handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for rename item events.
+     * @param {Function} handler - The handler function to call when rename item is requested.
+     * @returns {void}
+     */
+    onRenameItem(handler: (oldPath: string, newPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleRenameItem = async (response: any) => {
+                console.log("Rename item event received");
+                if (response.type === "providerRenameItem") {
+                    try {
+                        const result = await handler(response.oldPath, response.newPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerRenameItemResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in rename item handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerRenameItemResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleRenameItem);
+        }).catch(error => {
+            console.error('Failed to set up rename item handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for create folder events.
+     * @param {Function} handler - The handler function to call when create folder is requested.
+     * @returns {void}
+     */
+    onCreateFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCreateFolder = async (response: any) => {
+                console.log("Create folder event received");
+                if (response.type === "providerCreateFolder") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCreateFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in create folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCreateFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCreateFolder);
+        }).catch(error => {
+            console.error('Failed to set up create folder handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for copy file events.
+     * @param {Function} handler - The handler function to call when copy file is requested.
+     * @returns {void}
+     */
+    onCopyFile(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCopyFile = async (response: any) => {
+                console.log("Copy file event received");
+                if (response.type === "providerCopyFile") {
+                    try {
+                        const result = await handler(response.sourcePath, response.destinationPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in copy file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCopyFile);
+        }).catch(error => {
+            console.error('Failed to set up copy file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for copy folder events.
+     * @param {Function} handler - The handler function to call when copy folder is requested.
+     * @returns {void}
+     */
+    onCopyFolder(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCopyFolder = async (response: any) => {
+                console.log("Copy folder event received");
+                if (response.type === "providerCopyFolder") {
+                    try {
+                        const result = await handler(response.sourcePath, response.destinationPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in copy folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCopyFolder);
+        }).catch(error => {
+            console.error('Failed to set up copy folder handler:', error);
+        });
+    }
+
+    /**
      * Sets up a listener for get full project events.
      * @param {Function} handler - The handler function to call when get full project is requested.
      * @returns {void}

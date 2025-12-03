@@ -169,6 +169,63 @@ export class GitWorktreeProviderService
     }
   }
 
+  async onDeleteFile(filePath: string): Promise<void> {
+    this.logger.log('Deleting file:', filePath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      await fs.unlink(fullPath);
+    } catch (error: any) {
+      this.logger.error('Error deleting file:', error);
+      throw new Error(`Failed to delete file: ${error.message}`);
+    }
+  }
+
+  async onDeleteFolder(folderPath: string): Promise<void> {
+    this.logger.log('Deleting folder:', folderPath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullPath = path.join(this.worktreeInfo.path, folderPath);
+      await fs.rm(fullPath, { recursive: true, force: true });
+    } catch (error: any) {
+      this.logger.error('Error deleting folder:', error);
+      throw new Error(`Failed to delete folder: ${error.message}`);
+    }
+  }
+
+  async onRenameItem(oldPath: string, newPath: string): Promise<void> {
+    this.logger.log('Renaming item:', oldPath, 'to', newPath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullOldPath = path.join(this.worktreeInfo.path, oldPath);
+      const fullNewPath = path.join(this.worktreeInfo.path, newPath);
+      await fs.rename(fullOldPath, fullNewPath);
+    } catch (error: any) {
+      this.logger.error('Error renaming item:', error);
+      throw new Error(`Failed to rename item: ${error.message}`);
+    }
+  }
+
+  async onCreateFolder(folderPath: string): Promise<void> {
+    this.logger.log('Creating folder:', folderPath);
+    try {
+      if (!this.worktreeInfo.path) {
+        throw new Error('No worktree available');
+      }
+      const fullPath = path.join(this.worktreeInfo.path, folderPath);
+      await fs.mkdir(fullPath, { recursive: true });
+    } catch (error: any) {
+      this.logger.error('Error creating folder:', error);
+      throw new Error(`Failed to create folder: ${error.message}`);
+    }
+  }
+
   async onGetProject(parentId: string = 'root'): Promise<any[]> {
     this.logger.log('Getting project structure for parentId:', parentId);
     try {
@@ -241,13 +298,13 @@ export class GitWorktreeProviderService
     }
   }
 
-  async onMergeAsPatch(): Promise<void> {
+  async onMergeAsPatch(): Promise<string> {
     this.logger.log('Merging worktree as patch');
     try {
       if (!this.baseRepoPath || !this.worktreeInfo.branch) {
         throw new Error('Base repo path or worktree branch not available');
       }
-      await mergeWorktreeAsPatchUtil({
+      return await mergeWorktreeAsPatchUtil({
         projectPath: this.baseRepoPath,
         environmentName: this.worktreeInfo.branch,
         providerConfig: this.providerConfig,
