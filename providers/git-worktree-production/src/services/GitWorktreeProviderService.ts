@@ -169,37 +169,73 @@ export class GitWorktreeProviderService
     }
   }
 
-  async onGetProject(): Promise<any> {
-    this.logger.log('Getting project structure');
+  async onGetProject(parentId: string = 'root'): Promise<any[]> {
+    this.logger.log('Getting project structure for parentId:', parentId);
     try {
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
 
-      const getFiles = async (dir: string): Promise<any[]> => {
-        const dirents = await fs.readdir(dir, { withFileTypes: true });
-        const files = await Promise.all(dirents.map(async (dirent) => {
-          const res = path.resolve(dir, dirent.name);
-          if (dirent.isDirectory()) {
-            return {
-              name: dirent.name,
-              path: path.relative(this.worktreeInfo.path!, res),
-              type: 'directory',
-              children: await getFiles(res)
-            };
-          } else {
-            return {
-              name: dirent.name,
-              path: path.relative(this.worktreeInfo.path!, res),
-              type: 'file'
-            };
-          }
-        }));
-        return files;
-      };
+      // Construct parent path
+      const parentPath = parentId === 'root'
+        ? this.worktreeInfo.path
+        : path.join(this.worktreeInfo.path, parentId);
 
-      return await getFiles(this.worktreeInfo.path);
+      // Use async stat to check if path exists and is directory
+      const parentStats = await fs.stat(parentPath);
+
+      if (!parentStats.isDirectory()) {
+        return []; // Not a folder, no children
+      }
+
+      // Read directory contents asynchronously
+      const items = await fs.readdir(parentPath, { withFileTypes: true });
+
+      // Process items in parallel using Promise.all
+      const children = await Promise.all(
+        items
+          .filter(item => {
+            // For files: show all files including hidden ones
+            // Exclude .DS_Store files
+            if (!item.isDirectory() && item.name !== '.DS_Store') return true;
+            // For folders: hide hidden folders except .codeboltAgents
+            return !item.name.startsWith('.') || item.name === '.codeboltAgents' || item.name === '.codebolt';
+          })
+          .map(async (item) => {
+            const itemPath = path.join(parentPath, item.name);
+            const relativePath = parentId === 'root'
+              ? item.name
+              : path.join(parentId, item.name);
+
+            // Get stats for each item (parallelized)
+            const stats = await fs.stat(itemPath);
+
+            return {
+              id: relativePath,
+              name: item.name,
+              path: itemPath,
+              isFolder: item.isDirectory(),
+              size: item.isDirectory() ? 0 : stats.size,
+              lastModified: stats.mtime.toISOString()
+            };
+          })
+      );
+
+      // Sort the results
+      children.sort((a, b) => {
+        // Sort folders first, then files, both alphabetically
+        if (a.isFolder && !b.isFolder) return -1;
+        if (!a.isFolder && b.isFolder) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      return children;
+
     } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        this.logger.warn('Parent folder not found:', parentId);
+        return [];
+      }
       this.logger.error('Error getting project structure:', error);
       throw new Error(`Failed to get project structure: ${error.message}`);
     }
