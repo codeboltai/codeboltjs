@@ -45,7 +45,7 @@ export async function startAgentServer(options: StartAgentServerOptions): Promis
     processRef.stdout?.on('data', (data: any) => {
       const output = data.toString();
       logger.log('Agent Server:', output);
-      if (!serverStarted) {
+      if (!serverStarted && output.includes('Server started successfully')) {
         serverStarted = true;
         resolve(processRef);
       }

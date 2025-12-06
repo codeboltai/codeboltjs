@@ -350,42 +350,63 @@ export class GitWorktreeProviderService
   async startAgentServer(): Promise<void> {
     this.logger.log('Starting agent server...');
 
-    if (this.agentServer.process && !this.agentServer.process.killed) {
-      this.logger.log('Agent server process already exists, skipping startup');
-      return;
+    try {
+      if (this.agentServer.process && !this.agentServer.process.killed) {
+        this.logger.log('Agent server process already exists, skipping startup');
+        return;
+      }
+
+      this.agentServer.process = await startAgentServerUtil({ logger: this.logger });
+
+      this.agentServer.process.on('exit', (code, signal) => {
+        this.logger.warn(`Agent server process exited unexpectedly with code ${code} and signal ${signal}`);
+        this.agentServer.process = null;
+        this.agentServer.isConnected = false;
+      });
+    } catch (error: any) {
+      this.logger.error('Error starting agent server:', error);
+      throw new Error(`Failed to start agent server: ${error.message}`);
     }
-
-    this.agentServer.process = await startAgentServerUtil({ logger: this.logger });
-
-    this.agentServer.process.on('exit', (code, signal) => {
-      this.logger.warn(`Agent server process exited unexpectedly with code ${code} and signal ${signal}`);
-      this.agentServer.process = null;
-      this.agentServer.isConnected = false;
-    });
   }
 
   async connectToAgentServer(worktreePath: string, environmentName: string): Promise<void> {
-    if (this.agentServer.isConnected) {
-      return;
-    }
+    try {
+      if (this.agentServer.isConnected) {
+        return;
+      }
 
-    this.logger.log('Ensuring WebSocket connection to agent server...');
-    await this.ensureTransportConnection({ environmentName, type: 'gitworktree' });
+      this.logger.log('Ensuring WebSocket connection to agent server...');
+      await this.ensureTransportConnection({ environmentName, type: 'gitworktree' });
+    } catch (error: any) {
+      this.logger.error('Error connecting to agent server:', error);
+      throw new Error(`Failed to connect to agent server: ${error.message}`);
+    }
   }
 
   async sendMessageToAgent(message: RawMessageForAgent): Promise<boolean> {
-    return this.sendToAgentServer(message);
+    try {
+      return await this.sendToAgentServer(message);
+    } catch (error: any) {
+      this.logger.error('Error sending message to agent:', error);
+      return false;
+    }
   }
 
   async stopAgentServer(): Promise<boolean> {
-    const result = await stopAgentServerUtil({
-      logger: this.logger,
-      processRef: this.agentServer.process,
-    });
+    try {
+      const result = await stopAgentServerUtil({
+        logger: this.logger,
+        processRef: this.agentServer.process,
+      });
 
-    this.agentServer.process = null;
+      this.agentServer.process = null;
 
-    return result;
+      return result;
+    } catch (error: any) {
+      this.logger.error('Error stopping agent server:', error);
+      // We don't throw here to allow cleanup to continue
+      return false;
+    }
   }
 
   async createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo> {
@@ -408,16 +429,21 @@ export class GitWorktreeProviderService
   }
 
   async removeWorktree(projectPath: string): Promise<boolean> {
-    const updated = await removeWorktreeUtil({
-      projectPath,
-      worktreeInfo: this.worktreeInfo,
-      providerConfig: this.providerConfig,
-      logger: this.logger,
-    });
+    try {
+      const updated = await removeWorktreeUtil({
+        projectPath,
+        worktreeInfo: this.worktreeInfo,
+        providerConfig: this.providerConfig,
+        logger: this.logger,
+      });
 
-    this.worktreeInfo = updated;
+      this.worktreeInfo = updated;
 
-    return true;
+      return true;
+    } catch (error: any) {
+      this.logger.error('Error removing worktree:', error);
+      throw new Error(`Failed to remove worktree: ${error.message}`);
+    }
   }
 
   getWorktreeInfo(): WorktreeInfo {
@@ -445,67 +471,95 @@ export class GitWorktreeProviderService
   }
 
   protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
-    // Use the base repository path that was set from initVars in onProviderStart
-    if (!this.baseRepoPath) {
-      throw new Error('Base repository path is not available');
+    try {
+      // Use the base repository path that was set from initVars in onProviderStart
+      if (!this.baseRepoPath) {
+        throw new Error('Base repository path is not available');
+      }
+
+      // Construct the worktree path
+      const worktreePath = path.join(this.baseRepoPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
+
+      // Use the worktree path as the project path (this is the actual worktree project path)
+      this.state.projectPath = worktreePath;
+    } catch (error: any) {
+      this.logger.error('Error resolving project context:', error);
+      throw new Error(`Failed to resolve project context: ${error.message}`);
     }
-
-    // Construct the worktree path
-    const worktreePath = path.join(this.baseRepoPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
-
-    // Use the worktree path as the project path (this is the actual worktree project path)
-    this.state.projectPath = worktreePath;
   }
 
   protected async resolveWorkspacePath(initVars: ProviderInitVars): Promise<string> {
-    // Since resolveProjectContext already constructed the worktree path in this.state.projectPath
-    // we can just return it directly
-    if (!this.state.projectPath) {
-      throw new Error('Project path is undefined in provider state');
-    }
+    try {
+      // Since resolveProjectContext already constructed the worktree path in this.state.projectPath
+      // we can just return it directly
+      if (!this.state.projectPath) {
+        throw new Error('Project path is undefined in provider state');
+      }
 
-    return this.state.projectPath;
+      return this.state.projectPath;
+    } catch (error: any) {
+      this.logger.error('Error resolving workspace path:', error);
+      throw new Error(`Failed to resolve workspace path: ${error.message}`);
+    }
   }
 
   protected async setupEnvironment(initVars: ProviderInitVars): Promise<void> {
-    if (!this.baseRepoPath) {
-      throw new Error('Base repository path is not available');
-    }
+    try {
+      if (!this.baseRepoPath) {
+        throw new Error('Base repository path is not available');
+      }
 
-    // Create worktree using the base repo path
-    const worktreeInfo = await this.createWorktree(this.baseRepoPath, initVars.environmentName);
-    this.worktreeInfo = worktreeInfo;
+      // Create worktree using the base repo path
+      const worktreeInfo = await this.createWorktree(this.baseRepoPath, initVars.environmentName);
+      this.worktreeInfo = worktreeInfo;
 
-    // Set workspace path to the worktree path
-    if (worktreeInfo.path) {
-      this.state.workspacePath = worktreeInfo.path;
-      this.state.projectPath = worktreeInfo.path; // Use worktree path as project path
+      // Set workspace path to the worktree path
+      if (worktreeInfo.path) {
+        this.state.workspacePath = worktreeInfo.path;
+        this.state.projectPath = worktreeInfo.path; // Use worktree path as project path
+      }
+    } catch (error: any) {
+      this.logger.error('Error setting up environment:', error);
+      throw new Error(`Failed to setup environment: ${error.message}`);
     }
   }
 
   protected async teardownEnvironment(): Promise<void> {
-    // Use baseRepoPath to remove the worktree (needs to point to the base git repo, not the worktree)
-    if (!this.baseRepoPath) {
-      return;
-    }
+    try {
+      // Use baseRepoPath to remove the worktree (needs to point to the base git repo, not the worktree)
+      if (!this.baseRepoPath) {
+        return;
+      }
 
-    await this.removeWorktree(this.baseRepoPath);
+      await this.removeWorktree(this.baseRepoPath);
+    } catch (error: any) {
+      this.logger.error('Error tearing down environment:', error);
+      // We don't throw here to allow other cleanup to happen
+    }
   }
 
   protected async ensureAgentServer(): Promise<void> {
-    const isRunning = await this.isAgentServerRunning();
-    if (isRunning) {
-      this.logger.log('Agent server already running, skipping startup');
-      return;
-    }
+    try {
+      const isRunning = await this.isAgentServerRunning();
+      if (isRunning) {
+        this.logger.log('Agent server already running, skipping startup');
+        return;
+      }
 
-    await this.startAgentServer();
-    await new Promise(resolve => setTimeout(resolve, 10_000));
+      await this.startAgentServer();
+    } catch (error: any) {
+      this.logger.error('Error ensuring agent server:', error);
+      throw new Error(`Failed to ensure agent server: ${error.message}`);
+    }
   }
 
   protected async beforeClose(): Promise<void> {
-    this.logger.log('Received close signal, initiating cleanup...');
-    await this.stopAgentServer();
+    try {
+      this.logger.log('Received close signal, initiating cleanup...');
+      await this.stopAgentServer();
+    } catch (error: any) {
+      this.logger.error('Error during beforeClose cleanup:', error);
+    }
   }
 
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
@@ -524,31 +578,35 @@ export class GitWorktreeProviderService
   }
 
   protected handleTransportMessage(message: RawMessageForAgent): void {
-    if (message?.type) {
-      this.logger.log('WebSocket message received:', message.type);
-    }
+    try {
+      if (message?.type) {
+        this.logger.log('WebSocket message received:', message.type);
+      }
 
-    switch (message.type) {
-      case 'agentStartResponse':
-        this.logger.log('Agent start response:', message.data ?? 'unknown');
-        if (message.data) {
-          this.logger.error('Agent start error:', message.data);
-        }
-        break;
-      case 'agentMessage':
-        this.logger.log('Agent message:', message.data ?? 'no message');
-        break;
-      case 'notification':
-        this.logger.log('Agent notification:', message.action, message.data);
-        break;
-      case 'error':
-        this.logger.error('Agent server error:', message.message ?? 'unknown error');
-        break;
-      default:
-        this.logger.log('Unhandled message type:', message.type);
-    }
+      switch (message.type) {
+        case 'agentStartResponse':
+          this.logger.log('Agent start response:', message.data ?? 'unknown');
+          if (message.data) {
+            this.logger.error('Agent start error:', message.data);
+          }
+          break;
+        case 'agentMessage':
+          this.logger.log('Agent message:', message.data ?? 'no message');
+          break;
+        case 'notification':
+          this.logger.log('Agent notification:', message.action, message.data);
+          break;
+        case 'error':
+          this.logger.error('Agent server error:', message.message ?? 'unknown error');
+          break;
+        default:
+          this.logger.log('Unhandled message type:', message.type);
+      }
 
-    super.handleTransportMessage(message);
+      super.handleTransportMessage(message);
+    } catch (error: any) {
+      this.logger.error('Error handling transport message:', error);
+    }
   }
 
   private async isPortInUse(port: number, host: string = 'localhost'): Promise<boolean> {
@@ -606,8 +664,12 @@ export class GitWorktreeProviderService
   }
 
   async onCloseSignal(): Promise<void> {
-    this.logger.log('Received close signal, initiating cleanup...');
-    await this.stopAgentServer();
-    await this.teardownEnvironment();
+    try {
+      this.logger.log('Received close signal, initiating cleanup...');
+      await this.stopAgentServer();
+      await this.teardownEnvironment();
+    } catch (error: any) {
+      this.logger.error('Error during onCloseSignal cleanup:', error);
+    }
   }
 }
