@@ -19,5 +19,6 @@ export * from './task/index.js';
 export * from './tokenizer/index.js';
 export * from './rag/index.js';
 export * from './user-message-manager/index.js';
+export * from './mail';
 export * from './vectordb/index.js';
 export * from './utils/index.js';
