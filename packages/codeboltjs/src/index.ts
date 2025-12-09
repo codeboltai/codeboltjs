@@ -5,11 +5,11 @@ import Codebolt from './core/Codebolt';
 // ================================
 
 // Core Library Function Types - PRIMARY TYPES USERS NEED
-export type { 
+export type {
     // Core Message and Tool Types
-    Message, 
-    ToolCall, 
-    Tool, 
+    Message,
+    ToolCall,
+    Tool,
     UserMessage,
     LLMInferenceParams,
     APIResponse,
