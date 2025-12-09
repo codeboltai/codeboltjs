@@ -21,5 +21,6 @@ export * from './task/index';
 export * from './tokenizer/index';
 export * from './rag/index';
 export * from './user-message-manager/index';
+export * from './mail';
 export * from './utils/index';
 export * from './vectordb/index';

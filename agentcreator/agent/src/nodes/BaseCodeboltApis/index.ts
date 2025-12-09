@@ -9,6 +9,7 @@ export * from './agent/index.js';
 export * from './crawler/index.js';
 export * from './codeutils/index.js';
 export * from './memory/index.js';
+export * from './mail';
 export * from './history/index.js';
 export * from './debug/index.js';
 export * from './mcp/index.js';

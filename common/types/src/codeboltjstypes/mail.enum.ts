@@ -1,0 +1,31 @@
+export enum MailAction {
+    REGISTER_AGENT = "mail.register_agent",
+    FETCH_INBOX = "mail.fetch_inbox",
+    SEND_MESSAGE = "mail.send_message",
+    REPLY_MESSAGE = "mail.reply_message",
+    MARK_READ = "mail.mark_read",
+    ACKNOWLEDGE = "mail.acknowledge",
+    SEARCH = "mail.search",
+    SUMMARIZE_THREAD = "mail.summarize_thread",
+    RESERVE_FILES = "mail.reserve_files",
+    RELEASE_FILES = "mail.release_files",
+    FORCE_RESERVE_FILES = "mail.force_reserve_files",
+    LIST_RESERVATIONS = "mail.list_reservations",
+    CHECK_CONFLICTS = "mail.check_conflicts",
+}
+
+export enum MailResponseType {
+    REGISTER_AGENT_RESPONSE = "mail.register_agent.response",
+    FETCH_INBOX_RESPONSE = "mail.fetch_inbox.response",
+    SEND_MESSAGE_RESPONSE = "mail.send_message.response",
+    REPLY_MESSAGE_RESPONSE = "mail.reply_message.response",
+    MARK_READ_RESPONSE = "mail.mark_read.response",
+    ACKNOWLEDGE_RESPONSE = "mail.acknowledge.response",
+    SEARCH_RESPONSE = "mail.search.response",
+    SUMMARIZE_THREAD_RESPONSE = "mail.summarize_thread.response",
+    RESERVE_FILES_RESPONSE = "mail.reserve_files.response",
+    RELEASE_FILES_RESPONSE = "mail.release_files.response",
+    FORCE_RESERVE_FILES_RESPONSE = "mail.force_reserve_files.response",
+    LIST_RESERVATIONS_RESPONSE = "mail.list_reservations.response",
+    CHECK_CONFLICTS_RESPONSE = "mail.check_conflicts.response",
+}

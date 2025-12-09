@@ -64,4 +64,7 @@ export * from './baseappResponse'
 // Output Parsers types
 export * from './outputparsers';
 
+// Mail types
+export * from './mail';
+
 

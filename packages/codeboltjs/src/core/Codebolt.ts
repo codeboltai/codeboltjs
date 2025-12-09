@@ -25,7 +25,9 @@ import codebotMemory from '../modules/memory'
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import codeboltActionPlans from '../modules/actionPlan';
+import cbmail from '../modules/mail';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
+
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
@@ -102,6 +104,7 @@ class Codebolt {
     fs = cbfs;
     git = git;
     llm = cbllm;
+    mail = cbmail;
     browser = cbbrowser;
     chat = cbchat;
     terminal = cbterminal;
