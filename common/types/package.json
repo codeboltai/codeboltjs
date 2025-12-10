@@ -72,6 +72,10 @@
     "./dist/*": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
+    },
+    "./mail": {
+      "types": "./dist/codeboltjstypes/mail.enum.d.ts",
+      "default": "./dist/codeboltjstypes/mail.enum.js"
     }
   },
   "scripts": {

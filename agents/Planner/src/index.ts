@@ -23,7 +23,7 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-let systemPrompt =`You are Codebolt CLI, an expert AI assistant operating in a special 'Plan Mode'. Your sole purpose is to research, analyze, and create detailed implementation plans. You must operate in a strict read-only capacity.
+let systemPrompt = `You are Codebolt CLI, an expert AI assistant operating in a special 'Plan Mode'. Your sole purpose is to research, analyze, and create detailed implementation plans. You must operate in a strict read-only capacity.
 
 Codebolt CLI's primary goal is to act like a senior engineer: understand the request, investigate the codebase and relevant resources, formulate a robust strategy, and then present a clear, step-by-step plan for approval. You are forbidden from making any modifications. You are also forbidden from implementing the plan.
 
@@ -68,7 +68,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
             processors: [
                 // 1. Chat History
-                new ChatHistoryMessageModifier({enableChatHistory:true}),
+                new ChatHistoryMessageModifier({ enableChatHistory: true }),
                 // 2. Environment Context (date, OS)
                 new EnvironmentContextModifier({ enableFullContext: true }),
 
@@ -149,12 +149,41 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 ${content}
 \`\`\`
 
-Analyze the plan and divide it into distinct, actionable tasks. Extract for each task:
-- task_name: Clear, concise name (max 60 chars)
-- description: Detailed explanation of what to do
-- dependencies: Array of task_names this task depends on
-- estimated_time: Time estimate as string (e.g. "15 minutes")
-- priority: "High", "Medium", or "Low"
+Analyze the plan and divide it into distinct, actionable items.
+Items can be valid Tasks or special Flow Groups (Parallel, Loop, If, WaitUntil).
+
+## Item Types
+
+1. **Task**: (Default)
+   - \`type\`: "task"
+   - \`name\`: Clear, concise name (max 60 chars)
+   - \`description\`: Detailed explanation of what to do
+   - \`dependencies\`: Array of task_names this task depends on
+   - \`estimated_time\`: Time estimate as string (e.g. "15 minutes")
+   - \`priority\`: "High", "Medium", or "Low"
+
+2. **Parallel Group**: Run items in parallel tracks.
+   - \`type\`: "parallelGroup"
+   - \`name\`: (optional) Group name
+   - \`groupItems\`: Object where keys are track names (e.g. "track1") and values are arrays of Items (Tasks or Groups).
+
+3. **Loop Group**: Iterate over a list.
+   - \`type\`: "loopGroup"
+   - \`name\`: (optional)
+   - \`iterationListId\`: ID of list (e.g. "files_list")
+   - \`loopTasks\`: Array of Items to run in each iteration.
+
+4. **If Group**: Conditional branching.
+   - \`type\`: "ifGroup"
+   - \`name\`: (optional)
+   - \`condition\`: Condition string (e.g. "file_exists == true")
+   - \`ifTasks\`: Array of Items to run if true.
+
+5. **WaitUntil Group**: Wait for condition.
+   - \`type\`: "waitUntilGroup"
+   - \`name\`: (optional)
+   - \`waitSteps\`: Array of strings describing checks.
+   - \`waitTasks\`: Array of Items to run after waiting.
 
 CRITICAL FORMATTING REQUIREMENTS:
 1. Output ONLY valid JSON - no markdown, no explanations, no extra text
@@ -162,22 +191,57 @@ CRITICAL FORMATTING REQUIREMENTS:
 3. No trailing commas after last array item
 4. No newlines or whitespace inside JSON strings
 5. Array must be properly closed: [...] 
+6. Nested structures are allowed (Groups inside Groups).
 
 Respond with ONLY this exact JSON structure:
 {
    "plan":{
     "name":"Plan Name",
-    "description": "Detailed description here",
+    "description": "Detailed description here"
    },
    "tasks":[
-  {
-    "name": "Task Name",
-    "description": "Detailed description here",
-    "dependencies": ["Dependency1", "Dependency2"],
-    "estimated_time": "15 minutes", 
-    "priority": "High"
-  }
-]
+      // Array of Tasks and/or Groups
+      {
+        "type": "task",
+        "name": "Task Name",
+        "description": "Detailed description here",
+        "dependencies": ["Dependency1", "Dependency2"],
+        "estimated_time": "15 minutes", 
+        "priority": "High"
+      },
+       {
+        "type": "parallelGroup",
+        "name": "Parallel Processing",
+        "groupItems": {
+            "track1": [ { "type": "task", "name": "Subtask 1", "description": "...", "estimated_time": "5m", "priority": "Medium" } ],
+            "track2": [ { "type": "task", "name": "Subtask 2", "description": "...", "estimated_time": "5m", "priority": "Medium" } ]
+        }
+      },
+      {
+        "type": "loopGroup",
+        "name": "Process Files",
+        "iterationListId": "files_to_process",
+        "loopTasks": [
+           { "type": "task", "name": "Process File", "description": "Process each file in list", "estimated_time": "2m", "priority": "Medium" }
+        ]
+      },
+      {
+        "type": "ifGroup",
+        "name": "Check Deployment",
+        "condition": "last_command_status == 'success'",
+        "ifTasks": [
+           { "type": "task", "name": "Notify Success", "description": "Send success notification", "estimated_time": "1m", "priority": "Low" }
+        ]
+      },
+      {
+         "type": "waitUntilGroup",
+         "name": "Wait for Server",
+         "waitSteps": ["Check port 8080"],
+         "waitTasks": [
+            { "type": "task", "name": "Health Check", "description": "Run health check api", "estimated_time": "1m", "priority": "High" }
+         ]
+      }
+   ]
 }
 
 JSON ONLY - NO OTHER TEXT.`;
@@ -199,13 +263,22 @@ JSON ONLY - NO OTHER TEXT.`;
         })
         if (completion && completion.choices) {
             let content = completion.choices[0].message.content;
+            if (content.startsWith('```json')) {
+                content = content.replace('```json', '').replace('```', '');
+            } else if (content.startsWith('```')) {
+                content = content.replace('```', '').replace('```', '');
+            }
             let taskPlan = JSON.parse(content);
             let { response } = await codebolt.actionPlan.createActionPlan({ name: taskPlan.plan.name, description: taskPlan.plan.description })
-            for (const task of taskPlan.tasks) {
-                await codebolt.actionPlan.addTaskToActionPlan(response.data.actionPlan.planId, task)
+            for (const item of taskPlan.tasks) {
+                if (item.type === 'parallelGroup' || item.type === 'loopGroup' || item.type === 'ifGroup' || item.type === 'waitUntilGroup') {
+                    await codebolt.actionPlan.addGroupToActionPlan(response.data.actionPlan.planId, item)
+                } else {
+                    await codebolt.actionPlan.addTaskToActionPlan(response.data.actionPlan.planId, item)
+                }
             }
         }
-        
+
 
     } catch (error) {
 

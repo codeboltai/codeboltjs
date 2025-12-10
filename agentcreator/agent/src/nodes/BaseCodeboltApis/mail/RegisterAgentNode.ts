@@ -1,6 +1,7 @@
 import { BaseRegisterAgentNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
 import { handleMailResponse } from './utils';
+import crypto from 'crypto';
 
 export class RegisterAgentNode extends BaseRegisterAgentNode {
     async onExecute() {
@@ -9,7 +10,7 @@ export class RegisterAgentNode extends BaseRegisterAgentNode {
         const model = this.getInputData(3) as string;
 
         try {
-            const response = await codebolt.mail.registerAgent({ name, program, model });
+            const response = await codebolt.mail.registerAgent({ id: crypto.randomUUID(), name, program, model });
             handleMailResponse(this, response, 2, 3, { agentId: 1 });
         } catch (error: any) {
             this.setOutputData(2, false);

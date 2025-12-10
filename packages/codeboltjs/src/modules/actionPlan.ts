@@ -1,6 +1,6 @@
 
 import cbws from '../core/websocket';
-import {  EventType, ActionPlanAction, ActionPlanResponseType } from '@codebolt/types/enum';
+import { EventType, ActionPlanAction, ActionPlanResponseType } from '@codebolt/types/enum';
 
 
 const codeboltActionPlan = {
@@ -12,7 +12,7 @@ const codeboltActionPlan = {
     getAllPlans: () => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.GETALL_ACTION_PLAN,
             },
             ActionPlanResponseType.GETALL_ACTION_PLAN_RESPONSE
@@ -27,7 +27,7 @@ const codeboltActionPlan = {
     getPlanDetail: (planId: string) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.GET_PLAN_DETAIL,
                 message: { planId }
             },
@@ -43,7 +43,7 @@ const codeboltActionPlan = {
     getActionPlanDetail: (planId: string) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.GET_ACTION_PLAN_DETAIL,
                 message: { planId }
             },
@@ -66,7 +66,7 @@ const codeboltActionPlan = {
     }) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.CREATE_ACTION_PLAN,
                 message: payload
             },
@@ -83,7 +83,7 @@ const codeboltActionPlan = {
     updateActionPlan: (planId: string, updateData: any) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.UPDATE_ACTION_PLAN,
                 message: { planId, ...updateData }
             },
@@ -106,9 +106,34 @@ const codeboltActionPlan = {
     }) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.ADD_TASK_TO_ACTION_PLAN,
                 message: { planId, task }
+            },
+            ActionPlanResponseType.ADD_TASK_TO_ACTION_PLAN_RESPONSE
+        );
+    },
+
+    /**
+     * Add a group to an action plan
+     * @param planId - The ID of the action plan
+     * @param group - Group data to add (type, name, groupItems/loopTasks/ifTasks/waitTasks, etc.)
+     * @returns Promise with added group and updated action plan
+     */
+    addGroupToActionPlan: (planId: string, group: {
+        type: 'parallelGroup' | 'loopGroup' | 'ifGroup' | 'waitUntilGroup';
+        name?: string;
+        groupItems?: Record<string, any[]>; // For parallelGroup
+        loopTasks?: any[]; // For loopGroup
+        ifTasks?: any[]; // For ifGroup
+        waitTasks?: any[]; // For waitUntilGroup
+        [key: string]: any;
+    }) => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.ACTION_PLAN,
+                "action": 'addGroupToActionPlan' as ActionPlanAction,
+                message: { planId, task: group }
             },
             ActionPlanResponseType.ADD_TASK_TO_ACTION_PLAN_RESPONSE
         );
@@ -123,7 +148,7 @@ const codeboltActionPlan = {
     startTaskStep: (planId: string, taskId: string) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.ACTION_PLAN,  
+                "type": EventType.ACTION_PLAN,
                 "action": ActionPlanAction.START_TASK_STEP,
                 message: { planId, taskId }
             },
@@ -139,8 +164,8 @@ const codeboltActionPlan = {
      * @returns Cleanup function to remove the event listener
      */
     startTaskStepWithListener: (
-        planId: string, 
-        taskId: string, 
+        planId: string,
+        taskId: string,
         onResponse: (response: any) => void
     ) => {
         // Set up event listener
@@ -158,7 +183,7 @@ const codeboltActionPlan = {
 
         // Send the request
         cbws.messageManager.send({
-            "type": EventType.ACTION_PLAN,  
+            "type": EventType.ACTION_PLAN,
             "action": ActionPlanAction.START_TASK_STEP,
             message: { planId, taskId }
         });
