@@ -170,3 +170,30 @@ export type {
     Optional,
     Required
 } from './commonTypes'; 
+
+// ================================
+// Job Types - Job management
+// ================================
+export type {
+    Job,
+    JobGroup,
+    JobStatus,
+    JobType,
+    JobPriority,
+    DependencyType,
+    JobDependency,
+    JobListFilters,
+    CreateJobData,
+    UpdateJobData,
+    CreateJobGroupData,
+    JobShowResponse,
+    JobListResponse,
+    JobUpdateResponse,
+    JobCreateResponse,
+    JobDeleteResponse,
+    JobDeleteBulkResponse,
+    JobDependencyResponse,
+    JobReadyBlockedResponse,
+    JobLabelsResponse,
+    JobGroupCreateResponse
+} from './job';

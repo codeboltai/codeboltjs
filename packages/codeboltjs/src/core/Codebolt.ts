@@ -34,6 +34,7 @@ import { userMessageUtilities } from '../modules/user-message-utilities';
 import { RawMessageForAgent, AgentStartMessage, ProviderInitVars } from '@codebolt/types/provider'
 import thread from '../modules/thread'
 import todo from '../modules/todo'
+import job from '../modules/job'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -131,6 +132,7 @@ class Codebolt {
     memory = codebotMemory;
     actionPlan = codeboltActionPlans;
     todo = todo;
+    job = job;
 
     /**
      * User message utilities for accessing current user message and context
