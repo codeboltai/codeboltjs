@@ -234,6 +234,58 @@ export type {
 } from './types/agentDeliberation';
 
 // ================================
+// AutoTesting Types
+// ================================
+export type {
+    AutoTestingAction,
+    AutoTestingResponseType,
+    TestStatus,
+    TestRunStatus,
+    TestStep,
+    TestCase,
+    TestSuite,
+    TestRunStep,
+    TestRunCase,
+    TestRun,
+    ICreateSuiteParams,
+    IGetSuiteParams,
+    IListSuitesParams,
+    IUpdateSuiteParams,
+    IDeleteSuiteParams,
+    IAddCaseToSuiteParams,
+    IRemoveCaseFromSuiteParams,
+    ICreateCaseParams,
+    IGetCaseParams,
+    IListCasesParams,
+    IUpdateCaseParams,
+    IDeleteCaseParams,
+    ICreateRunParams,
+    IGetRunParams,
+    IListRunsParams,
+    IUpdateRunStatusParams,
+    IUpdateRunCaseParams,
+    IUpdateRunStepParams,
+    ICreateSuiteResponse,
+    IGetSuiteResponse,
+    IListSuitesResponse,
+    IUpdateSuiteResponse,
+    IDeleteSuiteResponse,
+    IAddCaseToSuiteResponse,
+    IRemoveCaseFromSuiteResponse,
+    ICreateCaseResponse,
+    IGetCaseResponse,
+    IListCasesResponse,
+    IUpdateCaseResponse,
+    IDeleteCaseResponse,
+    ICreateRunResponse,
+    IGetRunResponse,
+    IListRunsResponse,
+    IUpdateRunStatusResponse,
+    IUpdateRunCaseResponse,
+    IUpdateRunStepResponse
+} from './types/autoTesting';
+
+// ================================
 // Main Library Instance (process-wide singleton)
 // ================================
 

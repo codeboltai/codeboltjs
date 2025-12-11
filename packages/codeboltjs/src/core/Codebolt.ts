@@ -28,6 +28,7 @@ import codeboltActionPlans from '../modules/actionPlan';
 import cbmail from '../modules/mail';
 import cbgroupFeedback from '../modules/groupFeedback';
 import cbagentDeliberation from '../modules/agentDeliberation';
+import cbautoTesting from '../modules/autoTesting';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 
 import type { FlatUserMessage } from '@codebolt/types/sdk';
@@ -137,6 +138,7 @@ class Codebolt {
     actionPlan = codeboltActionPlans;
     todo = todo;
     job = job;
+    autoTesting = cbautoTesting;
 
     /**
      * User message utilities for accessing current user message and context
