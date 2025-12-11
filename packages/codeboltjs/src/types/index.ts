@@ -196,4 +196,31 @@ export type {
     JobReadyBlockedResponse,
     JobLabelsResponse,
     JobGroupCreateResponse
-} from './job';
+} from './job'; 
+
+// ================================
+// Group Feedback Types
+// ================================
+export type {
+    GroupFeedbackAction,
+    GroupFeedbackResponseType,
+    FeedbackContentType,
+    FeedbackStatus,
+    FeedbackAttachment,
+    GroupFeedback,
+    FeedbackResponse,
+    ICreateFeedbackParams,
+    IGetFeedbackParams,
+    IListFeedbacksParams,
+    IRespondParams,
+    IReplyParams,
+    IUpdateSummaryParams,
+    IUpdateStatusParams,
+    ICreateFeedbackResponse,
+    IGetFeedbackResponse,
+    IListFeedbacksResponse,
+    IRespondResponse,
+    IReplyResponse,
+    IUpdateSummaryResponse,
+    IUpdateStatusResponse
+} from './groupFeedback';
