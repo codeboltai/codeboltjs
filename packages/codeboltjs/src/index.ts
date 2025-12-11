@@ -208,6 +208,32 @@ export type {
 } from './types/groupFeedback';
 
 // ================================
+// Agent Deliberation Types
+// ================================
+export type {
+    AgentDeliberationAction,
+    AgentDeliberationResponseType,
+    DeliberationStatus,
+    Deliberation,
+    DeliberationResponse,
+    DeliberationVote,
+    ICreateDeliberationParams,
+    IGetDeliberationParams,
+    IListDeliberationsParams,
+    IUpdateDeliberationParams,
+    IRespondParams as IDeliberationRespondParams,
+    IVoteParams,
+    IGetWinnerParams,
+    ICreateDeliberationResponse,
+    IGetDeliberationResponse,
+    IListDeliberationsResponse,
+    IUpdateDeliberationResponse,
+    IRespondResponse as IDeliberationRespondResponse,
+    IVoteResponse,
+    IGetWinnerResponse
+} from './types/agentDeliberation';
+
+// ================================
 // Main Library Instance (process-wide singleton)
 // ================================
 

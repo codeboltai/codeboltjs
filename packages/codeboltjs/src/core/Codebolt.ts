@@ -27,6 +27,7 @@ import cbutils from '../modules/utils';
 import codeboltActionPlans from '../modules/actionPlan';
 import cbmail from '../modules/mail';
 import cbgroupFeedback from '../modules/groupFeedback';
+import cbagentDeliberation from '../modules/agentDeliberation';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 
 import type { FlatUserMessage } from '@codebolt/types/sdk';
@@ -109,6 +110,7 @@ class Codebolt {
     llm = cbllm;
     mail = cbmail;
     groupFeedback = cbgroupFeedback;
+    agentDeliberation = cbagentDeliberation;
     browser = cbbrowser;
     chat = cbchat;
     terminal = cbterminal;
