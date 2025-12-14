@@ -170,3 +170,57 @@ export type {
     Optional,
     Required
 } from './commonTypes'; 
+
+// ================================
+// Job Types - Job management
+// ================================
+export type {
+    Job,
+    JobGroup,
+    JobStatus,
+    JobType,
+    JobPriority,
+    DependencyType,
+    JobDependency,
+    JobListFilters,
+    CreateJobData,
+    UpdateJobData,
+    CreateJobGroupData,
+    JobShowResponse,
+    JobListResponse,
+    JobUpdateResponse,
+    JobCreateResponse,
+    JobDeleteResponse,
+    JobDeleteBulkResponse,
+    JobDependencyResponse,
+    JobReadyBlockedResponse,
+    JobLabelsResponse,
+    JobGroupCreateResponse
+} from './job'; 
+
+// ================================
+// Group Feedback Types
+// ================================
+export type {
+    GroupFeedbackAction,
+    GroupFeedbackResponseType,
+    FeedbackContentType,
+    FeedbackStatus,
+    FeedbackAttachment,
+    GroupFeedback,
+    FeedbackResponse,
+    ICreateFeedbackParams,
+    IGetFeedbackParams,
+    IListFeedbacksParams,
+    IRespondParams,
+    IReplyParams,
+    IUpdateSummaryParams,
+    IUpdateStatusParams,
+    ICreateFeedbackResponse,
+    IGetFeedbackResponse,
+    IListFeedbacksResponse,
+    IRespondResponse,
+    IReplyResponse,
+    IUpdateSummaryResponse,
+    IUpdateStatusResponse
+} from './groupFeedback';

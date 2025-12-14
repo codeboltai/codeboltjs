@@ -154,6 +154,138 @@ export type {
 } from './types/commonTypes';
 
 // ================================
+// Job Types - Job management
+// ================================
+export type {
+    Job,
+    JobGroup,
+    JobStatus,
+    JobType,
+    JobPriority,
+    DependencyType,
+    JobDependency,
+    JobListFilters,
+    CreateJobData,
+    UpdateJobData,
+    CreateJobGroupData,
+    JobShowResponse,
+    JobListResponse,
+    JobUpdateResponse,
+    JobCreateResponse,
+    JobDeleteResponse,
+    JobDeleteBulkResponse,
+    JobDependencyResponse,
+    JobReadyBlockedResponse,
+    JobLabelsResponse,
+    JobGroupCreateResponse
+} from './types/job';
+
+// ================================
+// Group Feedback Types
+// ================================
+export type {
+    GroupFeedbackAction,
+    GroupFeedbackResponseType,
+    FeedbackContentType,
+    FeedbackStatus,
+    FeedbackAttachment,
+    GroupFeedback,
+    FeedbackResponse,
+    ICreateFeedbackParams,
+    IGetFeedbackParams,
+    IListFeedbacksParams,
+    IRespondParams,
+    IReplyParams,
+    IUpdateSummaryParams,
+    IUpdateStatusParams,
+    ICreateFeedbackResponse,
+    IGetFeedbackResponse,
+    IListFeedbacksResponse,
+    IRespondResponse,
+    IReplyResponse,
+    IUpdateSummaryResponse,
+    IUpdateStatusResponse
+} from './types/groupFeedback';
+
+// ================================
+// Agent Deliberation Types
+// ================================
+export type {
+    AgentDeliberationAction,
+    AgentDeliberationResponseType,
+    DeliberationStatus,
+    Deliberation,
+    DeliberationResponse,
+    DeliberationVote,
+    ICreateDeliberationParams,
+    IGetDeliberationParams,
+    IListDeliberationsParams,
+    IUpdateDeliberationParams,
+    IRespondParams as IDeliberationRespondParams,
+    IVoteParams,
+    IGetWinnerParams,
+    ICreateDeliberationResponse,
+    IGetDeliberationResponse,
+    IListDeliberationsResponse,
+    IUpdateDeliberationResponse,
+    IRespondResponse as IDeliberationRespondResponse,
+    IVoteResponse,
+    IGetWinnerResponse
+} from './types/agentDeliberation';
+
+// ================================
+// AutoTesting Types
+// ================================
+export type {
+    AutoTestingAction,
+    AutoTestingResponseType,
+    TestStatus,
+    TestRunStatus,
+    TestStep,
+    TestCase,
+    TestSuite,
+    TestRunStep,
+    TestRunCase,
+    TestRun,
+    ICreateSuiteParams,
+    IGetSuiteParams,
+    IListSuitesParams,
+    IUpdateSuiteParams,
+    IDeleteSuiteParams,
+    IAddCaseToSuiteParams,
+    IRemoveCaseFromSuiteParams,
+    ICreateCaseParams,
+    IGetCaseParams,
+    IListCasesParams,
+    IUpdateCaseParams,
+    IDeleteCaseParams,
+    ICreateRunParams,
+    IGetRunParams,
+    IListRunsParams,
+    IUpdateRunStatusParams,
+    IUpdateRunCaseParams,
+    IUpdateRunStepParams,
+    ICreateSuiteResponse,
+    IGetSuiteResponse,
+    IListSuitesResponse,
+    IUpdateSuiteResponse,
+    IDeleteSuiteResponse,
+    IAddCaseToSuiteResponse,
+    IRemoveCaseFromSuiteResponse,
+    ICreateCaseResponse,
+    IGetCaseResponse,
+    IListCasesResponse,
+    IUpdateCaseResponse,
+    IDeleteCaseResponse,
+    ICreateRunResponse,
+    IGetRunResponse,
+    IListRunsResponse,
+    IUpdateRunStatusResponse,
+    IUpdateRunCaseResponse,
+    IUpdateRunStepResponse
+} from './types/autoTesting';
+
+// ================================
 // Main Library Instance (process-wide singleton)
 // ================================
 

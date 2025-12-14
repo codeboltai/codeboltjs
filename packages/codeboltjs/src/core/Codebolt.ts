@@ -26,6 +26,9 @@ import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import codeboltActionPlans from '../modules/actionPlan';
 import cbmail from '../modules/mail';
+import cbgroupFeedback from '../modules/groupFeedback';
+import cbagentDeliberation from '../modules/agentDeliberation';
+import cbautoTesting from '../modules/autoTesting';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
 
 import type { FlatUserMessage } from '@codebolt/types/sdk';
@@ -36,6 +39,7 @@ import thread from '../modules/thread'
 import todo from '../modules/todo'
 import cbsideExecution from '../modules/sideExecution'
 import cbcapability from '../modules/capability'
+import job from '../modules/job'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -108,6 +112,8 @@ class Codebolt {
     git = git;
     llm = cbllm;
     mail = cbmail;
+    groupFeedback = cbgroupFeedback;
+    agentDeliberation = cbagentDeliberation;
     browser = cbbrowser;
     chat = cbchat;
     terminal = cbterminal;
@@ -135,6 +141,8 @@ class Codebolt {
     todo = todo;
     sideExecution = cbsideExecution;
     capability = cbcapability;
+    job = job;
+    autoTesting = cbautoTesting;
 
     /**
      * User message utilities for accessing current user message and context
@@ -340,11 +348,11 @@ class Codebolt {
      * onActionBlockInvocation
      * @param handler 
      */
-  
-     onActionBlockInvocation(handler: (context: any, additionalVariable: any) => void | Promise<void> | any | Promise<any>) {
+
+    onActionBlockInvocation(handler: (context: any, additionalVariable: any) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleRawUserMessage = async (response: any) => {
-                if (response.type = "actionBlockInvocation" ) {
+                if (response.type = "actionBlockInvocation") {
                     handler(response.context, response.additionalVariable);
                 }
             };
