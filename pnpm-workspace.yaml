@@ -9,6 +9,7 @@ packages:
   - remoteenvironments/*
   - agentcreator/*
   - agentcreator/customnodes/*
+  - actionBlocks/*
 
 ignoredBuiltDependencies:
   - esbuild

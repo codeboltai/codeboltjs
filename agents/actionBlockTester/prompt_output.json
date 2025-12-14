@@ -1,0 +1,543 @@
+{
+  "message": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an interactive AI agent specializing in software engineering tasks. Your primary goal is to help users safely and efficiently, adhering strictly to the following instructions and utilizing your available tools.\n\n# Core Mandates\n\n- **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.\n- **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project before employing it.\n- **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.\n- **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.\n- **Comments:** Add code comments sparingly. Focus on *why* something is done, especially for complex logic, rather than *what* is done.\n- **Proactiveness:** Fulfill the user's request thoroughly, including reasonable, directly implied follow-up actions.\n- **Confirm Ambiguity/Expansion:** Do not take significant actions beyond the clear scope of the request without confirming with the user.\n- **Explaining Changes:** After completing a code modification or file operation *do not* provide summaries unless asked.\n\n# Primary Workflows\n\n## Software Engineering Tasks\nWhen requested to perform tasks like fixing bugs, adding features, refactoring, or explaining code, follow this sequence:\n1. **Understand:** Think about the user's request and the relevant codebase context. Use search tools extensively to understand file structures, existing code patterns, and conventions.\n2. **Plan:** Build a coherent and grounded plan for how you intend to resolve the user's task. Share a concise yet clear plan with the user if it would help.\n3. **Implement:** Use the available tools to act on the plan, strictly adhering to the project's established conventions.\n4. **IMPORTANT:** Always send response with tool  without tool that will be treated as end of process .\n5. **Verify:** If applicable and feasible, verify the changes using the project's testing procedures and build/lint commands.\n\n# Operational Guidelines\n\n## Tone and Style\n- **Concise & Direct:** Adopt a professional, direct, and concise tone.\n- **Minimal Output:** Aim for fewer than 3 lines of text output per response whenever practical.\n- **Clarity over Brevity:** While conciseness is key, prioritize clarity for essential explanations.\n- **No Chitchat:** Avoid conversational filler. Get straight to the action or answer.\n- **Formatting:** Use GitHub-flavored Markdown.\n\n\n## Security and Safety Rules\n- **Security First:** Always apply security best practices. Never introduce code that exposes, logs, or commits secrets, API keys, or other sensitive information.\n- **File Operations:** Always use absolute paths when referring to files with tools.\n\n# Final Reminder\nYour core function is efficient and safe assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding safety and potential system modifications. Always prioritize user control and project conventions.\n\n"
+      },
+      {
+        "role": "user",
+        "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Tuesday, September 16, 2025 (formatted according to the user's locale).\nOperating system: darwin\nCurrent working directory: /Users/ravirawat/Documents/cbtest/geminiAgentTest\nFiles in current directory: .DS_Store, .codebolt, .codeboltAgents, .codeboltconfig.yaml, .env, .env.example, .git, .gitignore, logs, node_modules, package-lock.json, package.json, public, src, tests\n\n\n--- Full File Context ---\n--- src/app.js ---\nconst express = require('express');\nconst cors = require('cors');\nconst helmet = require('helmet');\nconst morgan = require('morgan');\nrequire('dotenv').config();\n\nconst errorHandler = require('./middlewares/errorHandler');\nconst authRoutes = require('./routes/authRoutes');\nconst userRoutes = require('./routes/userRoutes');\nconst healthRoutes = require('./routes/healthRoutes');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Security middleware\napp.use(helmet());\n\n// CORS configuration\nconst corsOptions = {\n  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],\n  credentials: true,\n  optionsSuccessStatus: 200\n};\napp.use(cors(corsOptions));\n\n// Logging middleware\nif (process.env.NODE_ENV !== 'test') {\n  app.use(morgan('combined'));\n}\n\n// Body parsing middleware\napp.use(express.json({ limit: '10mb' }));\napp.use(express.urlencoded({ extended: true }));\n\n// Static files\napp.use(express.static('public'));\n\n// Routes\napp.use('/api/health', healthRoutes);\napp.use('/api/auth', authRoutes);\napp.use('/api/users', userRoutes);\n\n// 404 handler\napp.use('*', (req, res) => {\n  res.status(404).json({\n    success: false,\n    message: 'Route not found'\n  });\n});\n\n// Error handling middleware\napp.use(errorHandler);\n\n// Start server\nif (process.env.NODE_ENV !== 'test') {\n  app.listen(PORT, () => {\n    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);\n  });\n}\n\nmodule.exports = app;\n"
+      },
+      {
+        "role": "user",
+        "content": "I'm currently working in the directory: /Users/ravirawat/Documents/cbtest/geminiAgentTest\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/Documents/cbtest/geminiAgentTest/\n├───.gitignore\n├───package-lock.json\n├───package.json\n├───.codebolt/...\n├───.codeboltAgents/...\n├───.git/...\n├───logs/\n├───node_modules/...\n├───public/\n│   ├───css/\n│   ├───images/\n│   └───js/\n├───src/\n│   ├───app.js\n│   ├───config/\n│   │   └───database.js\n│   ├───controllers/\n│   │   ├───authController.js\n│   │   ├───healthController.js\n│   │   └───userController.js\n│   ├───middlewares/\n│   │   ├───auth.js\n│   │   ├───errorHandler.js\n│   │   └───validation.js\n│   ├───models/\n│   │   └───User.js\n│   ├───routes/\n│   │   ├───authRoutes.js\n│   │   ├───healthRoutes.js\n│   │   └───userRoutes.js\n│   ├───services/\n│   │   ├───authService.js\n│   │   └───userService.js\n│   ├───utils/\n│   │   ├───asyncHandler.js\n│   │   ├───jwt.js\n│   │   └───logger.js\n│   └───validations/\n│       ├───authValidation.js\n│       └───userValidation.js\n└───tests/\n    ├───integration/\n    └───unit/\n        └───user.test.js"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it. Thanks for the context!"
+      },
+      {
+        "role": "user",
+        "content": "hi\n\n"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! I'm ready to help you with your Node.js Express project. What would you like to work on?"
+      },
+      {
+        "role": "user",
+        "content": "--- End of previous conversation history ---\n\nThe above messages are from a previous conversation. Any incomplete tool calls have been marked as not executed. You should now respond to the current user message."
+      },
+      {
+        "role": "user",
+        "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Tuesday, September 16, 2025 (formatted according to the user's locale).\nOperating system: darwin\nCurrent working directory: /Users/ravirawat/Documents/cbtest/geminiAgentTest\nFiles in current directory: .DS_Store, .codebolt, .codeboltAgents, .codeboltconfig.yaml, .env, .env.example, .git, .gitignore, logs, node_modules, package-lock.json, package.json, public, src, tests\n\n\n--- Full File Context ---\n--- src/app.js ---\nconst express = require('express');\nconst cors = require('cors');\nconst helmet = require('helmet');\nconst morgan = require('morgan');\nrequire('dotenv').config();\n\nconst errorHandler = require('./middlewares/errorHandler');\nconst authRoutes = require('./routes/authRoutes');\nconst userRoutes = require('./routes/userRoutes');\nconst healthRoutes = require('./routes/healthRoutes');\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Security middleware\napp.use(helmet());\n\n// CORS configuration\nconst corsOptions = {\n  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],\n  credentials: true,\n  optionsSuccessStatus: 200\n};\napp.use(cors(corsOptions));\n\n// Logging middleware\nif (process.env.NODE_ENV !== 'test') {\n  app.use(morgan('combined'));\n}\n\n// Body parsing middleware\napp.use(express.json({ limit: '10mb' }));\napp.use(express.urlencoded({ extended: true }));\n\n// Static files\napp.use(express.static('public'));\n\n// Routes\napp.use('/api/health', healthRoutes);\napp.use('/api/auth', authRoutes);\napp.use('/api/users', userRoutes);\n\n// 404 handler\napp.use('*', (req, res) => {\n  res.status(404).json({\n    success: false,\n    message: 'Route not found'\n  });\n});\n\n// Error handling middleware\napp.use(errorHandler);\n\n// Start server\nif (process.env.NODE_ENV !== 'test') {\n  app.listen(PORT, () => {\n    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);\n  });\n}\n\nmodule.exports = app;\n"
+      },
+      {
+        "role": "user",
+        "content": "I'm currently working in the directory: /Users/ravirawat/Documents/cbtest/geminiAgentTest\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/Documents/cbtest/geminiAgentTest/\n├───.gitignore\n├───package-lock.json\n├───package.json\n├───.codebolt/...\n├───.codeboltAgents/...\n├───.git/...\n├───logs/\n├───node_modules/...\n├───public/\n│   ├───css/\n│   ├───images/\n│   └───js/\n├───src/\n│   ├───app.js\n│   ├───config/\n│   │   └───database.js\n│   ├───controllers/\n│   │   ├───authController.js\n│   │   ├───healthController.js\n│   │   └───userController.js\n│   ├───middlewares/\n│   │   ├───auth.js\n│   │   ├───errorHandler.js\n│   │   └───validation.js\n│   ├───models/\n│   │   └───User.js\n│   ├───routes/\n│   │   ├───authRoutes.js\n│   │   ├───healthRoutes.js\n│   │   └───userRoutes.js\n│   ├───services/\n│   │   ├───authService.js\n│   │   └───userService.js\n│   ├───utils/\n│   │   ├───asyncHandler.js\n│   │   ├───jwt.js\n│   │   └───logger.js\n│   └───validations/\n│       ├───authValidation.js\n│       └───userValidation.js\n└───tests/\n    ├───integration/\n    └───unit/\n        └───user.test.js"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it. Thanks for the context!"
+      },
+      {
+        "role": "user",
+        "content": "hi"
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--read_file",
+          "description": "Reads and returns the content of a specified file. If the file is large, the content will be truncated. The tool's response will clearly indicate if truncation has occurred and will provide details on how to read more of the file using the 'offset' and 'limit' parameters. Handles text files and can read specific line ranges.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "absolute_path": {
+                "description": "The absolute path to the file to read (e.g., '/home/user/project/file.txt'). Relative paths are not supported. You must provide an absolute path.",
+                "type": "string"
+              },
+              "offset": {
+                "description": "Optional: For text files, the 0-based line number to start reading from. Requires 'limit' to be set. Use for paginating through large files.",
+                "type": "number"
+              },
+              "limit": {
+                "description": "Optional: For text files, maximum number of lines to read. Use with 'offset' to paginate through large files. If omitted, reads the entire file (if feasible, up to a default limit).",
+                "type": "number"
+              }
+            },
+            "required": [
+              "absolute_path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--write_file",
+          "description": "Writes content to a specified file in the local filesystem.\n\n      The user has the ability to modify `content`. If modified, this will be stated in the response.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "description": "The absolute path to the file to write to (e.g., '/home/user/project/file.txt'). Relative paths are not supported.",
+                "type": "string"
+              },
+              "content": {
+                "description": "The content to write to the file.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "file_path",
+              "content"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--replace",
+          "description": "Replaces text within a file. Replaces a single occurrence. This tool requires providing significant context around the change to ensure precise targeting. Always use the read_file tool to examine the file's current content before attempting a text replacement.\n      \n      The user has the ability to modify the `new_string` content. If modified, this will be stated in the response.\n      \n      Expectation for required parameters:\n      1. `file_path` MUST be an absolute path; otherwise an error will be thrown.\n      2. `old_string` MUST be the exact literal text to replace (including all whitespace, indentation, newlines, and surrounding code etc.).\n      3. `new_string` MUST be the exact literal text to replace `old_string` with (also including all whitespace, indentation, newlines, and surrounding code etc.). Ensure the resulting code is correct and idiomatic and that `old_string` and `new_string` are different.\n      4. `instruction` is the detailed instruction of what needs to be changed. It is important to Make it specific and detailed so developers or large language models can understand what needs to be changed and perform the changes on their own if necessary. \n      5. NEVER escape `old_string` or `new_string`, that would break the exact literal text requirement.\n      **Important:** If ANY of the above are not satisfied, the tool will fail. CRITICAL for `old_string`: Must uniquely identify the single instance to change. Include at least 3 lines of context BEFORE and AFTER the target text, matching whitespace and indentation precisely. If this string matches multiple locations, or does not match exactly, the tool will fail.\n      6. Prefer to break down complex and long changes into multiple smaller atomic calls to this tool. Always check the content of the file after changes or not finding a string to match.\n      **Multiple replacements:** If there are multiple and ambiguous occurences of the `old_string` in the file, the tool will also fail.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "description": "The absolute path to the file to modify. Must start with '/'.",
+                "type": "string"
+              },
+              "instruction": {
+                "description": "A clear, semantic instruction for the code change, acting as a high-quality prompt for an expert LLM assistant. It must be self-contained and explain the goal of the change.\n\nA good instruction should concisely answer:\n1.  WHY is the change needed? (e.g., \"To fix a bug where users can be null...\")\n2.  WHERE should the change happen? (e.g., \"...in the 'renderUserProfile' function...\")\n3.  WHAT is the high-level change? (e.g., \"...add a null check for the 'user' object...\")\n4.  WHAT is the desired outcome? (e.g., \"...so that it displays a loading spinner instead of crashing.\")\n\n**GOOD Example:** \"In the 'calculateTotal' function, correct the sales tax calculation by updating the 'taxRate' constant from 0.05 to 0.075 to reflect the new regional tax laws.\"\n\n**BAD Examples:**\n- \"Change the text.\" (Too vague)\n- \"Fix the bug.\" (Doesn't explain the bug or the fix)\n- \"Replace the line with this new line.\" (Brittle, just repeats the other parameters)\n",
+                "type": "string"
+              },
+              "old_string": {
+                "description": "The exact literal text to replace, preferably unescaped. Include at least 3 lines of context BEFORE and AFTER the target text, matching whitespace and indentation precisely. If this string is not the exact literal text (i.e. you escaped it) or does not match exactly, the tool will fail.",
+                "type": "string"
+              },
+              "new_string": {
+                "description": "The exact literal text to replace `old_string` with, preferably unescaped. Provide the EXACT text. Ensure the resulting code is correct and idiomatic.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "file_path",
+              "instruction",
+              "old_string",
+              "new_string"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--list_directory",
+          "description": "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "description": "The absolute path to the directory to list (must be absolute, not relative)",
+                "type": "string"
+              },
+              "ignore": {
+                "description": "List of glob patterns to ignore",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "respect_git_ignore": {
+                "description": "Optional: Whether to respect .gitignore patterns when listing files. Defaults to true.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--read_many_files",
+          "description": "Reads content from multiple files specified by absolute paths or glob patterns. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument. For these explicitly requested non-text files, their data is read and included in a format suitable for model consumption (e.g., base64 encoded).\n\nThis tool is useful when you need to understand or analyze a collection of files, such as:\n- Getting an overview of a codebase or parts of it (e.g., all TypeScript files using absolute glob patterns).\n- Finding where specific functionality is implemented if the user asks broad questions about code.\n- Reviewing documentation files (e.g., all Markdown files using absolute paths).\n- Gathering context from multiple configuration files.\n- When the user asks to \"read all files in X directory\" or \"show me the content of all Y files\".\n\nUse this tool when the user's query implies needing the content of several files simultaneously for context, analysis, or summarization. For text files, it uses default UTF-8 encoding and a '--- {filePath} ---' separator between file contents. The tool inserts a '--- End of content ---' after the last file. All paths must be absolute. Glob patterns like '/path/to/src/**/*.js' are supported. Avoid using for single files if a more specific single-file reading tool is available, unless the user specifically requests to process a list containing just one file via this tool. Other binary files (not explicitly requested as image/PDF) are generally skipped. Default excludes apply to common non-text files (except for explicitly requested images/PDFs) and large dependency directories unless 'useDefaultExcludes' is false.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Required. An array of absolute file paths or glob patterns. Examples: ['/path/to/src/**/*.ts'], ['/path/to/README.md', '/path/to/docs/']"
+              },
+              "include": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Optional. Additional glob patterns to include. These are merged with `paths`. Example: \"*.test.ts\" to specifically add test files if they were broadly excluded.",
+                "default": []
+              },
+              "exclude": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Optional. Glob patterns for files/directories to exclude. Added to default excludes if useDefaultExcludes is true. Example: \"**/*.log\", \"temp/\"",
+                "default": []
+              },
+              "recursive": {
+                "type": "boolean",
+                "description": "Optional. Whether to search recursively (primarily controlled by `**` in glob patterns). Defaults to true.",
+                "default": true
+              },
+              "useDefaultExcludes": {
+                "type": "boolean",
+                "description": "Optional. Whether to apply a list of default exclusion patterns (e.g., node_modules, .git, binary files). Defaults to true.",
+                "default": true
+              },
+              "file_filtering_options": {
+                "description": "Whether to respect ignore patterns from .gitignore or .geminiignore",
+                "type": "object",
+                "properties": {
+                  "respect_git_ignore": {
+                    "description": "Optional: Whether to respect .gitignore patterns when listing files. Only available in git repositories. Defaults to true.",
+                    "type": "boolean"
+                  },
+                  "respect_gemini_ignore": {
+                    "description": "Optional: Whether to respect .geminiignore patterns when listing files. Defaults to true.",
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "required": [
+              "paths"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--search_file_content",
+          "description": "Searches for a regular expression pattern within the content of files in a specified directory (or current working directory). Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "description": "The regular expression (regex) pattern to search for within file contents (e.g., 'function\\s+myFunction', 'import\\s+\\{.*\\}\\s+from\\s+.*').",
+                "type": "string"
+              },
+              "path": {
+                "description": "Optional: The absolute path to the directory to search within. If omitted, searches the current working directory.",
+                "type": "string"
+              },
+              "include": {
+                "description": "Optional: A glob pattern to filter which files are searched (e.g., '*.js', '*.{ts,tsx}', 'src/**'). If omitted, searches all files (respecting potential global ignores).",
+                "type": "string"
+              }
+            },
+            "required": [
+              "pattern"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--glob",
+          "description": "Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "description": "The glob pattern to match against (e.g., '**/*.py', 'docs/*.md').",
+                "type": "string"
+              },
+              "path": {
+                "description": "Optional: The absolute path to the directory to search within. If omitted, searches the root directory.",
+                "type": "string"
+              },
+              "case_sensitive": {
+                "description": "Optional: Whether the search should be case-sensitive. Defaults to false.",
+                "type": "boolean"
+              },
+              "respect_git_ignore": {
+                "description": "Optional: Whether to respect .gitignore patterns when finding files. Only available in git repositories. Defaults to true.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "pattern"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--execute_command",
+          "description": "Execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. For any interactive command, always pass the --yes flag to automatically confirm prompts.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "The CLI command to execute. This should be valid for the current operating system. Ensure the command is properly formatted and does not contain any harmful instructions."
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--attempt_completion",
+          "description": "Once you've completed the task, use this tool to present the result to the user. They may respond with feedback if they are not satisfied with the result, which you can use to make improvements and try again.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "The CLI command to execute to show a live demo of the result to the user. For example, use 'open index.html' to display a created website. This should be valid for the current operating system. Ensure the command is properly formatted and does not contain any harmful instructions."
+              },
+              "result": {
+                "type": "string",
+                "description": "The result of the task. Formulate this result in a way that is final and does not require further input from the user. Don't end your result with questions or offers for further assistance."
+              }
+            },
+            "required": [
+              "result"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--configure_mcp",
+          "description": "Configure the settings for a specific MCP tool. This tool allows you to update the configuration of an MCP tool by specifying the server name and the new configuration settings.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "serverName": {
+                "type": "string",
+                "description": "The name of the MCP server to configure. do not use the mcp_id"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "The command to execute (e.g., 'npx')"
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Array of command arguments"
+                  }
+                },
+                "required": [
+                  "command",
+                  "args"
+                ],
+                "description": "The configuration settings for the MCP tool matching the mcp_servers.json format"
+              }
+            },
+            "required": [
+              "serverName",
+              "config"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--codebase_search",
+          "description": "Find snippets of code from the codebase most relevant to the search query. This is a semantic search tool, so the query should ask for something semantically matching what is needed. Use this to discover code patterns, understand implementations, or find specific functionality across the codebase.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "The search query to find relevant code. Be specific about what you're looking for."
+              },
+              "target_directories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional array of directory paths to limit the search scope. If not provided, the entire codebase will be searched."
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--search_mcp_tool",
+          "description": "Search for MCP tools in the database based on instructions or keywords. Use this to find tools that match specific functionality needs or requirements.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "The search query to find relevant MCP tools. Can be keywords, functionality description, or specific requirements."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional array of tags to filter MCP tools by specific categories or capabilities."
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--list_code_definition_names",
+          "description": "Lists definition names (classes, functions, methods, etc.) used in source code files at the top level of the specified directory. This tool provides insights into the codebase structure and important constructs, encapsulating high-level concepts and relationships that are crucial for understanding the overall architecture.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The path of the directory to list top level source code definitions for"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--search_files",
+          "description": "Perform a regex search across files in a specified directory, providing context-rich results. This tool searches for patterns or specific content across multiple files, displaying each match with encapsulating context.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The path of the directory to search in (use full path). This directory will be recursively searched."
+              },
+              "regex": {
+                "type": "string",
+                "description": "The regular expression pattern to search for. Uses Rust regex syntax."
+              },
+              "filePattern": {
+                "type": "string",
+                "description": "Optional glob pattern to filter files (e.g., '*.ts' for TypeScript files). If not provided, it will search all files (*)."
+              }
+            },
+            "required": [
+              "path",
+              "regex"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "codebolt--list_files",
+          "description": "List files and directories within the specified directory. If recursive is true, it will list all files and directories recursively. If recursive is false or not provided, it will only list the top-level contents.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The path of the directory to list contents for"
+              },
+              "recursive": {
+                "type": "string",
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "description": "Whether to list files recursively. Use 'true' for recursive listing, 'false' or omit for top-level only."
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    ],
+    "tool_choice": "auto"
+  },
+  "metadata": {
+    "timestamp": "2025-09-16T08:09:05.197Z",
+    "messageId": "",
+    "threadId": "thread_1758007080153_my8h486jc",
+    "chatHistoryAdded": true,
+    "chatHistoryCount": 7,
+    "environmentContextAdded": true,
+    "fullContextAdded": true,
+    "contextFilesCount": 1,
+    "environmentInfo": {
+      "date": "Tuesday, September 16, 2025",
+      "platform": "darwin",
+      "currentDir": "/Users/ravirawat/Documents/cbtest/geminiAgentTest"
+    },
+    "directoryContextAdded": true,
+    "workspaceDirectories": [
+      "/Users/ravirawat/Documents/cbtest/geminiAgentTest"
+    ],
+    "ideContextAdded": true,
+    "ideContextType": "incremental",
+    "coreSystemPromptAdded": true,
+    "systemPromptSource": "custom",
+    "hasUserMemory": false,
+    "toolsInjected": true,
+    "toolsLocation": "Tool",
+    "toolsCount": 15
+  }
+}

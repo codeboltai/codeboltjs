@@ -34,6 +34,8 @@ import { userMessageUtilities } from '../modules/user-message-utilities';
 import { RawMessageForAgent, AgentStartMessage, ProviderInitVars } from '@codebolt/types/provider'
 import thread from '../modules/thread'
 import todo from '../modules/todo'
+import cbsideExecution from '../modules/sideExecution'
+import cbcapability from '../modules/capability'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -131,6 +133,8 @@ class Codebolt {
     memory = codebotMemory;
     actionPlan = codeboltActionPlans;
     todo = todo;
+    sideExecution = cbsideExecution;
+    capability = cbcapability;
 
     /**
      * User message utilities for accessing current user message and context
@@ -329,6 +333,24 @@ class Codebolt {
             cbws.messageManager.on('message', handleUserMessage);
         }).catch(error => {
             console.error('Failed to set up message handler:', error);
+        });
+    }
+
+    /**
+     * onActionBlockInvocation
+     * @param handler 
+     */
+  
+     onActionBlockInvocation(handler: (context: any, additionalVariable: any) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleRawUserMessage = async (response: any) => {
+                if (response.type = "actionBlockInvocation" ) {
+                    handler(response.context, response.additionalVariable);
+                }
+            };
+            cbws.messageManager.on('message', handleRawUserMessage);
+        }).catch(error => {
+            console.error('Failed to set up ActionBlockInvocation handler:', error);
         });
     }
 

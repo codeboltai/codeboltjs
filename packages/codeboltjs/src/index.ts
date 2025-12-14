@@ -274,3 +274,32 @@ export {
     GitRemoteAddRequestNotify,
     GitStatusRequestNotify
 } from './notificationfunctions/git';
+
+// Export sideExecution module and types
+export { default as sideExecution } from './modules/sideExecution';
+export type {
+    StartSideExecutionResponse,
+    StopSideExecutionResponse,
+    ListActionBlocksResponse,
+    GetSideExecutionStatusResponse,
+    ActionBlock
+} from './modules/sideExecution';
+
+// Export capability module and types
+export { default as capability } from './modules/capability';
+export type {
+    CapabilityType,
+    CapabilityInput,
+    CapabilityOutput,
+    CapabilityMetadata,
+    Capability,
+    CapabilityFilter,
+    CapabilityExecutor,
+    CapabilityExecutionMetadata,
+    ListCapabilitiesResponse,
+    GetCapabilityDetailResponse,
+    ListExecutorsResponse,
+    StartCapabilityResponse,
+    StopCapabilityResponse,
+    GetExecutionStatusResponse
+} from './modules/capability';
