@@ -345,18 +345,60 @@ class Codebolt {
     }
 
     /**
-     * onActionBlockInvocation
-     * @param handler 
+     * Sets up a listener for ActionBlock invocation events.
+     * This is called when a Side Execution ActionBlock is invoked by a parent agent.
+     * @param {Function} handler - The handler function to call when ActionBlock is invoked.
+     *   - params: The parameters passed to the ActionBlock
+     *   - threadContext: The thread context from the parent agent
+     *   - metadata: Additional metadata (sideExecutionId, threadId, parentAgentId, etc.)
+     * @returns {void}
      */
-
-    onActionBlockInvocation(handler: (context: any, additionalVariable: any) => void | Promise<void> | any | Promise<any>) {
+    onActionBlockInvocation(handler: (params: Record<string, any>, threadContext: any, metadata: {
+        sideExecutionId: string;
+        threadId: string;
+        parentAgentId: string;
+        parentAgentInstanceId: string;
+        timestamp: string;
+    }) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
-            const handleRawUserMessage = async (response: any) => {
-                if (response.type = "actionBlockInvocation") {
-                    handler(response.context, response.additionalVariable);
+            const handleActionBlockInvocation = async (response: any) => {
+                if (response.type === "actionBlockInvocation") {
+                    console.log("ActionBlock invocation received", response);
+                    try {
+                        const result = await handler(
+                            response.params || {},
+                            response.threadContext || {},
+                            {
+                                sideExecutionId: response.sideExecutionId,
+                                threadId: response.threadId,
+                                parentAgentId: response.parentAgentId,
+                                parentAgentInstanceId: response.parentAgentInstanceId,
+                                timestamp: response.timestamp
+                            }
+                        );
+
+                        // Send completion response
+                        const message: any = {
+                            "type": "actionBlockComplete",
+                            "sideExecutionId": response.sideExecutionId
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.result = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in ActionBlock invocation handler:', error);
+                        cbws.messageManager.send({
+                            "type": "actionBlockComplete",
+                            "sideExecutionId": response.sideExecutionId,
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
                 }
             };
-            cbws.messageManager.on('message', handleRawUserMessage);
+            cbws.messageManager.on('message', handleActionBlockInvocation);
         }).catch(error => {
             console.error('Failed to set up ActionBlockInvocation handler:', error);
         });
