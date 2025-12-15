@@ -40,6 +40,7 @@ import todo from '../modules/todo'
 import cbsideExecution from '../modules/sideExecution'
 import cbcapability from '../modules/capability'
 import job from '../modules/job'
+import cbactionBlock from '../modules/actionBlock'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -143,6 +144,7 @@ class Codebolt {
     capability = cbcapability;
     job = job;
     autoTesting = cbautoTesting;
+    actionBlock = cbactionBlock;
 
     /**
      * User message utilities for accessing current user message and context

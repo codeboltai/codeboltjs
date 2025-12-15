@@ -435,3 +435,18 @@ export type {
     StopCapabilityResponse,
     GetExecutionStatusResponse
 } from './modules/capability';
+
+// Export actionBlock module and types
+export { default as actionBlock } from './modules/actionBlock';
+export type {
+    ActionBlock as ActionBlockInfo,
+    ActionBlockType,
+    ActionBlockMetadata,
+    ActionBlockFilter,
+    ActionBlockInput,
+    ActionBlockOutput,
+    ListActionBlocksResponse as ActionBlockListResponse,
+    GetActionBlockDetailResponse,
+    StartActionBlockResponse,
+    StartActionBlockOptions
+} from './modules/actionBlock';
