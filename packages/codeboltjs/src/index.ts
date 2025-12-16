@@ -448,5 +448,4 @@ export type {
     ListActionBlocksResponse as ActionBlockListResponse,
     GetActionBlockDetailResponse,
     StartActionBlockResponse,
-    StartActionBlockOptions
 } from './modules/actionBlock';

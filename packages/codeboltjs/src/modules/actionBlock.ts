@@ -74,13 +74,6 @@ export interface StartActionBlockResponse {
     requestId?: string;
 }
 
-export interface StartActionBlockOptions {
-    actionBlockId?: string;
-    actionBlockPath?: string;
-    params?: Record<string, any>;
-    timeout?: number;
-}
-
 /**
  * ActionBlock Module
  * Provides functionality for managing and executing ActionBlocks
@@ -104,82 +97,36 @@ const codeboltActionBlock = {
 
     /**
      * Get detailed information about a specific ActionBlock
-     * @param actionBlockId - ID of the ActionBlock to retrieve
+     * @param actionBlockName - Name of the ActionBlock to retrieve
      * @returns Promise resolving to ActionBlock details
      */
-    getDetail: (actionBlockId: string): Promise<GetActionBlockDetailResponse> => {
+    getDetail: (actionBlockName: string): Promise<GetActionBlockDetailResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: 'actionBlock',
                 action: 'getActionBlockDetail',
-                actionBlockId
+                actionBlockName
             },
             'getActionBlockDetailResponse'
         );
     },
 
     /**
-     * Start an ActionBlock as a side execution
-     * @param options - Start options with actionBlockId or actionBlockPath
-     * @returns Promise resolving to execution result
-     */
-    start: (options: StartActionBlockOptions): Promise<StartActionBlockResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: 'actionBlock',
-                action: 'startActionBlock',
-                actionBlockId: options.actionBlockId,
-                actionBlockPath: options.actionBlockPath,
-                params: options.params,
-                timeout: options.timeout
-            },
-            'startActionBlockResponse'
-        );
-    },
-
-    /**
-     * Start an ActionBlock by ID
-     * @param actionBlockId - ID of the ActionBlock to start
+     * Start an ActionBlock by name
+     * @param actionBlockName - Name of the ActionBlock to start
      * @param params - Optional parameters to pass to the ActionBlock
-     * @param timeout - Optional execution timeout in milliseconds
      * @returns Promise resolving to execution result
      */
-    startById: (
-        actionBlockId: string,
-        params?: Record<string, any>,
-        timeout?: number
+    start: (
+        actionBlockName: string,
+        params?: Record<string, any>
     ): Promise<StartActionBlockResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: 'actionBlock',
                 action: 'startActionBlock',
-                actionBlockId,
-                params,
-                timeout
-            },
-            'startActionBlockResponse'
-        );
-    },
-
-    /**
-     * Start an ActionBlock by path
-     * @param actionBlockPath - Path to the ActionBlock directory
-     * @param params - Optional parameters to pass to the ActionBlock
-     * @param timeout - Optional execution timeout in milliseconds
-     * @returns Promise resolving to execution result
-     */
-    startByPath: (
-        actionBlockPath: string,
-        params?: Record<string, any>,
-        timeout?: number
-    ): Promise<StartActionBlockResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                type: 'actionBlock',
-                action: 'startActionBlock',
-                actionBlockPath,
-                params,
-                timeout
+                actionBlockName,
+                params
             },
             'startActionBlockResponse'
         );
