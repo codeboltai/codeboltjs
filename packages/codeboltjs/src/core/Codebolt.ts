@@ -355,7 +355,7 @@ class Codebolt {
      *   - metadata: Additional metadata (sideExecutionId, threadId, parentAgentId, etc.)
      * @returns {void}
      */
-    onActionBlockInvocation(handler: (params: Record<string, any>, threadContext: any, metadata: {
+    onActionBlockInvocation(handler: (threadContext: any, metadata: {
         sideExecutionId: string;
         threadId: string;
         parentAgentId: string;
@@ -368,7 +368,6 @@ class Codebolt {
                     console.log("ActionBlock invocation received", response);
                     try {
                         const result = await handler(
-                            response.params || {},
                             response.threadContext || {},
                             {
                                 sideExecutionId: response.sideExecutionId,
