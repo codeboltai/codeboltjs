@@ -449,3 +449,22 @@ export type {
     GetActionBlockDetailResponse,
     StartActionBlockResponse,
 } from './modules/actionBlock';
+
+// Export requirementPlan module and types
+export { default as requirementPlan } from './modules/requirementPlan';
+export type {
+    SectionType,
+    RequirementPlanSection,
+    RequirementPlanDocument,
+    CreatePlanData,
+    UpdatePlanData,
+    AddSectionData,
+    UpdateSectionData,
+    RemoveSectionData,
+    ReorderSectionsData,
+    RequirementPlanCreateResponse,
+    RequirementPlanGetResponse,
+    RequirementPlanUpdateResponse,
+    RequirementPlanListResponse,
+    RequirementPlanSectionResponse
+} from './modules/requirementPlan';

@@ -1,5 +1,4 @@
 import codebolt from '@codebolt/codeboltjs';
-import fs from 'fs'
 import {
     InitialPromptGenerator,
 
@@ -356,6 +355,41 @@ JSON ONLY - NO OTHER TEXT.`;
                 } else {
                     await codebolt.actionPlan.addTaskToActionPlan(response.data.actionPlan.planId, item)
                 }
+            }
+
+            // Create a Requirement Plan document linking the spec and action plan
+            try {
+                const planName = taskPlan.plan.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+                const createResult = await codebolt.requirementPlan.create(planName);
+                
+                if (createResult.success && createResult.filePath) {
+                    const planFilePath = createResult.filePath;
+                    
+                    // Add overview section
+                    await codebolt.requirementPlan.addSection(planFilePath, {
+                        type: 'markdown',
+                        title: 'Overview',
+                        content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
+                    });
+
+                    // Add spec link section
+                    await codebolt.requirementPlan.addSection(planFilePath, {
+                        type: 'specs-link',
+                        title: 'Specification',
+                        linkedFile: `${projectPath}/specs/plan.specs`
+                    });
+
+                    // Add action plan link section
+                    await codebolt.requirementPlan.addSection(planFilePath, {
+                        type: 'actionplan-link',
+                        title: 'Action Plan',
+                        linkedFile: response.data.actionPlan.planId
+                    });
+
+                    codebolt.chat.sendMessage(`Created requirement plan: ${planFilePath}`, {});
+                }
+            } catch (reqPlanError) {
+                console.error('Failed to create requirement plan:', reqPlanError);
             }
         }
 
