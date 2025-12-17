@@ -62,7 +62,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     //Detail Planner Agent
     try {
 
-        // codebolt.chat.sendMessage("Gemini agent started", {})
+        codebolt.chat.sendMessage("Planner agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
         let promptGenerator = new InitialPromptGenerator({
 
@@ -150,102 +150,181 @@ ${content}
 \`\`\`
 
 Analyze the plan and divide it into distinct, actionable items.
-Items can be valid Tasks or special Flow Groups (Parallel, Loop, If, WaitUntil).
+Items can be valid Tasks (at top level) or special Flow Groups (Parallel, Loop, If, WaitUntil).
 
-## Item Types
+## STRICT TYPE DEFINITIONS
 
-1. **Task**: (Default)
-   - \`type\`: "task"
-   - \`name\`: Clear, concise name (max 60 chars)
-   - \`description\`: Detailed explanation of what to do
-   - \`dependencies\`: Array of task_names this task depends on
-   - \`estimated_time\`: Time estimate as string (e.g. "15 minutes")
-   - \`priority\`: "High", "Medium", or "Low"
+### Top-Level Task (used directly in tasks array)
+{
+  "type": "task",
+  "name": "Clear, concise name (max 60 chars)",
+  "description": "Detailed explanation of what to do",
+  "dependencies": ["task_name_1", "task_name_2"],
+  "estimated_time": "15 minutes",
+  "priority": "High" | "Medium" | "Low"
+}
 
-2. **Parallel Group**: Run items in parallel tracks.
-   - \`type\`: "parallelGroup"
-   - \`name\`: (optional) Group name
-   - \`groupItems\`: Object where keys are track names (e.g. "track1") and values are arrays of Items (Tasks or Groups).
+### TaskReference (REQUIRED wrapper for tasks INSIDE groups)
+When placing tasks inside any group (parallelGroup, loopGroup, ifGroup, waitUntilGroup), 
+you MUST wrap them in a TaskReference object:
+{
+  "type": "task",
+  "task": {
+    "name": "Task Name",
+    "description": "Task description",
+    "dependencies": [],
+    "estimated_time": "5m",
+    "priority": "Medium"
+  }
+}
 
-3. **Loop Group**: Iterate over a list.
-   - \`type\`: "loopGroup"
-   - \`name\`: (optional)
-   - \`iterationListId\`: ID of list (e.g. "files_list")
-   - \`loopTasks\`: Array of Items to run in each iteration.
+### ParallelGroup
+{
+  "type": "parallelGroup",
+  "name": "Optional Group Name",
+  "groupItems": {
+    "track1": [ /* array of TaskReference or nested StepGroup */ ],
+    "track2": [ /* array of TaskReference or nested StepGroup */ ]
+  }
+}
+REQUIRED: groupItems must be an object with at least one track. Each track value must be an array.
 
-4. **If Group**: Conditional branching.
-   - \`type\`: "ifGroup"
-   - \`name\`: (optional)
-   - \`condition\`: Condition string (e.g. "file_exists == true")
-   - \`ifTasks\`: Array of Items to run if true.
+### LoopGroup
+{
+  "type": "loopGroup",
+  "name": "Optional Group Name",
+  "iterationListId": "list_id_to_iterate",
+  "loopTasks": [ /* array of TaskReference or nested StepGroup */ ]
+}
+REQUIRED: iterationListId must be a non-empty string. loopTasks must be an array.
 
-5. **WaitUntil Group**: Wait for condition.
-   - \`type\`: "waitUntilGroup"
-   - \`name\`: (optional)
-   - \`waitSteps\`: Array of strings describing checks.
-   - \`waitTasks\`: Array of Items to run after waiting.
+### IfGroup
+{
+  "type": "ifGroup",
+  "name": "Optional Group Name",
+  "condition": "condition_expression",
+  "ifTasks": [ /* array of TaskReference or nested StepGroup */ ]
+}
+REQUIRED: condition must be a non-empty string. ifTasks must be an array.
 
-CRITICAL FORMATTING REQUIREMENTS:
+### WaitUntilGroup
+{
+  "type": "waitUntilGroup",
+  "name": "Optional Group Name",
+  "waitSteps": ["step1", "step2"],
+  "waitTasks": [ /* array of TaskReference or nested StepGroup */ ]
+}
+REQUIRED: waitSteps must be a non-empty array of strings. waitTasks must be an array.
+
+## CRITICAL FORMATTING REQUIREMENTS
 1. Output ONLY valid JSON - no markdown, no explanations, no extra text
 2. Use double quotes for all keys and string values
 3. No trailing commas after last array item
 4. No newlines or whitespace inside JSON strings
-5. Array must be properly closed: [...] 
-6. Nested structures are allowed (Groups inside Groups).
+5. Array must be properly closed: [...]
+6. Tasks INSIDE groups MUST use TaskReference wrapper with "type": "task" and "task": {...}
+7. Tasks at TOP LEVEL in tasks array do NOT need the wrapper
 
-Respond with ONLY this exact JSON structure:
+## COMPLETE EXAMPLE OUTPUT
 {
-   "plan":{
-    "name":"Plan Name",
-    "description": "Detailed description here"
-   },
-   "tasks":[
-      // Array of Tasks and/or Groups
-      {
-        "type": "task",
-        "name": "Task Name",
-        "description": "Detailed description here",
-        "dependencies": ["Dependency1", "Dependency2"],
-        "estimated_time": "15 minutes", 
-        "priority": "High"
-      },
-       {
-        "type": "parallelGroup",
-        "name": "Parallel Processing",
-        "groupItems": {
-            "track1": [ { "type": "task", "name": "Subtask 1", "description": "...", "estimated_time": "5m", "priority": "Medium" } ],
-            "track2": [ { "type": "task", "name": "Subtask 2", "description": "...", "estimated_time": "5m", "priority": "Medium" } ]
-        }
-      },
-      {
-        "type": "loopGroup",
-        "name": "Process Files",
-        "iterationListId": "files_to_process",
-        "loopTasks": [
-           { "type": "task", "name": "Process File", "description": "Process each file in list", "estimated_time": "2m", "priority": "Medium" }
+  "plan": {
+    "name": "Implementation Plan",
+    "description": "Detailed description of the plan"
+  },
+  "tasks": [
+    {
+      "type": "task",
+      "name": "Setup Project",
+      "description": "Initialize project structure",
+      "dependencies": [],
+      "estimated_time": "10 minutes",
+      "priority": "High"
+    },
+    {
+      "type": "parallelGroup",
+      "name": "Parallel Processing",
+      "groupItems": {
+        "frontend": [
+          {
+            "type": "task",
+            "task": {
+              "name": "Build UI Components",
+              "description": "Create React components",
+              "dependencies": ["Setup Project"],
+              "estimated_time": "30m",
+              "priority": "High"
+            }
+          }
+        ],
+        "backend": [
+          {
+            "type": "task",
+            "task": {
+              "name": "Create API Endpoints",
+              "description": "Implement REST API",
+              "dependencies": ["Setup Project"],
+              "estimated_time": "30m",
+              "priority": "High"
+            }
+          }
         ]
-      },
-      {
-        "type": "ifGroup",
-        "name": "Check Deployment",
-        "condition": "last_command_status == 'success'",
-        "ifTasks": [
-           { "type": "task", "name": "Notify Success", "description": "Send success notification", "estimated_time": "1m", "priority": "Low" }
-        ]
-      },
-      {
-         "type": "waitUntilGroup",
-         "name": "Wait for Server",
-         "waitSteps": ["Check port 8080"],
-         "waitTasks": [
-            { "type": "task", "name": "Health Check", "description": "Run health check api", "estimated_time": "1m", "priority": "High" }
-         ]
       }
-   ]
+    },
+    {
+      "type": "loopGroup",
+      "name": "Process Files",
+      "iterationListId": "files_to_process",
+      "loopTasks": [
+        {
+          "type": "task",
+          "task": {
+            "name": "Process File",
+            "description": "Process each file in the list",
+            "dependencies": [],
+            "estimated_time": "2m",
+            "priority": "Medium"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ifGroup",
+      "name": "Conditional Deploy",
+      "condition": "tests_passed == true",
+      "ifTasks": [
+        {
+          "type": "task",
+          "task": {
+            "name": "Deploy to Production",
+            "description": "Deploy if tests pass",
+            "dependencies": [],
+            "estimated_time": "5m",
+            "priority": "High"
+          }
+        }
+      ]
+    },
+    {
+      "type": "waitUntilGroup",
+      "name": "Wait for Server",
+      "waitSteps": ["Check port 8080", "Verify health endpoint"],
+      "waitTasks": [
+        {
+          "type": "task",
+          "task": {
+            "name": "Run Integration Tests",
+            "description": "Execute integration test suite",
+            "dependencies": [],
+            "estimated_time": "10m",
+            "priority": "High"
+          }
+        }
+      ]
+    }
+  ]
 }
 
 JSON ONLY - NO OTHER TEXT.`;
-
         // return;
         let { completion } = await codebolt.llm.inference({
             messages: [
@@ -269,6 +348,7 @@ JSON ONLY - NO OTHER TEXT.`;
                 content = content.replace('```', '').replace('```', '');
             }
             let taskPlan = JSON.parse(content);
+            codebolt.chat.sendMessage(JSON.stringify(taskPlan))
             let { response } = await codebolt.actionPlan.createActionPlan({ name: taskPlan.plan.name, description: taskPlan.plan.description })
             for (const item of taskPlan.tasks) {
                 if (item.type === 'parallelGroup' || item.type === 'loopGroup' || item.type === 'ifGroup' || item.type === 'waitUntilGroup') {
