@@ -360,10 +360,10 @@ JSON ONLY - NO OTHER TEXT.`;
             // Create a Requirement Plan document linking the spec and action plan
             try {
                 const planName = taskPlan.plan.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-                const createResult = await codebolt.requirementPlan.create(planName);
+                const createResult:any = await codebolt.requirementPlan.create(planName);
                 
-                if (createResult.success && createResult.filePath) {
-                    const planFilePath = createResult.filePath;
+                if (createResult.success && createResult.data) {
+                    const planFilePath = createResult.data.filePath;
                     
                     // Add overview section
                     await codebolt.requirementPlan.addSection(planFilePath, {
