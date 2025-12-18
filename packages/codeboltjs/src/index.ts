@@ -468,3 +468,46 @@ export type {
     RequirementPlanListResponse,
     RequirementPlanSectionResponse
 } from './modules/requirementPlan';
+
+// Export swarm module and types
+export { default as swarm } from './modules/swarm';
+export type {
+    CreateSwarmRequest,
+    AgentRegistration,
+    CreateTeamRequest,
+    CreateRoleRequest,
+    CreateVacancyRequest,
+    AgentStatusUpdate,
+    Swarm,
+    SwarmAgent,
+    Team,
+    Role,
+    Vacancy,
+    StatusSummary,
+    SwarmResponse,
+    CreateSwarmResponse,
+    ListSwarmsResponse,
+    GetSwarmResponse,
+    GetSwarmAgentsResponse,
+    RegisterAgentResponse,
+    UnregisterAgentResponse,
+    CreateTeamResponse,
+    ListTeamsResponse,
+    GetTeamResponse,
+    JoinTeamResponse,
+    LeaveTeamResponse,
+    DeleteTeamResponse,
+    CreateRoleResponse,
+    ListRolesResponse,
+    GetRoleResponse,
+    AssignRoleResponse,
+    UnassignRoleResponse,
+    GetAgentsByRoleResponse,
+    DeleteRoleResponse,
+    CreateVacancyResponse,
+    ListVacanciesResponse,
+    ApplyForVacancyResponse,
+    CloseVacancyResponse,
+    UpdateStatusResponse,
+    GetStatusSummaryResponse
+} from './modules/swarm';

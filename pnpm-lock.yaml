@@ -40,6 +40,37 @@ importers:
         specifier: ^8.39.0
         version: 8.46.0(eslint@9.37.0)(typescript@5.9.3)
 
+  actionBlocks/testActionBlock:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.19
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.10
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   agentcreator/agent:
     dependencies:
       '@codebolt/agent':
@@ -377,6 +408,37 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  agents/Swarm:
+    dependencies:
+      '@codebolt/agent':
+        specifier: file:///Users/ravirawat/Documents/codeboltai/codeboltjs/packages/agent
+        version: file:packages/agent(@codebolt/codeboltjs@file:packages/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5))
+      '@codebolt/codeboltjs':
+        specifier: file:///Users/ravirawat/Documents/codeboltai/codeboltjs/packages/codeboltjs
+        version: file:packages/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types':
+        specifier: file:///Users/ravirawat/Documents/codeboltai/codeboltjs/common/types
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.19
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.10
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   agents/act:
     dependencies:
       '@babel/core':
@@ -488,6 +550,37 @@ importers:
       webpack-node-externals:
         specifier: ^3.0.0
         version: 3.0.0
+
+  agents/actionBlockTester:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.19
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.10
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   agents/agent-creator:
     dependencies:

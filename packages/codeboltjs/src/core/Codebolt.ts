@@ -42,6 +42,7 @@ import cbcapability from '../modules/capability'
 import job from '../modules/job'
 import cbactionBlock from '../modules/actionBlock'
 import cbrequirementPlan from '../modules/requirementPlan'
+import cbswarm from '../modules/swarm'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -147,6 +148,7 @@ class Codebolt {
     autoTesting = cbautoTesting;
     actionBlock = cbactionBlock;
     requirementPlan = cbrequirementPlan;
+    swarm = cbswarm;
 
     /**
      * User message utilities for accessing current user message and context
