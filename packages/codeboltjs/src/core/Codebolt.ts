@@ -290,7 +290,7 @@ class Codebolt {
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
-    onMessage(handler: (userMessage: FlatUserMessage) => void | Promise<void> | any | Promise<any>) {
+    onMessage(handler: (userMessage: FlatUserMessage, additionalVariable?: Record<string, string | undefined>) => void | Promise<void> | any | Promise<any>) {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
@@ -320,7 +320,8 @@ class Codebolt {
                         };
 
                         // Call the custom handler
-                        const result = await handler(userMessage);
+                        let additionalVariable = process.env
+                        const result = await handler(userMessage,additionalVariable);
 
                         // Send processStoped with optional message
                         const message: any = {
