@@ -19,7 +19,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         const createSwarmResult = await codebolt.swarm.createSwarm({
             name: "Test Swarm",
             description: "A test swarm for demonstration",
-            metadata: { purpose: "testing" }
+            allowExternalAgents: true
         });
         codebolt.chat.sendMessage(`✅ createSwarm: ${JSON.stringify(createSwarmResult)}`, {});
 
@@ -45,9 +45,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
             // Register an agent
             const registerAgentResult = await codebolt.swarm.registerAgent(swarmId, {
-                name: "Test Agent",
+                agentId:'SwarmTest',
+                name: "Swarm Test",
                 capabilities: ["coding", "testing"],
-                metadata: { type: "worker" }
+                agentType: "internal"
             });
             codebolt.chat.sendMessage(`✅ registerAgent: ${JSON.stringify(registerAgentResult)}`, {});
 
@@ -64,7 +65,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                     name: "Development Team",
                     description: "Team for development tasks",
                     maxMembers: 10,
-                    metadata: { department: "engineering" }
+                    metadata: { department: "engineering" },
+                    createdBy:agentId
                 });
                 codebolt.chat.sendMessage(`✅ createTeam: ${JSON.stringify(createTeamResult)}`, {});
 
@@ -84,12 +86,12 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                     codebolt.chat.sendMessage(`✅ joinTeam: ${JSON.stringify(joinTeamResult)}`, {});
 
                     // Leave team
-                    const leaveTeamResult = await codebolt.swarm.leaveTeam(swarmId, teamId, agentId);
-                    codebolt.chat.sendMessage(`✅ leaveTeam: ${JSON.stringify(leaveTeamResult)}`, {});
+                    // const leaveTeamResult = await codebolt.swarm.leaveTeam(swarmId, teamId, agentId);
+                    // codebolt.chat.sendMessage(`✅ leaveTeam: ${JSON.stringify(leaveTeamResult)}`, {});
 
                     // Delete team
-                    const deleteTeamResult = await codebolt.swarm.deleteTeam(swarmId, teamId);
-                    codebolt.chat.sendMessage(`✅ deleteTeam: ${JSON.stringify(deleteTeamResult)}`, {});
+                    // const deleteTeamResult = await codebolt.swarm.deleteTeam(swarmId, teamId);
+                    // codebolt.chat.sendMessage(`✅ deleteTeam: ${JSON.stringify(deleteTeamResult)}`, {});
                 }
 
                 // ================================
@@ -103,7 +105,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                     description: "Software developer role",
                     permissions: ["read", "write", "execute"],
                     maxAssignees: 5,
-                    metadata: { level: "senior" }
+                    metadata: { level: "senior" },
+                   createdBy:agentId
                 });
                 codebolt.chat.sendMessage(`✅ createRole: ${JSON.stringify(createRoleResult)}`, {});
 
@@ -127,8 +130,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                     codebolt.chat.sendMessage(`✅ getAgentsByRole: ${JSON.stringify(getAgentsByRoleResult)}`, {});
 
                     // Unassign role
-                    const unassignRoleResult = await codebolt.swarm.unassignRole(swarmId, roleId, agentId);
-                    codebolt.chat.sendMessage(`✅ unassignRole: ${JSON.stringify(unassignRoleResult)}`, {});
+                    // const unassignRoleResult = await codebolt.swarm.unassignRole(swarmId, roleId, agentId);
+                    // codebolt.chat.sendMessage(`✅ unassignRole: ${JSON.stringify(unassignRoleResult)}`, {});
 
                     // ================================
                     // 5. VACANCY MANAGEMENT
@@ -141,7 +144,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                         title: "Senior Developer Position",
                         description: "Looking for experienced developers",
                         requirements: ["5+ years experience", "TypeScript expertise"],
-                        metadata: { urgency: "high" }
+                        metadata: { urgency: "high" },
+                        createdBy:agentId
                     });
                     codebolt.chat.sendMessage(`✅ createVacancy: ${JSON.stringify(createVacancyResult)}`, {});
 
@@ -162,17 +166,17 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                         codebolt.chat.sendMessage(`✅ applyForVacancy: ${JSON.stringify(applyForVacancyResult)}`, {});
 
                         // Close vacancy
-                        const closeVacancyResult = await codebolt.swarm.closeVacancy(
-                            swarmId,
-                            vacancyId,
-                            "Position filled"
-                        );
-                        codebolt.chat.sendMessage(`✅ closeVacancy: ${JSON.stringify(closeVacancyResult)}`, {});
+                        // const closeVacancyResult = await codebolt.swarm.closeVacancy(
+                        //     swarmId,
+                        //     vacancyId,
+                        //     "Position filled"
+                        // );
+                        // codebolt.chat.sendMessage(`✅ closeVacancy: ${JSON.stringify(closeVacancyResult)}`, {});
                     }
 
                     // Delete role
-                    const deleteRoleResult = await codebolt.swarm.deleteRole(swarmId, roleId);
-                    codebolt.chat.sendMessage(`✅ deleteRole: ${JSON.stringify(deleteRoleResult)}`, {});
+                    // const deleteRoleResult = await codebolt.swarm.deleteRole(swarmId, roleId);
+                    // codebolt.chat.sendMessage(`✅ deleteRole: ${JSON.stringify(deleteRoleResult)}`, {});
                 }
 
                 // ================================
@@ -193,8 +197,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                 codebolt.chat.sendMessage(`✅ getSwarmStatusSummary: ${JSON.stringify(getStatusSummaryResult)}`, {});
 
                 // Unregister agent (cleanup)
-                const unregisterAgentResult = await codebolt.swarm.unregisterAgent(swarmId, agentId);
-                codebolt.chat.sendMessage(`✅ unregisterAgent: ${JSON.stringify(unregisterAgentResult)}`, {});
+                // const unregisterAgentResult = await codebolt.swarm.unregisterAgent(swarmId, agentId);
+                // codebolt.chat.sendMessage(`✅ unregisterAgent: ${JSON.stringify(unregisterAgentResult)}`, {});
             }
         }
 

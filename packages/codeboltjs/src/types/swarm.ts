@@ -13,7 +13,8 @@
 export interface CreateSwarmRequest {
     name: string;
     description?: string;
-    metadata?: Record<string, any>;
+    allowExternalAgents?: boolean;
+    maxAgents?: number;
 }
 
 /**
@@ -23,6 +24,11 @@ export interface AgentRegistration {
     agentId?: string;
     name: string;
     capabilities?: string[];
+    agentType?: 'internal' | 'external';
+    connectionInfo?: {
+        endpoint: string;
+        protocol: 'websocket' | 'http';
+    };
     metadata?: Record<string, any>;
 }
 
@@ -34,6 +40,7 @@ export interface CreateTeamRequest {
     description?: string;
     maxMembers?: number;
     metadata?: Record<string, any>;
+     createdBy:string
 }
 
 /**
@@ -45,6 +52,7 @@ export interface CreateRoleRequest {
     permissions?: string[];
     maxAssignees?: number;
     metadata?: Record<string, any>;
+     createdBy:string
 }
 
 /**
@@ -56,6 +64,7 @@ export interface CreateVacancyRequest {
     description?: string;
     requirements?: string[];
     metadata?: Record<string, any>;
+ createdBy:string
 }
 
 /**
