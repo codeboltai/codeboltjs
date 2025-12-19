@@ -1,47 +1,47 @@
 import codebolt from '@codebolt/codeboltjs';
-import { FlatUserMessage } from "@codebolt/types/sdk";
+import { FlatUserMessage } from '@codebolt/types/sdk';
+import { AgentContext } from './types';
+import { findOrCreateStructureDeliberation } from './deliberation';
+import { handleJoinSwarm } from './teamHandler';
 
-/**
- * Swarm Test Agent
- * Demonstrates all swarm module functions from codeboltjs
- */
+// ================================
+// MAIN AGENT ENTRY POINT
+// ================================
 
-codebolt.onMessage(async (reqMessage: FlatUserMessage,additionalVariable:any) => {
+codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
+        let ctx: AgentContext = {
+            swarmId: '4d21d5ca-9950-4300-a380-9019864d32ec',
+            swarmName:"Test Swarm",
+            agentId: additionalVariable.agentId,
+            agentName: `Agent ${Math.random()}`,
+            capabilities: additionalVariable.capabilities || ['coding'],
+            requirements: additionalVariable.requirements || 'Build a web application',
+        };
+        codebolt.chat.sendMessage('🐝 Swarm Agent Started', {});
+        // Register to swarm
+        let registerAgentResult = await codebolt.swarm.registerAgent(ctx.swarmId, {
+            agentId: ctx.agentId,
+            name: ctx.agentName,
+            capabilities: ctx.capabilities,
+            agentType: 'internal',
+        });
+        ctx.agentId = registerAgentResult.data?.agentId || ''
 
-        // codebolt.chat.sendMessage(` got additional variables${JSON.stringify(additionalVariable)}`)
-        codebolt.chat.sendMessage("🐝 Swarm Test Agent Started ", {});
-                    // ================================
-            // 2. AGENT REGISTRATION
-            // ================================
+        // Check if teams exist
+        const teamsResult = await codebolt.swarm.listTeams(ctx.swarmId);
+        const teams = teamsResult.data?.teams || [];
 
-            
-            codebolt.chat.sendMessage("👤 Testing Agent Registration Functions...", {});
-            let swarmId='4d21d5ca-9950-4300-a380-9019864d32ec'; 
+        if (teams.length === 0) {
+            // No teams - bootstrap via deliberation
+            await findOrCreateStructureDeliberation(ctx);
+        } else {
+            // Teams exist - join flow
+            await handleJoinSwarm(ctx, teams);
+        }
 
-            codebolt.chat.sendMessage(`${additionalVariable.agentId}`)
-
-            // Register an agent
-            const registerAgentResult = await codebolt.swarm.registerAgent(swarmId, {
-                agentId:additionalVariable.agentId,
-                name: "Developer",
-                capabilities: ["coding", "testing"],
-                agentType: "internal"
-            });
-
-            codebolt.chat.sendMessage(`Agent Registered with ${JSON.stringify(registerAgentResult)}`)
-            // Create a team
-                const createTeamResult = await codebolt.swarm.createTeam(swarmId, {
-                    name: "Testing Team",
-                    description: "Team for testing tasks",
-                    maxMembers: 10,
-                    metadata: { department: "engineering" },
-                    createdBy:registerAgentResult?.data?.agentId || additionalVariable.agentId
-                });
-                codebolt.chat.sendMessage(`✅ createTeam: ${JSON.stringify(createTeamResult)}`, {});
-
-
+        codebolt.chat.sendMessage('🐝 Done!', {});
     } catch (error) {
-        codebolt.chat.sendMessage(`❌ Error: ${error instanceof Error ? error.message : String(error)}`, {});
+        codebolt.chat.sendMessage(`❌ ${error instanceof Error ? error.message : error}`, {});
     }
 });
