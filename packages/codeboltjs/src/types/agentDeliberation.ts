@@ -6,6 +6,7 @@ export enum AgentDeliberationAction {
   RESPOND = 'agentdeliberation.respond',
   VOTE = 'agentdeliberation.vote',
   WINNER = 'agentdeliberation.winner',
+  SUMMARY = 'agentdeliberation.summary',
 }
 
 export enum AgentDeliberationResponseType {
@@ -16,12 +17,14 @@ export enum AgentDeliberationResponseType {
   RESPOND_RESPONSE = 'agentdeliberation.respond.response',
   VOTE_RESPONSE = 'agentdeliberation.vote.response',
   WINNER_RESPONSE = 'agentdeliberation.winner.response',
+  SUMMARY_RESPONSE = 'agentdeliberation.summary.response',
 }
 
 export type DeliberationStatus = 'draft' | 'collecting-responses' | 'voting' | 'completed' | 'closed';
 
 export interface Deliberation {
   id: string;
+  type: DeliberationType;
   title: string;
   requestMessage: string;
   creatorId: string;
@@ -29,8 +32,13 @@ export interface Deliberation {
   status: DeliberationStatus;
   participants: string[];
   responseCount: number;
+  agentResponseCount: number;
+  userResponseCount: number;
   voteCount: number;
   winnerId?: string;
+  summary?: string;
+  summaryAuthorId?: string;
+  summaryAuthorName?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -56,6 +64,7 @@ export interface DeliberationVote {
 }
 
 export interface ICreateDeliberationParams {
+  deliberationType: DeliberationType;
   title: string;
   requestMessage: string;
   creatorId: string;
@@ -69,7 +78,10 @@ export interface IGetDeliberationParams {
   view?: 'request' | 'full' | 'responses' | 'votes' | 'winner';
 }
 
+export type DeliberationType = 'voting' | 'feedback' | 'qa' | 'shared-list';
+
 export interface IListDeliberationsParams {
+  deliberationType?: DeliberationType;
   status?: DeliberationStatus;
   participant?: string;
   search?: string;
@@ -99,6 +111,13 @@ export interface IVoteParams {
 
 export interface IGetWinnerParams {
   deliberationId: string;
+}
+
+export interface ISummaryParams {
+  deliberationId: string;
+  summary: string;
+  authorId: string;
+  authorName: string;
 }
 
 export interface ICreateDeliberationResponse {
@@ -132,4 +151,8 @@ export interface IVoteResponse {
 
 export interface IGetWinnerResponse {
   payload: { winner?: DeliberationResponse; votes: DeliberationVote[] };
+}
+
+export interface ISummaryResponse {
+  payload: { deliberation: Deliberation };
 }

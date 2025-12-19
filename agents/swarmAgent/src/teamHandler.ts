@@ -97,9 +97,6 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
 
     codebolt.chat.sendMessage(`🎯 ${teamDecision.action}: ${teamDecision.reasoning || ''}`, {});
 
-    const rolesResult = await codebolt.swarm.listRoles(ctx.swarmId);
-    const existingRoles = rolesResult.data?.roles || [];
-
     switch (teamDecision.action) {
         case 'apply_vacancy':
             if (teamDecision.vacancyId) {
@@ -110,6 +107,7 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
                     teamDecision.message
                 );
                 codebolt.chat.sendMessage(`✅ Applied for vacancy`, {});
+                codebolt.chat.sendMessage('⏳ Waiting for application review...', {});
             } else {
                 codebolt.chat.sendMessage('❌ apply_vacancy requires vacancyId', {});
             }
@@ -130,8 +128,7 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
                     ctx,
                     teamDecision.teamName,
                     teamDecision.teamDescription || '',
-                    teamDecision.neededRoles || [],
-                    existingRoles
+                    teamDecision.neededRoles || []
                 );
             } else {
                 codebolt.chat.sendMessage('❌ propose_team requires teamName', {});
@@ -139,7 +136,7 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
             break;
 
         case 'wait':
-            codebolt.chat.sendMessage(`⏳ Waiting...`, {});
+            codebolt.chat.sendMessage(`⏳ Waiting for opportunities...`, {});
             break;
 
         default:
@@ -151,8 +148,7 @@ async function proposeTeamViaDeliberation(
     ctx: AgentContext,
     teamName: string,
     teamDescription: string,
-    neededRoles: string[],
-    existingRoles: any[]
+    neededRoles: string[]
 ): Promise<void> {
     codebolt.chat.sendMessage(`📋 Looking for team deliberation: ${teamName}`, {});
 
@@ -180,8 +176,8 @@ async function proposeTeamViaDeliberation(
         const alreadyVoted = votes.some((v) => v.voterId === ctx.agentId);
 
         if (alreadyResponded || alreadyVoted) {
-            codebolt.chat.sendMessage('ℹ️ Already participated', {});
-            await checkAndExecuteTeam(ctx, existing.id, existingRoles);
+            codebolt.chat.sendMessage('ℹ️ Already participated in this deliberation', {});
+            codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
             return;
         }
 
@@ -201,7 +197,6 @@ async function proposeTeamViaDeliberation(
                 `✅ Voted for existing proposal by ${topProposal.responderName}`,
                 {}
             );
-            await checkAndExecuteTeam(ctx, existing.id, existingRoles);
         } else {
             // No responses yet - add first one
             await codebolt.agentDeliberation.respond({
@@ -212,11 +207,15 @@ async function proposeTeamViaDeliberation(
             });
             codebolt.chat.sendMessage(`✅ Added first proposal to deliberation`, {});
         }
+        
+        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
+        
     } else {
         // No deliberation exists - create new one
         codebolt.chat.sendMessage(`📝 No deliberation found, creating new...`, {});
 
         const createResult = await codebolt.agentDeliberation.create({
+            deliberationType: 'voting',
             title: `Team: ${teamName}`,
             requestMessage: `Proposal to create team "${teamName}"`,
             creatorId: ctx.agentId,
@@ -234,61 +233,5 @@ async function proposeTeamViaDeliberation(
             codebolt.chat.sendMessage(`✅ Created team deliberation with proposal`, {});
             codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
         }
-    }
-}
-
-async function checkAndExecuteTeam(
-    ctx: AgentContext,
-    deliberationId: string,
-    existingRoles: any[]
-): Promise<void> {
-    const winnerResult = await codebolt.agentDeliberation.getWinner({ deliberationId });
-    const winner = winnerResult.payload?.winner;
-    const votes = winnerResult.payload?.votes || [];
-
-    if (winner && votes.length >= 2) {
-        codebolt.chat.sendMessage(`🏆 Team approved!`, {});
-
-        await codebolt.agentDeliberation.update({ deliberationId, status: 'completed' });
-
-        // Parse team proposal from message
-        const lines = winner.body.split('\n');
-        const teamLine = lines.find((l) => l.startsWith('Team:'));
-        const descLine = lines.find((l) => l.startsWith('Description:'));
-        const rolesLine = lines.find((l) => l.startsWith('Needed Roles:'));
-
-        const teamName = teamLine?.replace('Team:', '').trim() || '';
-        const description = descLine?.replace('Description:', '').trim() || '';
-        const neededRoles = rolesLine?.replace('Needed Roles:', '').trim().split(', ') || [];
-
-        // Create team
-        const teamResult = await codebolt.swarm.createTeam(ctx.swarmId, {
-            name: teamName,
-            description,
-            createdBy: ctx.agentId,
-        });
-
-        if (teamResult.success && teamResult.data?.team) {
-            const teamId = teamResult.data.team.id;
-            codebolt.chat.sendMessage(`✅ Created: ${teamName}`, {});
-
-            // Create vacancies
-            for (const roleName of neededRoles) {
-                const role = existingRoles.find((r) => r.name === roleName);
-                if (role) {
-                    await codebolt.swarm.createVacancy(ctx.swarmId, {
-                        roleId: role.id,
-                        title: `${roleName} - ${teamName}`,
-                        createdBy: ctx.agentId,
-                        metadata: { teamId },
-                    });
-                }
-            }
-
-            await codebolt.swarm.joinTeam(ctx.swarmId, teamId, ctx.agentId);
-            codebolt.chat.sendMessage(`✅ Joined: ${teamName}`, {});
-        }
-    } else {
-        codebolt.chat.sendMessage(`⏳ ${votes.length}/2 votes needed`, {});
     }
 }

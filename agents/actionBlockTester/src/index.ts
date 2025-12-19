@@ -13,6 +13,7 @@ codebolt.onMessage(async (_reqMessage: FlatUserMessage) => {
         // 1. CREATE - Create a new deliberation
         codebolt.chat.sendMessage("📝 Test 1: Creating a new deliberation...");
         const createResponse = await codebolt.agentDeliberation.create({
+            deliberationType: 'voting',
             title: "Test Deliberation",
             requestMessage: "What is the best approach for implementing this feature?",
             creatorId: testAgentId,

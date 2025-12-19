@@ -1,35 +1,66 @@
 import codebolt from '@codebolt/codeboltjs';
 import { AgentContext, StructureProposal, DeliberationReview } from './types';
 import { BOOTSTRAP_SWARM_PROMPT, DELIBERATION_REVIEW_PROMPT } from './prompts';
-import { llmWithJsonRetry, formatProposalMessage, parseProposalMessage } from './utils';
+import { llmWithJsonRetry, formatProposalMessage } from './utils';
 
 // ================================
 // STRUCTURE DELIBERATION
 // ================================
 
+/**
+ * Generate consistent deliberation title for a swarm
+ */
+function getDeliberationTitle(swarmId: string, swarmName?: string): string {
+    // Use swarmId to ensure uniqueness, swarmName for readability
+    const name = swarmName || 'Swarm';
+    return `${name} Initial Teams [${swarmId}]`;
+}
+
 export async function findOrCreateStructureDeliberation(ctx: AgentContext): Promise<void> {
     codebolt.chat.sendMessage('🚀 No teams. Checking deliberations...', {});
 
-    const searchTerm = ctx.swarmName ? `${ctx.swarmName} Initial Teams` : 'Initial Teams';
+    const expectedTitle = getDeliberationTitle(ctx.swarmId, ctx.swarmName);
 
-    // Check ALL deliberations to avoid duplicates
+    // Search by swarmId to ensure we find the right deliberation
     const delibResult = await codebolt.agentDeliberation.list({
-        search: searchTerm,
+        search: ctx.swarmId,
     });
 
     const deliberations = delibResult.payload?.deliberations || [];
-    const structureDelib = deliberations.find(
-        (d) => d.title.includes(searchTerm) && d.status !== 'closed'
-    );
+
+    // Find deliberation that matches our swarmId and is not closed
+    const structureDelib = deliberations.find((d) => {
+        const matchesSwarmId = d.title.includes(ctx.swarmId);
+        const matchesTitle = d.title.includes('Initial Teams');
+        const isActive = d.status !== 'closed' && d.status !== 'completed';
+        return matchesSwarmId && matchesTitle && isActive;
+    });
 
     if (structureDelib) {
+        codebolt.chat.sendMessage(`📖 Found existing deliberation: ${structureDelib.title}`, {});
         await reviewStructureDeliberation(ctx, structureDelib);
     } else {
-        await createStructureDeliberation(ctx);
+        // Double-check by listing all deliberations (in case search missed it)
+        const allDelibResult = await codebolt.agentDeliberation.list({});
+        const allDelibs = allDelibResult.payload?.deliberations || [];
+
+        const existingDelib = allDelibs.find((d) => {
+            const matchesSwarmId = d.title.includes(ctx.swarmId);
+            const matchesTitle = d.title.includes('Initial Teams');
+            const isActive = d.status !== 'closed' && d.status !== 'completed';
+            return matchesSwarmId && matchesTitle && isActive;
+        });
+
+        if (existingDelib) {
+            codebolt.chat.sendMessage(`📖 Found existing deliberation: ${existingDelib.title}`, {});
+            await reviewStructureDeliberation(ctx, existingDelib);
+        } else {
+            await createStructureDeliberation(ctx, expectedTitle);
+        }
     }
 }
 
-async function createStructureDeliberation(ctx: AgentContext): Promise<void> {
+async function createStructureDeliberation(ctx: AgentContext, title: string): Promise<void> {
     codebolt.chat.sendMessage('📋 Creating structure deliberation...', {});
 
     const prompt = BOOTSTRAP_SWARM_PROMPT.replace(/{{agentId}}/g, ctx.agentId)
@@ -50,12 +81,27 @@ async function createStructureDeliberation(ctx: AgentContext): Promise<void> {
         return;
     }
 
-    const title = ctx.swarmName ? `${ctx.swarmName} Initial Teams` : 'Swarm Initial Teams';
+    // Final check before creating - another agent might have created it
+    const finalCheck = await codebolt.agentDeliberation.list({
+        search: ctx.swarmId,
+    });
 
-    // Create deliberation
+    const alreadyExists = (finalCheck.payload?.deliberations || []).find((d) => {
+        return d.title.includes(ctx.swarmId) && d.title.includes('Initial Teams') &&
+            d.status !== 'closed' && d.status !== 'completed';
+    });
+
+    if (alreadyExists) {
+        codebolt.chat.sendMessage('ℹ️ Another agent already created the deliberation', {});
+        await reviewStructureDeliberation(ctx, alreadyExists);
+        return;
+    }
+
+    // Create deliberation with swarmId in title for unique identification
     const delibResult = await codebolt.agentDeliberation.create({
+        deliberationType: 'shared-list',
         title,
-        requestMessage: `Project: ${ctx.requirements}\n\nPropose roles, teams, and vacancies.`,
+        requestMessage: `SwarmId: ${ctx.swarmId}\nProject: ${ctx.requirements}\n\nPropose teams for this swarm.`,
         creatorId: ctx.agentId,
         creatorName: ctx.agentName,
         status: 'collecting-responses',
@@ -70,22 +116,20 @@ async function createStructureDeliberation(ctx: AgentContext): Promise<void> {
 
     // Submit each team as a separate response
     for (const teamName of proposal.teams) {
-        const teamRoles = proposal.teamVacancies[teamName] || [];
+        // const teamRoles = proposal.teamVacancies[teamName] || [];
         await codebolt.agentDeliberation.respond({
             deliberationId,
             responderId: ctx.agentId,
             responderName: ctx.agentName,
-            body: `Team: ${teamName}\nRoles needed: ${teamRoles.join(', ')}`,
+            body: teamName,
         });
     }
 
     codebolt.chat.sendMessage(`✅ Proposed: ${proposal.summary}`, {});
-    codebolt.chat.sendMessage('⏳ Waiting for votes...', {});
+    codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
 }
 
 async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any): Promise<void> {
-    codebolt.chat.sendMessage(`📖 Found existing deliberation: ${deliberation.title}`, {});
-
     const fullDelib = await codebolt.agentDeliberation.get({
         id: deliberation.id,
         view: 'full',
@@ -100,7 +144,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
 
     if (alreadyResponded || alreadyVoted) {
         codebolt.chat.sendMessage('ℹ️ Already participated in this deliberation', {});
-        await checkAndExecuteStructure(ctx, deliberation.id);
+        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
         return;
     }
 
@@ -115,14 +159,18 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
         const proposal = await llmWithJsonRetry<StructureProposal>(prompt, 'Propose structure. Respond with ONLY valid JSON.');
 
         if (proposal && proposal.roles?.length && proposal.teams?.length) {
-            await codebolt.agentDeliberation.respond({
-                deliberationId: deliberation.id,
-                responderId: ctx.agentId,
-                responderName: ctx.agentName,
-                body: formatProposalMessage(proposal),
-            });
+            for (const teamName of proposal.teams) {
+                // const teamRoles = proposal.teamVacancies[teamName] || [];
+                await codebolt.agentDeliberation.respond({
+                    deliberationId: deliberation.id,
+                    responderId: ctx.agentId,
+                    responderName: ctx.agentName,
+                    body: teamName,
+                });
+            }
             codebolt.chat.sendMessage(`✅ Added proposal: ${proposal.summary}`, {});
         }
+        codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
         return;
     }
 
@@ -160,7 +208,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             codebolt.chat.sendMessage('❌ Vote action requires responseId', {});
             return;
         }
-        
+
         await codebolt.agentDeliberation.vote({
             deliberationId: deliberation.id,
             responseId: decision.responseId,
@@ -168,14 +216,14 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             voterName: ctx.agentName,
         });
         codebolt.chat.sendMessage(`✅ Voted for proposal: ${decision.reason || 'agreed'}`, {});
-        await checkAndExecuteStructure(ctx, deliberation.id);
-        
+        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
+
     } else if (decision.action === 'respond') {
         if (!decision.roles?.length || !decision.teams?.length) {
             codebolt.chat.sendMessage('❌ Respond action requires roles and teams', {});
             return;
         }
-        
+
         const proposal: StructureProposal = {
             roles: decision.roles,
             teams: decision.teams,
@@ -185,97 +233,17 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             summary: decision.summary || '',
         };
 
-        await codebolt.agentDeliberation.respond({
-            deliberationId: deliberation.id,
-            responderId: ctx.agentId,
-            responderName: ctx.agentName,
-            body: formatProposalMessage(proposal),
-        });
+        // Submit each team as a separate response
+        for (const teamName of proposal.teams) {
+            // const teamRoles = proposal.teamVacancies[teamName] || [];
+            await codebolt.agentDeliberation.respond({
+                deliberationId: deliberation.id,
+                responderId: ctx.agentId,
+                responderName: ctx.agentName,
+                body: teamName,
+            });
+        }
         codebolt.chat.sendMessage(`✅ Added alternative proposal: ${proposal.summary}`, {});
+        codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
     }
-}
-
-export async function checkAndExecuteStructure(
-    ctx: AgentContext,
-    deliberationId: string
-): Promise<void> {
-    const winnerResult = await codebolt.agentDeliberation.getWinner({ deliberationId });
-    const winner = winnerResult.payload?.winner;
-    const votes = winnerResult.payload?.votes || [];
-
-    if (winner && votes.length >= 2) {
-        codebolt.chat.sendMessage(`🏆 Winner! ${votes.length} votes. Executing...`, {});
-
-        await codebolt.agentDeliberation.update({
-            deliberationId,
-            status: 'completed',
-        });
-
-        const proposal = parseProposalMessage(winner.body);
-        if (proposal) {
-            await executeStructure(ctx, proposal);
-        }
-    } else {
-        codebolt.chat.sendMessage(`⏳ ${votes.length}/2 votes needed`, {});
-    }
-}
-
-async function executeStructure(ctx: AgentContext, proposal: StructureProposal): Promise<void> {
-    const roleIdMap: Record<string, string> = {};
-    const teamIdMap: Record<string, string> = {};
-
-    // Create roles
-    codebolt.chat.sendMessage('🎭 Creating roles...', {});
-    for (const roleName of proposal.roles) {
-        const result = await codebolt.swarm.createRole(ctx.swarmId, {
-            name: roleName,
-            description: `${roleName} role`,
-            createdBy: ctx.agentId,
-        });
-        if (result.success && result.data?.role) {
-            roleIdMap[roleName] = result.data.role.id;
-            codebolt.chat.sendMessage(`  ✅ ${roleName}`, {});
-        }
-    }
-
-    // Create teams
-    codebolt.chat.sendMessage('🏢 Creating teams...', {});
-    for (const teamName of proposal.teams) {
-        const result = await codebolt.swarm.createTeam(ctx.swarmId, {
-            name: teamName,
-            description: `${teamName}`,
-            createdBy: ctx.agentId,
-        });
-        if (result.success && result.data?.team) {
-            teamIdMap[teamName] = result.data.team.id;
-            codebolt.chat.sendMessage(`  ✅ ${teamName}`, {});
-        }
-    }
-
-    // Create vacancies
-    codebolt.chat.sendMessage('📋 Creating vacancies...', {});
-    for (const [teamName, roles] of Object.entries(proposal.teamVacancies)) {
-        const teamId = teamIdMap[teamName];
-        for (const roleName of roles) {
-            const roleId = roleIdMap[roleName];
-            if (roleId && teamId) {
-                await codebolt.swarm.createVacancy(ctx.swarmId, {
-                    roleId,
-                    title: `${roleName} - ${teamName}`,
-                    description: `${roleName} needed for ${teamName}`,
-                    createdBy: ctx.agentId,
-                    metadata: { teamId, teamName },
-                });
-                codebolt.chat.sendMessage(`  ✅ ${roleName} @ ${teamName}`, {});
-            }
-        }
-    }
-
-    // Assign self
-    const myRoleId = roleIdMap[proposal.myRole];
-    const myTeamId = teamIdMap[proposal.myTeam];
-    if (myRoleId) await codebolt.swarm.assignRole(ctx.swarmId, myRoleId, ctx.agentId);
-    if (myTeamId) await codebolt.swarm.joinTeam(ctx.swarmId, myTeamId, ctx.agentId);
-
-    codebolt.chat.sendMessage(`✅ Joined as ${proposal.myRole} in ${proposal.myTeam}`, {});
 }

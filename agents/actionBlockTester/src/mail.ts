@@ -271,6 +271,7 @@ codebolt.onMessage(async (_reqMessage: FlatUserMessage) => {
     // codebolt.chat.sendMessage("- releaseFiles: Release file reservations");
 
    let response= await codebolt.agentDeliberation.create({
+        deliberationType: 'voting',
         title: "Testiing Deliberation ",
     requestMessage: "Testiing",
     creatorId: testAgentId,

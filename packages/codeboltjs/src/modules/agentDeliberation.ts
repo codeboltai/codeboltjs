@@ -16,6 +16,8 @@ import {
   IVoteResponse,
   IGetWinnerParams,
   IGetWinnerResponse,
+  ISummaryParams,
+  ISummaryResponse,
 } from '../types/agentDeliberation';
 
 const cbagentDeliberation = {
@@ -65,6 +67,13 @@ const cbagentDeliberation = {
     return cbws.messageManager.sendAndWaitForResponse(
       { type: AgentDeliberationAction.WINNER, ...params },
       AgentDeliberationResponseType.WINNER_RESPONSE,
+    );
+  },
+
+  summary: async (params: ISummaryParams): Promise<ISummaryResponse> => {
+    return cbws.messageManager.sendAndWaitForResponse(
+      { type: AgentDeliberationAction.SUMMARY, ...params },
+      AgentDeliberationResponseType.SUMMARY_RESPONSE,
     );
   },
 };

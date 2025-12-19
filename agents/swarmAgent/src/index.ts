@@ -19,6 +19,13 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             requirements: additionalVariable.requirements || 'Build a web application',
         };
         codebolt.chat.sendMessage('🐝 Swarm Agent Started', {});
+
+//  const finalCheck = await codebolt.agentDeliberation.list({
+//     // deliberationType:'shared-list'
+//         // search: `Test Swarm Initial Teams`,
+//     });
+//     codebolt.chat.sendMessage(JSON.stringify(finalCheck),{})
+//         return
         // Register to swarm
         let registerAgentResult = await codebolt.swarm.registerAgent(ctx.swarmId, {
             agentId: ctx.agentId,
