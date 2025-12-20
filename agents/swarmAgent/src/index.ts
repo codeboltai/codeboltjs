@@ -3,6 +3,7 @@ import { FlatUserMessage } from '@codebolt/types/sdk';
 import { AgentContext } from './types';
 import { findOrCreateStructureDeliberation } from './deliberation';
 import { handleJoinSwarm } from './teamHandler';
+import { findOrCreateSwarmThread } from './mailHandler';
 
 // ================================
 // MAIN AGENT ENTRY POINT
@@ -34,6 +35,9 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             agentType: 'internal',
         });
         ctx.agentId = registerAgentResult.data?.agentId || ''
+
+        // Create or join swarm mail thread and send greeting
+        await findOrCreateSwarmThread(ctx);
 
         // Check if teams exist
         const teamsResult = await codebolt.swarm.listTeams(ctx.swarmId);

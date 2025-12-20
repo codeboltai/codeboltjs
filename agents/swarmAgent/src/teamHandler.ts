@@ -2,6 +2,7 @@ import codebolt from '@codebolt/codeboltjs';
 import { AgentContext, RoleDecision, TeamDecision } from './types';
 import { ROLE_ASSIGNMENT_PROMPT, TEAM_DECISION_PROMPT } from './prompts';
 import { llmWithJsonRetry, formatTeamProposalMessage } from './utils';
+import { createTeamMailThread, joinTeamMailThread } from './mailHandler';
 
 // ================================
 // JOIN EXISTING SWARM
@@ -117,6 +118,12 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
             if (teamDecision.teamId) {
                 await codebolt.swarm.joinTeam(ctx.swarmId, teamDecision.teamId, ctx.agentId);
                 codebolt.chat.sendMessage(`✅ Joined team`, {});
+                
+                // Join the team's mail thread
+                const team = teams.find((t) => t.id === teamDecision.teamId);
+                if (team) {
+                    await joinTeamMailThread(ctx, team.name, team.id);
+                }
             } else {
                 codebolt.chat.sendMessage('❌ join_team requires teamId', {});
             }
@@ -327,6 +334,10 @@ async function checkAndFinalizeTeamDeliberation(
 
             if (createResult.success) {
                 codebolt.chat.sendMessage(`✅ Created team: ${teamName}`, {});
+                
+                // Create mail thread for the team
+                const teamId = createResult.data?.team?.id || '';
+                await createTeamMailThread(ctx, teamId, teamName);
                 
                 // Close deliberation
                 await codebolt.agentDeliberation.update({
