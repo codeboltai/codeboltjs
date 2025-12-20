@@ -49,14 +49,16 @@ export function formatTeamJoinMessage(agentName: string): string {
  */
 export async function findOrCreateSwarmThread(ctx: AgentContext): Promise<string | null> {
     const subject = getSwarmThreadSubject(ctx.swarmName);
-    
+
     try {
         // Search for existing swarm thread using mail.listThreads
-        const mail = codebolt.mail as any;
-        const listResult = await mail.listThreads({ search: subject });
-        const existingThread = listResult.threads?.find(
-            (t: any) => t.subject === subject
-        );
+       
+        const listResult:any = await codebolt.mail.listThreads({ search: subject });
+
+        codebolt.chat.sendMessage(JSON.stringify(listResult))
+        // Handle both direct response and payload-wrapped response
+        const threads = listResult.payload?.threads || listResult.threads || [];
+        const existingThread = threads.find((t: any) => t.subject === subject);
 
         let threadId: string | null = null;
 
@@ -66,7 +68,15 @@ export async function findOrCreateSwarmThread(ctx: AgentContext): Promise<string
         } else {
             // Create new swarm thread
             codebolt.chat.sendMessage(`📧 Creating swarm thread: ${subject}`, {});
-            const createResult = await mail.createThread({
+            const mail = codebolt.mail as any;
+            
+            codebolt.chat.sendMessage(`📧 Calling createThread with: ${JSON.stringify({
+                subject,
+                participants: [ctx.agentId],
+                type: 'broadcast',
+            })}`, {});
+            
+            const createResult: any = await mail.createThread({
                 subject,
                 participants: [ctx.agentId],
                 type: 'broadcast',
@@ -77,9 +87,17 @@ export async function findOrCreateSwarmThread(ctx: AgentContext): Promise<string
                 },
             });
 
-            if (createResult.success && createResult.thread?.id) {
-                threadId = createResult.thread.id;
-                codebolt.chat.sendMessage(`✅ Created swarm thread`, {});
+            codebolt.chat.sendMessage(`📧 createThread response: ${JSON.stringify(createResult)}`, {});
+
+            // Handle both direct response and payload-wrapped response
+            const thread = createResult.payload?.thread || createResult.thread;
+            const success = createResult.payload?.success ?? createResult.success;
+
+            if (success && thread?.id) {
+                threadId = thread.id;
+                codebolt.chat.sendMessage(`✅ Created swarm thread with id: ${threadId}`, {});
+            } else {
+                codebolt.chat.sendMessage(`❌ Failed to create thread. Success: ${success}, Thread: ${JSON.stringify(thread)}`, {});
             }
         }
 
@@ -107,12 +125,12 @@ export async function createTeamMailThread(
 
     try {
         const mail = codebolt.mail as any;
-        
+
         // Check if team thread already exists
         const listResult = await mail.listThreads({ search: subject });
-        const existingThread = listResult.threads?.find(
-            (t: any) => t.subject === subject
-        );
+        // Handle both direct response and payload-wrapped response
+        const threads = listResult.payload?.threads || listResult.threads || [];
+        const existingThread = threads.find((t: any) => t.subject === subject);
 
         if (existingThread) {
             codebolt.chat.sendMessage(`📧 Team thread already exists: ${subject}`, {});
@@ -134,8 +152,12 @@ export async function createTeamMailThread(
             },
         });
 
-        if (createResult.success && createResult.thread?.id) {
-            const threadId = createResult.thread.id;
+        // Handle both direct response and payload-wrapped response
+        const thread = createResult.payload?.thread || createResult.thread;
+        const success = createResult.payload?.success ?? createResult.success;
+
+        if (success && thread?.id) {
+            const threadId = thread.id;
             codebolt.chat.sendMessage(`✅ Created team thread: ${teamName}`, {});
 
             // Send team creation announcement
@@ -167,22 +189,18 @@ export async function joinTeamMailThread(
 
     try {
         const mail = codebolt.mail as any;
-        
+
         // Search for existing team thread
         const listResult = await mail.listThreads({ search: subject });
-        const teamThread = listResult.threads?.find(
-            (t: any) => t.subject === subject
-        );
+        // Handle both direct response and payload-wrapped response
+        const threads = listResult.payload?.threads || listResult.threads || [];
+        const teamThread = threads.find((t: any) => t.subject === subject);
 
         if (teamThread) {
             codebolt.chat.sendMessage(`📧 Joining team thread: ${subject}`, {});
 
             // Send join message
-            await sendMessageToThread(
-                ctx,
-                teamThread.id,
-                formatTeamJoinMessage(ctx.agentName)
-            );
+            await sendMessageToThread(ctx, teamThread.id, formatTeamJoinMessage(ctx.agentName));
 
             return teamThread.id;
         }

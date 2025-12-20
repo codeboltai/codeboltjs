@@ -147,8 +147,9 @@ const cbmail = {
     createThread: async (params: ICreateThreadParams): Promise<ICreateThreadResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
+                ...params,
                 type: 'mail.create_thread',
-                ...params
+                threadType: params.type, // Move thread type to separate field
             },
             'mail.create_thread.response'
         );
