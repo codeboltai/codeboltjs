@@ -1,7 +1,7 @@
 import codebolt from '@codebolt/codeboltjs';
 import { AgentContext, StructureProposal, DeliberationReview } from './types';
 import { BOOTSTRAP_SWARM_PROMPT, DELIBERATION_REVIEW_PROMPT } from './prompts';
-import { llmWithJsonRetry, formatProposalMessage } from './utils';
+import { llmWithJsonRetry } from './utils';
 
 // ================================
 // STRUCTURE DELIBERATION
@@ -69,6 +69,7 @@ async function createStructureDeliberation(ctx: AgentContext, title: string): Pr
 
     // Use retry logic for JSON parsing
     const proposal = await llmWithJsonRetry<StructureProposal>(prompt, 'Propose structure for this project. Respond with ONLY valid JSON.');
+    codebolt.chat.sendMessage(JSON.stringify(proposal))
 
     if (!proposal) {
         codebolt.chat.sendMessage('❌ Failed to generate valid proposal', {});
@@ -81,10 +82,14 @@ async function createStructureDeliberation(ctx: AgentContext, title: string): Pr
         return;
     }
 
+    codebolt.chat.sendMessage('checking for deliberation')
+
     // Final check before creating - another agent might have created it
     const finalCheck = await codebolt.agentDeliberation.list({
         search: ctx.swarmId,
     });
+    codebolt.chat.sendMessage(`${JSON.stringify(finalCheck)}`)
+
 
     const alreadyExists = (finalCheck.payload?.deliberations || []).find((d) => {
         return d.title.includes(ctx.swarmId) && d.title.includes('Initial Teams') &&
@@ -126,7 +131,9 @@ async function createStructureDeliberation(ctx: AgentContext, title: string): Pr
     }
 
     codebolt.chat.sendMessage(`✅ Proposed: ${proposal.summary}`, {});
-    codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
+
+    // Check if we're the last agent (or only agent) and should finalize
+    await checkAndFinalizeDeliberation(ctx, deliberationId);
 }
 
 async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any): Promise<void> {
@@ -138,13 +145,22 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
     const responses = fullDelib.payload?.responses || [];
     const votes = fullDelib.payload?.votes || [];
 
-    // Check if already participated
-    const alreadyResponded = responses.some((r) => r.responderId === ctx.agentId);
+    // Check if already participated (as contributor or voter)
+    const alreadyContributed = responses.some((r: any) => {
+        // Check contributors array for shared-list type
+        if (r.contributors && Array.isArray(r.contributors)) {
+            return r.contributors.some((c: { id: string }) => c.id === ctx.agentId);
+        }
+        // Fallback to responderId
+        return r.responderId === ctx.agentId;
+    });
     const alreadyVoted = votes.some((v) => v.voterId === ctx.agentId);
 
-    if (alreadyResponded || alreadyVoted) {
+    if (alreadyContributed || alreadyVoted) {
         codebolt.chat.sendMessage('ℹ️ Already participated in this deliberation', {});
-        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
+        
+        // Check if we're the last agent and should finalize
+        await checkAndFinalizeDeliberation(ctx, deliberation.id);
         return;
     }
 
@@ -170,7 +186,9 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             }
             codebolt.chat.sendMessage(`✅ Added proposal: ${proposal.summary}`, {});
         }
-        codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
+        
+        // Check if we're the last agent and should finalize
+        await checkAndFinalizeDeliberation(ctx, deliberation.id);
         return;
     }
 
@@ -217,7 +235,6 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             voterName: ctx.agentName,
         });
         codebolt.chat.sendMessage(`✅ Voted for proposal: ${decision.reason || 'agreed'}`, {});
-        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
 
     } else if (decision.action === 'respond') {
         if (!decision.roles?.length || !decision.teams?.length) {
@@ -245,6 +262,140 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             });
         }
         codebolt.chat.sendMessage(`✅ Added alternative proposal: ${JSON.stringify(proposal.teams)}`, {});
-        codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
+    }
+
+    // Check if we're the last agent and should finalize
+    await checkAndFinalizeDeliberation(ctx, deliberation.id);
+}
+
+/**
+ * Check if all agents have participated and finalize the deliberation by creating teams
+ */
+async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: string): Promise<void> {
+    // Get all agents in the swarm
+    const agentsResult:any = await codebolt.swarm.getSwarm(ctx.swarmId);
+    // const allAgents = agentsResult.data?.agents || [];
+    // const totalAgentCount = allAgents.length;
+
+    // if (totalAgentCount === 0) {
+    //     codebolt.chat.sendMessage('⚠️ No agents found in swarm', {});
+    //     return;
+    // }
+     const totalAgentCount = agentsResult.data.swarm.configuration?.maxAgents || 1;
+
+    // Get full deliberation with all responses and votes
+    const fullDelib = await codebolt.agentDeliberation.get({
+        id: deliberationId,
+        view: 'full',
+    });
+
+    const responses = fullDelib.payload?.responses || [];
+    const votes = fullDelib.payload?.votes || [];
+
+    // Count unique participants from contributors in responses + voters
+    const participantIds = new Set<string>();
+    
+    // Add all contributors from responses (not just responderId)
+    responses.forEach((r: any) => {
+        // Check for contributors array (shared-list type deliberations)
+        if (r.contributors && Array.isArray(r.contributors)) {
+            r.contributors.forEach((c: { id: string }) => participantIds.add(c.id));
+        } else {
+            // Fallback to responderId for other deliberation types
+            participantIds.add(r.responderId);
+        }
+    });
+    
+    // Add voters
+    votes.forEach((v) => participantIds.add(v.voterId));
+
+    const participantCount = participantIds.size;
+
+    codebolt.chat.sendMessage(`📊 Deliberation status: ${participantCount}/${totalAgentCount} agents participated`, {});
+
+    // Check if all agents have participated
+    if (participantCount < totalAgentCount) {
+        codebolt.chat.sendMessage('⏳ Waiting for other agents to participate...', {});
+        return;
+    }
+
+    // All agents have participated - time to finalize!
+    codebolt.chat.sendMessage('🎯 All agents participated! Finalizing deliberation...', {});
+
+    // Check if teams already exist (another agent might have created them)
+    const teamsResult = await codebolt.swarm.listTeams(ctx.swarmId);
+    const existingTeams = teamsResult.data?.teams || [];
+
+    if (existingTeams.length > 0) {
+        codebolt.chat.sendMessage('ℹ️ Teams already created by another agent', {});
+        return;
+    }
+
+    // Get winning proposals (responses with most votes, or all if no votes)
+    const sortedResponses = [...responses].sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
+
+    // Extract unique team names from top responses
+    const teamNamesToCreate = new Set<string>();
+    
+    // If there are votes, take teams from responses with votes
+    // Otherwise, take all proposed teams
+    const hasVotes = sortedResponses.some((r) => (r.voteCount || 0) > 0);
+    
+    if (hasVotes) {
+        // Get teams from responses that received votes
+        for (const response of sortedResponses) {
+            if ((response.voteCount || 0) > 0) {
+                // Each response body is a team name
+                const teamName = response.body?.trim();
+                if (teamName && !teamName.includes('\n')) {
+                    teamNamesToCreate.add(teamName);
+                }
+            }
+        }
+    } else {
+        // No votes - take all unique team proposals
+        for (const response of sortedResponses) {
+            const teamName = response.body?.trim();
+            if (teamName && !teamName.includes('\n')) {
+                teamNamesToCreate.add(teamName);
+            }
+        }
+    }
+
+    if (teamNamesToCreate.size === 0) {
+        codebolt.chat.sendMessage('⚠️ No valid team proposals found', {});
+        return;
+    }
+
+    codebolt.chat.sendMessage(`📋 Creating ${teamNamesToCreate.size} teams from deliberation...`, {});
+
+    // Create the teams
+    for (const teamName of teamNamesToCreate) {
+        try {
+            const createResult = await codebolt.swarm.createTeam(ctx.swarmId, {
+                name: teamName,
+                description: `Team created from deliberation`,
+                createdBy: ctx.agentId,
+            });
+
+            if (createResult.success) {
+                codebolt.chat.sendMessage(`✅ Created team: ${teamName}`, {});
+            } else {
+                codebolt.chat.sendMessage(`⚠️ Failed to create team: ${teamName}`, {});
+            }
+        } catch (error) {
+            codebolt.chat.sendMessage(`❌ Error creating team ${teamName}: ${error}`, {});
+        }
+    }
+
+    // Close the deliberation
+    try {
+        await codebolt.agentDeliberation.update({
+            deliberationId: deliberationId,
+            status: 'completed',
+        });
+        codebolt.chat.sendMessage('✅ Deliberation completed and teams created!', {});
+    } catch (error) {
+        codebolt.chat.sendMessage(`⚠️ Could not close deliberation: ${error}`, {});
     }
 }

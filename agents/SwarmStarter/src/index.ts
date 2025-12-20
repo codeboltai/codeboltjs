@@ -23,19 +23,25 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         // Get the task/message from the user request
         const userTask = reqMessage.userMessage || "Execute assigned task";
 
+        // Helper to delay execution
+        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
         // Start threads based on maxAgents count
         const threadPromises = Array.from({ length: maxAgents }, async (_, index) => {
             const agentIndex = index + 1;
             try {
                 codebolt.chat.sendMessage(`🔄 Starting thread for agent #${agentIndex}`);
-
+                
+                // Stagger thread starts to avoid overwhelming the system
+                await delay(1000 * index);
+                
                 const threadResult = await codebolt.thread.createAndStartThread({
-                    title: `Swarm Task - Agent #${agentIndex}`,
+                    title: `Swarm Task(${userTask}) - Agent #${agentIndex}`,
                     description: `Processing swarm task for agent #${agentIndex}`,
                     userMessage: userTask,
                     selectedAgent: {
                         id: 'swarmAgent',
-                        name: 'Swarm  Agent'
+                        name: 'Swarm Agent'
                     },
                     metadata: {
                         swarmId: swarmId,

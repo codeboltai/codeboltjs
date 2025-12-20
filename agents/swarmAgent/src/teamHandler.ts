@@ -171,13 +171,21 @@ async function proposeTeamViaDeliberation(
         const responses = fullDelib.payload?.responses || [];
         const votes = fullDelib.payload?.votes || [];
 
-        // Check if already participated
-        const alreadyResponded = responses.some((r) => r.responderId === ctx.agentId);
+        // Check if already participated (as contributor or voter)
+        const alreadyContributed = responses.some((r: any) => {
+            // Check contributors array for shared-list type
+            if (r.contributors && Array.isArray(r.contributors)) {
+                return r.contributors.some((c: { id: string }) => c.id === ctx.agentId);
+            }
+            // Fallback to responderId
+            return r.responderId === ctx.agentId;
+        });
         const alreadyVoted = votes.some((v) => v.voterId === ctx.agentId);
 
-        if (alreadyResponded || alreadyVoted) {
+        if (alreadyContributed || alreadyVoted) {
             codebolt.chat.sendMessage('ℹ️ Already participated in this deliberation', {});
-            codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
+            // Check if we should finalize
+            await checkAndFinalizeTeamDeliberation(ctx, existing.id, teamName, teamDescription);
             return;
         }
 
@@ -208,7 +216,8 @@ async function proposeTeamViaDeliberation(
             codebolt.chat.sendMessage(`✅ Added first proposal to deliberation`, {});
         }
         
-        codebolt.chat.sendMessage('⏳ Waiting for deliberation to complete...', {});
+        // Check if we should finalize
+        await checkAndFinalizeTeamDeliberation(ctx, existing.id, teamName, teamDescription);
         
     } else {
         // No deliberation exists - create new one
@@ -224,14 +233,109 @@ async function proposeTeamViaDeliberation(
         });
 
         if (createResult.payload?.deliberation) {
+            const deliberationId = createResult.payload.deliberation.id;
+            
             await codebolt.agentDeliberation.respond({
-                deliberationId: createResult.payload.deliberation.id,
+                deliberationId,
                 responderId: ctx.agentId,
                 responderName: ctx.agentName,
                 body: formatTeamProposalMessage(teamName, teamDescription, neededRoles),
             });
             codebolt.chat.sendMessage(`✅ Created team deliberation with proposal`, {});
-            codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
+            
+            // Check if we should finalize (single agent case)
+            await checkAndFinalizeTeamDeliberation(ctx, deliberationId, teamName, teamDescription);
+        }
+    }
+}
+
+/**
+ * Check if all agents have participated in team deliberation and create the team
+ */
+async function checkAndFinalizeTeamDeliberation(
+    ctx: AgentContext,
+    deliberationId: string,
+    teamName: string,
+    teamDescription: string
+): Promise<void> {
+    // Get all agents in the swarm
+    const agentsResult = await codebolt.swarm.getSwarmAgents(ctx.swarmId);
+    const allAgents = agentsResult.data?.agents || [];
+    const totalAgentCount = allAgents.length;
+
+    if (totalAgentCount === 0) {
+        return;
+    }
+
+    // Get full deliberation
+    const fullDelib = await codebolt.agentDeliberation.get({
+        id: deliberationId,
+        view: 'full',
+    });
+
+    const responses = fullDelib.payload?.responses || [];
+    const votes = fullDelib.payload?.votes || [];
+
+    // Count unique participants from contributors in responses + voters
+    const participantIds = new Set<string>();
+    
+    // Add all contributors from responses (not just responderId)
+    responses.forEach((r: any) => {
+        // Check for contributors array (shared-list type deliberations)
+        if (r.contributors && Array.isArray(r.contributors)) {
+            r.contributors.forEach((c: { id: string }) => participantIds.add(c.id));
+        } else {
+            // Fallback to responderId for other deliberation types
+            participantIds.add(r.responderId);
+        }
+    });
+    
+    // Add voters
+    votes.forEach((v) => participantIds.add(v.voterId));
+
+    const participantCount = participantIds.size;
+
+    if (participantCount < totalAgentCount) {
+        codebolt.chat.sendMessage('⏳ Waiting for other agents to participate...', {});
+        return;
+    }
+
+    // All agents participated - check if team should be created
+    codebolt.chat.sendMessage('🎯 All agents participated! Checking team creation...', {});
+
+    // Check if team already exists
+    const teamsResult = await codebolt.swarm.listTeams(ctx.swarmId);
+    const existingTeam = (teamsResult.data?.teams || []).find(
+        (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    );
+
+    if (existingTeam) {
+        codebolt.chat.sendMessage(`ℹ️ Team "${teamName}" already exists`, {});
+        return;
+    }
+
+    // Check if majority voted in favor (at least one vote for any response)
+    const hasApproval = responses.some((r) => (r.voteCount || 0) > 0) || responses.length > 0;
+
+    if (hasApproval) {
+        try {
+            const createResult = await codebolt.swarm.createTeam(ctx.swarmId, {
+                name: teamName,
+                description: teamDescription || `Team created from deliberation`,
+                createdBy: ctx.agentId,
+            });
+
+            if (createResult.success) {
+                codebolt.chat.sendMessage(`✅ Created team: ${teamName}`, {});
+                
+                // Close deliberation
+                await codebolt.agentDeliberation.update({
+                    deliberationId,
+                    status: 'completed',
+                });
+            }
+        } catch (error) {
+            codebolt.chat.sendMessage(`❌ Error creating team: ${error}`, {});
         }
     }
 }
