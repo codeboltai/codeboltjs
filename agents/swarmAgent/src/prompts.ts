@@ -33,7 +33,7 @@ export const BOOTSTRAP_SWARM_PROMPT = `You are the FIRST agent in a new swarm. P
 ## Instructions
 You MUST respond with ONLY a valid JSON object. No markdown code blocks, no explanation, just pure JSON.
 
-## Response Format (EXACT structure required):
+## Response Format (EXACT structure required take it as example ):
 {
   "roles": ["Frontend Developer", "Backend Developer", "UI Designer"],
   "teams": ["Frontend Team", "Backend Team"],
@@ -54,11 +54,14 @@ IMPORTANT:
 - "myTeam" must be one of the teams you defined
 - "summary" must be a brief one-line description`;
 
-export const DELIBERATION_REVIEW_PROMPT = `You are reviewing existing proposals for swarm structure. Decide whether to vote for an existing proposal or submit your own.
+export const DELIBERATION_REVIEW_PROMPT = `You are reviewing existing team structure proposals for a swarm project.
 
 ## Your Identity
 - Agent ID: {{agentId}}
 - Capabilities: {{capabilities}}
+
+## Project Requirements
+{{projectRequirements}}
 
 ## Existing Proposals
 {{existingResponses}}
@@ -66,21 +69,25 @@ export const DELIBERATION_REVIEW_PROMPT = `You are reviewing existing proposals 
 ## Instructions
 You MUST respond with ONLY a valid JSON object. No markdown code blocks, no explanation, just pure JSON.
 
-## If you AGREE with an existing proposal, respond with:
-{"action": "vote", "responseId": "<id_of_proposal_to_vote_for>", "reason": "<why you agree>"}
+Review the existing proposals carefully. As an autonomous agent, you bring your own unique perspective to the swarm. Propose the team structure YOU think is best for this project based on the requirements.
 
-## If you want to submit a DIFFERENT proposal, respond with:
+## Response Format:
 {
   "action": "respond",
-  "roles": ["Role1", "Role2", "Role3"],
-  "teams": ["Team1", "Team2"],
-  "teamVacancies": {"Team1": ["Role1", "Role2"], "Team2": ["Role3"]},
+  "roles": ["Role1", "Role2"],
+  "teams": ["Team1"],
+  "teamVacancies": {"Team1": ["Role1", "Role2"]},
   "myRole": "Role1",
   "myTeam": "Team1",
-  "summary": "Brief description of your proposal"
+  "summary": "Brief reason for this structure"
 }
 
-IMPORTANT: Choose "vote" if you agree with any existing proposal. Only choose "respond" if you have a significantly different structure to propose.`;
+GUIDELINES:
+- Keep proposals SIMPLE - only propose roles/teams that are truly needed to complete the project requirements
+- If you 100% agree with an existing proposal, you MAY copy its structure exactly (duplicates count as votes)
+- Only copy an existing proposal if you fully agree - otherwise propose your own structure
+- Avoid creating unnecessary complexity - fewer teams is often better
+- Match your myRole to your actual capabilities`;
 
 export const TEAM_DECISION_PROMPT = `You are an agent looking to join a team in the swarm.
 

@@ -11,10 +11,10 @@ import { handleJoinSwarm } from './teamHandler';
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         let ctx: AgentContext = {
-            swarmId: '4d21d5ca-9950-4300-a380-9019864d32ec',
+            swarmId: '96168618-e8a5-461d-8d33-54bf17996b87',
             swarmName:"Test Swarm",
             agentId: additionalVariable.agentId,
-            agentName: `Agent ${Math.random()}`,
+            agentName: `Agent:${additionalVariable.agentId}-${Math.random()}`,
             capabilities: additionalVariable.capabilities || ['coding'],
             requirements: additionalVariable.requirements || 'Build a web application',
         };

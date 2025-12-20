@@ -184,6 +184,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
 
     const prompt = DELIBERATION_REVIEW_PROMPT.replace(/{{agentId}}/g, ctx.agentId)
         .replace(/{{capabilities}}/g, ctx.capabilities.join(', '))
+        .replace(/{{projectRequirements}}/g, ctx.requirements)
         .replace(/{{existingResponses}}/g, responseSummary);
 
     // Use retry logic for JSON parsing
@@ -243,7 +244,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
                 body: teamName,
             });
         }
-        codebolt.chat.sendMessage(`✅ Added alternative proposal: ${proposal.summary}`, {});
+        codebolt.chat.sendMessage(`✅ Added alternative proposal: ${JSON.stringify(proposal.teams)}`, {});
         codebolt.chat.sendMessage('⏳ Waiting for other agents to vote...', {});
     }
 }

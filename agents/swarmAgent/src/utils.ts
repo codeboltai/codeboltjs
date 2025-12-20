@@ -17,7 +17,8 @@ export function parseJson<T>(response: string): T | null {
         }
         
         return JSON.parse(jsonStr) as T;
-    } catch {
+    } catch (e) {
+      codebolt.chat.sendMessage(e)
         return null;
     }
 }
