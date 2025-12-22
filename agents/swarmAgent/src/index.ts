@@ -13,7 +13,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     try {
         let ctx: AgentContext = {
             swarmId: '96168618-e8a5-461d-8d33-54bf17996b87',
-            swarmName:"Test Swarm",
+            swarmName: "Test Swarm",
             agentId: additionalVariable.agentId,
             agentName: `Agent:${additionalVariable.agentId}-${Math.random()}`,
             capabilities: additionalVariable.capabilities || ['coding'],
@@ -21,12 +21,12 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         };
         codebolt.chat.sendMessage('🐝 Swarm Agent Started', {});
 
-//  const finalCheck = await codebolt.agentDeliberation.list({
-//     // deliberationType:'shared-list'
-//         // search: `Test Swarm Initial Teams`,
-//     });
-//     codebolt.chat.sendMessage(JSON.stringify(finalCheck),{})
-//         return
+        //  const finalCheck = await codebolt.agentDeliberation.list({
+        //     // deliberationType:'shared-list'
+        //         // search: `Test Swarm Initial Teams`,
+        //     });
+        //     codebolt.chat.sendMessage(JSON.stringify(finalCheck),{})
+        //         return
         // Register to swarm
         let registerAgentResult = await codebolt.swarm.registerAgent(ctx.swarmId, {
             agentId: ctx.agentId,
@@ -38,6 +38,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
         // Create or join swarm mail thread and send greeting
         await findOrCreateSwarmThread(ctx);
+        // return
 
         // Check if teams exist
         const teamsResult = await codebolt.swarm.listTeams(ctx.swarmId);

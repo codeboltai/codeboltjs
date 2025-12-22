@@ -46,6 +46,20 @@ export interface ICreateThreadResponse {
     error?: string;
 }
 
+export interface IFindOrCreateThreadParams {
+    subject: string;
+    participants: string[];
+    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
+    metadata?: Record<string, unknown>;
+}
+
+export interface IFindOrCreateThreadResponse {
+    success: boolean;
+    thread?: any;
+    created?: boolean;
+    error?: string;
+}
+
 export interface IListThreadsParams {
     type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
     status?: 'open' | 'closed' | 'archived';
@@ -155,6 +169,17 @@ const cbmail = {
         );
     },
 
+    findOrCreateThread: async (params: IFindOrCreateThreadParams): Promise<IFindOrCreateThreadResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                ...params,
+                type: 'mail.find_or_create_thread',
+                threadType: params.type, // Move thread type to separate field
+            },
+            'mail.find_or_create_thread.response'
+        );
+    },
+
     listThreads: async (params: IListThreadsParams = {}): Promise<IListThreadsResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
@@ -207,10 +232,13 @@ const cbmail = {
     },
 
     sendMessage: async (params: ISendMessageParams): Promise<ISendMessageResponse> => {
+        // Rename threadId to mailThreadId to avoid conflict with websocket layer's threadId
+        const { threadId, ...rest } = params;
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: MailAction.SEND_MESSAGE,
-                ...params
+                ...rest,
+                mailThreadId: threadId,
             },
             MailResponseType.SEND_MESSAGE_RESPONSE
         );

@@ -43,6 +43,7 @@ import job from '../modules/job'
 import cbactionBlock from '../modules/actionBlock'
 import cbrequirementPlan from '../modules/requirementPlan'
 import cbswarm from '../modules/swarm'
+import cbcalendar from '../modules/calendar'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -149,6 +150,7 @@ class Codebolt {
     actionBlock = cbactionBlock;
     requirementPlan = cbrequirementPlan;
     swarm = cbswarm;
+    calendar = cbcalendar;
 
     /**
      * User message utilities for accessing current user message and context
@@ -321,7 +323,7 @@ class Codebolt {
 
                         // Call the custom handler
                         let additionalVariable = process.env
-                        const result = await handler(userMessage,additionalVariable);
+                        const result = await handler(userMessage, additionalVariable);
 
                         // Send processStoped with optional message
                         const message: any = {

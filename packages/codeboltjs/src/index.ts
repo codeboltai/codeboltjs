@@ -511,3 +511,69 @@ export type {
     UpdateStatusResponse,
     GetStatusSummaryResponse
 } from './modules/swarm';
+
+// Export calendar module and types
+export { default as calendar } from './modules/calendar';
+export type {
+    CalendarEventType,
+    CalendarRSVPStatus,
+    CalendarCheckType,
+    CalendarParticipantType,
+    CalendarParticipant,
+    CalendarEvent,
+    CalendarResponse,
+    ICreateEventParams,
+    IUpdateEventParams,
+    IDeleteEventParams,
+    IGetEventParams,
+    IListEventsParams,
+    IGetEventsInRangeParams,
+    IGetUpcomingEventsParams,
+    IGetTriggeredEventsParams,
+    IMarkEventCompleteParams,
+    IMarkEventsCompleteParams,
+    IRSVPParams,
+    ICreateEventResponse,
+    IUpdateEventResponse,
+    IDeleteEventResponse,
+    IGetEventResponse,
+    IListEventsResponse,
+    IGetEventsInRangeResponse,
+    IGetUpcomingEventsResponse,
+    IGetTriggeredEventsResponse,
+    IMarkEventCompleteResponse,
+    IMarkEventsCompleteResponse,
+    IGetTriggeredEventsAndMarkCompleteResponse,
+    IRSVPResponse,
+    IGetStatusResponse
+} from './modules/calendar';
+
+// Export episodicMemory module and types
+export { default as episodicMemory } from './modules/episodicMemory';
+export type {
+    EpisodicEvent,
+    EpisodicMemory,
+    EpisodicEventFilter,
+    EpisodicMemoryResponse,
+    ICreateMemoryParams,
+    IGetMemoryParams,
+    IAppendEventParams,
+    IQueryEventsParams,
+    IGetEventTypesParams,
+    IGetTagsParams,
+    IGetAgentsParams,
+    IArchiveMemoryParams,
+    IUnarchiveMemoryParams,
+    IUpdateTitleParams,
+    ICreateMemoryResponse,
+    IListMemoriesResponse,
+    IGetMemoryResponse,
+    IAppendEventResponse,
+    IQueryEventsResponse,
+    IGetEventTypesResponse,
+    IGetTagsResponse,
+    IGetAgentsResponse,
+    IArchiveMemoryResponse,
+    IUnarchiveMemoryResponse,
+    IUpdateTitleResponse
+} from './modules/episodicMemory';
