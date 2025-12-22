@@ -51,11 +51,13 @@ export interface ICreateMemoryParams {
 }
 
 export interface IGetMemoryParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IAppendEventParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
     event_type: string;
     emitting_agent_id: string;
     team_id?: string;
@@ -64,7 +66,8 @@ export interface IAppendEventParams {
 }
 
 export interface IQueryEventsParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
     lastMinutes?: number;
     lastCount?: number;
     tags?: string[];
@@ -75,27 +78,33 @@ export interface IQueryEventsParams {
 }
 
 export interface IGetEventTypesParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IGetTagsParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IGetAgentsParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IArchiveMemoryParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IUnarchiveMemoryParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
 }
 
 export interface IUpdateTitleParams {
-    memoryId: string;
+    memoryId?: string;
+    swarmId?: string;
     title: string;
 }
 
