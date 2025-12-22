@@ -12,7 +12,7 @@ import { findOrCreateSwarmThread } from './mailHandler';
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         let ctx: AgentContext = {
-            swarmId: '96168618-e8a5-461d-8d33-54bf17996b87',
+            swarmId: '77c15a89-1362-41f2-af3e-0cc70142f5e2',
             swarmName: "Test Swarm",
             agentId: additionalVariable.agentId,
             agentName: `Agent:${additionalVariable.agentId}-${Math.random()}`,

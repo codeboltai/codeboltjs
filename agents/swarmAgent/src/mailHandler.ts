@@ -37,7 +37,7 @@ export function formatTeamCreatedMessage(teamName: string, agentName: string): s
  * Format team join announcement message
  */
 export function formatTeamJoinMessage(agentName: string): string {
-    return `👋 ${agentName} has joined the team!`;
+    return `👋 hi`;
 }
 
 // ================================

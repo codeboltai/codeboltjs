@@ -2,14 +2,14 @@ import codebolt from '@codebolt/codeboltjs';
 import { FlatUserMessage } from "@codebolt/types/sdk";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-    const swarmId = '96168618-e8a5-461d-8d33-54bf17996b87';
-    
+    const swarmId = '77c15a89-1362-41f2-af3e-0cc70142f5e2';
+
     codebolt.chat.sendMessage("🚀 Starting Swarm initializer...");
 
     try {
         // Get swarm details
         const swarmResponse: any = await codebolt.swarm.getSwarm(swarmId);
-        
+
         if (!swarmResponse.data?.swarm) {
             codebolt.chat.sendMessage("❌ Failed to get swarm details");
             return;
@@ -17,7 +17,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
         const swarm = swarmResponse.data.swarm;
         const maxAgents = swarm.configuration?.maxAgents || 1;
-        
+
         codebolt.chat.sendMessage(`📋 Swarm: ${swarm.name} (Starting ${maxAgents} agents)`);
 
         // Get the task/message from the user request
@@ -31,10 +31,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             const agentIndex = index + 1;
             try {
                 codebolt.chat.sendMessage(`🔄 Starting thread for agent #${agentIndex}`);
-                
+
                 // Stagger thread starts to avoid overwhelming the system
                 await delay(1000 * index);
-                
+
                 const threadResult = await codebolt.thread.createAndStartThread({
                     title: `Swarm Task(${userTask}) - Agent #${agentIndex}`,
                     description: `Processing swarm task for agent #${agentIndex}`,
