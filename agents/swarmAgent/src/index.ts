@@ -5,7 +5,35 @@ import { findOrCreateStructureDeliberation } from './deliberation';
 import { handleJoinSwarm } from './teamHandler';
 import { findOrCreateSwarmThread } from './mailHandler';
 import { llmWithJsonRetry } from './utils';
-import { JOB_SPLIT_ANALYSIS_PROMPT, JOB_BLOCKER_ANALYSIS_PROMPT, SPLIT_APPROVAL_PROMPT, JOB_DEPENDENCY_ANALYSIS_PROMPT } from './prompts';
+import { JOB_SPLIT_ANALYSIS_PROMPT, JOB_BLOCKER_ANALYSIS_PROMPT, SPLIT_APPROVAL_PROMPT, JOB_DEPENDENCY_ANALYSIS_PROMPT, MAIN_AGENT_PROMPT } from './prompts';
+import { mainAgentLoop } from './mainAgent';
+
+import fs from 'fs'
+import {
+    InitialPromptGenerator,
+
+    ResponseExecutor
+} from '@codebolt/agent/unified'
+
+import {
+    EnvironmentContextModifier,
+    CoreSystemPromptModifier,
+    DirectoryContextModifier,
+    IdeContextModifier,
+    AtFileProcessorModifier,
+    ToolInjectionModifier,
+    ChatHistoryMessageModifier
+
+
+} from '@codebolt/agent/processor-pieces';
+
+
+
+import { AgentStep } from '@codebolt/agent/unified';
+import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
+
+
+
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
@@ -108,124 +136,101 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                         else {
                             codebolt.chat.sendMessage(`✅ Job "${job.name}" is not blocked. ${JSON.stringify(blockingAnalysis)}`);
-                            running = false;
-                            break;
 
+                            // Lock the job
+                            codebolt.chat.sendMessage(`🔒 Attempting to lock job "${job.name}"...`);
+                            const lockResult = await codebolt.job.lockJob(job.id, ctx.agentId, ctx.agentName);
+
+                            if (!lockResult) {
+                                codebolt.chat.sendMessage(`⚠️ Failed to acquire lock for job "${job.name}". Skipping.`);
+                                continue;
+                            }
+
+                            codebolt.chat.sendMessage(`✅ Successfully locked job "${job.name}"`);
+
+                            // Create a message for the main agent with the job details
+                            const taskMessage: FlatUserMessage = {
+                                ...reqMessage,
+                                userMessage: `${job.name}`,
+                                messageId: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                            };
+
+                            // Start the main agent with the task
+                            await mainAgentLoop(taskMessage);
+
+                            // 1. Close the job
+                            await codebolt.job.updateJob(job.id, { status: 'closed' });
+                            codebolt.chat.sendMessage(`✅ Job "${job.name}" marked as closed.`);
+
+                            // 2. Unlock the job
+                            await codebolt.job.unlockJob(job.id, ctx.agentId);
+                            codebolt.chat.sendMessage(`🔓 Job "${job.name}" unlocked.`);
+
+                            // 3. Resolve Blockers for other jobs
+                            // Find all jobs that are blocked
+                            const blockedJobsResponse = await codebolt.job.getBlockedJobs();
+                            const blockedJobs = (blockedJobsResponse as any).data?.jobs || blockedJobsResponse.jobs || [];
+
+                            for (const blockedJob of blockedJobs) {
+                                // Check if this job has any blockers
+                                // We need to fetch the job details or blockers? 
+                                // The job object from getBlockedJobs list might not have full blocker details populated depending on API.
+                                // But usually we can check 'blockers' or we might need to fetch blockers specifically.
+                                // Let's assume fetching the job details is safer or check if blockers property exists.
+                                // Actually better to list blockers? No, we have addBlocker/removeBlocker. 
+                                // To resolve a blocker we need its ID.
+                                // Let's try to get more details if needed, but assuming `blockedJob` has `blockers` field if it mirrors `Job` interface.
+
+                                // We might need to fetch the full job if it's not populated, but let's try assuming it is or fetch it.
+                                const fullBlockedJob = await codebolt.job.getJob(blockedJob.id);
+                                const targetJob = (fullBlockedJob as any).data?.job || fullBlockedJob.job;
+
+                                if (targetJob && (targetJob as any).blockers) {
+                                    for (const blocker of (targetJob as any).blockers) {
+                                        if (blocker.blockerJobIds && blocker.blockerJobIds.includes(job.id)) {
+                                            // Make a copy of ids without the current job
+                                            const remainingIds = blocker.blockerJobIds.filter((id: string) => id !== job.id);
+
+                                            if (remainingIds.length === 0) {
+                                                // Resolve this blocker entirely
+                                                await codebolt.job.resolveBlocker(targetJob.id, blocker.id, ctx.agentId);
+                                                codebolt.chat.sendMessage(`✅ Resolved blocker for job "${targetJob.name}" (dependency met).`);
+
+                                                // Also remove the "blocks" dependency
+                                                await codebolt.job.removeDependency(targetJob.id, job.id);
+
+
+                                            } else {
+                                                // Update the blocker with remaining IDs
+                                                // We can't update directly, so remove and add? OR does addBlocker update?
+                                                // Actually resolve matches 'blockerId'. 
+                                                // We should probably just remove and re-add or better, just leave it?
+                                                // The prompt logic might have just added one blocker per dependency set.
+                                                // If we remove the ID, we need to update the text or state.
+                                                // For now, let's remove and add new one if API allows, or if we can't update, we just resolve if it's the *only* one.
+                                                // If there are others, we theoretically should update the list.
+                                                // Let's try removing and re-adding for correctness.
+                                                await codebolt.job.removeBlocker(targetJob.id, blocker.id);
+                                                await codebolt.job.addBlocker(targetJob.id, {
+                                                    text: blocker.text,
+                                                    addedBy: blocker.addedBy,
+                                                    blockerJobIds: remainingIds
+                                                });
+
+                                                // Remove the dependency link
+                                                await codebolt.job.removeDependency(targetJob.id, job.id);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     } catch (err) {
                         console.error(`Error in dependency analysis for job ${job.id}:`, err);
                     }
                 }
 
-                // ------------------------------------------
-                // 2. Lock the Job
-                // ------------------------------------------
-                // ------------------------------------------
-                // 2. Lock the Job
-                // ------------------------------------------
-                // Skip if already locked by anyone (including self from previous run, as lock is persistent)
-                // if ((job as any).lock) {
-                //     // codebolt.chat.sendMessage(`ℹ️ Job "${job.name}" is already locked. Skipping.`);
-                //     continue;
-                // }
 
-                // try {
-                //     codebolt.chat.sendMessage(`🔒 Attempting to lock job "${job.name}"...`);
-                //     const lockResult = await codebolt.job.lockJob(job.id, ctx.agentId, ctx.agentName);
-
-                //     if (!lockResult || !lockResult.job) {
-                //         codebolt.chat.sendMessage(`⚠️ Failed to acquire lock for job "${job.name}". Skipping.`);
-                //         continue;
-                //     }
-
-                //     codebolt.chat.sendMessage(`✅ Successfully locked job "${job.name}"`);
-                //     const targetJob = job; // Alias for compatibility with existing logic
-
-                //     // ============================================
-                //     // JOB PROCESSING LOGIC
-                //     // ============================================
-
-                //     // 3. Check for Splitting (LLM Analysis)
-                //     // Only split root-level jobs (jobs without a parent)
-                //     if (!targetJob.parentJobId) {
-                //         codebolt.chat.sendMessage(`🤔 Analyzing job "${targetJob.name}" for complexity...`);
-
-                //         const splitAnalysis = await llmWithJsonRetry<JobSplitAnalysis>(
-                //             JOB_SPLIT_ANALYSIS_PROMPT
-                //                 .replace('{{jobName}}', targetJob.name)
-                //                 .replace('{{jobDescription}}', targetJob.description || 'No description provided'),
-                //             `Is this job too complex?`
-                //         );
-
-                //         if (splitAnalysis && splitAnalysis.shouldSplit && splitAnalysis.proposedJobs) {
-                //             codebolt.chat.sendMessage(`✂️ Job seems too large. Reason: ${splitAnalysis.reason}`);
-                //             codebolt.chat.sendMessage(`Proposing split into ${splitAnalysis.proposedJobs.length} sub-tasks...`);
-
-                //             await codebolt.job.addSplitProposal(targetJob.id, {
-                //                 description: splitAnalysis.reason,
-                //                 proposedJobs: splitAnalysis.proposedJobs
-                //             });
-                //             await codebolt.job.depositPheromone(targetJob.id, {
-                //                 type: 'split-proposed',
-                //                 intensity: 8,
-                //                 depositedBy: ctx.agentId,
-                //                 depositedByName: ctx.agentName
-                //             });
-
-                //             codebolt.chat.sendMessage(`✅ Split proposal added. Releasing lock.`);
-                //             await codebolt.job.unlockJob(targetJob.id, ctx.agentId);
-                //             // We processed this job by proposing a split, so we move on.
-                //             break;
-                //         }
-                //     } else {
-                //         codebolt.chat.sendMessage(`Note: Skipping split analysis for sub-task "${targetJob.name}"`);
-                //     }
-
-                //     // 4. Simulate Work & Add Pheromones
-                //     codebolt.chat.sendMessage(`⚙️ Working on "${targetJob.name}"...`);
-
-                //     // Add 'working' pheromone
-                //     await codebolt.job.depositPheromone(targetJob.id, {
-                //         type: 'activity',
-                //         intensity: 5,
-                //         depositedBy: ctx.agentId,
-                //         depositedByName: ctx.agentName
-                //     });
-
-                //     // 5. Check/Add Blockers (LLM Analysis)
-                //     codebolt.chat.sendMessage(`🔍 Checking for blockers or external dependencies...`);
-
-                //     const blockerAnalysis = await llmWithJsonRetry<JobBlockerAnalysis>(
-                //         JOB_BLOCKER_ANALYSIS_PROMPT
-                //             .replace('{{jobName}}', targetJob.name)
-                //             .replace('{{jobDescription}}', targetJob.description || 'No description provided'),
-                //         `Does this job have external blockers?`
-                //     );
-
-                //     if (blockerAnalysis && blockerAnalysis.hasBlocker) {
-                //         codebolt.chat.sendMessage(`🚧 Identified blocker. Reason: ${blockerAnalysis.blockerReason}`);
-                //         await codebolt.job.addBlocker(targetJob.id, {
-                //             text: blockerAnalysis.blockerReason || "External dependency identified",
-                //             addedBy: ctx.agentId,
-                //             addedByName: ctx.agentName,
-                //         });
-                //         await codebolt.job.depositPheromone(targetJob.id, {
-                //             type: 'blocked',
-                //             intensity: 9,
-                //             depositedBy: ctx.agentId,
-                //             depositedByName: ctx.agentName
-                //         });
-                //     }
-
-                //     codebolt.chat.sendMessage(`🐝 Agent is now owning job ${targetJob.id}.`);
-
-                //     // Break the loop to focus on this job (prevention of hoarding)
-                //     break;
-
-                // } catch (err) {
-                //     console.error(`Error locking job ${job.id}:`, err);
-                //     continue;
-                // }
             }
         }
 

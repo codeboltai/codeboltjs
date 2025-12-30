@@ -713,3 +713,25 @@ export type {
     CodebaseSearchResponse,
     McpToolSearchResponse
 } from './types/codebaseSearch';
+
+// ================================
+// File Update Intent Types
+// ================================
+export type {
+    IntentLevel,
+    FileIntent,
+    IntentStatus,
+    FileUpdateIntent,
+    CreateFileUpdateIntentRequest,
+    UpdateFileUpdateIntentRequest,
+    OverlappingIntentInfo,
+    IntentOverlapResult,
+    FileUpdateIntentFilters,
+    FileUpdateIntentResponse,
+    FileUpdateIntentListResponse,
+    FileUpdateIntentOverlapResponse,
+    FileUpdateIntentBlockedFilesResponse
+} from './types/fileUpdateIntent';
+
+// Export fileUpdateIntent module
+export { default as fileUpdateIntent } from './modules/fileUpdateIntent';
