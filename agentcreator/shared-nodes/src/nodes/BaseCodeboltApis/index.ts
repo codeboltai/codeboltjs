@@ -24,3 +24,4 @@ export * from './user-message-manager/index';
 export * from './mail';
 export * from './utils/index';
 export * from './vectordb/index';
+export * from './job/index';

@@ -44,9 +44,32 @@ export interface TeamDecision {
 
 export interface AgentContext {
     swarmId: string;
-    swarmName:string;
+    swarmName: string;
     agentId: string;
     agentName: string;
     capabilities: string[];
     requirements: string;
+}
+
+export interface JobSplitAnalysis {
+    shouldSplit: boolean;
+    reason: string;
+    proposedJobs?: { name: string; description: string }[];
+}
+
+export interface JobBlockerAnalysis {
+    hasBlocker: boolean;
+    blockerReason?: string;
+    blockerType?: string;
+}
+
+export interface SplitApprovalAnalysis {
+    action: 'approve' | 'reject';
+    reason: string;
+}
+
+export interface JobBlockingAnalysis {
+    hasBlocker: boolean;
+    blockingJobIds: string[];
+    reason: string;
 }

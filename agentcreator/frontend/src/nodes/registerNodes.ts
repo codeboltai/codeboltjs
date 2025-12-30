@@ -77,7 +77,13 @@ import {
   AddTokenNode, GetTokenNode,
 
   // Inference nodes
-  InferenceNode, GetModelConfigNode
+  InferenceNode, GetModelConfigNode,
+  // Job Management nodes
+  CreateJobNode, GetJobNode, ListJobsNode, UpdateJobNode, DeleteJobNode,
+  DepositPheromoneNode, GetPheromonesNode, SearchJobsByPheromoneNode,
+  LockJobNode, UnlockJobNode, CheckJobLockNode,
+  AddBidNode, ListBidsNode, AcceptBidNode,
+  AddBlockerNode, ResolveBlockerNode
 } from './BaseCodeboltApis/index';
 
 // Browser Notification nodes
@@ -549,6 +555,33 @@ export const registerNodes = async () => {
   // Inference nodes
   registerNodeWithMetadata(LiteGraph, InferenceNode, InferenceNode.metadata);
   registerNodeWithMetadata(LiteGraph, GetModelConfigNode, GetModelConfigNode.metadata);
+
+  // Job Management nodes
+  registerNodeWithMetadata(LiteGraph, CreateJobNode, CreateJobNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetJobNode, GetJobNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ListJobsNode, ListJobsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UpdateJobNode, UpdateJobNode.metadata);
+  registerNodeWithMetadata(LiteGraph, DeleteJobNode, DeleteJobNode.metadata);
+
+  // Job Pheromone nodes
+  registerNodeWithMetadata(LiteGraph, DepositPheromoneNode, DepositPheromoneNode.metadata);
+  registerNodeWithMetadata(LiteGraph, GetPheromonesNode, GetPheromonesNode.metadata);
+  registerNodeWithMetadata(LiteGraph, SearchJobsByPheromoneNode, SearchJobsByPheromoneNode.metadata);
+
+  // Job Locking nodes
+  registerNodeWithMetadata(LiteGraph, LockJobNode, LockJobNode.metadata);
+  registerNodeWithMetadata(LiteGraph, UnlockJobNode, UnlockJobNode.metadata);
+  registerNodeWithMetadata(LiteGraph, CheckJobLockNode, CheckJobLockNode.metadata);
+
+  // Job Bidding nodes
+  registerNodeWithMetadata(LiteGraph, AddBidNode, AddBidNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ListBidsNode, ListBidsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AcceptBidNode, AcceptBidNode.metadata);
+
+  // Job Blocker nodes
+  registerNodeWithMetadata(LiteGraph, AddBlockerNode, AddBlockerNode.metadata);
+  registerNodeWithMetadata(LiteGraph, ResolveBlockerNode, ResolveBlockerNode.metadata);
+
   // // AI Agent nodes
   // registerNodeWithMetadata(LiteGraph, UserMessageNode, UserMessageNode.metadata);
   // registerNodeWithMetadata(LiteGraph, SystemPromptNode, SystemPromptNode.metadata);

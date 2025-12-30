@@ -45,6 +45,10 @@ import cbrequirementPlan from '../modules/requirementPlan'
 import cbswarm from '../modules/swarm'
 import cbcalendar from '../modules/calendar'
 import cbepisodicMemory from '../modules/episodicMemory'
+import cbroadmap from '../modules/roadmap'
+import cbcodemap from '../modules/codemap'
+import cbprojectStructure from '../modules/projectStructure'
+import cbcodebaseSearch from '../modules/codebaseSearch'
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -153,6 +157,10 @@ class Codebolt {
     swarm = cbswarm;
     calendar = cbcalendar;
     episodicMemory = cbepisodicMemory;
+    roadmap = cbroadmap;
+    codemap = cbcodemap;
+    projectStructure = cbprojectStructure;
+    codebaseSearch = cbcodebaseSearch;
 
     /**
      * User message utilities for accessing current user message and context

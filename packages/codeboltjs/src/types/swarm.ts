@@ -40,7 +40,7 @@ export interface CreateTeamRequest {
     description?: string;
     maxMembers?: number;
     metadata?: Record<string, any>;
-     createdBy:string
+    createdBy: string
 }
 
 /**
@@ -52,7 +52,7 @@ export interface CreateRoleRequest {
     permissions?: string[];
     maxAssignees?: number;
     metadata?: Record<string, any>;
-     createdBy:string
+    createdBy: string
 }
 
 /**
@@ -64,7 +64,7 @@ export interface CreateVacancyRequest {
     description?: string;
     requirements?: string[];
     metadata?: Record<string, any>;
- createdBy:string
+    createdBy: string
 }
 
 /**
@@ -356,4 +356,11 @@ export interface GetStatusSummaryResponse extends SwarmResponse {
         statusSummary: StatusSummary;
         agents: SwarmAgent[];
     };
+}
+
+/**
+ * Response for getDefaultJobGroup
+ */
+export interface GetDefaultJobGroupResponse extends SwarmResponse {
+    data?: { groupId: string };
 }

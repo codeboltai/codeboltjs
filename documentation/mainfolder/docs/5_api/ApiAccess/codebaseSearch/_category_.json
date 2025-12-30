@@ -1,0 +1,8 @@
+{
+    "label": "Codebase Search",
+    "position": 16,
+    "link": {
+        "type": "generated-index",
+        "description": "Semantic code search APIs for finding relevant code snippets"
+    }
+}

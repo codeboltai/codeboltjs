@@ -78,8 +78,9 @@ export interface JobListFilters {
     limit?: number;
     offset?: number;
     // Sorting
-    sortBy?: 'priority' | 'createdAt' | 'updatedAt' | 'status';
+    sortBy?: 'priority' | 'createdAt' | 'updatedAt' | 'status' | 'importance';
     sortOrder?: 'asc' | 'desc';
+    filterOutBlockers?: boolean;
 }
 
 // Input types for create/update
@@ -97,7 +98,7 @@ export interface CreateJobData {
     dueDate?: string;
 }
 
-export interface UpdateJobData extends Partial<CreateJobData> {}
+export interface UpdateJobData extends Partial<CreateJobData> { }
 
 export interface CreateJobGroupData {
     name?: string;
@@ -145,4 +146,265 @@ export interface JobLabelsResponse {
 
 export interface JobGroupCreateResponse {
     group: JobGroup;
+}
+
+// ================================
+// Pheromone Types
+// ================================
+
+// Pheromone Type Configuration
+export interface PheromoneType {
+    name: string;
+    displayName: string;
+    description?: string;
+    color?: string;
+}
+
+// Pheromone Deposit on a Job
+export interface PheromoneDeposit {
+    id?: string;
+    type: string;
+    intensity?: number;
+    depositedBy?: string;
+    depositedByName?: string;
+    depositedAt?: string;
+}
+
+// Aggregated Pheromone Data
+export interface PheromoneAggregation {
+    type: string;
+    totalIntensity: number;
+    count: number;
+    depositors: string[];
+}
+
+// ================================
+// Split Proposal Types
+// ================================
+
+export interface ProposedJob {
+    name: string;
+    description?: string;
+    type?: JobType;
+    priority?: JobPriority;
+}
+
+export interface SplitProposal {
+    id: string;
+    description: string;
+    proposedJobs: ProposedJob[];
+    proposedBy?: string;
+    proposedByName?: string;
+    proposedAt: string;
+    status: 'pending' | 'accepted' | 'rejected';
+}
+
+// ================================
+// Job Lock Types
+// ================================
+
+export interface JobLock {
+    lockedBy: string;
+    lockedByName?: string;
+    lockedAt: string;
+}
+
+export interface JobLockStatus {
+    isLocked: boolean;
+    lock?: JobLock;
+}
+
+// ================================
+// Unlock Request Types
+// ================================
+
+export interface UnlockRequest {
+    id: string;
+    requestedBy: string;
+    requestedByName?: string;
+    reason: string;
+    requestedAt: string;
+    status: 'pending' | 'approved' | 'rejected';
+    respondedBy?: string;
+    respondedAt?: string;
+}
+
+// ================================
+// Job Bidding Types
+// ================================
+
+export interface JobBid {
+    id: string;
+    agentId: string;
+    agentName?: string;
+    reason: string;
+    priority: number;
+    bidAt: string;
+    status: 'pending' | 'accepted' | 'withdrawn';
+}
+
+// ================================
+// Job Blocker Types
+// ================================
+
+export interface JobBlocker {
+    id: string;
+    text: string;
+    addedBy: string;
+    addedByName?: string;
+    addedAt: string;
+    blockerJobIds?: string[];
+    resolved: boolean;
+    resolvedBy?: string;
+    resolvedAt?: string;
+}
+
+// ================================
+// Input Types for New Operations
+// ================================
+
+export interface AddPheromoneTypeData {
+    name: string;
+    displayName: string;
+    description?: string;
+    color?: string;
+}
+
+export interface DepositPheromoneData {
+    type: string;
+    intensity?: number;
+    depositedBy?: string;
+    depositedByName?: string;
+}
+
+export interface AddSplitProposalData {
+    description: string;
+    proposedJobs: ProposedJob[];
+    proposedBy?: string;
+    proposedByName?: string;
+}
+
+export interface AddUnlockRequestData {
+    requestedBy: string;
+    requestedByName?: string;
+    reason: string;
+}
+
+export interface AddBidData {
+    agentId: string;
+    agentName?: string;
+    reason: string;
+    priority: number;
+}
+
+export interface AddBlockerData {
+    text: string;
+    addedBy: string;
+    addedByName?: string;
+    blockerJobIds?: string[];
+}
+
+// ================================
+// Response Types for New Operations
+// ================================
+
+// Pheromone Responses
+export interface JobPheromoneTypesResponse {
+    types: PheromoneType[];
+}
+
+export interface JobPheromoneTypeResponse {
+    types: PheromoneType[];
+}
+
+export interface JobPheromoneDepositResponse {
+    job?: Job | null;
+}
+
+export interface JobPheromoneRemoveResponse {
+    job?: Job | null;
+}
+
+export interface JobPheromoneListResponse {
+    pheromones: PheromoneDeposit[];
+}
+
+export interface JobPheromoneAggregatedResponse {
+    aggregations: PheromoneAggregation[];
+}
+
+export interface JobPheromoneSearchResponse {
+    jobs: Job[];
+    totalCount: number;
+}
+
+// Split Proposal Responses
+export interface JobSplitProposeResponse {
+    job?: Job | null;
+}
+
+export interface JobSplitDeleteResponse {
+    job?: Job | null;
+}
+
+export interface JobSplitAcceptResponse {
+    job?: Job | null;
+}
+
+// Lock Responses
+export interface JobLockAcquireResponse {
+    job?: Job | null;
+}
+
+export interface JobLockReleaseResponse {
+    job?: Job | null;
+}
+
+export interface JobLockCheckResponse extends JobLockStatus { }
+
+// Unlock Request Responses
+export interface JobUnlockRequestAddResponse {
+    job?: Job | null;
+}
+
+export interface JobUnlockRequestApproveResponse {
+    job?: Job | null;
+}
+
+export interface JobUnlockRequestRejectResponse {
+    job?: Job | null;
+}
+
+export interface JobUnlockRequestDeleteResponse {
+    job?: Job | null;
+}
+
+// Bid Responses
+export interface JobBidAddResponse {
+    job?: Job | null;
+}
+
+export interface JobBidWithdrawResponse {
+    job?: Job | null;
+}
+
+export interface JobBidAcceptResponse {
+    job?: Job | null;
+}
+
+export interface JobBidListResponse {
+    bids: JobBid[];
+}
+
+// Blocker Responses
+export interface JobBlockerAddResponse {
+    job?: Job | null;
+}
+
+export interface JobBlockerRemoveResponse {
+    job?: Job | null;
+}
+
+export interface JobBlockerResolveResponse {
+    job?: Job | null;
 }

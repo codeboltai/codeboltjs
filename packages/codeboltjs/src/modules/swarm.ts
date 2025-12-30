@@ -31,7 +31,8 @@ import type {
     ApplyForVacancyResponse,
     CloseVacancyResponse,
     UpdateStatusResponse,
-    GetStatusSummaryResponse
+    GetStatusSummaryResponse,
+    GetDefaultJobGroupResponse
 } from '../types/swarm';
 
 // Re-export types for convenience
@@ -73,7 +74,8 @@ export type {
     ApplyForVacancyResponse,
     CloseVacancyResponse,
     UpdateStatusResponse,
-    GetStatusSummaryResponse
+    GetStatusSummaryResponse,
+    GetDefaultJobGroupResponse
 } from '../types/swarm';
 
 /**
@@ -605,6 +607,28 @@ const codeboltSwarm = {
             {
                 type: 'swarmEvent',
                 action: 'getSwarmStatus',
+                requestId,
+                swarmId
+            },
+            'swarmResponse'
+        );
+    },
+
+    // ================================
+    // Job Group Management
+    // ================================
+
+    /**
+     * Get the default job group ID associated with a swarm
+     * @param swarmId - ID of the swarm
+     * @returns Promise resolving to the default job group ID
+     */
+    getDefaultJobGroup: (swarmId: string): Promise<GetDefaultJobGroupResponse> => {
+        const requestId = randomUUID();
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                type: 'swarmEvent',
+                action: 'getDefaultJobGroup',
                 requestId,
                 swarmId
             },

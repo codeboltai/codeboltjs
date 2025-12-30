@@ -177,8 +177,55 @@ export type {
     JobDependencyResponse,
     JobReadyBlockedResponse,
     JobLabelsResponse,
-    JobGroupCreateResponse
+    JobGroupCreateResponse,
+    // Pheromone types
+    PheromoneType,
+    PheromoneDeposit,
+    PheromoneAggregation,
+    AddPheromoneTypeData,
+    DepositPheromoneData,
+    JobPheromoneTypesResponse,
+    JobPheromoneTypeResponse,
+    JobPheromoneDepositResponse,
+    JobPheromoneRemoveResponse,
+    JobPheromoneListResponse,
+    JobPheromoneAggregatedResponse,
+    JobPheromoneSearchResponse,
+    // Split proposal types
+    ProposedJob,
+    SplitProposal,
+    AddSplitProposalData,
+    JobSplitProposeResponse,
+    JobSplitDeleteResponse,
+    JobSplitAcceptResponse,
+    // Lock types
+    JobLock,
+    JobLockStatus,
+    JobLockAcquireResponse,
+    JobLockReleaseResponse,
+    JobLockCheckResponse,
+    // Unlock request types
+    UnlockRequest,
+    AddUnlockRequestData,
+    JobUnlockRequestAddResponse,
+    JobUnlockRequestApproveResponse,
+    JobUnlockRequestRejectResponse,
+    JobUnlockRequestDeleteResponse,
+    // Bidding types
+    JobBid,
+    AddBidData,
+    JobBidAddResponse,
+    JobBidWithdrawResponse,
+    JobBidAcceptResponse,
+    JobBidListResponse,
+    // Blocker types
+    JobBlocker,
+    AddBlockerData,
+    JobBlockerAddResponse,
+    JobBlockerRemoveResponse,
+    JobBlockerResolveResponse
 } from './types/job';
+
 
 // ================================
 // Group Feedback Types
@@ -577,3 +624,92 @@ export type {
     IUnarchiveMemoryResponse,
     IUpdateTitleResponse
 } from './modules/episodicMemory';
+
+// ================================
+// Roadmap Types
+// ================================
+export type {
+    RoadmapCreator,
+    FeatureStatus,
+    IdeaStatus,
+    ImpactLevel,
+    DifficultyLevel,
+    Feature,
+    Phase,
+    Idea,
+    RoadmapData,
+    CreatePhaseData,
+    UpdatePhaseData,
+    CreateFeatureData,
+    UpdateFeatureData,
+    MoveFeatureData,
+    CreateIdeaData,
+    UpdateIdeaData,
+    ReviewIdeaData,
+    MoveIdeaToRoadmapData,
+    RoadmapGetResponse,
+    RoadmapPhasesResponse,
+    RoadmapPhaseResponse,
+    RoadmapDeleteResponse,
+    RoadmapFeaturesResponse,
+    RoadmapFeatureResponse,
+    RoadmapIdeasResponse,
+    RoadmapIdeaResponse,
+    RoadmapMoveToRoadmapResponse
+} from './types/roadmap';
+
+// ================================
+// Codemap Types
+// ================================
+export type {
+    CodemapStatus,
+    CodemapSection,
+    Codemap,
+    CodemapInfo,
+    CreateCodemapData,
+    UpdateCodemapData,
+    CodemapListResponse,
+    CodemapGetResponse,
+    CodemapCreateResponse,
+    CodemapSaveResponse,
+    CodemapUpdateResponse,
+    CodemapDeleteResponse
+} from './types/codemap';
+
+// ================================
+// Project Structure Types
+// ================================
+export type {
+    HttpMethod,
+    ApiRoute,
+    DatabaseColumn,
+    DatabaseTable,
+    Dependency,
+    RunCommand,
+    UiRoute,
+    DeploymentConfig,
+    GitInfo,
+    DesignGuidelines,
+    FrameworkInfo,
+    PackageMetadata,
+    WorkspaceMetadata,
+    CreatePackageData,
+    UpdatePackageData,
+    ProjectStructureMetadataResponse,
+    ProjectStructurePackagesResponse,
+    ProjectStructurePackageResponse,
+    ProjectStructureDeleteResponse,
+    ProjectStructureItemResponse,
+    ProjectStructureUpdateResponse
+} from './types/projectStructure';
+
+// ================================
+// Codebase Search Types
+// ================================
+export type {
+    CodeSearchResult,
+    CodebaseSearchOptions,
+    SearchMcpToolOptions,
+    CodebaseSearchResponse,
+    McpToolSearchResponse
+} from './types/codebaseSearch';
