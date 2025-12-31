@@ -7,6 +7,7 @@ import { findOrCreateSwarmThread } from './mailHandler';
 import { llmWithJsonRetry } from './utils';
 import { JOB_SPLIT_ANALYSIS_PROMPT, JOB_BLOCKER_ANALYSIS_PROMPT, SPLIT_APPROVAL_PROMPT, JOB_DEPENDENCY_ANALYSIS_PROMPT, MAIN_AGENT_PROMPT } from './prompts';
 import { mainAgentLoop } from './mainAgent';
+import { plannerAgent } from './planner';
 
 import fs from 'fs'
 import {
@@ -135,7 +136,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                         }
 
                         else {
-                            codebolt.chat.sendMessage(`✅ Job "${job.name}" is not blocked. ${JSON.stringify(blockingAnalysis)}`);
+                            codebolt.chat.sendMessage(`✅ Job "${job.name}" is not blocked.`);
 
                             // Lock the job
                             codebolt.chat.sendMessage(`🔒 Attempting to lock job "${job.name}"...`);
@@ -148,15 +149,44 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                             codebolt.chat.sendMessage(`✅ Successfully locked job "${job.name}"`);
 
-                            // Create a message for the main agent with the job details
-                            const taskMessage: FlatUserMessage = {
+
+                            // Create a safe filename for the plan
+                            const safeJobName = job.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                            const planFileName = `plans/${ctx.agentId}-${safeJobName}.md`;
+
+                            // Ensure plans directory exists
+                            if (!fs.existsSync('plans')) {
+                                fs.mkdirSync('plans');
+                            }
+
+                            // Create a message for the planner with the specific filename instruction
+                            const plannerMessage: FlatUserMessage = {
                                 ...reqMessage,
-                                userMessage: `${job.name}`,
+                                userMessage: `Plan for job: ${job.name}\n\nTask Description:\n${job.description}\n\nIMPORTANT: You must write the plan to '${planFileName}'.`,
                                 messageId: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                             };
 
-                            // Start the main agent with the task
-                            await mainAgentLoop(taskMessage);
+                            // Start Planning
+                            codebolt.chat.sendMessage(`🧠 Creating a plan for "${job.name}"...`);
+                            await plannerAgent(plannerMessage);
+
+                            // Verify plan was created
+                            // if (!fs.existsSync(planFileName)) {
+                            //     codebolt.chat.sendMessage(`❌ Planner failed to create plan file at ${planFileName}. Skipping execution for this job.`);
+                            //     await codebolt.job.unlockJob(job.id, ctx.agentId);
+                            //     continue;
+                            // }
+
+                            codebolt.chat.sendMessage(`✅ Plan verified at ${planFileName}.`);
+
+                            // Create a message for the main agent with the job details and plan path
+                            const mainAgentMessage: FlatUserMessage = {
+                                ...reqMessage,
+                                userMessage: `${job.name}`, // Preserving original format for now, mainAgent receives plan path via context or logic
+                                messageId: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                            };
+                            // Start the main agent with the task, passing the explicit plan path
+                            await mainAgentLoop(mainAgentMessage, planFileName);
 
                             // 1. Close the job
                             await codebolt.job.updateJob(job.id, { status: 'closed' });

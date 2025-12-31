@@ -1,19 +1,9 @@
 import codebolt from '@codebolt/codeboltjs';
-import { FlatUserMessage } from '@codebolt/types/sdk';
-import { AgentContext, JobSplitAnalysis, JobBlockerAnalysis, SplitApprovalAnalysis, JobBlockingAnalysis } from './types';
-import { findOrCreateStructureDeliberation } from './deliberation';
-import { handleJoinSwarm } from './teamHandler';
-import { findOrCreateSwarmThread } from './mailHandler';
-import { llmWithJsonRetry } from './utils';
-import { JOB_SPLIT_ANALYSIS_PROMPT, JOB_BLOCKER_ANALYSIS_PROMPT, SPLIT_APPROVAL_PROMPT, JOB_DEPENDENCY_ANALYSIS_PROMPT, MAIN_AGENT_PROMPT } from './prompts';
-
-import fs from 'fs'
 import {
     InitialPromptGenerator,
-
     ResponseExecutor
 } from '@codebolt/agent/unified'
-
+import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
     EnvironmentContextModifier,
     CoreSystemPromptModifier,
@@ -22,8 +12,6 @@ import {
     AtFileProcessorModifier,
     ToolInjectionModifier,
     ChatHistoryMessageModifier
-
-
 } from '@codebolt/agent/processor-pieces';
 
 
@@ -31,13 +19,25 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
+let systemPrompt = `You are a Planner Agent. Your goal is to analyze the request and create a detailed implementation plan.
+    
+    ## Core Principles
+    *   **Strictly Read-Only (mostly):** You can inspect files, navigate code repositories.
+    *   **Write permission:** You are ONLY allowed to write to the specs file.
 
-export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: string) => {
+    ## Steps
+    1.  **Analyze:** specific request and codebase.
+    2.  **Plan:** Create a step-by-step plan.
+    3.  **Write:** Write the plan to the file specified in the user request (e.g. \`plans/agent_123-my_job.md\`). This is Mandatory.
+    4.  **Finish:** Once the file is written, the task is complete.
+
+    `.trim();
+
+export const plannerAgent = (async (reqMessage: FlatUserMessage) => {
+    //Detail Planner Agent
     try {
-        let systemPrompt = MAIN_AGENT_PROMPT;
-        systemPrompt += `\n\n# IMPORTANT\nCheck for an existing plan in \`${planPath}\` before starting. If it exists, YOU MUST READ IT.`;
 
-        // codebolt.chat.sendMessage("Gemini agent started", {})
+        codebolt.chat.sendMessage("Planner agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
         let promptGenerator = new InitialPromptGenerator({
 
@@ -96,7 +96,6 @@ export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: strin
             completed = executionResult.completed;
             prompt = executionResult.nextMessage;
 
-
             if (completed) {
                 break;
             }
@@ -105,10 +104,8 @@ export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: strin
 
 
 
-
-
     } catch (error) {
-
+        console.error("Planner agent error:", error);
     }
 
-}
+})
