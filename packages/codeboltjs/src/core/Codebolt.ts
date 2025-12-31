@@ -48,7 +48,8 @@ import cbepisodicMemory from '../modules/episodicMemory'
 import cbroadmap from '../modules/roadmap'
 import cbcodemap from '../modules/codemap'
 import cbprojectStructure from '../modules/projectStructure'
-import cbcodebaseSearch from '../modules/codebaseSearch'
+import cbcodebaseSearch from '../modules/codebaseSearch';
+import cbfileUpdateIntent from '../modules/fileUpdateIntent';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -161,6 +162,7 @@ class Codebolt {
     codemap = cbcodemap;
     projectStructure = cbprojectStructure;
     codebaseSearch = cbcodebaseSearch;
+    fileUpdateIntent = cbfileUpdateIntent;
 
     /**
      * User message utilities for accessing current user message and context

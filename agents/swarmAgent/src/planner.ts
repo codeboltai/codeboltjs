@@ -1,10 +1,9 @@
 import codebolt from '@codebolt/codeboltjs';
-import { fileUpdateIntent } from '@codebolt/codeboltjs';
 
 import {
     InitialPromptGenerator,
     ResponseExecutor
-} from '@codebolt/agent/unified'
+} from '@codebolt/agent/unified';
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
     EnvironmentContextModifier,
@@ -175,20 +174,33 @@ export const plannerAgent = (async (reqMessage: FlatUserMessage, planFileName: s
 
                             // 3. Register File Update Intents
                             if (parsedData.fileIntents && Array.isArray(parsedData.fileIntents)) {
+                                codebolt.chat.sendMessage(`Found ${parsedData.fileIntents.length} file intents to process.`, {});
                                 for (const intent of parsedData.fileIntents) {
-                                    if (!intent.path) continue;
-                                    // Create intent
-                                    await fileUpdateIntent.create({
-                                        environmentId: 'local',
-                                        files: [{
-                                            filePath: intent.path,
-                                            intentLevel: 3 // Priority-Based
-                                        }],
-                                        description: intent.description || "Planned update",
-                                        priority: 3 // Medium priority for planned changes
-                                    }, "planner-agent", "Planner Agent");
-                                    codebolt.chat.sendMessage(`Created intent for ${intent.path}`, {});
+                                    if (!intent.path) {
+                                        codebolt.chat.sendMessage("Skipping intent with missing path.", {});
+                                        continue;
+                                    }
+                                    codebolt.chat.sendMessage(`Processing intent for: ${intent.path}`, {});
+
+                                    try {
+                                        // Create intent
+                                        await codebolt.fileUpdateIntent.create({
+                                            environmentId: 'local-default',
+                                            files: [{
+                                                filePath: intent.path,
+                                                intentLevel: 3 // Priority-Based
+                                            }],
+                                            description: intent.description || "Planned update",
+                                            priority: 3 // Medium priority for planned changes
+                                        }, "planner-agent", "Planner Agent");
+                                        codebolt.chat.sendMessage(`Successfully created intent for ${intent.path}`, {});
+                                    } catch (err) {
+                                        codebolt.chat.sendMessage(`❌ Failed to create intent for ${intent.path}: ${err}`, {});
+                                        console.error(err);
+                                    }
                                 }
+                            } else {
+                                codebolt.chat.sendMessage("No file intents found in parsed data.", {});
                             }
 
                             // 4. Update Project Structure (basic implementation)
