@@ -47,6 +47,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             requirements: additionalVariable.requirements || 'Build a web application',
         };
 
+
         codebolt.chat.sendMessage(`🤖 Agent ${ctx.agentName} starting...`);
 
         // Get Default Job Group
@@ -168,7 +169,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                             // Start Planning
                             codebolt.chat.sendMessage(`🧠 Creating a plan for "${job.name}"...`);
-                            await plannerAgent(plannerMessage);
+                            await plannerAgent(plannerMessage, planFileName);
 
                             // Verify plan was created
                             // if (!fs.existsSync(planFileName)) {
