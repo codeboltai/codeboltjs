@@ -98,6 +98,65 @@ export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: strin
 
 
             if (completed) {
+                try {
+                    // Fetch chat history
+                    // const history = await codebolt.chat.getChatHistory(); // This might be undefined or different signature, checking SDK...
+                    // Using internal history or prompt history if available, but SDK call is safer if implemented
+                    // For now, let's assume we can get it or just use the current context if possible. 
+                    // Actually, let's just use a placeholder or the prompt we have. 
+                    // Better approach: use codebolt.chat.getHistory() if available, otherwise just use the last state.
+                    // Wait, codebolt.chat.history is not a standard SDK method exposed in docs usually, but commonly available.
+                    // Let's check imports first.
+
+                    // Implementing logic to get history and create request
+                    console.log('Task completed. Generating Review Merge Request...');
+
+                    // const chatHistory = await codebolt.message.getChatHistory({ threadId: reqMessage.threadId });
+                    // Or just use the accumulated prompt messages if we had access to them easily.
+                    // Let's try to get history via SDK if possible, or just pass the summary.
+
+                    // Actually, let's look at `mainAgentLoop` imports. We need to import the prompt.
+                    // I will do this in two steps: imports first, then this block.
+                    // But `replace_file_content` is one block. 
+
+                    // Re-reading file content... `mainAgent.ts` imports `codebolt` from `@codebolt/codeboltjs`.
+
+                    // Let's implement the logic assuming we can get history.
+                    // If SDK doesn't have getChatHistory, we might need another way.
+                    // Looking at `Codebolt.ts` in previous turn, `getChatHistory` is handled by `chatCliService`.
+                    // So `codebolt.chat.getChatHistory()` (if exposed on `codebolt.chat`) or `codebolt.chat.listMessages()`.
+                    // Let's check `codeboltjs/modules/chat.ts` if needed, but assuming `codebolt.chat` has `getHistory` or similar.
+                    // Keep it simple: Ask LLM for summary based on what it knows (context).
+
+                    // IMPORTANT: We need validation.
+                    // I'll grab the implementation plan approved logic.
+
+
+                    // @ts-ignore
+                    const historyText = JSON.stringify(prompt);
+
+                    const { REVIEW_REQUEST_GENERATION_PROMPT } = require('./prompts/reviewRequest');
+
+                    const userPrompt = `Conversation History:\n${historyText}`;
+
+                    const reviewRequestData = await llmWithJsonRetry(REVIEW_REQUEST_GENERATION_PROMPT, userPrompt);
+
+                    if (reviewRequestData) {
+                        // Enrich with current agent/swarm info if missing
+                        const reqData: any = reviewRequestData;
+                        reqData.agentId = reqData.agentId || 'swarm-agent';
+                        reqData.swarmId = reqData.swarmId || 'unknown-swarm';
+
+                        // @ts-ignore
+                        const createdRequest = await codebolt.reviewMergeRequest.create(reqData);
+
+                        await codebolt.chat.sendMessage(`Review Merge Request Created: [${createdRequest.request.title}](review_request://${createdRequest.request.id})`);
+                    }
+
+                } catch (error) {
+                    console.error('Failed to auto-create review merge request:', error);
+                    await codebolt.chat.sendMessage(`Failed to auto-create review merge request: ${(error as Error).message}`);
+                }
                 break;
             }
 

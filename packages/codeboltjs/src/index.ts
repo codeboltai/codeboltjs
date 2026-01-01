@@ -735,3 +735,28 @@ export type {
 
 // Export fileUpdateIntent module
 export { default as fileUpdateIntent } from './modules/fileUpdateIntent';
+
+// Export projectStructureUpdateRequest module
+export { default as projectStructureUpdateRequest } from './modules/projectStructureUpdateRequest';
+
+// ================================
+// Review Merge Request Types
+// ================================
+export type {
+    ReviewRequestStatus,
+    ReviewRequestType,
+    MergeStrategy,
+    WorktreeDetails,
+    MergeConfig,
+    MergeResult,
+    ReviewFeedback,
+    ReviewMergeRequest,
+    CreateReviewMergeRequest,
+    UpdateReviewMergeRequest,
+    AddReviewFeedback,
+    ReviewMergeRequestFilters,
+    ReviewMergeRequestDisplaySettings
+} from './types/reviewMergeRequest';
+
+// Export reviewMergeRequest module
+export { default as reviewMergeRequest } from './modules/reviewMergeRequest';

@@ -50,6 +50,8 @@ import cbcodemap from '../modules/codemap'
 import cbprojectStructure from '../modules/projectStructure'
 import cbcodebaseSearch from '../modules/codebaseSearch';
 import cbfileUpdateIntent from '../modules/fileUpdateIntent';
+import cbprojectStructureUpdateRequest from '../modules/projectStructureUpdateRequest';
+import cbreviewMergeRequest from '../modules/reviewMergeRequest';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -163,6 +165,8 @@ class Codebolt {
     projectStructure = cbprojectStructure;
     codebaseSearch = cbcodebaseSearch;
     fileUpdateIntent = cbfileUpdateIntent;
+    projectStructureUpdateRequest = cbprojectStructureUpdateRequest;
+    reviewMergeRequest = cbreviewMergeRequest;
 
     /**
      * User message utilities for accessing current user message and context
