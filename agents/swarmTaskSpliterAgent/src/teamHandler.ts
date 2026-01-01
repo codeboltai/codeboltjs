@@ -118,7 +118,7 @@ async function findTeam(ctx: AgentContext, teams: any[], assignedRole: string): 
             if (teamDecision.teamId) {
                 await codebolt.swarm.joinTeam(ctx.swarmId, teamDecision.teamId, ctx.agentId);
                 codebolt.chat.sendMessage(`✅ Joined team`, {});
-                
+
                 // Join the team's mail thread
                 const team = teams.find((t) => t.id === teamDecision.teamId);
                 if (team) {
@@ -222,10 +222,10 @@ async function proposeTeamViaDeliberation(
             });
             codebolt.chat.sendMessage(`✅ Added first proposal to deliberation`, {});
         }
-        
+
         // Check if we should finalize
         await checkAndFinalizeTeamDeliberation(ctx, existing.id, teamName, teamDescription);
-        
+
     } else {
         // No deliberation exists - create new one
         codebolt.chat.sendMessage(`📝 No deliberation found, creating new...`, {});
@@ -241,7 +241,7 @@ async function proposeTeamViaDeliberation(
 
         if (createResult.payload?.deliberation) {
             const deliberationId = createResult.payload.deliberation.id;
-            
+
             await codebolt.agentDeliberation.respond({
                 deliberationId,
                 responderId: ctx.agentId,
@@ -249,7 +249,7 @@ async function proposeTeamViaDeliberation(
                 body: formatTeamProposalMessage(teamName, teamDescription, neededRoles),
             });
             codebolt.chat.sendMessage(`✅ Created team deliberation with proposal`, {});
-            
+
             // Check if we should finalize (single agent case)
             await checkAndFinalizeTeamDeliberation(ctx, deliberationId, teamName, teamDescription);
         }
@@ -285,7 +285,7 @@ async function checkAndFinalizeTeamDeliberation(
 
     // Count unique participants from contributors in responses + voters
     const participantIds = new Set<string>();
-    
+
     // Add all contributors from responses (not just responderId)
     responses.forEach((r: any) => {
         // Check for contributors array (shared-list type deliberations)
@@ -296,7 +296,7 @@ async function checkAndFinalizeTeamDeliberation(
             participantIds.add(r.responderId);
         }
     });
-    
+
     // Add voters
     votes.forEach((v) => participantIds.add(v.voterId));
 
@@ -334,11 +334,11 @@ async function checkAndFinalizeTeamDeliberation(
 
             if (createResult.success) {
                 codebolt.chat.sendMessage(`✅ Created team: ${teamName}`, {});
-                
+
                 // Create mail thread for the team
                 const teamId = createResult.data?.team?.id || '';
                 await createTeamMailThread(ctx, teamId, teamName);
-                
+
                 // Close deliberation
                 await codebolt.agentDeliberation.update({
                     deliberationId,

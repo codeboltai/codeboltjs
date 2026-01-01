@@ -6,7 +6,10 @@ import { handleJoinSwarm } from './teamHandler';
 import { findOrCreateSwarmThread } from './mailHandler';
 import { llmWithJsonRetry } from './utils';
 import { JOB_SPLIT_ANALYSIS_PROMPT, JOB_BLOCKER_ANALYSIS_PROMPT, SPLIT_APPROVAL_PROMPT } from './prompts';
+import { mainAgentLoop } from './mainAgent';
+import { plannerAgent } from './planner';
 
+import fs from 'fs'
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         let ctx: AgentContext = {
@@ -170,43 +173,89 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 codebolt.chat.sendMessage(`Note: Skipping split analysis for sub-task "${targetJob.name}"`);
             }
 
-            // 4. Simulate Work & Add Pheromones
-            codebolt.chat.sendMessage(`⚙️ Working on "${targetJob.name}"...`);
+            // 4. Execution Logic (if not split)
+            if (!targetJob.parentJobId || true) { // We process both root and sub-tasks here
+                codebolt.chat.sendMessage(`🐝 Agent is now owning job ${targetJob.id}.`);
 
-            // Add 'working' pheromone
-            await codebolt.job.depositPheromone(targetJob.id, {
-                type: 'activity',
-                intensity: 5,
-                depositedBy: ctx.agentId,
-                depositedByName: ctx.agentName
-            });
+                const safeJobName = targetJob.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const planFileName = `plans/${ctx.agentId}-${safeJobName}.md`;
 
-            // 5. Check/Add Blockers (LLM Analysis)
-            codebolt.chat.sendMessage(`🔍 Checking for blockers or external dependencies...`);
+                // Ensure plans directory exists
+                if (!fs.existsSync('plans')) {
+                    fs.mkdirSync('plans');
+                }
 
-            const blockerAnalysis = await llmWithJsonRetry<JobBlockerAnalysis>(
-                JOB_BLOCKER_ANALYSIS_PROMPT
-                    .replace('{{jobName}}', targetJob.name)
-                    .replace('{{jobDescription}}', targetJob.description || 'No description provided'),
-                `Does this job have external blockers?`
-            );
+                // Create a message for the planner with the specific filename instruction
+                const plannerMessage: FlatUserMessage = {
+                    ...reqMessage,
+                    userMessage: `Plan for job: ${targetJob.name}\n\nTask Description:\n${targetJob.description}\n\nIMPORTANT: You must write the plan to '${planFileName}'.`,
+                    messageId: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                };
 
-            if (blockerAnalysis && blockerAnalysis.hasBlocker) {
-                codebolt.chat.sendMessage(`🚧 Identified blocker. Reason: ${blockerAnalysis.blockerReason}`);
-                await codebolt.job.addBlocker(targetJob.id, {
-                    text: blockerAnalysis.blockerReason || "External dependency identified",
-                    addedBy: ctx.agentId,
-                    addedByName: ctx.agentName,
-                });
-                await codebolt.job.depositPheromone(targetJob.id, {
-                    type: 'blocked',
-                    intensity: 9,
-                    depositedBy: ctx.agentId,
-                    depositedByName: ctx.agentName
-                });
+                // Start Planning
+                codebolt.chat.sendMessage(`🧠 Creating a plan for "${targetJob.name}"...`);
+                await plannerAgent(plannerMessage, planFileName);
+
+                codebolt.chat.sendMessage(`✅ Plan verified at ${planFileName}.`);
+
+                // Create a message for the main agent with the job details and plan path
+                const mainAgentMessage: FlatUserMessage = {
+                    ...reqMessage,
+                    userMessage: `${targetJob.name}`, // Preserving original format for now, mainAgent receives plan path via context or logic
+                    messageId: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                };
+                // Start the main agent with the task, passing the explicit plan path
+                await mainAgentLoop(mainAgentMessage, planFileName);
+
+                // 1. Close the job
+                await codebolt.job.updateJob(targetJob.id, { status: 'closed' });
+                codebolt.chat.sendMessage(`✅ Job "${targetJob.name}" marked as closed.`);
+
+                // 2. Unlock the job
+                await codebolt.job.unlockJob(targetJob.id, ctx.agentId);
+                codebolt.chat.sendMessage(`🔓 Job "${targetJob.name}" unlocked.`);
+
+                // 3. Resolve Blockers for other jobs
+                // Find all jobs that are blocked
+                const blockedJobsResponse = await codebolt.job.getBlockedJobs();
+                const blockedJobs = (blockedJobsResponse as any).data?.jobs || blockedJobsResponse.jobs || [];
+
+                for (const blockedJob of blockedJobs) {
+                    const fullBlockedJob = await codebolt.job.getJob(blockedJob.id);
+                    const targetBlockedJob = (fullBlockedJob as any).data?.job || fullBlockedJob.job;
+
+                    if (targetBlockedJob && (targetBlockedJob as any).blockers) {
+                        for (const blocker of (targetBlockedJob as any).blockers) {
+                            if (blocker.blockerJobIds && blocker.blockerJobIds.includes(targetJob.id)) {
+                                // Make a copy of ids without the current job
+                                const remainingIds = blocker.blockerJobIds.filter((id: string) => id !== targetJob.id);
+
+                                if (remainingIds.length === 0) {
+                                    // Resolve this blocker entirely
+                                    await codebolt.job.resolveBlocker(targetBlockedJob.id, blocker.id, ctx.agentId);
+                                    codebolt.chat.sendMessage(`✅ Resolved blocker for job "${targetBlockedJob.name}" (dependency met).`);
+
+                                    // Also remove the "blocks" dependency
+                                    await codebolt.job.removeDependency(targetBlockedJob.id, targetJob.id);
+
+
+                                } else {
+                                    // Update the blocker with remaining IDs
+                                    await codebolt.job.removeBlocker(targetBlockedJob.id, blocker.id);
+                                    await codebolt.job.addBlocker(targetBlockedJob.id, {
+                                        text: blocker.text,
+                                        addedBy: blocker.addedBy,
+                                        blockerJobIds: remainingIds
+                                    });
+
+                                    // Remove the dependency link
+                                    await codebolt.job.removeDependency(targetBlockedJob.id, targetJob.id);
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
-            codebolt.chat.sendMessage(`🐝 Agent is now owning job ${targetJob.id}.`);
 
 
 

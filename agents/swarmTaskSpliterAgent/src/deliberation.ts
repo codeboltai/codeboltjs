@@ -158,7 +158,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
 
     if (alreadyContributed || alreadyVoted) {
         codebolt.chat.sendMessage('ℹ️ Already participated in this deliberation', {});
-        
+
         // Check if we're the last agent and should finalize
         await checkAndFinalizeDeliberation(ctx, deliberation.id);
         return;
@@ -186,7 +186,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
             }
             codebolt.chat.sendMessage(`✅ Added proposal: ${proposal.summary}`, {});
         }
-        
+
         // Check if we're the last agent and should finalize
         await checkAndFinalizeDeliberation(ctx, deliberation.id);
         return;
@@ -273,7 +273,7 @@ async function reviewStructureDeliberation(ctx: AgentContext, deliberation: any)
  */
 async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: string): Promise<void> {
     // Get all agents in the swarm
-    const agentsResult:any = await codebolt.swarm.getSwarm(ctx.swarmId);
+    const agentsResult: any = await codebolt.swarm.getSwarm(ctx.swarmId);
     // const allAgents = agentsResult.data?.agents || [];
     // const totalAgentCount = allAgents.length;
 
@@ -281,7 +281,7 @@ async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: s
     //     codebolt.chat.sendMessage('⚠️ No agents found in swarm', {});
     //     return;
     // }
-     const totalAgentCount = agentsResult.data.swarm.configuration?.maxAgents || 1;
+    const totalAgentCount = agentsResult.data.swarm.configuration?.maxAgents || 1;
 
     // Get full deliberation with all responses and votes
     const fullDelib = await codebolt.agentDeliberation.get({
@@ -294,7 +294,7 @@ async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: s
 
     // Count unique participants from contributors in responses + voters
     const participantIds = new Set<string>();
-    
+
     // Add all contributors from responses (not just responderId)
     responses.forEach((r: any) => {
         // Check for contributors array (shared-list type deliberations)
@@ -305,7 +305,7 @@ async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: s
             participantIds.add(r.responderId);
         }
     });
-    
+
     // Add voters
     votes.forEach((v) => participantIds.add(v.voterId));
 
@@ -336,11 +336,11 @@ async function checkAndFinalizeDeliberation(ctx: AgentContext, deliberationId: s
 
     // Extract unique team names from top responses
     const teamNamesToCreate = new Set<string>();
-    
+
     // If there are votes, take teams from responses with votes
     // Otherwise, take all proposed teams
     const hasVotes = sortedResponses.some((r) => (r.voteCount || 0) > 0);
-    
+
     if (hasVotes) {
         // Get teams from responses that received votes
         for (const response of sortedResponses) {
