@@ -150,7 +150,7 @@ export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: strin
                         // @ts-ignore
                         const createdRequest = await codebolt.reviewMergeRequest.create(reqData);
 
-                        await codebolt.chat.sendMessage(`Review Merge Request Created: [${createdRequest.request.title}](review_request://${createdRequest.request.id})`);
+                        await codebolt.chat.sendMessage(`Review Merge Request Created`);
                     }
 
                 } catch (error) {
