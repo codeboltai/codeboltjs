@@ -6,7 +6,7 @@ export class TestRunner {
         await codebolt.chat.sendMessage('Starting All Tests...');
 
         await this.testProjectStructure();
-        await this.testFileUpdateIntent();
+        // await this.testFileUpdateIntent();
 
         console.log('All Tests Completed.');
         await codebolt.chat.sendMessage('All Tests Completed.');

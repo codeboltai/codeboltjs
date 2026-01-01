@@ -23,7 +23,8 @@ import { llmWithJsonRetry } from './utils';
 
 interface PlannerManifest {
     fileIntents?: Array<{
-        path: string;
+        path?: string;
+        paths?: string[];
         description: string;
         modificationType: "create" | "update" | "delete";
     }>;
@@ -54,7 +55,7 @@ let systemPrompt = `You are a Planner Agent. Your goal is to analyze the request
     \`\`\`json
     {
         "fileIntents": [
-            { "path": "string (relative path)", "description": "string", "modificationType": "create" | "update" | "delete" }
+            { "paths": ["string (relative path)", "string (relative path)"], "description": "string", "modificationType": "create" | "update" | "delete" }
         ],
         "structureUpdates": {
             "packages": [ { "name": "string", "path": "string", "description": "string" } ],
@@ -63,6 +64,7 @@ let systemPrompt = `You are a Planner Agent. Your goal is to analyze the request
     }
     \`\`\`
     This JSON block allows other agents to automatically register your planned changes.
+    **IMPORTANT:** Group related file changes into a single intent where possible by using the "paths" array.
 
     ## Steps
     1.  **Analyze:** specific request and codebase.
@@ -156,7 +158,7 @@ export const plannerAgent = (async (reqMessage: FlatUserMessage, planFileName: s
                             If NOT found, attempt to infer the structure from the text as a fallback, using this format:
                             {
                                 "fileIntents": [
-                                    { "path": "string (relative path)", "description": "string", "modificationType": "create" | "update" | "delete" }
+                                    { "paths": ["string (relative path)"], "description": "string", "modificationType": "create" | "update" | "delete" }
                                 ],
                                 "structureUpdates": {
                                     "packages": [ { "name": "string", "path": "string", "description": "string" } ],
@@ -174,28 +176,37 @@ export const plannerAgent = (async (reqMessage: FlatUserMessage, planFileName: s
 
                             // 3. Register File Update Intents
                             if (parsedData.fileIntents && Array.isArray(parsedData.fileIntents)) {
-                                codebolt.chat.sendMessage(`Found ${parsedData.fileIntents.length} file intents to process.`, {});
+                                codebolt.chat.sendMessage(`Found ${parsedData.fileIntents.length} intent groups to process.`, {});
                                 for (const intent of parsedData.fileIntents) {
-                                    if (!intent.path) {
-                                        codebolt.chat.sendMessage("Skipping intent with missing path.", {});
+
+                                    const targetPaths: string[] = [];
+                                    if (intent.paths && Array.isArray(intent.paths)) {
+                                        targetPaths.push(...intent.paths);
+                                    } else if (intent.path) {
+                                        targetPaths.push(intent.path);
+                                    }
+
+                                    if (targetPaths.length === 0) {
+                                        codebolt.chat.sendMessage("Skipping intent with missing path(s).", {});
                                         continue;
                                     }
-                                    codebolt.chat.sendMessage(`Processing intent for: ${intent.path}`, {});
+
+                                    codebolt.chat.sendMessage(`Processing intent for files: ${targetPaths.join(', ')}`, {});
 
                                     try {
-                                        // Create intent
+                                        // Create intent with multiple files
                                         await codebolt.fileUpdateIntent.create({
                                             environmentId: 'local-default',
-                                            files: [{
-                                                filePath: intent.path,
+                                            files: targetPaths.map(p => ({
+                                                filePath: p,
                                                 intentLevel: 3 // Priority-Based
-                                            }],
+                                            })),
                                             description: intent.description || "Planned update",
                                             priority: 3 // Medium priority for planned changes
                                         }, "planner-agent", "Planner Agent");
-                                        codebolt.chat.sendMessage(`Successfully created intent for ${intent.path}`, {});
+                                        codebolt.chat.sendMessage(`Successfully created intent for ${targetPaths.length} files`, {});
                                     } catch (err) {
-                                        codebolt.chat.sendMessage(`❌ Failed to create intent for ${intent.path}: ${err}`, {});
+                                        codebolt.chat.sendMessage(`❌ Failed to create intent for ${targetPaths.join(', ')}: ${err}`, {});
                                         console.error(err);
                                     }
                                 }
