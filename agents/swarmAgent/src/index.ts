@@ -39,9 +39,9 @@ import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         let ctx: AgentContext = {
-            swarmId: additionalVariable.swarmId || '2ed48baa-159f-4be9-9fe6-a439610ab2c6',
+            swarmId: additionalVariable.swarmId || 'ffd950c3-9faa-48b4-b2b2-e65c17f74c6d',
             swarmName: "Test Swarm",
-            agentId: additionalVariable.instanceId || '2ed48baa-159f-4be9-9fe6-a439610ab2c6',
+            agentId: additionalVariable.instanceId || 'ffd950c3-9faa-48b4-b2b2-e65c17f74c6d',
             agentName: `Agent:${additionalVariable.instanceId}-${Math.random()}`,
             capabilities: additionalVariable.capabilities ? JSON.parse(additionalVariable.capabilities) : ['coding'],
             requirements: additionalVariable.requirements || 'Build a web application',
@@ -74,6 +74,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                 status: ['open']
             });
+            codebolt.chat.sendMessage(`Found ${JSON.stringify(pendingJobsResponse)} open jobs`);
             const allOpenJobs = (pendingJobsResponse as any).data?.jobs || pendingJobsResponse.jobs || [];
 
             for (const job of allOpenJobs) {

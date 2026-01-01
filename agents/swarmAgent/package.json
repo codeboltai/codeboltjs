@@ -20,9 +20,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agent": "file:///Users/ravirawat/Documents/codeboltai/codeboltjs/packages/agent",
-    "@codebolt/codeboltjs": "file:///Users/ravirawat/Documents/codeboltai/codeboltjs/packages/codeboltjs",
-    "@codebolt/types": "file:///Users/ravirawat/Documents/codeboltai/codeboltjs/common/types",
+    "@codebolt/agent": "workspace:*",
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/types": "workspace:*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
