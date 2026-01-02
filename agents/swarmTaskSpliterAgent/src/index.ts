@@ -13,9 +13,9 @@ import fs from 'fs'
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         let ctx: AgentContext = {
-            swarmId: additionalVariable.swarmId || '2ed48baa-159f-4be9-9fe6-a439610ab2c6',
+            swarmId: additionalVariable.swarmId || '161f92d5-fc99-49a2-8d71-c30bfbc302f9',
             swarmName: "Test Swarm",
-            agentId: additionalVariable.instanceId || '2ed48baa-159f-4be9-9fe6-a439610ab2c6',
+            agentId: additionalVariable.instanceId || '161f92d5-fc99-49a2-8d71-c30bfbc302f9',
             agentName: `Agent:${additionalVariable.instanceId}-${Math.random()}`,
             capabilities: additionalVariable.capabilities ? JSON.parse(additionalVariable.capabilities) : ['coding'],
             requirements: additionalVariable.requirements || 'Build a web application',
