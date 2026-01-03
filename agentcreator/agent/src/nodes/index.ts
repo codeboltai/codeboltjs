@@ -294,7 +294,8 @@ import {
   ResponseExecutorNode as BackendResponseExecutorNode,
   ToolNode as BackendToolNode,
   WorkflowNode as BackendWorkflowNode,
-  MessageProcessorNode as BackendMessageProcessorNode
+  MessageProcessorNode as BackendMessageProcessorNode,
+  CodeboltAgentNode as BackendCodeboltAgentNode
 } from './CodeboltAgentUnifiedMode/index.js';
 
 // Notification nodes
@@ -574,6 +575,7 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendToolNode, BackendToolNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendWorkflowNode, BackendWorkflowNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMessageProcessorNode, BackendMessageProcessorNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendCodeboltAgentNode, BackendCodeboltAgentNode.metadata);
 
   // Register Notification nodes
   // Browser Notification nodes
