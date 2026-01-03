@@ -1,7 +1,7 @@
 import { FlatUserMessage } from "../../sdk-types";
 import { ProcessedMessage, ToolResult } from "../common";
 import { MessageModifier, PostToolCallProcessor, PreToolCallProcessor } from "../processorTypes";
-import { MessageObject,ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '../../sdk-types';
+import { MessageObject, ToolCall, Tool, LLMInferenceParams, LLMCompletion } from '../../sdk-types';
 
 
 
@@ -31,7 +31,7 @@ export interface InitialPromptGeneratorInterface {
 export interface AgentStepInterface {
     /** Execute a single agent step */
     executeStep(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<AgentStepOutput>;
- 
+
 }
 
 
@@ -42,9 +42,9 @@ export interface AgentStepInterface {
 export interface AgentStepOutput {
     /** LLM response */
     rawLLMResponse: LLMCompletion;
-    nextMessage:ProcessedMessage;
-    actualMessageSentToLLM:ProcessedMessage
-    
+    nextMessage: ProcessedMessage;
+    actualMessageSentToLLM: ProcessedMessage
+
 }
 export interface LLMConfig {
     llmname?: string;
@@ -62,34 +62,34 @@ export interface LLMConfig {
  */
 export interface ResponseInput {
     /** LLM response to process */
-    
-    initailUserMessage:FlatUserMessage
-    actualMessageSentToLLM:ProcessedMessage
+
+    initialUserMessage: FlatUserMessage
+    actualMessageSentToLLM: ProcessedMessage
     rawLLMOutput: LLMCompletion;
-    nextMessage:ProcessedMessage
-  
+    nextMessage: ProcessedMessage
+
 }
 
 /**
  * Output from unified response execution
  */
 export interface ResponseOutput {
-    nextMessage:ProcessedMessage
+    nextMessage: ProcessedMessage
     /** Tool execution results */
     toolResults?: ToolResult[];
     completed: boolean;
- 
+
 }
 
 export interface AgentResponseExecutor {
     /** Execute response processing including tool execution */
     executeResponse(input: ResponseInput): Promise<ResponseOutput>;
 
-    setPreToolCallProcessors(processors:PreToolCallProcessor[]):void
+    setPreToolCallProcessors(processors: PreToolCallProcessor[]): void
     setPostToolCallProcessors(processors: PostToolCallProcessor[]): void;
 
     getPreToolCallProcessors(): PreToolCallProcessor[]
-    getPostToolCallProcessors():PostToolCallProcessor[]
+    getPostToolCallProcessors(): PostToolCallProcessor[]
 
 
 

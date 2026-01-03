@@ -24,7 +24,7 @@ export class BaseCodeboltAgentNode extends LGraphNode {
         this.size = [320, 260];
 
         // Trigger input - receives trigger from OnMessageNode
-        this.addInput("onMessage", LiteGraph.ACTION);
+        this.addInput("trigger", LiteGraph.ACTION);
 
         // Input for the user message (from OnMessageNode)
         this.addInput("message", "object", {

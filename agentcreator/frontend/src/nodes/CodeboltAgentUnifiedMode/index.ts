@@ -6,6 +6,7 @@ export * from './ResponseExecutor';
 export * from './Tool';
 export * from './Workflow';
 export * from './MessageProcessor';
+export * from './CodeboltAgent';
 
 // Import all node classes for registration
 import { AgentNode } from './Agent';
@@ -15,6 +16,7 @@ import { ResponseExecutorNode } from './ResponseExecutor';
 import { ToolNode } from './Tool';
 import { WorkflowNode } from './Workflow';
 import { MessageProcessorNode } from './MessageProcessor';
+import { CodeboltAgentNode } from './CodeboltAgent';
 
 // Array of all unified agent nodes for easy registration
 export const UnifiedAgentNodes = [
@@ -24,5 +26,6 @@ export const UnifiedAgentNodes = [
   ResponseExecutorNode,
   ToolNode,
   WorkflowNode,
-  MessageProcessorNode
+  MessageProcessorNode,
+  CodeboltAgentNode
 ];

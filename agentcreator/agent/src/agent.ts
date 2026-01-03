@@ -35,17 +35,21 @@ class AgentExecutor {
 
   // Initialize the agent with nodes
   async initialize() {
+    console.log('[DEBUG] AgentExecutor.initialize() called');
+
     // Register backend execution nodes
     registerBackendNodes();
+    console.log('[DEBUG] Backend nodes registered');
 
     // Load and register plugin backends
     await loadPluginBackends();
+    console.log('[DEBUG] Plugin backends loaded');
   }
 
   // Configure and execute a graph
   async executeGraph() {
+    console.log('[DEBUG] AgentExecutor.executeGraph() called');
     try {
-      // console.log('Agent: Starting graph execution');
       this.isRunning = true;
 
       // Always read from data.json file
@@ -76,15 +80,17 @@ class AgentExecutor {
       }
 
       // Import and create a new graph
-      ;
       this.graph = new LGraph();
-      console.log('Agent: Graph created');
+      console.log('[DEBUG] LGraph created');
 
       // Configure the graph from the frontend data
       this.graph.configure(graphData);
+      console.log('[DEBUG] Graph configured');
 
       // Execute the graph 
+      console.log('[DEBUG] About to run graph.runStep()');
       this.graph.runStep(1, true);
+      console.log('[DEBUG] graph.runStep() completed');
 
       // Collect outputs from AgentRun nodes and other output nodes
       const outputs = {};
@@ -158,11 +164,13 @@ class AgentExecutor {
 // CLI interface for standalone agent execution
 // if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_AGENT_CLI) {
 (async () => {
+  console.log('[DEBUG] Agent entry point started');
 
   const agent = new AgentExecutor();
   await agent.initialize();
 
   // Signal that agent is ready
+  console.log('[DEBUG] Agent initialized, ready to execute');
   process.stdout.write(JSON.stringify({ ready: true }) + '\n');
 
   // Auto-execute graph from data.json file and exit

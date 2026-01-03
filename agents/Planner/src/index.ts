@@ -1,18 +1,18 @@
 import codebolt from '@codebolt/codeboltjs';
 import {
-    InitialPromptGenerator,
+  InitialPromptGenerator,
 
-    ResponseExecutor
+  ResponseExecutor
 } from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
-    EnvironmentContextModifier,
-    CoreSystemPromptModifier,
-    DirectoryContextModifier,
-    IdeContextModifier,
-    AtFileProcessorModifier,
-    ToolInjectionModifier,
-    ChatHistoryMessageModifier
+  EnvironmentContextModifier,
+  CoreSystemPromptModifier,
+  DirectoryContextModifier,
+  IdeContextModifier,
+  AtFileProcessorModifier,
+  ToolInjectionModifier,
+  ChatHistoryMessageModifier
 
 
 } from '@codebolt/agent/processor-pieces';
@@ -58,92 +58,92 @@ NOTE: If in plan mode, do not implement the plan. You are only allowed to plan. 
 `.trim();
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-    //Detail Planner Agent
-    try {
+  //Detail Planner Agent
+  try {
 
-        codebolt.chat.sendMessage("Planner agent started", {})
-        // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
-        let promptGenerator = new InitialPromptGenerator({
+    codebolt.chat.sendMessage("Planner agent started", {})
+    // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
+    let promptGenerator = new InitialPromptGenerator({
 
-            processors: [
-                // 1. Chat History
-                new ChatHistoryMessageModifier({ enableChatHistory: true }),
-                // 2. Environment Context (date, OS)
-                new EnvironmentContextModifier({ enableFullContext: true }),
+      processors: [
+        // 1. Chat History
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        // 2. Environment Context (date, OS)
+        new EnvironmentContextModifier({ enableFullContext: true }),
 
-                // 3. Directory Context (folder structure)  
-                new DirectoryContextModifier(),
+        // 3. Directory Context (folder structure)  
+        new DirectoryContextModifier(),
 
-                // 4. IDE Context (active file, opened files)
-                new IdeContextModifier({
-                    includeActiveFile: true,
-                    includeOpenFiles: true,
-                    includeCursorPosition: true,
-                    includeSelectedText: true
-                }),
-                // 5. Core System Prompt (instructions)
-                new CoreSystemPromptModifier(
-                    { customSystemPrompt: systemPrompt }
-                ),
+        // 4. IDE Context (active file, opened files)
+        new IdeContextModifier({
+          includeActiveFile: true,
+          includeOpenFiles: true,
+          includeCursorPosition: true,
+          includeSelectedText: true
+        }),
+        // 5. Core System Prompt (instructions)
+        new CoreSystemPromptModifier(
+          { customSystemPrompt: systemPrompt }
+        ),
 
-                // 6. Tools (function declarations)
-                new ToolInjectionModifier({
-                    includeToolDescriptions: true
-                }),
+        // 6. Tools (function declarations)
+        new ToolInjectionModifier({
+          includeToolDescriptions: true
+        }),
 
-                // 7. At-file processing (@file mentions)
-                new AtFileProcessorModifier({
-                    enableRecursiveSearch: true
-                })
-            ],
-            baseSystemPrompt: systemPrompt
-        });
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        let completed = false;
-        do {
-            let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-            prompt = result.nextMessage;
+        // 7. At-file processing (@file mentions)
+        new AtFileProcessorModifier({
+          enableRecursiveSearch: true
+        })
+      ],
+      baseSystemPrompt: systemPrompt
+    });
+    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    let completed = false;
+    do {
+      let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+      prompt = result.nextMessage;
 
-            let responseExecutor = new ResponseExecutor({
-                preToolCallProcessors: [],
-                postToolCallProcessors: []
+      let responseExecutor = new ResponseExecutor({
+        preToolCallProcessors: [],
+        postToolCallProcessors: []
 
-            })
-            let executionResult = await responseExecutor.executeResponse({
-                initailUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage,
-            });
+      })
+      let executionResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage,
+      });
 
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
-
-
-            if (completed) {
-                break;
-            }
-
-        } while (!completed);
+      completed = executionResult.completed;
+      prompt = executionResult.nextMessage;
 
 
+      if (completed) {
+        break;
+      }
+
+    } while (!completed);
 
 
 
-    } catch (error) {
-
-    }
-
-    //Task Planner Agent
-    try {
 
 
+  } catch (error) {
 
-        let { projectPath } = await codebolt.project.getProjectPath();
-        let { content } = await codebolt.fs.readFile(`${projectPath}/specs/plan.specs`);
+  }
 
-        let systemPrompt = `Here is the detailed plan:
+  //Task Planner Agent
+  try {
+
+
+
+    let { projectPath } = await codebolt.project.getProjectPath();
+    let { content } = await codebolt.fs.readFile(`${projectPath}/specs/plan.specs`);
+
+    let systemPrompt = `Here is the detailed plan:
 \`\`\`
 ${content}
 \`\`\`
@@ -324,79 +324,79 @@ REQUIRED: waitSteps must be a non-empty array of strings. waitTasks must be an a
 }
 
 JSON ONLY - NO OTHER TEXT.`;
-        // return;
-        let { completion } = await codebolt.llm.inference({
-            messages: [
-                {
-                    role: 'system',
-                    content: systemPrompt
-                },
-                {
-                    role: 'user',
-                    content: 'create task list for given plan'
-                }
-            ],
-            full: true,
-            tools: []
-        })
-        if (completion && completion.choices) {
-            let content = completion.choices[0].message.content;
-            if (content.startsWith('```json')) {
-                content = content.replace('```json', '').replace('```', '');
-            } else if (content.startsWith('```')) {
-                content = content.replace('```', '').replace('```', '');
-            }
-            let taskPlan = JSON.parse(content);
-            codebolt.chat.sendMessage(JSON.stringify(taskPlan))
-            let { response } = await codebolt.actionPlan.createActionPlan({ name: taskPlan.plan.name, description: taskPlan.plan.description })
-            for (const item of taskPlan.tasks) {
-                if (item.type === 'parallelGroup' || item.type === 'loopGroup' || item.type === 'ifGroup' || item.type === 'waitUntilGroup') {
-                    await codebolt.actionPlan.addGroupToActionPlan(response.data.actionPlan.planId, item)
-                } else {
-                    await codebolt.actionPlan.addTaskToActionPlan(response.data.actionPlan.planId, item)
-                }
-            }
-
-            // Create a Requirement Plan document linking the spec and action plan
-            try {
-                const planName = taskPlan.plan.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-                const createResult:any = await codebolt.requirementPlan.create(planName);
-                
-                if (createResult.success && createResult.data) {
-                    const planFilePath = createResult.data.filePath;
-                    
-                    // Add overview section
-                    await codebolt.requirementPlan.addSection(planFilePath, {
-                        type: 'markdown',
-                        title: 'Overview',
-                        content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
-                    });
-
-                    // Add spec link section
-                    await codebolt.requirementPlan.addSection(planFilePath, {
-                        type: 'specs-link',
-                        title: 'Specification',
-                        linkedFile: `${projectPath}/specs/plan.specs`
-                    });
-
-                    // Add action plan link section
-                    await codebolt.requirementPlan.addSection(planFilePath, {
-                        type: 'actionplan-link',
-                        title: 'Action Plan',
-                        linkedFile: response.data.actionPlan.planId
-                    });
-
-                    codebolt.chat.sendMessage(`Created requirement plan: ${planFilePath}`, {});
-                }
-            } catch (reqPlanError) {
-                console.error('Failed to create requirement plan:', reqPlanError);
-            }
+    // return;
+    let { completion } = await codebolt.llm.inference({
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: 'create task list for given plan'
         }
+      ],
+      full: true,
+      tools: []
+    })
+    if (completion && completion.choices) {
+      let content = completion.choices[0].message.content;
+      if (content.startsWith('```json')) {
+        content = content.replace('```json', '').replace('```', '');
+      } else if (content.startsWith('```')) {
+        content = content.replace('```', '').replace('```', '');
+      }
+      let taskPlan = JSON.parse(content);
+      codebolt.chat.sendMessage(JSON.stringify(taskPlan))
+      let { response } = await codebolt.actionPlan.createActionPlan({ name: taskPlan.plan.name, description: taskPlan.plan.description })
+      for (const item of taskPlan.tasks) {
+        if (item.type === 'parallelGroup' || item.type === 'loopGroup' || item.type === 'ifGroup' || item.type === 'waitUntilGroup') {
+          await codebolt.actionPlan.addGroupToActionPlan(response.data.actionPlan.planId, item)
+        } else {
+          await codebolt.actionPlan.addTaskToActionPlan(response.data.actionPlan.planId, item)
+        }
+      }
 
+      // Create a Requirement Plan document linking the spec and action plan
+      try {
+        const planName = taskPlan.plan.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+        const createResult: any = await codebolt.requirementPlan.create(planName);
 
-    } catch (error) {
+        if (createResult.success && createResult.data) {
+          const planFilePath = createResult.data.filePath;
 
+          // Add overview section
+          await codebolt.requirementPlan.addSection(planFilePath, {
+            type: 'markdown',
+            title: 'Overview',
+            content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
+          });
+
+          // Add spec link section
+          await codebolt.requirementPlan.addSection(planFilePath, {
+            type: 'specs-link',
+            title: 'Specification',
+            linkedFile: `${projectPath}/specs/plan.specs`
+          });
+
+          // Add action plan link section
+          await codebolt.requirementPlan.addSection(planFilePath, {
+            type: 'actionplan-link',
+            title: 'Action Plan',
+            linkedFile: response.data.actionPlan.planId
+          });
+
+          codebolt.chat.sendMessage(`Created requirement plan: ${planFilePath}`, {});
+        }
+      } catch (reqPlanError) {
+        console.error('Failed to create requirement plan:', reqPlanError);
+      }
     }
+
+
+  } catch (error) {
+
+  }
 
 
 

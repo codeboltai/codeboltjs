@@ -128,7 +128,7 @@ export const plannerAgent = (async (reqMessage: FlatUserMessage, planFileName: s
 
             })
             let executionResult = await responseExecutor.executeResponse({
-                initailUserMessage: reqMessage,
+                initialUserMessage: reqMessage,
                 actualMessageSentToLLM: result.actualMessageSentToLLM,
                 rawLLMOutput: result.rawLLMResponse,
                 nextMessage: result.nextMessage,

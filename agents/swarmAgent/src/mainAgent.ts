@@ -87,7 +87,7 @@ export const mainAgentLoop = async (reqMessage: FlatUserMessage, planPath: strin
 
             })
             let executionResult = await responseExecutor.executeResponse({
-                initailUserMessage: reqMessage,
+                initialUserMessage: reqMessage,
                 actualMessageSentToLLM: result.actualMessageSentToLLM,
                 rawLLMOutput: result.rawLLMResponse,
                 nextMessage: result.nextMessage,
