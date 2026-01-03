@@ -13,6 +13,15 @@ import { FlatUserMessage } from "@codebolt/types/sdk";
 import { InitialPromptGenerator } from "../base";
 import { ResponseExecutor } from "../base/responseExecutor";
 import { AgentStep } from "../base/agentStep";
+import {
+    EnvironmentContextModifier,
+    CoreSystemPromptModifier,
+    DirectoryContextModifier,
+    IdeContextModifier,
+    AtFileProcessorModifier,
+    ToolInjectionModifier,
+    ChatHistoryMessageModifier
+} from '../../processor-pieces';
 
 /**
  * Configuration options for CodeboltAgent
@@ -87,13 +96,45 @@ export class CodeboltAgent {
 
     constructor(config: CodeboltAgentConfig) {
         this.config = { ...config };
-        this.messageModifiers = config.processors?.messageModifiers || [];
+        this.enableLogging = config.enableLogging !== false;
+        this.baseSystemPrompt = config.instructions || 'Based on User Message send reply';
+
+        // Use provided modifiers or default ones
+        this.messageModifiers = config.processors?.messageModifiers?.length
+            ? config.processors.messageModifiers
+            : this.createDefaultMessageModifiers(this.baseSystemPrompt);
+
         this.preInferenceProcessors = config.processors?.preInferenceProcessors || [];
         this.postInferenceProcessors = config.processors?.postInferenceProcessors || [];
         this.preToolCallProcessors = config.processors?.preToolCallProcessors || [];
         this.postToolCallProcessors = config.processors?.postToolCallProcessors || [];
-        this.enableLogging = config.enableLogging !== false;
-        this.baseSystemPrompt = config.instructions || 'Based on User Message send reply';
+    }
+
+    /**
+     * Creates default message modifiers when none are provided
+     */
+    private createDefaultMessageModifiers(systemPrompt: string): MessageModifier[] {
+        return [
+            // 1. Chat History
+            new ChatHistoryMessageModifier({ enableChatHistory: true }),
+            // 2. Environment Context (date, OS)
+            new EnvironmentContextModifier({ enableFullContext: true }),
+            // 3. Directory Context (folder structure)
+            new DirectoryContextModifier(),
+            // 4. IDE Context (active file, opened files)
+            new IdeContextModifier({
+                includeActiveFile: true,
+                includeOpenFiles: true,
+                includeCursorPosition: true,
+                includeSelectedText: true
+            }),
+            // 5. Core System Prompt (instructions)
+            new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
+            // 6. Tools (function declarations)
+            new ToolInjectionModifier({ includeToolDescriptions: true }),
+            // 7. At-file processing (@file mentions)
+            new AtFileProcessorModifier({ enableRecursiveSearch: true })
+        ];
     }
 
     /**
