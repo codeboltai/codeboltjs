@@ -13,7 +13,7 @@ const codeboltAgent = {
     findAgent: (task: string, maxResult = 1, agents = [], agentLocaltion: AgentLocation = AgentLocation.ALL, getFrom: FilterUsing.USE_VECTOR_DB): Promise<FindAgentByTaskResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
-                "type": EventType.AGENT_EVENT,  
+                "type": EventType.AGENT_EVENT,
                 "action": AgentAction.FIND_AGENT,
                 "task": task,
                 "agents": agents,// for filter in vector db
@@ -35,7 +35,7 @@ const codeboltAgent = {
             {
                 "type": EventType.AGENT_EVENT,
                 "action": AgentAction.START_AGENT,
-                "agentId": agentId,
+                "agentToStartId": agentId,
                 "task": task
             },
             AgentResponseType.TASK_COMPLETION_RESPONSE

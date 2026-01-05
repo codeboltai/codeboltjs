@@ -304,88 +304,89 @@ Specific markdown rules:
 - **IMPORTANT**: Always finish small talk responses with a codebolt-attempt_completion tool call do not  proceed to the next turn
 `.trim();
 
-codebolt.onMessage(async (reqMessage: any) => {
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     try {
 
-        // codebolt.chat.sendMessage(JSON.stringify(reqMessage.mentionedMCPs), {})
 
-        // let mcpServers = await codebolt.mcp.getTools(reqMessage.mentionedMCPs)
-        // codebolt.chat.sendMessage(JSON.stringify(mcpServers), {})
-        // return
 
+
+
+        let agent = await codebolt.agent.startAgent('c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9', "get detail about this project");
+
+        return agent
         // codebolt.chat.sendMessage("Gemini agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
-        let promptGenerator = new InitialPromptGenerator({
+        // let promptGenerator = new InitialPromptGenerator({
 
-            processors: [
-                // 1. Chat History
-                new ChatHistoryMessageModifier({ enableChatHistory: true }),
-                // 2. Environment Context (date, OS)
-                new EnvironmentContextModifier({ enableFullContext: true }),
+        //     processors: [
+        //         // 1. Chat History
+        //         new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        //         // 2. Environment Context (date, OS)
+        //         new EnvironmentContextModifier({ enableFullContext: true }),
 
-                // 3. Directory Context (folder structure)  
-                new DirectoryContextModifier(),
+        //         // 3. Directory Context (folder structure)  
+        //         new DirectoryContextModifier(),
 
-                // 4. IDE Context (active file, opened files)
-                new IdeContextModifier({
-                    includeActiveFile: true,
-                    includeOpenFiles: true,
-                    includeCursorPosition: true,
-                    includeSelectedText: true
-                }),
-                // 5. Core System Prompt (instructions)
-                new CoreSystemPromptModifier(
-                    { customSystemPrompt: systemPrompt }
-                ),
+        //         // 4. IDE Context (active file, opened files)
+        //         new IdeContextModifier({
+        //             includeActiveFile: true,
+        //             includeOpenFiles: true,
+        //             includeCursorPosition: true,
+        //             includeSelectedText: true
+        //         }),
+        //         // 5. Core System Prompt (instructions)
+        //         new CoreSystemPromptModifier(
+        //             { customSystemPrompt: systemPrompt }
+        //         ),
 
-                // 6. Tools (function declarations)
-                new ToolInjectionModifier({
-                    includeToolDescriptions: true
-                }),
+        //         // 6. Tools (function declarations)
+        //         new ToolInjectionModifier({
+        //             includeToolDescriptions: true
+        //         }),
 
-                // 7. At-file processing (@file mentions)
-                new AtFileProcessorModifier({
-                    enableRecursiveSearch: true
-                })
-            ],
-            baseSystemPrompt: systemPrompt
-        });
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        let completed = false;
-        do {
-            let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-            prompt = result.nextMessage;
+        //         // 7. At-file processing (@file mentions)
+        //         new AtFileProcessorModifier({
+        //             enableRecursiveSearch: true
+        //         })
+        //     ],
+        //     baseSystemPrompt: systemPrompt
+        // });
+        // let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+        // let completed = false;
+        // do {
+        //     let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+        //     let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+        //     prompt = result.nextMessage;
 
-            let responseExecutor = new ResponseExecutor({
-                preToolCallProcessors: [],
-                postToolCallProcessors: []
+        //     let responseExecutor = new ResponseExecutor({
+        //         preToolCallProcessors: [],
+        //         postToolCallProcessors: []
 
-            })
-            let executionResult = await responseExecutor.executeResponse({
-                initialUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage,
-            });
+        //     })
+        //     let executionResult = await responseExecutor.executeResponse({
+        //         initialUserMessage: reqMessage,
+        //         actualMessageSentToLLM: result.actualMessageSentToLLM,
+        //         rawLLMOutput: result.rawLLMResponse,
+        //         nextMessage: result.nextMessage,
+        //     });
 
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
+        //     completed = executionResult.completed;
+        //     prompt = executionResult.nextMessage;
 
 
-            if (completed) {
-                break;
-            }
+        //     if (completed) {
+        //         break;
+        //     }
 
-        } while (!completed);
+        // } while (!completed);
 
 
 
 
 
     } catch (error) {
-
+        return error
     }
 })
 
