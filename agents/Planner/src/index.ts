@@ -352,7 +352,7 @@ JSON ONLY - NO OTHER TEXT.`;
         content = content.replace('```', '').replace('```', '');
       }
       let taskPlan = JSON.parse(content);
-      codebolt.chat.sendMessage(JSON.stringify(taskPlan))
+      // codebolt.chat.sendMessage(JSON.stringify(taskPlan))
       let { response } = await codebolt.actionPlan.createActionPlan({ name: taskPlan.plan.name, description: taskPlan.plan.description })
       for (const item of taskPlan.tasks) {
         if (item.type === 'parallelGroup' || item.type === 'loopGroup' || item.type === 'ifGroup' || item.type === 'waitUntilGroup') {
