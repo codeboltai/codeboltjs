@@ -87,8 +87,8 @@ async function processTask(task: Task, context: TaskContext = {}): Promise<void>
             description: `Processing task: ${task.name}`,
             userMessage: task.name,
             selectedAgent: {
-                id: 'actionPlan',
-                name: 'Action Plan Agent'
+                id: 'mainact',
+                name: 'Main Act Agent'
             },
             metadata: {
                 projectPath: task.projectPath,

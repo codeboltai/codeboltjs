@@ -308,13 +308,32 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     try {
 
+        codebolt.chat.sendMessage("Orchestrator agent started", {})
+        codebolt.chat.sendMessage(`Processing sent to Planner Agent: ${reqMessage.userMessage}`, {})
+        const threadPromise = await codebolt.thread.createAndStartThread({
+            title: `Planning for task ${reqMessage.userMessage}`,
+            description: `Processing task: ${reqMessage.userMessage}`,
+            userMessage: reqMessage.userMessage,
+            selectedAgent: {
+                id: 'planner',
+                name: 'Planner Agent'
+            },
+        });
+        codebolt.chat.sendMessage(`Planner Agent processed: ${reqMessage.userMessage}`, {})
+        codebolt.chat.sendMessage(`Processing sent to Action Planner Agent: ${reqMessage.userMessage}`, {})
+
+        const actionPlannerProcessor = await codebolt.thread.createAndStartThread({
+            title: `Action Planner Processing for task ${reqMessage.userMessage}`,
+            description: `Processing task: ${reqMessage.userMessage}`,
+            userMessage: `action plan created for task ${reqMessage.userMessage} process action plan`,
+            selectedAgent: {
+                id: 'orchestratorworker',
+                name: 'Orchestrator Worker Agent'
+            },
+        });
 
 
 
-
-        let agent = await codebolt.agent.startAgent('c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9', "get detail about this project");
-
-        return agent
         // codebolt.chat.sendMessage("Gemini agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
         // let promptGenerator = new InitialPromptGenerator({

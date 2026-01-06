@@ -99,6 +99,14 @@ export interface RequirementPlanSectionResponse {
     requestId?: string;
 }
 
+export interface RequirementPlanReviewResponse {
+    type: 'requirementPlanReviewResponse';
+    success: boolean;
+    status?: 'approved' | 'rejected';
+    error?: string;
+    requestId?: string;
+}
+
 /**
  * RequirementPlan Module
  * Provides functionality for managing Requirement Plan documents
@@ -260,6 +268,24 @@ const requirementPlanService = {
                 message: { filePath, sectionIds }
             },
             'requirementPlanSectionReorderResponse'
+        );
+    },
+
+    /**
+     * Request a review for a requirement plan
+     * @param filePath - Path to the plan file
+     * @returns Promise resolving to review status
+     */
+    review: (filePath: string): Promise<RequirementPlanReviewResponse> => {
+        const requestId = randomUUID();
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                type: 'requirementPlanEvent',
+                action: 'requirementPlan:review',
+                requestId,
+                message: { filePath }
+            },
+            'requirementPlanReviewResponse'
         );
     }
 };

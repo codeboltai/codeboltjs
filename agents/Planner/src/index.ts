@@ -151,6 +151,11 @@ ${content}
 Analyze the plan and divide it into distinct, actionable items.
 Items can be valid Tasks (at top level) or special Flow Groups (Parallel, Loop, If, WaitUntil).
 
+IMPORTANT: CRITICAL INSTRUCTION ON PARALLELIZATION
+Carefully check effectively if any tasks can be processed in parallel.
+If tasks are independent of each other (e.g., frontend and backend development, valid independent file updates, or separate unit tests), you MUST group them into a 'parallelGroup'.
+Maximize parallelization to improve execution speed.
+
 ## STRICT TYPE DEFINITIONS
 
 ### Top-Level Task (used directly in tasks array)
@@ -365,6 +370,11 @@ JSON ONLY - NO OTHER TEXT.`;
         if (createResult.success && createResult.data) {
           const planFilePath = createResult.data.filePath;
 
+
+
+
+
+
           // Add overview section
           await codebolt.requirementPlan.addSection(planFilePath, {
             type: 'markdown',
@@ -378,7 +388,6 @@ JSON ONLY - NO OTHER TEXT.`;
             title: 'Specification',
             linkedFile: `${projectPath}/specs/plan.specs`
           });
-
           // Add action plan link section
           await codebolt.requirementPlan.addSection(planFilePath, {
             type: 'actionplan-link',
@@ -387,6 +396,10 @@ JSON ONLY - NO OTHER TEXT.`;
           });
 
           codebolt.chat.sendMessage(`Created requirement plan: ${planFilePath}`, {});
+
+          // Request review for the plan
+          await codebolt.requirementPlan.review(planFilePath);
+
         }
       } catch (reqPlanError) {
         console.error('Failed to create requirement plan:', reqPlanError);
