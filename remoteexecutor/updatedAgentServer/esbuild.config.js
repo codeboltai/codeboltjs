@@ -1,4 +1,7 @@
 import esbuild from 'esbuild';
+import fs from 'node:fs';
+
+fs.rmSync('dist', { recursive: true, force: true });
 
 esbuild.build({
   entryPoints: ['src/server.ts'],
