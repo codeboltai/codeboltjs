@@ -42,8 +42,8 @@ export async function filterJobsByPheromones(
     const filteredJobs: Job[] = [];
 
     for (const job of jobs) {
-        const pheromones = await getJobPheromones(job.id);
-        const hasExcludedPheromone = pheromones.some(p =>
+        const pheromones = job.pheromones;
+        const hasExcludedPheromone = pheromones.some((p: any) =>
             excludePheromones.includes(p.type)
         );
 

@@ -86,6 +86,7 @@ export interface Job {
     status: string;
     dependencies?: { targetJobId: string; type: string }[];
     parentJobId?: string;
+    pheromones: [],
     splitProposals?: { id: string; status: string; description: string; proposedJobs: any[] }[];
     lock?: any;
 }
@@ -103,9 +104,11 @@ export interface PheromoneDeposit {
 // ================================
 
 export const PHEROMONE_TYPES = {
-    SPLIT_THIS_JOB: 'split-this-job',
+    SPLIT_THIS_JOB: 'request_split',
     IS_BLOCKED: 'isblocked',
-    MIGHT_BE_COMPLETED: 'mightbecompleted'
+    TASK_NOT_READY: 'task_not_ready',
+    MIGHT_BE_COMPLETED: 'mightbecompleted',
+    IMPORTANCE: 'importance'
 } as const;
 
 

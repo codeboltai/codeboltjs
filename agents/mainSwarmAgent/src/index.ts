@@ -19,9 +19,9 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
   codebolt.chat.sendMessage("🚀 Starting Main Swarm Agent");
 
   let ctx: AgentContext = {
-    swarmId: additionalVariable.swarmId || 'd572f292-abf6-4f59-a246-e5f9ee8ae3aa',
+    swarmId: additionalVariable.swarmId || '139ce5b8-bc16-4a3a-8638-d1b620e9abf3',
     swarmName: "Test Swarm",
-    agentId: additionalVariable.instanceId || 'd572f292-abf6-4f59-a246-e5f9ee8ae3aa',
+    agentId: additionalVariable.instanceId || '139ce5b8-bc16-4a3a-8638-d1b620e9abf3',
     agentName: `Agent:${additionalVariable.instanceId}-${Math.random()}`,
     capabilities: additionalVariable.capabilities ? JSON.parse(additionalVariable.capabilities) : ['coding'],
     requirements: additionalVariable.requirements || 'Build a web application',
@@ -97,6 +97,11 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
       case 'terminate':
         codebolt.chat.sendMessage(`🛑 No actionable work available. Agent terminating.`);
         running = false;
+        break;
+
+      case null:
+        // Job was processed but is blocked, continue to next iteration
+        codebolt.chat.sendMessage(`⏳ Job processed but blocked. Continuing to next job...`);
         break;
 
       default:
