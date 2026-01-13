@@ -56,5 +56,5 @@
       "mkdirp": "^3.0.1"
     }
   },
-  "packageManager": "pnpm@10.18.1"
+  "packageManager": "pnpm@10.27.0"
 }

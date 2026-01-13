@@ -1,4 +1,7 @@
 import { build } from 'esbuild';
+import fs from 'node:fs';
+
+fs.rmSync('dist', { recursive: true, force: true });
 
 await build({
   entryPoints: ['src/index.ts'],
@@ -8,9 +11,9 @@ await build({
   outfile: 'dist/index.mjs',
   external: [
     // Only Node.js built-ins, bundle everything else
-    'assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dns', 'events', 
-    'fs', 'http', 'https', 'net', 'os', 'path', 'querystring', 'readline', 
-    'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 
+    'assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dns', 'events',
+    'fs', 'http', 'https', 'net', 'os', 'path', 'querystring', 'readline',
+    'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm',
     'worker_threads', 'zlib', 'constants', 'module', 'perf_hooks', 'process',
     // Node.js built-ins with node: prefix
     'node:assert', 'node:buffer', 'node:child_process', 'node:cluster', 'node:crypto',

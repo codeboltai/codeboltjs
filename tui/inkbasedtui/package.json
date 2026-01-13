@@ -6,7 +6,7 @@
   "type": "module",
   "main": "dist/index.mjs",
   "scripts": {
-    "build": "rm -rf dist && node esbuild.config.js",
+    "build": "node esbuild.config.js",
     "start": "node dist/index.mjs",
     "dev": "npm run build && node dist/index.mjs",
     "debug": "node --inspect-brk dist/index.mjs",
