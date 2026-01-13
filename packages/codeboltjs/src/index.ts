@@ -760,3 +760,215 @@ export type {
 
 // Export reviewMergeRequest module
 export { default as reviewMergeRequest } from './modules/reviewMergeRequest';
+
+// ================================
+// KV Store Types
+// ================================
+export type {
+    KVStoreBaseResponse,
+    KVStoreInstance,
+    KVRecord,
+    KVQueryDSL,
+    KVQueryCondition,
+    KVQueryResult,
+    CreateKVInstanceParams,
+    UpdateKVInstanceParams,
+    KVSetParams,
+    KVGetParams,
+    KVDeleteParams,
+    KVDeleteNamespaceParams,
+    KVInstanceResponse,
+    KVInstanceListResponse,
+    KVGetResponse,
+    KVSetResponse,
+    KVDeleteResponse,
+    KVDeleteNamespaceResponse,
+    KVQueryResponse,
+    KVNamespacesResponse,
+    KVRecordCountResponse
+} from './types/kvStore';
+
+// Export kvStore module
+export { default as kvStore } from './modules/kvStore';
+
+// ================================
+// Persistent Memory Types
+// ================================
+export type {
+    PersistentMemoryBaseResponse,
+    PersistentMemory,
+    RetrievalConfig,
+    ContributionConfig,
+    PipelineExecutionIntent,
+    PipelineExecutionResult,
+    CreatePersistentMemoryParams,
+    UpdatePersistentMemoryParams,
+    ListPersistentMemoryParams,
+    PersistentMemoryResponse,
+    PersistentMemoryListResponse,
+    PersistentMemoryExecuteResponse,
+    PersistentMemoryValidateResponse,
+    PersistentMemoryStepSpecsResponse
+} from './types/persistentMemory';
+
+// Export persistentMemory module
+export { default as persistentMemory } from './modules/persistentMemory';
+
+// ================================
+// Event Log Types
+// ================================
+export type {
+    EventLogBaseResponse,
+    EventLogInstance,
+    EventLogEntry,
+    EventLogDSL,
+    EventLogCondition,
+    EventLogQueryResult,
+    CreateEventLogInstanceParams,
+    UpdateEventLogInstanceParams,
+    AppendEventParams,
+    AppendEventsParams,
+    EventLogInstanceResponse,
+    EventLogInstanceListResponse,
+    EventLogAppendResponse,
+    EventLogAppendMultipleResponse,
+    EventLogQueryResponse,
+    EventLogStatsResponse
+} from './types/eventLog';
+
+// Export eventLog module
+export { default as eventLog } from './modules/eventLog';
+
+// ================================
+// Knowledge Graph Types
+// ================================
+export type {
+    KGBaseResponse,
+    KGRecordKind,
+    KGAttributeSchema,
+    KGEdgeType,
+    KGInstanceTemplate,
+    KGInstance,
+    KGMemoryRecord,
+    KGEdge,
+    KGViewTemplate,
+    KGView,
+    CreateKGInstanceTemplateParams,
+    CreateKGInstanceParams,
+    CreateKGMemoryRecordParams,
+    CreateKGEdgeParams,
+    CreateKGViewTemplateParams,
+    CreateKGViewParams,
+    ListKGMemoryRecordsParams,
+    ListKGEdgesParams,
+    KGInstanceTemplateResponse,
+    KGInstanceTemplateListResponse,
+    KGInstanceResponse,
+    KGInstanceListResponse,
+    KGMemoryRecordResponse,
+    KGMemoryRecordListResponse,
+    KGEdgeResponse,
+    KGEdgeListResponse,
+    KGViewTemplateResponse,
+    KGViewTemplateListResponse,
+    KGViewResponse,
+    KGViewListResponse,
+    KGViewExecuteResponse,
+    KGDeleteResponse
+} from './types/knowledgeGraph';
+
+// Export knowledgeGraph module
+export { default as knowledgeGraph } from './modules/knowledgeGraph';
+
+// ================================
+// Hook Types
+// ================================
+export type {
+    HookBaseResponse,
+    HookTrigger,
+    HookAction,
+    HookConfig,
+    HookCondition,
+    Hook,
+    HookResponse,
+    HookListResponse,
+    HookInitializeResponse,
+    HookDeleteResponse
+} from './types/hook';
+
+// Export hook module
+export { default as hook } from './modules/hook';
+
+// ================================
+// Memory Ingestion Types
+// ================================
+export type {
+    MemoryIngestionBaseResponse,
+    IngestionTrigger,
+    ProcessorType,
+    RoutingDestination,
+    IngestionProcessor,
+    IngestionRouting,
+    IngestionPipeline,
+    IngestionEventData,
+    IngestionExecutionResult,
+    CreateIngestionPipelineParams,
+    UpdateIngestionPipelineParams,
+    ListIngestionPipelineParams,
+    ExecuteIngestionParams,
+    IngestionPipelineResponse,
+    IngestionPipelineListResponse,
+    IngestionExecuteResponse,
+    IngestionValidateResponse,
+    IngestionProcessorSpecsResponse
+} from './types/memoryIngestion';
+
+// Export memoryIngestion module
+export { default as memoryIngestion } from './modules/memoryIngestion';
+
+// ================================
+// Context Assembly Types
+// ================================
+export type {
+    ContextAssemblyBaseResponse,
+    ContextAssemblyRequest,
+    ContextConstraints,
+    MemoryContribution,
+    AssembledContext,
+    MemoryTypeSpec,
+    ValidationResult,
+    RuleEvaluationResult,
+    RequiredVariablesResult,
+    ContextAssemblyResponse,
+    ContextValidateResponse,
+    MemoryTypesResponse,
+    RuleEvaluationResponse,
+    RequiredVariablesResponse
+} from './types/contextAssembly';
+
+// Export contextAssembly module
+export { default as contextAssembly } from './modules/contextAssembly';
+
+// ================================
+// Context Rule Engine Types
+// ================================
+export type {
+    ContextRuleEngineBaseResponse,
+    RuleOperator,
+    RuleAction,
+    RuleCondition,
+    Rule,
+    ContextRuleEngine,
+    PossibleVariable,
+    CreateContextRuleEngineParams,
+    UpdateContextRuleEngineParams,
+    EvaluateRulesParams,
+    ContextRuleEngineResponse,
+    ContextRuleEngineListResponse,
+    ContextRuleEngineDeleteResponse,
+    EvaluateRulesResponse,
+    PossibleVariablesResponse
+} from './types/contextRuleEngine';
+
+// Export contextRuleEngine module
+export { default as contextRuleEngine } from './modules/contextRuleEngine';
