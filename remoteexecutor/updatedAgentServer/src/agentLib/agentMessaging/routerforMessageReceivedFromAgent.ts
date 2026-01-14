@@ -18,7 +18,6 @@ import type {
   WriteToFileEvent as SchemaWriteToFileEvent,
   DeleteFileEvent as SchemaDeleteFileEvent,
   GrepSearchEvent as SchemaGrepSearchEvent,
-
   GetEnabledToolBoxesEvent,
   GetLocalToolBoxesEvent,
   GetAvailableToolBoxesEvent,
@@ -145,6 +144,8 @@ export class AgentMessageRouter {
         return;
       }
     }
+
+
 
     // Forward the message to the related app instead of sending back to client
 

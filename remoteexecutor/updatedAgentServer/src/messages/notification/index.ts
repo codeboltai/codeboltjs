@@ -45,6 +45,8 @@ export { FileNotificationService } from "./FileNotificationService";
 export { SearchNotificationService } from "./SearchNotificationService";
 export { AiNotificationService } from "./AiNotificationService";
 export { ChatNotificationService } from "./ChatNotificationService";
+export { JobNotificationService } from "./JobNotificationService";
+export { GitNotificationService } from "./GitNotificationService";
 
 // Re-export the main NotificationService for backward compatibility
 export { NotificationService, type NotificationMessage } from "./NotificationService";

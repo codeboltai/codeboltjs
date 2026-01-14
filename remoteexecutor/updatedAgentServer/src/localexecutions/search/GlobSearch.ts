@@ -9,7 +9,7 @@ import path from 'node:path';
 import { glob, escape } from 'glob';
 import type { GlobPath } from './types';
 import { sortFileEntries } from './sortUtils';
-import { DEFAULT_FILE_FILTERING_OPTIONS } from '../file/utils/search/constants';
+import { DEFAULT_FILE_FILTERING_OPTIONS } from './constants';
 import { getErrorMessage } from '../../utils/errors';
 
 export interface FileFilteringOptions {
@@ -68,12 +68,12 @@ export interface GlobSearchResult {
    * Array of matching file paths
    */
   matches: string[];
-  
+
   /**
    * Number of files that were ignored
    */
   ignoredCount: number;
-  
+
   /**
    * Error object if an error occurred
    */

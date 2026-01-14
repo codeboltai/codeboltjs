@@ -81,7 +81,7 @@ export interface DockerProviderConfig {
  */
 export interface EventProxyConfig {
   proxyType: 'local' | 'proxy';
-  primaryProxy?: 'cloud' | 'custom';
+  primaryProxy?: 'cloud' | 'app';
 }
 
 /**
@@ -90,5 +90,6 @@ export interface EventProxyConfig {
 export interface ProxyConfig {
   fsEvent: EventProxyConfig;
   inference: EventProxyConfig;
+  gitEvent: EventProxyConfig;
   [key: string]: EventProxyConfig;
 }
