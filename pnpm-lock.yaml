@@ -1378,7 +1378,7 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
-  providers/gitWorkTreeProvider:
+  providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
