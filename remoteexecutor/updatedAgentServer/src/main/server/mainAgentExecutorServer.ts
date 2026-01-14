@@ -6,7 +6,7 @@ import { WebSocketServer } from '../../core/ws/websocketServer';
 import { ChildAgentProcessManager } from '../../agentLib/childAgentManager/childAgentProcessManager';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
-import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
+import { RemoteProxyClient } from '../../cloudLib/cloudConnectionManager/remoteProxyClient';
 
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
