@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
-import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
+import { ChildAgentProcessManager } from '../childAgentManager/childAgentProcessManager';
 import { logger } from '../../main/utils/logger';
 
 /**

@@ -1,5 +1,5 @@
 import type { ClientConnection } from "../types";
-import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
 import { logger } from "../main/utils/logger";
 import { StandaloneToolsFramework, ToolResult } from "../codeboltTools/index";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";

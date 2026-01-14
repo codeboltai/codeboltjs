@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
-import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
 import { logger } from "../main/utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";

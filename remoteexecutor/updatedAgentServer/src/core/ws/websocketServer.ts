@@ -8,7 +8,7 @@ import {
   ProjectInfo
 } from '../../types';
 
-import { ConnectionManager } from '../connectionManagers/connectionManager';
+import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
 import { NotificationService } from '../../services/NotificationService';
 import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
 import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';

@@ -1,5 +1,5 @@
 import type { ClientConnection } from "../../types";
-import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../../handlers/remoteMessaging/sendMessageToRemote.js";
 import type { TargetClient } from "../utils/ClientResolver";
 export enum TemplateEnum {

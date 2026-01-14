@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { BaseConnection, ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
-import { AgentConnectionsManager } from './agentConnectionsManager';
-import { AppConnectionsManager } from './appConnectionsManager';
-import { TuiConnectionsManager } from './tuiConnectionsManager';
-import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
-import { logger } from '../../main/utils/logger';
+import { BaseConnection, ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../../types';
+import { AgentConnectionsManager } from '../../../agentLib/agentProcessManager/agentConnectionsManager';
+import { AppConnectionsManager } from '../../../appLib/appConnectionManager/appConnectionsManager';
+import { TuiConnectionsManager } from '../../../tuiLib/tuiconnectionManager/tuiConnectionsManager';
+import { ChildAgentProcessManager } from '../../../agentLib/childAgentManager/childAgentProcessManager';
+import { logger } from '../../utils/logger';
 
 /**
  * Coordinates operations across agent and app connection managers.

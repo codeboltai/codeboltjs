@@ -4,7 +4,7 @@ import {
   ToolHandler,
   WriteFileHandler,
 } from "../../localAgentRequestFulfilment/index.js";
-import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 import { NotificationService } from "../../services/NotificationService.js";
 import { SendMessageToApp } from "../../communication/handlers/appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../../communication/handlers/tuiMessaging/sendMessageToTui.js";

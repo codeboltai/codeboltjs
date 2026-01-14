@@ -3,8 +3,8 @@ import { createServer } from 'http';
 import { ServerConfig, formatLogMessage, AgentCliOptions } from '../../types';
 import { HttpHandler } from '../handlers/httpHandler';
 import { WebSocketServer } from '../../core/ws/websocketServer';
-import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ChildAgentProcessManager } from '../../agentLib/childAgentManager/childAgentProcessManager';
+import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
 import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
 

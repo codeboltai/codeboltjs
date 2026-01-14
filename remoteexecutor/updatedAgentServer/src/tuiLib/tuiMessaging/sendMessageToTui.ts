@@ -1,5 +1,5 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
-import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
+import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
 import { logger } from '../../main/utils/logger';
 
 export class SendMessageToTui {

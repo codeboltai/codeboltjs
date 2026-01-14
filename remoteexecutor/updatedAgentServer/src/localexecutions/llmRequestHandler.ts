@@ -11,7 +11,7 @@ import { LLMProviderService } from './../services/LLMProviderService';
 import { NotificationService } from '../shared/notification/NotificationService';
 import type { ClientConnection } from '../types';
 import { logger } from '@/main/utils/logger';
-import { ConnectionManager } from '@/core/connectionManagers/connectionManager';
+import { ConnectionManager } from '@/main/core/connectionManagers/connectionManager';
 
 const prepareLLmRequest = (finalMessage: InferenceEvent, model: string) => {
     try {
