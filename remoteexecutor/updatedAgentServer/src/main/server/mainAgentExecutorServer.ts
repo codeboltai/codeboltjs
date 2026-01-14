@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { ServerConfig, formatLogMessage, AgentCliOptions } from '../../types';
 import { HttpHandler } from './httpHandler';
-import { WebSocketServer } from '../../core/ws/websocketServer';
+import { WebSocketServer } from './websocketServer';
 import { ChildAgentProcessManager } from '../../agentLib/childAgentManager/childAgentProcessManager';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
 import { SendMessageToAgent } from '../../agentLib/agentMessaging/sendMessageToAgent';

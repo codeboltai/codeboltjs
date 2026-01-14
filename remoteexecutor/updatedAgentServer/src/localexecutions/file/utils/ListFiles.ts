@@ -4,7 +4,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { getErrorMessage } from '../errors';
+import { getErrorMessage } from '../../../utils/errors';
 
 /**
  * Parameters for the ListFiles utility

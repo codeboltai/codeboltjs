@@ -14,9 +14,9 @@ import { getErrorMessage } from '../utils/errors';
 import type { WorkspaceContext, FileSystemService } from '../types/serviceTypes';
 
 // Import utility functions from fileSystem utils only
-import { executeReadFile, type ReadFileParams } from '../utils/fileSystem/ReadFile';
-import { executeWriteFile, type WriteFileParams } from '../utils/fileSystem/WriteFile';
-import { executeListDirectory, type LSParams, type FileEntry as UtilityFileEntry } from '../utils/fileSystem/ListDirectory';
+import { executeReadFile, type ReadFileParams } from '../../localexecutions/file/utils/ReadFile';
+import { executeWriteFile, type WriteFileParams } from '../../localexecutions/file/utils/WriteFile';
+import { executeListDirectory, type LSParams, type FileEntry as UtilityFileEntry } from '../../localexecutions/file/utils/ListDirectory';
 
 /**
  * Configuration interface for FileServices

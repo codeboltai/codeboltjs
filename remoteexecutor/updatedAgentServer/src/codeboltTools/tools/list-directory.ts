@@ -9,7 +9,7 @@ import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import { makeRelative, shortenPath } from '../utils/paths';
 import type { ConfigManager } from '../config';
-import { executeListDirectory, type LSParams, type FileEntry } from '../../utils/fileSystem/ListDirectory';
+import { executeListDirectory, type LSParams, type FileEntry } from '../../localexecutions/file/utils/ListDirectory';
 
 /**
  * Parameters for the LS tool

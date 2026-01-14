@@ -14,7 +14,7 @@ import { glob, escape } from 'glob';
 type PartListUnion = string;
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
-import { executeReadManyFiles, type ReadManyFilesParams as UtilReadManyFilesParams, type ReadManyFilesResult as UtilReadManyFilesResult } from '../../utils/fileSystem/ReadManyFiles';
+import { executeReadManyFiles, type ReadManyFilesParams as UtilReadManyFilesParams, type ReadManyFilesResult as UtilReadManyFilesResult } from '../../localexecutions/file/utils/ReadManyFiles';
 
 /**
  * Parameters for the ReadManyFilesTool.
