@@ -1,4 +1,4 @@
-import { ModelOption } from '../../types';
+import { ModelOption } from '../types';
 
 const DEFAULT_MODELS: ModelOption[] = [
   {
