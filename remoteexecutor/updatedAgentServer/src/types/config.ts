@@ -69,9 +69,26 @@ export interface DockerProviderConfig {
   agentTask?: string;
   isDev: boolean;
   maxReconnectAttempts: number;
-  providerId:string,
-  storedTaskId:string;
+  providerId: string,
+  storedTaskId: string;
   reconnectDelay: number;
   connectionTimeout: number;
-  environmentId:string
+  environmentId: string
+}
+
+/**
+ * Proxy type configuration for individual event types
+ */
+export interface EventProxyConfig {
+  proxyType: 'local' | 'proxy';
+  primaryProxy?: 'cloud' | 'custom';
+}
+
+/**
+ * Proxy configuration profile for all event types
+ */
+export interface ProxyConfig {
+  fsEvent: EventProxyConfig;
+  inference: EventProxyConfig;
+  [key: string]: EventProxyConfig;
 }

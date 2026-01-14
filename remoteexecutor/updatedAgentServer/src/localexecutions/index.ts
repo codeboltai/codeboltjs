@@ -9,3 +9,6 @@ export type {
   TrustedFolder,
   PermissionStorage
 } from "./PermissionManager";
+
+// Re-export from localActionExecutor
+export { executeActionOnMessage, AgentMessage } from "./localActionExecutor";

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
 import { AgentCliOptions } from './types';
 import { AgentExecutorServer } from './main/server/mainAgentExecutorServer';
-import { getServerConfig,setServerPort } from './main/config/config';
+import { getServerConfig, setServerPort, setProxyConfig, getProxyConfig } from './main/config/config';
 import { logger, LogLevel, Logger } from './main/utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
@@ -14,7 +14,7 @@ import { findAvailablePort } from './main/utils/portservices';
  */
 function setupCLI(): AgentCliOptions {
   const program = new Command();
-  
+
   program
     .name('codebolt-code')
     .description('Codebolt Code - AI-powered coding assistant')
@@ -31,7 +31,7 @@ function setupCLI(): AgentCliOptions {
     .option('--prompt <prompt>', 'initial prompt to send to the agent')
     .option('--model-name <name>', 'default model name to pass to TUI')
     .option('--model-provider <provider>', 'default model provider to pass to TUI')
-.addHelpText('after', `
+    .addHelpText('after', `
  Examples:
    $ codebolt-code                    # Start with TUI interface
    $ codebolt-code --noui            # Start server only
@@ -85,7 +85,7 @@ function initializeLogger(options: AgentCliOptions): void {
     logLevel: options.verbose ? LogLevel.DEBUG : LogLevel.INFO,
     enableConsole: options.noui ?? false
   });
-  
+
   // Test log file writing
   if (!loggerInstance.testLogWrite()) {
     logger.warn('Warning: Could not write to log file. Console logging only.');
@@ -101,10 +101,10 @@ async function main(): Promise<void> {
   const options = setupCLI();
   try {
     initializeLogger(options);
-    
+
     // Get configuration
     const config = getServerConfig();
-    
+
     // Override config with CLI options
     if (options.host) config.host = options.host;
 
@@ -119,16 +119,20 @@ async function main(): Promise<void> {
 
       logger.info(`No port provided. Selected available port ${config.port}`);
     }
-    
+
     logger.info('Starting Codebolt Code...');
-    
+
     if (options.verbose) {
       logger.debug('CLI Options', options);
       logger.debug('Server Configuration', config);
     }
-    
+
     logger.info(`UI Mode: ${options.noui ? 'Server Only' : 'TUI + Server'}`);
     logger.info(`Server: ${config.host}:${config.port}`);
+
+    // Initialize proxy configuration based on UI mode
+    const proxyConfig = setProxyConfig(options.noui ?? false);
+    logger.info(`Proxy Configuration: fsEvent=${proxyConfig.fsEvent.proxyType}, inference=${proxyConfig.inference.proxyType}`);
 
     if (options.remote) {
       logger.info(`Remote proxy enabled${options.remoteUrl ? ` -> ${options.remoteUrl}` : ''}`);
@@ -141,12 +145,12 @@ async function main(): Promise<void> {
         logger.warn('No app token provided for remote proxy.');
       }
     }
-    
+
     // Log agent configuration if provided
     if (options.agentType && options.agentDetail) {
       logger.info(`Agent Type: ${options.agentType}`);
       logger.info(`Agent Detail: ${options.agentDetail}`);
-      
+
       // Validate agent type
       const validTypes = Object.values(AgentTypeEnum);
       if (!validTypes.includes(options.agentType)) {
@@ -157,16 +161,16 @@ async function main(): Promise<void> {
       logger.error('Both --agent-type and --agent-detail must be provided together');
       process.exit(1);
     }
-    
+
     // Log prompt if provided
     if (options.prompt) {
       logger.info(`Initial Prompt: ${options.prompt}`);
     }
-    
+
     // Create and start server
     const server = new AgentExecutorServer(config, options);
     await server.start();
-    
+
     logger.info(`Server started successfully on ${config.host}:${config.port}`);
 
     const tuiManager = createTuiProcessManager({
@@ -176,7 +180,7 @@ async function main(): Promise<void> {
     });
 
     tuiManager.initialize();
-    
+
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error: Error): Promise<void> => {
       logger.logError(error, 'Uncaught Exception');
@@ -191,7 +195,7 @@ async function main(): Promise<void> {
       await server.stop();
       process.exit(1);
     });
-    
+
   } catch (error) {
     logger.logError(error as Error, 'Failed to start server');
     process.exit(1);
