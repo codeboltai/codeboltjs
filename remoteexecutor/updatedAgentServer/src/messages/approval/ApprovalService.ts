@@ -1,7 +1,7 @@
 import type { ClientConnection } from "../../types";
 import { formatLogMessage } from "../../types/utils";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
-import { SendMessageToRemote } from "../../handlers/remoteMessaging/sendMessageToRemote.js";
+import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote.js";
 import { logger } from "../../main/utils/logger";
 import type { TargetClient } from "../../shared/utils/ClientResolver";
 

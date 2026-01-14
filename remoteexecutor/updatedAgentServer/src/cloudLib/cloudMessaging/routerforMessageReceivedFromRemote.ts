@@ -1,6 +1,6 @@
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
-import { SendMessageToTui } from '../../communication/handlers/tuiMessaging/sendMessageToTui';
+import { SendMessageToTui } from '../../tuiLib/tuiMessaging/sendMessageToTui';
 import { logger } from '../../main/utils/logger';
 
 /**

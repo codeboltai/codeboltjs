@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { ModelService } from '../services/ModelService';
-import { logger } from '../main/utils/logger';
-import { formatLogMessage } from '../types';
+import { ModelService } from '../../main/services/ModelService';
+import { logger } from '../../main/utils/logger';
+import { formatLogMessage } from '../../types';
 
 export class ModelController {
   private modelService: ModelService;

@@ -6,7 +6,7 @@ import { ConnectionManager } from "../main/core/connectionManagers/connectionMan
 // Remove SendMessageToRemote import as it's no longer needed
 import { logger } from "../main/utils/logger";
 import { getErrorMessage } from "../utils/errors";
-import { FileServices, createFileServices } from "../services/FileServices";
+import { FileServices, createFileServices } from "../../main/services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";

@@ -3,14 +3,14 @@
  */
 
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
-import { formatLogMessage } from './../types';
+import { formatLogMessage } from '../../types';
 import type {
   ChatNotification,
   AgentTextResponseNotification,
   UserMessageRequestNotification
 
 } from '@codebolt/types/agent-to-app-ws-types';
-import { logger } from '../main/utils/logger';
+import { logger } from '../utils/logger';
 import type  {FileReadResponseNotification, WriteTodosResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification';
 import type {
   ListDirectoryForSearchResult,

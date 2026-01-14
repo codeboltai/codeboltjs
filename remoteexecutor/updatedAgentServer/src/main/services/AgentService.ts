@@ -1,5 +1,5 @@
-import { AgentCliOptions, AgentTypeEnum } from '../types/cli';
-import { CodeboltApplicationPath } from '../main/config/config';
+import { AgentCliOptions, AgentTypeEnum } from '../../types/cli';
+import { CodeboltApplicationPath } from '../config/config';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';

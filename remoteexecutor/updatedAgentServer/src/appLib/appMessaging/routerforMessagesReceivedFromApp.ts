@@ -3,19 +3,19 @@ import { ClientConnection, formatLogMessage } from "../../types";
 import { UserMessage, BaseApplicationResponse } from "@codebolt/types/sdk";
 
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager";
-import { NotificationService } from "../../services/NotificationService";
+import { NotificationService } from "../../main/services/NotificationService";
 import { SendMessageToAgent } from "../../agentLib/agentMessaging/sendMessageToAgent";
-import { SendMessageToRemote } from "../../communication/handlers/remoteMessaging/sendMessageToRemote";
+import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
 import {
   ReadFileHandler,
   type ReadFileConfirmation,
-} from "../../localAgentRequestFulfilment/readFileHandler";
+} from "../../localexecutions/file/readFileHandler";
 
 import {
   WriteFileHandler,
   type WriteFileConfirmation,
-} from "../../localAgentRequestFulfilment/writeFileHandler";
+} from "../../localexecutions/file/writeFileHandler";
 
 import { AgentTypeEnum } from "@/types/cli";
 
