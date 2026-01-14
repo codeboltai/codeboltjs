@@ -5,16 +5,16 @@ import {
   ConnectionsResponse,
   HealthCheckResponse,
   formatLogMessage
-} from './../types';
+} from '../../types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
-import { logger } from '../main/utils/logger';
-import { McpRoutes } from '../routes/mcpRoutes';
-import { TodoRoutes } from '../routes/todoRoutes';
-import { ModelRoutes } from '../routes/modelRoutes';
-import { AgentRoutes } from '../routes/agentRoutes';
-import { ProviderRoutes } from '../routes/llmProviderRoutes';
-import { ConversationRoutes } from '../routes/conversationRoutes';
-import { EnvironmentRoutes } from '../routes/EnvironmentRoutes';
+import { logger } from '../utils/logger';
+import { McpRoutes } from '../../tuiLib/routes/mcpRoutes';
+import { TodoRoutes } from '../../tuiLib/routes/todoRoutes';
+import { ModelRoutes } from '../../tuiLib/routes/modelRoutes';
+import { AgentRoutes } from '../../tuiLib/routes/agentRoutes';
+import { ProviderRoutes } from '../../tuiLib/routes/llmProviderRoutes';
+import { ConversationRoutes } from '../../tuiLib/routes/conversationRoutes';
+import { EnvironmentRoutes } from '../../tuiLib/routes/EnvironmentRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

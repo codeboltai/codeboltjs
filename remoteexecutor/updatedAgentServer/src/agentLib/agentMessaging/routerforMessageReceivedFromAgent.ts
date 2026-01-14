@@ -3,12 +3,12 @@ import {
   ReadFileHandler,
   ToolHandler,
   WriteFileHandler,
-} from "../../localAgentRequestFulfilment/index.js";
+} from "../../localexecutions/index.js";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
-import { NotificationService } from "../../services/NotificationService.js";
-import { SendMessageToApp } from "../../communication/handlers/appMessaging/sendMessageToApp.js";
-import { SendMessageToTui } from "../../communication/handlers/tuiMessaging/sendMessageToTui.js";
-import { SendMessageToRemote } from "../../communication/handlers/remoteMessaging/sendMessageToRemote";
+import { NotificationService } from "../../main/services/NotificationService.js";
+import { SendMessageToApp } from "../../appLib/appMessaging/sendMessageToApp.js";
+import { SendMessageToTui } from "../../tuiLib/tuiMessaging/sendMessageToTui.js";
+import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
 import type {
   ReadFileEvent as SchemaReadFileEvent,
@@ -30,11 +30,11 @@ import type {
   ProjectEvent,
   SendMessageEvent,
 } from "@codebolt/types/agent-to-app-ws-types";
-import { AIRequesteHandler } from "@/localAgentRequestFulfilment/llmRequestHandler";
-import { ChatHistoryHandler } from "@/localAgentRequestFulfilment/chatHistoryHandler";
-import { ProjectRequestHandler } from "@/localAgentRequestFulfilment/projectRequestHandler";
+import { AIRequesteHandler } from "@/localexecutions/llmRequestHandler";
+import { ChatHistoryHandler } from "@/localexecutions/chatHistoryHandler";
+import { ProjectRequestHandler } from "@/localexecutions/projectRequestHandler";
 import { SendMessage } from "@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas";
-import { ChatMessageHandler } from "@/localAgentRequestFulfilment/chatMessageHandler";
+import { ChatMessageHandler } from "@/localexecutions/chatMessageHandler";
 
 // Define interfaces that match what the handlers expect
 interface ReadFileEvent {

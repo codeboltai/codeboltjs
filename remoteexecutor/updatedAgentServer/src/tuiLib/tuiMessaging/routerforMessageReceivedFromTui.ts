@@ -7,12 +7,12 @@ import { logger } from "../../main/utils/logger";
 import {
   ReadFileHandler,
   type ReadFileConfirmation,
-} from "../../localAgentRequestFulfilment/readFileHandler";
+} from "../../localexecutions/file/readFileHandler";
 
 import {
   WriteFileHandler,
   type WriteFileConfirmation,
-} from "../../localAgentRequestFulfilment/writeFileHandler";
+} from "../../localexecutions/file/writeFileHandler";
 import { AgentTypeEnum } from "@/types/cli";
 
 export class TuiMessageRouter {

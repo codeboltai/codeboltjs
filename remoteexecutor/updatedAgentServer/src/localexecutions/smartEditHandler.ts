@@ -5,12 +5,12 @@ import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
 import { logger } from "../main/utils/logger";
 import { getErrorMessage } from "../utils/errors";
-import { FileServices, createFileServices } from "../services/FileServices";
+import { FileServices, createFileServices } from "../../main/services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
-import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote";
+import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";
 
 import type {
   FileWriteConfirmation,

@@ -9,10 +9,10 @@ import {
 } from '../../types';
 
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
-import { NotificationService } from '../../services/NotificationService';
-import { AppMessageRouter } from '../../handlers/appMessaging/routerforMessagesReceivedFromApp';
-import { AgentMessageRouter } from '../../handlers/agentMessaging/routerforMessageReceivedFromAgent';
-import { TuiMessageRouter } from '../../handlers/tuiMessaging/routerforMessageReceivedFromTui';
+import { NotificationService } from '../../main/services/NotificationService';
+import { AppMessageRouter } from '../../appLib/appMessaging/routerforMessagesReceivedFromApp';
+import { AgentMessageRouter } from '../../agentLib/agentMessaging/routerforMessageReceivedFromAgent';
+import { TuiMessageRouter } from '../../tuiLib/tuiMessaging/routerforMessageReceivedFromTui';
 
 // Import types and constants
 import {

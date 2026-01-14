@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { ConnectionManager } from '../core/connectionManagers/connectionManager';
-import { logger } from '../main/utils/logger';
-import { formatLogMessage } from '../types';
+import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
+import { logger } from '../../main/utils/logger';
+import { formatLogMessage } from '../../types';
 
 export class EnvironmentController {
     private connectionManager: ConnectionManager;

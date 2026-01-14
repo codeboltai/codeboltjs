@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import path from 'path';
-import { ConversationService } from '../services/ConversationService';
-import { Conversation, ConversationInsertRequest } from '../types/conversations';
+import { ConversationService } from '../../main/services/ConversationService';
+import { Conversation, ConversationInsertRequest } from '../../types/conversations';
 
 export class ConversationController {
   public async addConversation(req: Request, res: Response): Promise<void> {

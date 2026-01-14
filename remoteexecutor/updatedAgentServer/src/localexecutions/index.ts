@@ -1,11 +1,11 @@
-export { ReadFileHandler } from "./localAgentRequestFulfilment/readFileHandler";
-export { WriteFileHandler } from "./localAgentRequestFulfilment/writeFileHandler";
-export { ToolHandler } from "./localAgentRequestFulfilment/toolHandler";
-export { PermissionManager, PermissionUtils } from "./localAgentRequestFulfilment/PermissionManager";
-export type { 
-  PermissionScope, 
-  PermissionRule, 
-  PermissionPolicy, 
-  TrustedFolder, 
-  PermissionStorage 
-} from "./localAgentRequestFulfilment/PermissionManager";
+export { ReadFileHandler } from "./file/readFileHandler";
+export { WriteFileHandler } from "./file/writeFileHandler";
+export { ToolHandler } from "./toolHandler";
+export { PermissionManager, PermissionUtils } from "./PermissionManager";
+export type {
+  PermissionScope,
+  PermissionRule,
+  PermissionPolicy,
+  TrustedFolder,
+  PermissionStorage
+} from "./PermissionManager";

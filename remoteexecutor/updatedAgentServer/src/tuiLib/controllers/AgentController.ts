@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { AgentService } from '../services/AgentService';
-import { logger } from '../main/utils/logger';
-import { formatLogMessage } from '../types';
+import { AgentService } from '../../main/services/AgentService';
+import { logger } from '../../main/utils/logger';
+import { formatLogMessage } from '../../types';
 
 export class AgentController {
   private agentService: AgentService;

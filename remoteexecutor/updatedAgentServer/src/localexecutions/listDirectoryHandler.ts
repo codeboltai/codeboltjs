@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
-import { FileServices, createFileServices } from "../services/FileServices";
+import { FileServices, createFileServices } from "../../main/services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../main/utils/logger";
-import { PermissionManager, PermissionUtils } from "./localAgentRequestFulfilment/PermissionManager";
+import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 
 import {

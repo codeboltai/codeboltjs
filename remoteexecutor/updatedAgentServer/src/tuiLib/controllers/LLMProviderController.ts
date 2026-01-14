@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { LLMProviderService } from '../services/LLMProviderService';
-import { logger } from '../main/utils/logger';
-import { formatLogMessage } from '../types';
+import { LLMProviderService } from '../../main/services/LLMProviderService';
+import { logger } from '../../main/utils/logger';
+import { formatLogMessage } from '../../types';
 
 export class LLMProviderController {
   private llmProviderService: LLMProviderService;

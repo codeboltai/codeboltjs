@@ -1,17 +1,17 @@
 import express from 'express';
 import { createServer } from 'http';
 import { ServerConfig, formatLogMessage, AgentCliOptions } from '../../types';
-import { HttpHandler } from '../handlers/httpHandler';
+import { HttpHandler } from './httpHandler';
 import { WebSocketServer } from '../../core/ws/websocketServer';
 import { ChildAgentProcessManager } from '../../agentLib/childAgentManager/childAgentProcessManager';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
-import { SendMessageToAgent } from '../handlers/agentMessaging/sendMessageToAgent';
+import { SendMessageToAgent } from '../../agentLib/agentMessaging/sendMessageToAgent';
 import { RemoteProxyClient } from '../../cloudLib/cloudConnectionManager/remoteProxyClient';
 
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
 import { logger } from '../utils/logger';
-import { AgentService } from '../../services/AgentService';
+import { AgentService } from '../services/AgentService';
 
 /**
  * Main Docker Server class
