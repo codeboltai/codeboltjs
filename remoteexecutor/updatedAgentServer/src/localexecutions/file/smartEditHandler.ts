@@ -8,7 +8,7 @@ import { getErrorMessage } from "../../utils/errors";
 import { FileServices, createFileServices } from "../../main/services/FileServices";
 import { DefaultFileSystem } from "../../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../../utils/DefaultWorkspaceContext";
-import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { PermissionManager, PermissionUtils } from "../PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../../shared";
 import { SendMessageToRemote } from "../handlers/remoteMessaging/sendMessageToRemote";
 
