@@ -2,7 +2,7 @@ import { ClientConnection, ResponseMessage, formatLogMessage } from '../../types
 
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { WebSocketServer } from '../../core/ws/websocketServer';
-import { SendMessageToRemote } from '../../communication/handlers/remoteMessaging/sendMessageToRemote';
+import { SendMessageToRemote } from '../../cloudLib/remoteMessaging/sendMessageToRemote';
 import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk';
 import { ChildAgentProcessManager } from '@/utils/childAgentManager/childAgentProcessManager';
 import { AgentTypeEnum } from '@/types/cli';

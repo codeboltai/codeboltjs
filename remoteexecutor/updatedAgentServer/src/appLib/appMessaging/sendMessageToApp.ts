@@ -1,6 +1,6 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { SendMessageToRemote } from '../../communication/handlers/remoteMessaging/sendMessageToRemote';
+import { SendMessageToRemote } from '../../cloudLib/remoteMessaging/sendMessageToRemote';
 import { logger } from '../../main/utils/logger';
 import { ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
 
