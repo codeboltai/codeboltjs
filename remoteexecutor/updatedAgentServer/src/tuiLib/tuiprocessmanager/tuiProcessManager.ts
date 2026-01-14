@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 import type { AgentExecutorServer } from '../../core/mainAgentExecutorServer';
 import type { AgentCliOptions, ServerConfig } from '../../types';
-import { logger } from '../utils/logger';
+import { logger } from '../../main/utils/logger';
 import { AgentService } from '../../services/AgentService';
 import { ModelService } from '../../services/ModelService';
 
