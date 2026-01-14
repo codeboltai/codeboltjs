@@ -3,6 +3,8 @@ import {
   ReadFileHandler,
   ToolHandler,
   WriteFileHandler,
+  executeActionOnMessage,
+  AgentMessage,
 } from "../../localexecutions/index.js";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 import { NotificationService } from "../../main/services/NotificationService.js";
@@ -10,6 +12,7 @@ import { SendMessageToApp } from "../../appLib/appMessaging/sendMessageToApp.js"
 import { SendMessageToTui } from "../../tuiLib/tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
+import { getProxyConfig } from "../../main/config/config";
 import type {
   ReadFileEvent as SchemaReadFileEvent,
   WriteToFileEvent as SchemaWriteToFileEvent,
@@ -75,7 +78,7 @@ export class AgentMessageRouter {
   private chatHistoryHandler: ChatHistoryHandler
   private llmRequestHandler: AIRequesteHandler;
   private projectRequestHandler: ProjectRequestHandler
-  private chatMessageRequestHandler:ChatMessageHandler
+  private chatMessageRequestHandler: ChatMessageHandler
 
   constructor() {
     this.readFileHandler = new ReadFileHandler();
@@ -106,8 +109,8 @@ export class AgentMessageRouter {
       SchemaGrepSearchEvent |
       McpEvent |
       LLMEvent |
-      GetChatHistoryEvent|
-      ProjectEvent|
+      GetChatHistoryEvent |
+      ProjectEvent |
       SendMessageEvent
   ) {
     logger.info(
@@ -117,58 +120,31 @@ export class AgentMessageRouter {
         `Handling agent request: ${message.type} from ${agent.id}`
       )
     );
-   //TODO: check wether to process locally or process to proxy
+
     // Handle read file requests locally before forwarding
-    if (message.type === "fsEvent" && message.action === "readFile") {
-      // Convert schema-based event to handler-based event
-      const readFileEvent: ReadFileEvent = {
-        type: "fsEvent",
-        action: "readFile",
-        requestId: message.requestId,
-        message: {
-          relPath: (message as SchemaReadFileEvent).message.filePath,
-          // offset and limit are not in the schema, so we leave them undefined
-        }
-      };
-      await this.readFileHandler.handleReadFile(agent, readFileEvent);
-      return;
-    }
-    
 
-    if (message.type === "fsEvent" && message.action === "writeToFile") {
-      // Convert schema-based event to handler-based event
-      const writeFileEvent: WriteToFileEvent = {
-        type: "fsEvent",
-        action: "writeToFile",
-        requestId: message.requestId,
-        message: {
-          relPath: (message as SchemaWriteToFileEvent).message.relPath,
-          newContent: (message as SchemaWriteToFileEvent).message.newContent,
-        }
-      };
-      await this.writeFileHandler.handleWriteFile(agent, writeFileEvent);
-      return;
-    }
-    if (message.type === "codebolttools") {
-      await this.toolHandler.handleToolEvent(agent, message);
-      return;
-    }
-    if (message.type == 'inference') {
-      await this.llmRequestHandler.handleAiRequest(agent, message);
-      return;
-    }
-    if (message.type === 'getChatHistory') {
-      await this.chatHistoryHandler.handleChatHistoryEvent(agent, message as GetChatHistoryEvent)
-    }
-    if (message.type === 'projectEvent') {
-      await this.projectRequestHandler.handleProjectEvent(agent, message as ProjectEvent);
-      return;
-    }
-    if(message.type =='sendMessage'){
-      await this.chatMessageRequestHandler.handleChatMessageRequest(agent, message as SendMessageEvent)
-      return
-    }
+    //TODO:based on type find in config  whether to do it locally or using proxy
+    // Get proxy config to determine whether to handle locally or via proxy
+    const proxyConfig = getProxyConfig();
+    const messageType = message.type as string;
+    const eventProxyConfig = messageType ? proxyConfig[messageType] : undefined;
+    const shouldHandleLocally = eventProxyConfig?.proxyType === 'local';
 
+    logger.debug(
+      formatLogMessage(
+        "debug",
+        "MessageRouter",
+        `Proxy config for ${message.type}: ${eventProxyConfig?.proxyType ?? 'not configured (defaulting to forward)'}`
+      )
+    );
+
+    // Try to execute the action locally if configured to do so
+    if (shouldHandleLocally) {
+      const handled = await executeActionOnMessage(agent, message as AgentMessage);
+      if (handled) {
+        return;
+      }
+    }
 
     // Forward the message to the related app instead of sending back to client
 
