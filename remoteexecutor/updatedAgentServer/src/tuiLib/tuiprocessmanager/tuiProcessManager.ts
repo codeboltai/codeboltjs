@@ -2,7 +2,7 @@ import { ChildProcess, spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-import type { AgentExecutorServer } from '../../core/mainAgentExecutorServer';
+import type { AgentExecutorServer } from '../../main/server/mainAgentExecutorServer';
 import type { AgentCliOptions, ServerConfig } from '../../types';
 import { logger } from '../../main/utils/logger';
 import { AgentService } from '../../services/AgentService';

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
 import { AgentCliOptions } from './types';
-import { AgentExecutorServer } from './core/mainAgentExecutorServer';
+import { AgentExecutorServer } from './main/server/mainAgentExecutorServer';
 import { getServerConfig,setServerPort } from './main/config/config';
 import { logger, LogLevel, Logger } from './main/utils/logger';
 import { AgentTypeEnum } from './types/cli';
