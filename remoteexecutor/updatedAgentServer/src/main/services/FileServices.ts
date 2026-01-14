@@ -8,7 +8,7 @@
  */
 
 import { logger } from '@/main/utils/logger';
-import { getErrorMessage } from '../utils/errors';
+import { getErrorMessage } from '@/utils/errors';
 
 // Import configuration types
 import type { WorkspaceContext, FileSystemService } from '../types/serviceTypes';
