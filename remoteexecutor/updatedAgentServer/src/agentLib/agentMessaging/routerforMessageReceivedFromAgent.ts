@@ -117,7 +117,7 @@ export class AgentMessageRouter {
         `Handling agent request: ${message.type} from ${agent.id}`
       )
     );
-
+   //TODO: check wether to process locally or process to proxy
     // Handle read file requests locally before forwarding
     if (message.type === "fsEvent" && message.action === "readFile") {
       // Convert schema-based event to handler-based event
@@ -133,6 +133,7 @@ export class AgentMessageRouter {
       await this.readFileHandler.handleReadFile(agent, readFileEvent);
       return;
     }
+    
 
     if (message.type === "fsEvent" && message.action === "writeToFile") {
       // Convert schema-based event to handler-based event
