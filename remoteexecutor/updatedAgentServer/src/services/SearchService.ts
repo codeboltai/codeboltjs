@@ -7,7 +7,7 @@
  * - SearchFiles: High-level file content search functionality
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/main/utils/logger';
 import { getErrorMessage } from '../utils/errors';
 
 // Import configuration types

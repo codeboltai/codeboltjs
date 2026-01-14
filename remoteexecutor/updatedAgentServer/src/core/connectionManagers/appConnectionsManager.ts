@@ -1,6 +1,6 @@
 import { Message, ReadFileEvent } from '@codebolt/types/agent-to-app-ws-types';
 import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 import { FileDeleteConfirmation, FileDeleteSuccess, FileReadConfirmation, FileReadSuccess, FileWriteConfirmation, FileWriteError, FileWriteRejected, FileWriteSuccess, FolderReadConfirmation, FolderReadError, FolderReadRejected, FolderReadSuccess, SearchConfirmation, SearchError, SearchInProgress, SearchRejected, SearchSuccess } from '@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas';
 
 /**

@@ -4,7 +4,7 @@ import type { ClientConnection } from "../types";
 import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 // Remove SendMessageToRemote import as it's no longer needed
-import { logger } from "../utils/logger";
+import { logger } from "../main/utils/logger";
 import { getErrorMessage } from "../utils/errors";
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";

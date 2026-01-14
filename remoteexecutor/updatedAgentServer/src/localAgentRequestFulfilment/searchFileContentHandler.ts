@@ -6,7 +6,7 @@ import { ConnectionManager } from "../core/connectionManagers/connectionManager.
 // Remove SendMessageToRemote import as it's no longer needed
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
-import { logger } from "../utils/logger";
+import { logger } from "../main/utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { createSearchService } from "../services/SearchService";
 // Add imports for the new approval system

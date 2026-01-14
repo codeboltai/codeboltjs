@@ -10,7 +10,7 @@ import { RemoteProxyClient } from './remote/remoteProxyClient';
 
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 import { AgentService } from '../services/AgentService';
 
 /**

@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
 import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 /**
  * Manages lifecycle and operations for agent WebSocket connections.

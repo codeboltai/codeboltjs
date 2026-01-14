@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ModelService } from '../services/ModelService';
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 import { formatLogMessage } from '../types';
 
 export class ModelController {

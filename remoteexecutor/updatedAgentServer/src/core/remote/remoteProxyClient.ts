@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../connectionManagers/connectionManager';
 import { RemoteMessageRouter } from '../../handlers/remoteMessaging/routerforMessageReceivedFromRemote';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 export interface RemoteProxyClientOptions {
   url: string;

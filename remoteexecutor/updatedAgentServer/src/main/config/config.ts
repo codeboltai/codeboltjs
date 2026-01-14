@@ -1,4 +1,4 @@
-import { ServerConfig, DEFAULT_SERVER_CONFIG } from './types';
+import { ServerConfig, DEFAULT_SERVER_CONFIG } from '../../types';
 
 
 import path from "path"; 

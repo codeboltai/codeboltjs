@@ -1,10 +1,10 @@
 import { Model } from '@codebolt/types/apis/models';
-import { CodeboltApplicationPath } from '../config';
+import { CodeboltApplicationPath } from '../main/config/config';
 import { LLMProviderService } from './LLMProviderService'; // Added import
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { logger } from '@/utils/logger';
+import { logger } from '@/main/utils/logger';
 import { log } from 'console';
 
 export class ModelService {

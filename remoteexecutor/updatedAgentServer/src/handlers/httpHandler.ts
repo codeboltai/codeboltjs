@@ -7,7 +7,7 @@ import {
   formatLogMessage
 } from './../types';
 import { ConnectionManager } from '../core/connectionManagers/connectionManager';
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 import { McpRoutes } from '../routes/mcpRoutes';
 import { TodoRoutes } from '../routes/todoRoutes';
 import { ModelRoutes } from '../routes/modelRoutes';

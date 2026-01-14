@@ -6,7 +6,7 @@ import { ConnectionManager } from "../core/connectionManagers/connectionManager.
 import { FileServices, createFileServices } from "../services/FileServices";
 import { DefaultFileSystem } from "../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
-import { logger } from "../utils/logger";
+import { logger } from "../main/utils/logger";
 import { PermissionManager, PermissionUtils } from "./PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
 

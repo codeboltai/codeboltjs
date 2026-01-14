@@ -1,5 +1,5 @@
 import { ClientConnection, ProjectInfo, formatLogMessage } from '../../types';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 /**
  * Manages lifecycle and operations for TUI WebSocket connections.

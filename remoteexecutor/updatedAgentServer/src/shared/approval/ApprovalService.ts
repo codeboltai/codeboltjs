@@ -2,7 +2,7 @@ import type { ClientConnection } from "../../types";
 import { formatLogMessage } from "../../types/utils";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../../handlers/remoteMessaging/sendMessageToRemote.js";
-import { logger } from "../../utils/logger";
+import { logger } from "../../main/utils/logger";
 import type { TargetClient } from "../utils/ClientResolver";
 
 import type {

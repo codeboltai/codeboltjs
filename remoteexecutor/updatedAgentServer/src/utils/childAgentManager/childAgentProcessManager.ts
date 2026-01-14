@@ -9,8 +9,8 @@ import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
 import { AgentTypeEnum } from '../../types/cli';
-import { logger } from '../logger';
-import { getServerConfig } from '../../config';
+import { logger } from '../../main/utils/logger';
+import { getServerConfig } from '../../main/config/config';
 
 /**
  * Agent API response interface

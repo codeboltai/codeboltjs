@@ -2,7 +2,7 @@ import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { RemoteProxyClient } from '../../core/remote/remoteProxyClient';
 import { BaseApplicationResponse } from '@codebolt/types/sdk';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 import {
   FileDeleteConfirmation,
   FileReadConfirmation,

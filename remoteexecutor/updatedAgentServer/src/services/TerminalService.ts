@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 import { spawn } from 'node:child_process';
 import * as os from 'node:os';
 import type { ConfigManager } from '../codeboltTools/config';

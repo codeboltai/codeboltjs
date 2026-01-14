@@ -11,7 +11,7 @@
 
 import { promises as fs } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 
 export interface PermissionScope {
   /** Tool name or '*' for all tools */

@@ -5,7 +5,7 @@ import { AgentConnectionsManager } from './agentConnectionsManager';
 import { AppConnectionsManager } from './appConnectionsManager';
 import { TuiConnectionsManager } from './tuiConnectionsManager';
 import { ChildAgentProcessManager } from '../../utils/childAgentManager/childAgentProcessManager';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 /**
  * Coordinates operations across agent and app connection managers.

@@ -3,7 +3,7 @@ import { ConnectionManager } from "../../core/connectionManagers/connectionManag
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
 import { SendMessageToAgent } from "../agentMessaging/sendMessageToAgent";
 import { BaseApplicationResponse, UserMessage } from "@codebolt/types/sdk";
-import { logger } from "../../utils/logger";
+import { logger } from "../../main/utils/logger";
 import {
   ReadFileHandler,
   type ReadFileConfirmation,

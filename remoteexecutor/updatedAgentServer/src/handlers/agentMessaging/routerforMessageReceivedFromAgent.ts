@@ -9,7 +9,7 @@ import { NotificationService } from "../../services/NotificationService.js";
 import { SendMessageToApp } from "../appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
-import { logger } from "../../utils/logger";
+import { logger } from "../../main/utils/logger";
 import type {
   ReadFileEvent as SchemaReadFileEvent,
   WriteToFileEvent as SchemaWriteToFileEvent,

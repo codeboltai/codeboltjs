@@ -1,11 +1,11 @@
 import { AgentCliOptions, AgentTypeEnum } from '../types/cli';
-import { CodeboltApplicationPath } from '../config';
+import { CodeboltApplicationPath } from '../main/config/config';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import axios, { AxiosResponse } from 'axios';
 import { MarketplaceAgent } from '@codebolt/types/apis/agents';
-import { logger } from '@/utils/logger';
+import { logger } from '@/main/utils/logger';
 
 export interface AgentInfo {
   agentId: string;

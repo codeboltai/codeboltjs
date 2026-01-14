@@ -6,7 +6,7 @@ import { ConnectionManager } from "../../core/connectionManagers/connectionManag
 import { NotificationService } from "../../services/NotificationService";
 import { SendMessageToAgent } from "../agentMessaging/sendMessageToAgent";
 import { SendMessageToRemote } from "../remoteMessaging/sendMessageToRemote";
-import { logger } from "../../utils/logger";
+import { logger } from "../../main/utils/logger";
 import {
   ReadFileHandler,
   type ReadFileConfirmation,

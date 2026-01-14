@@ -10,7 +10,7 @@ import type {
   UserMessageRequestNotification
 
 } from '@codebolt/types/agent-to-app-ws-types';
-import { logger } from '../utils/logger';
+import { logger } from '../main/utils/logger';
 import type  {FileReadResponseNotification, WriteTodosResponseNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification';
 import type {
   ListDirectoryForSearchResult,

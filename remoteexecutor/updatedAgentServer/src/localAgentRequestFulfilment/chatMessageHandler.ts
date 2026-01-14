@@ -10,7 +10,7 @@ import type {
 import { LLMProviderService } from './../services/LLMProviderService';
 import { NotificationService } from '../shared/notification/NotificationService';
 import type { ClientConnection } from '../types';
-import { logger } from '@/utils/logger';
+import { logger } from '@/main/utils/logger';
 import { ConnectionManager } from '@/core/connectionManagers/connectionManager';
 import { ChatEvent, SendMessageEvent } from '@codebolt/types/agent-to-app-ws-types';
 import type {ChatNotification} from '@codebolt/types/wstypes/agent-to-app-ws/notification/chatNotificationSchemas'

@@ -1,6 +1,6 @@
 import { ClientConnection, Message, formatLogMessage } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 export class SendMessageToTui {
   private readonly connectionManager = ConnectionManager.getInstance();

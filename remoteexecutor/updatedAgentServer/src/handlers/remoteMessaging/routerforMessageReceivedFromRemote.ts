@@ -1,7 +1,7 @@
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../../core/connectionManagers/connectionManager';
 import { SendMessageToTui } from '../tuiMessaging/sendMessageToTui';
-import { logger } from '../../utils/logger';
+import { logger } from '../../main/utils/logger';
 
 /**
  * Routes inbound messages arriving from the remote proxy to local recipients.

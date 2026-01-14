@@ -110,7 +110,7 @@ import {
   templateEnumSchema
 } from '@codebolt/types/wstypes/app-to-ui-ws/coreMessageSchemas'
 import { ChatNotification } from "@codebolt/types/agent-to-app-ws-types";
-import { logger } from "@/utils/logger";
+import { logger } from "@/main/utils/logger";
 
 /**
  * Service for handling notifications across all handlers
