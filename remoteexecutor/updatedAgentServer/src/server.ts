@@ -6,7 +6,7 @@ import { getServerConfig,setServerPort } from './main/config/config';
 import { logger, LogLevel, Logger } from './main/utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
-import { createTuiProcessManager } from './main/tuihandler/tuiProcessManager/tuiProcessManager';
+import { createTuiProcessManager } from './main/tuihandler/tuiProcessManager';
 import { findAvailablePort } from './main/utils/portservices';
 
 /**

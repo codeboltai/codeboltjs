@@ -2,11 +2,11 @@ import { ChildProcess, spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-import type { AgentExecutorServer } from '../../../core/mainAgentExecutorServer';
-import type { AgentCliOptions, ServerConfig } from '../../../types';
-import { logger } from '../../utils/logger';
-import { AgentService } from '../../../services/AgentService';
-import { ModelService } from '../../../services/ModelService';
+import type { AgentExecutorServer } from '../../core/mainAgentExecutorServer';
+import type { AgentCliOptions, ServerConfig } from '../../types';
+import { logger } from '../utils/logger';
+import { AgentService } from '../../services/AgentService';
+import { ModelService } from '../../services/ModelService';
 
 const DEFAULT_AGENT_ID = 'cli-agent';
 const DEFAULT_AGENT_NAME = 'Ask Agent';
