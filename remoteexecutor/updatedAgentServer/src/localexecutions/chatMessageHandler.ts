@@ -8,7 +8,7 @@ import type {
     LLMResponse
 } from '@codebolt/types/wstypes/app-to-agent-ws/llmServiceResponses'
 import { LLMProviderService } from './../services/LLMProviderService';
-import { NotificationService } from '../shared/notification/NotificationService';
+import { NotificationService } from '../messages/notification/NotificationService';
 import type { ClientConnection } from '../types';
 import { logger } from '@/main/utils/logger';
 import { ConnectionManager } from '@/main/core/connectionManagers/connectionManager';

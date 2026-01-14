@@ -3,7 +3,7 @@ import { formatLogMessage } from "../../types/utils";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../../handlers/remoteMessaging/sendMessageToRemote.js";
 import { logger } from "../../main/utils/logger";
-import type { TargetClient } from "../utils/ClientResolver";
+import type { TargetClient } from "../../shared/utils/ClientResolver";
 
 import type {
   FileWriteConfirmation,
