@@ -52,6 +52,14 @@ import cbcodebaseSearch from '../modules/codebaseSearch';
 import cbfileUpdateIntent from '../modules/fileUpdateIntent';
 import cbprojectStructureUpdateRequest from '../modules/projectStructureUpdateRequest';
 import cbreviewMergeRequest from '../modules/reviewMergeRequest';
+import cbkvStore from '../modules/kvStore';
+import cbpersistentMemory from '../modules/persistentMemory';
+import cbeventLog from '../modules/eventLog';
+import cbknowledgeGraph from '../modules/knowledgeGraph';
+import cbhook from '../modules/hook';
+import cbmemoryIngestion from '../modules/memoryIngestion';
+import cbcontextAssembly from '../modules/contextAssembly';
+import cbcontextRuleEngine from '../modules/contextRuleEngine';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -167,6 +175,14 @@ class Codebolt {
     fileUpdateIntent = cbfileUpdateIntent;
     projectStructureUpdateRequest = cbprojectStructureUpdateRequest;
     reviewMergeRequest = cbreviewMergeRequest;
+    kvStore = cbkvStore;
+    persistentMemory = cbpersistentMemory;
+    eventLog = cbeventLog;
+    knowledgeGraph = cbknowledgeGraph;
+    hook = cbhook;
+    memoryIngestion = cbmemoryIngestion;
+    contextAssembly = cbcontextAssembly;
+    contextRuleEngine = cbcontextRuleEngine;
 
     /**
      * User message utilities for accessing current user message and context

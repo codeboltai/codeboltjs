@@ -226,6 +226,53 @@ const threadService = {
             event,
             'getThreadMessagesResponse'
         );
+    },
+
+    /**
+     * Retrieves file changes associated with a specific thread.
+     * @param {string} threadId - The thread ID
+     * @returns {Promise<any>} A promise that resolves with the file changes
+     */
+    getThreadFileChanges: async (threadId: string): Promise<any> => {
+        const requestId = randomUUID();
+
+        const event = {
+            type: 'threadEvent',
+            action: 'getThreadFileChanges',
+            requestId,
+            message: {
+                threadId
+            }
+        };
+
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getThreadFileChangesResponse'
+        );
+    },
+
+    /**
+     * Retrieves file changes summary for ChangesSummaryPanel.
+     * Returns data in the format: { title, changes, files }
+     * @param {string} threadId - The thread ID
+     * @returns {Promise<any>} A promise that resolves with the file changes summary
+     */
+    getThreadFileChangesSummary: async (threadId: string): Promise<any> => {
+        const requestId = randomUUID();
+
+        const event = {
+            type: 'threadEvent',
+            action: 'getThreadFileChangesSummary',
+            requestId,
+            message: {
+                threadId
+            }
+        };
+
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'getThreadFileChangesSummaryResponse'
+        );
     }
 
 };

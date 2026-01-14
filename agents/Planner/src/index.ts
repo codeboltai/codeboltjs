@@ -126,20 +126,12 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
       }
 
     } while (!completed);
-
-
-
-
-
   } catch (error) {
 
   }
 
   //Task Planner Agent
   try {
-
-
-
     let { projectPath } = await codebolt.project.getProjectPath();
     let { content } = await codebolt.fs.readFile(`${projectPath}/specs/plan.specs`);
 
@@ -369,12 +361,6 @@ JSON ONLY - NO OTHER TEXT.`;
 
         if (createResult.success && createResult.data) {
           const planFilePath = createResult.data.filePath;
-
-
-
-
-
-
           // Add overview section
           await codebolt.requirementPlan.addSection(planFilePath, {
             type: 'markdown',
@@ -405,7 +391,6 @@ JSON ONLY - NO OTHER TEXT.`;
         console.error('Failed to create requirement plan:', reqPlanError);
       }
     }
-
 
   } catch (error) {
 
