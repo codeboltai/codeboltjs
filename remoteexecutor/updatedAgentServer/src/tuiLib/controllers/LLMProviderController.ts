@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { LLMProviderService } from '../../main/services/LLMProviderService';
+import { LLMProviderService } from '../../main/server/services/LLMProviderService';
 import { logger } from '../../main/utils/logger';
 import { formatLogMessage } from '../../types';
 

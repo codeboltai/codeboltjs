@@ -1,5 +1,5 @@
-import { logger } from "../utils/logger";
-import {CodeboltApplicationPath} from "../config/config";
+import { logger } from "../../utils/logger";
+import {CodeboltApplicationPath} from "../../config/config";
 import fs from 'fs';
 import path from 'path';
 

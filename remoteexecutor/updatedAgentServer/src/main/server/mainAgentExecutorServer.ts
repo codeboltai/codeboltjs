@@ -11,7 +11,7 @@ import { RemoteProxyClient } from '../../cloudLib/cloudConnectionManager/remoteP
 import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
 import { logger } from '../utils/logger';
-import { AgentService } from '../services/AgentService';
+import { AgentService } from './services/AgentService';
 
 /**
  * Main Docker Server class

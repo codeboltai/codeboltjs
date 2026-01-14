@@ -9,7 +9,7 @@ import {
 } from '../../types';
 
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
-import { NotificationService } from './services/NotificationService';
+import { NotificationService } from '../../main/server/services/NotificationService';
 import { AppMessageRouter } from '../../appLib/appMessaging/routerforMessagesReceivedFromApp';
 import { AgentMessageRouter } from '../../agentLib/agentMessaging/routerforMessageReceivedFromAgent';
 import { TuiMessageRouter } from '../../tuiLib/tuiMessaging/routerforMessageReceivedFromTui';
@@ -23,7 +23,7 @@ import {
   HealthStatus,
 } from '../../types';
 import { WEBSOCKET_CONSTANTS } from '../../constants';
-import { logger } from '../utils/logger';
+import { logger } from '../../main/utils/logger';
 import { threadId } from 'worker_threads';
 
 /**

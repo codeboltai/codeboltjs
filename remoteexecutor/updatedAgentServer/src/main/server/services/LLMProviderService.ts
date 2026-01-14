@@ -1,10 +1,10 @@
 import { LLMProvider } from '@codebolt/types/apis/llm-providers';
-import { CodeboltApplicationPath,getUserHomePath } from '../config/config';
+import { CodeboltApplicationPath,getUserHomePath } from '../../config/config';
 import { getProviders } from "@arrowai/multillm";
 import fs from 'fs';
 import path from 'path';
 import { Model } from '@codebolt/types/apis/models';
-import { logger } from '../utils/logger';
+import { logger } from '../../utils/logger';
 
 export class LLMProviderService {
     private static instance: LLMProviderService | null = null;

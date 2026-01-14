@@ -1,16 +1,16 @@
 import { v4 as uuidv4 } from "uuid";
 
-import type { ClientConnection } from "../types";
-import { formatLogMessage } from "../types/utils";
-import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
+import type { ClientConnection } from "../../types";
+import { formatLogMessage } from "../../types/utils";
+import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 // Remove SendMessageToRemote import as it's no longer needed
-import { FileServices, createFileServices } from "../../main/services/FileServices";
-import { DefaultFileSystem } from "../utils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
-import { logger } from "../main/utils/logger";
-import { PermissionManager, PermissionUtils } from "./PermissionManager";
+import { FileServices, createFileServices } from "../../main/server/services/FileServices";
+import { DefaultFileSystem } from "../../utils/DefaultFileSystem";
+import { DefaultWorkspaceContext } from "../../utils/DefaultWorkspaceContext";
+import { logger } from "../../main/utils/logger";
+import { PermissionManager, PermissionUtils } from "../PermissionManager";
 // Add imports for the new approval system
-import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
+import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../../shared";
 
 import type {
   FileReadConfirmation,

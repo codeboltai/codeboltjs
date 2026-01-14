@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ModelService } from '../../main/services/ModelService';
+import { ModelService } from '../../main/server/services/ModelService';
 import { logger } from '../../main/utils/logger';
 import { formatLogMessage } from '../../types';
 

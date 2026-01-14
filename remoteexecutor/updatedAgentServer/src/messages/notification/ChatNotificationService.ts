@@ -1,6 +1,6 @@
 import type { ClientConnection } from "../../types";
 import type { TargetClient } from "../../shared/utils/ClientResolver";
-import { BaseNotificationService } from "./BaseNotificationService";
+import { BaseNotificationService } from "../../main/notificationManager/BaseNotificationService";
 import type {
   UserMessageRequestNotification
 } from "@codebolt/types/wstypes/agent-to-app-ws/notification/chatNotificationSchemas";

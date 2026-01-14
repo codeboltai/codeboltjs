@@ -1,8 +1,8 @@
 import type { ClientConnection } from "../../types";
-import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../core/connectionManagers/connectionManager.js";
 import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote.js";
 import type { TargetClient } from "../../shared/utils/ClientResolver";
-import { logger } from "../../main/utils/logger";
+import { logger } from "../utils/logger";
 
 /**
  * Base notification service with core functionality

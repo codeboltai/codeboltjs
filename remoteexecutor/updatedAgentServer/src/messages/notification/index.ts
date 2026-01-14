@@ -40,7 +40,7 @@ export enum TemplateEnum {
   WRITE_TODOS = "WRITE_TODOS",
 }
 
-export { BaseNotificationService } from "./BaseNotificationService";
+export { BaseNotificationService } from "../../main/notificationManager/BaseNotificationService";
 export { FileNotificationService } from "./FileNotificationService";
 export { SearchNotificationService } from "./SearchNotificationService";
 export { AiNotificationService } from "./AiNotificationService";

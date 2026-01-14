@@ -4,7 +4,7 @@ import type { ClientConnection } from "../../types";
 import { formatLogMessage } from "../../types/utils";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 // Import FileServices instead of the missing WriteFileService
-import { FileServices, createFileServices } from "../../main/services/FileServices";
+import { FileServices, createFileServices } from "../../main/server/services/FileServices";
 import { DefaultFileSystem } from "../../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../../utils/DefaultWorkspaceContext";
 import { logger } from "../../main/utils/logger";
