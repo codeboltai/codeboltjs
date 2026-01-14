@@ -6,9 +6,9 @@ import {
 } from "../../localAgentRequestFulfilment/index.js";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
 import { NotificationService } from "../../services/NotificationService.js";
-import { SendMessageToApp } from "../../appLib/appMessaging/sendMessageToApp.js";
-import { SendMessageToTui } from "../../tuiLib/tuiMessaging/sendMessageToTui.js";
-import { SendMessageToRemote } from "../../cloudLib/remoteMessaging/sendMessageToRemote";
+import { SendMessageToApp } from "../../communication/handlers/appMessaging/sendMessageToApp.js";
+import { SendMessageToTui } from "../../communication/handlers/tuiMessaging/sendMessageToTui.js";
+import { SendMessageToRemote } from "../../communication/handlers/remoteMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
 import type {
   ReadFileEvent as SchemaReadFileEvent,

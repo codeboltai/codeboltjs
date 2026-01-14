@@ -5,7 +5,7 @@ import { UserMessage, BaseApplicationResponse } from "@codebolt/types/sdk";
 import { ConnectionManager } from "../../core/connectionManagers/connectionManager";
 import { NotificationService } from "../../services/NotificationService";
 import { SendMessageToAgent } from "../../agentLib/agentMessaging/sendMessageToAgent";
-import { SendMessageToRemote } from "../../cloudLib/remoteMessaging/sendMessageToRemote";
+import { SendMessageToRemote } from "../../communication/handlers/remoteMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
 import {
   ReadFileHandler,
