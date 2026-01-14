@@ -1,7 +1,7 @@
 import { ClientConnection, ResponseMessage, formatLogMessage } from '../../types';
 
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
-import { WebSocketServer } from '../../core/ws/websocketServer';
+import { WebSocketServer } from '../../main/server/websocketServer';
 import { SendMessageToRemote } from '../../communication/handlers/remoteMessaging/sendMessageToRemote';
 import { UserMessage, BaseApplicationResponse } from '@codebolt/types/sdk';
 import { ChildAgentProcessManager } from '@/agentLib/childAgentManager/childAgentProcessManager';
