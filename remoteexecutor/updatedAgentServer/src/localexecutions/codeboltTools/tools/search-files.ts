@@ -10,8 +10,8 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
-import { executeSearchFiles, type SearchFilesParams, type SearchFilesResult } from '../../../utils/search/SearchFiles';
-import type { GrepMatch } from '../../../utils/search/GrepSearch';
+import { executeSearchFiles, type SearchFilesParams, type SearchFilesResult } from '../../search/SearchFiles';
+import type { GrepMatch } from '../../search/GrepSearch';
 
 /**
  * Parameters for the SearchFiles tool

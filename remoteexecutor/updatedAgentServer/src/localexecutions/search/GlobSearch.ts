@@ -9,8 +9,8 @@ import path from 'node:path';
 import { glob, escape } from 'glob';
 import type { GlobPath } from './types';
 import { sortFileEntries } from './sortUtils';
-import { DEFAULT_FILE_FILTERING_OPTIONS } from './constants';
-import { getErrorMessage } from '../../../../utils/errors';
+import { DEFAULT_FILE_FILTERING_OPTIONS } from '../file/utils/search/constants';
+import { getErrorMessage } from '../../utils/errors';
 
 export interface FileFilteringOptions {
   respectGitIgnore: boolean;
