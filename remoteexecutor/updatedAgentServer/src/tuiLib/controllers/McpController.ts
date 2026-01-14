@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { McpService } from '../../main/services/McpService';
+import { McpService } from '../../main/server/services/McpService';
 
 export class McpController {
   private mcpService: McpService;

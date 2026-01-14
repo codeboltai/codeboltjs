@@ -7,7 +7,7 @@ import {
   AgentMessage,
 } from "../../localexecutions/index.js";
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
-import { NotificationService } from "../../main/services/NotificationService.js";
+import { NotificationService } from "../../main/server/services/NotificationService.js";
 import { SendMessageToApp } from "../../appLib/appMessaging/sendMessageToApp.js";
 import { SendMessageToTui } from "../../tuiLib/tuiMessaging/sendMessageToTui.js";
 import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";

@@ -1,5 +1,5 @@
 import { Model } from '@codebolt/types/apis/models';
-import { CodeboltApplicationPath } from '../config/config';
+import { CodeboltApplicationPath } from '../../config/config';
 import { LLMProviderService } from './LLMProviderService'; // Added import
 import fs from 'fs';
 import path from 'path';

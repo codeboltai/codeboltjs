@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AgentService } from '../../main/services/AgentService';
+import { AgentService } from '../../main/server/services/AgentService';
 import { logger } from '../../main/utils/logger';
 import { formatLogMessage } from '../../types';
 

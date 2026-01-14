@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import path from 'path';
-import { ConversationService } from '../../main/services/ConversationService';
+import { ConversationService } from '../../main/server/services/ConversationService';
 import { Conversation, ConversationInsertRequest } from '../../types/conversations';
 
 export class ConversationController {

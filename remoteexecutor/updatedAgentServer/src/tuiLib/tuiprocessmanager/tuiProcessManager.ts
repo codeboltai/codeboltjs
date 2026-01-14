@@ -5,8 +5,8 @@ import { resolve } from 'path';
 import type { AgentExecutorServer } from '../../main/server/mainAgentExecutorServer';
 import type { AgentCliOptions, ServerConfig } from '../../types';
 import { logger } from '../../main/utils/logger';
-import { AgentService } from '../../main/services/AgentService';
-import { ModelService } from '../../main/services/ModelService';
+import { AgentService } from '../../main/server/services/AgentService';
+import { ModelService } from '../../main/server/services/ModelService';
 
 const DEFAULT_AGENT_ID = 'cli-agent';
 const DEFAULT_AGENT_NAME = 'Ask Agent';

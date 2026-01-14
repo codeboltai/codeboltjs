@@ -68,7 +68,7 @@ import type {
 } from '@codebolt/types/wstypes/app-to-agent-ws/mcpServiceResponses'
 import { NotificationService } from "@/shared";
 
-import {TodoService} from '../main/services/TodoService'
+import {TodoService} from '../main/server/services/TodoService'
 export function getMessageId() {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }

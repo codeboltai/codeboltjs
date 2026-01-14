@@ -3,7 +3,7 @@ import { ClientConnection, formatLogMessage } from "../../types";
 import { UserMessage, BaseApplicationResponse } from "@codebolt/types/sdk";
 
 import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager";
-import { NotificationService } from "../../main/services/NotificationService";
+import { NotificationService } from "../../main/server/services/NotificationService";
 import { SendMessageToAgent } from "../../agentLib/agentMessaging/sendMessageToAgent";
 import { SendMessageToRemote } from "../../cloudLib/cloudMessaging/sendMessageToRemote";
 import { logger } from "../../main/utils/logger";
