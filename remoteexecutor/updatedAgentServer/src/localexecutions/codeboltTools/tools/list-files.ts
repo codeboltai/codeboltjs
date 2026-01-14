@@ -10,7 +10,7 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
-import { executeListFiles, type ListFilesParams } from '../../localexecutions/file/utils/ListFiles';
+import { executeListFiles, type ListFilesParams } from '../../file/utils/ListFiles';
 
 /**
  * Parameters for the ListFiles tool

@@ -20,7 +20,7 @@ import { makeRelative, shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';
 import { DEFAULT_DIFF_OPTIONS, getDiffStat } from '../utils/diff';
 import type { ConfigManager } from '../config';
-import { executeWriteFile, type WriteFileParams } from '../../localexecutions/file/utils/WriteFile';
+import { executeWriteFile, type WriteFileParams } from '../../file/utils/WriteFile';
 
 /**
  * Parameters for the WriteFile tool

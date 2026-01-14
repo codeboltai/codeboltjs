@@ -13,7 +13,7 @@ import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import { shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';
-import { executeReadFile, type ReadFileParams } from '../../localexecutions/file/utils/ReadFile';
+import { executeReadFile, type ReadFileParams } from '../../file/utils/ReadFile';
 
 /**
  * Parameters for the ReadFile tool

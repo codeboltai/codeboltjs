@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { ToolInvocation, ToolResult } from '../types';
-import { executeGrepSearch, type GrepSearchParams, type GrepSearchResult as UtilGrepSearchResult, type GrepMatch } from '../../utils/search/GrepSearch';
+import { executeGrepSearch, type GrepSearchParams, type GrepSearchResult as UtilGrepSearchResult, type GrepMatch } from '../../../utils/search/GrepSearch';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
 import { makeRelative, shortenPath } from '../utils/paths';
 import { getErrorMessage, isNodeError } from '../utils/errors';

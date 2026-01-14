@@ -10,7 +10,7 @@ import path from 'node:path';
 import { EOL } from 'node:os';
 import { spawn } from 'node:child_process';
 import { globStream } from 'glob';
-import { getErrorMessage } from '../errors';
+import { getErrorMessage } from '../../../../utils/errors';
 
 // --- Interfaces ---
 

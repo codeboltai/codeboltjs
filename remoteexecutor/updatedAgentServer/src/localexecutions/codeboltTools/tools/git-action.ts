@@ -10,7 +10,7 @@ import { ToolErrorType } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import { Kind } from '../types';
 import type { ConfigManager } from '../config';
-import { executeGitAction, type GitActionParams } from '../../utils/terminal/GitAction';
+import { executeGitAction, type GitActionParams } from '../../../utils/terminal/GitAction';
 
 /**
  * Parameters for the GitAction tool

@@ -11,7 +11,7 @@ import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
 import { shortenPath, makeRelative } from '../utils/paths';
 import type { StandaloneToolConfig } from '../config';
 import { ToolErrorType } from '../types';
-import { executeGlobSearch, type GlobSearchParams, type GlobSearchResult } from '../../utils/search/GlobSearch';
+import { executeGlobSearch, type GlobSearchParams, type GlobSearchResult } from '../../../utils/search/GlobSearch';
 
 /**
  * Parameters for the GlobTool
