@@ -23,7 +23,7 @@ import {
   HealthStatus,
 } from '../../types';
 import { WEBSOCKET_CONSTANTS } from '../../constants';
-import { logger } from '../../main/utils/logger';
+import { logger } from '../utils/logger';
 import { threadId } from 'worker_threads';
 
 /**
