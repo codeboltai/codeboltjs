@@ -26,7 +26,7 @@ export class ChatHistoryHandler {
   private fileServices: FileServices;
   private permissionManager: PermissionManager;
   private approvalService = new ApprovalService();
-  private notificationService = new NotificationService();
+  private notificationService = NotificationService.getInstance();
   private clientResolver = new ClientResolver();
 
 

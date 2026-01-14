@@ -60,7 +60,7 @@ export class ReplaceInFileHandler {
   private readonly permissionManager: PermissionManager;
   // Add new services
   private approvalService = new ApprovalService();
-  private notificationService = new NotificationService();
+  private notificationService = NotificationService.getInstance();
   private clientResolver = new ClientResolver();
 
   private readonly pendingRequests = new Map<string, PendingRequest>();

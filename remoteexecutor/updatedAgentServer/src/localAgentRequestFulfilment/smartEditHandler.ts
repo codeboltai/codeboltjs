@@ -51,7 +51,7 @@ export class SmartEditHandler {
   private readonly fileServices: FileServices;
   private readonly permissionManager: PermissionManager;
   private approvalService = new ApprovalService();
-  private notificationService = new NotificationService();
+  private notificationService = NotificationService.getInstance();
   private clientResolver = new ClientResolver();
   private sendMessageToRemote = new SendMessageToRemote();
 
