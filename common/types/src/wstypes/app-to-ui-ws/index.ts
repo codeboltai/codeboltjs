@@ -23,6 +23,8 @@ export * as AgentMessages from './agentMessageSchemas';
 // State update schemas
 export * as StateMessages from './stateMessageSchemas';
 
+// Response message schemas
+export * as ResponseMessages from './responseMessageSchemas';
 
 // Individual CLI service schemas
 export * as TerminalService from './terminalServiceSchemas';
@@ -45,6 +47,7 @@ export * as JsTreeParserService from './jsTreeParserSchemas';
 export * as AppService from './appServiceSchemas';
 export * as StateService from './stateServiceSchemas';
 export * as McpService from './mcpServiceSchemas';
+export * as ActionPlanService from './actionPlanServiceSchemas';
 
 // Union of all App-to-UI message schemas
 import { z } from 'zod';
@@ -54,9 +57,10 @@ import { fileMessageSchema } from './fileMessageSchemas';
 import { notificationMessageSchema } from './notificationMessageSchemas';
 import { agentMessageSchema } from './agentMessageSchemas';
 import { stateMessageSchema } from './stateMessageSchemas';
+import { responseMessageSchema } from './responseMessageSchemas';
 
 // Import individual service schemas
-import { terminalServiceSchema } from './terminalServiceSchemas';
+import { terminalServiceMessageSchema } from './terminalServiceSchemas';
 import { vectordbServiceSchema } from './vectordbServiceSchemas';
 import { taskServiceMessageSchema } from './taskServiceSchemas';
 import { messageServiceSchema } from './messageServiceSchemas';
@@ -76,6 +80,7 @@ import { jsTreeParserServiceMessageSchema } from './jsTreeParserSchemas';
 import { appServiceMessageSchema } from './appServiceSchemas';
 import { stateServiceMessageSchema } from './stateServiceSchemas';
 import { mcpServiceSchema } from './mcpServiceSchemas';
+import { actionPlanServiceMessageSchema } from './actionPlanServiceSchemas';
 
 // Master union of all App-to-UI messages
 export const appToUiMessageSchema = z.union([
@@ -85,11 +90,14 @@ export const appToUiMessageSchema = z.union([
   notificationMessageSchema,
   agentMessageSchema,
   stateMessageSchema,
-  terminalServiceSchema,
+  responseMessageSchema,
+  // Individual CLI service messages
+  terminalServiceMessageSchema,
   vectordbServiceSchema,
   taskServiceMessageSchema,
   messageServiceSchema,
   memoryServiceSchema,
+
   browserServiceMessageSchema,
   debugServiceSchema,
   gitServiceMessageSchema,
@@ -104,6 +112,7 @@ export const appToUiMessageSchema = z.union([
   appServiceMessageSchema,
   stateServiceMessageSchema,
   mcpServiceSchema,
+  actionPlanServiceMessageSchema,
 ]);
 
 // Inferred type for all App-to-UI messages

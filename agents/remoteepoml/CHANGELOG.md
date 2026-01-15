@@ -1,5 +1,14 @@
 # @codebolt/epomlagent
 
+## 1.0.11
+
+### Patch Changes
+
+- Updated dependencies [5506908]
+  - @codebolt/codeboltjs@5.0.3
+  - @codebolt/agent@5.0.3
+  - epoml@5.0.3
+
 ## 1.0.10
 
 ### Patch Changes

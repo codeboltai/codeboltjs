@@ -3,7 +3,23 @@
     "allow": [
       "Bash(pnpm run:*)",
       "Bash(pnpm install:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(npm run build:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npx turbo run:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:agent:*)",
+      "Bash(npm run)",
+      "Bash(node:*)",
+      "Bash(timeout:*)",
+      "Bash(echo:*)",
+      "Bash(tree:*)",
+      "Bash(xargs:*)",
+      "Bash(npm whoami:*)",
+      "Bash(npm publish:*)"
     ],
     "deny": [],
     "ask": []

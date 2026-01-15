@@ -6,7 +6,21 @@ import { baseMessageSchema } from './coreMessageSchemas';
  * Based on codeUtilsService.cli.ts
  */
 
+// Code utils response schemas
+export const getAllFilesMarkdownResponseSchema = z.object({
+  type: z.literal('getAllFilesMarkdownResponse'),
+  markdown: z.string(),
+});
 
+export const getMatcherListTreeResponseSchema = z.object({
+  type: z.literal('getMatcherListTreeResponse'),
+  payload: z.any(),
+});
+
+export const getMatchDetailResponseSchema = z.object({
+  type: z.literal('getMatchDetailResponse'),
+  payload: z.any(),
+});
 
 // Code utils MCP tool execution schemas
 export const codeUtilsMcpToolConfirmationSchema = baseMessageSchema.extend({
@@ -84,7 +98,9 @@ export const codeUtilsErrorResponseSchema = z.object({
 // Union of all code utils service schemas
 export const codeUtilsServiceMessageSchema = z.union([
   codeUtilsErrorResponseSchema,
-
+  getAllFilesMarkdownResponseSchema,
+  getMatcherListTreeResponseSchema,
+  getMatchDetailResponseSchema,
   codeUtilsMcpToolConfirmationSchema,
   codeUtilsMcpToolExecutingSchema,
   codeUtilsMcpToolSuccessSchema,
@@ -93,10 +109,13 @@ export const codeUtilsServiceMessageSchema = z.union([
 ]);
 
 // TypeScript types
+export type GetAllFilesMarkdownResponse = z.infer<typeof getAllFilesMarkdownResponseSchema>;
+export type GetMatcherListTreeResponse = z.infer<typeof getMatcherListTreeResponseSchema>;
+export type GetMatchDetailResponse = z.infer<typeof getMatchDetailResponseSchema>;
+export type CodeUtilsErrorResponse = z.infer<typeof codeUtilsErrorResponseSchema>;
 export type CodeUtilsMcpToolConfirmation = z.infer<typeof codeUtilsMcpToolConfirmationSchema>;
 export type CodeUtilsMcpToolExecuting = z.infer<typeof codeUtilsMcpToolExecutingSchema>;
 export type CodeUtilsMcpToolSuccess = z.infer<typeof codeUtilsMcpToolSuccessSchema>;
 export type CodeUtilsMcpToolError = z.infer<typeof codeUtilsMcpToolErrorSchema>;
 export type CodeUtilsMcpToolRejected = z.infer<typeof codeUtilsMcpToolRejectedSchema>;
-export type CodeUtilsErrorResponse = z.infer<typeof codeUtilsErrorResponseSchema>;
-export type CodeUtilsServiceMessage = z.infer<typeof codeUtilsServiceMessageSchema>;
+export type CodeUtilsServiceMessage = z.infer<typeof codeUtilsServiceMessageSchema>; 

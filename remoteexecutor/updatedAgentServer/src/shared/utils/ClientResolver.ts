@@ -1,5 +1,5 @@
 import type { ClientConnection } from "../../types";
-import { ConnectionManager } from "../../core/connectionManagers/connectionManager.js";
+import { ConnectionManager } from "../../main/core/connectionManagers/connectionManager.js";
 
 export type TargetClient = { id: string; type: "app" | "tui" };
 

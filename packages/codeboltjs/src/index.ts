@@ -5,11 +5,11 @@ import Codebolt from './core/Codebolt';
 // ================================
 
 // Core Library Function Types - PRIMARY TYPES USERS NEED
-export type { 
+export type {
     // Core Message and Tool Types
-    Message, 
-    ToolCall, 
-    Tool, 
+    Message,
+    ToolCall,
+    Tool,
     UserMessage,
     LLMInferenceParams,
     APIResponse,
@@ -154,6 +154,185 @@ export type {
 } from './types/commonTypes';
 
 // ================================
+// Job Types - Job management
+// ================================
+export type {
+    Job,
+    JobGroup,
+    JobStatus,
+    JobType,
+    JobPriority,
+    DependencyType,
+    JobDependency,
+    JobListFilters,
+    CreateJobData,
+    UpdateJobData,
+    CreateJobGroupData,
+    JobShowResponse,
+    JobListResponse,
+    JobUpdateResponse,
+    JobCreateResponse,
+    JobDeleteResponse,
+    JobDeleteBulkResponse,
+    JobDependencyResponse,
+    JobReadyBlockedResponse,
+    JobLabelsResponse,
+    JobGroupCreateResponse,
+    // Pheromone types
+    PheromoneType,
+    PheromoneDeposit,
+    PheromoneAggregation,
+    AddPheromoneTypeData,
+    DepositPheromoneData,
+    JobPheromoneTypesResponse,
+    JobPheromoneTypeResponse,
+    JobPheromoneDepositResponse,
+    JobPheromoneRemoveResponse,
+    JobPheromoneListResponse,
+    JobPheromoneAggregatedResponse,
+    JobPheromoneSearchResponse,
+    // Split proposal types
+    ProposedJob,
+    SplitProposal,
+    AddSplitProposalData,
+    JobSplitProposeResponse,
+    JobSplitDeleteResponse,
+    JobSplitAcceptResponse,
+    // Lock types
+    JobLock,
+    JobLockStatus,
+    JobLockAcquireResponse,
+    JobLockReleaseResponse,
+    JobLockCheckResponse,
+    // Unlock request types
+    UnlockRequest,
+    AddUnlockRequestData,
+    JobUnlockRequestAddResponse,
+    JobUnlockRequestApproveResponse,
+    JobUnlockRequestRejectResponse,
+    JobUnlockRequestDeleteResponse,
+    // Bidding types
+    JobBid,
+    AddBidData,
+    JobBidAddResponse,
+    JobBidWithdrawResponse,
+    JobBidAcceptResponse,
+    JobBidListResponse,
+    // Blocker types
+    JobBlocker,
+    AddBlockerData,
+    JobBlockerAddResponse,
+    JobBlockerRemoveResponse,
+    JobBlockerResolveResponse
+} from './types/job';
+
+
+// ================================
+// Group Feedback Types
+// ================================
+export type {
+    GroupFeedbackAction,
+    GroupFeedbackResponseType,
+    FeedbackContentType,
+    FeedbackStatus,
+    FeedbackAttachment,
+    GroupFeedback,
+    FeedbackResponse,
+    ICreateFeedbackParams,
+    IGetFeedbackParams,
+    IListFeedbacksParams,
+    IRespondParams,
+    IReplyParams,
+    IUpdateSummaryParams,
+    IUpdateStatusParams,
+    ICreateFeedbackResponse,
+    IGetFeedbackResponse,
+    IListFeedbacksResponse,
+    IRespondResponse,
+    IReplyResponse,
+    IUpdateSummaryResponse,
+    IUpdateStatusResponse
+} from './types/groupFeedback';
+
+// ================================
+// Agent Deliberation Types
+// ================================
+export type {
+    AgentDeliberationAction,
+    AgentDeliberationResponseType,
+    DeliberationStatus,
+    Deliberation,
+    DeliberationResponse,
+    DeliberationVote,
+    ICreateDeliberationParams,
+    IGetDeliberationParams,
+    IListDeliberationsParams,
+    IUpdateDeliberationParams,
+    IRespondParams as IDeliberationRespondParams,
+    IVoteParams,
+    IGetWinnerParams,
+    ICreateDeliberationResponse,
+    IGetDeliberationResponse,
+    IListDeliberationsResponse,
+    IUpdateDeliberationResponse,
+    IRespondResponse as IDeliberationRespondResponse,
+    IVoteResponse,
+    IGetWinnerResponse
+} from './types/agentDeliberation';
+
+// ================================
+// AutoTesting Types
+// ================================
+export type {
+    AutoTestingAction,
+    AutoTestingResponseType,
+    TestStatus,
+    TestRunStatus,
+    TestStep,
+    TestCase,
+    TestSuite,
+    TestRunStep,
+    TestRunCase,
+    TestRun,
+    ICreateSuiteParams,
+    IGetSuiteParams,
+    IListSuitesParams,
+    IUpdateSuiteParams,
+    IDeleteSuiteParams,
+    IAddCaseToSuiteParams,
+    IRemoveCaseFromSuiteParams,
+    ICreateCaseParams,
+    IGetCaseParams,
+    IListCasesParams,
+    IUpdateCaseParams,
+    IDeleteCaseParams,
+    ICreateRunParams,
+    IGetRunParams,
+    IListRunsParams,
+    IUpdateRunStatusParams,
+    IUpdateRunCaseParams,
+    IUpdateRunStepParams,
+    ICreateSuiteResponse,
+    IGetSuiteResponse,
+    IListSuitesResponse,
+    IUpdateSuiteResponse,
+    IDeleteSuiteResponse,
+    IAddCaseToSuiteResponse,
+    IRemoveCaseFromSuiteResponse,
+    ICreateCaseResponse,
+    IGetCaseResponse,
+    IListCasesResponse,
+    IUpdateCaseResponse,
+    IDeleteCaseResponse,
+    ICreateRunResponse,
+    IGetRunResponse,
+    IListRunsResponse,
+    IUpdateRunStatusResponse,
+    IUpdateRunCaseResponse,
+    IUpdateRunStepResponse
+} from './types/autoTesting';
+
+// ================================
 // Main Library Instance (process-wide singleton)
 // ================================
 
@@ -180,3 +359,616 @@ export { Codebolt };
 module.exports = codebolt;
 module.exports.default = codebolt;
 module.exports.Codebolt = Codebolt;
+
+// ================================
+// Export specific utilities and enums
+// ================================
+
+// Export logType enum from debug module
+export { logType } from './modules/debug';
+
+// Export user message utilities
+export { userMessageUtilities } from './modules/user-message-utilities';
+
+// Export specific functions for backward compatibility
+import { userMessageUtilities } from './modules/user-message-utilities';
+export const getCurrentUserMessage = () => userMessageUtilities.getCurrent();
+export const getUserMessageText = () => userMessageUtilities.getText();
+export const hasCurrentUserMessage = () => userMessageUtilities.hasMessage();
+export const clearUserMessage = () => userMessageUtilities.clear();
+export const getMentionedFiles = () => userMessageUtilities.getMentionedFiles();
+export const getMentionedMCPs = () => userMessageUtilities.getMentionedMCPs();
+export const getCurrentFile = () => userMessageUtilities.getCurrentFile();
+export const getSelection = () => userMessageUtilities.getSelection();
+export const getRemixPrompt = () => userMessageUtilities.getRemixPrompt();
+export const getUploadedImages = () => userMessageUtilities.getUploadedImages();
+export const setUserSessionData = (key: string, value: any) => userMessageUtilities.setSessionData(key, value);
+export const getUserSessionData = (key: string) => userMessageUtilities.getSessionData(key);
+export const getUserMessageTimestamp = () => userMessageUtilities.getTimestamp();
+export const getMessageId = () => userMessageUtilities.getMessageId();
+
+// Export utilities functions
+export { default as utils } from './modules/utils';
+
+// Export vectordb functions
+import VectorDB from './modules/vectordb';
+export const getVector = (key: string) => VectorDB.getVector(key);
+export const addVectorItem = (item: any) => VectorDB.addVectorItem(item);
+export const queryVectorItem = (key: string) => VectorDB.queryVectorItem(key);
+export const queryVectorItems = (items: any[], dbPath: string) => VectorDB.queryVectorItems(items as [], dbPath);
+
+// Export utils functions
+import cbutils from './modules/utils';
+export const editFileAndApplyDiff = (filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel?: string) => cbutils.editFileAndApplyDiff(filePath, diff, diffIdentifier, prompt, applyModel);
+
+// Export notification functions
+export {
+    agentNotifications,
+    browserNotifications,
+    chatNotifications,
+    codeutilsNotifications,
+    crawlerNotifications,
+    dbmemoryNotifications,
+    fsNotifications,
+    gitNotifications,
+    historyNotifications,
+    llmNotifications,
+    mcpNotifications,
+    searchNotifications,
+    systemNotifications,
+    terminalNotifications,
+    todoNotifications,
+    notificationFunctions,
+    type NotificationFunctions
+} from './notificationfunctions';
+
+// Export specific agent notification functions that are commonly imported
+export {
+    StartSubagentTaskRequestNotify,
+    StartSubagentTaskResponseNotify,
+    SubagentTaskCompletedNotify
+} from './notificationfunctions/agent';
+
+// Export specific system and terminal notification functions that are commonly imported
+export {
+    AgentInitNotify,
+    AgentCompletionNotify
+} from './notificationfunctions/system';
+
+export {
+    CommandExecutionRequestNotify
+} from './notificationfunctions/terminal';
+
+export {
+    GitAddRequestNotify,
+    GitBranchRequestNotify,
+    GitCheckoutRequestNotify,
+    GitCloneRequestNotify,
+    GitCommitRequestNotify,
+    GitDiffRequestNotify,
+    GitInitRequestNotify,
+    GitLogsRequestNotify,
+    GitPullRequestNotify,
+    GitPushRequestNotify,
+    GitRemoteAddRequestNotify,
+    GitStatusRequestNotify
+} from './notificationfunctions/git';
+
+// Export sideExecution module and types
+export { default as sideExecution } from './modules/sideExecution';
+export type {
+    StartSideExecutionResponse,
+    StopSideExecutionResponse,
+    ListActionBlocksResponse,
+    GetSideExecutionStatusResponse,
+    ActionBlock
+} from './modules/sideExecution';
+
+// Export capability module and types
+export { default as capability } from './modules/capability';
+export type {
+    CapabilityType,
+    CapabilityInput,
+    CapabilityOutput,
+    CapabilityMetadata,
+    Capability,
+    CapabilityFilter,
+    CapabilityExecutor,
+    CapabilityExecutionMetadata,
+    ListCapabilitiesResponse,
+    GetCapabilityDetailResponse,
+    ListExecutorsResponse,
+    StartCapabilityResponse,
+    StopCapabilityResponse,
+    GetExecutionStatusResponse
+} from './modules/capability';
+
+// Export actionBlock module and types
+export { default as actionBlock } from './modules/actionBlock';
+export type {
+    ActionBlock as ActionBlockInfo,
+    ActionBlockType,
+    ActionBlockMetadata,
+    ActionBlockFilter,
+    ActionBlockInput,
+    ActionBlockOutput,
+    ListActionBlocksResponse as ActionBlockListResponse,
+    GetActionBlockDetailResponse,
+    StartActionBlockResponse,
+} from './modules/actionBlock';
+
+// Export requirementPlan module and types
+export { default as requirementPlan } from './modules/requirementPlan';
+export type {
+    SectionType,
+    RequirementPlanSection,
+    RequirementPlanDocument,
+    CreatePlanData,
+    UpdatePlanData,
+    AddSectionData,
+    UpdateSectionData,
+    RemoveSectionData,
+    ReorderSectionsData,
+    RequirementPlanCreateResponse,
+    RequirementPlanGetResponse,
+    RequirementPlanUpdateResponse,
+    RequirementPlanListResponse,
+    RequirementPlanSectionResponse
+} from './modules/requirementPlan';
+
+// Export swarm module and types
+export { default as swarm } from './modules/swarm';
+export type {
+    CreateSwarmRequest,
+    AgentRegistration,
+    CreateTeamRequest,
+    CreateRoleRequest,
+    CreateVacancyRequest,
+    AgentStatusUpdate,
+    Swarm,
+    SwarmAgent,
+    Team,
+    Role,
+    Vacancy,
+    StatusSummary,
+    SwarmResponse,
+    CreateSwarmResponse,
+    ListSwarmsResponse,
+    GetSwarmResponse,
+    GetSwarmAgentsResponse,
+    RegisterAgentResponse,
+    UnregisterAgentResponse,
+    CreateTeamResponse,
+    ListTeamsResponse,
+    GetTeamResponse,
+    JoinTeamResponse,
+    LeaveTeamResponse,
+    DeleteTeamResponse,
+    CreateRoleResponse,
+    ListRolesResponse,
+    GetRoleResponse,
+    AssignRoleResponse,
+    UnassignRoleResponse,
+    GetAgentsByRoleResponse,
+    DeleteRoleResponse,
+    CreateVacancyResponse,
+    ListVacanciesResponse,
+    ApplyForVacancyResponse,
+    CloseVacancyResponse,
+    UpdateStatusResponse,
+    GetStatusSummaryResponse
+} from './modules/swarm';
+
+// Export calendar module and types
+export { default as calendar } from './modules/calendar';
+export type {
+    CalendarEventType,
+    CalendarRSVPStatus,
+    CalendarCheckType,
+    CalendarParticipantType,
+    CalendarParticipant,
+    CalendarEvent,
+    CalendarResponse,
+    ICreateEventParams,
+    IUpdateEventParams,
+    IDeleteEventParams,
+    IGetEventParams,
+    IListEventsParams,
+    IGetEventsInRangeParams,
+    IGetUpcomingEventsParams,
+    IGetTriggeredEventsParams,
+    IMarkEventCompleteParams,
+    IMarkEventsCompleteParams,
+    IRSVPParams,
+    ICreateEventResponse,
+    IUpdateEventResponse,
+    IDeleteEventResponse,
+    IGetEventResponse,
+    IListEventsResponse,
+    IGetEventsInRangeResponse,
+    IGetUpcomingEventsResponse,
+    IGetTriggeredEventsResponse,
+    IMarkEventCompleteResponse,
+    IMarkEventsCompleteResponse,
+    IGetTriggeredEventsAndMarkCompleteResponse,
+    IRSVPResponse,
+    IGetStatusResponse
+} from './modules/calendar';
+
+// Export episodicMemory module and types
+export { default as episodicMemory } from './modules/episodicMemory';
+export type {
+    EpisodicEvent,
+    EpisodicMemory,
+    EpisodicEventFilter,
+    EpisodicMemoryResponse,
+    ICreateMemoryParams,
+    IGetMemoryParams,
+    IAppendEventParams,
+    IQueryEventsParams,
+    IGetEventTypesParams,
+    IGetTagsParams,
+    IGetAgentsParams,
+    IArchiveMemoryParams,
+    IUnarchiveMemoryParams,
+    IUpdateTitleParams,
+    ICreateMemoryResponse,
+    IListMemoriesResponse,
+    IGetMemoryResponse,
+    IAppendEventResponse,
+    IQueryEventsResponse,
+    IGetEventTypesResponse,
+    IGetTagsResponse,
+    IGetAgentsResponse,
+    IArchiveMemoryResponse,
+    IUnarchiveMemoryResponse,
+    IUpdateTitleResponse
+} from './modules/episodicMemory';
+
+// ================================
+// Roadmap Types
+// ================================
+export type {
+    RoadmapCreator,
+    FeatureStatus,
+    IdeaStatus,
+    ImpactLevel,
+    DifficultyLevel,
+    Feature,
+    Phase,
+    Idea,
+    RoadmapData,
+    CreatePhaseData,
+    UpdatePhaseData,
+    CreateFeatureData,
+    UpdateFeatureData,
+    MoveFeatureData,
+    CreateIdeaData,
+    UpdateIdeaData,
+    ReviewIdeaData,
+    MoveIdeaToRoadmapData,
+    RoadmapGetResponse,
+    RoadmapPhasesResponse,
+    RoadmapPhaseResponse,
+    RoadmapDeleteResponse,
+    RoadmapFeaturesResponse,
+    RoadmapFeatureResponse,
+    RoadmapIdeasResponse,
+    RoadmapIdeaResponse,
+    RoadmapMoveToRoadmapResponse
+} from './types/roadmap';
+
+// ================================
+// Codemap Types
+// ================================
+export type {
+    CodemapStatus,
+    CodemapSection,
+    Codemap,
+    CodemapInfo,
+    CreateCodemapData,
+    UpdateCodemapData,
+    CodemapListResponse,
+    CodemapGetResponse,
+    CodemapCreateResponse,
+    CodemapSaveResponse,
+    CodemapUpdateResponse,
+    CodemapDeleteResponse
+} from './types/codemap';
+
+// ================================
+// Project Structure Types
+// ================================
+export type {
+    HttpMethod,
+    ApiRoute,
+    DatabaseColumn,
+    DatabaseTable,
+    Dependency,
+    RunCommand,
+    UiRoute,
+    DeploymentConfig,
+    GitInfo,
+    DesignGuidelines,
+    FrameworkInfo,
+    PackageMetadata,
+    WorkspaceMetadata,
+    CreatePackageData,
+    UpdatePackageData,
+    ProjectStructureMetadataResponse,
+    ProjectStructurePackagesResponse,
+    ProjectStructurePackageResponse,
+    ProjectStructureDeleteResponse,
+    ProjectStructureItemResponse,
+    ProjectStructureUpdateResponse
+} from './types/projectStructure';
+
+// ================================
+// Codebase Search Types
+// ================================
+export type {
+    CodeSearchResult,
+    CodebaseSearchOptions,
+    SearchMcpToolOptions,
+    CodebaseSearchResponse,
+    McpToolSearchResponse
+} from './types/codebaseSearch';
+
+// ================================
+// File Update Intent Types
+// ================================
+export type {
+    IntentLevel,
+    FileIntent,
+    IntentStatus,
+    FileUpdateIntent,
+    CreateFileUpdateIntentRequest,
+    UpdateFileUpdateIntentRequest,
+    OverlappingIntentInfo,
+    IntentOverlapResult,
+    FileUpdateIntentFilters,
+    FileUpdateIntentResponse,
+    FileUpdateIntentListResponse,
+    FileUpdateIntentOverlapResponse,
+    FileUpdateIntentBlockedFilesResponse
+} from './types/fileUpdateIntent';
+
+// Export fileUpdateIntent module
+export { default as fileUpdateIntent } from './modules/fileUpdateIntent';
+
+// Export projectStructureUpdateRequest module
+export { default as projectStructureUpdateRequest } from './modules/projectStructureUpdateRequest';
+
+// ================================
+// Review Merge Request Types
+// ================================
+export type {
+    ReviewRequestStatus,
+    ReviewRequestType,
+    MergeStrategy,
+    WorktreeDetails,
+    MergeConfig,
+    MergeResult,
+    ReviewFeedback,
+    ReviewMergeRequest,
+    CreateReviewMergeRequest,
+    UpdateReviewMergeRequest,
+    AddReviewFeedback,
+    ReviewMergeRequestFilters,
+    ReviewMergeRequestDisplaySettings
+} from './types/reviewMergeRequest';
+
+// Export reviewMergeRequest module
+export { default as reviewMergeRequest } from './modules/reviewMergeRequest';
+
+// ================================
+// KV Store Types
+// ================================
+export type {
+    KVStoreBaseResponse,
+    KVStoreInstance,
+    KVRecord,
+    KVQueryDSL,
+    KVQueryCondition,
+    KVQueryResult,
+    CreateKVInstanceParams,
+    UpdateKVInstanceParams,
+    KVSetParams,
+    KVGetParams,
+    KVDeleteParams,
+    KVDeleteNamespaceParams,
+    KVInstanceResponse,
+    KVInstanceListResponse,
+    KVGetResponse,
+    KVSetResponse,
+    KVDeleteResponse,
+    KVDeleteNamespaceResponse,
+    KVQueryResponse,
+    KVNamespacesResponse,
+    KVRecordCountResponse
+} from './types/kvStore';
+
+// Export kvStore module
+export { default as kvStore } from './modules/kvStore';
+
+// ================================
+// Persistent Memory Types
+// ================================
+export type {
+    PersistentMemoryBaseResponse,
+    PersistentMemory,
+    RetrievalConfig,
+    ContributionConfig,
+    PipelineExecutionIntent,
+    PipelineExecutionResult,
+    CreatePersistentMemoryParams,
+    UpdatePersistentMemoryParams,
+    ListPersistentMemoryParams,
+    PersistentMemoryResponse,
+    PersistentMemoryListResponse,
+    PersistentMemoryExecuteResponse,
+    PersistentMemoryValidateResponse,
+    PersistentMemoryStepSpecsResponse
+} from './types/persistentMemory';
+
+// Export persistentMemory module
+export { default as persistentMemory } from './modules/persistentMemory';
+
+// ================================
+// Event Log Types
+// ================================
+export type {
+    EventLogBaseResponse,
+    EventLogInstance,
+    EventLogEntry,
+    EventLogDSL,
+    EventLogCondition,
+    EventLogQueryResult,
+    CreateEventLogInstanceParams,
+    UpdateEventLogInstanceParams,
+    AppendEventParams,
+    AppendEventsParams,
+    EventLogInstanceResponse,
+    EventLogInstanceListResponse,
+    EventLogAppendResponse,
+    EventLogAppendMultipleResponse,
+    EventLogQueryResponse,
+    EventLogStatsResponse
+} from './types/eventLog';
+
+// Export eventLog module
+export { default as eventLog } from './modules/eventLog';
+
+// ================================
+// Knowledge Graph Types
+// ================================
+export type {
+    KGBaseResponse,
+    KGRecordKind,
+    KGAttributeSchema,
+    KGEdgeType,
+    KGInstanceTemplate,
+    KGInstance,
+    KGMemoryRecord,
+    KGEdge,
+    KGViewTemplate,
+    KGView,
+    CreateKGInstanceTemplateParams,
+    CreateKGInstanceParams,
+    CreateKGMemoryRecordParams,
+    CreateKGEdgeParams,
+    CreateKGViewTemplateParams,
+    CreateKGViewParams,
+    ListKGMemoryRecordsParams,
+    ListKGEdgesParams,
+    KGInstanceTemplateResponse,
+    KGInstanceTemplateListResponse,
+    KGInstanceResponse,
+    KGInstanceListResponse,
+    KGMemoryRecordResponse,
+    KGMemoryRecordListResponse,
+    KGEdgeResponse,
+    KGEdgeListResponse,
+    KGViewTemplateResponse,
+    KGViewTemplateListResponse,
+    KGViewResponse,
+    KGViewListResponse,
+    KGViewExecuteResponse,
+    KGDeleteResponse
+} from './types/knowledgeGraph';
+
+// Export knowledgeGraph module
+export { default as knowledgeGraph } from './modules/knowledgeGraph';
+
+// ================================
+// Hook Types
+// ================================
+export type {
+    HookBaseResponse,
+    HookTrigger,
+    HookAction,
+    HookConfig,
+    HookCondition,
+    Hook,
+    HookResponse,
+    HookListResponse,
+    HookInitializeResponse,
+    HookDeleteResponse
+} from './types/hook';
+
+// Export hook module
+export { default as hook } from './modules/hook';
+
+// ================================
+// Memory Ingestion Types
+// ================================
+export type {
+    MemoryIngestionBaseResponse,
+    IngestionTrigger,
+    ProcessorType,
+    RoutingDestination,
+    IngestionProcessor,
+    IngestionRouting,
+    IngestionPipeline,
+    IngestionEventData,
+    IngestionExecutionResult,
+    CreateIngestionPipelineParams,
+    UpdateIngestionPipelineParams,
+    ListIngestionPipelineParams,
+    ExecuteIngestionParams,
+    IngestionPipelineResponse,
+    IngestionPipelineListResponse,
+    IngestionExecuteResponse,
+    IngestionValidateResponse,
+    IngestionProcessorSpecsResponse
+} from './types/memoryIngestion';
+
+// Export memoryIngestion module
+export { default as memoryIngestion } from './modules/memoryIngestion';
+
+// ================================
+// Context Assembly Types
+// ================================
+export type {
+    ContextAssemblyBaseResponse,
+    ContextAssemblyRequest,
+    ContextConstraints,
+    MemoryContribution,
+    AssembledContext,
+    MemoryTypeSpec,
+    ValidationResult,
+    RuleEvaluationResult,
+    RequiredVariablesResult,
+    ContextAssemblyResponse,
+    ContextValidateResponse,
+    MemoryTypesResponse,
+    RuleEvaluationResponse,
+    RequiredVariablesResponse
+} from './types/contextAssembly';
+
+// Export contextAssembly module
+export { default as contextAssembly } from './modules/contextAssembly';
+
+// ================================
+// Context Rule Engine Types
+// ================================
+export type {
+    ContextRuleEngineBaseResponse,
+    RuleOperator,
+    RuleAction,
+    RuleCondition,
+    Rule,
+    ContextRuleEngine,
+    PossibleVariable,
+    CreateContextRuleEngineParams,
+    UpdateContextRuleEngineParams,
+    EvaluateRulesParams,
+    ContextRuleEngineResponse,
+    ContextRuleEngineListResponse,
+    ContextRuleEngineDeleteResponse,
+    EvaluateRulesResponse,
+    PossibleVariablesResponse
+} from './types/contextRuleEngine';
+
+// Export contextRuleEngine module
+export { default as contextRuleEngine } from './modules/contextRuleEngine';

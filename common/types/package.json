@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/types",
-  "version": "1.0.22",
+  "version": "1.0.28",
   "description": "A comprehensive TypeScript type definitions package for the CodeBolt ecosystem, providing type safety and schema validation for WebSocket communication between agents and applications.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -64,6 +64,18 @@
     "./remote": {
       "types": "./dist/remote/index.d.ts",
       "default": "./dist/remote/index.js"
+    },
+    "./wstypes/*": {
+      "types": "./dist/wstypes/*.d.ts",
+      "default": "./dist/wstypes/*.js"
+    },
+    "./dist/*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    },
+    "./mail": {
+      "types": "./dist/codeboltjstypes/mail.enum.d.ts",
+      "default": "./dist/codeboltjstypes/mail.enum.js"
     }
   },
   "scripts": {

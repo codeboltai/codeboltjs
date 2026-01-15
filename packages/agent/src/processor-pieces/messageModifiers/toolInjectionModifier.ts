@@ -14,7 +14,7 @@ export interface ToolInjectionOptions {
 export class ToolInjectionModifier extends BaseMessageModifier {
     private readonly options: ToolInjectionOptions;
 
-    constructor(options: ToolInjectionOptions = {}){
+    constructor(options: ToolInjectionOptions = {}) {
         super()
         this.options = {
             toolsLocation: options.toolsLocation || 'Tool',
@@ -28,18 +28,23 @@ export class ToolInjectionModifier extends BaseMessageModifier {
     async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             const toolsResponse = await codebolt.mcp.listMcpFromServers(['codebolt']);
-           
-            const tools = toolsResponse?.data || [];
-            
+
+            let tools: any = toolsResponse?.data || [];
+            let mentionedMCPs: any = originalRequest.mentionedMCPs || [];
+
+            const { data: mentionedTools } = await codebolt.mcp.getTools(mentionedMCPs)
+            tools = [...tools, ...(mentionedTools || [])]
+
+
             if (tools.length === 0) {
                 return createdMessage;
             }
-            
+
             switch (this.options.toolsLocation) {
                 case 'InsidePrompt':
                     //@ts-ignore
                     return this.addToolsInsidePrompt(createdMessage, tools);
-                    //@ts-ignore
+                //@ts-ignore
                 case 'SystemMessage':
                     //@ts-ignore
                     return this.addToolsAsSystemMessage(createdMessage, tools);
@@ -58,7 +63,7 @@ export class ToolInjectionModifier extends BaseMessageModifier {
 
     private addToolsInsidePrompt(createdMessage: ProcessedMessage, tools: Tool[]): ProcessedMessage {
         const toolsInfo = this.generateToolsInfo(tools);
-        
+
         // Modify the last user message to include tools information
         const modifiedMessages = createdMessage.message.messages.map((message, index) => {
             if (message.role === 'user' && index === createdMessage.message.messages.length - 1) {
@@ -86,7 +91,7 @@ export class ToolInjectionModifier extends BaseMessageModifier {
 
     private addToolsAsSystemMessage(createdMessage: ProcessedMessage, tools: Tool[]): ProcessedMessage {
         const toolsInfo = this.generateToolsInfo(tools);
-        
+
         const toolsMessage: MessageObject = {
             role: 'system',
             content: `Available Tools:\n${toolsInfo}`
@@ -124,58 +129,58 @@ export class ToolInjectionModifier extends BaseMessageModifier {
 
     private generateToolsInfo(tools: Tool[]): string {
         const toolsInfo: string[] = [];
-        
+
         tools.slice(0, this.options.maxToolsInMessage!).forEach((tool, index) => {
             let toolInfo = `${index + 1}. **${tool.function.name}**`;
-            
+
             if (this.options.includeToolDescriptions && tool.function.description) {
                 toolInfo += `\n   Description: ${tool.function.description}`;
             }
-            
+
             if (tool.function.parameters) {
-                const params = typeof tool.function.parameters === 'object' 
+                const params = typeof tool.function.parameters === 'object'
                     ? Object.keys(tool.function.parameters as Record<string, unknown>).join(', ')
                     : String(tool.function.parameters);
                 toolInfo += `\n   Parameters: ${params}`;
             }
-            
+
             if (this.options.giveToolExamples && index < this.options.maxToolExamples!) {
                 const example = this.generateToolExample(tool);
                 if (example) {
                     toolInfo += `\n   Example: ${example}`;
                 }
             }
-            
+
             toolsInfo.push(toolInfo);
         });
-        
+
         return toolsInfo.join('\n\n');
     }
 
     private generateToolExample(tool: Tool): string | null {
         // Generate simple examples based on tool name
         const toolName = tool.function.name.toLowerCase();
-        
+
         if (toolName.includes('read') && toolName.includes('file')) {
             return `${tool.function.name}({ filePath: "example.txt" })`;
         }
-        
+
         if (toolName.includes('write') && toolName.includes('file')) {
             return `${tool.function.name}({ filePath: "output.txt", content: "Hello World" })`;
         }
-        
+
         if (toolName.includes('delete') && toolName.includes('file')) {
             return `${tool.function.name}({ filePath: "temp.txt" })`;
         }
-        
+
         if (toolName.includes('move') && toolName.includes('file')) {
             return `${tool.function.name}({ sourcePath: "old.txt", destinationPath: "new.txt" })`;
         }
-        
+
         if (toolName.includes('copy') && toolName.includes('file')) {
             return `${tool.function.name}({ sourcePath: "source.txt", destinationPath: "copy.txt" })`;
         }
-        
+
         // Generic example
         return `${tool.function.name}({ /* parameters */ })`;
     }

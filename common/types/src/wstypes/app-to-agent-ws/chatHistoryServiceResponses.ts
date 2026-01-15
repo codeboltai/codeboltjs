@@ -104,14 +104,36 @@ export const FeedbackResponseSchema = z.object({
 // Returns summary from summarize_all() which returns Message[] | null
 export const GetSummarizeAllResponseSchema = z.object({
     type: z.literal('getSummarizeAllResponse'),
-    payload: z.array(MessageSchema).nullable()
+    success: z.boolean(),
+    message: z.string(),
+    payload: z.string(), // Stringified Message[] | null
+    summary: z.string(), // Stringified Message[] | null
+    timestamp: z.string(),
+    requestId: z.string()
 });
 
 // Get summarize response schema  
 // Returns summary from summarize() which returns Message[]
 export const GetSummarizeResponseSchema = z.object({
     type: z.literal('getSummarizeResponse'),
-    payload: z.array(MessageSchema)
+    success: z.boolean(),
+    message: z.string(),
+    payload: z.string(), // Stringified Message[]
+    summary: z.string(), // Stringified Message[]
+    depth: z.number().optional(),
+    timestamp: z.string(),
+    requestId: z.string()
+});
+
+// Error response schema
+// Returns error information when operations fail
+export const ChatHistoryErrorResponseSchema = z.object({
+    type: z.literal('error'),
+    requestId: z.string().optional(),
+    success: z.boolean(),
+    message: z.string(),
+    error: z.string(),
+    timestamp: z.string()
 });
 
 // Union of all chat history service response schemas
@@ -121,7 +143,8 @@ export const ChatHistoryServiceResponseSchema = z.union([
     ConfirmationResponseSchema,
     FeedbackResponseSchema,
     GetSummarizeAllResponseSchema,
-    GetSummarizeResponseSchema
+    GetSummarizeResponseSchema,
+    ChatHistoryErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -135,4 +158,5 @@ export type ConfirmationResponse = z.infer<typeof ConfirmationResponseSchema>;
 export type FeedbackResponse = z.infer<typeof FeedbackResponseSchema>;
 export type GetSummarizeAllResponse = z.infer<typeof GetSummarizeAllResponseSchema>;
 export type GetSummarizeResponse = z.infer<typeof GetSummarizeResponseSchema>;
+export type ChatHistoryErrorResponse = z.infer<typeof ChatHistoryErrorResponseSchema>;
 export type ChatHistoryServiceResponse = z.infer<typeof ChatHistoryServiceResponseSchema>;

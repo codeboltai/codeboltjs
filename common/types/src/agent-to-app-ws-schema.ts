@@ -441,8 +441,45 @@ export {
   type GetTasksDependentOnEvent,
   type GetTasksReadyToStartEvent,
   type GetTaskDependencyChainEvent,
-  type GetTaskStatsEvent
+  type GetTaskStatsEvent,
+  type TaskEvent
 } from './wstypes/agent-to-app-ws/actions/taskEventSchemas';
+
+// Thread Event Schemas
+export {
+  threadEventBaseSchema,
+  createThreadEventSchema,
+  getThreadListEventSchema,
+  getThreadDetailEventSchema,
+  getThreadMessagesEventSchema,
+  updateThreadEventSchema,
+  deleteThreadEventSchema,
+  startThreadEventSchema,
+  updateThreadStatusEventSchema,
+  createAndStartThreadEventSchema,
+  threadEventSchema,
+  // Type exports
+  type ThreadEventBase,
+  type CreateThreadOptions,
+  type UpdateThreadOptions,
+  type GetThreadListOptions,
+  type GetThreadDetailOptions,
+  type GetThreadMessagesOptions,
+  type DeleteThreadOptions,
+  type StartThreadOptions,
+  type UpdateThreadStatusOptions,
+  type CreateAndStartThreadOptions,
+  type CreateThreadEvent,
+  type GetThreadListEvent,
+  type GetThreadDetailEvent,
+  type GetThreadMessagesEvent,
+  type UpdateThreadEvent,
+  type DeleteThreadEvent,
+  type StartThreadEvent,
+  type UpdateThreadStatusEvent,
+  type CreateAndStartThreadEvent,
+  type ThreadEvent
+} from './wstypes/agent-to-app-ws/actions/threadEventSchemas';
 
 // Memory Event Schemas
 export {

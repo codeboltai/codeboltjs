@@ -105,3 +105,16 @@ export type GitDiffEvent = z.infer<typeof gitDiffEventSchema>;
 export type GitCloneEvent = z.infer<typeof gitCloneEventSchema>;
 export type GitEvent = z.infer<typeof gitEventSchema>;
 
+// Export Options types as aliases to Event types to satisfy imports in gitService.cli.ts
+export type GitInitOptions = GitInitEvent;
+export type GitAddOptions = GitAddEvent;
+export type GitCommitOptions = GitCommitEvent;
+export type GitPushOptions = GitPushEvent;
+export type GitPullOptions = GitPullEvent;
+export type GitCheckoutOptions = GitCheckoutEvent;
+export type GitBranchOptions = GitBranchEvent;
+export type GitLogsOptions = GitLogsEvent;
+export type GitDiffOptions = GitDiffEvent;
+export type GitStatusOptions = GitStatusEvent;
+export type GitCloneOptions = GitCloneEvent;
+

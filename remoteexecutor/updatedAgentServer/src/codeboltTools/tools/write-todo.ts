@@ -13,7 +13,7 @@ import type {
     ToolErrorType,
 } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from '../base-tool';
-import { TodoService } from './../../services/TodoService';
+import { TodoService } from '../../main/server/services/TodoService';
 // import { projectState } from '../../stores/projectState';
 
 // Local type definition for backward compatibility

@@ -1,0 +1,8 @@
+{
+    "label": "Codemap",
+    "position": 14,
+    "link": {
+        "type": "generated-index",
+        "description": "Codemap APIs for managing visual code structure representations"
+    }
+}

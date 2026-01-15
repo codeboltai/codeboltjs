@@ -1,0 +1,236 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000006",
+    "revision": 0,
+    "last_node_id": 74,
+    "last_link_id": 175,
+    "nodes": [
+      {
+        "id": 71,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [165]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 72,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 220.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [169]
+          }
+        ],
+        "properties": {
+          "value": "oldFile.txt"
+        }
+      },
+      {
+        "id": 73,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 300.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [171]
+          }
+        ],
+        "properties": {
+          "value": "./temp/"
+        }
+      },
+      {
+        "id": 74,
+        "type": "codebolt/fs/deletefile",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 140],
+        "flags": {},
+        "order": 3,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 165
+          },
+          {
+            "name": "filename",
+            "type": "string",
+            "link": 169
+          },
+          {
+            "name": "filePath",
+            "type": "string",
+            "link": 171
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fileDeleted",
+            "type": -1,
+            "links": [167]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 75,
+        "type": "basic/const_string",
+        "pos": [432.703125, 416.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 4,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [173]
+          }
+        ],
+        "properties": {
+          "value": "File deleted successfully"
+        }
+      },
+      {
+        "id": 76,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 5,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 167
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 173
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [165, 71, 0, 74, 0, -1],
+      [167, 74, 0, 76, 0, -1],
+      [169, 72, 0, 74, 1, "string"],
+      [171, 73, 0, 74, 2, "string"],
+      [173, 75, 0, 76, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

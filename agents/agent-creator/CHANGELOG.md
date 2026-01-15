@@ -1,5 +1,15 @@
 # act
 
+## 1.1.38
+
+### Patch Changes
+
+- Updated dependencies [5506908]
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.3
+  - @codebolt/types@1.0.23
+  - @codebolt/agent@5.0.3
+
 ## 1.1.37
 
 ### Patch Changes

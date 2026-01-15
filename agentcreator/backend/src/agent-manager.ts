@@ -2,15 +2,67 @@ import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { writeFileSync, readFileSync, existsSync } from 'fs';
+import PluginHandlerLoader from './services/PluginHandlerLoader';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 class AgentManager {
   private agentProcess: any = null;
+  private pluginHandlerLoader: PluginHandlerLoader;
+  private pluginsLoaded: boolean = false;
 
   constructor() {
     // No need to create data directory - we write to project root
+    this.pluginHandlerLoader = PluginHandlerLoader.getInstance();
+  }
+
+  /**
+   * Initialize plugin handlers
+   */
+  async initialize(): Promise<void> {
+    if (this.pluginsLoaded) {
+      return;
+    }
+
+    try {
+      console.log('Loading plugin handlers...');
+      const plugins = await this.pluginHandlerLoader.loadPlugins();
+
+      // Register handlers for each plugin
+      for (const plugin of plugins) {
+        await this.pluginHandlerLoader.registerPluginHandlers(plugin);
+      }
+
+      this.pluginsLoaded = true;
+      console.log(`Successfully loaded ${plugins.length} plugin handlers`);
+    } catch (error) {
+      console.error('Failed to initialize plugin handlers:', error);
+      // Continue without plugins if initialization fails
+    }
+  }
+
+  /**
+   * Execute a node using plugin handler if available
+   */
+  async executeNodeWithPlugin(nodeType: string, nodeData: any, inputData: any[]): Promise<any> {
+    if (!this.pluginsLoaded) {
+      await this.initialize();
+    }
+
+    try {
+      return await this.pluginHandlerLoader.executeNode(nodeType, nodeData, inputData);
+    } catch (error) {
+      console.error(`Failed to execute node ${nodeType} with plugin:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if a node type has a plugin handler
+   */
+  hasPluginHandler(nodeType: string): boolean {
+    return this.pluginsLoaded && this.pluginHandlerLoader.hasHandler(nodeType);
   }
 
   private getDataFilePath(): string {
@@ -142,12 +194,93 @@ class AgentManager {
 
   async executeGraph(graphData: any, message?: string): Promise<any> {
     try {
-      const result = await this.executeAgentWithGraphData(graphData, message);
+      // Initialize plugins before execution
+      await this.initialize();
+
+      // Process graph with plugin handlers if available
+      const processedGraphData = await this.processGraphWithPlugins(graphData);
+
+      const result = await this.executeAgentWithGraphData(processedGraphData, message);
       return result;
     } catch (error) {
       console.error('Failed to execute graph:', error);
       throw error;
     }
+  }
+
+  /**
+   * Process graph nodes with plugin handlers before execution
+   */
+  private async processGraphWithPlugins(graphData: any): Promise<any> {
+    if (!this.pluginsLoaded || !graphData || !graphData.nodes) {
+      return graphData;
+    }
+
+    const processedNodes = [];
+
+    for (const node of graphData.nodes) {
+      try {
+        // Check if this node has a plugin handler
+        if (this.hasPluginHandler(node.type)) {
+          console.log(`Processing node ${node.type} with plugin handler`);
+
+          // Get input data from connected nodes
+          const inputData = this.getNodeInputData(node, graphData);
+
+          // Execute node with plugin handler
+          const result = await this.executeNodeWithPlugin(node.type, node, inputData);
+
+          // Update node with result
+          processedNodes.push({
+            ...node,
+            outputData: result
+          });
+        } else {
+          // Keep node as-is if no plugin handler
+          processedNodes.push(node);
+        }
+      } catch (error) {
+        console.error(`Failed to process node ${node.type}:`, error);
+        // Keep original node if processing fails
+        processedNodes.push(node);
+      }
+    }
+
+    return {
+      ...graphData,
+      nodes: processedNodes
+    };
+  }
+
+  /**
+   * Get input data for a node from connected nodes
+   */
+  private getNodeInputData(node: any, graphData: any): any[] {
+    const inputData: any[] = [];
+
+    if (!graphData.links) {
+      return inputData;
+    }
+
+    // Find all input links for this node
+    const inputLinks = graphData.links.filter((link: any) =>
+      link.target_id === node.id && link.target_slot !== undefined
+    );
+
+    // Sort links by target_slot to maintain order
+    inputLinks.sort((a: any, b: any) => a.target_slot - b.target_slot);
+
+    // Get data from source nodes
+    for (const link of inputLinks) {
+      const sourceNode = graphData.nodes.find((n: any) => n.id === link.origin_id);
+      if (sourceNode && sourceNode.outputData !== undefined) {
+        inputData.push(sourceNode.outputData);
+      } else {
+        inputData.push(null);
+      }
+    }
+
+    return inputData;
   }
 
   async saveGraph(graphData: any, message?: string): Promise<void> {

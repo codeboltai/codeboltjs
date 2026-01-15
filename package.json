@@ -10,6 +10,9 @@
     "test": "turbo run test",
     "clean": "turbo run clean",
     "build:docs": "turbo run build:docs",
+    "build:plugins": "turbo run build --filter=./agentcreator/customnodes/*",
+    "dev:plugins": "turbo run dev --filter=./agentcreator/customnodes/*",
+    "clean:plugins": "turbo run clean --filter=./agentcreator/customnodes/*",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish",
@@ -53,5 +56,5 @@
       "mkdirp": "^3.0.1"
     }
   },
-  "packageManager": "pnpm@10.18.1"
+  "packageManager": "pnpm@10.27.0"
 }

@@ -86,3 +86,25 @@ export type GetToolsEvent = z.infer<typeof getToolsEventSchema>;
 export type ExecuteToolEvent = z.infer<typeof executeToolEventSchema>;
 export type McpEvent = z.infer<typeof mcpEventSchema>;
 
+
+export interface ConfigureMcpOptions {
+  serverName: string;
+  config: any;
+}
+
+export interface ExecuteMcpToolOptions {
+  toolName: string;
+  params: any;
+}
+
+// Execute MCP Tool Event Schema with context
+export const executeMcpToolEventSchema = executeToolEventSchema.extend({
+  agentId: z.string().optional(),
+  threadId: z.string().optional(),
+  agentInstanceId: z.string().optional(),
+  parentAgentInstanceId: z.string().optional(),
+  parentId: z.string().optional(),
+  messageId: z.string().optional(),
+});
+
+export type ExecuteMcpToolEvent = z.infer<typeof executeMcpToolEventSchema>;

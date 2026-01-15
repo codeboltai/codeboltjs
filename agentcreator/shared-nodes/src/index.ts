@@ -1,5 +1,4 @@
 // Export all node types from the nodes directory
 export * from './nodes';
-
-// Export utilities
+export * from './types';
 export * from './utils';

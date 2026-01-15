@@ -1,0 +1,267 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000011",
+    "revision": 0,
+    "last_node_id": 114,
+    "last_link_id": 275,
+    "nodes": [
+      {
+        "id": 100,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [265]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 101,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 160.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [269]
+          }
+        ],
+        "properties": {
+          "value": "./src"
+        }
+      },
+      {
+        "id": 102,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 230.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [271]
+          }
+        ],
+        "properties": {
+          "value": "function.*test"
+        }
+      },
+      {
+        "id": 103,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 300.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 3,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [273]
+          }
+        ],
+        "properties": {
+          "value": "*.js"
+        }
+      },
+      {
+        "id": 104,
+        "type": "codebolt/fs/searchfiles",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 160],
+        "flags": {},
+        "order": 4,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 265
+          },
+          {
+            "name": "path",
+            "type": "string",
+            "link": 269
+          },
+          {
+            "name": "regex",
+            "type": "string",
+            "link": 271
+          },
+          {
+            "name": "filePattern",
+            "type": "string",
+            "link": 273
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filesSearched",
+            "type": -1,
+            "links": [267]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          },
+          {
+            "name": "results",
+            "type": "array",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 105,
+        "type": "basic/const_string",
+        "pos": [432.703125, 456.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 5,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [275]
+          }
+        ],
+        "properties": {
+          "value": "Files searched successfully"
+        }
+      },
+      {
+        "id": 106,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 6,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 267
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 275
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [265, 100, 0, 104, 0, -1],
+      [267, 104, 0, 106, 0, -1],
+      [269, 101, 0, 104, 1, "string"],
+      [271, 102, 0, 104, 2, "string"],
+      [273, 103, 0, 104, 3, "string"],
+      [275, 105, 0, 106, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

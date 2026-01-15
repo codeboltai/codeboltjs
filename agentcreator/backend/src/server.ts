@@ -1,7 +1,13 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import AgentManager from './agent-manager.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize Express app
 const app = express();
@@ -10,6 +16,43 @@ const PORT = process?.env?.PORT || 3002;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Custom nodes serving middleware
+app.use('/customnodes', (req, res, next) => {
+  const url = req.url;
+  // Parse URL to strip query parameters (like ?import)
+  const parsedUrl = new URL(url, 'http://localhost');
+  const urlPath = parsedUrl.pathname;
+
+  // The urlPath is already relative to /customnodes mount point
+  const relativePath = urlPath;
+  const filePath = path.join(__dirname, '../../customnodes', relativePath || '');
+
+  console.log(`[CustomNodes Middleware] Request: ${url}`);
+  console.log(`[CustomNodes Middleware] Resolved Path: ${filePath}`);
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+    console.log(`[CustomNodes Middleware] Serving file: ${filePath}`);
+
+    if (filePath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+
+    // Fallback for other files
+    fs.createReadStream(filePath).pipe(res);
+  } else {
+    console.log(`[CustomNodes Middleware] File not found: ${filePath}`);
+    next();
+  }
+});
 
 // In-memory storage for graphs (in a real app, use a database)
 // This is currently unused but kept for future implementation

@@ -5,7 +5,22 @@ import { z } from 'zod';
  * Messages sent from terminal CLI service back to agents
  */
 
-// Command output response schema
+// Execute Command Response Schema (primary response type)
+export const ExecuteCommandResponseSchema = z.object({
+  type: z.literal('executeCommandResponse'),
+  success: z.boolean(),
+  output: z.string(),
+  error: z.object({
+    code: z.string(),
+    details: z.string()
+  }).optional(),
+  exitCode: z.number(),
+  message: z.string(),
+  timestamp: z.string(),
+  requestId: z.string()
+});
+
+// Command output response schema (legacy/streaming)
 export const CommandOutputResponseSchema = z.object({
   type: z.literal('commandOutput'),
   requestId: z.string(),
@@ -18,7 +33,7 @@ export const CommandOutputResponseSchema = z.object({
   error: z.string().optional()
 });
 
-// Command error response schema
+// Command error response schema (legacy)
 export const CommandErrorResponseSchema = z.object({
   type: z.literal('commandError'),
   requestId: z.string(),
@@ -30,7 +45,7 @@ export const CommandErrorResponseSchema = z.object({
   data: z.any().optional()
 });
 
-// Command finish response schema
+// Command finish response schema (legacy)
 export const CommandFinishResponseSchema = z.object({
   type: z.literal('commandFinish'),
   requestId: z.string(),
@@ -55,6 +70,7 @@ export const TerminalInterruptResponseSchema = z.object({
 
 // Union of all terminal service response schemas
 export const TerminalServiceResponseSchema = z.union([
+  ExecuteCommandResponseSchema,
   CommandOutputResponseSchema,
   CommandErrorResponseSchema,
   CommandFinishResponseSchema,
@@ -65,6 +81,7 @@ export const TerminalServiceResponseSchema = z.union([
 export const terminalServiceResponseSchema = TerminalServiceResponseSchema;
 
 // Type exports
+export type ExecuteCommandResponse = z.infer<typeof ExecuteCommandResponseSchema>;
 export type CommandOutputResponse = z.infer<typeof CommandOutputResponseSchema>;
 export type CommandErrorResponse = z.infer<typeof CommandErrorResponseSchema>;
 export type CommandFinishResponse = z.infer<typeof CommandFinishResponseSchema>;

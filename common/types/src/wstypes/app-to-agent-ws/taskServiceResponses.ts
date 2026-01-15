@@ -3,334 +3,235 @@ import { z } from 'zod';
 /**
  * Task Service Response Schemas
  * Messages sent from task CLI service back to agents
- * Based on CodeBolt tasksService.cli.ts response types
+ * Based on task-service.cli.ts response structure
  */
 
-// Base response schema
-const baseResponseSchema = z.object({
+// Task Status enum
+export const taskStatusSchema = z.enum([
+  'created',
+  'planned',
+  'pending',
+  'in_progress',
+  'waiting_user',
+  'review',
+  'completed',
+  'cancelled',
+  'failed',
+  'active'
+]);
+
+// Task Priority enum
+export const taskPrioritySchema = z.enum(['low', 'medium', 'high', 'urgent']);
+
+// Base Task schema
+export const taskSchema = z.object({
+  id: z.number().optional(),
+  taskId: z.string(),
+  projectId: z.number().optional(),
+  projectPath: z.string().optional(),
+  projectName: z.string().optional(),
+  name: z.string(),
+  description: z.string().optional(),
+  dueDate: z.union([z.date(), z.string()]).optional(),
+  status: taskStatusSchema,
+  completed: z.boolean(),
+  groupId: z.string(),
+  dependsOnTaskId: z.string().optional(),
+  dependsOnTaskName: z.string().optional(),
+  assignedTo: z.string().optional(),
+  priority: taskPrioritySchema,
+  parentTaskId: z.string().optional(),
+  order: z.number().optional(),
+  flowData: z.any().optional(),
+  tags: z.array(z.string()).optional(),
+  errorMessage: z.string().optional(),
+  cancellationReason: z.string().optional(),
+  statusUpdatedAt: z.union([z.date(), z.string()]).optional(),
+  completedAt: z.union([z.date(), z.string()]).optional(),
+  createdAt: z.union([z.date(), z.string()]).optional(),
+  updatedAt: z.union([z.date(), z.string()]).optional(),
+  mentionedFiles: z.array(z.string()).optional(),
+  mentionedFolders: z.array(z.string()).optional(),
+  mentionedMultiFile: z.array(z.string()).optional(),
+  mentionedMCPs: z.array(z.string()).optional(),
+  uploadedImages: z.array(z.string()).optional(),
+  mentionedAgents: z.array(z.any()).optional(),
+  mentionedDocs: z.array(z.any()).optional(),
+  controlFiles: z.array(z.any()).optional(),
+  links: z.array(z.string()).optional(),
+  selectedAgent: z.any().optional(),
+  selection: z.any().optional(),
+  children: z.array(z.any()).optional(),
+  messages: z.array(z.any()).optional(),
+});
+
+// Create task response (for addTask/createTask operations)
+export const createTaskResponseSchema = z.object({
+  type: z.literal('createTaskResponse'),
   success: z.boolean(),
-  data: z.any().optional(),
-  message: z.string().optional(),
+  task: taskSchema.nullable(),
   error: z.string().optional(),
 });
 
-// Task message schema
-const taskMessageSchema = z.object({
-  id: z.string(),
+// Update task response
+export const updateTaskResponseSchema = z.object({
+  type: z.literal('updateTaskResponse'),
+  success: z.boolean(),
+  task: taskSchema.nullable(),
+  error: z.string().optional(),
+});
+
+// Delete task response
+export const deleteTaskResponseSchema = z.object({
+  type: z.literal('deleteTaskResponse'),
+  success: z.boolean(),
   taskId: z.string(),
-  stepId: z.string().optional(),
-  message: z.string(),
-  messageType: z.enum(['info', 'error', 'warning', 'success', 'steering', 'instruction', 'feedback']),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
-  timestamp: z.string(),
-  userId: z.string().optional(),
+  deleted: z.boolean(),
+  error: z.string().optional(),
+});
+
+// Get task response
+export const getTaskResponseSchema = z.object({
+  type: z.literal('getTaskResponse'),
+  success: z.boolean(),
+  task: taskSchema.nullable(),
+  taskId: z.string(),
+  error: z.string().optional(),
+});
+
+// List tasks response
+export const listTasksResponseSchema = z.object({
+  type: z.literal('listTasksResponse'),
+  success: z.boolean(),
+  tasks: z.array(taskSchema),
+  totalCount: z.number(),
+  error: z.string().optional(),
+});
+
+// Assign agent response
+export const assignAgentResponseSchema = z.object({
+  type: z.literal('assignAgentResponse'),
+  success: z.boolean(),
+  task: taskSchema.nullable(),
+  taskId: z.string(),
+  agentId: z.string(),
+  error: z.string().optional(),
+});
+
+// Start task with agent response
+export const startTaskWithAgentResponseSchema = z.object({
+  type: z.literal('startTaskWithAgentResponse'),
+  success: z.boolean(),
+  task: taskSchema.nullable(),
+  taskId: z.string(),
+  agentId: z.string(),
+  activityId: z.string().optional(),
+  error: z.string().optional(),
+});
+
+// Error response
+export const taskErrorResponseSchema = z.object({
+  type: z.literal('errorResponse'),
+  success: z.boolean(),
+  error: z.string(),
+});
+
+// Legacy response schemas for backward compatibility
+export const addTaskResponseSchema = z.object({
+  type: z.literal('addTaskResponse'),
+  success: z.boolean(),
+  error: z.string().optional(),
+  data: z.any().optional(),
   agentId: z.string().optional(),
 });
 
-// MessageData schema (renamed from metadataSchema)
-const messageDataSchema = z.object({
-  mentionedFiles: z.array(z.string()),
-  mentionedFullPaths: z.array(z.string()),
-  mentionedFolders: z.array(z.string()),
-  mentionedMultiFile: z.array(z.string()),
-  mentionedMCPs: z.array(z.string()),
-  uploadedImages: z.array(z.string()),
-  mentionedAgents: z.array(z.string()),
-  mentionedDocs: z.array(z.string()),
-  links: z.array(z.string()),
-  controlFiles: z.array(z.string()),
-  isRemoteTask: z.boolean(),
-  environment: z.record(z.any()).nullable(),
-  llmProvider: z.object({
-    providerId: z.string(),
-    model: z.string(),
-  }).optional(),
+export const updateTasksResponseSchema = z.object({
+  type: z.literal('updateTasksResponse'),
+  success: z.boolean(),
+  error: z.string().optional(),
+  data: z.any().optional(),
+  agentId: z.string().optional(),
 });
 
-// Position schema
-const positionSchema = z.object({
-  x: z.number(),
-  y: z.number(),
+export const addSubTaskResponseSchema = z.object({
+  type: z.literal('addSubTaskResponse'),
+  success: z.boolean(),
+  error: z.string().optional(),
+  data: z.any().optional(),
+  agentId: z.string().optional(),
 });
 
-// Flow node data schema
-const flowNodeDataSchema = z.object({
-  value: z.string(),
-  userMessage: z.string(),
-  messageData: messageDataSchema,
-  condition: z.string(),
-  agentId: z.string(),
-  isMainTask: z.boolean(),
+export const updateSubTaskResponseSchema = z.object({
+  type: z.literal('updateSubTaskResponse'),
+  success: z.boolean(),
+  error: z.string().optional(),
+  data: z.any().optional(),
+  agentId: z.string().optional(),
 });
 
-// Flow node schema
-const flowNodeSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  position: positionSchema,
-  data: flowNodeDataSchema,
+export const getTasksByCategoryResponseSchema = z.object({
+  type: z.literal('getTasksByCategoryResponse'),
+  success: z.boolean(),
+  error: z.string().optional(),
+  data: z.any().optional(),
+  agentId: z.string().optional(),
 });
 
-// Flow data schema
-const flowDataSchema = z.object({
-  nodes: z.array(flowNodeSchema),
-  edges: z.array(z.any()),
+export const createTasksFromMarkdownResponseSchema = z.object({
+  type: z.literal('createTasksFromMarkdownResponse'),
+  success: z.boolean(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  agentId: z.string().optional(),
 });
 
-// Step schema
-const stepSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  userMessage: z.string(),
-  messageData: messageDataSchema,
-  isMainTask: z.boolean(),
-  position: positionSchema,
-  condition: z.string(),
-  agentId: z.string(),
-  FlowData: flowDataSchema.optional(),
-  status: z.string(),
+export const exportTasksToMarkdownResponseSchema = z.object({
+  type: z.literal('exportTasksToMarkdownResponse'),
+  success: z.boolean(),
+  data: z.string().optional(),
+  agentId: z.string().optional(),
 });
 
-// Extended step schema
-const extendedStepSchema = stepSchema.extend({
-  taskId: z.string(),
-  taskName: z.string(),
-  messages: z.array(taskMessageSchema).optional(),
-  isActive: z.boolean().optional(),
-  startedAt: z.string().optional(),
-  completedAt: z.string().optional(),
-});
-
-// Task schema
-const taskSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  dueDate: z.date().nullable(),
-  steps: z.array(stepSchema),
-  completed: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string().optional(),
-  threadId: z.string(),
-  isRemoteTask: z.boolean(),
-  environment: z.string().nullable(),
-  isKanbanTask: z.boolean(),
-  taskType: z.enum(['scheduled', 'interactive']),
-  executionType: z.enum(['scheduled', 'immediate', 'manual', 'conditional']),
-  environmentType: z.enum(['local', 'remote']),
-  groupId: z.string(),
-  startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']),
-  dependsOnTaskId: z.string().optional(),
-  dependsOnTaskName: z.string().optional(),
-});
-
-// Extended task schema
-const extendedTaskSchema = taskSchema.extend({
-  startedBy: z.string().optional(),
-  currentStep: stepSchema.optional(),
-  activeSteps: z.array(stepSchema).optional(),
-  messages: z.array(taskMessageSchema).optional(),
-  progress: z.object({
-    totalSteps: z.number(),
-    completedSteps: z.number(),
-    percentage: z.number(),
-  }).optional(),
-});
-
-// Task stats schema
-const taskStatsSchema = z.object({
-  total: z.number(),
-  completed: z.number(),
-  pending: z.number(),
-  processing: z.number(),
-  overdue: z.number(),
-});
-
-// Response wrapper schema for planner task responses
-const plannerTaskResponseSchema = z.object({
-  type: z.literal('plannerTaskResponse'),
-  action: z.string(),
-  requestId: z.string(),
-  response: baseResponseSchema,
-  timestamp: z.number(),
-});
-
-// Task service response schema (generic base)
-export const taskServiceResponseSchema = baseResponseSchema;
-
-// Task response schema
-export const taskResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    task: extendedTaskSchema,
-  }).optional(),
-});
-
-// Task list response schema
-export const taskListResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    tasks: z.array(extendedTaskSchema),
-    totalCount: z.number(),
-    stats: taskStatsSchema,
-  }).optional(),
-});
-
-// Step response schema
-export const stepResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    step: extendedStepSchema,
-  }).optional(),
-});
-
-// Step list response schema
-export const stepListResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    steps: z.array(extendedStepSchema),
-    totalCount: z.number(),
-  }).optional(),
-});
-
-// Task messages response schema
-export const taskMessagesResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    messages: z.array(taskMessageSchema),
-    totalCount: z.number(),
-  }).optional(),
-});
-
-// Active step response schema
-export const activeStepResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    activeStep: extendedStepSchema.nullable(),
-    allActiveSteps: z.array(extendedStepSchema).optional(),
-  }).optional(),
-});
-
-// Send steering message response schema
-export const sendSteeringMessageResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    messageId: z.string(),
-  }).optional(),
-});
-
-// Delete task response schema
-// export const deleteTaskResponseSchema = baseResponseSchema.extend({
-//   data: z.object({
-//     deleted: z.boolean(),
-//   }).optional(),
-// });
-
-// Can task start response schema
-// export const canTaskStartResponseSchema = baseResponseSchema.extend({
-//   data: z.object({
-//     canStart: z.boolean(),
-//     reason: z.string().optional(),
-//   }).optional(),
-// });
-
-// Task stats response schema
-export const taskStatsResponseSchema = baseResponseSchema.extend({
-  data: taskStatsSchema.optional(),
-});
-
-// Specific response schemas for different actions
-export const createTaskResponseSchema = taskResponseSchema;
-export const getTaskListResponseSchema = taskListResponseSchema;
-export const addStepToTaskResponseSchema = stepResponseSchema;
-export const getTasksStartedByMeResponseSchema = taskListResponseSchema;
-export const getTaskDetailResponseSchema = taskResponseSchema;
-export const getTaskMessagesResponseSchema = taskMessagesResponseSchema;
-export const getAllStepsResponseSchema = stepListResponseSchema;
-export const getCurrentRunningStepResponseSchema = activeStepResponseSchema;
-export const updateStepStatusResponseSchema = stepResponseSchema;
-export const completeStepResponseSchema = stepResponseSchema;
-export const updateTaskResponseSchema = taskResponseSchema;
-export const deleteTaskResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    deleted: z.boolean(),
-  }).optional(),
-});
-export const completeTaskResponseSchema = taskResponseSchema;
-export const startTaskResponseSchema = taskResponseSchema;
-export const canTaskStartResponseSchema = baseResponseSchema.extend({
-  data: z.object({
-    canStart: z.boolean(),
-    reason: z.string().optional(),
-  }).optional(),
-});
-export const getTasksDependentOnResponseSchema = taskListResponseSchema;
-export const getTasksReadyToStartResponseSchema = taskListResponseSchema;
-export const getTaskDependencyChainResponseSchema = taskListResponseSchema;
-export const getTaskStatsResponseSchema = taskStatsResponseSchema;
-
-// Union of all specific response schemas
-export const allTaskServiceResponseSchema = z.union([
+// Union of all task service responses
+export const taskServiceResponseSchema = z.union([
   createTaskResponseSchema,
-  getTaskListResponseSchema,
-  addStepToTaskResponseSchema,
-  getTasksStartedByMeResponseSchema,
-  getTaskDetailResponseSchema,
-  getTaskMessagesResponseSchema,
-  sendSteeringMessageResponseSchema,
-  getAllStepsResponseSchema,
-  getCurrentRunningStepResponseSchema,
-  updateStepStatusResponseSchema,
-  completeStepResponseSchema,
   updateTaskResponseSchema,
   deleteTaskResponseSchema,
-  completeTaskResponseSchema,
-  startTaskResponseSchema,
-  canTaskStartResponseSchema,
-  getTasksDependentOnResponseSchema,
-  getTasksReadyToStartResponseSchema,
-  getTaskDependencyChainResponseSchema,
-  getTaskStatsResponseSchema,
+  getTaskResponseSchema,
+  listTasksResponseSchema,
+  assignAgentResponseSchema,
+  startTaskWithAgentResponseSchema,
+  taskErrorResponseSchema,
+  // Legacy schemas
+  addTaskResponseSchema,
+  updateTasksResponseSchema,
+  addSubTaskResponseSchema,
+  updateSubTaskResponseSchema,
+  getTasksByCategoryResponseSchema,
+  createTasksFromMarkdownResponseSchema,
+  exportTasksToMarkdownResponseSchema,
 ]);
 
-// Export the planner task response schema
-export const PlannerTaskResponseSchema = plannerTaskResponseSchema;
-
-// Type exports
-export type TaskMessage = z.infer<typeof taskMessageSchema>;
-export type MessageData = z.infer<typeof messageDataSchema>;
-export type Position = z.infer<typeof positionSchema>;
-export type FlowNodeData = z.infer<typeof flowNodeDataSchema>;
-export type FlowNode = z.infer<typeof flowNodeSchema>;
-export type FlowData = z.infer<typeof flowDataSchema>;
-export type Step = z.infer<typeof stepSchema>;
-export type ExtendedStep = z.infer<typeof extendedStepSchema>;
+// TypeScript types
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+export type TaskPriority = z.infer<typeof taskPrioritySchema>;
 export type Task = z.infer<typeof taskSchema>;
-export type ExtendedTask = z.infer<typeof extendedTaskSchema>;
-export type TaskStats = z.infer<typeof taskStatsSchema>;
+export type CreateTaskResponse = z.infer<typeof createTaskResponseSchema>;
+export type UpdateTaskResponse = z.infer<typeof updateTaskResponseSchema>;
+export type DeleteTaskResponse = z.infer<typeof deleteTaskResponseSchema>;
+export type GetTaskResponse = z.infer<typeof getTaskResponseSchema>;
+export type ListTasksResponse = z.infer<typeof listTasksResponseSchema>;
+export type AssignAgentResponse = z.infer<typeof assignAgentResponseSchema>;
+export type StartTaskWithAgentResponse = z.infer<typeof startTaskWithAgentResponseSchema>;
+export type TaskErrorResponse = z.infer<typeof taskErrorResponseSchema>;
+
+// Legacy types
+export type AddTaskResponse = z.infer<typeof addTaskResponseSchema>;
+export type UpdateTasksResponse = z.infer<typeof updateTasksResponseSchema>;
+export type AddSubTaskResponse = z.infer<typeof addSubTaskResponseSchema>;
+export type UpdateSubTaskResponse = z.infer<typeof updateSubTaskResponseSchema>;
+export type GetTasksByCategoryResponse = z.infer<typeof getTasksByCategoryResponseSchema>;
+export type CreateTasksFromMarkdownResponse = z.infer<typeof createTasksFromMarkdownResponseSchema>;
+export type ExportTasksToMarkdownResponse = z.infer<typeof exportTasksToMarkdownResponseSchema>;
 
 export type TaskServiceResponse = z.infer<typeof taskServiceResponseSchema>;
-export type TaskResponse = z.infer<typeof taskResponseSchema>;
-export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
-export type StepResponse = z.infer<typeof stepResponseSchema>;
-export type StepListResponse = z.infer<typeof stepListResponseSchema>;
-export type TaskMessagesResponse = z.infer<typeof taskMessagesResponseSchema>;
-export type ActiveStepResponse = z.infer<typeof activeStepResponseSchema>;
-export type SendSteeringMessageResponse = z.infer<typeof sendSteeringMessageResponseSchema>;
-export type DeleteTaskResponse = z.infer<typeof deleteTaskResponseSchema>;
-export type CanTaskStartResponse = z.infer<typeof canTaskStartResponseSchema>;
-export type TaskStatsResponse = z.infer<typeof taskStatsResponseSchema>;
-
-export type CreateTaskResponse = z.infer<typeof createTaskResponseSchema>;
-export type GetTaskListResponse = z.infer<typeof getTaskListResponseSchema>;
-export type AddStepToTaskResponse = z.infer<typeof addStepToTaskResponseSchema>;
-export type GetTasksStartedByMeResponse = z.infer<typeof getTasksStartedByMeResponseSchema>;
-export type GetTaskDetailResponse = z.infer<typeof getTaskDetailResponseSchema>;
-export type GetTaskMessagesResponse = z.infer<typeof getTaskMessagesResponseSchema>;
-export type GetAllStepsResponse = z.infer<typeof getAllStepsResponseSchema>;
-export type GetCurrentRunningStepResponse = z.infer<typeof getCurrentRunningStepResponseSchema>;
-export type UpdateStepStatusResponse = z.infer<typeof updateStepStatusResponseSchema>;
-export type CompleteStepResponse = z.infer<typeof completeStepResponseSchema>;
-export type UpdateTaskResponse = z.infer<typeof updateTaskResponseSchema>;
-export type CompleteTaskResponse = z.infer<typeof completeTaskResponseSchema>;
-export type StartTaskResponse = z.infer<typeof startTaskResponseSchema>;
-export type GetTasksDependentOnResponse = z.infer<typeof getTasksDependentOnResponseSchema>;
-export type GetTasksReadyToStartResponse = z.infer<typeof getTasksReadyToStartResponseSchema>;
-
-export type GetTaskDependencyChainResponse = z.infer<typeof getTaskDependencyChainResponseSchema>;
-export type GetTaskStatsResponse = z.infer<typeof getTaskStatsResponseSchema>;
-
-export type PlannerTaskResponse = z.infer<typeof plannerTaskResponseSchema>;
-export type AllTaskServiceResponse = z.infer<typeof allTaskServiceResponseSchema>; 

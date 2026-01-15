@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/agentserver",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "CodeBolt Agent Server - A remote execution server for CodeBolt agents",
   "main": "dist/server.mjs",
   "bin": {
@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && node esbuild.config.js",
+    "build": "node esbuild.config.js",
     "build:tui": "cd ../../tui/gotui && go build ./cmd/gotui",
     "start:remote": "cd ../../remoteenvironments/codeboltwranglerWsServer && npm run dev",
     "start": "node dist/server.mjs",

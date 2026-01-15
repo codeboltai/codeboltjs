@@ -6,7 +6,17 @@ import { baseMessageSchema } from './coreMessageSchemas';
  * Based on tokenizerService.cli.ts
  */
 
+// Tokenizer response schemas
+export const addTokenResponseSchema = z.object({
+  type: z.literal('addTokenResponse'),
+  message: z.literal('success'),
+  tokens: z.any(),
+});
 
+export const getTokenResponseSchema = z.object({
+  type: z.literal('getTokenResponse'),
+  token: z.any(),
+});
 
 // Tokenizer MCP tool execution schemas
 export const tokenizerMcpToolConfirmationSchema = baseMessageSchema.extend({
@@ -84,6 +94,8 @@ export const tokenizerErrorResponseSchema = z.object({
 // Union of all tokenizer service schemas
 export const tokenizerServiceMessageSchema = z.union([
   tokenizerErrorResponseSchema,
+  addTokenResponseSchema,
+  getTokenResponseSchema,
   tokenizerMcpToolConfirmationSchema,
   tokenizerMcpToolExecutingSchema,
   tokenizerMcpToolSuccessSchema,
@@ -92,11 +104,12 @@ export const tokenizerServiceMessageSchema = z.union([
 ]);
 
 // TypeScript types
+export type AddTokenResponse = z.infer<typeof addTokenResponseSchema>;
+export type GetTokenResponse = z.infer<typeof getTokenResponseSchema>;
+export type TokenizerErrorResponse = z.infer<typeof tokenizerErrorResponseSchema>;
 export type TokenizerMcpToolConfirmation = z.infer<typeof tokenizerMcpToolConfirmationSchema>;
 export type TokenizerMcpToolExecuting = z.infer<typeof tokenizerMcpToolExecutingSchema>;
 export type TokenizerMcpToolSuccess = z.infer<typeof tokenizerMcpToolSuccessSchema>;
 export type TokenizerMcpToolError = z.infer<typeof tokenizerMcpToolErrorSchema>;
 export type TokenizerMcpToolRejected = z.infer<typeof tokenizerMcpToolRejectedSchema>;
-export type TokenizerErrorResponse = z.infer<typeof tokenizerErrorResponseSchema>;
-export type TokenizerServiceMessage = z.infer<typeof tokenizerServiceMessageSchema>;
-
+export type TokenizerServiceMessage = z.infer<typeof tokenizerServiceMessageSchema>; 

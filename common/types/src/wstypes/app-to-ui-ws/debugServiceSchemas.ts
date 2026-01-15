@@ -6,7 +6,16 @@ import { baseMessageSchema } from './coreMessageSchemas';
  * Based on debugService.cli.ts
  */
 
+// Debug response schemas
+export const debugAddLogResponseSchema = z.object({
+  type: z.literal('debugAddLogResponse'),
+  succes: z.literal(true),
+});
 
+export const openDebugBrowserResponseSchema = z.object({
+  type: z.literal('openDebugBrowserResponse'),
+  succes: z.literal(true),
+});
 
 // Debug MCP tool execution schemas
 export const debugMcpToolConfirmationSchema = baseMessageSchema.extend({
@@ -83,7 +92,8 @@ export const debugMcpToolRejectedSchema = baseMessageSchema.extend({
 
 // Union of all debug service schemas
 export const debugServiceSchema = z.union([
-
+  debugAddLogResponseSchema,
+  openDebugBrowserResponseSchema,
   debugMcpToolConfirmationSchema,
   debugMcpToolExecutingSchema,
   debugMcpToolSuccessSchema,
@@ -92,7 +102,8 @@ export const debugServiceSchema = z.union([
 ]);
 
 // Inferred TypeScript types
-
+export type DebugAddLogResponse = z.infer<typeof debugAddLogResponseSchema>;
+export type OpenDebugBrowserResponse = z.infer<typeof openDebugBrowserResponseSchema>;
 export type DebugMcpToolConfirmation = z.infer<typeof debugMcpToolConfirmationSchema>;
 export type DebugMcpToolExecuting = z.infer<typeof debugMcpToolExecutingSchema>;
 export type DebugMcpToolSuccess = z.infer<typeof debugMcpToolSuccessSchema>;

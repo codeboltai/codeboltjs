@@ -852,8 +852,7 @@ export interface AgentModule {
 
 // Import response types from existing schemas
 import type { 
-  GetAllFilesAsMarkdownResponse,
-  MatchProblemResponse,
+ 
   GetMatcherListTreeResponse,
   GetMatchDetailResponse 
 } from '../../wstypes/app-to-agent-ws/codeUtilsServiceResponses';
@@ -889,7 +888,7 @@ export interface CodeUtilsModule {
    * Retrieves all files as Markdown.
    * @returns A promise that resolves with the Markdown content of all files.
    */
-  getAllFilesAsMarkDown(): Promise<GetAllFilesAsMarkdownResponse>;
+  getAllFilesAsMarkDown(): Promise<any>;
 
   /**
    * Performs a matching operation based on the provided matcher definition and problem patterns.
@@ -902,7 +901,7 @@ export interface CodeUtilsModule {
     matcherDefinition: object, 
     problemPatterns: any[], 
     problems?: any[]
-  ): Promise<MatchProblemResponse>;
+  ): Promise<any>;
 
   /**
    * Retrieves the list of matchers.

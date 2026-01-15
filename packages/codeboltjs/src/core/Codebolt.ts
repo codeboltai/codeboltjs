@@ -25,12 +25,41 @@ import codebotMemory from '../modules/memory'
 import cbagent from '../modules/agent';
 import cbutils from '../modules/utils';
 import codeboltActionPlans from '../modules/actionPlan';
+import cbmail from '../modules/mail';
+import cbgroupFeedback from '../modules/groupFeedback';
+import cbagentDeliberation from '../modules/agentDeliberation';
+import cbautoTesting from '../modules/autoTesting';
 import { notificationFunctions, type NotificationFunctions } from '../notificationfunctions';
+
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import { userMessageManager } from '../modules/user-message-manager';
 import { userMessageUtilities } from '../modules/user-message-utilities';
 import { RawMessageForAgent, AgentStartMessage, ProviderInitVars } from '@codebolt/types/provider'
-
+import thread from '../modules/thread'
+import todo from '../modules/todo'
+import cbsideExecution from '../modules/sideExecution'
+import cbcapability from '../modules/capability'
+import job from '../modules/job'
+import cbactionBlock from '../modules/actionBlock'
+import cbrequirementPlan from '../modules/requirementPlan'
+import cbswarm from '../modules/swarm'
+import cbcalendar from '../modules/calendar'
+import cbepisodicMemory from '../modules/episodicMemory'
+import cbroadmap from '../modules/roadmap'
+import cbcodemap from '../modules/codemap'
+import cbprojectStructure from '../modules/projectStructure'
+import cbcodebaseSearch from '../modules/codebaseSearch';
+import cbfileUpdateIntent from '../modules/fileUpdateIntent';
+import cbprojectStructureUpdateRequest from '../modules/projectStructureUpdateRequest';
+import cbreviewMergeRequest from '../modules/reviewMergeRequest';
+import cbkvStore from '../modules/kvStore';
+import cbpersistentMemory from '../modules/persistentMemory';
+import cbeventLog from '../modules/eventLog';
+import cbknowledgeGraph from '../modules/knowledgeGraph';
+import cbhook from '../modules/hook';
+import cbmemoryIngestion from '../modules/memoryIngestion';
+import cbcontextAssembly from '../modules/contextAssembly';
+import cbcontextRuleEngine from '../modules/contextRuleEngine';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -42,7 +71,7 @@ class Codebolt {
     private readyHandlers: Array<() => void | Promise<void>> = [];
     private messageQueue: FlatUserMessage[] = [];
     private messageResolvers: Array<(message: FlatUserMessage) => void> = [];
-    private lastUserMessage:FlatUserMessage | undefined
+    private lastUserMessage: FlatUserMessage | undefined
 
     /**
      * @constructor
@@ -52,7 +81,7 @@ class Codebolt {
         console.log("Codebolt Agent initialized");
         this.readyPromise = this.initializeConnection();
         this.setupMessageListener()
-        this.lastUserMessage=undefined
+        this.lastUserMessage = undefined
     }
 
     /**
@@ -102,6 +131,9 @@ class Codebolt {
     fs = cbfs;
     git = git;
     llm = cbllm;
+    mail = cbmail;
+    groupFeedback = cbgroupFeedback;
+    agentDeliberation = cbagentDeliberation;
     browser = cbbrowser;
     chat = cbchat;
     terminal = cbterminal;
@@ -115,6 +147,7 @@ class Codebolt {
     dbmemory = dbmemory;
     cbstate = cbstate;
     task = task;
+    thread = thread;
     vectordb = vectorDB;
     debug = debug;
     tokenizer = tokenizer;
@@ -123,8 +156,33 @@ class Codebolt {
     agent = cbagent;
     utils = cbutils;
     notify = notificationFunctions;
-    memory=codebotMemory;
-    actionPlan=codeboltActionPlans;
+    memory = codebotMemory;
+    actionPlan = codeboltActionPlans;
+    todo = todo;
+    sideExecution = cbsideExecution;
+    capability = cbcapability;
+    job = job;
+    autoTesting = cbautoTesting;
+    actionBlock = cbactionBlock;
+    requirementPlan = cbrequirementPlan;
+    swarm = cbswarm;
+    calendar = cbcalendar;
+    episodicMemory = cbepisodicMemory;
+    roadmap = cbroadmap;
+    codemap = cbcodemap;
+    projectStructure = cbprojectStructure;
+    codebaseSearch = cbcodebaseSearch;
+    fileUpdateIntent = cbfileUpdateIntent;
+    projectStructureUpdateRequest = cbprojectStructureUpdateRequest;
+    reviewMergeRequest = cbreviewMergeRequest;
+    kvStore = cbkvStore;
+    persistentMemory = cbpersistentMemory;
+    eventLog = cbeventLog;
+    knowledgeGraph = cbknowledgeGraph;
+    hook = cbhook;
+    memoryIngestion = cbmemoryIngestion;
+    contextAssembly = cbcontextAssembly;
+    contextRuleEngine = cbcontextRuleEngine;
 
     /**
      * User message utilities for accessing current user message and context
@@ -172,23 +230,23 @@ class Codebolt {
         // Wait for WebSocket to be ready first
         console.log('[Codebolt] getMessage called');
         // await this.waitForReady();
-       
-        
+
+
         // First, check if there's a current message being processed
         const currentMessage = userMessageManager.getMessage();
         if (currentMessage) {
             console.log('[Codebolt] Returning current message');
             return Promise.resolve(currentMessage);
         }
-        
+
         // If there are queued messages, return the first one
         if (this.messageQueue.length > 0 || this.lastUserMessage) {
             console.log('[Codebolt] Returning queued message');
             const message = this.messageQueue.shift() || this.lastUserMessage;
-            if(message)
-            return Promise.resolve(message);
+            if (message)
+                return Promise.resolve(message);
         }
-        
+
         // Otherwise, create a new promise that will be resolved when a message arrives
         console.log('[Codebolt] Waiting for next message');
         return new Promise<FlatUserMessage>((resolve) => {
@@ -247,7 +305,7 @@ class Codebolt {
 
                     // Automatically save the user message globally
                     userMessageManager.saveMessage(userMessage);
-                    this.lastUserMessage=userMessage;
+                    this.lastUserMessage = userMessage;
                     // Handle the message in the queue system for getMessage() resolvers
                     this.handleIncomingMessage(userMessage);
                 }
@@ -266,7 +324,7 @@ class Codebolt {
      * @param {Function} handler - The handler function to call when a message is received.
      * @returns {void}
      */
-    onMessage(handler: (userMessage: FlatUserMessage) => void | Promise<void> | any | Promise<any>) {
+    onMessage(handler: (userMessage: FlatUserMessage, additionalVariable?: Record<string, string | undefined>) => void | Promise<void> | any | Promise<any>) {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
@@ -296,8 +354,9 @@ class Codebolt {
                         };
 
                         // Call the custom handler
-                        const result = await handler(userMessage);
-                        
+                        let additionalVariable = process.env
+                        const result = await handler(userMessage, additionalVariable);
+
                         // Send processStoped with optional message
                         const message: any = {
                             "type": "processStoped"
@@ -323,6 +382,65 @@ class Codebolt {
             cbws.messageManager.on('message', handleUserMessage);
         }).catch(error => {
             console.error('Failed to set up message handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for ActionBlock invocation events.
+     * This is called when a Side Execution ActionBlock is invoked by a parent agent.
+     * @param {Function} handler - The handler function to call when ActionBlock is invoked.
+     *   - params: The parameters passed to the ActionBlock
+     *   - threadContext: The thread context from the parent agent
+     *   - metadata: Additional metadata (sideExecutionId, threadId, parentAgentId, etc.)
+     * @returns {void}
+     */
+    onActionBlockInvocation(handler: (threadContext: any, metadata: {
+        sideExecutionId: string;
+        threadId: string;
+        parentAgentId: string;
+        parentAgentInstanceId: string;
+        timestamp: string;
+    }) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleActionBlockInvocation = async (response: any) => {
+                if (response.type === "actionBlockInvocation") {
+                    console.log("ActionBlock invocation received", response);
+                    try {
+                        const result = await handler(
+                            response.threadContext || {},
+                            {
+                                sideExecutionId: response.sideExecutionId,
+                                threadId: response.threadId,
+                                parentAgentId: response.parentAgentId,
+                                parentAgentInstanceId: response.parentAgentInstanceId,
+                                timestamp: response.timestamp
+                            }
+                        );
+
+                        // Send completion response
+                        const message: any = {
+                            "type": "actionBlockComplete",
+                            "sideExecutionId": response.sideExecutionId
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.result = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in ActionBlock invocation handler:', error);
+                        cbws.messageManager.send({
+                            "type": "actionBlockComplete",
+                            "sideExecutionId": response.sideExecutionId,
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+            cbws.messageManager.on('message', handleActionBlockInvocation);
+        }).catch(error => {
+            console.error('Failed to set up ActionBlockInvocation handler:', error);
         });
     }
 
@@ -497,6 +615,366 @@ class Codebolt {
     }
 
     /**
+     * Sets up a listener for read file events.
+     * @param {Function} handler - The handler function to call when read file is requested.
+     * @returns {void}
+     */
+    onReadFile(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleReadFile = async (response: any) => {
+                console.log("Read file event received");
+                if (response.type === "providerReadFile") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerReadFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in read file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerReadFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleReadFile);
+        }).catch(error => {
+            console.error('Failed to set up read file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for write file events.
+     * @param {Function} handler - The handler function to call when write file is requested.
+     * @returns {void}
+     */
+    onWriteFile(handler: (path: string, content: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleWriteFile = async (response: any) => {
+                console.log("Write file event received");
+                if (response.type === "providerWriteFile") {
+                    try {
+                        const result = await handler(response.path, response.content);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerWriteFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in write file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerWriteFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleWriteFile);
+        }).catch(error => {
+            console.error('Failed to set up write file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for delete file events.
+     * @param {Function} handler - The handler function to call when delete file is requested.
+     * @returns {void}
+     */
+    onDeleteFile(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleDeleteFile = async (response: any) => {
+                console.log("Delete file event received");
+                if (response.type === "providerDeleteFile") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in delete file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleDeleteFile);
+        }).catch(error => {
+            console.error('Failed to set up delete file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for delete folder events.
+     * @param {Function} handler - The handler function to call when delete folder is requested.
+     * @returns {void}
+     */
+    onDeleteFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleDeleteFolder = async (response: any) => {
+                console.log("Delete folder event received");
+                if (response.type === "providerDeleteFolder") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in delete folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerDeleteFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleDeleteFolder);
+        }).catch(error => {
+            console.error('Failed to set up delete folder handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for rename item events.
+     * @param {Function} handler - The handler function to call when rename item is requested.
+     * @returns {void}
+     */
+    onRenameItem(handler: (oldPath: string, newPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleRenameItem = async (response: any) => {
+                console.log("Rename item event received");
+                if (response.type === "providerRenameItem") {
+                    try {
+                        const result = await handler(response.oldPath, response.newPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerRenameItemResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in rename item handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerRenameItemResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleRenameItem);
+        }).catch(error => {
+            console.error('Failed to set up rename item handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for create folder events.
+     * @param {Function} handler - The handler function to call when create folder is requested.
+     * @returns {void}
+     */
+    onCreateFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCreateFolder = async (response: any) => {
+                console.log("Create folder event received");
+                if (response.type === "providerCreateFolder") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCreateFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in create folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCreateFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCreateFolder);
+        }).catch(error => {
+            console.error('Failed to set up create folder handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for copy file events.
+     * @param {Function} handler - The handler function to call when copy file is requested.
+     * @returns {void}
+     */
+    onCopyFile(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCopyFile = async (response: any) => {
+                console.log("Copy file event received");
+                if (response.type === "providerCopyFile") {
+                    try {
+                        const result = await handler(response.sourcePath, response.destinationPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFileResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in copy file handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFileResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCopyFile);
+        }).catch(error => {
+            console.error('Failed to set up copy file handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for copy folder events.
+     * @param {Function} handler - The handler function to call when copy folder is requested.
+     * @returns {void}
+     */
+    onCopyFolder(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleCopyFolder = async (response: any) => {
+                console.log("Copy folder event received");
+                if (response.type === "providerCopyFolder") {
+                    try {
+                        const result = await handler(response.sourcePath, response.destinationPath);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFolderResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in copy folder handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerCopyFolderResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleCopyFolder);
+        }).catch(error => {
+            console.error('Failed to set up copy folder handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for get full project events.
+     * @param {Function} handler - The handler function to call when get full project is requested.
+     * @returns {void}
+     */
+    onGetFullProject(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleGetFullProject = async (response: any) => {
+                console.log("Get full project event received");
+                if (response.type === "providerGetFullProject") {
+                    try {
+                        const result = await handler();
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerGetFullProjectResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in get full project handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerGetFullProjectResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleGetFullProject);
+        }).catch(error => {
+            console.error('Failed to set up get full project handler:', error);
+        });
+    }
+
+    /**
      * Sets up a listener for close signal events.
      * @param {Function} handler - The handler function to call when close signal is received.
      * @returns {void}
@@ -607,6 +1085,126 @@ class Codebolt {
             cbws.messageManager.on('message', handleCreatePullRequestRequest);
         }).catch(error => {
             console.error('Failed to set up create pull request handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for merge as patch events.
+     * @param {Function} handler - The handler function to call when merge as patch is requested.
+     * @returns {void}
+     */
+    onMergeAsPatch(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleMergeAsPatch = async (response: any) => {
+                console.log("Merge as patch event received");
+                if (response.type === "providerMergeAsPatch") {
+                    try {
+                        const result = await handler();
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerMergeAsPatchResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in merge as patch handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerMergeAsPatchResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleMergeAsPatch);
+        }).catch(error => {
+            console.error('Failed to set up merge as patch handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for send PR events.
+     * @param {Function} handler - The handler function to call when send PR is requested.
+     * @returns {void}
+     */
+    onSendPR(handler: () => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleSendPR = async (response: any) => {
+                console.log("Send PR event received");
+                if (response.type === "providerSendPR") {
+                    try {
+                        const result = await handler();
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerSendPRResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in send PR handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerSendPRResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleSendPR);
+        }).catch(error => {
+            console.error('Failed to set up send PR handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for get tree children events.
+     * @param {Function} handler - The handler function to call when tree children are requested.
+     * @returns {void}
+     */
+    onGetTreeChildren(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handleGetTreeChildren = async (response: any) => {
+                console.log("Get tree children event received");
+                if (response.type === "providerGetTreeChildren") {
+                    try {
+                        const result = await handler(response.path);
+
+                        const message: any = {
+                            "type": "remoteProviderEvent",
+                            "action": "providerGetTreeChildrenResponse",
+                        };
+
+                        if (result !== undefined && result !== null) {
+                            message.message = result;
+                        }
+
+                        cbws.messageManager.send(message);
+                    } catch (error) {
+                        console.error('Error in get tree children handler:', error);
+                        cbws.messageManager.send({
+                            "type": "remoteProviderEvent",
+                            "action": "providerGetTreeChildrenResponse",
+                            "error": error instanceof Error ? error.message : "Unknown error occurred"
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleGetTreeChildren);
+        }).catch(error => {
+            console.error('Failed to set up get tree children handler:', error);
         });
     }
 }

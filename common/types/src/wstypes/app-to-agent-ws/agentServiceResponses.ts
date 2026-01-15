@@ -13,7 +13,7 @@ export const FindAgentByTaskResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.any().optional()
 });
 
 // List agents response schema
@@ -24,7 +24,7 @@ export const ListAgentsResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.any().optional()
 });
 
 // Agents detail response schema
@@ -35,7 +35,7 @@ export const AgentsDetailResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.any().optional()
 });
 
 // Task completion response schema
@@ -47,7 +47,12 @@ export const TaskCompletionResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.any().optional(),
+  timestamp: z.string().optional(),
+  from: z.string().optional(),
+  agentId: z.string().optional(),
+  task: z.string().optional(),
+  result: z.any().optional()
 });
 
 // Agent service error response schema
@@ -57,7 +62,19 @@ export const AgentServiceErrorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.any().optional()
+});
+
+// Union of all agent service response schemas
+// Start agent response schema
+export const StartAgentResponseSchema = z.object({
+  type: z.literal('startAgentResponse'),
+  requestId: z.string().optional(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  agentId: z.string().optional(),
+  data: z.any().optional(),
+  error: z.any().optional()
 });
 
 // Union of all agent service response schemas
@@ -66,7 +83,8 @@ export const AgentServiceResponseSchema = z.union([
   ListAgentsResponseSchema,
   AgentsDetailResponseSchema,
   TaskCompletionResponseSchema,
-  AgentServiceErrorResponseSchema
+  AgentServiceErrorResponseSchema,
+  StartAgentResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -78,7 +96,14 @@ export type ListAgentsResponse = z.infer<typeof ListAgentsResponseSchema>;
 export type AgentsDetailResponse = z.infer<typeof AgentsDetailResponseSchema>;
 export type TaskCompletionResponse = z.infer<typeof TaskCompletionResponseSchema>;
 export type AgentServiceErrorResponse = z.infer<typeof AgentServiceErrorResponseSchema>;
+export type StartAgentResponse = z.infer<typeof StartAgentResponseSchema>;
 export type AgentServiceResponse = z.infer<typeof AgentServiceResponseSchema>;
+
+// Aliases for compatibility
+export type GetAgentsListResponse = ListAgentsResponse;
+export type GetAgentsDetailResponse = AgentsDetailResponse;
+export type ChildAgentFinishedResponse = TaskCompletionResponse;
+export type AgentErrorResponse = AgentServiceErrorResponse;
 
 
 

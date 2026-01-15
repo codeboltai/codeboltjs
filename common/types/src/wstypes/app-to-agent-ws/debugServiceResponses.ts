@@ -26,7 +26,8 @@ export const OpenDebugBrowserResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Get debug logs response schema
@@ -43,14 +44,27 @@ export const GetDebugLogsResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
+});
+
+// Debug service error response schema
+export const DebugServiceErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  requestId: z.string(),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.any().optional(),
+  timestamp: z.string().optional()
 });
 
 // Union of all debug service response schemas
 export const DebugServiceResponseSchema = z.union([
   DebugAddLogResponseSchema,
   OpenDebugBrowserResponseSchema,
-  GetDebugLogsResponseSchema
+  GetDebugLogsResponseSchema,
+  DebugServiceErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -60,4 +74,5 @@ export const debugServiceResponseSchema = DebugServiceResponseSchema;
 export type DebugAddLogResponse = z.infer<typeof DebugAddLogResponseSchema>;
 export type OpenDebugBrowserResponse = z.infer<typeof OpenDebugBrowserResponseSchema>;
 export type GetDebugLogsResponse = z.infer<typeof GetDebugLogsResponseSchema>;
+export type DebugServiceErrorResponse = z.infer<typeof DebugServiceErrorResponseSchema>;
 export type DebugServiceResponse = z.infer<typeof DebugServiceResponseSchema>; 

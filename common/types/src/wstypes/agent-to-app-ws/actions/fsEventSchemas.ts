@@ -136,6 +136,36 @@ export const editFileWithDiffEventSchema = fsEventBaseSchema.extend({
   }),
 });
 
+// Read Many Files Event Schema
+export const readManyFilesEventSchema = fsEventBaseSchema.extend({
+  action: z.literal('readManyFiles'),
+  message: z.object({
+    paths: z.array(z.string()),
+    include: z.array(z.string()).optional(),
+    exclude: z.array(z.string()).optional(),
+    recursive: z.boolean().optional(),
+    use_default_excludes: z.boolean().optional(),
+    max_files: z.number().optional(),
+    max_total_size: z.number().optional(),
+    include_metadata: z.boolean().optional(),
+    separator_format: z.string().optional(),
+    notifyUser: z.boolean().optional(),
+  }),
+});
+
+// List Directory Event Schema
+export const listDirectoryEventSchema = fsEventBaseSchema.extend({
+  action: z.literal('list_directory'),
+  message: z.object({
+    path: z.string(),
+    ignore: z.array(z.string()).optional(),
+    show_hidden: z.boolean().optional(),
+    detailed: z.boolean().optional(),
+    limit: z.number().optional(),
+    notifyUser: z.boolean().optional(),
+  }),
+});
+
 // Union of all filesystem event schemas
 export const fsEventSchema = z.union([
   createFileEventSchema,
@@ -150,7 +180,10 @@ export const fsEventSchema = z.union([
   writeToFileEventSchema,
   grepSearchEventSchema,
   fileSearchEventSchema,
+  fileSearchEventSchema,
   editFileWithDiffEventSchema,
+  readManyFilesEventSchema,
+  listDirectoryEventSchema,
 ]);
 
 // Inferred TypeScript types
@@ -168,4 +201,6 @@ export type WriteToFileEvent = z.infer<typeof writeToFileEventSchema>;
 export type GrepSearchEvent = z.infer<typeof grepSearchEventSchema>;
 export type FileSearchEvent = z.infer<typeof fileSearchEventSchema>;
 export type EditFileWithDiffEvent = z.infer<typeof editFileWithDiffEventSchema>;
+export type ReadManyFilesEvent = z.infer<typeof readManyFilesEventSchema>;
+export type ListDirectoryEvent = z.infer<typeof listDirectoryEventSchema>;
 export type FsEvent = z.infer<typeof fsEventSchema>;

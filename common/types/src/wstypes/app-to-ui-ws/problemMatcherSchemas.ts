@@ -6,6 +6,11 @@ import { baseMessageSchema } from './coreMessageSchemas';
  * Based on problemMacher.cli.ts
  */
 
+// Problem matcher response schema
+export const matchProblemResponseSchema = z.object({
+  type: z.literal('matchProblemResponse'),
+  payload: z.any(),
+});
 
 // Problem matcher MCP tool execution schemas
 export const problemMatcherMcpToolConfirmationSchema = baseMessageSchema.extend({
@@ -83,6 +88,7 @@ export const problemMatcherErrorResponseSchema = z.object({
 // Union of all problem matcher service schemas
 export const problemMatcherServiceMessageSchema = z.union([
   problemMatcherErrorResponseSchema,
+  matchProblemResponseSchema,
   problemMatcherMcpToolConfirmationSchema,
   problemMatcherMcpToolExecutingSchema,
   problemMatcherMcpToolSuccessSchema,
@@ -91,10 +97,11 @@ export const problemMatcherServiceMessageSchema = z.union([
 ]);
 
 // TypeScript types
+export type MatchProblemResponse = z.infer<typeof matchProblemResponseSchema>;
+export type ProblemMatcherErrorResponse = z.infer<typeof problemMatcherErrorResponseSchema>;
 export type ProblemMatcherMcpToolConfirmation = z.infer<typeof problemMatcherMcpToolConfirmationSchema>;
 export type ProblemMatcherMcpToolExecuting = z.infer<typeof problemMatcherMcpToolExecutingSchema>;
 export type ProblemMatcherMcpToolSuccess = z.infer<typeof problemMatcherMcpToolSuccessSchema>;
 export type ProblemMatcherMcpToolError = z.infer<typeof problemMatcherMcpToolErrorSchema>;
 export type ProblemMatcherMcpToolRejected = z.infer<typeof problemMatcherMcpToolRejectedSchema>;
-export type ProblemMatcherErrorResponse = z.infer<typeof problemMatcherErrorResponseSchema>;
-export type ProblemMatcherServiceMessage = z.infer<typeof problemMatcherServiceMessageSchema>;
+export type ProblemMatcherServiceMessage = z.infer<typeof problemMatcherServiceMessageSchema>; 

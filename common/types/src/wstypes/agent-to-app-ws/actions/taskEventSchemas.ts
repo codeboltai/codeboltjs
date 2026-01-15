@@ -84,17 +84,43 @@ const stepSchema = z.object({
 const createTaskOptionsSchema = z.object({
   threadId: z.string(),
   name: z.string(),
+  description: z.string().optional(),
+  status: z.string().optional(), // TaskStatus | 'pending'
+  groupId: z.string().optional(),
+  parentTaskId: z.string().optional(),
+  projectId: z.number().optional(),
+  projectPath: z.string().optional(),
+  projectName: z.string().optional(),
   dueDate: z.date().nullable().optional(),
+  dependsOnTaskId: z.string().optional(),
+  dependsOnTaskName: z.string().optional(),
+  assignedTo: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  tags: z.array(z.string()).optional(),
+  flowData: z.any().optional(),
+  order: z.number().optional(),
+
+  // From TaskInputComponent
+  mentionedFiles: z.array(z.string()).optional(),
+  mentionedFolders: z.array(z.string()).optional(),
+  mentionedMultiFile: z.array(z.string()).optional(),
+  mentionedMCPs: z.array(z.string()).optional(),
+  uploadedImages: z.array(z.string()).optional(),
+  mentionedAgents: z.array(z.any()).optional(), // MentionedAgent[]
+  mentionedDocs: z.array(z.any()).optional(), // MentionedDoc[]
+  controlFiles: z.array(z.any()).optional(), // FileSelection[]
+  links: z.array(z.string()).optional(),
+  selectedAgent: z.any().optional(), // AgentMetaData
+  selection: z.any().nullable().optional(), // Selection | null
+
+  // Legacy fields for backward compatibility
   isRemoteTask: z.boolean().optional(),
   environment: z.string().nullable().optional(),
   isKanbanTask: z.boolean().optional(),
   taskType: z.enum(['scheduled', 'interactive']).optional(),
   executionType: z.enum(['scheduled', 'immediate', 'manual', 'conditional']).optional(),
   environmentType: z.enum(['local', 'remote']).optional(),
-  groupId: z.string().optional(),
   startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
-  dependsOnTaskId: z.string().optional(),
-  dependsOnTaskName: z.string().optional(),
   steps: z.array(stepSchema).optional(),
 });
 
@@ -114,6 +140,8 @@ const updateTaskOptionsSchema = z.object({
   startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
   dependsOnTaskId: z.string().optional(),
   dependsOnTaskName: z.string().optional(),
+  assignedTo: z.string().optional(),
+  selectedAgent: z.any().optional(),
 });
 
 // Get task list options schema

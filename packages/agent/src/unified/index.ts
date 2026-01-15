@@ -42,9 +42,15 @@ export {
 } from './base/create/createInitialPromptGenerators';
 export { InitialPromptGenerator } from './base/initialPromptGenerator';
 
-export {AgentStep} from './base/agentStep'
+export { AgentStep } from './base/agentStep'
 
-export {ResponseExecutor} from './base/responseExecutor'
+export { ResponseExecutor } from './base/responseExecutor'
+
+// Agent framework components
+export { Agent } from './agent/agent';
+export { CodeboltAgent, createCodeboltAgent, type CodeboltAgentConfig } from './agent/codeboltAgent';
+export { Tool, createTool } from './agent/tools';
+export { Workflow } from './agent/workflow';
 
 // export {
 

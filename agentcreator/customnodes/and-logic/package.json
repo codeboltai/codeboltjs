@@ -1,0 +1,38 @@
+{
+  "name": "@codebolt/plugin-and-logic",
+  "version": "1.0.0",
+  "description": "AND Logic Gate plugin",
+  "main": "./dist/backend.js",
+  "browser": "./dist/ui.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist"
+  },
+  "codebolt": {
+    "plugin": {
+      "displayName": "AND Logic Gate",
+      "description": "Logical AND operation with dynamic inputs",
+      "category": "Logic",
+      "version": "1.0.0",
+      "author": "CodeBolt Team",
+      "nodes": [
+        {
+          "name": "AndNode",
+          "type": "logic/AND",
+          "description": "Logical AND operation",
+          "icon": "∧"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/litegraph": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}

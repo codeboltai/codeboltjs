@@ -64,4 +64,13 @@ export * from './baseappResponse'
 // Output Parsers types
 export * from './outputparsers';
 
+// Mail types
+export * from './mail';
+
+// Side Execution types
+export * from './sideExecution';
+
+// Capability types
+export * from './capability';
+
 

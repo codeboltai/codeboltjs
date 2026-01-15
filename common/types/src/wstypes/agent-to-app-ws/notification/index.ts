@@ -11,6 +11,7 @@ export * from './dbMemoryNotificationSchemas';
 export * from './fsNotificationSchemas';
 export * from './gitNotificationSchemas';
 export * from './historyNotificationSchemas';
+export * from './jobNotificationSchemas';
 export * from './llmNotificationSchemas';
 export * from './mcpNotificationSchemas';
 export * from './searchNotificationSchemas';
@@ -29,6 +30,7 @@ import { dbMemoryNotificationSchema } from './dbMemoryNotificationSchemas';
 import { fsNotificationSchema } from './fsNotificationSchemas';
 import { gitNotificationSchema } from './gitNotificationSchemas';
 import { historyNotificationSchema } from './historyNotificationSchemas';
+import { jobNotificationSchema } from './jobNotificationSchemas';
 import { llmNotificationSchema } from './llmNotificationSchemas';
 import { mcpNotificationSchema } from './mcpNotificationSchemas';
 import { searchNotificationSchema } from './searchNotificationSchemas';
@@ -51,6 +53,7 @@ export const allNotificationSchema = z.union([
   fsNotificationSchema,
   gitNotificationSchema,
   historyNotificationSchema,
+  jobNotificationSchema,
   llmNotificationSchema,
   mcpNotificationSchema,
   searchNotificationSchema,

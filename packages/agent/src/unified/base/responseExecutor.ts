@@ -5,17 +5,17 @@ import codebolt from '@codebolt/codeboltjs';
 
 export class ResponseExecutor implements AgentResponseExecutor {
 
-    private preToolCalProcessors: PreToolCallProcessor[] = []
+    private preToolCallProcessors: PreToolCallProcessor[] = []
     private postToolCallProcessors: PostToolCallProcessor[] = []
     private completed: boolean = false;
 
     constructor(options: {
-        preToolCalProcessors: PreToolCallProcessor[]
+        preToolCallProcessors: PreToolCallProcessor[]
         postToolCallProcessors: PostToolCallProcessor[],
 
     }) {
 
-        this.preToolCalProcessors = options.preToolCalProcessors
+        this.preToolCallProcessors = options.preToolCallProcessors
         this.postToolCallProcessors = options.postToolCallProcessors
 
     }
@@ -23,7 +23,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         let nextMessage: ProcessedMessage = input.nextMessage;
 
-        for (const preToolCallProcessor of this.preToolCalProcessors) {
+        for (const preToolCallProcessor of this.preToolCallProcessors) {
             try {
                 // TODO: Extract required properties from input for PreToolCallProcessorInput
                 let { nextPrompt, shouldExit } = await preToolCallProcessor.modify({ llmMessageSent: input.actualMessageSentToLLM, rawLLMResponseMessage: input.rawLLMOutput, nextPrompt: input.nextMessage });
@@ -56,7 +56,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 nextMessage.message.messages.push(messageObject);
             }
         }
-        else{
+        else {
             // this.completed=true;
             nextMessage.message.messages.push({
                 role: "user",
@@ -136,98 +136,118 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 const contentBlock = llmResponse.choices?.[0];
 
                 if (contentBlock && contentBlock.message?.tool_calls) {
+                    const toolsToExecute: {
+                        tool: ToolCall,
+                        toolInput: any,
+                        toolName: string,
+                        toolUseId: string,
+                        waitForPrevious: boolean
+                    }[] = [];
+
+                    // First pass: Parse all tools and identify "attempt_completion"
                     for (const tool of contentBlock.message.tool_calls) {
+                        const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
+                        if (toolName.includes("attempt_completion")) {
+                            taskCompletedBlock = tool;
+                            this.completed = true;
+                        } else {
+                            toolsToExecute.push({
+                                tool,
+                                toolInput,
+                                toolName,
+                                toolUseId,
+                                waitForPrevious: toolInput?.waitForPreviousTools === true
+                            });
+                        }
+                    }
+
+                    // Second pass: Execute tools respecting parallel groups
+                    let currentBatch: Promise<ToolResult>[] = [];
+
+                    const executeSingleTool = async (item: typeof toolsToExecute[0]): Promise<ToolResult> => {
                         try {
-                            const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
-                        
-
                             if (!userRejectedToolUse) {
-                                if (toolName.includes("attempt_completion")) {
-                                    taskCompletedBlock = tool;
-                                    this.completed=true
-                                } else {
+                                let [serverName] = item.toolName.replace('--', ':').split(':');
 
-                                    let [serverName] = toolName.replace('--', ':').split(':');
-
-                                    if (serverName == 'subagent') {
-                                        const agentResponse = await codebolt.agent.startAgent(toolName.replace("subagent--", ''), toolInput.task);
-                                        const [didUserReject, result] = [false, "tool result is successful"];
-                                        let toolResult = this.parseToolResult(toolUseId, result)
-                                        toolResults.push({
-                                            role: "tool",
-                                            tool_call_id: toolResult.tool_call_id,
-                                            content: toolResult.content,
-
-                                        });
-                                        if (toolResult.userMessage) {
-                                            fallBackMessages.push({
-                                                role: "user",
-                                                content: toolResult.userMessage.toString()
-                                            })
-                                        }
-                                        if (didUserReject) {
-                                            userRejectedToolUse = true;
-                                        }
-
+                                if (serverName == 'subagent') {
+                                    const agentResponse = await codebolt.agent.startAgent(item.toolName.replace("subagent--", ''), item.toolInput.task);
+                                    const [didUserReject, result] = [false, "tool result is successful"];
+                                    let toolResult = this.parseToolResult(item.toolUseId, result)
+                                    // Handle side effects (fallback messages)
+                                    if (toolResult.userMessage) {
+                                        fallBackMessages.push({
+                                            role: "user",
+                                            content: toolResult.userMessage.toString()
+                                        })
                                     }
-                                    else {
-                                        // console.log("Executing tool: ", toolName, toolInput);
-                                       
-
-                                        const [didUserReject, result] = await this.executeTool(toolName, toolInput);
-                                        // console.log("Tool result: ", result);
-                                        // toolResults.push(this.parseToolResult(toolUseId, result));
-                                        let toolResult = this.parseToolResult(toolUseId, result)
-                                      
-
-                                        toolResults.push({
-                                            role: "tool",
-                                            tool_call_id: toolResult.tool_call_id,
-                                            content: toolResult.content,
-
-                                        });
-                                        if (toolResult.userMessage) {
-                                            fallBackMessages.push({
-                                                role: "user",
-                                                content: toolResult.userMessage.toString()
-                                            })
-                                        }
-                                        if (didUserReject) {
-                                            userRejectedToolUse = true;
-                                        }
+                                    if (didUserReject) {
+                                        userRejectedToolUse = true;
                                     }
+                                    return {
+                                        role: "tool",
+                                        tool_call_id: toolResult.tool_call_id,
+                                        content: toolResult.content,
+                                    };
+                                }
+                                else {
+                                    const [didUserReject, result] = await this.executeTool(item.toolName, item.toolInput);
+                                    let toolResult = this.parseToolResult(item.toolUseId, result)
 
+                                    if (toolResult.userMessage) {
+                                        fallBackMessages.push({
+                                            role: "user",
+                                            content: toolResult.userMessage.toString()
+                                        })
+                                    }
+                                    if (didUserReject) {
+                                        userRejectedToolUse = true;
+                                    }
+                                    return {
+                                        role: "tool",
+                                        tool_call_id: toolResult.tool_call_id,
+                                        content: toolResult.content,
+                                    };
                                 }
                             } else {
-                                let toolResult = this.parseToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection.")
-                                toolResults.push({
-                                    role: "tool",
-                                    tool_call_id: toolResult.tool_call_id,
-                                    content: toolResult.content,
-
-                                });
+                                let toolResult = this.parseToolResult(item.toolUseId, "Skipping tool execution due to previous tool user rejection.")
                                 if (toolResult.userMessage) {
                                     fallBackMessages.push({
                                         role: "user",
                                         content: toolResult.userMessage.toString()
                                     })
                                 }
-
+                                return {
+                                    role: "tool",
+                                    tool_call_id: toolResult.tool_call_id,
+                                    content: toolResult.content,
+                                };
                             }
                         } catch (error) {
-
-                            toolResults.push({
+                            return {
                                 role: "tool",
-                                tool_call_id: tool.id,
+                                tool_call_id: item.tool.id,
                                 content: String(error),
-
-                            });
-
+                            };
                         }
+                    };
+
+                    for (const item of toolsToExecute) {
+                        if (item.waitForPrevious && currentBatch.length > 0) {
+                            // Wait for current batch to finish before starting this one
+                            const batchResults = await Promise.all(currentBatch);
+                            toolResults.push(...batchResults);
+                            currentBatch = [];
+                        }
+                        currentBatch.push(executeSingleTool(item));
+                    }
+                    // Await remaining
+                    if (currentBatch.length > 0) {
+                        const batchResults = await Promise.all(currentBatch);
+                        toolResults.push(...batchResults);
                     }
                 }
-                else{
-                    this.completed=true
+                else {
+                    this.completed = true
                 }
 
                 if (taskCompletedBlock) {
@@ -256,7 +276,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
                 }
 
-               
+
                 return toolResults
             }
             catch (error) {
@@ -281,7 +301,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
         // console.log("Executing tool: ", toolName, toolInput);
         const [toolboxName, actualToolName] = toolName.split('--');
         // console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
-       
+
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
         // console.log("Tool result: ", data);
         return [false, data];
@@ -320,14 +340,14 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
 
     setPreToolCallProcessors(processors: PreToolCallProcessor[]): void {
-        this.preToolCalProcessors = processors
+        this.preToolCallProcessors = processors
     }
     setPostToolCallProcessors(processors: PostToolCallProcessor[]): void {
         this.postToolCallProcessors = processors
 
     }
     getPreToolCallProcessors(): PreToolCallProcessor[] {
-        return this.preToolCalProcessors
+        return this.preToolCallProcessors
     }
     getPostToolCallProcessors(): PostToolCallProcessor[] {
         return this.postToolCallProcessors

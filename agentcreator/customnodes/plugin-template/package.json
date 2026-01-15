@@ -1,0 +1,38 @@
+{
+  "name": "@codebolt/plugin-template",
+  "version": "1.0.0",
+  "description": "Template for creating CodeBolt plugins",
+  "main": "./dist/backend.js",
+  "browser": "./dist/ui.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "clean": "rm -rf dist"
+  },
+  "codebolt": {
+    "plugin": {
+      "displayName": "Plugin Template",
+      "description": "A template plugin for creating custom nodes",
+      "category": "Custom",
+      "version": "1.0.0",
+      "author": "CodeBolt Team",
+      "nodes": [
+        {
+          "name": "ExampleNode",
+          "type": "custom/example",
+          "description": "An example custom node",
+          "icon": "🔧"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/litegraph": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}

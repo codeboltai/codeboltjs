@@ -45,7 +45,7 @@ export async function startAgentServer(options: StartAgentServerOptions): Promis
     processRef.stdout?.on('data', (data: any) => {
       const output = data.toString();
       logger.log('Agent Server:', output);
-      if (!serverStarted) {
+      if (!serverStarted && output.includes('Server started successfully')) {
         serverStarted = true;
         resolve(processRef);
       }
@@ -147,27 +147,25 @@ export async function isPortInUse(options: IsPortInUseOptions): Promise<boolean>
 }
 
 export async function testServerHealth(options: ServerHealthOptions): Promise<boolean> {
-  const { serverUrl } = options;
+  const { logger, serverUrl } = options;
 
-  return await new Promise((resolve) => {
-    const testSocket = new WebSocket(serverUrl);
+  // Extract host and port from WebSocket URL and use HTTP health endpoint
+  // serverUrl format: ws://localhost:3001 -> http://localhost:3001/health
+  const httpUrl = serverUrl.replace(/^ws:\/\//, 'http://').replace(/^wss:\/\//, 'https://') + '/health';
 
-    const timeout = setTimeout(() => {
-      testSocket.close();
-      resolve(false);
-    }, 3_000);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3_000);
 
-    testSocket.on('open', () => {
-      clearTimeout(timeout);
-      testSocket.close();
-      resolve(true);
-    });
+    const response = await fetch(httpUrl, { signal: controller.signal });
+    clearTimeout(timeout);
 
-    testSocket.on('error', () => {
-      clearTimeout(timeout);
-      resolve(false);
-    });
-  });
+    return response.ok;
+  } catch (error) {
+    // If fetch fails (ECONNREFUSED, timeout, etc.), server is not healthy
+    logger.warn(`Health check failed for ${httpUrl}:`, error instanceof Error ? error.message : error);
+    return false;
+  }
 }
 
 export async function isAgentServerRunning(config: ProviderConfig, logger: Logger, serverUrl: string): Promise<boolean> {

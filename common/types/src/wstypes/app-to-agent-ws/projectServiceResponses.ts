@@ -13,6 +13,7 @@ export const GetProjectSettingsResponseSchema = z.object({
   data: z.record(z.any()).optional(),
   success: z.boolean().optional(),
   message: z.string().optional(),
+  timestamp: z.string().optional(),
   error: z.string().optional()
 });
 
@@ -24,6 +25,7 @@ export const GetProjectPathResponseSchema = z.object({
   projectName: z.string().optional(),
   success: z.boolean().optional(),
   message: z.string().optional(),
+  timestamp: z.string().optional(),
   data: z.any().optional(),
   error: z.string().optional()
 });
@@ -35,6 +37,7 @@ export const GetRepoMapResponseSchema = z.object({
   repoMap: z.any().optional(),
   success: z.boolean().optional(),
   message: z.string().optional(),
+  timestamp: z.string().optional(),
   data: z.any().optional(),
   error: z.string().optional()
 });
@@ -43,11 +46,23 @@ export const GetRepoMapResponseSchema = z.object({
 export const GetEditorFileStatusResponseSchema = z.object({
   type: z.literal('getEditorFileStatusResponse'),
   requestId: z.string(),
+  editorStatus: z.any().optional(),
   status: z.any().optional(),
   success: z.boolean().optional(),
   message: z.string().optional(),
+  timestamp: z.string().optional(),
   data: z.any().optional(),
   error: z.string().optional()
+});
+
+// Project operation error response schema
+export const ProjectOperationErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  requestId: z.string(),
+  success: z.boolean(),
+  message: z.string(),
+  timestamp: z.string().optional(),
+  error: z.string()
 });
 
 // Union of all project service response schemas
@@ -55,7 +70,8 @@ export const ProjectServiceResponseSchema = z.union([
   GetProjectSettingsResponseSchema,
   GetProjectPathResponseSchema,
   GetRepoMapResponseSchema,
-  GetEditorFileStatusResponseSchema
+  GetEditorFileStatusResponseSchema,
+  ProjectOperationErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -66,4 +82,5 @@ export type GetProjectSettingsResponse = z.infer<typeof GetProjectSettingsRespon
 export type GetProjectPathResponse = z.infer<typeof GetProjectPathResponseSchema>;
 export type GetRepoMapResponse = z.infer<typeof GetRepoMapResponseSchema>;
 export type GetEditorFileStatusResponse = z.infer<typeof GetEditorFileStatusResponseSchema>;
+export type ProjectOperationErrorResponse = z.infer<typeof ProjectOperationErrorResponseSchema>;
 export type ProjectServiceResponse = z.infer<typeof ProjectServiceResponseSchema>; 

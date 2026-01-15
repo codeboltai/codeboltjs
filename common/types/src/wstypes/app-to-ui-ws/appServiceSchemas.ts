@@ -7,10 +7,10 @@ import { baseMessageSchema } from './coreMessageSchemas';
  */
 
 // App state response schema
-// export const getAppStateResponseSchema = z.object({
-//   type: z.literal('getAppStateResponse'),
-//   state: z.any(),
-// });
+export const getAppStateResponseSchema = z.object({
+  type: z.literal('getAppStateResponse'),
+  state: z.any(),
+});
 
 // App MCP tool execution schemas
 export const appMcpToolConfirmationSchema = baseMessageSchema.extend({
@@ -88,6 +88,7 @@ export const appErrorResponseSchema = z.object({
 // Union of all app service schemas
 export const appServiceMessageSchema = z.union([
   appErrorResponseSchema,
+  getAppStateResponseSchema,
   appMcpToolConfirmationSchema,
   appMcpToolExecutingSchema,
   appMcpToolSuccessSchema,
@@ -96,12 +97,11 @@ export const appServiceMessageSchema = z.union([
 ]);
 
 // TypeScript types
-// export type GetAppStateResponse = z.infer<typeof getAppStateResponseSchema>;
+export type GetAppStateResponse = z.infer<typeof getAppStateResponseSchema>;
+export type AppErrorResponse = z.infer<typeof appErrorResponseSchema>;
 export type AppMcpToolConfirmation = z.infer<typeof appMcpToolConfirmationSchema>;
 export type AppMcpToolExecuting = z.infer<typeof appMcpToolExecutingSchema>;
 export type AppMcpToolSuccess = z.infer<typeof appMcpToolSuccessSchema>;
 export type AppMcpToolError = z.infer<typeof appMcpToolErrorSchema>;
 export type AppMcpToolRejected = z.infer<typeof appMcpToolRejectedSchema>;
-export type AppErrorResponse = z.infer<typeof appErrorResponseSchema>;
-export type AppServiceMessage = z.infer<typeof appServiceMessageSchema>;
-
+export type AppServiceMessage = z.infer<typeof appServiceMessageSchema>; 

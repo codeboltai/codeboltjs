@@ -410,7 +410,7 @@ The agent has the following structure:
             prompt = result.nextMessage;
        
             let responseExecutor = new ResponseExecutor({
-                preToolCalProcessors: [],
+                preToolCallProcessors: [],
                 postToolCallProcessors: []
 
             })
@@ -499,7 +499,7 @@ console.log(systemPrompt)
             prompt = result.nextMessage;
        
             let responseExecutor = new ResponseExecutor({
-                preToolCalProcessors: [],
+                preToolCallProcessors: [],
                 postToolCallProcessors: []
 
             })

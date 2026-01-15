@@ -1,5 +1,24 @@
+// Polyfill CustomEvent for Node.js environment
+if (typeof globalThis.CustomEvent === 'undefined') {
+  class CustomEvent extends Event {
+    detail: any;
+
+    constructor(type: string, options: any = {}) {
+      super(type, {
+        bubbles: options.bubbles || false,
+        cancelable: options.cancelable || false,
+        composed: options.composed || false
+      });
+      this.detail = options.detail || null;
+    }
+  }
+
+  globalThis.CustomEvent = CustomEvent as any;
+}
+
 import { spawn } from 'child_process';
 import { registerBackendNodes } from './nodes/index.js';
+import { loadPluginBackends } from './plugin-loader.js';
 import { readFileSync } from 'fs';
 import { LGraph } from '@codebolt/litegraph';
 import codebolt from '@codebolt/codeboltjs';
@@ -15,29 +34,39 @@ class AgentExecutor {
   }
 
   // Initialize the agent with nodes
-  initialize() {
+  async initialize() {
+    console.log('[DEBUG] AgentExecutor.initialize() called');
+
     // Register backend execution nodes
     registerBackendNodes();
+    console.log('[DEBUG] Backend nodes registered');
+
+    // Load and register plugin backends
+    await loadPluginBackends();
+    console.log('[DEBUG] Plugin backends loaded');
   }
 
   // Configure and execute a graph
   async executeGraph() {
+    console.log('[DEBUG] AgentExecutor.executeGraph() called');
     try {
-      // console.log('Agent: Starting graph execution');
       this.isRunning = true;
 
       // Always read from data.json file
       let graphData, message;
       try {
-        const fileContent = readFileSync('data.json', 'utf8');
+        const dataPath = process.env.agentFlowPath || 'data.json';
+        // console.log(`Reading graph data from: ${dataPath}`);
+        const fileContent = readFileSync(dataPath, 'utf8');
         const data = JSON.parse(fileContent);
-        graphData = data.graphData;
+        graphData = data;
+        console.log('Graph data:', graphData);
         message = data.message;
       } catch (error) {
-        console.error('Failed to read data.json file:', error);
+        console.error('Failed to read data file:', error);
         return {
           success: false,
-          error: 'Failed to read data.json file: ' + error.message,
+          error: 'Failed to read data file: ' + error.message,
           message: 'Graph execution failed'
         };
       }
@@ -51,45 +80,48 @@ class AgentExecutor {
       }
 
       // Import and create a new graph
-      ;
       this.graph = new LGraph();
+      console.log('[DEBUG] LGraph created');
 
       // Configure the graph from the frontend data
       this.graph.configure(graphData);
+      console.log('[DEBUG] Graph configured');
 
       // Execute the graph 
+      console.log('[DEBUG] About to run graph.runStep()');
       this.graph.runStep(1, true);
+      console.log('[DEBUG] graph.runStep() completed');
 
       // Collect outputs from AgentRun nodes and other output nodes
       const outputs = {};
 
       // Collect from SumNode (existing logic)
-      try {
-        const { SumNode } = await import('./nodes/SumNode.js');
-        this.graph.findNodesByClass(SumNode).forEach((node, index) => {
-          outputs[`output_${index}`] = node.outputs[0]?._data || node.outputs[0]?.data;
-        });
-      } catch (error) {
-        console.log('No SumNode found or error importing SumNode:', error.message);
-      }
+      // try {
+      //   const { SumNode } = await import('./nodes/Math/SumNode');
+      //   this.graph.findNodesByClass(SumNode).forEach((node, index) => {
+      //     outputs[`output_${index}`] = node.outputs[0]?._data || node.outputs[0]?.data;
+      //   });
+      // } catch (error) {
+      //   console.log('No SumNode found or error importing SumNode:', error.message);
+      // }
 
-      // Collect from AgentRunNode (AI agent results)
-      try {
-        const { AgentRunNode } = await import('./nodes/AgentRunNode.js');
-        const agentRunNodes = this.graph.findNodesByClass(AgentRunNode);
-        agentRunNodes.forEach((node, index) => {
-          const result = node.outputs[0]?._data || node.outputs[0]?.data;
-          if (result) {
-            outputs[`agent_result_${index}`] = result;
-            outputs[`agent_message_${index}`] = result.message || '';
-            outputs[`agent_success_${index}`] = result.success || false;
-            outputs[`agent_error_${index}`] = result.error || '';
-            outputs[`agent_execution_time_${index}`] = node.outputs[4]?._data || node.outputs[4]?.data || 0;
-          }
-        });
-      } catch (error) {
-        console.log('No AgentRunNode found or error importing AgentRunNode:', error.message);
-      }
+      // Collect from AgentRunNode (AI agent results) - TODO: Implement AgentRunNode
+      // try {
+      //   const { AgentRunNode } = await import('./nodes/AgentRunNode.ts');
+      //   const agentRunNodes = this.graph.findNodesByClass(AgentRunNode);
+      //   agentRunNodes.forEach((node, index) => {
+      //     const result = node.outputs[0]?._data || node.outputs[0]?.data;
+      //     if (result) {
+      //       outputs[`agent_result_${index}`] = result;
+      //       outputs[`agent_message_${index}`] = result.message || '';
+      //       outputs[`agent_success_${index}`] = result.success || false;
+      //       outputs[`agent_error_${index}`] = result.error || '';
+      //       outputs[`agent_execution_time_${index}`] = node.outputs[4]?._data || node.outputs[4]?.data || 0;
+      //     }
+      //   });
+      // } catch (error) {
+      //   console.log('No AgentRunNode found or error importing AgentRunNode:', error.message);
+      // }
 
       this.isRunning = false;
       // console.log('Agent: Graph execution completed');
@@ -132,11 +164,13 @@ class AgentExecutor {
 // CLI interface for standalone agent execution
 // if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_AGENT_CLI) {
 (async () => {
+  console.log('[DEBUG] Agent entry point started');
 
   const agent = new AgentExecutor();
-  agent.initialize();
+  await agent.initialize();
 
   // Signal that agent is ready
+  console.log('[DEBUG] Agent initialized, ready to execute');
   process.stdout.write(JSON.stringify({ ready: true }) + '\n');
 
   // Auto-execute graph from data.json file and exit
@@ -144,9 +178,9 @@ class AgentExecutor {
     const result = await agent.executeGraph();
     // codebolt.chat.sendMessage(result.message);
     process.stdout.write(JSON.stringify(result) + '\n');
-    
+
     // process.exit(0);
-    
+
   } catch (error) {
     process.stdout.write(JSON.stringify({
       success: false,

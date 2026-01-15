@@ -1,0 +1,293 @@
+{
+  "graphData": {
+    "id": "00000000-0000-0000-0000-000000000013",
+    "revision": 0,
+    "last_node_id": 130,
+    "last_link_id": 315,
+    "nodes": [
+      {
+        "id": 112,
+        "type": "events/onmessage",
+        "pos": [18.140625, 73.5546875],
+        "size": [240, 300],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "message_received",
+            "type": -1,
+            "links": [305]
+          },
+          {
+            "name": "userMessage",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "currentFile",
+            "type": "string",
+            "links": null
+          },
+          {
+            "name": "selectedAgent",
+            "type": "object",
+            "links": null
+          },
+          {
+            "name": "mentionedFiles",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFullPaths",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedFolders",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedMCPs",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "uploadedImages",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "actions",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "mentionedAgents",
+            "type": "array",
+            "links": null
+          },
+          {
+            "name": "selection",
+            "type": "object",
+            "links": null
+          }
+        ],
+        "properties": {
+          "showSplitOutputs": true,
+          "message": null
+        }
+      },
+      {
+        "id": 113,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 140.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [309]
+          }
+        ],
+        "properties": {
+          "value": "./src"
+        }
+      },
+      {
+        "id": 114,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 210.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 2,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [311]
+          }
+        ],
+        "properties": {
+          "value": "TODO|FIXME"
+        }
+      },
+      {
+        "id": 115,
+        "type": "basic/const_string",
+        "pos": [206.41015625, 280.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 3,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [313]
+          }
+        ],
+        "properties": {
+          "value": "*.js,*.ts"
+        }
+      },
+      {
+        "id": 116,
+        "type": "basic/const_boolean",
+        "pos": [206.41015625, 350.1640625],
+        "size": [210, 58],
+        "flags": {},
+        "order": 4,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "boolean",
+            "links": [307]
+          }
+        ],
+        "properties": {
+          "value": true
+        }
+      },
+      {
+        "id": 117,
+        "type": "codebolt/fs/grepsearch",
+        "pos": [450.7421875, 91.63671875],
+        "size": [220, 180],
+        "flags": {},
+        "order": 5,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 305
+          },
+          {
+            "name": "path",
+            "type": "string",
+            "link": 309
+          },
+          {
+            "name": "query",
+            "type": "string",
+            "link": 311
+          },
+          {
+            "name": "includePattern",
+            "type": "string",
+            "link": 313
+          },
+          {
+            "name": "caseSensitive",
+            "type": "boolean",
+            "link": 307
+          }
+        ],
+        "outputs": [
+          {
+            "name": "grepCompleted",
+            "type": -1,
+            "links": [303]
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": []
+          },
+          {
+            "name": "results",
+            "type": "array",
+            "links": []
+          }
+        ],
+        "properties": {}
+      },
+      {
+        "id": 118,
+        "type": "basic/const_string",
+        "pos": [432.703125, 476.859375],
+        "size": [210, 58],
+        "flags": {},
+        "order": 6,
+        "mode": 0,
+        "inputs": [],
+        "outputs": [
+          {
+            "name": "value",
+            "type": "string",
+            "links": [315]
+          }
+        ],
+        "properties": {
+          "value": "Grep search completed successfully"
+        }
+      },
+      {
+        "id": 119,
+        "type": "codebolt/chat/sendmessage",
+        "pos": [714.171875, 207.94921875],
+        "size": [220, 120],
+        "flags": {},
+        "order": 7,
+        "mode": 3,
+        "inputs": [
+          {
+            "name": "onTrigger",
+            "type": -1,
+            "link": 303
+          },
+          {
+            "name": "message",
+            "type": "string",
+            "link": 315
+          }
+        ],
+        "outputs": [
+          {
+            "name": "messageSent",
+            "type": -1,
+            "links": []
+          },
+          {
+            "name": "success",
+            "type": "boolean",
+            "links": null
+          }
+        ],
+        "properties": {}
+      }
+    ],
+    "links": [
+      [305, 112, 0, 117, 0, -1],
+      [303, 117, 0, 119, 0, -1],
+      [309, 113, 0, 117, 1, "string"],
+      [311, 114, 0, 117, 2, "string"],
+      [313, 115, 0, 117, 3, "string"],
+      [307, 116, 0, 117, 4, "boolean"],
+      [315, 118, 0, 119, 1, "string"]
+    ],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "ds": {
+        "scale": 1,
+        "offset": [0, 0.12109375]
+      }
+    },
+    "version": 0.4
+  },
+  "message": ""
+}

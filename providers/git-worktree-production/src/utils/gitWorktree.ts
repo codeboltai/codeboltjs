@@ -26,44 +26,58 @@ export async function ensureWorktreeBaseDir(options: WorktreeOptions): Promise<s
   const { projectPath, providerConfig, logger } = options;
   const worktreeBaseDir = path.join(projectPath, providerConfig.worktreeBaseDir ?? '.worktree');
 
-  if (!fs.existsSync(worktreeBaseDir)) {
-    logger.log('Creating .worktree directory at:', worktreeBaseDir);
-    fs.mkdirSync(worktreeBaseDir, { recursive: true });
-  }
+  try {
+    if (!fs.existsSync(worktreeBaseDir)) {
+      logger.log('Creating .worktree directory at:', worktreeBaseDir);
+      fs.mkdirSync(worktreeBaseDir, { recursive: true });
+    }
 
-  return worktreeBaseDir;
+    return worktreeBaseDir;
+  } catch (error: any) {
+    logger.error('Error ensuring worktree base directory:', error);
+    throw new Error(`Failed to ensure worktree base directory: ${error.message}`);
+  }
 }
 
 export async function verifyGitRepository(projectPath: string): Promise<void> {
-  await execAsync('git rev-parse --git-dir', { cwd: projectPath, timeout: 10_000 });
+  try {
+    await execAsync('git rev-parse --git-dir', { cwd: projectPath, timeout: 10_000 });
+  } catch (error: any) {
+    throw new Error(`Invalid git repository at ${projectPath}: ${error.message}`);
+  }
 }
 
 export async function createWorktree(options: WorktreeOptions): Promise<WorktreeInfo> {
   const { projectPath, environmentName, providerConfig, logger } = options;
 
-  const worktreeBaseDir = await ensureWorktreeBaseDir(options);
-  const worktreePath = path.join(worktreeBaseDir, environmentName);
+  try {
+    const worktreeBaseDir = await ensureWorktreeBaseDir(options);
+    const worktreePath = path.join(worktreeBaseDir, environmentName);
 
-  logger.log('Creating worktree at:', worktreePath);
-  await verifyGitRepository(projectPath);
-  logger.log('Creating worktree branch:', environmentName);
+    logger.log('Creating worktree at:', worktreePath);
+    await verifyGitRepository(projectPath);
+    logger.log('Creating worktree branch:', environmentName);
 
-  const command = `git worktree add -b "${environmentName}" "${worktreePath}"`;
-  logger.log('Executing command:', command);
+    const command = `git worktree add -b "${environmentName}" "${worktreePath}"`;
+    logger.log('Executing command:', command);
 
-  const { stdout, stderr } = await execAsync(command, {
-    cwd: projectPath,
-    timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
-  });
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: projectPath,
+      timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+    });
 
-  if (stdout) logger.log('Command output:', stdout.trim());
-  if (stderr) logger.log('Command stderr:', stderr.trim());
+    if (stdout) logger.log('Command output:', stdout.trim());
+    if (stderr) logger.log('Command stderr:', stderr.trim());
 
-  return {
-    path: worktreePath,
-    branch: environmentName,
-    isCreated: true,
-  };
+    return {
+      path: worktreePath,
+      branch: environmentName,
+      isCreated: true,
+    };
+  } catch (error: any) {
+    logger.error('Error creating worktree:', error);
+    throw new Error(`Failed to create worktree: ${error.message}`);
+  }
 }
 
 export async function removeWorktree(options: RemoveWorktreeOptions): Promise<WorktreeInfo> {
@@ -122,4 +136,147 @@ export async function removeWorktree(options: RemoveWorktreeOptions): Promise<Wo
     branch: null,
     isCreated: false,
   };
+}
+
+export async function mergeWorktreeAsPatch(options: WorktreeOptions): Promise<string> {
+  const { projectPath, environmentName, providerConfig, logger } = options;
+  const worktreeBaseDir = await ensureWorktreeBaseDir(options);
+  const worktreePath = path.join(worktreeBaseDir, environmentName);
+
+  logger.log('Merging worktree as patch:', worktreePath);
+
+  try {
+    // 1. Find the merge base between current HEAD (in projectPath) and the worktree branch
+    // We run this in projectPath because that's where HEAD is relevant to the user's current view
+    const mergeBaseCommand = `git merge-base HEAD "${environmentName}"`;
+    const { stdout: mergeBaseOutput } = await execAsync(mergeBaseCommand, {
+      cwd: projectPath,
+      timeout: 10_000,
+    });
+
+    const mergeBase = mergeBaseOutput.trim();
+
+    if (!mergeBase) {
+      logger.warn('Could not find merge base, falling back to git diff HEAD in worktree');
+      // Fallback to original behavior if merge-base fails
+      const diffCommand = `git diff HEAD`;
+      const { stdout: diffOutput } = await execAsync(diffCommand, {
+        cwd: worktreePath,
+        timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+      });
+      return diffOutput;
+    }
+
+    logger.log('Found merge base:', mergeBase);
+
+    // 2. Stage all changes to ensure untracked files are included
+    // This is important because git diff (even with a commit) ignores untracked files
+    logger.log('Staging all changes in worktree to include untracked files...');
+    await execAsync('git add -A', {
+      cwd: worktreePath,
+      timeout: providerConfig.timeouts?.gitOperations ?? 30_000
+    });
+
+    // 2.1 Auto-commit changes if requested
+    // This ensures we have a clean state and captures everything in the history
+    try {
+      const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: worktreePath });
+      if (statusOutput.trim()) {
+        logger.log('Auto-committing changes before merge...');
+        await execAsync('git commit -m "Auto-commit: Saving changes before merge"', {
+          cwd: worktreePath,
+          timeout: providerConfig.timeouts?.gitOperations ?? 30_000
+        });
+      } else {
+        logger.log('No uncommitted changes found to auto-commit.');
+      }
+    } catch (commitError: any) {
+      logger.warn('Auto-commit failed, proceeding with uncommitted changes:', commitError.message);
+      // We continue because the changes are staged, so git diff <base> will still pick them up
+    }
+
+    // 3. Get the diff from the worktree against the merge base
+    // We use --cached or just standard diff against the base.
+    // Since we staged everything, diff <base> works perfectly.
+    const diffCommand = `git diff "${mergeBase}"`;
+    logger.log(`Executing diff command: ${diffCommand} in ${worktreePath}`);
+
+    let { stdout: diffOutput } = await execAsync(diffCommand, {
+      cwd: worktreePath,
+      timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+    });
+
+    logger.log(`Diff output length: ${diffOutput.length}`);
+
+    // If merge-base diff is empty, try HEAD diff as fallback
+    if (!diffOutput.trim()) {
+      logger.warn('Merge-base diff is empty, trying git diff HEAD...');
+      const headDiffCommand = `git diff HEAD`;
+      const { stdout: headDiffOutput } = await execAsync(headDiffCommand, {
+        cwd: worktreePath,
+        timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+      });
+      diffOutput = headDiffOutput;
+      logger.log(`HEAD diff output length: ${diffOutput.length}`);
+    }
+
+    if (!diffOutput.trim()) {
+      logger.log('Diff output is still empty');
+      // Capture status to return to user
+      const statusCommand = `git status`;
+      const { stdout: statusOutput } = await execAsync(statusCommand, { cwd: worktreePath });
+      logger.log(`Worktree status: ${statusOutput}`);
+
+      // Return the status as the "diff" so the user sees why it's empty
+      return `No changes found to merge.\n\nGit Status:\n${statusOutput}`;
+    }
+
+    return diffOutput;
+  } catch (error: any) {
+    logger.error('Error generating patch:', error);
+    // If something goes wrong with the smart diff, try the simple one as a last resort
+    try {
+      logger.warn('Falling back to git diff HEAD');
+      // Try to stage even in fallback
+      try {
+        await execAsync('git add -A', { cwd: worktreePath });
+      } catch (e) {
+        logger.warn('Failed to stage changes in fallback:', e);
+      }
+
+      const diffCommand = `git diff HEAD`;
+      const { stdout: diffOutput } = await execAsync(diffCommand, {
+        cwd: worktreePath,
+        timeout: providerConfig.timeouts?.gitOperations ?? 30_000,
+      });
+      return diffOutput;
+    } catch (fallbackError) {
+      throw error; // Throw original error if fallback also fails
+    }
+  }
+}
+
+export async function pushWorktreeBranch(options: WorktreeOptions): Promise<void> {
+  const { projectPath, environmentName, providerConfig, logger } = options;
+
+  try {
+    const worktreeBaseDir = await ensureWorktreeBaseDir(options);
+    const worktreePath = path.join(worktreeBaseDir, environmentName);
+
+    logger.log('Pushing worktree branch:', environmentName);
+
+    const pushCommand = `git push origin "${environmentName}"`;
+    logger.log('Executing command:', pushCommand);
+
+    const { stdout, stderr } = await execAsync(pushCommand, {
+      cwd: worktreePath,
+      timeout: providerConfig.timeouts?.gitOperations ?? 60_000,
+    });
+
+    if (stdout) logger.log('Push output:', stdout.trim());
+    if (stderr) logger.log('Push stderr:', stderr.trim());
+  } catch (error: any) {
+    logger.error('Error pushing worktree branch:', error);
+    throw new Error(`Failed to push worktree branch: ${error.message}`);
+  }
 }

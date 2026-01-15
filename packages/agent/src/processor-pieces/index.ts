@@ -48,4 +48,7 @@
 
 
 export * from './messageModifiers'
+export * from './pretoolCallProcessors'
+export * from './postToolCallProcessors'
+export * from './preInferenceProcessors'
 

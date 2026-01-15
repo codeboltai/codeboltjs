@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/orchestrator",
-  "version": "1.0.10",
-  "description": "orchestrator agent to execute tasks",
+  "version": "1.0.11",
+  "description": "TestAgent",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

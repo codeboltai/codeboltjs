@@ -60,26 +60,49 @@ const FullStateSchema = z.object({
 // Get app state response schema (returns projectState only)
 export const GetAppStateResponseSchema = z.object({
     type: z.literal('getAppStateResponse'),
+    success: z.boolean(),
+    message: z.string(),
+    timestamp: z.string(),
+    requestId: z.string(),
     state: z.union([ProjectStateSchema, FullStateSchema]) // Can be either projectState or full state
 });
 
 // Get project state response schema
 export const GetProjectStateResponseSchema = z.object({
     type: z.literal('getProjectStateResponse'),
+    success: z.boolean(),
+    message: z.string(),
+    timestamp: z.string(),
+    requestId: z.string(),
     projectState: ProjectStateSchema
 });
 
 // Update project state response schema
 export const UpdateProjectStateResponseSchema = z.object({
     type: z.literal('updateProjectStateResponse'),
-    message: z.literal('success')
+    success: z.boolean(),
+    message: z.string(),
+    timestamp: z.string(),
+    requestId: z.string(),
+    state: ProjectStateSchema
+});
+
+// Error response schema
+export const AppErrorResponseSchema = z.object({
+    type: z.literal('error'),
+    success: z.boolean(),
+    message: z.string(),
+    error: z.string(),
+    timestamp: z.string(),
+    requestId: z.string()
 });
 
 // Union of all app service response schemas
 export const AppServiceResponseSchema = z.union([
     GetAppStateResponseSchema,
     GetProjectStateResponseSchema,
-    UpdateProjectStateResponseSchema
+    UpdateProjectStateResponseSchema,
+    AppErrorResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -96,4 +119,6 @@ export type FullState = z.infer<typeof FullStateSchema>;
 export type GetAppStateResponse = z.infer<typeof GetAppStateResponseSchema>;
 export type GetProjectStateResponse = z.infer<typeof GetProjectStateResponseSchema>;
 export type UpdateProjectStateResponse = z.infer<typeof UpdateProjectStateResponseSchema>;
+export type AppErrorResponse = z.infer<typeof AppErrorResponseSchema>;
 export type AppServiceResponse = z.infer<typeof AppServiceResponseSchema>;
+

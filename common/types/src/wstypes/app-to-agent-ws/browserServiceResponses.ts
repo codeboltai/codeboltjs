@@ -56,7 +56,8 @@ export const BrowserActionResponseDataSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // New page response schema - uses BrowserActionResponseData
@@ -98,7 +99,8 @@ export const GetUrlResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Go to page response schema - matches GoToPageResponse from codeboltjs
@@ -108,7 +110,8 @@ export const GoToPageResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Screenshot response schema - matches BrowserScreenshotResponse from codeboltjs
@@ -141,7 +144,8 @@ export const ScreenshotResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // HTML received response schema - matches HtmlReceived from codeboltjs
@@ -152,7 +156,8 @@ export const HtmlReceivedSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Get markdown response schema - matches GetMarkdownResponse from codeboltjs
@@ -163,7 +168,8 @@ export const GetMarkdownResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Get content response schema - matches GetContentResponse from codeboltjs
@@ -175,7 +181,8 @@ export const GetContentResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Get snapshot response schema - matches BrowserSnapshotResponse from codeboltjs
@@ -208,7 +215,8 @@ export const GetSnapShotResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Get browser info response schema - matches BrowserInfoResponse from codeboltjs
@@ -241,7 +249,8 @@ export const GetBrowserInfoResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Extract text response schema - matches ExtractTextResponse from codeboltjs
@@ -252,17 +261,30 @@ export const ExtractTextResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional()
 });
 
 // Browser error response schema
 // Sent when browser socket connection is not available
 export const BrowserErrorResponseSchema = z.object({
   type: z.literal('error'),
-  message: z.literal('Browser socket not found'),
+  message: z.string().optional(),
   success: z.boolean().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
+});
+
+// Generic success response schema
+export const BrowserOperationSuccessResponseSchema = z.object({
+  type: z.literal('browserOperationSuccessResponse'),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
 });
 
 // Union of all browser service response schemas
@@ -282,7 +304,8 @@ export const BrowserServiceResponseSchema = z.union([
   GetSnapShotResponseSchema,
   GetBrowserInfoResponseSchema,
   ExtractTextResponseSchema,
-  BrowserErrorResponseSchema
+  BrowserErrorResponseSchema,
+  BrowserOperationSuccessResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -306,4 +329,6 @@ export type GetSnapShotResponse = z.infer<typeof GetSnapShotResponseSchema>;
 export type GetBrowserInfoResponse = z.infer<typeof GetBrowserInfoResponseSchema>;
 export type ExtractTextResponse = z.infer<typeof ExtractTextResponseSchema>;
 export type BrowserErrorResponse = z.infer<typeof BrowserErrorResponseSchema>;
+export type BrowserOperationSuccessResponse = z.infer<typeof BrowserOperationSuccessResponseSchema>;
+export type BrowserOperationErrorResponse = BrowserErrorResponse;
 export type BrowserServiceResponse = z.infer<typeof BrowserServiceResponseSchema>;

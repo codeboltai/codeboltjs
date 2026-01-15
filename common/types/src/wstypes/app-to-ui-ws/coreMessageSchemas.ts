@@ -71,7 +71,7 @@ export const webSocketMessageTypeSchema = z.enum([
 
 // Component type schema
 export const componentTypeSchema = z.enum([
-  'Planner',
+  'Memory',
   'Editor',
   'Terminal',
   'Browser',

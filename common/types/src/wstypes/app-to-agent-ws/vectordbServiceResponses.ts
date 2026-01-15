@@ -13,7 +13,9 @@ export const GetVectorResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
 });
 
 // Add vector item response schema
@@ -23,7 +25,9 @@ export const AddVectorItemResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
 });
 
 // Query vector item response schema
@@ -37,7 +41,9 @@ export const QueryVectorItemResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
 });
 
 // Query vector items response schema
@@ -51,7 +57,30 @@ export const QueryVectorItemsResponseSchema = z.object({
   success: z.boolean().optional(),
   message: z.string().optional(),
   data: z.any().optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
+});
+
+// VectorDB error response schema
+export const VectordbServiceErrorResponseSchema = z.object({
+  type: z.literal('error'),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  error: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
+});
+
+// Generic success response schema
+export const VectorOperationSuccessResponseSchema = z.object({
+  type: z.literal('vectorOperationSuccessResponse'),
+  success: z.boolean().optional(),
+  message: z.string().optional(),
+  data: z.any().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional()
 });
 
 // Union of all vectordb service response schemas
@@ -59,7 +88,9 @@ export const VectorDBServiceResponseSchema = z.union([
   GetVectorResponseSchema,
   AddVectorItemResponseSchema,
   QueryVectorItemResponseSchema,
-  QueryVectorItemsResponseSchema
+  QueryVectorItemsResponseSchema,
+  VectordbServiceErrorResponseSchema,
+  VectorOperationSuccessResponseSchema
 ]);
 
 // Export with the expected name for the index file
@@ -70,4 +101,7 @@ export type GetVectorResponse = z.infer<typeof GetVectorResponseSchema>;
 export type AddVectorItemResponse = z.infer<typeof AddVectorItemResponseSchema>;
 export type QueryVectorItemResponse = z.infer<typeof QueryVectorItemResponseSchema>;
 export type QueryVectorItemsResponse = z.infer<typeof QueryVectorItemsResponseSchema>;
-export type VectorDBServiceResponse = z.infer<typeof VectorDBServiceResponseSchema>; 
+export type VectordbServiceErrorResponse = z.infer<typeof VectordbServiceErrorResponseSchema>;
+export type VectorOperationSuccessResponse = z.infer<typeof VectorOperationSuccessResponseSchema>;
+export type VectorOperationErrorResponse = VectordbServiceErrorResponse;
+export type VectordbServiceResponse = z.infer<typeof VectorDBServiceResponseSchema>; 
