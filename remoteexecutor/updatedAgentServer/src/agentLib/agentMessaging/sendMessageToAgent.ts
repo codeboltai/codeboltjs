@@ -21,7 +21,7 @@ export class SendMessageToAgent {
 
   constructor() {
     this.connectionManager = ConnectionManager.getInstance();
-    this.childAgentProcessManager = new ChildAgentProcessManager();
+    this.childAgentProcessManager = this.connectionManager.getProcessManager();
   }
   /**
    * Send app response back to agent

@@ -398,7 +398,7 @@ export class ChildAgentProcessManager {
           agentId: agentId,
           connectionId: connectionId,
           threadId,
-          SOCKET_PORT: '3001'// config.port.toString()
+          SOCKET_PORT: config.port.toString()
         }
       });
       logger.info(formatLogMessage('info', 'ProcessManager', `Local agent ${agentId} started successfully from ${agentPath} with connectionId: ${connectionId} and port: ${config.port} , threadId: ${threadId}`));
@@ -486,19 +486,19 @@ export class ChildAgentProcessManager {
     */
   private setupAgentProcessHandlers(agentId: string, agentProcess: ChildProcess): void {
     // Ignore child process console logs - stdout and stderr handlers removed
-    // agentProcess.stdout?.on('data', (data) => {
-    //   const output = data.toString().trim();
-    //   if (output) {
-    //     logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
-    //   }
-    // });
+    agentProcess.stdout?.on('data', (data) => {
+      const output = data.toString().trim();
+      if (output) {
+        logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
+      }
+    });
 
-    // agentProcess.stderr?.on('data', (data) => {
-    //   const error = data.toString().trim();
-    //   if (error) {
-    //     logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
-    //   }
-    // });
+    agentProcess.stderr?.on('data', (data) => {
+      const error = data.toString().trim();
+      if (error) {
+        logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
+      }
+    });
 
     agentProcess.on('error', (error) => {
       logger.error(formatLogMessage('error', 'ProcessManager', `Failed to start agent ${agentId}: ${error}`));

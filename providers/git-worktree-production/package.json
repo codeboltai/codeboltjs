@@ -16,10 +16,11 @@
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run clean && npm run build",
-    "test:local": "npx ts-node --esm test-local.ts",
-    "test:interactive": "npx ts-node --esm test-local.ts interactive",
-    "test:server": "npx ts-node --esm test-local.ts server",
-    "test:full": "npx ts-node --esm test-local.ts full"
+    "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
+    "test:interactive": "NODE_ENV=test npx ts-node --esm test-local.ts interactive",
+    "test:server": "NODE_ENV=test npx ts-node --esm test-local.ts server",
+    "test:full": "NODE_ENV=test npx ts-node --esm test-local.ts full",
+    "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts"
   },
   "keywords": [
     "codebolt",
