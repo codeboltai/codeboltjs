@@ -382,7 +382,8 @@ export class GitWorktreeProviderService
 
       this.agentServer.process = await startAgentServerUtil({
         logger: this.logger,
-        port: this.providerConfig.agentServerPort
+        port: this.providerConfig.agentServerPort,
+        projectPath: this.state.projectPath ?? undefined
       });
 
       this.agentServer.process.on('exit', (code, signal) => {

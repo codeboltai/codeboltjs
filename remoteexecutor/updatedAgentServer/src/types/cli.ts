@@ -18,4 +18,5 @@ export interface AgentCliOptions {
   prompt?: string;
   modelName?: string;
   modelProvider?: string;
+  projectPath?: string;
 }

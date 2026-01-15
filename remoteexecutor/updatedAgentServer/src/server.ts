@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { v4 as uuidv4 } from 'uuid';
 import { AgentCliOptions } from './types';
 import { AgentExecutorServer } from './main/server/mainAgentExecutorServer';
-import { getServerConfig, setServerPort, setProxyConfig, getProxyConfig } from './main/config/config';
+import { getServerConfig, setServerPort, setProxyConfig, getProxyConfig, setProjectPath } from './main/config/config';
 import { logger, LogLevel, Logger } from './main/utils/logger';
 import { AgentTypeEnum } from './types/cli';
 import { createOptionResolvers, parseFallbackArgs } from './utils/options';
@@ -31,6 +31,7 @@ function setupCLI(): AgentCliOptions {
     .option('--prompt <prompt>', 'initial prompt to send to the agent')
     .option('--model-name <name>', 'default model name to pass to TUI')
     .option('--model-provider <provider>', 'default model provider to pass to TUI')
+    .option('--project-path <path>', 'path to the project')
     .addHelpText('after', `
  Examples:
    $ codebolt-code                    # Start with TUI interface
@@ -73,7 +74,8 @@ function setupCLI(): AgentCliOptions {
     agentDetail: resolveStringOption(options.agentDetail, 'agent-detail'),
     prompt: resolveStringOption(options.prompt, 'prompt'),
     modelName: resolveStringOption(options.modelName, 'model-name') ?? process.env.SELECTED_MODEL_NAME,
-    modelProvider: resolveStringOption(options.modelProvider, 'model-provider') ?? process.env.SELECTED_MODEL_PROVIDER
+    modelProvider: resolveStringOption(options.modelProvider, 'model-provider') ?? process.env.SELECTED_MODEL_PROVIDER,
+    projectPath: resolveStringOption(options.projectPath, 'project-path')
   };
 }
 
@@ -107,6 +109,10 @@ async function main(): Promise<void> {
 
     // Override config with CLI options
     if (options.host) config.host = options.host;
+    if (options.projectPath) {
+      config.projectPath = options.projectPath;
+      setProjectPath(config.projectPath);
+    }
 
     const portProvidedViaCli = options.port !== undefined;
     const portProvidedViaEnv = process.env.PORT !== undefined;

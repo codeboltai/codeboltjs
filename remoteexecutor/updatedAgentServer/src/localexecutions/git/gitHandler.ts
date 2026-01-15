@@ -14,6 +14,8 @@ import type {
 } from '@codebolt/types/agent-to-app-ws-types';
 import type { GitServiceResponse } from '@codebolt/types/app-to-agent-ws-types';
 
+import { getServerConfig } from '../../main/config/config';
+
 /**
  * Handler for git events from agents
  */
@@ -24,7 +26,8 @@ export class GitHandler {
     private clientResolver = new ClientResolver();
 
     constructor() {
-        this.gitService = new GitService();
+        const config = getServerConfig();
+        this.gitService = new GitService(config.projectPath);
     }
 
     /**

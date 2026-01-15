@@ -10,6 +10,7 @@ export interface ServerConfig {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
   healthCheckInterval?: number;
+  projectPath?: string;
 }
 
 export interface AgentConfig {

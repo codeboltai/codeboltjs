@@ -8,6 +8,12 @@ import { getDefaultProxyConfig } from '../../constants/proxyConfigProfile';
 
 
 export function CodeboltApplicationPath(): string {
+  // Check if projectPath is set in server config
+  const config = getServerConfig();
+  if (config.projectPath) {
+    return path.join(config.projectPath, '.codebolt');
+  }
+
   // For testing purposes, return the specified test path
   // return '/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/remote-agent';
 
@@ -29,6 +35,7 @@ export function CodeboltApplicationPath(): string {
 
 // Store the custom port if set
 let customPort: number | null = null;
+let customProjectPath: string | null = null;
 
 /**
  * Server configuration with environment variable overrides
@@ -48,7 +55,7 @@ export function getServerConfig(): ServerConfig {
     reconnectDelay: process.env.RECONNECT_DELAY ?
       parseInt(process.env.RECONNECT_DELAY) :
       DEFAULT_SERVER_CONFIG.reconnectDelay,
-
+    projectPath: customProjectPath ?? DEFAULT_SERVER_CONFIG.projectPath,
   };
 
   return config;
@@ -99,5 +106,15 @@ export function getUserHomePath(): string {
  */
 export function setServerPort(port: number): ServerConfig {
   customPort = port;
+  return getServerConfig();
+}
+
+/**
+ * Sets a custom project path for the server configuration
+ * @param projectPath - The project path to set
+ * @returns ServerConfig with the specified project path
+ */
+export function setProjectPath(projectPath: string): ServerConfig {
+  customProjectPath = projectPath;
   return getServerConfig();
 }

@@ -76,15 +76,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                     codebolt.chat.sendMessage(`Log Result:\n\`\`\`json\n${JSON.stringify(logs, null, 2)}\n\`\`\``, {});
                 } catch (e) { codebolt.chat.sendMessage(`Log failed: ${e}`, {}); }
 
-                // 7. Branch (Create a test branch)
-                codebolt.chat.sendMessage("7. Creating test-branch...", {});
-                try {
-                    const branchName = 'test-branch-' + Date.now();
-                    const branch = await codebolt.git.branch(branchName);
-                    codebolt.chat.sendMessage(`Branch Result:\n\`\`\`json\n${JSON.stringify(branch, null, 2)}\n\`\`\``, {});
-                } catch (e) {
-                    codebolt.chat.sendMessage(`Branch creation failed: ${e}`, {});
-                }
+               
 
                 codebolt.chat.sendMessage("Sequential git test completed.", {});
 

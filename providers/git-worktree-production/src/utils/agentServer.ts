@@ -10,6 +10,7 @@ import type { Logger } from './logger';
 type StartAgentServerOptions = {
   logger: Logger;
   port?: number; // Add port option
+  projectPath?: string;
 };
 
 type StopAgentServerOptions = {
@@ -28,14 +29,20 @@ type ServerHealthOptions = {
 };
 
 export async function startAgentServer(options: StartAgentServerOptions): Promise<ChildProcess> {
-  const { logger, port = 3001 } = options; // Default to 3001 if not specified
+  const { logger, port = 3001, projectPath } = options; // Default to 3001 if not specified
   logger.log('Starting agent server...');
 
   // Resolve the path to the agent server executable
   const agentServerPath = path.resolve(__dirname, '../../../../remoteexecutor/updatedAgentServer/dist/server.mjs');
 
+  const args = [agentServerPath, '--noui', '--port', port.toString()];
+
+  if (projectPath) {
+    args.push('--project-path', projectPath);
+  }
+
   return await new Promise<ChildProcess>((resolve, reject) => {
-    const processRef = spawn('node', [agentServerPath, '--noui', '--port', port.toString()], {
+    const processRef = spawn('node', args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: false,
     });

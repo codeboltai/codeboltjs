@@ -1,5 +1,6 @@
 import simpleGit, { SimpleGit, StatusResult, LogResult, DiffResult } from 'simple-git';
 import { logger } from '../../main/utils/logger';
+import { getServerConfig } from '../../main/config/config';
 
 /**
  * Git Service for remote executor
@@ -10,7 +11,8 @@ export class GitService {
     private projectPath: string;
 
     constructor(projectPath?: string) {
-        this.projectPath = projectPath || process.cwd();
+        const config = getServerConfig();
+        this.projectPath = projectPath || config.projectPath || process.cwd();
         this.git = simpleGit(this.projectPath);
     }
 
