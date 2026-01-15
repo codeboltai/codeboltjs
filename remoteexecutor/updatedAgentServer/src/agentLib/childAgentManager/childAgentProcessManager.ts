@@ -2,9 +2,7 @@ import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import * as https from 'https';
-import * as http from 'http';
-import { createWriteStream, createReadStream } from 'fs';
+import { createWriteStream } from 'fs';
 import AdmZip from 'adm-zip';
 import axios from 'axios';
 import { formatLogMessage, sleep } from '../../types';
@@ -77,43 +75,33 @@ export class ChildAgentProcessManager {
   /**
    * Download file from URL
    */
+  /**
+   * Download file from URL using axios
+   */
   private async downloadFile(url: string, destinationPath: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const file = createWriteStream(destinationPath);
-      const protocol = url.startsWith('https:') ? https : http;
-
-      const request = protocol.get(url, (response) => {
-        if (response.statusCode === 200) {
-          response.pipe(file);
-          file.on('finish', () => {
-            file.close();
-            resolve();
-          });
-        } else if (response.statusCode === 302 || response.statusCode === 301) {
-          // Handle redirects
-          const redirectUrl = response.headers.location;
-          if (redirectUrl) {
-            this.downloadFile(redirectUrl, destinationPath)
-              .then(resolve)
-              .catch(reject);
-          } else {
-            reject(new Error('Redirect without location header'));
-          }
-        } else {
-          reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
-        }
+    try {
+      const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream'
       });
 
-      request.on('error', (error) => {
-        fs.unlink(destinationPath, () => { }); // Clean up partial file
-        reject(error);
-      });
+      const writer = createWriteStream(destinationPath);
+      response.data.pipe(writer);
 
-      file.on('error', (error) => {
-        fs.unlink(destinationPath, () => { }); // Clean up partial file
-        reject(error);
+      return new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', (err) => {
+          fs.unlink(destinationPath, () => { }); // Clean up
+          reject(err);
+        });
       });
-    });
+    } catch (error) {
+      if (fs.existsSync(destinationPath)) {
+        fs.unlinkSync(destinationPath);
+      }
+      throw new Error(`Failed to download file from ${url}: ${error}`);
+    }
   }
 
   /**
@@ -132,6 +120,9 @@ export class ChildAgentProcessManager {
   /**
    * Download and extract agent from API
    */
+  /**
+   * Download and extract agent from API
+   */
   private async downloadAgent(agentId: string): Promise<boolean> {
     try {
       logger.info(formatLogMessage('info', 'ProcessManager', `Fetching agent details for ${agentId}...`));
@@ -144,12 +135,8 @@ export class ChildAgentProcessManager {
       const {
         id,
         title,
-        avatarSrc,
-        avatarFallback,
         description,
-        longDescription,
         zipFilePath,
-        tags,
         version,
       } = agentDetailResponse.data;
 
@@ -368,12 +355,11 @@ export class ChildAgentProcessManager {
     }
   }
 
-  private connectionValidator: ((agentId: string) => Promise<void>) | null = null;
 
-  public setConnectionValidator(validator: (agentId: string) => Promise<void>): void {
-    this.connectionValidator = validator;
-  }
 
+  /**
+    * Start a local agent from directory path
+    */
   /**
     * Start a local agent from directory path
     */
@@ -389,14 +375,6 @@ export class ChildAgentProcessManager {
 
     if (this.agentProcesses.has(agentId)) {
       logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
-      if (this.connectionValidator) {
-        try {
-          await this.connectionValidator(agentId);
-        } catch (error) {
-          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} process running but failed to connect: ${error}`));
-          return false;
-        }
-      }
       return true;
     }
 
@@ -420,16 +398,6 @@ export class ChildAgentProcessManager {
       this.agentProcesses.set(agentId, agentProcess);
       this.connectionIdToClientMap.set(connectionId, applicationId);
       this.setupAgentProcessHandlers(agentId, agentProcess);
-
-      if (this.connectionValidator) {
-        try {
-          await this.connectionValidator(agentId);
-        } catch (error) {
-          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} started but failed to connect: ${error}`));
-          this.stopAgent(agentId);
-          return false;
-        }
-      }
 
       return true;
     } catch (error) {
@@ -542,14 +510,6 @@ export class ChildAgentProcessManager {
   async startAgent(agentId: string, applicationId: string, threadId: string): Promise<boolean> {
     if (this.agentProcesses.has(agentId)) {
       logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
-      if (this.connectionValidator) {
-        try {
-          await this.connectionValidator(agentId);
-        } catch (error) {
-          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} process running but failed to connect: ${error}`));
-          return false;
-        }
-      }
       return true;
     }
 
@@ -621,16 +581,6 @@ export class ChildAgentProcessManager {
         this.agentProcesses.delete(agentId);
         this.connectionIdToClientMap.delete(agentId);
       });
-
-      if (this.connectionValidator) {
-        try {
-          await this.connectionValidator(agentId);
-        } catch (error) {
-          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} started but failed to connect: ${error}`));
-          this.stopAgent(agentId);
-          return false;
-        }
-      }
 
       logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));
       return true;

@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { ClientConnection, ProjectInfo, createErrorResponse, formatLogMessage } from '../../types';
 import { ChildAgentProcessManager } from '../childAgentManager/childAgentProcessManager';
@@ -7,7 +8,7 @@ import { logger } from '../../main/utils/logger';
 /**
  * Manages lifecycle and operations for agent WebSocket connections.
  */
-export class AgentConnectionsManager {
+export class AgentConnectionsManager extends EventEmitter {
   private static instance: AgentConnectionsManager;
 
   private readonly agents = new Map<string, ClientConnection>();
@@ -17,8 +18,8 @@ export class AgentConnectionsManager {
   private readonly childAgentProcessManager: ChildAgentProcessManager;
 
   private constructor() {
+    super();
     this.childAgentProcessManager = new ChildAgentProcessManager();
-    this.childAgentProcessManager.setConnectionValidator((agentId) => this.waitForAgentConnectionAndReady(agentId));
   }
 
   static getInstance(): AgentConnectionsManager {
@@ -57,6 +58,8 @@ export class AgentConnectionsManager {
         )
       );
     }
+
+    this.emit('agent-connected', connection.id);
   }
 
   removeAgent(agentId: string): void {
@@ -205,6 +208,7 @@ export class AgentConnectionsManager {
     if (!agent) {
       logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} not found, starting...`));
       try {
+        // Start the agent process
         const started = await this.childAgentProcessManager.startAgent(agentId, applicationId, agentId);
 
         if (!started) {
@@ -212,9 +216,10 @@ export class AgentConnectionsManager {
           return false;
         }
 
+        // Wait for connection event
         await this.waitForAgentConnectionAndReady(agentId);
-        const newAgent = this.agents.get(agentId);
 
+        const newAgent = this.agents.get(agentId);
         if (!newAgent) {
           logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Agent ${agentId} connected but not found in map`));
           return false;
@@ -289,24 +294,42 @@ export class AgentConnectionsManager {
   }
 
   private async waitForAgentConnectionAndReady(agentId: string): Promise<void> {
-    const checkInterval = 500;
     const timeout = 30000; // 30 seconds timeout
-    const startTime = Date.now();
 
-    while (true) {
-      if (Date.now() - startTime > timeout) {
-        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Timeout waiting for agent ${agentId} to connect`));
-        throw new Error(`Timeout waiting for agent ${agentId} to connect`);
-      }
-
-      const agent = this.agents.get(agentId);
-      if (agent && this.isWebSocketReady(agent.ws)) {
-        logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} is connected and ready`));
-        return;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, checkInterval));
+    // Check if already connected
+    const existingAgent = this.agents.get(agentId);
+    if (existingAgent && this.isWebSocketReady(existingAgent.ws)) {
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} is already connected and ready`));
+      return;
     }
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.removeListener('agent-connected', handler);
+        const errorMsg = `Timeout waiting for agent ${agentId} to connect`;
+        logger.error(formatLogMessage('error', 'AgentConnectionsManager', errorMsg));
+        reject(new Error(errorMsg));
+      }, timeout);
+
+      const handler = (connectedAgentId: string) => {
+        if (connectedAgentId === agentId) {
+          clearTimeout(timer);
+          this.removeListener('agent-connected', handler);
+
+          // Verify WebSocket readiness
+          const agent = this.agents.get(agentId);
+          if (agent && this.isWebSocketReady(agent.ws)) {
+            logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} connected and ready via event`));
+            resolve();
+          } else {
+            // Should be rare if event is emitted after readiness, but just in case
+            this.waitForWebSocketReady(agent!.ws).then(resolve).catch(reject);
+          }
+        }
+      };
+
+      this.on('agent-connected', handler);
+    });
   }
 
   private isWebSocketReady(ws: WebSocket): boolean {

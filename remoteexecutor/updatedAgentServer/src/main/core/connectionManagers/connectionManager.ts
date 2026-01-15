@@ -17,7 +17,7 @@ export class ConnectionManager {
   private readonly appManager = AppConnectionsManager.getInstance();
   private readonly tuiManager = TuiConnectionsManager.getInstance();
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): ConnectionManager {
     if (!ConnectionManager.instance) {
@@ -31,7 +31,7 @@ export class ConnectionManager {
     connectionId: string,
     ws: WebSocket,
     connectionType: 'app' | 'agent' | 'tui',
-    threadId?:string,
+    threadId?: string,
     parentId?: string,
     instanceId?: string,
     connectionIdentifier?: string,
@@ -57,8 +57,6 @@ export class ConnectionManager {
     } else {
       this.appManager.registerApp(connection);
     }
-
-    this.sendRegistrationConfirmation(ws, connectionId, connectionType, parentId);
   }
 
   removeConnection(connectionId: string): void {
@@ -151,24 +149,5 @@ export class ConnectionManager {
   }
 
 
-  private sendRegistrationConfirmation(
-    ws: WebSocket,
-    connectionId: string,
-    connectionType: 'app' | 'agent' | 'tui',
-    parentId?: string
-  ): void {
-    const payload = {
-      type: 'registered',
-      connectionId,
-      connectionType,
-      message: `Successfully registered as ${connectionType}`,
-      parentId
-    };
 
-    try {
-      ws.send(JSON.stringify(payload));
-    } catch (error) {
-      logger.error(formatLogMessage('error', 'ConnectionManager', `Error sending registration response: ${error}`));
-    }
-  }
 }
