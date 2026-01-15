@@ -38,48 +38,38 @@ export class AgentExecutorServer {
 
     // Create HttpHandler without project path
     this.httpHandler = new HttpHandler(this.app);
-    
+
     this.websocketServer = new WebSocketServer(this.server);
-    this.sendMessageToAgent = new SendMessageToAgent(this.websocketServer);
+    this.sendMessageToAgent = new SendMessageToAgent();
 
     // if (this.cliOptions?.remote) {
-      const remoteUrl = this.cliOptions?.remoteUrl || 'https://codebolt-wrangler-ws.arrowai.workers.dev';
-      if (remoteUrl) {
-        // Ensure the URL includes the correct path for the wrangler proxy
-        let proxyUrl = remoteUrl;
-        logger.info(`Remote proxy URL provided: ${remoteUrl}`);
-        logger.info(`App token provided: ${this.cliOptions?.appToken}`);
-        if(!this.cliOptions?.appToken){
-          logger.warn('App token not provided. Defaulting to "default".');
-          this.cliOptions = { ...this.cliOptions, appToken: 'default' };
-        }
-        if (this.cliOptions?.appToken) {
-          // If appToken is provided, ensure the URL ends with /proxy/{appToken}
-          try {
-            const url = new URL(remoteUrl);
-            if (!url.pathname.endsWith(`/proxy/${this.cliOptions.appToken}`)) {
-              url.pathname = `/proxy/${this.cliOptions.appToken}`;
-              proxyUrl = url.toString().replace('http://', 'ws://').replace('https://', 'wss://');
-              // Remove trailing slash if present
-              if (proxyUrl.endsWith('/')) {
-                proxyUrl = proxyUrl.slice(0, -1);
-              }
-            }
-          } catch (e) {
-            // If URL parsing fails, construct the URL manually
-            const baseUrl = remoteUrl.replace(/\/+$/, ''); // Remove trailing slashes
-            proxyUrl = `${baseUrl}/proxy/${this.cliOptions.appToken}`;
-            // Ensure it uses ws:// or wss:// scheme
-            if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
-              proxyUrl = proxyUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
-              // Default to ws:// if no scheme
-              if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
-                proxyUrl = `ws://${proxyUrl}`;
-              }
+    const remoteUrl = this.cliOptions?.remoteUrl || 'https://codebolt-wrangler-ws.arrowai.workers.dev';
+    if (remoteUrl) {
+      // Ensure the URL includes the correct path for the wrangler proxy
+      let proxyUrl = remoteUrl;
+      logger.info(`Remote proxy URL provided: ${remoteUrl}`);
+      logger.info(`App token provided: ${this.cliOptions?.appToken}`);
+      if (!this.cliOptions?.appToken) {
+        logger.warn('App token not provided. Defaulting to "default".');
+        this.cliOptions = { ...this.cliOptions, appToken: 'default' };
+      }
+      if (this.cliOptions?.appToken) {
+        // If appToken is provided, ensure the URL ends with /proxy/{appToken}
+        try {
+          const url = new URL(remoteUrl);
+          if (!url.pathname.endsWith(`/proxy/${this.cliOptions.appToken}`)) {
+            url.pathname = `/proxy/${this.cliOptions.appToken}`;
+            proxyUrl = url.toString().replace('http://', 'ws://').replace('https://', 'wss://');
+            // Remove trailing slash if present
+            if (proxyUrl.endsWith('/')) {
+              proxyUrl = proxyUrl.slice(0, -1);
             }
           }
-        } else {
-          // If no appToken is provided, at least ensure we're using the correct scheme
+        } catch (e) {
+          // If URL parsing fails, construct the URL manually
+          const baseUrl = remoteUrl.replace(/\/+$/, ''); // Remove trailing slashes
+          proxyUrl = `${baseUrl}/proxy/${this.cliOptions.appToken}`;
+          // Ensure it uses ws:// or wss:// scheme
           if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
             proxyUrl = proxyUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
             // Default to ws:// if no scheme
@@ -87,32 +77,42 @@ export class AgentExecutorServer {
               proxyUrl = `ws://${proxyUrl}`;
             }
           }
-          // For backward compatibility, if no appToken, we still try to connect to /proxy path
-          try {
-            const url = new URL(proxyUrl);
-            if (url.pathname === '/') {
-              url.pathname = '/proxy/default';
-              proxyUrl = url.toString();
-            }
-          } catch (e) {
-            // If URL parsing fails, just append /proxy/default
-            const baseUrl = proxyUrl.replace(/\/+$/, ''); // Remove trailing slashes
-            proxyUrl = `${baseUrl}/proxy/default`;
+        }
+      } else {
+        // If no appToken is provided, at least ensure we're using the correct scheme
+        if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+          proxyUrl = proxyUrl.replace(/^http:\/\//, 'ws://').replace(/^https:\/\//, 'wss://');
+          // Default to ws:// if no scheme
+          if (!proxyUrl.startsWith('ws://') && !proxyUrl.startsWith('wss://')) {
+            proxyUrl = `ws://${proxyUrl}`;
           }
         }
-        
-        logger.info(`Constructed proxy URL: ${proxyUrl}`);
-        
-        this.remoteProxyClient = RemoteProxyClient.initialize({
-          url: proxyUrl,
-          serverId: `${this.config.host || 'localhost'}:${this.config.port}`,
-          appToken: this.cliOptions.appToken,
-          maxReconnectAttempts: this.config.maxReconnectAttempts,
-          reconnectDelay: this.config.reconnectDelay
-        });
-      } else {
-        logger.warn('Remote proxy enabled without a URL. Skipping remote proxy initialization.');
+        // For backward compatibility, if no appToken, we still try to connect to /proxy path
+        try {
+          const url = new URL(proxyUrl);
+          if (url.pathname === '/') {
+            url.pathname = '/proxy/default';
+            proxyUrl = url.toString();
+          }
+        } catch (e) {
+          // If URL parsing fails, just append /proxy/default
+          const baseUrl = proxyUrl.replace(/\/+$/, ''); // Remove trailing slashes
+          proxyUrl = `${baseUrl}/proxy/default`;
+        }
       }
+
+      logger.info(`Constructed proxy URL: ${proxyUrl}`);
+
+      this.remoteProxyClient = RemoteProxyClient.initialize({
+        url: proxyUrl,
+        serverId: `${this.config.host || 'localhost'}:${this.config.port}`,
+        appToken: this.cliOptions.appToken,
+        maxReconnectAttempts: this.config.maxReconnectAttempts,
+        reconnectDelay: this.config.reconnectDelay
+      });
+    } else {
+      logger.warn('Remote proxy enabled without a URL. Skipping remote proxy initialization.');
+    }
     // }
   }
 
@@ -140,16 +140,16 @@ export class AgentExecutorServer {
         // Start agent if agent type and detail are provided
         if (this.cliOptions?.agentType && this.cliOptions?.agentDetail) {
           const { agentType, agentDetail, prompt } = this.cliOptions!;
-          
+
           if (prompt) {
             let messageFromTui: UserMessage = {
               type: 'messageResponse',
               message: {
-                
-                userMessage: prompt ,
+
+                userMessage: prompt,
 
                 selectedAgent: {
-                  id:  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+                  id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
                   name: "string", // Get agent name from path/codeboltagent.yaml file key title
                   agentType: agentType,
                   agentDetails: agentDetail
@@ -174,7 +174,7 @@ export class AgentExecutorServer {
                 text: ''
               },
               messageId: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-              timestamp:  Date.now().toString(),
+              timestamp: Date.now().toString(),
             }
             this.sendMessageToAgent.sendInitialMessage(messageFromTui);
           }
@@ -195,7 +195,7 @@ export class AgentExecutorServer {
           //   logger.error('Failed to start agent');
           // }
         }
-        else{
+        else {
           logger.info('No agent type or detail provided. Skipping agent startup.');
         }
 

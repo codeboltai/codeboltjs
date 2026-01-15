@@ -3,6 +3,8 @@ import { formatLogMessage } from '../../types/utils';
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager.js';
 import { logger } from '../../main/utils/logger';
 import { GitService } from './gitService';
+import { GitNotificationService } from '../../messages/notification/GitNotificationService';
+import { ClientResolver, type TargetClient } from '../../shared/utils/ClientResolver';
 import type {
     GitEvent,
     GitCommitEvent,
@@ -18,6 +20,8 @@ import type { GitServiceResponse } from '@codebolt/types/app-to-agent-ws-types';
 export class GitHandler {
     private connectionManager = ConnectionManager.getInstance();
     private gitService: GitService;
+    private gitNotificationService = new GitNotificationService();
+    private clientResolver = new ClientResolver();
 
     constructor() {
         this.gitService = new GitService();
@@ -27,7 +31,10 @@ export class GitHandler {
      * Handle git events from agents
      */
     async handleGitEvent(agent: ClientConnection, event: GitEvent): Promise<void> {
-        const { action, requestId } = event;
+        const action = event.action || '';
+        const requestId = event.requestId || '';
+        const targetClient = this.clientResolver.resolveParent(agent);
+        const repositoryPath = this.gitService.getRepositoryPath();
 
         logger.info(
             formatLogMessage('info', 'GitHandler', `Handling git event: ${action} from ${agent.id}`)
@@ -46,6 +53,15 @@ export class GitHandler {
                         message: result.message,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitInitResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -59,6 +75,15 @@ export class GitHandler {
                         content: '',
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitAddResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -77,6 +102,15 @@ export class GitHandler {
                         content: commitEvent.message,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitCommitResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -89,6 +123,15 @@ export class GitHandler {
                         message: result.message,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitPushResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -101,6 +144,15 @@ export class GitHandler {
                         message: result.message,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitPullResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -119,6 +171,16 @@ export class GitHandler {
                         branch: result.branch,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitCheckoutResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        branch: result.branch || branchName,
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -137,6 +199,16 @@ export class GitHandler {
                         branch: result.branch,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitBranchResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        branch: result.branch || newBranchName,
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -150,6 +222,16 @@ export class GitHandler {
                         data: result.data,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitLogsResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        logs: result.data,
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -164,6 +246,16 @@ export class GitHandler {
                         data: result.data,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitDiffResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        diff: result.data || '',
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -177,6 +269,16 @@ export class GitHandler {
                         data: result.data,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitStatusResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        status: result.data,
+                        repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -195,6 +297,16 @@ export class GitHandler {
                         url: result.url,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send notification
+                    this.gitNotificationService.sendGitCloneResult({
+                        agent,
+                        requestId,
+                        success: result.success,
+                        message: result.message || '',
+                        url: result.url || cloneUrl,
+                        repositoryPath: cloneEvent.path || repositoryPath,
+                        targetClient,
+                    });
                     break;
                 }
 
@@ -207,6 +319,15 @@ export class GitHandler {
                         error: `Unknown git action: ${action}`,
                         timestamp: new Date().toISOString(),
                     };
+                    // Send error notification for unknown action
+                    this.gitNotificationService.sendGitError({
+                        agent,
+                        requestId,
+                        action,
+                        error: `Unknown git action: ${action}`,
+                        repositoryPath,
+                        targetClient,
+                    });
             }
 
             this.connectionManager.sendToConnection(agent.id, {
@@ -219,18 +340,30 @@ export class GitHandler {
                 error
             );
 
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
             const errorResponse: GitServiceResponse = {
                 type: 'error',
                 requestId,
                 success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-                error: error instanceof Error ? error.message : 'Unknown error',
+                message: errorMessage,
+                error: errorMessage,
                 timestamp: new Date().toISOString(),
             };
 
             this.connectionManager.sendToConnection(agent.id, {
                 ...errorResponse,
                 clientId: agent.id,
+            });
+
+            // Send error notification
+            this.gitNotificationService.sendGitError({
+                agent,
+                requestId,
+                action,
+                error: errorMessage,
+                repositoryPath,
+                targetClient,
             });
         }
     }

@@ -15,6 +15,13 @@ export class GitService {
     }
 
     /**
+     * Get the repository path
+     */
+    getRepositoryPath(): string {
+        return this.projectPath;
+    }
+
+    /**
      * Initialize a new git repository
      */
     async init(): Promise<{ success: boolean; message: string }> {

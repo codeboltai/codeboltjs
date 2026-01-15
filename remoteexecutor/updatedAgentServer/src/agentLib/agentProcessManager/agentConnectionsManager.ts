@@ -16,7 +16,7 @@ export class AgentConnectionsManager {
   private readonly agentToParentMapping = new Map<string, string>();
   private readonly childAgentProcessManager = new ChildAgentProcessManager();
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): AgentConnectionsManager {
     if (!AgentConnectionsManager.instance) {
@@ -200,16 +200,28 @@ export class AgentConnectionsManager {
     const agent = this.agents.get(agentId);
 
     if (!agent) {
-      const started = await this.childAgentProcessManager.startAgent(agentId, applicationId, agentId);
+      logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} not found, starting...`));
+      try {
+        const started = await this.childAgentProcessManager.startAgent(agentId, applicationId, agentId);
 
-      if (!started) {
-        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Failed to start agent ${agentId}`));
+        if (!started) {
+          logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Failed to start agent ${agentId}`));
+          return false;
+        }
+
+        await this.waitForAgentConnectionAndReady(agentId);
+        const newAgent = this.agents.get(agentId);
+
+        if (!newAgent) {
+          logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Agent ${agentId} connected but not found in map`));
+          return false;
+        }
+
+        return this.sendMessageToReadyAgent(newAgent, agentId, message);
+      } catch (error) {
+        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Error starting/waiting for agent ${agentId}: ${error}`));
         return false;
       }
-
-      await this.waitForAgentConnectionAndReady(agentId);
-      const newAgent = this.agents.get(agentId)!;
-      return this.sendMessageToReadyAgent(newAgent, agentId, message);
     }
 
     if (!this.isWebSocketReady(agent.ws)) {
@@ -275,8 +287,15 @@ export class AgentConnectionsManager {
 
   private async waitForAgentConnectionAndReady(agentId: string): Promise<void> {
     const checkInterval = 500;
+    const timeout = 30000; // 30 seconds timeout
+    const startTime = Date.now();
 
     while (true) {
+      if (Date.now() - startTime > timeout) {
+        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `Timeout waiting for agent ${agentId} to connect`));
+        throw new Error(`Timeout waiting for agent ${agentId} to connect`);
+      }
+
       const agent = this.agents.get(agentId);
       if (agent && this.isWebSocketReady(agent.ws)) {
         logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} is connected and ready`));

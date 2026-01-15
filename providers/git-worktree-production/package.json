@@ -15,7 +15,11 @@
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "test:local": "npx ts-node --esm test-local.ts",
+    "test:interactive": "npx ts-node --esm test-local.ts interactive",
+    "test:server": "npx ts-node --esm test-local.ts server",
+    "test:full": "npx ts-node --esm test-local.ts full"
   },
   "keywords": [
     "codebolt",

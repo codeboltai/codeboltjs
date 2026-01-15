@@ -58,6 +58,7 @@ export class WebSocketServer {
       logger.info(formatLogMessage('info', 'WebSocketServer', `New WebSocket connection: ${initialClientId}`));
 
       const connectionParams = this.parseConnectionParams(request);
+      logger.info(formatLogMessage('info', 'WebSocketServer', `Websocket Connection parameters: ${JSON.stringify(connectionParams)}`));
       const registrationResult = this.handleConnectionRegistration(ws, connectionParams, initialClientId);
 
       // All connections are now registered during connection establishment
@@ -161,6 +162,7 @@ export class WebSocketServer {
     const url = new URL(request.url || '', `http://${request.headers.host}`);
     const queryParams = url.searchParams;
 
+
     return {
       agentId: queryParams.get('agentId') || undefined,
       parentId: queryParams.get('parentId') || undefined,
@@ -168,7 +170,7 @@ export class WebSocketServer {
       appId: queryParams.get('appId') || undefined,
       currentProject: queryParams.get('currentProject') || undefined,
       projectName: queryParams.get('projectName') || undefined,
-      threadId:queryParams.get('threadId') || undefined,
+      threadId: queryParams.get('threadId') || undefined,
       projectType: queryParams.get('projectType') || undefined,
       connectionId: queryParams.get('connectionId') || undefined
     };
@@ -206,7 +208,7 @@ export class WebSocketServer {
       // Get project info from parent app connection instead of params
       const parentConnection = this.connectionManager.getConnection(params.parentId);
       const projectInfo = parentConnection?.currentProject;
-      
+
       let message = {
         type: 'agentStarted',
         agentId: params.agentId,
@@ -214,7 +216,7 @@ export class WebSocketServer {
         instanceId,
         projectInfo
       };
-      
+
       // Create a temporary connection object for the router
       const tempConnection: any = {
         id: params.agentId,
@@ -225,7 +227,7 @@ export class WebSocketServer {
         connectionId: params.connectionId,
         connectedAt: new Date()
       };
-      
+
       this.agentMessageRouter.handleAgentRequestMessage(tempConnection, message as any);
 
       this.registerAgent(ws, params.agentId, params.parentId, 'auto', instanceId, params.connectionId, params.threadId, projectInfo);
@@ -261,7 +263,7 @@ export class WebSocketServer {
     registrationType: RegistrationType = 'auto',
     agentInstanceId?: string,
     connectionId?: string,
-    threadId?:string,
+    threadId?: string,
     projectInfo?: ProjectInfo
   ): void {
     logger.info(formatLogMessage('info', 'WebSocketServer',
@@ -296,7 +298,7 @@ export class WebSocketServer {
     ws: WebSocket,
     appId: string,
     registrationType: RegistrationType = 'auto',
-    threadId?:string,
+    threadId?: string,
     appInstanceId?: string,
     projectInfo?: ProjectInfo
   ): void {
@@ -314,7 +316,7 @@ export class WebSocketServer {
     ws: WebSocket,
     tuiId: string,
     registrationType: RegistrationType = 'auto',
-    threadId?:string,
+    threadId?: string,
     tuiInstanceId?: string,
     projectInfo?: ProjectInfo
   ): void {
@@ -332,7 +334,7 @@ export class WebSocketServer {
     ws: WebSocket,
     connectionId: string,
     connectionType: string,
-    threadId?:string,
+    threadId?: string,
     parentId?: string,
     registrationType: RegistrationType = 'auto',
     // projectInfo?: ProjectInfo,
@@ -369,7 +371,7 @@ export class WebSocketServer {
     }
   }
 
-  
+
 
   /**
    * Send error message to WebSocket

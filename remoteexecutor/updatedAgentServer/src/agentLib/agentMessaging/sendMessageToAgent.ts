@@ -8,7 +8,6 @@ import { ChildAgentProcessManager } from '@/agentLib/childAgentManager/childAgen
 import { AgentTypeEnum } from '@/types/cli';
 import { logger } from '../../main/utils/logger';
 import { threadId } from 'worker_threads';
-import { WebSocketServer } from 'ws';
 
 /**
  * Routes messages with explicit workflow visibility
@@ -17,15 +16,12 @@ import { WebSocketServer } from 'ws';
 export class SendMessageToAgent {
 
   private connectionManager: ConnectionManager;
-  private websocketServer?: WebSocketServer;
   private readonly sendMessageToRemote = new SendMessageToRemote();
   private childAgentProcessManager: ChildAgentProcessManager;
 
-  constructor(websocketServer?: WebSocketServer) {
+  constructor() {
     this.connectionManager = ConnectionManager.getInstance();
-    this.websocketServer = websocketServer;
     this.childAgentProcessManager = new ChildAgentProcessManager();
-
   }
   /**
    * Send app response back to agent
@@ -34,7 +30,7 @@ export class SendMessageToAgent {
     logger.info(formatLogMessage('info', 'MessageRouter', `Sending response from app ${app.id} to agent`));
 
     // First try to find the agent using cached message ID
-    const targetAgentId = message?.data?.agentId ;
+    const targetAgentId = message?.data?.agentId;
     const agentManager = this.connectionManager.getAgentConnectionManager();
 
     if (targetAgentId) {
@@ -62,7 +58,7 @@ export class SendMessageToAgent {
         }
       });
     }
-    else{
+    else {
       logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - ignoring`));
 
     }
@@ -83,32 +79,38 @@ export class SendMessageToAgent {
   /**
    * Send initial prompt to all connected agents
    */
-  async sendInitialMessage( message: UserMessage,parentId?:string): Promise<void> {
+  async sendInitialMessage(message: UserMessage, parentId?: string): Promise<void> {
     try {
-      logger.info(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: `));
+      logger.info(formatLogMessage('info', 'SendMessageToAgent', `Sending initial prompt to agent: ${JSON.stringify(message)}`));
       // logger.info(`Starting agent: type=${agentType}, detail=${agentDetail}`);
-    
-      if(!message.message.selectedAgent.agentType){
-        message.message.selectedAgent.agentType=AgentTypeEnum.marketplace;
-        message.message.selectedAgent.agentDetails=message.message.selectedAgent.id;
-      }
+
+      // Smart detection for agent type if not provided
+      // Get the agent ID that will be used for registration
+      const agentId = message.message.selectedAgent.agentDetails as string;
+      const applicationId = parentId || 'codebolt-server';
+
       const success = await this.childAgentProcessManager.startAgentByType(
         message.message.selectedAgent.agentType!,
-        (message.message.selectedAgent.agentDetails) as string,
-        parentId ||'codebolt-server',
-        message.threadId
+        message.message.selectedAgent.id,
+        message.message.selectedAgent.agentDetails!,
+        applicationId,
+        message.message.threadId
       );
       if (!success) {
         logger.error(formatLogMessage('error', 'SendMessageToAgent', 'Failed to start agent'));
         return;
       }
       logger.info(formatLogMessage('info', 'SendMessageToAgent', 'Agent started successfully'));
-       const agentManager = this.connectionManager.getAgentConnectionManager();
-         setTimeout(() => {
-                   const messageSuccess = agentManager.sendToAgent(message);
-          }, 5000);
-      logger.info(formatLogMessage('info', 'SendMessageToAgent', 'Message sent to agent'));
-     
+
+      // Use sendToSpecificAgent which waits for the agent to be connected and ready
+      const agentManager = this.connectionManager.getAgentConnectionManager();
+      const messageSuccess = await agentManager.sendToSpecificAgent(agentId, applicationId, message);
+
+      if (messageSuccess) {
+        logger.info(formatLogMessage('info', 'SendMessageToAgent', `Message sent successfully to agent ${agentId}`));
+      } else {
+        logger.warn(formatLogMessage('warn', 'SendMessageToAgent', `Failed to send message to agent ${agentId}`));
+      }
 
     } catch (error) {
       logger.error(formatLogMessage('error', 'SendMessageToAgent', `Failed to send initial prompt: ${error}`));

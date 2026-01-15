@@ -13,6 +13,7 @@ interface GitNotification {
     threadId: string;
     agentId: string;
     agentInstanceId?: string;
+    repositoryPath?: string;
     content?: any;
     data?: any;
     isError?: boolean;
@@ -30,20 +31,22 @@ export class GitNotificationService extends BaseNotificationService {
         requestId: string;
         success: boolean;
         message: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, targetClient } = params;
+        const { agent, requestId, success, message, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitInitResult",
             content: message,
-            data: { success, message },
+            data: { success, message, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -58,20 +61,22 @@ export class GitNotificationService extends BaseNotificationService {
         requestId: string;
         success: boolean;
         message: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, targetClient } = params;
+        const { agent, requestId, success, message, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitAddResult",
             content: message,
-            data: { success, message },
+            data: { success, message, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -87,20 +92,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         commitHash?: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, commitHash, targetClient } = params;
+        const { agent, requestId, success, message, commitHash, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitCommitResult",
             content: message,
-            data: { success, message, commitHash },
+            data: { success, message, commitHash, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -115,20 +122,22 @@ export class GitNotificationService extends BaseNotificationService {
         requestId: string;
         success: boolean;
         message: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, targetClient } = params;
+        const { agent, requestId, success, message, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitPushResult",
             content: message,
-            data: { success, message },
+            data: { success, message, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -143,20 +152,22 @@ export class GitNotificationService extends BaseNotificationService {
         requestId: string;
         success: boolean;
         message: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, targetClient } = params;
+        const { agent, requestId, success, message, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitPullResult",
             content: message,
-            data: { success, message },
+            data: { success, message, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -172,20 +183,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         branch: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, branch, targetClient } = params;
+        const { agent, requestId, success, message, branch, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitCheckoutResult",
             content: message,
-            data: { success, message, branch },
+            data: { success, message, branch, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -201,20 +214,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         branch: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, branch, targetClient } = params;
+        const { agent, requestId, success, message, branch, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitBranchResult",
             content: message,
-            data: { success, message, branch },
+            data: { success, message, branch, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -230,20 +245,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         logs: any;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, logs, targetClient } = params;
+        const { agent, requestId, success, message, logs, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitLogsResult",
             content: logs,
-            data: { success, message, logs },
+            data: { success, message, logs, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -259,20 +276,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         diff: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, diff, targetClient } = params;
+        const { agent, requestId, success, message, diff, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitDiffResult",
             content: diff,
-            data: { success, message, diff },
+            data: { success, message, diff, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -288,20 +307,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         status: any;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, status, targetClient } = params;
+        const { agent, requestId, success, message, status, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitStatusResult",
             content: status,
-            data: { success, message, status },
+            data: { success, message, status, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -317,20 +338,22 @@ export class GitNotificationService extends BaseNotificationService {
         success: boolean;
         message: string;
         url: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, success, message, url, targetClient } = params;
+        const { agent, requestId, success, message, url, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: "gitCloneResult",
             content: message,
-            data: { success, message, url },
+            data: { success, message, url, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: !success
         };
 
@@ -345,20 +368,22 @@ export class GitNotificationService extends BaseNotificationService {
         requestId: string;
         action: string;
         error: string;
+        repositoryPath?: string;
         targetClient?: TargetClient;
     }): void {
-        const { agent, requestId, action, error, targetClient } = params;
+        const { agent, requestId, action, error, repositoryPath, targetClient } = params;
 
         const notification: GitNotification = {
             action: `${action}Result`,
             content: error,
-            data: { success: false, error },
+            data: { success: false, error, repositoryPath },
             type: "gitnotify",
             requestId: requestId,
             toolUseId: requestId,
             threadId: agent.threadId,
             agentId: agent.id,
             agentInstanceId: agent.instanceId,
+            repositoryPath: repositoryPath,
             isError: true
         };
 
