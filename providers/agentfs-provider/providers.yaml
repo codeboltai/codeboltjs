@@ -1,0 +1,12 @@
+name: agentfs-provider
+version: 1.0.0
+description: AgentFS Provider for CodeBolt
+entrypoint: dist/index.js
+config:
+  agentServerPort: 3001
+  agentServerHost: localhost
+  timeouts:
+    agentServerStartup: 30000
+    wsConnection: 10000
+    gitOperations: 30000
+    cleanup: 15000
