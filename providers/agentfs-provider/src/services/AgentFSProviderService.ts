@@ -58,18 +58,39 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
 
     async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
         this.logger.log('Starting provider with environment:', initVars.environmentName);
-        const projectPath = initVars.projectPath as string | undefined;
+        let projectPath = initVars.projectPath as string | undefined;
         if (!projectPath) {
             throw new Error('Project path is not available in initVars');
         }
-        this.projectPath = projectPath;
+
+        // Mount Logic
+        const mountPoint = path.join(projectPath, `.agentfs_mnt_${initVars.environmentName}`);
+
+        try {
+            const { mkdir } = await import('fs/promises');
+            await mkdir(mountPoint, { recursive: true });
+
+            this.logger.log(`Mounting agentfs ${initVars.environmentName} to ${mountPoint}`);
+
+            // agentfs mount [ID] [MOUNT_POINT]
+            await this.runAgentFSCommand(['mount', initVars.environmentName, mountPoint]);
+
+            // Wait for mount to stabilize
+            await new Promise(r => setTimeout(r, 1000));
+
+            this.projectPath = mountPoint;
+        } catch (error: any) {
+            this.logger.warn('Failed to mount agentfs, using raw project path (TEST MODE only):', error);
+            // Fallback for tests or if mount fails but we want to inspect
+            this.projectPath = projectPath;
+        }
 
         const result = await super.onProviderStart(initVars);
-        this.logger.log('Started Environment with project path:', this.projectPath);
+        this.logger.log('Started Environment with mounted path:', this.projectPath);
 
         return {
             ...result,
-            worktreePath: this.projectPath,
+            worktreePath: this.projectPath!,
         };
     }
 
@@ -94,6 +115,32 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         this.logger.log('Provider stop requested for environment:', initVars.environmentName);
         try {
             await this.stopAgentServer();
+
+            if (this.projectPath && this.projectPath.includes('.agentfs_mnt')) {
+                this.logger.log(`Unmounting ${this.projectPath}...`);
+                try {
+                    const { exec } = await import('child_process');
+                    const execP = promisify(exec);
+                    try {
+                        // MacOS
+                        await execP(`umount "${this.projectPath}"`);
+                    } catch (e) {
+                        // Linux fallback
+                        try {
+                            await execP(`fusermount -u "${this.projectPath}"`);
+                        } catch (e2) {
+                            this.logger.warn('Unmount failed with both umount and fusermount via shell, trying force...');
+                        }
+                    }
+
+                    // Clean dir
+                    const { rm } = await import('fs/promises');
+                    await rm(this.projectPath, { recursive: true, force: true });
+                } catch (e) {
+                    this.logger.error('Error during unmount/cleanup:', e);
+                }
+            }
+
             this.resetState();
             this.logger.log('Provider stopped successfully');
         } catch (error) {
@@ -102,12 +149,14 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         }
     }
 
-    // File System Operations - Wrapping AgentFS CLI
+    // File System Operations - Using Standard FS on Mount Point
 
+    // AgentFS specific helper - strictly for CLI commands like mount
     private async runAgentFSCommand(args: string[]): Promise<string> {
         try {
             const command = `${this.agentFSBinary} ${args.join(' ')}`;
-            const { stdout } = await execAsync(command, { cwd: this.projectPath ?? process.cwd() });
+            // We run from where? Maybe doesn't matter for specific commands.
+            const { stdout } = await execAsync(command);
             return stdout;
         } catch (error: any) {
             this.logger.error(`Error running agentfs command: ${args.join(' ')}`, error);
@@ -117,92 +166,69 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
 
     async onReadFile(filePath: string): Promise<string> {
         this.logger.log('Reading file:', filePath);
-        // agentfs cat <file> or similar. agentfs read sounds plausible.
-        // Based on typical CLI, cat or read is used. I'll use `read` as per plan, hoping it works or aliases.
-        // If `read` is not standard, `cat` is safer guess for "output context".
-        // Let's stick to `read` as a semantic choice for now, if it fails user can report.
-        return this.runAgentFSCommand(['cat', filePath]);
+        const { readFile } = await import('fs/promises');
+        return readFile(path.join(this.projectPath!, filePath), 'utf-8');
     }
 
     async onWriteFile(filePath: string, content: string): Promise<void> {
         this.logger.log('Writing file:', filePath);
-        // agentfs write <file> <content> might not work for large content or special chars.
-        // Better: echo content | agentfs write <file> (via stdin)
-        // But runAgentFSCommand currently does exec.
-        // I need to modify runAgentFSCommand to handle stdin or use fs.writeFile if agentfs mounts a fuse or similar?
-        // documentation says "agentfs" is a filesystem.
-        // If it interacts via CLI, `write` likely takes file arg and reads stdin.
-        // For now, let's try passing content as arg if small, but that's risky.
-        // Safer: use `child_process.exec` with input.
-
-        try {
-            const command = `${this.agentFSBinary} write ${filePath}`;
-            const child = exec(command, { cwd: this.projectPath ?? process.cwd() });
-
-            if (child.stdin) {
-                child.stdin.write(content);
-                child.stdin.end();
-            }
-
-            await new Promise<void>((resolve, reject) => {
-                child.on('close', (code) => {
-                    if (code === 0) resolve();
-                    else reject(new Error(`AgentFS write exited with code ${code}`));
-                });
-                child.on('error', reject);
-            });
-
-        } catch (error: any) {
-            this.logger.error(`Error writing file via agentfs: ${filePath}`, error);
-            throw new Error(`AgentFS write failed: ${error.message}`);
-        }
+        const { writeFile, mkdir } = await import('fs/promises');
+        const fullPath = path.join(this.projectPath!, filePath);
+        await mkdir(path.dirname(fullPath), { recursive: true });
+        await writeFile(fullPath, content, 'utf-8');
     }
 
     async onDeleteFile(filePath: string): Promise<void> {
         this.logger.log('Deleting file:', filePath);
-        await this.runAgentFSCommand(['rm', filePath]);
+        const { unlink } = await import('fs/promises');
+        await unlink(path.join(this.projectPath!, filePath));
     }
 
     async onDeleteFolder(folderPath: string): Promise<void> {
         this.logger.log('Deleting folder:', folderPath);
-        await this.runAgentFSCommand(['rm', '-r', folderPath]);
+        const { rm } = await import('fs/promises');
+        await rm(path.join(this.projectPath!, folderPath), { recursive: true, force: true });
     }
 
     async onRenameItem(oldPath: string, newPath: string): Promise<void> {
         this.logger.log('Renaming item:', oldPath, 'to', newPath);
-        await this.runAgentFSCommand(['mv', oldPath, newPath]);
+        const { rename } = await import('fs/promises');
+        await rename(path.join(this.projectPath!, oldPath), path.join(this.projectPath!, newPath));
     }
 
     async onCreateFolder(folderPath: string): Promise<void> {
         this.logger.log('Creating folder:', folderPath);
-        await this.runAgentFSCommand(['mkdir', folderPath]);
+        const { mkdir } = await import('fs/promises');
+        await mkdir(path.join(this.projectPath!, folderPath), { recursive: true });
     }
 
     async onGetProject(parentId: string = 'root'): Promise<any[]> {
-        // agentfs ls <path>
-        const targetPath = parentId === 'root' ? '.' : parentId;
+        const { readdir, stat } = await import('fs/promises');
+        const parentPath = parentId === 'root' ? this.projectPath! : path.join(this.projectPath!, parentId);
+
         try {
-            // agentfs ls -l for detail? or json?
-            // Assuming `agentfs ls` returns simple list.
-            const output = await this.runAgentFSCommand(['ls', targetPath]);
-            const lines = output.split('\n').filter(Boolean);
+            const items = await readdir(parentPath, { withFileTypes: true });
 
-            // We need to know if it's a folder or file.
-            // basic `ls` might not show it. `ls -F`?
-            // Let's imply from name or try `stat` equivalent if needed.
-            // For now, let's treat generic.
+            const children = await Promise.all(items.map(async (item) => {
+                if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
 
-            return lines.map((name) => {
-                const isFolder = name.endsWith('/');
-                const cleanName = isFolder ? name.slice(0, -1) : name;
+                const itemPath = path.join(parentPath, item.name);
+                const relativePath = parentId === 'root' ? item.name : path.join(parentId, item.name);
+                const stats = await stat(itemPath);
+
                 return {
-                    id: parentId === 'root' ? cleanName : path.join(parentId, cleanName),
-                    name: cleanName,
-                    path: path.join(this.projectPath!, parentId === 'root' ? '' : parentId, cleanName),
-                    isFolder: isFolder, // Weak inference
-                    size: 0,
-                    lastModified: new Date().toISOString()
+                    id: relativePath,
+                    name: item.name,
+                    path: itemPath,
+                    isFolder: item.isDirectory(),
+                    size: item.isDirectory() ? 0 : stats.size,
+                    lastModified: stats.mtime.toISOString()
                 };
+            }));
+
+            return children.filter(Boolean).sort((a: any, b: any) => {
+                if (a.isFolder === b.isFolder) return a.name.localeCompare(b.name);
+                return a.isFolder ? -1 : 1;
             });
         } catch (e) {
             this.logger.error('Error listing project:', e);
