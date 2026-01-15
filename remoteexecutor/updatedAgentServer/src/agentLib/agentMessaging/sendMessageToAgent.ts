@@ -86,7 +86,16 @@ export class SendMessageToAgent {
 
       // Smart detection for agent type if not provided
       // Get the agent ID that will be used for registration
-      const agentId = message.message.selectedAgent.agentDetails as string;
+      const selected = message.message.selectedAgent;
+      let agentId = selected.id || selected.agentDetails as string;
+
+      // Make sure we use the correct ID that the process manager uses to start the agent
+      if (selected.agentType === AgentTypeEnum.marketplace) {
+        agentId = selected.agentDetails as string;
+      } else {
+        agentId = selected.id;
+      }
+
       const applicationId = parentId || 'codebolt-server';
 
       const success = await this.childAgentProcessManager.startAgentByType(

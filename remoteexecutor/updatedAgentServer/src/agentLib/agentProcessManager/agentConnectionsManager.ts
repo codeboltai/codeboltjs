@@ -14,9 +14,12 @@ export class AgentConnectionsManager {
   private readonly messageToAgentCache = new Map<string, string>();
   private readonly parentToAgentsMapping = new Map<string, Set<{ connectionId: string; instanceId?: string }>>();
   private readonly agentToParentMapping = new Map<string, string>();
-  private readonly childAgentProcessManager = new ChildAgentProcessManager();
+  private readonly childAgentProcessManager: ChildAgentProcessManager;
 
-  private constructor() { }
+  private constructor() {
+    this.childAgentProcessManager = new ChildAgentProcessManager();
+    this.childAgentProcessManager.setConnectionValidator((agentId) => this.waitForAgentConnectionAndReady(agentId));
+  }
 
   static getInstance(): AgentConnectionsManager {
     if (!AgentConnectionsManager.instance) {

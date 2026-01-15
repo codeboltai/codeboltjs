@@ -113,6 +113,7 @@ async function main(): Promise<void> {
 
     if (portProvidedViaCli) {
       config.port = options.port!;
+      setServerPort(config.port);
     } else if (!portProvidedViaEnv) {
       config.port = await findAvailablePort(config.host);
       setServerPort(config.port)

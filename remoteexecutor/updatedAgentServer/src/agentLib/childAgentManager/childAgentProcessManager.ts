@@ -368,6 +368,12 @@ export class ChildAgentProcessManager {
     }
   }
 
+  private connectionValidator: ((agentId: string) => Promise<void>) | null = null;
+
+  public setConnectionValidator(validator: (agentId: string) => Promise<void>): void {
+    this.connectionValidator = validator;
+  }
+
   /**
     * Start a local agent from directory path
     */
@@ -383,6 +389,14 @@ export class ChildAgentProcessManager {
 
     if (this.agentProcesses.has(agentId)) {
       logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
+      if (this.connectionValidator) {
+        try {
+          await this.connectionValidator(agentId);
+        } catch (error) {
+          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} process running but failed to connect: ${error}`));
+          return false;
+        }
+      }
       return true;
     }
 
@@ -406,6 +420,16 @@ export class ChildAgentProcessManager {
       this.agentProcesses.set(agentId, agentProcess);
       this.connectionIdToClientMap.set(connectionId, applicationId);
       this.setupAgentProcessHandlers(agentId, agentProcess);
+
+      if (this.connectionValidator) {
+        try {
+          await this.connectionValidator(agentId);
+        } catch (error) {
+          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} started but failed to connect: ${error}`));
+          this.stopAgent(agentId);
+          return false;
+        }
+      }
 
       return true;
     } catch (error) {
@@ -518,6 +542,14 @@ export class ChildAgentProcessManager {
   async startAgent(agentId: string, applicationId: string, threadId: string): Promise<boolean> {
     if (this.agentProcesses.has(agentId)) {
       logger.info(formatLogMessage('warn', 'ProcessManager', `Agent ${agentId} already running`));
+      if (this.connectionValidator) {
+        try {
+          await this.connectionValidator(agentId);
+        } catch (error) {
+          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} process running but failed to connect: ${error}`));
+          return false;
+        }
+      }
       return true;
     }
 
@@ -589,6 +621,16 @@ export class ChildAgentProcessManager {
         this.agentProcesses.delete(agentId);
         this.connectionIdToClientMap.delete(agentId);
       });
+
+      if (this.connectionValidator) {
+        try {
+          await this.connectionValidator(agentId);
+        } catch (error) {
+          logger.error(formatLogMessage('error', 'ProcessManager', `Agent ${agentId} started but failed to connect: ${error}`));
+          this.stopAgent(agentId);
+          return false;
+        }
+      }
 
       logger.info(formatLogMessage('info', 'ProcessManager', `Agent ${agentId} started successfully`));
       return true;
