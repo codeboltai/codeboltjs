@@ -1,10 +1,12 @@
-title: testingAgent
-unique_id: testingAgent
-initial_message: Hello! I'm your advanced AI developer. How can I assist you today?
-description: My Codebolt Agent
+title: Act
+version: 1.1.44
+unique_id: act
+initial_message: Codebolt Dev, is a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices
+description:  Codebolt Dev, is  a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 tags:
-  - ''
-longDescription: >
+  - web
+  - code-generation
+longDescription: |
   A basic agent designed for the Codebolt platform, offering a range of
   functionalities to enhance interaction with the platform.
 avatarSrc: https://placehold.co/200x200
@@ -12,14 +14,20 @@ avatarFallback: CE
 metadata:
   agent_routing:
     worksonblankcode: true
-    worksonexistingcode: true
-    supportedlanguages: []
-    supportedframeworks: []
+    worksonexistingcode: false
+    supportedlanguages:
+      - web
+    supportedframeworks:
+      - html
+    supportRemix: true
   defaultagentllm:
     strict: true
     modelorder:
       - ollama2
-  sdlc_steps_managed: []
+  sdlc_steps_managed:
+    - name: deployment
+      example_instructions:
+        - create website
   llm_role:
     - name: documentationllm
       description: >-
@@ -62,6 +70,6 @@ actions:
   - name: Execute
     description: Executes the given task.
     detailDescription: more detailed description
-    actionPrompt: Please run this code
-author: codebolt
-version: 1.0.0
+    actionPrompt: Please create website
+supportRemix: true    
+author: ravi

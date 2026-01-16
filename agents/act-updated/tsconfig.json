@@ -5,7 +5,7 @@
     "lib": [
       "ES2020"
     ],
-    "outDir": ".",
+    "outDir": "./dist",
     "rootDir": "./src",
     "strict": false,
     "esModuleInterop": true,
