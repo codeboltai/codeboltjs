@@ -1,0 +1,42 @@
+{
+  "name": "@codebolt/act",
+  "private": true,
+  "version": "1.1.36",
+  "description": "This is a codebolt agent.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "gemini",
+    "google",
+    "llm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/agent": "latest",
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/types": "latest",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "esbuild": "^0.25.9",
+    "rimraf": "^5.0.10",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
