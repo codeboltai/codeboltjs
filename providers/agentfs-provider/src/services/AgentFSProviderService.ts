@@ -168,6 +168,15 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         const result = await super.onProviderStart(initVars);
         this.logger.log('Started Environment with mounted path:', this.projectPath);
 
+        // Start heartbeat monitoring after successful provider start
+        this.startHeartbeat();
+
+        // Register this environment as connected
+        if (initVars.environmentName) {
+            this.registerConnectedEnvironment(initVars.environmentName);
+            this.startEnvironmentHeartbeat(initVars.environmentName);
+        }
+
         return {
             ...result,
             worktreePath: this.projectPath!,
@@ -194,6 +203,14 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     async onProviderStop(initVars: ProviderInitVars): Promise<void> {
         this.logger.log('Provider stop requested for environment:', initVars.environmentName);
         try {
+            // Stop heartbeat monitoring first
+            this.stopHeartbeat();
+
+            // Unregister environment
+            if (initVars.environmentName) {
+                this.unregisterConnectedEnvironment(initVars.environmentName);
+            }
+
             await this.stopAgentServer();
 
             if (this.projectPath && this.projectPath.includes('.agentfs_mnt')) {

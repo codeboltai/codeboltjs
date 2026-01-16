@@ -20,6 +20,9 @@ export * as NotificationMessages from './notificationMessageSchemas';
 // Agent communication schemas
 export * as AgentMessages from './agentMessageSchemas';
 
+// Heartbeat schemas for provider and environment health monitoring
+export * as HeartbeatMessages from './heartbeatSchemas';
+
 // State update schemas
 export * as StateMessages from './stateMessageSchemas';
 

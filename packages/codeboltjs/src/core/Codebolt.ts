@@ -1207,6 +1207,223 @@ class Codebolt {
             console.error('Failed to set up get tree children handler:', error);
         });
     }
+
+    // ===== HEARTBEAT METHODS =====
+
+    /**
+     * Sends a provider heartbeat to the main application.
+     * Should be called periodically by providers to indicate they are alive.
+     * @param {object} heartbeatData - The heartbeat data to send
+     * @param {string} heartbeatData.providerId - The provider ID
+     * @param {string} heartbeatData.status - The provider health status ('healthy', 'degraded', 'error')
+     * @param {string[]} heartbeatData.connectedEnvironments - Array of connected environment IDs
+     * @param {Record<string, any>} [heartbeatData.metadata] - Optional metadata
+     * @returns {void}
+     */
+    sendProviderHeartbeat(heartbeatData: {
+        providerId: string;
+        status: 'healthy' | 'degraded' | 'error';
+        connectedEnvironments: string[];
+        uptime?: number;
+        metadata?: Record<string, any>;
+    }): void {
+        if (!this.isReady) {
+            console.warn('Cannot send provider heartbeat - WebSocket not ready');
+            return;
+        }
+
+        const message = {
+            type: 'providerHeartbeat',
+            providerId: heartbeatData.providerId,
+            timestamp: new Date().toISOString(),
+            status: heartbeatData.status,
+            connectedEnvironments: heartbeatData.connectedEnvironments,
+            uptime: heartbeatData.uptime,
+            metadata: heartbeatData.metadata,
+        };
+
+        cbws.messageManager.send(message);
+    }
+
+    /**
+     * Sends an environment heartbeat request to the remote executor.
+     * @param {object} heartbeatData - The heartbeat data to send
+     * @param {string} heartbeatData.environmentId - The environment ID
+     * @param {string} heartbeatData.providerId - The provider ID
+     * @returns {void}
+     */
+    sendEnvironmentHeartbeat(heartbeatData: {
+        environmentId: string;
+        providerId: string;
+    }): void {
+        if (!this.isReady) {
+            console.warn('Cannot send environment heartbeat - WebSocket not ready');
+            return;
+        }
+
+        const message = {
+            type: 'environmentHeartbeat',
+            environmentId: heartbeatData.environmentId,
+            providerId: heartbeatData.providerId,
+            timestamp: new Date().toISOString(),
+        };
+
+        cbws.messageManager.send(message);
+    }
+
+    /**
+     * Sets up a listener for provider heartbeat requests from the main application.
+     * Providers should respond with their current health status.
+     * @param {Function} handler - The handler function to call when heartbeat is requested
+     * @returns {void}
+     */
+    onProviderHeartbeatRequest(handler: (request: {
+        providerId: string;
+        timestamp: string;
+    }) => void | Promise<void> | { status: 'healthy' | 'degraded' | 'error'; connectedEnvironments: string[] } | Promise<{ status: 'healthy' | 'degraded' | 'error'; connectedEnvironments: string[] }>) {
+        this.waitForReady().then(() => {
+            const handleProviderHeartbeatRequest = async (response: any) => {
+                if (response.type === "providerHeartbeatRequest") {
+                    try {
+                        const result = await handler({
+                            providerId: response.providerId,
+                            timestamp: response.timestamp,
+                        });
+
+                        // If handler returns heartbeat data, send it automatically
+                        if (result && typeof result === 'object' && 'status' in result) {
+                            this.sendProviderHeartbeat({
+                                providerId: response.providerId,
+                                status: result.status,
+                                connectedEnvironments: result.connectedEnvironments || [],
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error in provider heartbeat request handler:', error);
+                        // Send error heartbeat
+                        this.sendProviderHeartbeat({
+                            providerId: response.providerId,
+                            status: 'error',
+                            connectedEnvironments: [],
+                            metadata: {
+                                error: error instanceof Error ? error.message : 'Unknown error',
+                            },
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleProviderHeartbeatRequest);
+        }).catch(error => {
+            console.error('Failed to set up provider heartbeat request handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for environment heartbeat requests.
+     * Environment executors should respond with their current status.
+     * @param {Function} handler - The handler function to call when heartbeat is requested
+     * @returns {void}
+     */
+    onEnvironmentHeartbeatRequest(handler: (request: {
+        environmentId: string;
+        providerId: string;
+        timestamp: string;
+    }) => void | Promise<void> | { status: 'active' | 'degraded' | 'unreachable'; remoteExecutorStatus: 'running' | 'stopped' | 'starting' | 'error' | 'restarting' } | Promise<{ status: 'active' | 'degraded' | 'unreachable'; remoteExecutorStatus: 'running' | 'stopped' | 'starting' | 'error' | 'restarting' }>) {
+        this.waitForReady().then(() => {
+            const handleEnvironmentHeartbeatRequest = async (response: any) => {
+                if (response.type === "environmentHeartbeat") {
+                    try {
+                        const result = await handler({
+                            environmentId: response.environmentId,
+                            providerId: response.providerId,
+                            timestamp: response.timestamp,
+                        });
+
+                        // Send response if handler returns data
+                        if (result && typeof result === 'object' && 'status' in result) {
+                            const responseMessage = {
+                                type: 'environmentHeartbeatResponse',
+                                environmentId: response.environmentId,
+                                status: result.status,
+                                remoteExecutorStatus: result.remoteExecutorStatus,
+                                timestamp: new Date().toISOString(),
+                            };
+
+                            cbws.messageManager.send(responseMessage);
+                        }
+                    } catch (error) {
+                        console.error('Error in environment heartbeat request handler:', error);
+                        // Send error response
+                        cbws.messageManager.send({
+                            type: 'environmentHeartbeatResponse',
+                            environmentId: response.environmentId,
+                            status: 'unreachable',
+                            remoteExecutorStatus: 'error',
+                            timestamp: new Date().toISOString(),
+                            metadata: {
+                                error: error instanceof Error ? error.message : 'Unknown error',
+                            },
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleEnvironmentHeartbeatRequest);
+        }).catch(error => {
+            console.error('Failed to set up environment heartbeat request handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for environment restart requests from the main application.
+     * @param {Function} handler - The handler function to restart the environment/remote executor
+     * @returns {void}
+     */
+    onEnvironmentRestartRequest(handler: (request: {
+        environmentId: string;
+        providerId: string;
+    }) => void | Promise<void> | { success: boolean; message?: string } | Promise<{ success: boolean; message?: string }>) {
+        this.waitForReady().then(() => {
+            const handleEnvironmentRestartRequest = async (response: any) => {
+                if (response.type === "environmentRestartRequest") {
+                    try {
+                        const result = await handler({
+                            environmentId: response.environmentId,
+                            providerId: response.providerId,
+                        });
+
+                        const responseMessage: any = {
+                            type: 'environmentRestartResponse',
+                            environmentId: response.environmentId,
+                            success: true,
+                            timestamp: new Date().toISOString(),
+                        };
+
+                        if (result && typeof result === 'object') {
+                            responseMessage.success = result.success;
+                            responseMessage.message = result.message;
+                        }
+
+                        cbws.messageManager.send(responseMessage);
+                    } catch (error) {
+                        console.error('Error in environment restart request handler:', error);
+                        cbws.messageManager.send({
+                            type: 'environmentRestartResponse',
+                            environmentId: response.environmentId,
+                            success: false,
+                            message: error instanceof Error ? error.message : 'Unknown error during restart',
+                            timestamp: new Date().toISOString(),
+                        });
+                    }
+                }
+            };
+
+            cbws.messageManager.on('message', handleEnvironmentRestartRequest);
+        }).catch(error => {
+            console.error('Failed to set up environment restart request handler:', error);
+        });
+    }
 }
 
 export default Codebolt; 

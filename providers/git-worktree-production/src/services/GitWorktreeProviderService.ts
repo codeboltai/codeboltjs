@@ -84,6 +84,15 @@ export class GitWorktreeProviderService
       const result = await super.onProviderStart(initVars);
       this.logger.log('Started Environment with :', this.worktreeInfo.path ?? result.workspacePath);
 
+      // Start heartbeat monitoring after successful provider start
+      this.startHeartbeat();
+
+      // Register this environment as connected
+      if (initVars.environmentName) {
+        this.registerConnectedEnvironment(initVars.environmentName);
+        this.startEnvironmentHeartbeat(initVars.environmentName);
+      }
+
       return {
         ...result,
         worktreePath: this.worktreeInfo.path ?? result.workspacePath,
@@ -122,6 +131,14 @@ export class GitWorktreeProviderService
     this.logger.log('Provider stop requested for environment:', initVars.environmentName);
 
     try {
+      // Stop heartbeat monitoring first
+      this.stopHeartbeat();
+
+      // Unregister environment
+      if (initVars.environmentName) {
+        this.unregisterConnectedEnvironment(initVars.environmentName);
+      }
+
       // Stop the agent server
       await this.stopAgentServer();
 

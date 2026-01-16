@@ -14,17 +14,29 @@ import { ProviderInitVars } from "@codebolt/types/provider";
 
 import { AgentStartMessage, RawMessageForAgent } from "@codebolt/types/provider";
 
+// Heartbeat configuration
+const HEARTBEAT_INTERVAL = 10_000; // 10 seconds
+const ENVIRONMENT_HEARTBEAT_INTERVAL = 15_000; // 15 seconds
+
 /**
  * BaseProvider encapsulates shared functionality for environment providers.
  * Concrete providers can extend this class and override protected methods
  * to customize setup logic or communication transport.
  */
 export abstract class BaseProvider
-  implements ProviderLifecycleHandlers, ProviderTransport
-{
+  implements ProviderLifecycleHandlers, ProviderTransport {
   protected readonly config: BaseProviderConfig;
-  protected state: ProviderState;
+  protected state: ProviderState & {
+    providerId?: string;
+    environmentId?: string;
+    startTime?: number;
+    connectedEnvironments?: string[];
+  };
   protected agentServer: AgentServerConnection;
+
+  // Heartbeat tracking
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private environmentHeartbeatInterval: NodeJS.Timeout | null = null;
 
   constructor(config?: Partial<BaseProviderConfig>) {
     this.config = {
@@ -42,6 +54,10 @@ export abstract class BaseProvider
       environmentName: null,
       projectPath: null,
       workspacePath: null,
+      providerId: undefined,
+      environmentId: undefined,
+      startTime: undefined,
+      connectedEnvironments: [],
     };
 
     this.agentServer = {
@@ -139,7 +155,7 @@ export abstract class BaseProvider
    * Handle raw incoming messages from the platform. Default behavior is to
    * forward the payload to the agent server transport.
    */
-  async onRawMessage(message:RawMessageForAgent): Promise<void> {
+  async onRawMessage(message: RawMessageForAgent): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       throw new Error("Agent server connection is not established");
     }
@@ -216,13 +232,160 @@ export abstract class BaseProvider
    * Optional hook: execute custom logic before closing.
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected async beforeClose(): Promise<void> {}
+  protected async beforeClose(): Promise<void> { }
+
+  // ===== HEARTBEAT METHODS =====
+
+  /**
+   * Start sending provider heartbeats at regular intervals.
+   * Called automatically after connection is established.
+   */
+  protected startHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      return; // Already running
+    }
+
+    this.state.startTime = Date.now();
+
+    // Send initial heartbeat
+    this.sendProviderHeartbeat();
+
+    // Set up interval
+    this.heartbeatInterval = setInterval(() => {
+      this.sendProviderHeartbeat();
+    }, HEARTBEAT_INTERVAL);
+
+    console.log('[BaseProvider] Heartbeat monitoring started');
+  }
+
+  /**
+   * Stop sending provider heartbeats.
+   */
+  protected stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+      console.log('[BaseProvider] Heartbeat monitoring stopped');
+    }
+    if (this.environmentHeartbeatInterval) {
+      clearInterval(this.environmentHeartbeatInterval);
+      this.environmentHeartbeatInterval = null;
+      console.log('[BaseProvider] Environment heartbeat monitoring stopped');
+    }
+  }
+
+  /**
+   * Send a provider heartbeat to the main application.
+   */
+  protected sendProviderHeartbeat(): void {
+    if (!codebolt.ready) {
+      console.warn('[BaseProvider] Cannot send heartbeat - Codebolt not ready');
+      return;
+    }
+
+    const uptime = this.state.startTime
+      ? Math.floor((Date.now() - this.state.startTime) / 1000)
+      : 0;
+
+    try {
+      // Cast to any since heartbeat methods may not be exported in types yet
+      (codebolt as any).sendProviderHeartbeat({
+        providerId: this.state.providerId || this.state.environmentName || 'unknown',
+        status: this.getProviderHealthStatus(),
+        connectedEnvironments: this.state.connectedEnvironments || [],
+        uptime,
+        metadata: {
+          transport: this.config.transport,
+          initialized: this.state.initialized,
+        },
+      });
+    } catch (error) {
+      console.error('[BaseProvider] Failed to send provider heartbeat:', error);
+    }
+  }
+
+  /**
+   * Start environment-specific heartbeat monitoring.
+   * Subclasses can override to implement custom environment health checks.
+   */
+  protected startEnvironmentHeartbeat(environmentId: string): void {
+    if (this.environmentHeartbeatInterval) {
+      return; // Already running
+    }
+
+    this.state.environmentId = environmentId;
+
+    this.environmentHeartbeatInterval = setInterval(() => {
+      this.sendEnvironmentHeartbeat(environmentId);
+    }, ENVIRONMENT_HEARTBEAT_INTERVAL);
+
+    console.log(`[BaseProvider] Environment heartbeat started for: ${environmentId}`);
+  }
+
+  /**
+   * Send an environment heartbeat to the main application.
+   */
+  protected sendEnvironmentHeartbeat(environmentId: string): void {
+    if (!codebolt.ready) {
+      console.warn('[BaseProvider] Cannot send environment heartbeat - Codebolt not ready');
+      return;
+    }
+
+    try {
+      // Cast to any since heartbeat methods may not be exported in types yet
+      (codebolt as any).sendEnvironmentHeartbeat({
+        environmentId,
+        providerId: this.state.providerId || this.state.environmentName || 'unknown',
+      });
+    } catch (error) {
+      console.error('[BaseProvider] Failed to send environment heartbeat:', error);
+    }
+  }
+
+  /**
+   * Get the current health status of the provider.
+   * Subclasses can override for custom health determination.
+   */
+  protected getProviderHealthStatus(): 'healthy' | 'degraded' | 'error' {
+    if (!this.state.initialized) {
+      return 'error';
+    }
+    if (!this.agentServer.isConnected) {
+      return 'degraded';
+    }
+    return 'healthy';
+  }
+
+  /**
+   * Register an environment as connected to this provider.
+   */
+  protected registerConnectedEnvironment(environmentId: string): void {
+    if (!this.state.connectedEnvironments) {
+      this.state.connectedEnvironments = [];
+    }
+    if (!this.state.connectedEnvironments.includes(environmentId)) {
+      this.state.connectedEnvironments.push(environmentId);
+    }
+  }
+
+  /**
+   * Unregister an environment from this provider.
+   */
+  protected unregisterConnectedEnvironment(environmentId: string): void {
+    if (this.state.connectedEnvironments) {
+      this.state.connectedEnvironments = this.state.connectedEnvironments.filter(
+        id => id !== environmentId
+      );
+    }
+  }
+
+  // ===== END HEARTBEAT METHODS =====
 
   /**
    * Optional hook: execute logic after connection is established.
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected async afterConnected(_startResult: ProviderStartResult): Promise<void> {}
+  protected async afterConnected(_startResult: ProviderStartResult): Promise<void> { }
 
   /**
    * Set up provider-specific environment (e.g., create worktree).
@@ -234,13 +397,13 @@ export abstract class BaseProvider
    * Tear down provider-specific environment. Default implementation is a no-op.
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected async teardownEnvironment(): Promise<void> {}
+  protected async teardownEnvironment(): Promise<void> { }
 
   /**
    * Ensure agent server availability (start or reuse). Subclasses can override.
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  protected async ensureAgentServer(): Promise<void> {}
+  protected async ensureAgentServer(): Promise<void> { }
 
   /**
    * Resolve workspace path based on provider requirements.
