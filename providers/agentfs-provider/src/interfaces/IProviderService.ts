@@ -41,6 +41,7 @@ export interface ProviderConfig {
     agentServerPort?: number;
     agentServerHost?: string;
     agentFSBinaryPath?: string;
+    nfsPort?: number;
     timeouts?: {
         agentServerStartup?: number;
         wsConnection?: number;
