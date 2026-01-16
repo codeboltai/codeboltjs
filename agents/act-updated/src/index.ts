@@ -23,7 +23,7 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-let systemPrompt =`
+let systemPrompt = `
 
 You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.
 
@@ -307,14 +307,14 @@ Specific markdown rules:
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     try {
- 
+
         // codebolt.chat.sendMessage("Gemini agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
         let promptGenerator = new InitialPromptGenerator({
 
             processors: [
                 // 1. Chat History
-                new ChatHistoryMessageModifier({enableChatHistory:true}),
+                new ChatHistoryMessageModifier({ enableChatHistory: true }),
                 // 2. Environment Context (date, OS)
                 new EnvironmentContextModifier({ enableFullContext: true }),
 
@@ -351,14 +351,14 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
             let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
             prompt = result.nextMessage;
-       
+
             let responseExecutor = new ResponseExecutor({
-                preToolCalProcessors: [],
+                preToolCallProcessors: [],
                 postToolCallProcessors: []
 
             })
             let executionResult = await responseExecutor.executeResponse({
-                initailUserMessage: reqMessage,
+                initialUserMessage: reqMessage,
                 actualMessageSentToLLM: result.actualMessageSentToLLM,
                 rawLLMOutput: result.rawLLMResponse,
                 nextMessage: result.nextMessage,
@@ -379,7 +379,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
 
     } catch (error) {
-    
+
     }
 })
 
