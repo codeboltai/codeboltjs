@@ -2,7 +2,6 @@ import codebolt from '@codebolt/codeboltjs';
 import fs from 'fs'
 import {
     InitialPromptGenerator,
-
     ResponseExecutor
 } from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
@@ -14,8 +13,6 @@ import {
     AtFileProcessorModifier,
     ToolInjectionModifier,
     ChatHistoryMessageModifier
-
-
 } from '@codebolt/agent/processor-pieces';
 
 
@@ -317,7 +314,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                 new ChatHistoryMessageModifier({ enableChatHistory: true }),
                 // 2. Environment Context (date, OS)
                 new EnvironmentContextModifier({ enableFullContext: true }),
-
                 // 3. Directory Context (folder structure)  
                 new DirectoryContextModifier(),
 
@@ -332,7 +328,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
                 new CoreSystemPromptModifier(
                     { customSystemPrompt: systemPrompt }
                 ),
-
                 // 6. Tools (function declarations)
                 new ToolInjectionModifier({
                     includeToolDescriptions: true
