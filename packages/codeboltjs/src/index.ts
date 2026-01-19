@@ -972,3 +972,34 @@ export type {
 
 // Export contextRuleEngine module
 export { default as contextRuleEngine } from './modules/contextRuleEngine';
+
+// ================================
+// Agent Portfolio Types
+// ================================
+export type {
+    AgentProfile,
+    Talent,
+    KarmaEntry,
+    Testimonial,
+    Appreciation,
+    AgentPortfolio,
+    AgentConversation,
+    RankingEntry,
+    GetPortfolioResponse,
+    GetConversationsResponse,
+    AddTestimonialResponse,
+    UpdateTestimonialResponse,
+    DeleteTestimonialResponse,
+    AddKarmaResponse,
+    GetKarmaHistoryResponse,
+    AddAppreciationResponse,
+    AddTalentResponse,
+    EndorseTalentResponse,
+    GetTalentsResponse,
+    GetRankingResponse,
+    GetPortfoliosByProjectResponse,
+    UpdateProfileResponse
+} from './types/agentPortfolio';
+
+// Export agentPortfolio module
+export { default as agentPortfolio } from './modules/agentPortfolio';

@@ -1,0 +1,17 @@
+{
+    "extends": "../tsconfig.test.json",
+    "compilerOptions": {
+        "baseUrl": "..",
+        "paths": {
+            "@codebolt/codeboltjs": [
+                "src/index"
+            ],
+            "@codebolt/codeboltjs/*": [
+                "src/*"
+            ]
+        }
+    },
+    "include": [
+        "./**/*"
+    ]
+}

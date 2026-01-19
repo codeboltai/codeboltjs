@@ -1,0 +1,10 @@
+{
+  "label": "Review Merge Request",
+  "position": 16,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Review and merge request management APIs for code reviews, approvals, and merge workflows"
+  }
+}

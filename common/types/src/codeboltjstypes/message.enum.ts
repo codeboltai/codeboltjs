@@ -15,8 +15,9 @@ export enum EventType {
     PROJECT_EVENT = "projectEvent",
     CHAT_SUMMARY_EVENT = "chatSummaryEvent",
     MEMORY_EVENT = "memoryEvent",
-    ACTION_PLAN="actionPlanEvent"
-    
+    ACTION_PLAN="actionPlanEvent",
+    TODO_EVENT = "todoEvent",
+    AGENT_PORTFOLIO_EVENT = "agentPortfolioEvent"
 }
 
 export enum AgentAction {
@@ -153,6 +154,11 @@ export enum CodeboltToolsAction {
     ConfigureToolBox = "configureToolBox",
     GetTools = "getTools",
     ExecuteTool = "executeTool",
+    GetMcpTools = "getMcpTools",
+    GetMcpList = "getMcpList",
+    GetAllMcpTools = "getAllMcpTools",
+    GetEnabledMcps = "getEnabledMcps",
+    ConfigureMcpTool = "configureMcpTool",
 }
 
 export enum CodeboltToolsResponse {
@@ -164,6 +170,11 @@ export enum CodeboltToolsResponse {
     ConfigureToolBoxResponse = "configureToolBoxResponse",
     GetToolsResponse = "getToolsResponse",
     ExecuteToolResponse = "executeToolResponse",
+    GetMcpToolsResponse = "getMcpToolsResponse",
+    GetMcpListResponse = "getMcpListResponse",
+    GetAllMcpToolsResponse = "getAllMcpToolsResponse",
+    GetEnabledMcpsResponse = "getEnabledMcpsResponse",
+    ConfigureMcpToolResponse = "configureMcpToolResponse",
 }
 
 
@@ -234,6 +245,7 @@ export enum GitAction {
     GIT_BRANCH = "gitBranch",
     GIT_LOGS = "gitLogs",
     DIFF = "Diff",
+    CLONE = "Clone",
 }
 
 export enum GitResponseType {
@@ -247,6 +259,7 @@ export enum GitResponseType {
     GIT_BRANCH_RESPONSE = "gitBranchResponse",
     GIT_LOGS_RESPONSE = "gitLogsResponse",
     DIFF_RESPONSE = "DiffResponse",
+    CLONE_RESPONSE = "gitCloneResponse",
 }
 
 
@@ -316,6 +329,70 @@ export enum TaskResponseType {
     EXPORT_TASKS_TO_MARKDOWN_RESPONSE = "exportTasksToMarkdownResponse",
 }
 
+export enum TodoAction {
+    ADD_TODO = "addTodo",
+    UPDATE_TODO = "updateTodo",
+    GET_TODO_LIST = "getTodoList",
+    GET_ALL_INCOMPLETE_TODOS = "getAllIncompleteTodos",
+    CHANGE_TODO_ITEM_STATUS = "changeTodoItemStatus",
+    GET_TODO_STATS = "getTodoStats",
+    DELETE_TODO_ITEM = "deleteTodoItem",
+    ARCHIVE_TODO_LIST = "archiveTodoList",
+    UNARCHIVE_TODO_LIST = "unarchiveTodoList",
+    DELETE_COMPLETED_TODOS = "deleteCompletedTodos",
+    EXPORT_TODOS = "exportTodos",
+    IMPORT_TODOS = "importTodos",
+}
+
+export enum TodoResponseType {
+    ADD_TODO_RESPONSE = "addTodoResponse",
+    UPDATE_TODO_RESPONSE = "updateTodoResponse",
+    GET_TODO_LIST_RESPONSE = "getTodoListResponse",
+    GET_ALL_INCOMPLETE_TODOS_RESPONSE = "getAllIncompleteTodosResponse",
+    CHANGE_TODO_ITEM_STATUS_RESPONSE = "changeTodoItemStatusResponse",
+    GET_TODO_STATS_RESPONSE = "getTodoStatsResponse",
+    DELETE_TODO_ITEM_RESPONSE = "deleteTodoItemResponse",
+    ARCHIVE_TODO_LIST_RESPONSE = "archiveTodoListResponse",
+    UNARCHIVE_TODO_LIST_RESPONSE = "unarchiveTodoListResponse",
+    DELETE_COMPLETED_TODOS_RESPONSE = "deleteCompletedTodosResponse",
+    EXPORT_TODOS_RESPONSE = "exportTodosResponse",
+    IMPORT_TODOS_RESPONSE = "importTodosResponse",
+}
+
+export enum AgentPortfolioAction {
+    GET_PORTFOLIO = "getPortfolio",
+    GET_CONVERSATIONS = "getConversations",
+    ADD_TESTIMONIAL = "addTestimonial",
+    UPDATE_TESTIMONIAL = "updateTestimonial",
+    DELETE_TESTIMONIAL = "deleteTestimonial",
+    ADD_KARMA = "addKarma",
+    GET_KARMA_HISTORY = "getKarmaHistory",
+    ADD_APPRECIATION = "addAppreciation",
+    ADD_TALENT = "addTalent",
+    ENDORSE_TALENT = "endorseTalent",
+    GET_TALENTS = "getTalents",
+    GET_RANKING = "getRanking",
+    GET_PORTFOLIOS_BY_PROJECT = "getPortfoliosByProject",
+    UPDATE_PROFILE = "updateProfile",
+}
+
+export enum AgentPortfolioResponseType {
+    GET_PORTFOLIO_RESPONSE = "getPortfolioResponse",
+    GET_CONVERSATIONS_RESPONSE = "getConversationsResponse",
+    ADD_TESTIMONIAL_RESPONSE = "addTestimonialResponse",
+    UPDATE_TESTIMONIAL_RESPONSE = "updateTestimonialResponse",
+    DELETE_TESTIMONIAL_RESPONSE = "deleteTestimonialResponse",
+    ADD_KARMA_RESPONSE = "addKarmaResponse",
+    GET_KARMA_HISTORY_RESPONSE = "getKarmaHistoryResponse",
+    ADD_APPRECIATION_RESPONSE = "addAppreciationResponse",
+    ADD_TALENT_RESPONSE = "addTalentResponse",
+    ENDORSE_TALENT_RESPONSE = "endorseTalentResponse",
+    GET_TALENTS_RESPONSE = "getTalentsResponse",
+    GET_RANKING_RESPONSE = "getRankingResponse",
+    GET_PORTFOLIOS_BY_PROJECT_RESPONSE = "getPortfoliosByProjectResponse",
+    UPDATE_PROFILE_RESPONSE = "updateProfileResponse",
+}
+
 export enum TaskPriority {
     LOW = "low",
     MEDIUM = "medium",
@@ -333,6 +410,7 @@ export enum TaskPhase {
 export enum TerminalEventType {
     EXECUTE_COMMAND = "executeCommand",
     EXECUTE_COMMAND_RUN_UNTIL_ERROR = "executeCommandRunUntilError",
+    EXECUTE_COMMAND_RUN_UNTIL_INTERRUPT = "executeCommandRunUntilInterrupt",
     EXECUTE_COMMAND_WITH_STREAM = "executeCommandWithStream",
     SEND_INTERRUPT_TO_TERMINAL = "sendInterruptToTerminal",
 }

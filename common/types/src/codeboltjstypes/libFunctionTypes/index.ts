@@ -73,4 +73,9 @@ export * from './sideExecution';
 // Capability types
 export * from './capability';
 
+// Todo types
+export * from './todo';
+
+// Agent Portfolio types
+export * from './agentPortfolio';
 
