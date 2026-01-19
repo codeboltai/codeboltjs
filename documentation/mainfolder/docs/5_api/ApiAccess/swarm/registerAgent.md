@@ -12,25 +12,25 @@ cbparameters:
       description: Agent registration configuration.
       nested:
         - name: agentId
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional custom agent ID. If not provided, one will be generated.
         - name: name
           typeName: string
-          description: The display name of the agent (required).
+          description: "The display name of the agent (required)."
         - name: capabilities
-          typeName: string[] | undefined
+          typeName: "string[] | undefined"
           description: Array of capabilities/skills the agent possesses.
         - name: agentType
-          typeName: 'internal' | 'external' | undefined
+          typeName: "'internal' | 'external' | undefined"
           description: Whether the agent is internal or external.
         - name: connectionInfo
-          typeName: { endpoint: string, protocol: 'websocket' | 'http' } | undefined
+          typeName: "{ endpoint: string, protocol: 'websocket' | 'http' } | undefined"
           description: Connection details for external agents.
         - name: metadata
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional metadata about the agent.
   returns:
-    signatureTypeName: Promise<RegisterAgentResponse>
+    signatureTypeName: "Promise<RegisterAgentResponse>"
     description: A promise that resolves with the agent registration details.
     typeArgs: []
 data:

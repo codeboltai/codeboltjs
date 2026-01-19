@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The name of the ActionBlock to retrieve details for.
   returns:
-    signatureTypeName: Promise<GetActionBlockDetailResponse>
+    signatureTypeName: "Promise<GetActionBlockDetailResponse>"
     description: A promise that resolves to ActionBlock details.
     typeArgs: []
 data:

@@ -13,7 +13,7 @@ cbparameters:
       required: false
       description: Optional namespace to count records in. If not provided, counts all records in the instance.
   returns:
-    signatureTypeName: Promise<KVRecordCountResponse>
+    signatureTypeName: "Promise<KVRecordCountResponse>"
     description: A promise that resolves with the total record count.
 data:
   name: getRecordCount

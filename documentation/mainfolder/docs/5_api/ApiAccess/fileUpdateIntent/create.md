@@ -15,9 +15,9 @@ cbparameters:
     - name: claimedByName
       type: string
       required: false
-      description: Optional human-readable name of the agent.
+      description: "Optional human-readable name of the agent."
   returns:
-    signatureTypeName: Promise<{ intent?: FileUpdateIntent, overlap?: IntentOverlapResult }>
+    signatureTypeName: "Promise<{ intent?: FileUpdateIntent, overlap?: IntentOverlapResult }>"
     description: A promise that resolves with the created intent and overlap information.
 data:
   name: create

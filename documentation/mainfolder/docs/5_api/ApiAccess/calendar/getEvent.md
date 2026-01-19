@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetEventParams
       description: Parameters containing the eventId to retrieve
   returns:
-    signatureTypeName: Promise<IGetEventResponse>
+    signatureTypeName: "Promise<IGetEventResponse>"
     description: A promise that resolves to the requested event data
 data:
   name: getEvent

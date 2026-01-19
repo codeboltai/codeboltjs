@@ -13,7 +13,7 @@ cbparameters:
       required: true
       description: Object containing name and/or description to update.
   returns:
-    signatureTypeName: Promise<EventLogInstanceResponse>
+    signatureTypeName: "Promise<EventLogInstanceResponse>"
     description: A promise that resolves with the updated instance details.
 data:
   name: updateInstance

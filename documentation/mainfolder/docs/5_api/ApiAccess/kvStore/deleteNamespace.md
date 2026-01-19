@@ -1,7 +1,7 @@
 ---
 name: deleteNamespace
 cbbaseinfo:
-  description: Deletes all key-value pairs in a namespace, effectively clearing the entire namespace.
+  description: "Deletes all key-value pairs in a namespace, effectively clearing the entire namespace."
 cbparameters:
   parameters:
     - name: instanceId
@@ -11,9 +11,9 @@ cbparameters:
     - name: namespace
       type: string
       required: true
-      description: The namespace to delete (clears all keys within it).
+      description: "The namespace to delete (clears all keys within it)."
   returns:
-    signatureTypeName: Promise<KVDeleteNamespaceResponse>
+    signatureTypeName: "Promise<KVDeleteNamespaceResponse>"
     description: A promise that resolves with the number of deleted records.
 data:
   name: deleteNamespace

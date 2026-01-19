@@ -1,14 +1,14 @@
 ---
 name: updateCase
 cbbaseinfo:
-  description: Updates an existing test case's properties or steps.
+  description: "Updates an existing test case's properties or steps."
 cbparameters:
   parameters:
     - name: params
       typeName: IUpdateCaseParams
       description: Parameters including case ID and fields to update.
   returns:
-    signatureTypeName: Promise<IUpdateCaseResponse>
+    signatureTypeName: "Promise<IUpdateCaseResponse>"
     description: A promise that resolves to the updated test case.
     typeArgs: []
 data:

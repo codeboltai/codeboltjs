@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetThreadParams
       description: Object containing the threadId to retrieve.
   returns:
-    signatureTypeName: Promise<IGetThreadResponse>
+    signatureTypeName: "Promise<IGetThreadResponse>"
     description: A promise that resolves with the thread details.
 data:
   name: getThread

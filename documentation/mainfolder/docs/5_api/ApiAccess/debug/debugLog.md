@@ -9,9 +9,9 @@ cbparameters:
       description: The log message to send to the debug system.
     - name: type
       typeName: logType
-      description: 'The type of the log message. Valid values are: "info", "error", "warning".'
+      description: "'The type of the log message. Valid values are: \"info\", \"error\", \"warning\".'"
   returns:
-    signatureTypeName: Promise<DebugAddLogResponse>
+    signatureTypeName: "Promise<DebugAddLogResponse>"
     description: A promise that resolves with a `DebugAddLogResponse` object containing the response type and log metadata.
 data:
   name: debug

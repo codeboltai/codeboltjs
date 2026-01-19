@@ -8,7 +8,7 @@ cbparameters:
       typeName: IListEventsParams
       description: Optional filter parameters for querying events
   returns:
-    signatureTypeName: Promise<IListEventsResponse>
+    signatureTypeName: "Promise<IListEventsResponse>"
     description: A promise that resolves to a list of filtered events with count
 data:
   name: listEvents

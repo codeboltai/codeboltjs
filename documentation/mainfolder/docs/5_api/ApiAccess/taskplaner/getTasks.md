@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetTasksResponse>
+    signatureTypeName: "Promise<GetTasksResponse>"
     description: A promise that resolves with the response containing all tasks from the task management system.
 data:
   name: getTasks

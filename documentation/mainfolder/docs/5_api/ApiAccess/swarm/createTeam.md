@@ -13,21 +13,21 @@ cbparameters:
       nested:
         - name: name
           typeName: string
-          description: The name of the team (required).
+          description: "The name of the team (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the team's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the team's purpose."
         - name: maxMembers
-          typeName: number | undefined
+          typeName: "number | undefined"
           description: Maximum number of agents allowed in the team.
         - name: metadata
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional metadata about the team.
         - name: createdBy
           typeName: string
-          description: ID of the agent or user creating the team (required).
+          description: "ID of the agent or user creating the team (required)."
   returns:
-    signatureTypeName: Promise<CreateTeamResponse>
+    signatureTypeName: "Promise<CreateTeamResponse>"
     description: A promise that resolves to the created team details.
     typeArgs: []
 data:

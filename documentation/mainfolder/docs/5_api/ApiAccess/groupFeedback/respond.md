@@ -8,7 +8,7 @@ cbparameters:
       typeName: IRespondParams
       description: Parameters including feedbackId, participantId, and array of responses.
   returns:
-    signatureTypeName: Promise<IRespondResponse>
+    signatureTypeName: "Promise<IRespondResponse>"
     description: A promise that resolves with the added response details.
 data:
   name: respond

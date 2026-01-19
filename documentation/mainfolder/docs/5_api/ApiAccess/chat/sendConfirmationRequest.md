@@ -8,14 +8,14 @@ cbparameters:
       typeName: string
       description: The message to display in the confirmation.
     - name: buttons
-      typeName: string[]
+      typeName: "string[]"
       description: An array of button labels. Defaults to Yes/No if not specified.
     - name: withFeedback
       typeName: boolean
       description: Whether to allow additional feedback input. Default is false.
   returns:
     signatureTypeName: Promise
-    description: A promise that resolves with the server's response.
+    description: "A promise that resolves with the server's response."
     typeArgs:
       - type: string
         name: string

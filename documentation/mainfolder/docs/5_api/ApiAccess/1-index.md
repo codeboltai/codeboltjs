@@ -5,16 +5,16 @@ cbapicategory:
     # ========== Core AI & Machine Learning ==========
     - name: Swarm
       link: /docs/api/ApiAccess/swarm
-      description: Multi-agent swarm coordination with teams, roles, and vacancies for orchestrating complex AI systems
+      description: "Multi-agent swarm coordination with teams, roles, and vacancies for orchestrating complex AI systems"
     - name: Knowledge Graph
       link: /docs/api/ApiAccess/knowledgeGraph
-      description: Graph-based knowledge management with entities, relationships, and pattern matching queries
+      description: "Graph-based knowledge management with entities, relationships, and pattern matching queries"
     - name: Episodic Memory
       link: /docs/api/ApiAccess/episodicMemory
-      description: Time-series episodic memory for storing and retrieving contextual experiences
+      description: "Time-series episodic memory for storing and retrieving contextual experiences"
     - name: Persistent Memory
       link: /docs/api/ApiAccess/persistentMemory
-      description: Long-term persistent memory storage for agent knowledge and experiences
+      description: "Long-term persistent memory storage for agent knowledge and experiences"
     - name: Memory Ingestion
       link: /docs/api/ApiAccess/memoryIngestion
       description: Automated memory ingestion and processing for building agent knowledge bases
@@ -31,7 +31,7 @@ cbapicategory:
       description: Model Context Protocol for managing modular tools and services through WebSocket communication
     - name: State
       link: /docs/api/ApiAccess/state
-      description: Application state management with real-time updates and persistence
+      description: "Application state management with real-time updates and persistence"
     - name: Utils
       link: /docs/api/ApiAccess/utils
       description: General utility functions and helpers for common operations
@@ -39,13 +39,13 @@ cbapicategory:
     # ========== Agent & Task Management ==========
     - name: Agent
       link: /docs/api/ApiAccess/agent
-      description: Create customized, high-performance agents tailored to specific needs
+      description: "Create customized, high-performance agents tailored to specific needs"
     - name: Agent Portfolio
       link: /docs/api/ApiAccess/agentPortfolio
       description: Agent reputation system with karma, testimonials, talents, and rankings
     - name: Agent Deliberation
       link: /docs/api/ApiAccess/agentDeliberation
-      description: Agent decision-making and reasoning capabilities for complex tasks
+      description: "Agent decision-making and reasoning capabilities for complex tasks"
     - name: Action Block
       link: /docs/api/ApiAccess/actionBlock
       description: Structured action blocks for organizing and executing agent workflows
@@ -65,13 +65,13 @@ cbapicategory:
       description: Email management and communication capabilities
     - name: Hook
       link: /docs/api/ApiAccess/hook
-      description: Webhook management for event-driven integrations
+      description: "Webhook management for event-driven integrations"
     - name: Group Feedback
       link: /docs/api/ApiAccess/groupFeedback
       description: Collaborative feedback collection and management for teams
     - name: Chat
       link: /docs/api/ApiAccess/chat
-      description: Real-time chat interface with message history and user interaction
+      description: "Real-time chat interface with message history and user interaction"
 
     # ========== Project & Planning ==========
     - name: Calendar
@@ -93,7 +93,7 @@ cbapicategory:
     # ========== Data & Storage ==========
     - name: KV Store
       link: /docs/api/ApiAccess/kvStore
-      description: Persistent key-value storage with namespaces and querying capabilities
+      description: "Persistent key-value storage with namespaces and querying capabilities"
     - name: Event Log
       link: /docs/api/ApiAccess/eventLog
       description: Event logging and audit trail for system activities
@@ -113,7 +113,7 @@ cbapicategory:
       description: Task management with priorities, tags, and import/export capabilities
     - name: Side Execution
       link: /docs/api/ApiAccess/sideExecution
-      description: Execute code in isolated processes for long-running or intensive tasks
+      description: "Execute code in isolated processes for long-running or intensive tasks"
 
     # ========== User & Message Management ==========
     - name: User Message Manager
@@ -156,7 +156,7 @@ cbapicategory:
       description: Project management and configuration
     - name: Terminal
       link: /docs/api/ApiAccess/terminal
-      description: Terminal command execution with support for long-running processes
+      description: "Terminal command execution with support for long-running processes"
     - name: Codebase Search
       link: /docs/api/ApiAccess/codebaseSearch
       description: Search and navigate codebases with advanced queries
@@ -168,13 +168,13 @@ cbapicategory:
       description: Analyze and manage project structure and architecture
     - name: Project Structure Update Request
       link: /docs/api/ApiAccess/projectStructureUpdateRequest
-      description: Multi-agent coordination for proposing and reviewing structural changes
+      description: "Multi-agent coordination for proposing and reviewing structural changes"
     - name: History
       link: /docs/api/ApiAccess/history
       description: Chat history management with summarization
     - name: Db Memory
       link: /docs/api/ApiAccess/dbmemory
-      description: Database-backed memory for persistent knowledge storage
+      description: "Database-backed memory for persistent knowledge storage"
     - name: Debug
       link: /docs/api/ApiAccess/debug
       description: Debugging utilities and logging capabilities
@@ -183,7 +183,7 @@ cbapicategory:
       description: Large Language Model integration and management
     - name: RAG
       link: /docs/api/ApiAccess/rag
-      description: Retrieval-Augmented Generation for enhanced AI responses
+      description: "Retrieval-Augmented Generation for enhanced AI responses"
     - name: Tokenizer
       link: /docs/api/ApiAccess/tokenizer
       description: Text tokenization for processing and analysis

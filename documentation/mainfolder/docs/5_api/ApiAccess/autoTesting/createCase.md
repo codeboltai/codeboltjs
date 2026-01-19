@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateCaseParams
       description: Parameters for creating the test case including key, name, steps, and labels.
   returns:
-    signatureTypeName: Promise<ICreateCaseResponse>
+    signatureTypeName: "Promise<ICreateCaseResponse>"
     description: A promise that resolves to the created test case.
     typeArgs: []
 data:

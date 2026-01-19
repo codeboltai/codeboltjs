@@ -13,7 +13,7 @@ cbparameters:
       required: true
       description: Agent ID completing the intent.
   returns:
-    signatureTypeName: Promise<FileUpdateIntent>
+    signatureTypeName: "Promise<FileUpdateIntent>"
     description: A promise that resolves with the completed intent.
 data:
   name: complete

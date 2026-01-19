@@ -8,12 +8,12 @@ cbparameters:
   parameters:
     - name: direction
       typeName: string
-      description: The direction to scroll (e.g., 'down', 'up', 'left', 'right').
+      description: "The direction to scroll (e.g., 'down', 'up', 'left', 'right')."
     - name: pixels
       typeName: string
       description: The number of pixels to scroll.
   returns:
-    signatureTypeName: Promise<ScrollResponse>
+    signatureTypeName: "Promise<ScrollResponse>"
     description: A promise that resolves when the scroll action is complete.
     typeArgs: []
 data:

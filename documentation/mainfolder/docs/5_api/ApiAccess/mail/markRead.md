@@ -8,7 +8,7 @@ cbparameters:
       typeName: IMarkReadParams
       description: Parameters including messageId or threadId to mark as read.
   returns:
-    signatureTypeName: Promise<IMarkReadResponse>
+    signatureTypeName: "Promise<IMarkReadResponse>"
     description: A promise that resolves when the message/thread is marked read.
 data:
   name: markRead

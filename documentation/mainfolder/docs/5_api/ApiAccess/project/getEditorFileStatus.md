@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetEditorFileStatusResponse>
+    signatureTypeName: "Promise<GetEditorFileStatusResponse>"
     description: A promise that resolves with the editor file status response containing information about the current editor state.
 data:
   name: getEditorFileStatus

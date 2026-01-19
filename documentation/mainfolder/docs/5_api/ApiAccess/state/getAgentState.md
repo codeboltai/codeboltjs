@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetAgentStateResponse>
-    description: A promise that resolves with the agent's state data.
+    signatureTypeName: "Promise<GetAgentStateResponse>"
+    description: "A promise that resolves with the agent's state data."
     typeArgs: []
 data:
   name: getAgentState

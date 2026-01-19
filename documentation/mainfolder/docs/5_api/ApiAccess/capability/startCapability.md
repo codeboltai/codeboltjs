@@ -9,17 +9,17 @@ cbparameters:
       description: The name of the capability to execute.
     - name: capabilityType
       typeName: CapabilityType
-      description: The type of capability (skill, power, talent, etc.).
+      description: "The type of capability (skill, power, talent, etc.)."
     - name: params
-      typeName: Record<string, any>
+      typeName: "Record<string, any>"
       description: Optional parameters to pass to the capability execution.
       isOptional: true
     - name: timeout
       typeName: number
-      description: Optional execution timeout in milliseconds. If not provided, uses the capability's default timeout.
+      description: "Optional execution timeout in milliseconds. If not provided, uses the capability's default timeout."
       isOptional: true
   returns:
-    signatureTypeName: Promise<StartCapabilityResponse>
+    signatureTypeName: "Promise<StartCapabilityResponse>"
     description: A promise that resolves to the execution response containing the execution ID and initial status.
     typeArgs: []
 data:

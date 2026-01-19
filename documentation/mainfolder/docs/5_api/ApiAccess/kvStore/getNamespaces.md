@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the KV store instance.
   returns:
-    signatureTypeName: Promise<KVNamespacesResponse>
+    signatureTypeName: "Promise<KVNamespacesResponse>"
     description: A promise that resolves with an array of namespace names.
 data:
   name: getNamespaces

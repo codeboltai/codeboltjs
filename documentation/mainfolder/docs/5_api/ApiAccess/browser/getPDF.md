@@ -6,7 +6,7 @@ cbparameters:
   parameters: []
   returns:
     signatureTypeName: void
-    description: ' '
+    description: "' '"
     typeArgs: []
 data:
   name: getPDF

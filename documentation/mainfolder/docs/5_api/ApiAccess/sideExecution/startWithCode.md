@@ -9,15 +9,15 @@ cbparameters:
       description: JavaScript code to execute in the side process.
       isOptional: false
     - name: params
-      typeName: Record<string, any>
+      typeName: "Record<string, any>"
       description: Optional parameters available in the execution context.
       isOptional: true
     - name: timeout
       typeName: number
-      description: Execution timeout in milliseconds (default: 5 minutes).
+      description: "Execution timeout in milliseconds (default: 5 minutes)."
       isOptional: true
   returns:
-    signatureTypeName: Promise<StartSideExecutionResponse>
+    signatureTypeName: "Promise<StartSideExecutionResponse>"
     description: A promise that resolves with the side execution ID and initial status.
     typeArgs: []
 data:

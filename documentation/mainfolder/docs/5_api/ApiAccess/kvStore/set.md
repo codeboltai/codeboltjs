@@ -11,7 +11,7 @@ cbparameters:
     - name: namespace
       type: string
       required: true
-      description: The namespace to store the key-value pair in.
+      description: "The namespace to store the key-value pair in."
     - name: key
       type: string
       required: true
@@ -19,13 +19,13 @@ cbparameters:
     - name: value
       type: any
       required: true
-      description: Any JSON-serializable value to store.
+      description: "Any JSON-serializable value to store."
     - name: autoCreateInstance
       type: boolean
       required: false
-      description: If true, automatically creates the instance if it doesn't exist. Default is false.
+      description: "If true, automatically creates the instance if it doesn't exist. Default is false."
   returns:
-    signatureTypeName: Promise<KVSetResponse>
+    signatureTypeName: "Promise<KVSetResponse>"
     description: A promise that resolves with the stored record details including timestamps.
 data:
   name: set

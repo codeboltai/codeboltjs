@@ -6,10 +6,10 @@ cbparameters:
   parameters:
     - name: filter
       typeName: ActionBlockFilter
-      description: Optional filter to narrow results by type (filesystem, runtime, or builtin).
+      description: "Optional filter to narrow results by type (filesystem, runtime, or builtin)."
       isOptional: true
   returns:
-    signatureTypeName: Promise<ListActionBlocksResponse>
+    signatureTypeName: "Promise<ListActionBlocksResponse>"
     description: A promise that resolves to the list of ActionBlocks.
     typeArgs: []
 data:

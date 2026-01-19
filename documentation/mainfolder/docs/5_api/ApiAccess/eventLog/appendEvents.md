@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Parameters including instanceId, events array, and autoCreateInstance option.
   returns:
-    signatureTypeName: Promise<EventLogAppendMultipleResponse>
+    signatureTypeName: "Promise<EventLogAppendMultipleResponse>"
     description: A promise that resolves with all appended events and count.
 data:
   name: appendEvents

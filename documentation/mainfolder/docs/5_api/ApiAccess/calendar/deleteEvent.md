@@ -8,7 +8,7 @@ cbparameters:
       typeName: IDeleteEventParams
       description: Parameters containing the eventId to delete
   returns:
-    signatureTypeName: Promise<IDeleteEventResponse>
+    signatureTypeName: "Promise<IDeleteEventResponse>"
     description: A promise that resolves when the event is deleted
 data:
   name: deleteEvent

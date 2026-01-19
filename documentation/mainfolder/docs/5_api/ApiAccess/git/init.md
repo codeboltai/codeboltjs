@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: path
       typeName: string
-      description: The file system path where the Git repository should be initialized (e.g., '.', '/path/to/project', './my-project').
+      description: "The file system path where the Git repository should be initialized (e.g., '.', '/path/to/project', './my-project')."
   returns:
-    signatureTypeName: Promise<GitInitResponse>
+    signatureTypeName: "Promise<GitInitResponse>"
     description: A promise that resolves with a `GitInitResponse` object containing the response type and initialization metadata.
 data:
   name: init

@@ -9,9 +9,9 @@ cbparameters:
       description: The unique identifier of the thread to update.
     - name: updates
       typeName: UpdateThreadOptions
-      description: Object containing the fields to update (title, description, metadata, etc.).
+      description: "Object containing the fields to update (title, description, metadata, etc.)."
   returns:
-    signatureTypeName: Promise<UpdateThreadResponse>
+    signatureTypeName: "Promise<UpdateThreadResponse>"
     description: A promise that resolves with the updated thread details.
 data:
   name: updateThread

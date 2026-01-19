@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<BrowserScreenshotResponse>
+    signatureTypeName: "Promise<BrowserScreenshotResponse>"
     description: A promise that resolves with screenshot data including base64 encoded image, viewport information, and capture metadata.
     typeArgs: []
 data:

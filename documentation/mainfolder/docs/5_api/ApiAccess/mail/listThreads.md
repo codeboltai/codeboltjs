@@ -8,7 +8,7 @@ cbparameters:
       typeName: IListThreadsParams
       description: Optional filters including type, status, participant, search, limit, and offset.
   returns:
-    signatureTypeName: Promise<IListThreadsResponse>
+    signatureTypeName: "Promise<IListThreadsResponse>"
     description: A promise that resolves with an array of threads and total count.
 data:
   name: listThreads

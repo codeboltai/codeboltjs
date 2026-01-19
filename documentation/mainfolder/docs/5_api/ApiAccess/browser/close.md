@@ -6,7 +6,7 @@ cbparameters:
   parameters: []
   returns:
     signatureTypeName: void
-    description: 'Closes the browser page.'
+    description: "'Closes the browser page.'"
     typeArgs: []
 data:
   name: close

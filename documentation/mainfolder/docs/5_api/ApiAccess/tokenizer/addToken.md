@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The key/string to be tokenized.
   returns:
-    signatureTypeName: Promise<AddTokenResponse>
+    signatureTypeName: "Promise<AddTokenResponse>"
     description: A promise that resolves with an `AddTokenResponse` object containing the tokenization response.
 data:
   name: addToken

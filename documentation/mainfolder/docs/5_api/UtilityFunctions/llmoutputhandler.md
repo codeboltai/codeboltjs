@@ -1,7 +1,7 @@
 ---
 name: LLMOutputHandler
 cbbaseinfo:
-  description: Processes the AI model's response, manages tool executions, handles user communication, and detects when the task is completed.
+  description: "Processes the AI model's response, manages tool executions, handles user communication, and detects when the task is completed."
 cbparameters:
   parameters: []
   returns:

@@ -11,7 +11,7 @@ cbapicategory:
     description: Lists all available test suites.
   - name: updateSuite
     link: /docs/api/apiaccess/autotesting/updateSuite
-    description: Updates an existing test suite's name, description, or test case assignments.
+    description: "Updates an existing test suite's name, description, or test case assignments."
   - name: deleteSuite
     link: /docs/api/apiaccess/autotesting/deleteSuite
     description: Deletes a test suite and all its associations.
@@ -32,7 +32,7 @@ cbapicategory:
     description: Lists all available test cases.
   - name: updateCase
     link: /docs/api/apiaccess/autotesting/updateCase
-    description: Updates an existing test case's properties or steps.
+    description: "Updates an existing test case's properties or steps."
   - name: deleteCase
     link: /docs/api/apiaccess/autotesting/deleteCase
     description: Deletes a test case.

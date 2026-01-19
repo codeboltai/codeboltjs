@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The environment ID to get files for.
   returns:
-    signatureTypeName: Promise<FileWithIntent[]>
+    signatureTypeName: "Promise<FileWithIntent[]>"
     description: A promise that resolves with an array of files and their intents.
 data:
   name: getFilesWithIntents

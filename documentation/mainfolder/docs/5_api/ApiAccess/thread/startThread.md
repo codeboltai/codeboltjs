@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The unique identifier of the thread to start.
   returns:
-    signatureTypeName: Promise<StartThreadResponse>
+    signatureTypeName: "Promise<StartThreadResponse>"
     description: A promise that resolves with the started thread details and status.
 data:
   name: startThread

@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The ID of the element to click.
   returns:
-    signatureTypeName: Promise<any>
+    signatureTypeName: "Promise<any>"
     description: A promise that resolves when the click action is complete.
     typeArgs: []
 data:

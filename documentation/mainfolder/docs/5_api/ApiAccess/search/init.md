@@ -6,7 +6,7 @@ cbparameters:
   parameters:
     - name: engine
       typeName: string
-      description: The search engine to use (default: "bing"). Supported engines include "bing", "google", etc.
+      description: "The search engine to use (default: \"bing\"). Supported engines include \"bing\", \"google\", etc."
       optional: true
   returns:
     signatureTypeName: void

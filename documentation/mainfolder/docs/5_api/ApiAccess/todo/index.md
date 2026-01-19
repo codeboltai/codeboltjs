@@ -5,7 +5,7 @@ cbapicategory:
     description: Adds a new todo item with title, priority, and tags.
   - name: updateTodo
     link: /docs/api/apiaccess/todo/updateTodo
-    description: Updates an existing todo item's status, title, priority, or tags.
+    description: "Updates an existing todo item's status, title, priority, or tags."
   - name: getTodoList
     link: /docs/api/apiaccess/todo/getTodoList
     description: Retrieves the complete list of todo items.

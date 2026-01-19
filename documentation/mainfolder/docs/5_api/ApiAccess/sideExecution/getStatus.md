@@ -9,7 +9,7 @@ cbparameters:
       description: The unique identifier of the side execution to query.
       isOptional: false
   returns:
-    signatureTypeName: Promise<GetSideExecutionStatusResponse>
+    signatureTypeName: "Promise<GetSideExecutionStatusResponse>"
     description: A promise that resolves with the execution status and details.
     typeArgs: []
 data:

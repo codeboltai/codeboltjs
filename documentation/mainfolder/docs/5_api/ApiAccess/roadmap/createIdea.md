@@ -1,7 +1,7 @@
 ---
 name: createIdea
 cbbaseinfo:
-  description: Creates a new idea as a pre-roadmap suggestion. Ideas can be reviewed and potentially promoted to features.
+  description: "Creates a new idea as a pre-roadmap suggestion. Ideas can be reviewed and potentially promoted to features."
 cbparameters:
   parameters:
     - name: data
@@ -9,9 +9,9 @@ cbparameters:
       description: Idea data including title, description, and optional metadata
     - name: projectPath
       typeName: string
-      description: Optional project path (uses active project if not provided)
+      description: "Optional project path (uses active project if not provided)"
   returns:
-    signatureTypeName: Promise<RoadmapIdeaResponse>
+    signatureTypeName: "Promise<RoadmapIdeaResponse>"
     description: A promise that resolves to the created idea
 data:
   name: createIdea

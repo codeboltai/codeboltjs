@@ -8,7 +8,7 @@ cbparameters:
       typeName: CreateReviewMergeRequest
       description: Complete request data including type, task info, changes, and merge config
   returns:
-    signatureTypeName: Promise<{ request: ReviewMergeRequest }>
+    signatureTypeName: "Promise<{ request: ReviewMergeRequest }>"
     description: A promise that resolves to the created request
 data:
   name: create

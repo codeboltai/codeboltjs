@@ -12,19 +12,19 @@ cbparameters:
       description: Execution intent with context and query information.
       nested:
         - name: keywords
-          typeName: string[] | undefined
+          typeName: "string[] | undefined"
           description: Optional keywords for search relevance.
         - name: action
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional action context for retrieval.
         - name: context
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional context variables for the query.
         - name: query
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: The query string for retrieval.
   returns:
-    signatureTypeName: Promise<PersistentMemoryExecuteResponse>
+    signatureTypeName: "Promise<PersistentMemoryExecuteResponse>"
     description: A promise that resolves to retrieval results.
     typeArgs: []
 data:

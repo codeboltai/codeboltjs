@@ -15,7 +15,7 @@ cbparameters:
       description: Optional project ID to associate with the testimonial.
       isOptional: true
   returns:
-    signatureTypeName: Promise<AddTestimonialResponse>
+    signatureTypeName: "Promise<AddTestimonialResponse>"
     description: A promise that resolves when the testimonial is added.
     typeArgs: []
 data:

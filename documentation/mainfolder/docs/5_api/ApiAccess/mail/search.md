@@ -8,7 +8,7 @@ cbparameters:
       typeName: ISearchParams
       description: Search parameters including query, threadId, and filters.
   returns:
-    signatureTypeName: Promise<ISearchResponse>
+    signatureTypeName: "Promise<ISearchResponse>"
     description: A promise that resolves with matching messages.
 data:
   name: search

@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The new testimonial content.
   returns:
-    signatureTypeName: Promise<UpdateTestimonialResponse>
+    signatureTypeName: "Promise<UpdateTestimonialResponse>"
     description: A promise that resolves to the updated testimonial.
     typeArgs: []
 data:

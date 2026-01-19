@@ -8,7 +8,7 @@ cbparameters:
       typeName: IDeleteCaseParams
       description: Parameters including the case ID to delete.
   returns:
-    signatureTypeName: Promise<IDeleteCaseResponse>
+    signatureTypeName: "Promise<IDeleteCaseResponse>"
     description: A promise that resolves when the case is deleted.
     typeArgs: []
 data:

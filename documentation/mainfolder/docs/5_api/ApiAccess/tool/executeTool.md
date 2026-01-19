@@ -12,9 +12,9 @@ cbparameters:
       description: The name of the tool to execute.
     - name: params
       typeName: object
-      description: Parameters to pass to the tool execution (must match tool's input schema).
+      description: "Parameters to pass to the tool execution (must match tool's input schema)."
   returns:
-    signatureTypeName: Promise<ExecuteToolResponse>
+    signatureTypeName: "Promise<ExecuteToolResponse>"
     description: A promise that resolves with an `ExecuteToolResponse` object containing the tool execution result.
 data:
   name: executeTool

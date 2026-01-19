@@ -9,7 +9,7 @@ cbparameters:
       description: The async handler function that processes incoming messages.
   returns:
     signatureTypeName: void
-    description: ' '
+    description: "' '"
     typeArgs: []
 data:
   name: setRequestHandler

@@ -11,9 +11,9 @@ cbparameters:
     - name: data
       type: UpdateFileUpdateIntentRequest
       required: true
-      description: Updated intent data (files, description, priority, etc.).
+      description: "Updated intent data (files, description, priority, etc.)."
   returns:
-    signatureTypeName: Promise<FileUpdateIntent>
+    signatureTypeName: "Promise<FileUpdateIntent>"
     description: A promise that resolves with the updated intent.
 data:
   name: update

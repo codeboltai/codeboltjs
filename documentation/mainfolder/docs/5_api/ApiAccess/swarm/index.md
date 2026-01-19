@@ -2,7 +2,7 @@
 cbapicategory:
   - name: createSwarm
     link: /docs/api/apiaccess/swarm/createSwarm
-    description: Creates a new swarm for multi-agent coordination.
+    description: "Creates a new swarm for multi-agent coordination."
   - name: listSwarms
     link: /docs/api/apiaccess/swarm/listSwarms
     description: Lists all available swarms.
@@ -71,7 +71,7 @@ cbapicategory:
     description: Closes a vacancy.
   - name: updateAgentStatus
     link: /docs/api/apiaccess/swarm/updateAgentStatus
-    description: Updates an agent's status.
+    description: "Updates an agent's status."
   - name: getSwarmStatusSummary
     link: /docs/api/apiaccess/swarm/getSwarmStatusSummary
     description: Gets status summary for a swarm.

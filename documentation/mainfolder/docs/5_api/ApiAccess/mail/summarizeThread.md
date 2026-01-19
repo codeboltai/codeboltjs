@@ -1,14 +1,14 @@
 ---
 name: summarizeThread
 cbbaseinfo:
-  description: Generates a summary of a mail thread's conversation.
+  description: "Generates a summary of a mail thread's conversation."
 cbparameters:
   parameters:
     - name: params
       typeName: ISummarizeThreadParams
       description: Parameters including the threadId to summarize.
   returns:
-    signatureTypeName: Promise<ISummarizeThreadResponse>
+    signatureTypeName: "Promise<ISummarizeThreadResponse>"
     description: A promise that resolves with the thread summary.
 data:
   name: summarizeThread

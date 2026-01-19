@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetMessageParams
       description: Object containing the messageId to retrieve.
   returns:
-    signatureTypeName: Promise<IGetMessageResponse>
+    signatureTypeName: "Promise<IGetMessageResponse>"
     description: A promise that resolves with the message details.
 data:
   name: getMessage

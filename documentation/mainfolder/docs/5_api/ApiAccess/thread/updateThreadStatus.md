@@ -9,9 +9,9 @@ cbparameters:
       description: The unique identifier of the thread to update.
     - name: status
       typeName: string
-      description: The new status value (e.g., 'active', 'paused', 'completed', 'archived', 'closed').
+      description: "The new status value (e.g., 'active', 'paused', 'completed', 'archived', 'closed')."
   returns:
-    signatureTypeName: Promise<UpdateThreadStatusResponse>
+    signatureTypeName: "Promise<UpdateThreadStatusResponse>"
     description: A promise that resolves with the updated thread status.
 data:
   name: updateThreadStatus

@@ -9,7 +9,7 @@ cbparameters:
       description: Optional filter criteria to narrow down the list of capabilities.
       isOptional: true
   returns:
-    signatureTypeName: Promise<ListCapabilitiesResponse>
+    signatureTypeName: "Promise<ListCapabilitiesResponse>"
     description: A promise that resolves to a list of capabilities matching the filter criteria.
     typeArgs: []
 data:

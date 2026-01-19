@@ -1,20 +1,20 @@
 ---
 name: inference
 cbbaseinfo:
-  description: Sends an inference request to the LLM using OpenAI message format with tools support. The model is selected based on the provided llmrole parameter. If the specific model for the role is not found, it falls back to the default model for the current agent, and ultimately to the default application-wide LLM if necessary.
+  description: "Sends an inference request to the LLM using OpenAI message format with tools support. The model is selected based on the provided llmrole parameter. If the specific model for the role is not found, it falls back to the default model for the current agent, and ultimately to the default application-wide LLM if necessary."
 cbparameters:
   parameters:
     - name: message
       typeName: LLMInferenceParams
       description: The inference parameters object containing messages, tools, and configuration options.
     - name: message.messages
-      typeName: Message[]
-      description: Array of conversation messages with roles ('user', 'assistant', 'tool', 'system') and content.
+      typeName: "Message[]"
+      description: "Array of conversation messages with roles ('user', 'assistant', 'tool', 'system') and content."
     - name: message.tools
-      typeName: Tool[]
+      typeName: "Tool[]"
       description: "Optional: Available tools for the model to use. Each tool has a type and function definition."
     - name: message.tool_choice
-      typeName: string | object
+      typeName: "string | object"
       description: "Optional: How the model should use tools. Can be 'auto', 'none', 'required', or an object specifying a specific function."
     - name: message.llmrole
       typeName: string
@@ -29,8 +29,8 @@ cbparameters:
       typeName: boolean
       description: "Optional: Whether to stream the response. Defaults to false."
   returns:
-    signatureTypeName: Promise<LLMResponse>
-    description: A promise that resolves with the LLM's response containing content, token usage, and completion details.
+    signatureTypeName: "Promise<LLMResponse>"
+    description: "A promise that resolves with the LLM's response containing content, token usage, and completion details."
 data:
   name: inference
   category: llm

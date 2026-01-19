@@ -6,7 +6,7 @@ cbparameters:
   parameters:
     - name: url
       typeName: string
-      description: The URL to navigate to (must include protocol like https://).
+      description: "The URL to navigate to (must include protocol like https://)."
   returns:
     signatureTypeName: void
     description: No return value. Sends a navigation event to the crawler.

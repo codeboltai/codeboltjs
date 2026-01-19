@@ -8,7 +8,7 @@ cbparameters:
       typeName: IMarkEventCompleteParams
       description: Parameters containing the eventId to mark as complete
   returns:
-    signatureTypeName: Promise<IMarkEventCompleteResponse>
+    signatureTypeName: "Promise<IMarkEventCompleteResponse>"
     description: A promise that resolves to the completed event data
 data:
   name: markEventComplete

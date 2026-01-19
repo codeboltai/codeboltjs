@@ -2,7 +2,7 @@
 cbapicategory:
   - name: PromptBuilder
     link: /docs/api/Utility Functions/promptBuilder
-    description: Constructs a smart prompt for the AI agent by combining tools, environment details, system instructions, and task-specific information.
+    description: "Constructs a smart prompt for the AI agent by combining tools, environment details, system instructions, and task-specific information."
     
   - name: LLMOutputHandler
     link: /docs/api/Utility Functions/llmoutputhandler

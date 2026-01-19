@@ -13,24 +13,24 @@ cbparameters:
       nested:
         - name: name
           typeName: string
-          description: The name of the role (required).
+          description: "The name of the role (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the role's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the role's purpose."
         - name: permissions
-          typeName: string[] | undefined
+          typeName: "string[] | undefined"
           description: Array of permissions granted to this role.
         - name: maxAssignees
-          typeName: number | undefined
+          typeName: "number | undefined"
           description: Maximum number of agents that can be assigned this role.
         - name: metadata
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional metadata about the role.
         - name: createdBy
           typeName: string
-          description: ID of the agent or user creating the role (required).
+          description: "ID of the agent or user creating the role (required)."
   returns:
-    signatureTypeName: Promise<CreateRoleResponse>
+    signatureTypeName: "Promise<CreateRoleResponse>"
     description: A promise that resolves to the created role details.
     typeArgs: []
 data:

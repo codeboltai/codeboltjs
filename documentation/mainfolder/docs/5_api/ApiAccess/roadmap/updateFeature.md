@@ -1,7 +1,7 @@
 ---
 name: updateFeature
 cbbaseinfo:
-  description: Updates an existing feature's information. Only the specified fields are updated; other fields remain unchanged.
+  description: "Updates an existing feature's information. Only the specified fields are updated; other fields remain unchanged."
 cbparameters:
   parameters:
     - name: featureId
@@ -12,9 +12,9 @@ cbparameters:
       description: Partial feature data with fields to update
     - name: projectPath
       typeName: string
-      description: Optional project path (uses active project if not provided)
+      description: "Optional project path (uses active project if not provided)"
   returns:
-    signatureTypeName: Promise<RoadmapFeatureResponse>
+    signatureTypeName: "Promise<RoadmapFeatureResponse>"
     description: A promise that resolves to the updated feature
 data:
   name: updateFeature

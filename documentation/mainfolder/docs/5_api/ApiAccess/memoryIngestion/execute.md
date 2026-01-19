@@ -10,30 +10,30 @@ cbparameters:
       nested:
         - name: pipelineId
           typeName: string
-          description: The ID of the pipeline to execute (required).
+          description: "The ID of the pipeline to execute (required)."
         - name: eventType
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional event type for context.
         - name: trigger
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional trigger identifier.
         - name: threadId
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional thread ID for context.
         - name: agentId
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional agent ID for context.
         - name: swarmId
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional swarm ID for context.
         - name: projectId
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional project ID for context.
         - name: payload
-          typeName: Record<string, any> | undefined
-          description: The data payload to process (required).
+          typeName: "Record<string, any> | undefined"
+          description: "The data payload to process (required)."
   returns:
-    signatureTypeName: Promise<IngestionExecuteResponse>
+    signatureTypeName: "Promise<IngestionExecuteResponse>"
     description: A promise that resolves to execution results.
     typeArgs: []
 data:

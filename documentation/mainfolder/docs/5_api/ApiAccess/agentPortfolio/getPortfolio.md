@@ -8,8 +8,8 @@ cbparameters:
       typeName: string
       description: The ID of the agent to retrieve the portfolio for.
   returns:
-    signatureTypeName: Promise<GetPortfolioResponse>
-    description: A promise that resolves to the agent's complete portfolio data.
+    signatureTypeName: "Promise<GetPortfolioResponse>"
+    description: "A promise that resolves to the agent's complete portfolio data."
     typeArgs: []
 data:
   name: getPortfolio

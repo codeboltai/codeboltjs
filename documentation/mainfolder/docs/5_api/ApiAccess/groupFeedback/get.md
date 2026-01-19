@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetFeedbackParams
       description: Parameters including the feedbackId to retrieve.
   returns:
-    signatureTypeName: Promise<IGetFeedbackResponse>
+    signatureTypeName: "Promise<IGetFeedbackResponse>"
     description: A promise that resolves with the feedback session details.
 data:
   name: get

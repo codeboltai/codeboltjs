@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetProjectStateResponse>
-    description: A promise that resolves with the project's state data.
+    signatureTypeName: "Promise<GetProjectStateResponse>"
+    description: "A promise that resolves with the project's state data."
     typeArgs: []
 data:
   name: getProjectState

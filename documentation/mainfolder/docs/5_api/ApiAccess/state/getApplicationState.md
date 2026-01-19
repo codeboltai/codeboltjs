@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ApplicationState>
+    signatureTypeName: "Promise<ApplicationState>"
     description: A promise that resolves with the application state object.
     typeArgs: []
 data:

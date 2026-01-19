@@ -9,7 +9,7 @@ cbparameters:
       required: false
       description: Optional filters for environmentId, status, claimedBy, etc.
   returns:
-    signatureTypeName: Promise<FileUpdateIntent[]>
+    signatureTypeName: "Promise<FileUpdateIntent[]>"
     description: A promise that resolves with an array of file update intents.
 data:
   name: list

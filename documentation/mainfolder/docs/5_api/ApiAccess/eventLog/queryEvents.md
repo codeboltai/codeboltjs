@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Query DSL object with from, where, orderBy, limit, offset, and reduce clauses.
   returns:
-    signatureTypeName: Promise<EventLogQueryResponse>
+    signatureTypeName: "Promise<EventLogQueryResponse>"
     description: A promise that resolves with matching events or aggregations.
 data:
   name: queryEvents

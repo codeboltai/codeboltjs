@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Event parameters including instanceId, streamId, eventType, payload, and metadata.
   returns:
-    signatureTypeName: Promise<EventLogAppendResponse>
+    signatureTypeName: "Promise<EventLogAppendResponse>"
     description: A promise that resolves with the appended event details.
 data:
   name: appendEvent

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<HtmlReceived>
+    signatureTypeName: "Promise<HtmlReceived>"
     description: A promise that resolves with the HTML content.
     typeArgs: []
 data:

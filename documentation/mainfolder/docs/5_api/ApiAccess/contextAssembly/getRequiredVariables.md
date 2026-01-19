@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Array of memory type names to get variables for.
   returns:
-    signatureTypeName: Promise<RequiredVariablesResponse>
+    signatureTypeName: "Promise<RequiredVariablesResponse>"
     description: A promise that resolves with required variable information.
 data:
   name: getRequiredVariables

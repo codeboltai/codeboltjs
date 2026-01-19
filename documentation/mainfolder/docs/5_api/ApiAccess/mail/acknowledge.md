@@ -8,7 +8,7 @@ cbparameters:
       typeName: IAcknowledgeParams
       description: Parameters including the messageId to acknowledge.
   returns:
-    signatureTypeName: Promise<IAcknowledgeResponse>
+    signatureTypeName: "Promise<IAcknowledgeResponse>"
     description: A promise that resolves when the message is acknowledged.
 data:
   name: acknowledge

@@ -8,7 +8,7 @@ cbparameters:
       typeName: CreateAndStartThreadOptions
       description: Thread configuration including title, description, agentId, initial messages, and metadata.
   returns:
-    signatureTypeName: Promise<StartThreadResponse>
+    signatureTypeName: "Promise<StartThreadResponse>"
     description: A promise that resolves with the started thread details including threadId, status, and initial state.
 data:
   name: createAndStartThread

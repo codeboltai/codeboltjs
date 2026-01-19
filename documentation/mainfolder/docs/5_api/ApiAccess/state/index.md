@@ -5,7 +5,7 @@ cbapicategory:
     description: Gets the current application state.
   - name: addToAgentState
     link: /docs/api/apiaccess/state/addToAgentState
-    description: Adds a key-value pair to the agent's state.
+    description: "Adds a key-value pair to the agent's state."
   - name: getAgentState
     link: /docs/api/apiaccess/state/getAgentState
     description: Gets the current state of the agent.
@@ -14,7 +14,7 @@ cbapicategory:
     description: Gets the current project state.
   - name: updateProjectState
     link: /docs/api/apiaccess/state/updateProjectState
-    description: Updates the project state with a key-value pair.
+    description: "Updates the project state with a key-value pair."
 ---
 
 # State API

@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The unique identifier of the hook to delete.
   returns:
-    signatureTypeName: Promise<HookDeleteResponse>
+    signatureTypeName: "Promise<HookDeleteResponse>"
     description: A promise that resolves when the hook is deleted.
 data:
   name: delete

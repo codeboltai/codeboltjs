@@ -8,7 +8,7 @@ cbparameters:
       typeName: array
       description: Array of toolbox names to list tools from.
   returns:
-    signatureTypeName: Promise<ListToolsFromToolBoxesResponse>
+    signatureTypeName: "Promise<ListToolsFromToolBoxesResponse>"
     description: A promise that resolves with a `ListToolsFromToolBoxesResponse` object containing tools from the specified toolboxes.
 data:
   name: listToolsFromToolBoxes

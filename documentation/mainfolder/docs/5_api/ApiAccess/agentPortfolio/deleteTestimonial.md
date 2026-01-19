@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The ID of the testimonial to delete.
   returns:
-    signatureTypeName: Promise<DeleteTestimonialResponse>
+    signatureTypeName: "Promise<DeleteTestimonialResponse>"
     description: A promise that resolves when testimonial is deleted.
     typeArgs: []
 data:

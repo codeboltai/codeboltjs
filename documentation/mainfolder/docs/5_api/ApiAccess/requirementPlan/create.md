@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: fileName
       typeName: string
-      description: Name for the new plan file (without .plan extension)
+      description: "Name for the new plan file (without .plan extension)"
   returns:
-    signatureTypeName: Promise<RequirementPlanCreateResponse>
+    signatureTypeName: "Promise<RequirementPlanCreateResponse>"
     description: A promise that resolves to creation result with file path
 data:
   name: create

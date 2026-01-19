@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The key associated with the token to be retrieved.
   returns:
-    signatureTypeName: Promise<GetTokenResponse>
+    signatureTypeName: "Promise<GetTokenResponse>"
     description: A promise that resolves with a `GetTokenResponse` object containing the token response.
 data:
   name: getToken

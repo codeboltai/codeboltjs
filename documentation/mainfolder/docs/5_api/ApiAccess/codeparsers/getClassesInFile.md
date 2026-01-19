@@ -8,8 +8,8 @@ cbparameters:
       typeName: string
       description: The file path to parse for classes.
   returns:
-    signatureTypeName: Array<ClassInfo>
-    description: 'An array of objects containing class information with name and location properties.'
+    signatureTypeName: "Array<ClassInfo>"
+    description: "'An array of objects containing class information with name and location properties.'"
     typeArgs: []
 data:
   name: getClassesInFile

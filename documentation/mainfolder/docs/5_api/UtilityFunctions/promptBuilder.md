@@ -1,7 +1,7 @@
 ---
 name: PromptBuilder
 cbbaseinfo:
-  description: Constructs a smart prompt for the AI agent by combining tools, environment details, system instructions, and task-specific information.
+  description: "Constructs a smart prompt for the AI agent by combining tools, environment details, system instructions, and task-specific information."
 cbparameters:
   parameters: []
   returns:

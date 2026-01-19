@@ -1,17 +1,17 @@
 ---
 name: updateProfile
 cbbaseinfo:
-  description: Updates an agent's profile information including display name, bio, specialties, avatar, and more.
+  description: "Updates an agent's profile information including display name, bio, specialties, avatar, and more."
 cbparameters:
   parameters:
     - name: agentId
       typeName: string
       description: The ID of the agent to update.
     - name: profile
-      typeName: { displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }
+      typeName: "{ displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }"
       description: The profile data to update.
   returns:
-    signatureTypeName: Promise<UpdateProfileResponse>
+    signatureTypeName: "Promise<UpdateProfileResponse>"
     description: A promise that resolves to the updated profile.
     typeArgs: []
 data:

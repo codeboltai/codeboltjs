@@ -1,14 +1,14 @@
 ---
 name: getKnowledge
 cbbaseinfo:
-  description: Retrieves a value from the in-memory database by key. Returns the stored data along with response metadata.
+  description: "Retrieves a value from the in-memory database by key. Returns the stored data along with response metadata."
 cbparameters:
   parameters:
     - name: key
       typeName: string
-      description: The unique key of the value to retrieve. Supports namespaced keys (e.g., 'user:123', 'config:theme').
+      description: "The unique key of the value to retrieve. Supports namespaced keys (e.g., 'user:123', 'config:theme')."
   returns:
-    signatureTypeName: Promise<MemoryGetResponse>
+    signatureTypeName: "Promise<MemoryGetResponse>"
     description: A promise that resolves with a `MemoryGetResponse` object containing the retrieved data, response type, and metadata.
 data:
   name: getKnowledge

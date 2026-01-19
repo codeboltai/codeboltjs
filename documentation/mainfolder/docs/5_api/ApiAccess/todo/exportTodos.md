@@ -5,23 +5,23 @@ cbbaseinfo:
 cbparameters:
   parameters:
     - name: params
-      typeName: { format?: 'json' | 'markdown'; listId?: string; status?: string[] }
+      typeName: "{ format?: 'json' | 'markdown'; listId?: string; status?: string[] }"
       description: Optional parameters for customizing the export.
       isOptional: true
     - name: params.format
-      typeName: 'json' | 'markdown'
-      description: The export format (defaults to 'json').
+      typeName: "'json' | 'markdown'"
+      description: "The export format (defaults to 'json')."
       isOptional: true
     - name: params.listId
       typeName: string
       description: Optional list ID to filter todos for export.
       isOptional: true
     - name: params.status
-      typeName: string[]
-      description: Optional array of status values to filter (e.g., ['pending', 'processing']).
+      typeName: "string[]"
+      description: "Optional array of status values to filter (e.g., ['pending', 'processing'])."
       isOptional: true
   returns:
-    signatureTypeName: Promise<ExportTodosResponse>
+    signatureTypeName: "Promise<ExportTodosResponse>"
     description: A promise that resolves with the exported todo data.
     typeArgs: []
 data:

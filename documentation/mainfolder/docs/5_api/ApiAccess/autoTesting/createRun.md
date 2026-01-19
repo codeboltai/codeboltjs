@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateRunParams
       description: Parameters including test suite ID and optional run name.
   returns:
-    signatureTypeName: Promise<ICreateRunResponse>
+    signatureTypeName: "Promise<ICreateRunResponse>"
     description: A promise that resolves to the created test run.
     typeArgs: []
 data:

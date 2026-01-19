@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<HookListResponse>
+    signatureTypeName: "Promise<HookListResponse>"
     description: A promise that resolves with an array of all hooks.
 data:
   name: list

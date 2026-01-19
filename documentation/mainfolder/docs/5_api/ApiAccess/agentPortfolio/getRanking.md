@@ -9,11 +9,11 @@ cbparameters:
       description: Maximum number of entries to return.
       isOptional: true
     - name: sortBy
-      typeName: 'karma' | 'testimonials' | 'endorsements'
-      description: What to sort by (karma, testimonials, or endorsements).
+      typeName: "'karma' | 'testimonials' | 'endorsements'"
+      description: "What to sort by (karma, testimonials, or endorsements)."
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetRankingResponse>
+    signatureTypeName: "Promise<GetRankingResponse>"
     description: A promise that resolves to the ranking list.
     typeArgs: []
 data:

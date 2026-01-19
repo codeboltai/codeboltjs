@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetAllIncompleteTodosResponse>
-    description: A promise that resolves with all incomplete (pending, processing, or cancelled) todos.
+    signatureTypeName: "Promise<GetAllIncompleteTodosResponse>"
+    description: "A promise that resolves with all incomplete (pending, processing, or cancelled) todos."
     typeArgs: []
 data:
   name: getAllIncompleteTodos

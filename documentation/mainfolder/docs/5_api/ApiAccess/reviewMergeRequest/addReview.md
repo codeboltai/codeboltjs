@@ -11,7 +11,7 @@ cbparameters:
       typeName: AddReviewFeedback
       description: Review feedback including agent info, type, and comment
   returns:
-    signatureTypeName: Promise<{ request: ReviewMergeRequest }>
+    signatureTypeName: "Promise<{ request: ReviewMergeRequest }>"
     description: A promise that resolves to the updated request with new review
 data:
   name: addReview

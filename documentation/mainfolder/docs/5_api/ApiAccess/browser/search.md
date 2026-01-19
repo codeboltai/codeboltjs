@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The search query.
   returns:
-    signatureTypeName: Promise<SearchResponse>
+    signatureTypeName: "Promise<SearchResponse>"
     description: A promise that resolves with the search results.
     typeArgs: []
 data:

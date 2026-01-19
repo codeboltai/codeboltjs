@@ -8,7 +8,7 @@ cbparameters:
       typeName: GetThreadListOptions
       description: Optional filters including status, agentId, limit, offset, date range, and metadata filters.
   returns:
-    signatureTypeName: Promise<ListThreadsResponse>
+    signatureTypeName: "Promise<ListThreadsResponse>"
     description: A promise that resolves with an array of threads and pagination metadata.
 data:
   name: getThreadList

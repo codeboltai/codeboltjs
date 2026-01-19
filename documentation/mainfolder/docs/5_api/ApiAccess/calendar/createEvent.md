@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateEventParams
       description: Event creation parameters including title, time, type, and optional settings
   returns:
-    signatureTypeName: Promise<ICreateEventResponse>
+    signatureTypeName: "Promise<ICreateEventResponse>"
     description: A promise that resolves to the created event data
 data:
   name: createEvent
@@ -41,7 +41,7 @@ The `ICreateEventParams` interface includes:
 - **`agenda`** (string): Meeting agenda (for meeting type)
 - **`checkType`** (CalendarCheckType): For check events - 'email' | 'website' | 'api' | 'file'
 - **`tags`** (string[]): Tags for categorization
-- **`metadata`** (Record<string, any>): Additional custom data
+- **`metadata`** (`Record<string, any>`): Additional custom data
 - **`createdById`** (string): Creator user ID
 - **`createdByName`** (string): Creator name
 - **`createdByType`** (CalendarParticipantType): Creator type - 'user' | 'agent' | 'team' | 'swarm'

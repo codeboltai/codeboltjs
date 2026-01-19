@@ -1,7 +1,7 @@
 ---
 name: getAstTreeInFile
 cbbaseinfo:
-  description: Generates an Abstract Syntax Tree (AST) for a given file.
+  description: "Generates an Abstract Syntax Tree (AST) for a given file."
 cbparameters:
   parameters:
     - name: file
@@ -9,7 +9,7 @@ cbparameters:
       description: The file path to generate an AST for.
     - name: className
       typeName: string
-      description: (Optional) The name of the class to focus the AST generation on. If not provided, returns the full file AST.
+      description: "(Optional) The name of the class to focus the AST generation on. If not provided, returns the full file AST."
   returns:
     signatureTypeName: object
     description: Returns an AST object with type, text, startPosition, endPosition, and children properties.

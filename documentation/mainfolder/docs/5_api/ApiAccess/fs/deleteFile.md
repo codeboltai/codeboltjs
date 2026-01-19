@@ -6,12 +6,12 @@ cbparameters:
   parameters:
     - name: filename
       typeName: string
-      description: The name of the file to delete (e.g., 'example.txt', 'old-config.json').
+      description: "The name of the file to delete (e.g., 'example.txt', 'old-config.json')."
     - name: filePath
       typeName: string
-      description: The path of the file to delete (e.g., '.', '/home/user/documents', './temp').
+      description: "The path of the file to delete (e.g., '.', '/home/user/documents', './temp')."
   returns:
-    signatureTypeName: Promise<DeleteFileResponse>
+    signatureTypeName: "Promise<DeleteFileResponse>"
     description: A promise that resolves with a `DeleteFileResponse` object containing the response type and file deletion metadata.
 data:
   name: deleteFile

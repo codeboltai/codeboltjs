@@ -8,7 +8,7 @@ cbparameters:
       typeName: IRemoveCaseFromSuiteParams
       description: Parameters including suite ID and case ID.
   returns:
-    signatureTypeName: Promise<IRemoveCaseFromSuiteResponse>
+    signatureTypeName: "Promise<IRemoveCaseFromSuiteResponse>"
     description: A promise that resolves to the updated suite.
     typeArgs: []
 data:

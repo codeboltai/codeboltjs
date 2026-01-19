@@ -1,7 +1,7 @@
 ---
 name: assignRole
 cbbaseinfo:
-  description: Assigns a role to an agent, granting them the role's permissions and responsibilities.
+  description: "Assigns a role to an agent, granting them the role's permissions and responsibilities."
 cbparameters:
   parameters:
     - name: swarmId
@@ -14,7 +14,7 @@ cbparameters:
       typeName: string
       description: The ID of the agent to assign the role to.
   returns:
-    signatureTypeName: Promise<AssignRoleResponse>
+    signatureTypeName: "Promise<AssignRoleResponse>"
     description: A promise that resolves when the role is assigned.
     typeArgs: []
 data:

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetAllMCPToolsResponse>
+    signatureTypeName: "Promise<GetAllMCPToolsResponse>"
     description: A promise that resolves with all tools from enabled servers.
     typeArgs: []
 data:

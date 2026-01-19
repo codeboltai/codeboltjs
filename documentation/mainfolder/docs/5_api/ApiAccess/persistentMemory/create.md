@@ -9,28 +9,28 @@ cbparameters:
       description: Memory configuration object.
       nested:
         - name: id
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional custom ID for the memory.
         - name: label
           typeName: string
-          description: Human-readable label for the memory (required).
+          description: "Human-readable label for the memory (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the memory's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the memory's purpose."
         - name: inputs_scope
-          typeName: string[] | undefined
+          typeName: "string[] | undefined"
           description: Array of input scopes this memory applies to.
         - name: additional_variables
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional variables for the memory configuration.
         - name: retrieval
           typeName: RetrievalConfig
-          description: Retrieval pipeline configuration (required).
+          description: "Retrieval pipeline configuration (required)."
         - name: contribution
           typeName: ContributionConfig
-          description: Contribution format configuration (required).
+          description: "Contribution format configuration (required)."
   returns:
-    signatureTypeName: Promise<PersistentMemoryResponse>
+    signatureTypeName: "Promise<PersistentMemoryResponse>"
     description: A promise that resolves to the created memory details.
     typeArgs: []
 data:
@@ -318,7 +318,7 @@ Query related entities in knowledge graphs.
 - Query templates support variable substitution
 - Limits control the number of results returned
 - Filters vary by source type
-- Templates can include {variables} for substitution
+- Templates can include `{variables}` for substitution
 - max_tokens controls output size for contribution
 - Custom variables can be used for advanced configuration
 - Memories start in 'active' status by default

@@ -17,7 +17,7 @@ cbparameters:
       required: true
       description: The key to retrieve.
   returns:
-    signatureTypeName: Promise<KVGetResponse>
+    signatureTypeName: "Promise<KVGetResponse>"
     description: A promise that resolves with the value and existence status.
 data:
   name: get

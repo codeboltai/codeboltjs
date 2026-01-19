@@ -8,7 +8,7 @@ cbparameters:
       typeName: IAddCaseToSuiteParams
       description: Parameters including suite ID and case ID.
   returns:
-    signatureTypeName: Promise<IAddCaseToSuiteResponse>
+    signatureTypeName: "Promise<IAddCaseToSuiteResponse>"
     description: A promise that resolves to the updated suite.
     typeArgs: []
 data:

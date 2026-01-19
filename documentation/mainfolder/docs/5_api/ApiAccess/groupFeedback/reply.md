@@ -8,7 +8,7 @@ cbparameters:
       typeName: IReplyParams
       description: Parameters including feedbackId, responseId, participantId, and reply content.
   returns:
-    signatureTypeName: Promise<IReplyResponse>
+    signatureTypeName: "Promise<IReplyResponse>"
     description: A promise that resolves with the added reply details.
 data:
   name: reply

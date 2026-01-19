@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateSuiteParams
       description: Parameters for creating the test suite.
   returns:
-    signatureTypeName: Promise<ICreateSuiteResponse>
+    signatureTypeName: "Promise<ICreateSuiteResponse>"
     description: A promise that resolves to the created test suite.
     typeArgs: []
 data:

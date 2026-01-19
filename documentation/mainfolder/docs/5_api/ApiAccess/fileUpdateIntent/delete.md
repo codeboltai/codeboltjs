@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the file update intent.
   returns:
-    signatureTypeName: Promise<{ success: boolean }>
+    signatureTypeName: "Promise<{ success: boolean }>"
     description: A promise that resolves with deletion status.
 data:
   name: delete

@@ -8,7 +8,7 @@ cbparameters:
       typeName: IReleaseFilesParams
       description: Parameters including agentId and files array to release.
   returns:
-    signatureTypeName: Promise<IReleaseFilesResponse>
+    signatureTypeName: "Promise<IReleaseFilesResponse>"
     description: A promise that resolves when files are released.
 data:
   name: releaseFiles

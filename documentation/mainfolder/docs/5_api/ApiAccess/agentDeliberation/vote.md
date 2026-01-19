@@ -8,7 +8,7 @@ cbparameters:
       typeName: IVoteParams
       description: Parameters including deliberation ID, response ID, and voter info.
   returns:
-    signatureTypeName: Promise<IVoteResponse>
+    signatureTypeName: "Promise<IVoteResponse>"
     description: A promise that resolves to the cast vote.
     typeArgs: []
 data:

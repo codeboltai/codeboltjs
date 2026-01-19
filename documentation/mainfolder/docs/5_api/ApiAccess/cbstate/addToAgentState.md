@@ -1,12 +1,12 @@
 ---
 name: addToAgentState
 cbbaseinfo:
-  description: Adds a key-value pair to the agent's state on the server via WebSocket.
+  description: "Adds a key-value pair to the agent's state on the server via WebSocket."
 cbparameters:
   parameters:
     - name: key
       typeName: string
-      description: The key to add to the agent's state.
+      description: "The key to add to the agent's state."
     - name: value
       typeName: string
       description: The value associated with the key.

@@ -1,17 +1,17 @@
 ---
 name: addToAgentState
 cbbaseinfo:
-  description: Adds a key-value pair to the agent's state.
+  description: "Adds a key-value pair to the agent's state."
 cbparameters:
   parameters:
     - name: key
       typeName: string
-      description: The key to add to the agent's state.
+      description: "The key to add to the agent's state."
     - name: value
       typeName: string
       description: The value to associate with the key.
   returns:
-    signatureTypeName: Promise<AddToAgentStateResponse>
+    signatureTypeName: "Promise<AddToAgentStateResponse>"
     description: A promise that resolves with the response to the addition request.
     typeArgs: []
 data:

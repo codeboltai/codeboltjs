@@ -1,11 +1,11 @@
 ---
 name: add
 cbbaseinfo:
-  description: Adds changes in the local repository to the staging area. This command stages all changes (modified, deleted, and new files) for the next commit.
+  description: "Adds changes in the local repository to the staging area. This command stages all changes (modified, deleted, and new files) for the next commit."
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<AddResponse>
+    signatureTypeName: "Promise<AddResponse>"
     description: A promise that resolves with an `AddResponse` object containing the response from the add operation.
 data:
   name: add

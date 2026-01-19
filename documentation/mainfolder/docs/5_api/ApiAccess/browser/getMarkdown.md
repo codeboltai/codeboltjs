@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetMarkdownResponse>
+    signatureTypeName: "Promise<GetMarkdownResponse>"
     description: A promise that resolves with the Markdown content.
     typeArgs: []
 data:

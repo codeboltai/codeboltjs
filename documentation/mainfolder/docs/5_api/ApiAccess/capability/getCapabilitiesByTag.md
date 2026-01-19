@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The tag to filter capabilities by.
   returns:
-    signatureTypeName: Promise<ListCapabilitiesResponse>
+    signatureTypeName: "Promise<ListCapabilitiesResponse>"
     description: A promise that resolves to a list of capabilities with the specified tag.
     typeArgs: []
 data:

@@ -2,7 +2,7 @@
 cbapicategory:
   - name: getAstTreeInFile
     link: /docs/api/apiaccess/codeparsers/getAstTreeInFile
-    description: Generates an Abstract Syntax Tree (AST) for a given file.
+    description: "Generates an Abstract Syntax Tree (AST) for a given file."
   - name: getClassesInFile
     link: /docs/api/apiaccess/codeparsers/getClassesInFile
     description: Retrieves the classes in a given file.

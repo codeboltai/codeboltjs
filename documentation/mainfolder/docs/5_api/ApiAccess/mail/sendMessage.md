@@ -8,7 +8,7 @@ cbparameters:
       typeName: ISendMessageParams
       description: Message parameters including threadId, content, and senderId.
   returns:
-    signatureTypeName: Promise<ISendMessageResponse>
+    signatureTypeName: "Promise<ISendMessageResponse>"
     description: A promise that resolves with the sent message details.
 data:
   name: sendMessage

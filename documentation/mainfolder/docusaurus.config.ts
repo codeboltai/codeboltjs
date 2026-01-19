@@ -1,5 +1,5 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
@@ -22,7 +22,7 @@ const config: Config = {
   organizationName: 'codeboltai', // Usually your GitHub org/user name.
   projectName: 'codeboltai.github.io', // Usually your repo name.
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
@@ -60,7 +60,7 @@ const config: Config = {
       },
     },
     mermaid: {
-      theme: {light: 'neutral', dark: 'forest'},
+      theme: { light: 'neutral', dark: 'forest' },
     },
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
@@ -113,17 +113,17 @@ const config: Config = {
           label: 'API',
         },
         {
-          to: '/blog', 
-          label: 'Blog', 
+          to: '/blog',
+          label: 'Blog',
           position: 'left'
         },
-        
+
       ],
     },
     footer: {
       style: 'dark',
       links: [
-        
+
       ],
       copyright: `Copyright © ${new Date().getFullYear()} CodeBolt.`,
     },

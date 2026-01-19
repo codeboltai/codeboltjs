@@ -8,7 +8,7 @@ cbparameters:
       typeName: IForceReserveFilesParams
       description: Parameters including agentId, files array, and reason.
   returns:
-    signatureTypeName: Promise<IForceReserveFilesResponse>
+    signatureTypeName: "Promise<IForceReserveFilesResponse>"
     description: A promise that resolves with the forced reservation details.
 data:
   name: forceReserveFiles

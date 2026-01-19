@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The ID of the execution to stop.
   returns:
-    signatureTypeName: Promise<StopCapabilityResponse>
+    signatureTypeName: "Promise<StopCapabilityResponse>"
     description: A promise that resolves when the execution has been stopped.
     typeArgs: []
 data:

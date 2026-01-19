@@ -8,7 +8,7 @@ cbparameters:
       typeName: CreateThreadOptions
       description: Configuration options for creating the thread including title, description, agentId, and metadata.
   returns:
-    signatureTypeName: Promise<CreateThreadResponse>
+    signatureTypeName: "Promise<CreateThreadResponse>"
     description: A promise that resolves with the created thread details including threadId, status, and timestamp.
 data:
   name: createThread

@@ -1,7 +1,7 @@
 ---
 name: listCodeDefinitionNames
 cbbaseinfo:
-  description: 'Lists all code definition names in a given path. Extracts function names, class names, method names, and other code definitions from source files.'
+  description: "'Lists all code definition names in a given path. Extracts function names, class names, method names, and other code definitions from source files.'"
 cbparameters:
   parameters:
     - name: path

@@ -1,14 +1,14 @@
 ---
 name: rsvp
 cbbaseinfo:
-  description: Records a participant's RSVP response (accept or decline) for a calendar event, updating their attendance status.
+  description: "Records a participant's RSVP response (accept or decline) for a calendar event, updating their attendance status."
 cbparameters:
   parameters:
     - name: params
       typeName: IRSVPParams
       description: Parameters including eventId, participantId, and RSVP status
   returns:
-    signatureTypeName: Promise<IRSVPResponse>
+    signatureTypeName: "Promise<IRSVPResponse>"
     description: A promise that resolves to the updated event with RSVP status
 data:
   name: rsvp

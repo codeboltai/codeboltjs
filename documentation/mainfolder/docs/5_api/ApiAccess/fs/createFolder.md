@@ -6,12 +6,12 @@ cbparameters:
   parameters:
     - name: folderName
       typeName: string
-      description: The name of the folder to create (e.g., 'my-folder', 'src', 'components').
+      description: "The name of the folder to create (e.g., 'my-folder', 'src', 'components')."
     - name: folderPath
       typeName: string
-      description: The path where the folder should be created (e.g., '.', '/home/user/documents', './src').
+      description: "The path where the folder should be created (e.g., '.', '/home/user/documents', './src')."
   returns:
-    signatureTypeName: Promise<CreateFolderResponse>
+    signatureTypeName: "Promise<CreateFolderResponse>"
     description: A promise that resolves with a `CreateFolderResponse` object containing the response type and folder creation metadata.
 data:
   name: createFolder

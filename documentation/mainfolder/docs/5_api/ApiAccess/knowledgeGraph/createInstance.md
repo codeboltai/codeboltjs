@@ -10,15 +10,15 @@ cbparameters:
       nested:
         - name: templateId
           typeName: string
-          description: The ID of the template to create the instance from (required).
+          description: "The ID of the template to create the instance from (required)."
         - name: name
           typeName: string
-          description: The name for this instance (required).
+          description: "The name for this instance (required)."
         - name: description
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional description of this instance.
   returns:
-    signatureTypeName: Promise<KGInstanceResponse>
+    signatureTypeName: "Promise<KGInstanceResponse>"
     description: A promise that resolves to the created instance details.
     typeArgs: []
 data:

@@ -8,7 +8,7 @@ cbparameters:
       typeName: IRegisterAgentParams
       description: Agent registration parameters including agentId, name, capabilities, and metadata.
   returns:
-    signatureTypeName: Promise<IRegisterAgentResponse>
+    signatureTypeName: "Promise<IRegisterAgentResponse>"
     description: A promise that resolves with the registration result and agent details.
 data:
   name: registerAgent

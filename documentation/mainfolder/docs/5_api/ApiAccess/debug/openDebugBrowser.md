@@ -6,12 +6,12 @@ cbparameters:
   parameters:
     - name: url
       typeName: string
-      description: The URL where the debug browser should be opened (e.g., 'http://localhost:3000').
+      description: "The URL where the debug browser should be opened (e.g., 'http://localhost:3000')."
     - name: port
       typeName: number
-      description: The port on which the debug browser will listen (e.g., 9222 for Chrome DevTools).
+      description: "The port on which the debug browser will listen (e.g., 9222 for Chrome DevTools)."
   returns:
-    signatureTypeName: Promise<OpenDebugBrowserResponse>
+    signatureTypeName: "Promise<OpenDebugBrowserResponse>"
     description: A promise that resolves with an `OpenDebugBrowserResponse` object containing the response type and browser configuration.
 data:
   name: openDebugBrowser

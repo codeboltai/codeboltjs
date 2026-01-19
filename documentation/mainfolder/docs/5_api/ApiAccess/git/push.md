@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GitPushResponse>
+    signatureTypeName: "Promise<GitPushResponse>"
     description: A promise that resolves with a `GitPushResponse` object containing the push operation results.
 data:
   name: push

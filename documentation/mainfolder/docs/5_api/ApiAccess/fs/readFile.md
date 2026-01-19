@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: filePath
       typeName: string
-      description: The path of the file to read. Can be absolute (e.g., '/home/user/file.txt') or relative (e.g., './file.txt').
+      description: "The path of the file to read. Can be absolute (e.g., '/home/user/file.txt') or relative (e.g., './file.txt')."
   returns:
-    signatureTypeName: Promise<ReadFileResponse>
+    signatureTypeName: "Promise<ReadFileResponse>"
     description: A promise that resolves with a `ReadFileResponse` object containing the file content and read operation metadata.
 data:
   name: readFile

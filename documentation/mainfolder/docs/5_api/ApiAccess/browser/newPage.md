@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<BrowserActionResponseData>
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves with a `BrowserActionResponseData` object when the new page is created.
 data:
   name: newPage

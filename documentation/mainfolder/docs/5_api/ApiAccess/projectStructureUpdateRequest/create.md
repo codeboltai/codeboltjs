@@ -13,7 +13,7 @@ cbparameters:
       description: Optional workspace path for the project.
       isOptional: true
   returns:
-    signatureTypeName: Promise<UpdateRequestResponse>
+    signatureTypeName: "Promise<UpdateRequestResponse>"
     description: A promise that resolves with the created update request.
     typeArgs: []
 data:

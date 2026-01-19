@@ -1,14 +1,14 @@
 ---
 name: getRepoMap
 cbbaseinfo:
-  description: Retrieves the repository map for the current project, providing a structural overview of the project's files, directories, and organization.
+  description: "Retrieves the repository map for the current project, providing a structural overview of the project's files, directories, and organization."
 cbparameters:
   parameters:
     - name: message
       typeName: any
       description: The message object containing parameters for retrieving the repository map. Can include filters, depth settings, or other configuration options.
   returns:
-    signatureTypeName: Promise<GetRepoMapResponse>
+    signatureTypeName: "Promise<GetRepoMapResponse>"
     description: A promise that resolves with the repository map response containing the project structure information.
 data:
   name: getRepoMap

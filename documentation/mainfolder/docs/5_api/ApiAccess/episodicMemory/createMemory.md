@@ -1,7 +1,7 @@
 ---
 name: createMemory
 cbbaseinfo:
-  description: Creates a new episodic memory container for storing time-ordered events.
+  description: "Creates a new episodic memory container for storing time-ordered events."
 cbparameters:
   parameters:
     - name: params
@@ -10,9 +10,9 @@ cbparameters:
       nested:
         - name: title
           typeName: string
-          description: The title for the memory (required).
+          description: "The title for the memory (required)."
   returns:
-    signatureTypeName: Promise<ICreateMemoryResponse>
+    signatureTypeName: "Promise<ICreateMemoryResponse>"
     description: A promise that resolves to the created memory details.
     typeArgs: []
 data:

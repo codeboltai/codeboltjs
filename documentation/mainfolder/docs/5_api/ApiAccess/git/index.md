@@ -2,37 +2,37 @@
 cbapicategory:
   - name: init
     link: /docs/api/apiaccess/git/init
-    description: 'Initializes a new Git repository. Can be used in the current directory or at a specified path.'
+    description: "'Initializes a new Git repository. Can be used in the current directory or at a specified path.'"
   - name: status
     link: /docs/api/apiaccess/git/status
-    description: 'Retrieves the status of the Git repository. Shows working tree status including staged, unstaged, and untracked files.'
+    description: "'Retrieves the status of the Git repository. Shows working tree status including staged, unstaged, and untracked files.'"
   - name: add
     link: /docs/api/apiaccess/git/add
-    description: 'Adds changes in the local repository to the staging area. Can add specific files or all changes using addAll().'
+    description: "'Adds changes in the local repository to the staging area. Can add specific files or all changes using addAll().'"
   - name: commit
     link: /docs/api/apiaccess/git/commit
-    description: 'Commits the staged changes in the local repository with the given commit message.'
+    description: "'Commits the staged changes in the local repository with the given commit message.'"
   - name: branch
     link: /docs/api/apiaccess/git/branch
-    description: 'Creates a new branch in the Git repository. Essential for feature development and parallel work streams.'
+    description: "'Creates a new branch in the Git repository. Essential for feature development and parallel work streams.'"
   - name: checkout
     link: /docs/api/apiaccess/git/checkout
-    description: 'Checks out a branch or commit in the Git repository. Switches the working directory to the specified branch.'
+    description: "'Checks out a branch or commit in the Git repository. Switches the working directory to the specified branch.'"
   - name: logs
     link: /docs/api/apiaccess/git/logs
-    description: 'Retrieves the commit logs for the Git repository. Shows commit history with details like hash, message, author, and date.'
+    description: "'Retrieves the commit logs for the Git repository. Shows commit history with details like hash, message, author, and date.'"
   - name: diff
     link: /docs/api/apiaccess/git/diff
-    description: 'Retrieves the diff of changes for a specific commit in the local repository.'
+    description: "'Retrieves the diff of changes for a specific commit in the local repository.'"
   - name: clone
     link: /docs/api/apiaccess/git/clone
-    description: 'Clones a Git repository from the given URL to the specified path.'
+    description: "'Clones a Git repository from the given URL to the specified path.'"
   - name: pull
     link: /docs/api/apiaccess/git/pull
-    description: 'Pulls the latest changes from the remote repository to the local repository.'
+    description: "'Pulls the latest changes from the remote repository to the local repository.'"
   - name: push
     link: /docs/api/apiaccess/git/push
-    description: 'Pushes local repository changes to the remote repository.'
+    description: "'Pushes local repository changes to the remote repository.'"
 
 ---
 # git

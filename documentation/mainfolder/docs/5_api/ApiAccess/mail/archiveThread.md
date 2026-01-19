@@ -8,7 +8,7 @@ cbparameters:
       typeName: IArchiveThreadParams
       description: Object containing the threadId to archive.
   returns:
-    signatureTypeName: Promise<IArchiveThreadResponse>
+    signatureTypeName: "Promise<IArchiveThreadResponse>"
     description: A promise that resolves when the thread is archived.
 data:
   name: archiveThread

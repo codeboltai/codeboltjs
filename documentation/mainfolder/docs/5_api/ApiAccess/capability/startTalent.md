@@ -8,15 +8,15 @@ cbparameters:
       typeName: string
       description: The name of the talent to execute.
     - name: params
-      typeName: Record<string, any>
+      typeName: "Record<string, any>"
       description: Optional parameters to pass to the talent execution.
       isOptional: true
     - name: timeout
       typeName: number
-      description: Optional execution timeout in milliseconds. If not provided, uses the talent's default timeout.
+      description: "Optional execution timeout in milliseconds. If not provided, uses the talent's default timeout."
       isOptional: true
   returns:
-    signatureTypeName: Promise<StartCapabilityResponse>
+    signatureTypeName: "Promise<StartCapabilityResponse>"
     description: A promise that resolves to the execution response containing the execution ID and initial status.
     typeArgs: []
 data:

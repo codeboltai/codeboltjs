@@ -8,7 +8,7 @@ cbparameters:
       typeName: array
       description: Array of objects containing toolbox and tool name pairs. Each object should have `toolbox` and `toolName` properties.
   returns:
-    signatureTypeName: Promise<GetToolsResponse>
+    signatureTypeName: "Promise<GetToolsResponse>"
     description: A promise that resolves with a `GetToolsResponse` object containing detailed information about the requested tools.
 data:
   name: getTools

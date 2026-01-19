@@ -11,9 +11,9 @@ cbparameters:
     - name: description
       type: string
       required: false
-      description: An optional description of the instance's purpose.
+      description: "An optional description of the instance's purpose."
   returns:
-    signatureTypeName: Promise<EventLogInstanceResponse>
+    signatureTypeName: "Promise<EventLogInstanceResponse>"
     description: A promise that resolves with the created instance details.
 data:
   name: createInstance

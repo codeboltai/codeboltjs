@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The unique identifier of the thread to get file changes for.
   returns:
-    signatureTypeName: Promise<any>
+    signatureTypeName: "Promise<any>"
     description: A promise that resolves with detailed file change information.
 data:
   name: getThreadFileChanges

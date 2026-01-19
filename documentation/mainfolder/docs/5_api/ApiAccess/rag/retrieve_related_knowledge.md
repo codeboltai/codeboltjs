@@ -1,7 +1,7 @@
 ---
 name: retrieve_related_knowledge
 cbbaseinfo:
-  description: Retrieves related knowledge for a given query from the indexed files in the RAG system, enabling semantic search and context-aware information retrieval.
+  description: "Retrieves related knowledge for a given query from the indexed files in the RAG system, enabling semantic search and context-aware information retrieval."
 cbparameters:
   parameters:
     - name: query
@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The name of the file to search within for related knowledge. Must be a file previously added to the RAG system.
   returns:
-    signatureTypeName: Promise<any>
+    signatureTypeName: "Promise<any>"
     description: A promise that resolves with the retrieved knowledge or relevant information. The structure depends on the RAG implementation.
     typeArgs: []
 data:

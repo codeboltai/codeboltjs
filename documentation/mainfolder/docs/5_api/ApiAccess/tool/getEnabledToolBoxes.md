@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetEnabledToolBoxesResponse>
+    signatureTypeName: "Promise<GetEnabledToolBoxesResponse>"
     description: A promise that resolves with a `GetEnabledToolBoxesResponse` object containing the enabled toolbox configurations.
 data:
   name: getEnabledToolBoxes

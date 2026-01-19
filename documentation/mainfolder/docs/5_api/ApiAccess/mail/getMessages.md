@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetMessagesParams
       description: Object containing the threadId to get messages from.
   returns:
-    signatureTypeName: Promise<IGetMessagesResponse>
+    signatureTypeName: "Promise<IGetMessagesResponse>"
     description: A promise that resolves with an array of messages.
 data:
   name: getMessages

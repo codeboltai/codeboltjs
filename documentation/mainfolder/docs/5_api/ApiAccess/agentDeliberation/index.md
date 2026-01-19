@@ -11,7 +11,7 @@ cbapicategory:
     description: Lists deliberations with optional filtering by type, status, participant, or search terms.
   - name: update
     link: /docs/api/apiaccess/agentdeliberation/update
-    description: Updates an existing deliberation's status or request message.
+    description: "Updates an existing deliberation's status or request message."
   - name: respond
     link: /docs/api/apiaccess/agentdeliberation/respond
     description: Submits a response to a deliberation from an agent or user.

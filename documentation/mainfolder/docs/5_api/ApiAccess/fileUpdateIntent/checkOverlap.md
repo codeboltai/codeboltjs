@@ -17,7 +17,7 @@ cbparameters:
       required: false
       description: Priority level for conflict resolution. Default is 5.
   returns:
-    signatureTypeName: Promise<IntentOverlapResult>
+    signatureTypeName: "Promise<IntentOverlapResult>"
     description: A promise that resolves with overlap information.
 data:
   name: checkOverlap

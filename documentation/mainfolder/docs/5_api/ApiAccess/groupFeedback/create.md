@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateFeedbackParams
       description: Feedback session parameters including title, description, participants, questions, and metadata.
   returns:
-    signatureTypeName: Promise<ICreateFeedbackResponse>
+    signatureTypeName: "Promise<ICreateFeedbackResponse>"
     description: A promise that resolves with the created feedback session details.
 data:
   name: create

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ListExecutorsResponse>
+    signatureTypeName: "Promise<ListExecutorsResponse>"
     description: A promise that resolves to a list of available executors.
     typeArgs: []
 data:

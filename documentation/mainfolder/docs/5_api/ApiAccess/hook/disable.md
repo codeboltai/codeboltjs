@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The unique identifier of the hook to disable.
   returns:
-    signatureTypeName: Promise<HookResponse>
+    signatureTypeName: "Promise<HookResponse>"
     description: A promise that resolves with the disabled hook details.
 data:
   name: disable
