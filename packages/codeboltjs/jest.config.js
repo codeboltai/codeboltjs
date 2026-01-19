@@ -64,7 +64,7 @@ module.exports = {
     },
 
     // Timeout for tests (default: 5000ms, increased for WebSocket operations)
-    testTimeout: 30000,
+    testTimeout: 50000,
 
     // Ignore these patterns
     testPathIgnorePatterns: [

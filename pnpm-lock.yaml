@@ -1604,7 +1604,7 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
-  providers/gitworktreeprovider:
+  providers/gitWorkTreeProvider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -14121,7 +14121,7 @@ snapshots:
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -14131,7 +14131,7 @@ snapshots:
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -14141,7 +14141,7 @@ snapshots:
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -19118,7 +19118,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-cli@5.1.4(webpack@5.103.0):
