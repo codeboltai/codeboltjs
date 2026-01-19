@@ -21,7 +21,10 @@
       "Bash(npm whoami:*)",
       "Bash(npm publish:*)",
       "Bash(git checkout:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(npx jest:*)"
     ],
     "deny": [],
     "ask": []
