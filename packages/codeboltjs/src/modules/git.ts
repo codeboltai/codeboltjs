@@ -1,15 +1,16 @@
 import cbws from '../core/websocket';
-import { 
-    GitInitResponse, 
-    GitPullResponse, 
-    GitPushResponse, 
-    GitStatusResponse, 
-    AddResponse, 
-    GitCommitResponse, 
-    GitCheckoutResponse, 
-    GitBranchResponse, 
-    GitLogsResponse, 
-    GitDiffResponse 
+import {
+    GitInitResponse,
+    GitPullResponse,
+    GitPushResponse,
+    GitStatusResponse,
+    AddResponse,
+    GitCommitResponse,
+    GitCheckoutResponse,
+    GitBranchResponse,
+    GitLogsResponse,
+    GitDiffResponse,
+    GitCloneResponse
 } from '@codebolt/types/sdk';
 
 
@@ -168,6 +169,23 @@ const gitService = {
                 "commitHash": commitHash
             },
             GitResponseType.DIFF_RESPONSE
+        );
+    },
+    /**
+     * Clones a remote Git repository to the specified path.
+     * @param {string} url - The URL of the remote repository to clone.
+     * @param {string} path - The file system path where the repository should be cloned.
+     * @returns {Promise<GitCloneResponse>} A promise that resolves with the response from the clone event.
+     */
+    clone: async (url: string, path?: string): Promise<GitCloneResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.GIT_EVENT,
+                "action": GitAction.CLONE,
+                "url": url,
+                "path": path
+            },
+            GitResponseType.CLONE_RESPONSE
         );
     }
 };

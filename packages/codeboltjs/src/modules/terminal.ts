@@ -52,6 +52,25 @@ const cbterminal = {
         );
     },
 
+    /**
+     * Executes a given command and keeps running until manually interrupted.
+     * Listens for messages from the WebSocket and resolves the promise when interrupted.
+     *
+     * @param {string} command - The command to be executed.
+     * @param {boolean} executeInMain - Whether to execute in main terminal.
+     * @returns {Promise<CommandError>} A promise that resolves when the command is interrupted.
+     */
+    executeCommandRunUntilInterrupt: async (command: string,executeInMain=false): Promise<CommandError> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": TerminalEventType.EXECUTE_COMMAND_RUN_UNTIL_INTERRUPT,
+                "message": command,
+                executeInMain
+            },
+            TerminalResponseType.COMMAND_ERROR
+        );
+    },
+
   
     /**
      * Sends a manual interrupt signal to the terminal.

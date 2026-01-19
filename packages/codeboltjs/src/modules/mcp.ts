@@ -1,7 +1,7 @@
 
 // To use UserMessage functionality, install @codebolt/agent-utils
 import cbws from '../core/websocket';
-import { 
+import {
     GetEnabledToolBoxesResponse,
     GetLocalToolBoxesResponse,
     GetAvailableToolBoxesResponse,
@@ -12,7 +12,12 @@ import {
     ExecuteToolResponse,
     MCPUserMessage,
     MCPConfiguration,
-    ToolParameters
+    ToolParameters,
+    GetMcpToolsResponse,
+    GetMcpListResponse,
+    GetAllMCPToolsResponse,
+    GetEnabledMCPSResponse,
+    ConfigureMCPToolResponse
 } from '@codebolt/types/sdk';
 import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types/enum';
 /**
@@ -141,7 +146,7 @@ const codeboltMCP = {
 
     /**
      * Executes a specific tool with provided parameters.
-     * 
+     *
      * @param toolbox - The name of the toolbox containing the tool
      * @param toolName - The name of the tool to execute
      * @param params - Parameters to pass to the tool
@@ -156,6 +161,89 @@ const codeboltMCP = {
                 "params": params
             },
             CodeboltToolsResponse.ExecuteToolResponse
+        );
+    },
+
+    /**
+     * Gets MCP tools from the specified servers.
+     *
+     * @param mcpNames - Array of MCP server names to get tools from
+     * @returns Promise with MCP tools data
+     */
+    getMcpTools: (mcpNames?: string[]): Promise<GetMcpToolsResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetMcpTools,
+                "mcpNames": mcpNames
+            },
+            CodeboltToolsResponse.GetMcpToolsResponse
+        );
+    },
+
+    /**
+     * Gets the list of available MCP servers.
+     *
+     * @returns Promise with MCP server list
+     */
+    getMcpList: (): Promise<GetMcpListResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetMcpList
+            },
+            CodeboltToolsResponse.GetMcpListResponse
+        );
+    },
+
+    /**
+     * Gets all tools from all enabled MCP servers.
+     *
+     * @returns Promise with all MCP tools data
+     */
+    getAllMcpTools: (): Promise<GetAllMCPToolsResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetAllMcpTools
+            },
+            CodeboltToolsResponse.GetAllMcpToolsResponse
+        );
+    },
+
+    /**
+     * Gets the list of enabled MCP servers.
+     *
+     * @returns Promise with enabled MCP servers data
+     */
+    getEnabledMcps: (): Promise<GetEnabledMCPSResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.GetEnabledMcps
+            },
+            CodeboltToolsResponse.GetEnabledMcpsResponse
+        );
+    },
+
+    /**
+     * Configures a specific MCP tool with provided configuration.
+     *
+     * @param mcpName - The name of the MCP server
+     * @param toolName - The name of the tool to configure
+     * @param config - Configuration object for the tool
+     * @returns Promise with the configuration result
+     */
+    configureMcpTool: (mcpName: string, toolName: string, config: Record<string, unknown>): Promise<ConfigureMCPToolResponse> => {
+        return cbws.messageManager.sendAndWaitForResponse(
+            {
+                "type": EventType.CODEBOLT_TOOLS_EVENT,
+                "action": CodeboltToolsAction.ConfigureMcpTool,
+                "mcpName": mcpName,
+                "toolName": toolName,
+                "config": config
+            },
+            CodeboltToolsResponse.ConfigureMcpToolResponse
         );
     }
 };
