@@ -1,0 +1,10 @@
+{
+  "label": "Calendar",
+  "position": 14,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "description": "Calendar event management APIs for scheduling, reminders, and time-based coordination"
+  }
+}

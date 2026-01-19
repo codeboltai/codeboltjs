@@ -1,0 +1,11 @@
+{
+  "label": "User Message Utilities",
+  "position": 29.5,
+  "collapsible": true,
+  "collapsed": true,
+  "className": "red",
+  "link": {
+    "type": "doc",
+    "id": "api/ApiAccess/user-message-utilities/index"
+  }
+}
