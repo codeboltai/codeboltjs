@@ -15,10 +15,16 @@
   --ifm-color-primary-lightest: #3cad6e;
   --ifm-font-size-base: 14.5px;
   --ifm-container-width: 1800px;
-  --ifm-spacing-horizontal: 1.5rem;
+  --ifm-spacing-horizontal: 0;
   --ifm-code-font-size: 85%;
   --doc-sidebar-width: 250px;
+  --ifm-toc-link-color: #6b7280;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+.theme-doc-markdown {
+  margin-left: 60px;
+  margin-right: 60px;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -97,20 +103,21 @@ body {
 .theme-doc-sidebar-item-link-level-1,
 .theme-doc-sidebar-item-category-level-1 {
   font-size: 0.9rem;
-  padding-left: 0.3rem;
+  padding-left: 0.2rem;
 }
 
 .theme-doc-sidebar-item-link-level-2,
 .theme-doc-sidebar-item-category-level-2 {
   font-size: 0.85rem;
-  padding-left: 0.5rem;
+  padding-left: 0.3rem;
 }
 
 .theme-doc-sidebar-item-link-level-3,
 .theme-doc-sidebar-item-category-level-3 {
-  font-size: 0.8rem;
-  padding-left: 0.5rem;
+  font-size: 0.85rem;
+  padding-left: 0.3rem;
 }
+
 
 .menu__link:hover,
 .menu__caret:hover {
