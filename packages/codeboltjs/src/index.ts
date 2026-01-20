@@ -815,6 +815,20 @@ export type {
 export { default as persistentMemory } from './modules/persistentMemory';
 
 // ================================
+// Orchestrator Types
+// ================================
+export type {
+    OrchestratorInstance,
+    OrchestratorResponse,
+    CreateOrchestratorParams,
+    UpdateOrchestratorParams,
+    UpdateOrchestratorSettingsParams
+} from './modules/orchestrator';
+
+// Export orchestrator module
+export { default as orchestrator } from './modules/orchestrator';
+
+// ================================
 // Event Log Types
 // ================================
 export type {

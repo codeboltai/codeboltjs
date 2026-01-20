@@ -304,6 +304,14 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
         // console.log("Tool result: ", data);
+
+        // Handle the case where data is an array [didUserReject, content]
+        if (Array.isArray(data) && data.length >= 2) {
+            const [didUserReject, content] = data;
+            return [Boolean(didUserReject), content];
+        }
+
+        // If data is not in the expected array format, return it as-is
         return [false, data];
     }
 

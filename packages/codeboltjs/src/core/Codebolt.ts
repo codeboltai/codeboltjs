@@ -61,6 +61,7 @@ import cbmemoryIngestion from '../modules/memoryIngestion';
 import cbcontextAssembly from '../modules/contextAssembly';
 import cbcontextRuleEngine from '../modules/contextRuleEngine';
 import cbagentPortfolio from '../modules/agentPortfolio';
+import orchestrator from '../modules/orchestrator';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -185,6 +186,7 @@ class Codebolt {
     contextAssembly = cbcontextAssembly;
     contextRuleEngine = cbcontextRuleEngine;
     agentPortfolio = cbagentPortfolio;
+    orchestrator = orchestrator;
 
     /**
      * User message utilities for accessing current user message and context

@@ -35,7 +35,6 @@ export class ToolInjectionModifier extends BaseMessageModifier {
             const { data: mentionedTools } = await codebolt.mcp.getTools(mentionedMCPs)
             tools = [...tools, ...(mentionedTools || [])]
 
-
             if (tools.length === 0) {
                 return createdMessage;
             }
