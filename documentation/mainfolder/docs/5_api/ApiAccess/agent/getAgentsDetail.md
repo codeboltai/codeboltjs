@@ -8,7 +8,7 @@ cbparameters:
       typeName: array
       description: "Optional: An array of agent IDs to get details for. If the array is empty, it retrieves details for all agents. Defaults to an empty array."
   returns:
-    signatureTypeName: Promise<AgentsDetailResponse>
+    signatureTypeName: "Promise<AgentsDetailResponse>"
     description: A promise that resolves with an `AgentsDetailResponse` object containing the detailed information of the specified agents.
 data:
   name: getAgentsDetail

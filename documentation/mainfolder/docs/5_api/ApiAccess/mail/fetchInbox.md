@@ -1,14 +1,14 @@
 ---
 name: fetchInbox
 cbbaseinfo:
-  description: Fetches messages from the agent's inbox with optional filtering.
+  description: "Fetches messages from the agent's inbox with optional filtering."
 cbparameters:
   parameters:
     - name: params
       typeName: IFetchInboxParams
       description: Parameters including agentId, limit, offset, and filters.
   returns:
-    signatureTypeName: Promise<IFetchInboxResponse>
+    signatureTypeName: "Promise<IFetchInboxResponse>"
     description: A promise that resolves with inbox messages.
 data:
   name: fetchInbox

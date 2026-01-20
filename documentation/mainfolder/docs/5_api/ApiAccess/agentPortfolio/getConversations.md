@@ -16,7 +16,7 @@ cbparameters:
       description: Offset for pagination.
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetConversationsResponse>
+    signatureTypeName: "Promise<GetConversationsResponse>"
     description: A promise that resolves to the list of conversations.
     typeArgs: []
 data:

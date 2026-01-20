@@ -2,7 +2,7 @@
 cbapicategory:
   - name: eventEmitter
     link: /docs/api/apiaccess/terminal/eventEmitter
-    description: EventEmitter for terminal events and real-time output handling.
+    description: "EventEmitter for terminal events and real-time output handling."
   - name: executeCommand
     link: /docs/api/apiaccess/terminal/executeCommand
     description: Executes a given command in the terminal and returns the result. Listens for WebSocket messages indicating output, error, or finish state and resolves the promise accordingly.
@@ -11,10 +11,10 @@ cbapicategory:
     description: Executes a command and keeps running until an error occurs. Useful for continuous processes that should stop on first failure.
   - name: executeCommandWithStream
     link: /docs/api/apiaccess/terminal/executeCommandWithStream
-    description: Executes a command and streams output in real-time via EventEmitter. Ideal for long-running commands where you need to monitor output as it happens.
+    description: "Executes a command and streams output in real-time via EventEmitter. Ideal for long-running commands where you need to monitor output as it happens."
   - name: sendManualInterrupt
     link: /docs/api/apiaccess/terminal/sendManualInterrupt
-    description: Sends a manual interrupt signal (Ctrl+C) to stop a running command or process in the terminal.
+    description: "Sends a manual interrupt signal (Ctrl+C) to stop a running command or process in the terminal."
 
 ---
 # terminal

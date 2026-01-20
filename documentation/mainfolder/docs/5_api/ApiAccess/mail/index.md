@@ -23,13 +23,13 @@ cbapicategory:
     description: Retrieves detailed information about a specific mail thread.
   - name: updateThreadStatus
     link: /docs/api/apiaccess/mail/updateThreadStatus
-    description: Updates the status of a mail thread (open, closed, archived).
+    description: "Updates the status of a mail thread (open, closed, archived)."
   - name: archiveThread
     link: /docs/api/apiaccess/mail/archiveThread
     description: Archives a mail thread to remove it from active view.
   - name: fetchInbox
     link: /docs/api/apiaccess/mail/fetchInbox
-    description: Fetches messages from the agent's inbox.
+    description: "Fetches messages from the agent's inbox."
   - name: sendMessage
     link: /docs/api/apiaccess/mail/sendMessage
     description: Sends a message to a specific mail thread.
@@ -53,7 +53,7 @@ cbapicategory:
     description: Searches for messages matching specific criteria.
   - name: summarizeThread
     link: /docs/api/apiaccess/mail/summarizeThread
-    description: Generates a summary of a mail thread's conversation.
+    description: "Generates a summary of a mail thread's conversation."
   - name: reserveFiles
     link: /docs/api/apiaccess/mail/reserveFiles
     description: Reserves files for exclusive access during collaboration.

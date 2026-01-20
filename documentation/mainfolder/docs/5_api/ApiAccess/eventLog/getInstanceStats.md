@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the event log instance.
   returns:
-    signatureTypeName: Promise<EventLogStatsResponse>
+    signatureTypeName: "Promise<EventLogStatsResponse>"
     description: A promise that resolves with instance statistics.
 data:
   name: getInstanceStats

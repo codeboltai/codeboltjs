@@ -8,7 +8,7 @@ cbparameters:
       typeName: ISummaryParams
       description: Parameters including deliberation ID, summary text, and author info.
   returns:
-    signatureTypeName: Promise<ISummaryResponse>
+    signatureTypeName: "Promise<ISummaryResponse>"
     description: A promise that resolves to the updated deliberation with summary.
     typeArgs: []
 data:

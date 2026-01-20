@@ -1,14 +1,14 @@
 ---
 name: updateSuite
 cbbaseinfo:
-  description: Updates an existing test suite's name, description, or test case assignments.
+  description: "Updates an existing test suite's name, description, or test case assignments."
 cbparameters:
   parameters:
     - name: params
       typeName: IUpdateSuiteParams
       description: Parameters including suite ID and fields to update.
   returns:
-    signatureTypeName: Promise<IUpdateSuiteResponse>
+    signatureTypeName: "Promise<IUpdateSuiteResponse>"
     description: A promise that resolves to the updated suite.
     typeArgs: []
 data:

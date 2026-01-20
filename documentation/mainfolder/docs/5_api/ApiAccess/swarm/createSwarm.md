@@ -1,7 +1,7 @@
 ---
 name: createSwarm
 cbbaseinfo:
-  description: Creates a new swarm for multi-agent coordination and task management.
+  description: "Creates a new swarm for multi-agent coordination and task management."
 cbparameters:
   parameters:
     - name: data
@@ -10,18 +10,18 @@ cbparameters:
       nested:
         - name: name
           typeName: string
-          description: The name of the swarm (required).
+          description: "The name of the swarm (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the swarm's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the swarm's purpose."
         - name: allowExternalAgents
-          typeName: boolean | undefined
+          typeName: "boolean | undefined"
           description: Whether to allow external agents to join this swarm.
         - name: maxAgents
-          typeName: number | undefined
+          typeName: "number | undefined"
           description: Maximum number of agents allowed in the swarm.
   returns:
-    signatureTypeName: Promise<CreateSwarmResponse>
+    signatureTypeName: "Promise<CreateSwarmResponse>"
     description: A promise that resolves to the created swarm details.
     typeArgs: []
 data:

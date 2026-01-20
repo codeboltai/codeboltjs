@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters:
     - name: params
-      typeName: { title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }
+      typeName: "{ title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }"
       description: Parameters for creating the todo item.
       isOptional: false
     - name: params.title
@@ -13,15 +13,15 @@ cbparameters:
       description: The title or description of the todo item.
       isOptional: false
     - name: params.priority
-      typeName: 'high' | 'medium' | 'low'
-      description: The priority level of the todo (defaults to medium).
+      typeName: "'high' | 'medium' | 'low'"
+      description: "The priority level of the todo (defaults to medium)."
       isOptional: true
     - name: params.tags
-      typeName: string[]
+      typeName: "string[]"
       description: Array of tags to categorize the todo item.
       isOptional: true
   returns:
-    signatureTypeName: Promise<AddTodoResponse>
+    signatureTypeName: "Promise<AddTodoResponse>"
     description: A promise that resolves with the created todo item.
     typeArgs: []
 data:

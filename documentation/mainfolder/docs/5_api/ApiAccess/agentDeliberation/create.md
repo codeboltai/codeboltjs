@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateDeliberationParams
       description: Parameters for creating the deliberation including type, title, message, creator, and participants.
   returns:
-    signatureTypeName: Promise<ICreateDeliberationResponse>
+    signatureTypeName: "Promise<ICreateDeliberationResponse>"
     description: A promise that resolves to the created deliberation.
     typeArgs: []
 data:

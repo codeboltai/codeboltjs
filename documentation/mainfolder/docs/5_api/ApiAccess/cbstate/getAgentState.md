@@ -6,7 +6,7 @@ cbparameters:
   parameters: []
   returns:
     signatureTypeName: Promise
-    description: A promise that resolves with the agent's state containing all key-value pairs stored via addToAgentState.
+    description: "A promise that resolves with the agent's state containing all key-value pairs stored via addToAgentState."
     typeArgs:
       - type: reference
         name: GetAgentStateResponse

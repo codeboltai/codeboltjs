@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetAgentParams
       description: Object containing the agentId to retrieve.
   returns:
-    signatureTypeName: Promise<IGetAgentResponse>
+    signatureTypeName: "Promise<IGetAgentResponse>"
     description: A promise that resolves with the agent details.
 data:
   name: getAgent

@@ -23,7 +23,7 @@ cbapicategory:
     description: Permanently deletes a thread and all its associated data.
   - name: updateThreadStatus
     link: /docs/api/apiaccess/thread/updateThreadStatus
-    description: Updates the status of a thread (e.g., active, archived, closed).
+    description: "Updates the status of a thread (e.g., active, archived, closed)."
   - name: getThreadMessages
     link: /docs/api/apiaccess/thread/getThreadMessages
     description: Retrieves all messages from a specific thread.

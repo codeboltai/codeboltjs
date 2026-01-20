@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ExtractTextResponse>
-    description: 'A promise that resolves with the extracted text from the page.'
+    signatureTypeName: "Promise<ExtractTextResponse>"
+    description: "'A promise that resolves with the extracted text from the page.'"
     typeArgs: []
 data:
   name: extractText

@@ -1,7 +1,7 @@
 ---
 name: getBlockedFiles
 cbbaseinfo:
-  description: Gets all files with hard locks (level 4 intents).
+  description: "Gets all files with hard locks (level 4 intents)."
 cbparameters:
   parameters:
     - name: environmentId
@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The environment ID to check for blocked files.
   returns:
-    signatureTypeName: Promise<{ blockedFiles: string[] }>
+    signatureTypeName: "Promise<{ blockedFiles: string[] }>"
     description: A promise that resolves with an array of blocked file paths.
 data:
   name: getBlockedFiles

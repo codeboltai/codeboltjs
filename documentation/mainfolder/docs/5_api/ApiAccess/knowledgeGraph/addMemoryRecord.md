@@ -1,7 +1,7 @@
 ---
 name: addMemoryRecord
 cbbaseinfo:
-  description: Adds a memory record (node) to a knowledge graph instance with typed attributes and validity period.
+  description: "Adds a memory record (node) to a knowledge graph instance with typed attributes and validity period."
 cbparameters:
   parameters:
     - name: instanceId
@@ -13,18 +13,18 @@ cbparameters:
       nested:
         - name: kind
           typeName: string
-          description: The record kind (type) defined in the template (required).
+          description: "The record kind (type) defined in the template (required)."
         - name: attributes
-          typeName: Record<string, any>
-          description: Attribute values matching the kind's schema (required).
+          typeName: "Record<string, any>"
+          description: "Attribute values matching the kind's schema (required)."
         - name: valid_from
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: ISO 8601 timestamp for when the record becomes valid.
         - name: valid_to
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: ISO 8601 timestamp for when the record expires.
   returns:
-    signatureTypeName: Promise<KGMemoryRecordResponse>
+    signatureTypeName: "Promise<KGMemoryRecordResponse>"
     description: A promise that resolves to the created record details.
     typeArgs: []
 data:

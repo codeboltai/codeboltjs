@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<EnterResponse>
+    signatureTypeName: "Promise<EnterResponse>"
     description: A promise that resolves when the Enter action is complete.
     typeArgs: []
 data:

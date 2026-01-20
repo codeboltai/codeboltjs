@@ -8,7 +8,7 @@ cbparameters:
       typeName: IReserveFilesParams
       description: Parameters including agentId, files array, and threadId.
   returns:
-    signatureTypeName: Promise<IReserveFilesResponse>
+    signatureTypeName: "Promise<IReserveFilesResponse>"
     description: A promise that resolves with the reservation details.
 data:
   name: reserveFiles

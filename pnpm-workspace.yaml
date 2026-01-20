@@ -10,7 +10,8 @@ packages:
   - agentcreator/*
   - agentcreator/customnodes/*
   - actionBlocks/*
-
+  - documentation/mainfolder
+  
 ignoredBuiltDependencies:
   - esbuild
   - workerd

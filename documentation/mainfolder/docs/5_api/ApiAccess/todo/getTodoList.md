@@ -9,7 +9,7 @@ cbparameters:
       description: Optional parameters for filtering or customizing the todo list.
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetTodoListResponse>
+    signatureTypeName: "Promise<GetTodoListResponse>"
     description: A promise that resolves with the complete list of todos.
     typeArgs: []
 data:

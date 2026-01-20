@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<any>
-    description: 'A promise that resolves with the snapshot data.'
+    signatureTypeName: "Promise<any>"
+    description: "'A promise that resolves with the snapshot data.'"
     typeArgs: []
 data:
   name: getSnapShot

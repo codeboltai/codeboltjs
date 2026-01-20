@@ -8,14 +8,14 @@ cbparameters:
       typeName: string
       description: The question text to present to the user.
     - name: buttons
-      typeName: string[]
+      typeName: "string[]"
       description: An array of button labels. Defaults to an empty array if not specified.
     - name: withFeedback
       typeName: boolean
       description: Whether to allow additional feedback input. Default is false.
   returns:
     signatureTypeName: Promise
-    description: A promise that resolves with the user's response.
+    description: "A promise that resolves with the user's response."
     typeArgs:
       - type: intrinsic
         name: askQuestion 

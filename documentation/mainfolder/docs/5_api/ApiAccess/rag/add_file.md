@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The absolute path where the file is located on the system.
   returns:
-    signatureTypeName: Promise<void>
+    signatureTypeName: "Promise<void>"
     description: A promise that resolves when the file has been successfully added to the RAG system.
     typeArgs: []
 data:

@@ -1,11 +1,11 @@
 ---
 name: listPowers
 cbbaseinfo:
-  description: Lists all available powers. This is a convenience method that filters capabilities by type 'power'.
+  description: "Lists all available powers. This is a convenience method that filters capabilities by type 'power'."
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ListCapabilitiesResponse>
+    signatureTypeName: "Promise<ListCapabilitiesResponse>"
     description: A promise that resolves to a list of all powers.
     typeArgs: []
 data:

@@ -6,12 +6,12 @@ cbparameters:
   parameters:
     - name: foldername
       typeName: string
-      description: The name of the folder to delete (e.g., 'temp-folder', 'old-build', 'cache').
+      description: "The name of the folder to delete (e.g., 'temp-folder', 'old-build', 'cache')."
     - name: folderpath
       typeName: string
-      description: The path of the folder to delete (e.g., '.', '/home/user/documents', './temp').
+      description: "The path of the folder to delete (e.g., '.', '/home/user/documents', './temp')."
   returns:
-    signatureTypeName: Promise<DeleteFolderResponse>
+    signatureTypeName: "Promise<DeleteFolderResponse>"
     description: A promise that resolves with a `DeleteFolderResponse` object containing the response type and folder deletion metadata.
 data:
   name: deleteFolder

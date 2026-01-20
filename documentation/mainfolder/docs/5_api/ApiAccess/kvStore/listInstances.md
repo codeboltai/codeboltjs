@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<KVInstanceListResponse>
+    signatureTypeName: "Promise<KVInstanceListResponse>"
     description: A promise that resolves with an array of all KV store instances and their metadata.
 data:
   name: listInstances

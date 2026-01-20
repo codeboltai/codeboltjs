@@ -8,7 +8,7 @@ cbparameters:
       typeName: IUpdateRunStepParams
       description: Parameters including run ID, case ID, step ID, status, logs, and user override flag.
   returns:
-    signatureTypeName: Promise<IUpdateRunStepResponse>
+    signatureTypeName: "Promise<IUpdateRunStepResponse>"
     description: A promise that resolves to the updated test run.
     typeArgs: []
 data:

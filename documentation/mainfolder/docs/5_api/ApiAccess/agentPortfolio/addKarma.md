@@ -9,13 +9,13 @@ cbparameters:
       description: The ID of the agent receiving karma.
     - name: amount
       typeName: number
-      description: The amount of karma to add (can be negative to reduce karma).
+      description: "The amount of karma to add (can be negative to reduce karma)."
     - name: reason
       typeName: string
       description: Optional reason for the karma change.
       isOptional: true
   returns:
-    signatureTypeName: Promise<AddKarmaResponse>
+    signatureTypeName: "Promise<AddKarmaResponse>"
     description: A promise that resolves when karma has been added.
     typeArgs: []
 data:

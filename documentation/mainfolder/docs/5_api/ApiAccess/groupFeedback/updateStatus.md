@@ -8,7 +8,7 @@ cbparameters:
       typeName: IUpdateStatusParams
       description: Parameters including feedbackId and the new status value.
   returns:
-    signatureTypeName: Promise<IUpdateStatusResponse>
+    signatureTypeName: "Promise<IUpdateStatusResponse>"
     description: A promise that resolves with the updated status.
 data:
   name: updateStatus

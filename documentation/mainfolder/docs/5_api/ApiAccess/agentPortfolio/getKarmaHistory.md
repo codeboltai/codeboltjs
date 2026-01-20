@@ -12,7 +12,7 @@ cbparameters:
       description: Maximum number of entries to return.
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetKarmaHistoryResponse>
+    signatureTypeName: "Promise<GetKarmaHistoryResponse>"
     description: A promise that resolves to the karma history.
     typeArgs: []
 data:

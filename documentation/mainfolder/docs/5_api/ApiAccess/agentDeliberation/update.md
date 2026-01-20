@@ -1,14 +1,14 @@
 ---
 name: update
 cbbaseinfo:
-  description: Updates an existing deliberation's status or request message.
+  description: "Updates an existing deliberation's status or request message."
 cbparameters:
   parameters:
     - name: params
       typeName: IUpdateDeliberationParams
       description: Parameters including deliberation ID and fields to update.
   returns:
-    signatureTypeName: Promise<IUpdateDeliberationResponse>
+    signatureTypeName: "Promise<IUpdateDeliberationResponse>"
     description: A promise that resolves to the updated deliberation.
     typeArgs: []
 data:

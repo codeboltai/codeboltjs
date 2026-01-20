@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<any>
-    description: 'A promise that resolves with the browser information.'
+    signatureTypeName: "Promise<any>"
+    description: "'A promise that resolves with the browser information.'"
     typeArgs: []
 data:
   name: getBrowserInfo

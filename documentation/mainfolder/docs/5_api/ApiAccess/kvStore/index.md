@@ -2,7 +2,7 @@
 cbapicategory:
   - name: createInstance
     link: /docs/api/apiaccess/kvstore/createInstance
-    description: Creates a new KV store instance for storing key-value data.
+    description: "Creates a new KV store instance for storing key-value data."
   - name: getInstance
     link: /docs/api/apiaccess/kvstore/getInstance
     description: Gets details of a specific KV store instance.
@@ -23,10 +23,10 @@ cbapicategory:
     description: Stores a value in the KV store with a specified key.
   - name: delete
     link: /docs/api/apiaccess/kvstore/delete
-    description: Deletes a specific key-value pair from the KV store.
+    description: "Deletes a specific key-value pair from the KV store."
   - name: deleteNamespace
     link: /docs/api/apiaccess/kvstore/deleteNamespace
-    description: Deletes all key-value pairs in a namespace.
+    description: "Deletes all key-value pairs in a namespace."
   - name: query
     link: /docs/api/apiaccess/kvstore/query
     description: Queries the KV store using a flexible DSL.

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetMcpListResponse>
+    signatureTypeName: "Promise<GetMcpListResponse>"
     description: A promise that resolves with the list of available MCP servers.
     typeArgs: []
 data:

@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Context assembly request to validate.
   returns:
-    signatureTypeName: Promise<ContextValidateResponse>
+    signatureTypeName: "Promise<ContextValidateResponse>"
     description: A promise that resolves with validation results.
 data:
   name: validate

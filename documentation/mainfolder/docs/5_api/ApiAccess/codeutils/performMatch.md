@@ -14,7 +14,7 @@ cbparameters:
       typeName: array
       description: "Optional: Array of problem objects containing line text and source information to be matched. Defaults to an empty array."
   returns:
-    signatureTypeName: Promise<MatchProblemResponse>
+    signatureTypeName: "Promise<MatchProblemResponse>"
     description: A promise that resolves with a `MatchProblemResponse` object containing structured problem information extracted from the input.
 data:
   name: performMatch

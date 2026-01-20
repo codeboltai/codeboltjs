@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the event log instance to delete.
   returns:
-    signatureTypeName: Promise<EventLogInstanceResponse>
+    signatureTypeName: "Promise<EventLogInstanceResponse>"
     description: A promise that resolves when the instance is deleted.
 data:
   name: deleteInstance

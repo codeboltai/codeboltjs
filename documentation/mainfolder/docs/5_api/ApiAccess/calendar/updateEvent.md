@@ -8,7 +8,7 @@ cbparameters:
       typeName: IUpdateEventParams
       description: Event update parameters including eventId and fields to update
   returns:
-    signatureTypeName: Promise<IUpdateEventResponse>
+    signatureTypeName: "Promise<IUpdateEventResponse>"
     description: A promise that resolves to the updated event data
 data:
   name: updateEvent
@@ -41,7 +41,7 @@ The `IUpdateEventParams` interface includes:
 - **`agenda`** (string): Updated meeting agenda
 - **`checkType`** (CalendarCheckType): Updated check type
 - **`tags`** (string[]): Updated tags (replaces existing)
-- **`metadata`** (Record<string, any>): Updated metadata (merges with existing)
+- **`metadata`** (`Record<string, any>`): Updated metadata (merges with existing)
 
 ### Response Structure
 

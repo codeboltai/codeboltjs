@@ -11,9 +11,9 @@ cbparameters:
     - name: updates
       type: UpdateContextRuleEngineParams
       required: true
-      description: Updated engine configuration (name, description, rules, enabled).
+      description: "Updated engine configuration (name, description, rules, enabled)."
   returns:
-    signatureTypeName: Promise<ContextRuleEngineResponse>
+    signatureTypeName: "Promise<ContextRuleEngineResponse>"
     description: A promise that resolves with the updated rule engine.
 data:
   name: update

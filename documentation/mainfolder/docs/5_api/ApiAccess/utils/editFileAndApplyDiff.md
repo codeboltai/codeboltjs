@@ -21,7 +21,7 @@ cbparameters:
       description: Optional model to use for applying the diff.
       optional: true
   returns:
-    signatureTypeName: Promise<FsEditFileAndApplyDiffResponse>
+    signatureTypeName: "Promise<FsEditFileAndApplyDiffResponse>"
     description: A promise that resolves with the file edit response.
     typeArgs: []
 data:

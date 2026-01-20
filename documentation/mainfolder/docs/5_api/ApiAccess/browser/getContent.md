@@ -5,8 +5,8 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetContentResponse>
-    description: 'A promise that resolves with the content of the page.'
+    signatureTypeName: "Promise<GetContentResponse>"
+    description: "'A promise that resolves with the content of the page.'"
     typeArgs: []
 data:
   name: getContent

@@ -9,7 +9,7 @@ cbparameters:
       description: Optional parameters for filtering.
       isOptional: true
   returns:
-    signatureTypeName: Promise<IListCasesResponse>
+    signatureTypeName: "Promise<IListCasesResponse>"
     description: A promise that resolves to the list of test cases.
     typeArgs: []
 data:

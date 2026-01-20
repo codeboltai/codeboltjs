@@ -1,7 +1,7 @@
 ---
 name: createInstance
 cbbaseinfo:
-  description: Creates a new KV store instance for storing key-value data.
+  description: "Creates a new KV store instance for storing key-value data."
 cbparameters:
   parameters:
     - name: name
@@ -11,9 +11,9 @@ cbparameters:
     - name: description
       type: string
       required: false
-      description: An optional description of the instance's purpose.
+      description: "An optional description of the instance's purpose."
   returns:
-    signatureTypeName: Promise<KVInstanceResponse>
+    signatureTypeName: "Promise<KVInstanceResponse>"
     description: A promise that resolves with the created instance details including ID, name, and timestamps.
 data:
   name: createInstance

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: FlatUserMessage | undefined
+    signatureTypeName: "FlatUserMessage | undefined"
     description: The current user message object or undefined if no message is set.
     typeArgs: []
 data:

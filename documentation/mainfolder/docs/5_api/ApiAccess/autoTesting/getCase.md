@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetCaseParams
       description: Parameters including the case ID.
   returns:
-    signatureTypeName: Promise<IGetCaseResponse>
+    signatureTypeName: "Promise<IGetCaseResponse>"
     description: A promise that resolves to the test case details.
     typeArgs: []
 data:

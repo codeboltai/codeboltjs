@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<EventLogInstanceListResponse>
+    signatureTypeName: "Promise<EventLogInstanceListResponse>"
     description: A promise that resolves with an array of all event log instances.
 data:
   name: listInstances

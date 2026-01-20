@@ -41,7 +41,7 @@ cbapicategory:
     description: Gets all portfolios associated with a project.
   - name: updateProfile
     link: /docs/api/apiaccess/agentportfolio/updateProfile
-    description: Updates an agent's profile information.
+    description: "Updates an agent's profile information."
 ---
 
 # Agent Portfolio API

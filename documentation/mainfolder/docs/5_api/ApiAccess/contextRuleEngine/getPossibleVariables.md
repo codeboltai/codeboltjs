@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<PossibleVariablesResponse>
+    signatureTypeName: "Promise<PossibleVariablesResponse>"
     description: A promise that resolves with available variables.
 data:
   name: getPossibleVariables

@@ -1,7 +1,7 @@
 ---
 name: getTalents
 cbbaseinfo:
-  description: Retrieves talents, optionally filtered by agent. Returns list of available talents or agent-specific talents.
+  description: "Retrieves talents, optionally filtered by agent. Returns list of available talents or agent-specific talents."
 cbparameters:
   parameters:
     - name: agentId
@@ -9,7 +9,7 @@ cbparameters:
       description: Optional agent ID to get talents for.
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetTalentsResponse>
+    signatureTypeName: "Promise<GetTalentsResponse>"
     description: A promise that resolves to the list of talents.
     typeArgs: []
 data:

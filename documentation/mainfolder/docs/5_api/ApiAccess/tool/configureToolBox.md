@@ -11,7 +11,7 @@ cbparameters:
       typeName: object
       description: Configuration object containing settings specific to the toolbox.
   returns:
-    signatureTypeName: Promise<ConfigureToolBoxResponse>
+    signatureTypeName: "Promise<ConfigureToolBoxResponse>"
     description: A promise that resolves with a `ConfigureToolBoxResponse` object containing the configuration result.
 data:
   name: configureToolBox

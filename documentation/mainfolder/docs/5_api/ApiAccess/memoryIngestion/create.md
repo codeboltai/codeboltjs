@@ -9,28 +9,28 @@ cbparameters:
       description: Pipeline configuration object.
       nested:
         - name: id
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional custom ID for the pipeline.
         - name: label
           typeName: string
-          description: Human-readable label for the pipeline (required).
+          description: "Human-readable label for the pipeline (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the pipeline's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the pipeline's purpose."
         - name: trigger
           typeName: IngestionTrigger
-          description: When the pipeline executes (required).
+          description: "When the pipeline executes (required)."
         - name: trigger_config
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Configuration for the trigger.
         - name: processors
-          typeName: IngestionProcessor[]
-          description: Array of processing steps (required).
+          typeName: "IngestionProcessor[]"
+          description: "Array of processing steps (required)."
         - name: routing
           typeName: IngestionRouting
-          description: Where processed data is routed (required).
+          description: "Where processed data is routed (required)."
   returns:
-    signatureTypeName: Promise<IngestionPipelineResponse>
+    signatureTypeName: "Promise<IngestionPipelineResponse>"
     description: A promise that resolves to the created pipeline details.
     typeArgs: []
 data:

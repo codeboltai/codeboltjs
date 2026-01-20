@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: matcher
       typeName: string
-      description: The name or identifier of the matcher to retrieve details for (e.g., 'xmllint', 'eslint-compact').
+      description: "The name or identifier of the matcher to retrieve details for (e.g., 'xmllint', 'eslint-compact')."
   returns:
-    signatureTypeName: Promise<getMatchDetail>
+    signatureTypeName: "Promise<getMatchDetail>"
     description: A promise that resolves with a `getMatchDetail` object containing the detailed matcher configuration including patterns and rules.
 data:
   name: matchDetail
@@ -391,7 +391,7 @@ async function validateMatcherPattern(matcherName) {
    - Store compiled patterns in cache
 
 4. **Memory Management**:
-   - Matcher detail objects are small (<1KB each)
+   - Matcher detail objects are small (\<1KB each)
    - Safe to keep 50+ matchers in memory
    - Clear cache when switching projects
 

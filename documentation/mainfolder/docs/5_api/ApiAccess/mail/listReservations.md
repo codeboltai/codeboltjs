@@ -8,7 +8,7 @@ cbparameters:
       typeName: IListReservationsParams
       description: Optional filters including agentId, threadId, and file paths.
   returns:
-    signatureTypeName: Promise<IListReservationsResponse>
+    signatureTypeName: "Promise<IListReservationsResponse>"
     description: A promise that resolves with the list of active reservations.
 data:
   name: listReservations

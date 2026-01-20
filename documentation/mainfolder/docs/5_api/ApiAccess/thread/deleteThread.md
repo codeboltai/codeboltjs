@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The unique identifier of the thread to delete.
   returns:
-    signatureTypeName: Promise<DeleteThreadResponse>
+    signatureTypeName: "Promise<DeleteThreadResponse>"
     description: A promise that resolves when the thread is successfully deleted.
 data:
   name: deleteThread

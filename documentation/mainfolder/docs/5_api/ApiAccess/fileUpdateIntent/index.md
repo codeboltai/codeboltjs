@@ -26,7 +26,7 @@ cbapicategory:
     description: Checks for overlapping intents without creating one.
   - name: getBlockedFiles
     link: /docs/api/apiaccess/fileupdateintent/getblockedfiles
-    description: Gets all files with hard locks (level 4).
+    description: "Gets all files with hard locks (level 4)."
   - name: getByAgent
     link: /docs/api/apiaccess/fileupdateintent/getbyagent
     description: Gets all intents claimed by a specific agent.

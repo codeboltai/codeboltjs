@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Context assembly request with scope variables, memory types, and constraints.
   returns:
-    signatureTypeName: Promise<ContextAssemblyResponse>
+    signatureTypeName: "Promise<ContextAssemblyResponse>"
     description: A promise that resolves with assembled context from all memory sources.
 data:
   name: getContext

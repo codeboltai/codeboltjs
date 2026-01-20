@@ -8,7 +8,7 @@ cbapicategory:
     description: Finds agents for a specified task with filtering options by location, source and maximum results.
   - name: GetAgentsList
     link: /docs/api/apiaccess/agent/getAgentsList
-    description: Lists available agents of a specific type (downloaded, local, or all).
+    description: "Lists available agents of a specific type (downloaded, local, or all)."
   - name: GetAgentsDetail
     link: /docs/api/apiaccess/agent/getAgentsDetail
     description: Retrieves detailed information for a list of specified agents .

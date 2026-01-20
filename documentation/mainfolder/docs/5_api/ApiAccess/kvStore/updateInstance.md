@@ -11,9 +11,9 @@ cbparameters:
     - name: updates
       type: UpdateKVInstanceParams
       required: true
-      description: Object containing the fields to update (name and/or description).
+      description: "Object containing the fields to update (name and/or description)."
   returns:
-    signatureTypeName: Promise<KVInstanceResponse>
+    signatureTypeName: "Promise<KVInstanceResponse>"
     description: A promise that resolves with the updated instance details.
 data:
   name: updateInstance

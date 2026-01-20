@@ -13,9 +13,18 @@
   --ifm-color-primary-light: #33925d;
   --ifm-color-primary-lighter: #359962;
   --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
+  --ifm-font-size-base: 14.5px;
+  --ifm-container-width: 1800px;
+  --ifm-spacing-horizontal: 0;
+  --ifm-code-font-size: 85%;
+  --doc-sidebar-width: 250px;
+  --ifm-toc-link-color: #6b7280;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-  --ifm-spacing-horizontal: 2rem;
+}
+
+.theme-doc-markdown {
+  margin-left: 60px;
+  margin-right: 60px;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -31,7 +40,8 @@
 }
 
 /* Fix for white space issue - ensure full height layout */
-html, body {
+html,
+body {
   height: 100%;
   min-height: 100vh;
   margin: 0;
@@ -93,24 +103,26 @@ body {
 .theme-doc-sidebar-item-link-level-1,
 .theme-doc-sidebar-item-category-level-1 {
   font-size: 0.9rem;
-  padding-left: 1rem;
+  padding-left: 0.2rem;
 }
 
 .theme-doc-sidebar-item-link-level-2,
 .theme-doc-sidebar-item-category-level-2 {
   font-size: 0.85rem;
-  padding-left: 0.5rem;
+  padding-left: 0.3rem;
 }
 
 .theme-doc-sidebar-item-link-level-3,
 .theme-doc-sidebar-item-category-level-3 {
-  font-size: 0.8rem;
-  padding-left: 0.5rem;
+  font-size: 0.85rem;
+  padding-left: 0.3rem;
 }
 
-.menu__link:hover, .menu__caret:hover {
+
+.menu__link:hover,
+.menu__caret:hover {
   background: transparent !important;
-} 
+}
 
 /* Style for top-level sidebar items */
 .theme-doc-sidebar-item-link-level-0,
@@ -181,26 +193,28 @@ body {
   margin-top: 0.25rem;
 }
 
-/* Style active sidebar items */
+/* Style active sidebar items - Letta style */
 .menu__link--active {
-  font-weight: 600;
-  background-color: var(--ifm-color-primary-lightest);
-  border-radius: 4px;
+  font-weight: 500 !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: var(--ifm-color-primary) !important;
+  border-radius: 6px;
 }
 
 [data-theme='dark'] .menu__link--active {
-  background-color: var(--ifm-color-primary-darkest);
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
 }
 
 /* Hover effects for sidebar items */
 .menu__link:hover {
-  background-color: var(--ifm-color-emphasis-100);
+  background-color: rgba(0, 0, 0, 0.03) !important;
   border-radius: 6px;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease;
 }
 
 [data-theme='dark'] .menu__link:hover {
-  background-color: var(--ifm-color-emphasis-200);
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Ensure collapsible items don't get unwanted hover boxes */
@@ -237,7 +251,7 @@ body {
   margin-bottom: 20px;
 }
 
-.description{
+.description {
   margin-bottom: 20px;
   background-color: rgb(236, 234, 234);
   border: 2px solid #d8d4d4;
@@ -246,19 +260,145 @@ body {
   padding: 20px;
   border-radius: 5px;
 }
-.cbbaseinfo{
+
+.cbbaseinfo {
   margin-bottom: 20px;
 }
-[data-theme='dark'] .description{
+
+[data-theme='dark'] .description {
   color: white;
   background-color: rgb(57, 56, 56);
   border: 2px solid #545050;
 }
+
 [data-theme='dark'] .footer {
   background-color: rgba(34, 31, 29, 0.9);
 }
 
-p{
+p {
   margin: 0;
   padding: 0;
+}
+
+/* Fix text size for headings as well */
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+/* Remove the border between left sidebar and main content */
+.theme-doc-sidebar-container {
+  border-right: none !important;
+}
+
+.theme-doc-main-container {
+  padding-left: 4rem;
+  padding-right: 4rem;
+}
+
+/* Scrollbar Styling - Visible thumb, transparent track */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.4);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+}
+
+[data-theme='dark'] * {
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* Highlight currently selected section in TOC */
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary) !important;
+  font-weight: 500;
+  /* Removed border-left highlight to eliminate all lines */
+  padding-left: 12px !important;
+  display: block;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 4px;
+}
+
+[data-theme='dark'] .table-of-contents__link--active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.table-of-contents {
+  border-left: none !important;
+  padding-left: 0;
+}
+
+/* Ensure Right TOC links are not too large */
+.table-of-contents__link {
+  font-size: 0.85rem;
+}
+
+/* Adjust Right TOC container spacing by overriding Infima's col padding */
+.theme-doc-toc-container.col.col--3 {
+  padding-left: 0 !important;
+  padding-right: 0.5rem !important;
+}
+
+/* Ensure the desktop TOC takes full width of its compact container */
+.theme-doc-toc-desktop {
+  max-width: none !important;
+}
+
+
+
+/* Letta-style Code Block Accent - Keeping this as requested for code blocks */
+div[class*='codeBlockContainer'] {
+  border-left: 3px solid #3b82f6 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+[data-theme='dark'] div[class*='codeBlockContainer'] {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-doc-sidebar-container {
+  background-color: transparent !important;
+  border-right: none !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0 !important;
+}
+
+
+/* Adjust sidebar item padding for better look */
+.menu__link {
+  padding: 0.4rem 0.8rem !important;
+  line-height: 1.4;
 }

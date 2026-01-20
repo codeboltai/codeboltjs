@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: message
       typeName: string
-      description: The commit message to use for the commit (e.g., "Initial commit", "Fix bug in authentication", "Add new feature").
+      description: "The commit message to use for the commit (e.g., \"Initial commit\", \"Fix bug in authentication\", \"Add new feature\")."
   returns:
-    signatureTypeName: Promise<GitCommitResponse>
+    signatureTypeName: "Promise<GitCommitResponse>"
     description: A promise that resolves with a `GitCommitResponse` object containing the commit information and metadata.
 data:
   name: commit

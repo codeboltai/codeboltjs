@@ -6,7 +6,7 @@ cbparameters:
   parameters:
     - name: task
       typeName: string
-      description: The task description for which an agent is needed (e.g., "Write a function to sum of Two number", "create node js app").
+      description: "The task description for which an agent is needed (e.g., \"Write a function to sum of Two number\", \"create node js app\")."
     - name: maxResult
       typeName: number
       description: "Optional: Maximum number of agents to return. Defaults to 1."
@@ -20,7 +20,7 @@ cbparameters:
       typeName: string
       description: "Optional: The filtering method to use. Defaults to 'use_vector_db'. Possible values are 'use_ai', 'use_vector_db', 'use_both'."
   returns:
-    signatureTypeName: Promise<FindAgentByTaskResponse>
+    signatureTypeName: "Promise<FindAgentByTaskResponse>"
     description: A promise that resolves with a `FindAgentByTaskResponse` object containing an array of found agents.
 data:
   name: findAgent

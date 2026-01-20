@@ -12,9 +12,9 @@ cbparameters:
       description: Feature data including title, description, and optional metadata
     - name: projectPath
       typeName: string
-      description: Optional project path (uses active project if not provided)
+      description: "Optional project path (uses active project if not provided)"
   returns:
-    signatureTypeName: Promise<RoadmapFeatureResponse>
+    signatureTypeName: "Promise<RoadmapFeatureResponse>"
     description: A promise that resolves to the created feature
 data:
   name: createFeature

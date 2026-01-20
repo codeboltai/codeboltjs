@@ -11,7 +11,7 @@ cbparameters:
       typeName: MCPConfiguration
       description: Configuration object for the server.
   returns:
-    signatureTypeName: Promise<ConfigureToolBoxResponse>
+    signatureTypeName: "Promise<ConfigureToolBoxResponse>"
     description: A promise that resolves with the configuration result.
     typeArgs: []
 data:

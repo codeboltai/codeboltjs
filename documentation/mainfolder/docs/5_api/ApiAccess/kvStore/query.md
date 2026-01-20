@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: A query DSL object defining the query parameters including from, where, select, orderBy, limit, and offset.
   returns:
-    signatureTypeName: Promise<KVQueryResponse>
+    signatureTypeName: "Promise<KVQueryResponse>"
     description: A promise that resolves with matching records and pagination metadata.
 data:
   name: query

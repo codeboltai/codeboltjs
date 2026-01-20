@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the rule engine.
   returns:
-    signatureTypeName: Promise<ContextRuleEngineDeleteResponse>
+    signatureTypeName: "Promise<ContextRuleEngineDeleteResponse>"
     description: A promise that resolves with deletion status.
 data:
   name: delete

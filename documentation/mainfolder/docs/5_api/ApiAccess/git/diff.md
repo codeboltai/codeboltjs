@@ -6,13 +6,13 @@ cbparameters:
   parameters:
     - name: commitHash
       typeName: string
-      description: The SHA hash of the commit to retrieve the diff for (e.g., "abc123def456", "1a2b3c4d").
+      description: "The SHA hash of the commit to retrieve the diff for (e.g., \"abc123def456\", \"1a2b3c4d\")."
     - name: path
       typeName: string
-      description: 'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'
+      description: "'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'"
       optional: true
   returns:
-    signatureTypeName: Promise<GitDiffResponse>
+    signatureTypeName: "Promise<GitDiffResponse>"
     description: A promise that resolves with a `GitDiffResponse` object containing the diff data and change statistics.
 data:
   name: diff

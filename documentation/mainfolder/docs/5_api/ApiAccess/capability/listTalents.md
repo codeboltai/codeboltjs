@@ -1,11 +1,11 @@
 ---
 name: listTalents
 cbbaseinfo:
-  description: Lists all available talents. This is a convenience method that filters capabilities by type 'talent'.
+  description: "Lists all available talents. This is a convenience method that filters capabilities by type 'talent'."
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ListCapabilitiesResponse>
+    signatureTypeName: "Promise<ListCapabilitiesResponse>"
     description: A promise that resolves to a list of all talents.
     typeArgs: []
 data:

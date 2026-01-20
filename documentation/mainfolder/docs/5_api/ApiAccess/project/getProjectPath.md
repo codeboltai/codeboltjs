@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetProjectPathResponse>
+    signatureTypeName: "Promise<GetProjectPathResponse>"
     description: A promise that resolves with the project path response containing path and project name information.
 data:
   name: getProjectPath

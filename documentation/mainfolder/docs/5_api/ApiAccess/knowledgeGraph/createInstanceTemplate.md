@@ -10,18 +10,18 @@ cbparameters:
       nested:
         - name: name
           typeName: string
-          description: The name of the template (required).
+          description: "The name of the template (required)."
         - name: description
-          typeName: string | undefined
-          description: Optional description of the template's purpose.
+          typeName: "string | undefined"
+          description: "Optional description of the template's purpose."
         - name: record_kinds
-          typeName: KGRecordKind[]
-          description: Array of record kind definitions (node types).
+          typeName: "KGRecordKind[]"
+          description: "Array of record kind definitions (node types)."
         - name: edge_types
-          typeName: KGEdgeType[]
-          description: Array of edge type definitions (relationship types).
+          typeName: "KGEdgeType[]"
+          description: "Array of edge type definitions (relationship types)."
   returns:
-    signatureTypeName: Promise<KGInstanceTemplateResponse>
+    signatureTypeName: "Promise<KGInstanceTemplateResponse>"
     description: A promise that resolves to the created template details.
     typeArgs: []
 data:

@@ -8,7 +8,7 @@ cbparameters:
       typeName: IFindOrCreateThreadParams
       description: Thread parameters including subject, participants, type, and metadata.
   returns:
-    signatureTypeName: Promise<IFindOrCreateThreadResponse>
+    signatureTypeName: "Promise<IFindOrCreateThreadResponse>"
     description: A promise that resolves with the thread and whether it was created or found.
 data:
   name: findOrCreateThread

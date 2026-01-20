@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Rule engine configuration including name, description, rules, and enabled status.
   returns:
-    signatureTypeName: Promise<ContextRuleEngineResponse>
+    signatureTypeName: "Promise<ContextRuleEngineResponse>"
     description: A promise that resolves with the created rule engine details.
 data:
   name: create

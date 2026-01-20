@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The text to type.
   returns:
-    signatureTypeName: Promise<TypeResponse>
+    signatureTypeName: "Promise<TypeResponse>"
     description: A promise that resolves when the typing action is complete.
     typeArgs: []
 data:

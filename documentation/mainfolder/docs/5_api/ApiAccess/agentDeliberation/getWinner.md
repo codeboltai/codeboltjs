@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetWinnerParams
       description: Parameters including the deliberation ID.
   returns:
-    signatureTypeName: Promise<IGetWinnerResponse>
+    signatureTypeName: "Promise<IGetWinnerResponse>"
     description: A promise that resolves to the winning response and vote details.
     typeArgs: []
 data:

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GitPullResponse>
+    signatureTypeName: "Promise<GitPullResponse>"
     description: A promise that resolves with a `GitPullResponse` object containing the pull operation results and change statistics.
 data:
   name: pull

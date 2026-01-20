@@ -12,9 +12,9 @@ cbparameters:
       description: The name of the tool to execute.
     - name: params
       typeName: ToolParameters
-      description: Parameters to pass to the tool (key-value pairs).
+      description: "Parameters to pass to the tool (key-value pairs)."
   returns:
-    signatureTypeName: Promise<ExecuteToolResponse>
+    signatureTypeName: "Promise<ExecuteToolResponse>"
     description: A promise that resolves with the tool execution result.
     typeArgs: []
 data:

@@ -1,7 +1,7 @@
 ---
 name: delete
 cbbaseinfo:
-  description: Deletes a specific key-value pair from the KV store.
+  description: "Deletes a specific key-value pair from the KV store."
 cbparameters:
   parameters:
     - name: instanceId
@@ -17,7 +17,7 @@ cbparameters:
       required: true
       description: The key to delete.
   returns:
-    signatureTypeName: Promise<KVDeleteResponse>
+    signatureTypeName: "Promise<KVDeleteResponse>"
     description: A promise that resolves with deletion status.
 data:
   name: delete

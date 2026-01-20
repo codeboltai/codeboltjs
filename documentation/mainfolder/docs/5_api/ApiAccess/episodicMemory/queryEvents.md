@@ -9,34 +9,34 @@ cbparameters:
       description: Query parameters with optional filters.
       nested:
         - name: memoryId
-          typeName: string | undefined
-          description: The ID of the memory (or use swarmId).
+          typeName: "string | undefined"
+          description: "The ID of the memory (or use swarmId)."
         - name: swarmId
-          typeName: string | undefined
-          description: The ID of the swarm (alternative to memoryId).
+          typeName: "string | undefined"
+          description: "The ID of the swarm (alternative to memoryId)."
         - name: lastMinutes
-          typeName: number | undefined
+          typeName: "number | undefined"
           description: Get events from the last N minutes.
         - name: lastCount
-          typeName: number | undefined
+          typeName: "number | undefined"
           description: Get the last N events.
         - name: tags
-          typeName: string[] | undefined
-          description: Filter by tags (events must have all specified tags).
+          typeName: "string[] | undefined"
+          description: "Filter by tags (events must have all specified tags)."
         - name: event_type
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Filter by event type.
         - name: emitting_agent_id
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Filter by emitting agent.
         - name: team_id
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Filter by team ID.
         - name: since
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: ISO 8601 timestamp to get events since.
   returns:
-    signatureTypeName: Promise<IQueryEventsResponse>
+    signatureTypeName: "Promise<IQueryEventsResponse>"
     description: A promise that resolves to filtered events.
     typeArgs: []
 data:

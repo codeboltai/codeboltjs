@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The search query string to search for.
   returns:
-    signatureTypeName: Promise<string>
+    signatureTypeName: "Promise<string>"
     description: A promise that resolves with the search results as a string.
     typeArgs: []
 data:
@@ -199,7 +199,7 @@ The `codebolt.search.search(query)` function performs a web search using the con
 
 **Key Points:**
 - **Query Parameter**: Accepts any search query string
-- **Return Type**: Returns a Promise<string> with search results
+- **Return Type**: Returns a `Promise<string>` with search results
 - **Synchronous Operation**: Waits for search to complete before resolving
 - **Engine Dependency**: Results format depends on the initialized search engine
 

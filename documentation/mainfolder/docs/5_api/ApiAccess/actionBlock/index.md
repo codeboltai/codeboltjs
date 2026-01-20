@@ -2,7 +2,7 @@
 cbapicategory:
   - name: list
     link: /docs/api/apiaccess/actionblock/list
-    description: Lists all available ActionBlocks with optional filtering by type (filesystem, runtime, or builtin).
+    description: "Lists all available ActionBlocks with optional filtering by type (filesystem, runtime, or builtin)."
   - name: getDetail
     link: /docs/api/apiaccess/actionblock/getDetail
     description: Retrieves detailed information about a specific ActionBlock including metadata, inputs, and outputs.

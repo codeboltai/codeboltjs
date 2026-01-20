@@ -8,7 +8,7 @@ cbparameters:
       typeName: IUpdateRunStatusParams
       description: Parameters including run ID and new status.
   returns:
-    signatureTypeName: Promise<IUpdateRunStatusResponse>
+    signatureTypeName: "Promise<IUpdateRunStatusResponse>"
     description: A promise that resolves to the updated test run.
     typeArgs: []
 data:

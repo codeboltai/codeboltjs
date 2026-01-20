@@ -8,7 +8,7 @@ cbparameters:
       typeName: GetThreadDetailOptions
       description: Options containing the threadId of the thread to retrieve.
   returns:
-    signatureTypeName: Promise<GetThreadResponse>
+    signatureTypeName: "Promise<GetThreadResponse>"
     description: A promise that resolves with comprehensive thread details including status, participants, messages, and metadata.
 data:
   name: getThreadDetail

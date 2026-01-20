@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GitStatusResponse>
+    signatureTypeName: "Promise<GitStatusResponse>"
     description: A promise that resolves with a `GitStatusResponse` object containing the git status information and repository state.
 data:
   name: status

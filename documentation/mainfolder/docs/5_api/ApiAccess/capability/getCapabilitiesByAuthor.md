@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The author name to filter by.
   returns:
-    signatureTypeName: Promise<ListCapabilitiesResponse>
+    signatureTypeName: "Promise<ListCapabilitiesResponse>"
     description: A promise that resolves to a list of capabilities by the specified author.
     typeArgs: []
 data:

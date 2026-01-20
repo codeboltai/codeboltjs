@@ -5,10 +5,10 @@ cbbaseinfo:
 cbparameters:
   parameters:
     - name: onStopClicked
-      typeName: (message: any) => void
+      typeName: "(message: any) => void"
       description: Optional callback function to handle stop process events when user clicks stop.
   returns:
-    signatureTypeName: { stopProcess: () => void; cleanup?: () => void }
+    signatureTypeName: "{ stopProcess: () => void; cleanup?: () => void }"
     description: An object containing a stopProcess method and optionally a cleanup method.
 data:
   name: processStarted

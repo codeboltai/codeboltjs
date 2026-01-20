@@ -1,11 +1,11 @@
 ---
 name: updateTodo
 cbbaseinfo:
-  description: Updates an existing todo item's status, title, priority, or tags.
+  description: "Updates an existing todo item's status, title, priority, or tags."
 cbparameters:
   parameters:
     - name: params
-      typeName: { id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }
+      typeName: "{ id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }"
       description: Parameters for updating the todo item.
       isOptional: false
     - name: params.id
@@ -17,19 +17,19 @@ cbparameters:
       description: The new title for the todo item.
       isOptional: true
     - name: params.status
-      typeName: 'pending' | 'processing' | 'completed' | 'cancelled'
+      typeName: "'pending' | 'processing' | 'completed' | 'cancelled'"
       description: The new status for the todo item.
       isOptional: true
     - name: params.priority
-      typeName: 'high' | 'medium' | 'low'
+      typeName: "'high' | 'medium' | 'low'"
       description: The new priority level for the todo item.
       isOptional: true
     - name: params.tags
-      typeName: string[]
-      description: The new array of tags for the todo item (replaces existing tags).
+      typeName: "string[]"
+      description: "The new array of tags for the todo item (replaces existing tags)."
       isOptional: true
   returns:
-    signatureTypeName: Promise<UpdateTodoResponse>
+    signatureTypeName: "Promise<UpdateTodoResponse>"
     description: A promise that resolves with the updated todo item.
     typeArgs: []
 data:

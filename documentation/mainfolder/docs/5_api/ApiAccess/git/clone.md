@@ -6,12 +6,12 @@ cbparameters:
   parameters:
     - name: url
       typeName: string
-      description: The URL of the Git repository to clone (e.g., 'https://github.com/user/repo.git', 'git@github.com:user/repo.git').
+      description: "The URL of the Git repository to clone (e.g., 'https://github.com/user/repo.git', 'git@github.com:user/repo.git')."
     - name: path
       typeName: string
-      description: The file system path where the repository should be cloned to (e.g., './my-project', '/home/user/projects/repo', '.').
+      description: "The file system path where the repository should be cloned to (e.g., './my-project', '/home/user/projects/repo', '.')."
   returns:
-    signatureTypeName: Promise<GitCloneResponse>
+    signatureTypeName: "Promise<GitCloneResponse>"
     description: A promise that resolves with information about the cloned repository including success status and details.
 data:
   name: clone

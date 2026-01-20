@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The appreciation message.
   returns:
-    signatureTypeName: Promise<AddAppreciationResponse>
+    signatureTypeName: "Promise<AddAppreciationResponse>"
     description: A promise that resolves when appreciation is added.
     typeArgs: []
 data:

@@ -1,17 +1,17 @@
 ---
 name: addKnowledge
 cbbaseinfo:
-  description: Adds a key-value pair to the in-memory database. Supports storing various data types including strings, numbers, objects, and arrays.
+  description: "Adds a key-value pair to the in-memory database. Supports storing various data types including strings, numbers, objects, and arrays."
 cbparameters:
   parameters:
     - name: key
       typeName: string
-      description: The unique key under which to store the value. Supports namespaced keys (e.g., 'user:123', 'config:theme').
+      description: "The unique key under which to store the value. Supports namespaced keys (e.g., 'user:123', 'config:theme')."
     - name: value
       typeName: any
       description: The value to be stored. Can be string, number, boolean, object, array, null, or undefined.
   returns:
-    signatureTypeName: Promise<MemorySetResponse>
+    signatureTypeName: "Promise<MemorySetResponse>"
     description: A promise that resolves with a `MemorySetResponse` object containing the response type and operation metadata.
 data:
   name: addKnowledge

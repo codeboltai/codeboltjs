@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICheckConflictsParams
       description: Parameters including files to check for conflicts.
   returns:
-    signatureTypeName: Promise<ICheckConflictsResponse>
+    signatureTypeName: "Promise<ICheckConflictsResponse>"
     description: A promise that resolves with conflict information.
 data:
   name: checkConflicts

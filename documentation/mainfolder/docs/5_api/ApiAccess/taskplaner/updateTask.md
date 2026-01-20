@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The updated task information. This can include the task ID, title, description, and completion status in string format.
   returns:
-    signatureTypeName: Promise<UpdateTasksResponse>
+    signatureTypeName: "Promise<UpdateTasksResponse>"
     description: A promise that resolves with the response containing the updated task information.
 data:
   name: updateTask

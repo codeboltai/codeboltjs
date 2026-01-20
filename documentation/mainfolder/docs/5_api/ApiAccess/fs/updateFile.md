@@ -6,15 +6,15 @@ cbparameters:
   parameters:
     - name: filename
       typeName: string
-      description: The name of the file to update (e.g., 'example.txt', 'config.json').
+      description: "The name of the file to update (e.g., 'example.txt', 'config.json')."
     - name: filePath
       typeName: string
-      description: The path of the file to update (e.g., '.', '/home/user/documents', './src').
+      description: "The path of the file to update (e.g., '.', '/home/user/documents', './src')."
     - name: newContent
       typeName: string
       description: The new content to write into the file, replacing the existing content.
   returns:
-    signatureTypeName: Promise<UpdateFileResponse>
+    signatureTypeName: "Promise<UpdateFileResponse>"
     description: A promise that resolves with an `UpdateFileResponse` object containing the response type and file update metadata.
 data:
   name: updateFile

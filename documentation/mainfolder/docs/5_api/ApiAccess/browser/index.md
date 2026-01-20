@@ -20,7 +20,7 @@ cbapicategory:
     description: Converts the current page content to Markdown format. Intelligently transforms HTML structure to readable Markdown.
   - name: getContent
     link: /docs/api/apiaccess/browser/getContent
-    description: Extracts the visible text content from the current page. Returns human-readable text without HTML markup.
+    description: "Extracts the visible text content from the current page. Returns human-readable text without HTML markup."
   - name: extractText
     link: /docs/api/apiaccess/browser/extractText
     description: Extracts clean, formatted text from the current page. Removes HTML tags and formatting for pure text extraction.
@@ -35,7 +35,7 @@ cbapicategory:
     description: Scrolls the page in a specified direction by a given number of pixels. Supports both absolute and relative scrolling.
   - name: type
     link: /docs/api/apiaccess/browser/type
-    description: Types text into a specific input element on the page. Simulates human-like typing with optional delays.
+    description: "Types text into a specific input element on the page. Simulates human-like typing with optional delays."
   - name: click
     link: /docs/api/apiaccess/browser/click
     description: Clicks on a specific element using its element ID or selector. Triggers native click events and JavaScript handlers.

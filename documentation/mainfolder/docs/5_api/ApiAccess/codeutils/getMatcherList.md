@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetMatcherListTreeResponse>
+    signatureTypeName: "Promise<GetMatcherListTreeResponse>"
     description: A promise that resolves with a `GetMatcherListTreeResponse` object containing the list of all available matchers with their patterns and configurations.
 data:
   name: getMatcherList
@@ -358,7 +358,7 @@ if (result.matchers) {
    - Store in memory or persistent cache for quick access
 
 2. **Memory Usage**:
-   - The matcher list is typically small (<100 items)
+   - The matcher list is typically small (\<100 items)
    - Memory footprint is minimal
    - Safe to keep in memory for the session
 

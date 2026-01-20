@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<UrlResponse>
+    signatureTypeName: "Promise<UrlResponse>"
     description: A promise that resolves with a `UrlResponse` object containing the current URL.
 data:
   name: getUrl

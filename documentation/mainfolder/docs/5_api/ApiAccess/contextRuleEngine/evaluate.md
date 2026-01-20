@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: Evaluation parameters with scope variables and optional rule engine IDs.
   returns:
-    signatureTypeName: Promise<EvaluateRulesResponse>
+    signatureTypeName: "Promise<EvaluateRulesResponse>"
     description: A promise that resolves with evaluation results.
 data:
   name: evaluate

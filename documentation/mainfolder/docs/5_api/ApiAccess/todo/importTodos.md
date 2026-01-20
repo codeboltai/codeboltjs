@@ -5,27 +5,27 @@ cbbaseinfo:
 cbparameters:
   parameters:
     - name: params
-      typeName: { data: string; format?: 'json' | 'markdown'; mergeStrategy?: 'replace' | 'merge'; listId?: string }
+      typeName: "{ data: string; format?: 'json' | 'markdown'; mergeStrategy?: 'replace' | 'merge'; listId?: string }"
       description: Parameters for importing todos.
       isOptional: false
     - name: params.data
       typeName: string
-      description: The import data as a string (JSON or Markdown format).
+      description: "The import data as a string (JSON or Markdown format)."
       isOptional: false
     - name: params.format
-      typeName: 'json' | 'markdown'
-      description: The format of the import data (defaults to 'json').
+      typeName: "'json' | 'markdown'"
+      description: "The format of the import data (defaults to 'json')."
       isOptional: true
     - name: params.mergeStrategy
-      typeName: 'replace' | 'merge'
-      description: How to handle existing todos ('replace' clears existing, 'merge' combines them).
+      typeName: "'replace' | 'merge'"
+      description: "How to handle existing todos ('replace' clears existing, 'merge' combines them)."
       isOptional: true
     - name: params.listId
       typeName: string
       description: Optional target list ID for the imported todos.
       isOptional: true
   returns:
-    signatureTypeName: Promise<ImportTodosResponse>
+    signatureTypeName: "Promise<ImportTodosResponse>"
     description: A promise that resolves with the import result.
     typeArgs: []
 data:

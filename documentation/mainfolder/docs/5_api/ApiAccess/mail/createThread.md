@@ -8,7 +8,7 @@ cbparameters:
       typeName: ICreateThreadParams
       description: Thread creation parameters including subject, participants, type, and metadata.
   returns:
-    signatureTypeName: Promise<ICreateThreadResponse>
+    signatureTypeName: "Promise<ICreateThreadResponse>"
     description: A promise that resolves with the created thread details.
 data:
   name: createThread

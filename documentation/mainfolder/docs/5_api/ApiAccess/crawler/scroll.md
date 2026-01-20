@@ -6,7 +6,7 @@ cbparameters:
   parameters:
     - name: direction
       typeName: string
-      description: The direction to scroll ('up', 'down', 'left', 'right').
+      description: "The direction to scroll ('up', 'down', 'left', 'right')."
   returns:
     signatureTypeName: void
     description: No return value. Sends a scroll event to the crawler.

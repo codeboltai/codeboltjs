@@ -11,8 +11,8 @@ cbparameters:
       typeName: string
       description: The name of the class to parse for functions/methods.
   returns:
-    signatureTypeName: Array<FunctionInfo>
-    description: 'An array of objects containing function information with name, class, and location properties.'
+    signatureTypeName: "Array<FunctionInfo>"
+    description: "'An array of objects containing function information with name, class, and location properties.'"
     typeArgs: []
 data:
   name: getFunctionsinClass

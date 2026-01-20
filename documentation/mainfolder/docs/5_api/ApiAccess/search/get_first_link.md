@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The search query to find the first link for.
   returns:
-    signatureTypeName: Promise<string>
+    signatureTypeName: "Promise<string>"
     description: A promise that resolves with the first search result link as a string.
     typeArgs: []
 data:

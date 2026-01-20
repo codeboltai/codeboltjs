@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<IListAgentsResponse>
+    signatureTypeName: "Promise<IListAgentsResponse>"
     description: A promise that resolves with an array of registered agents.
 data:
   name: listAgents

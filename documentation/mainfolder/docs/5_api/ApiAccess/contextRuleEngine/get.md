@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the rule engine.
   returns:
-    signatureTypeName: Promise<ContextRuleEngineResponse>
+    signatureTypeName: "Promise<ContextRuleEngineResponse>"
     description: A promise that resolves with the rule engine details.
 data:
   name: get

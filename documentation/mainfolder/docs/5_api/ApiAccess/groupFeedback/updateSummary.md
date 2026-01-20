@@ -8,7 +8,7 @@ cbparameters:
       typeName: IUpdateSummaryParams
       description: Parameters including feedbackId and the new summary content.
   returns:
-    signatureTypeName: Promise<IUpdateSummaryResponse>
+    signatureTypeName: "Promise<IUpdateSummaryResponse>"
     description: A promise that resolves with the updated summary.
 data:
   name: updateSummary

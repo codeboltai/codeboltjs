@@ -9,7 +9,7 @@ cbparameters:
       description: The unique identifier of the side execution to stop.
       isOptional: false
   returns:
-    signatureTypeName: Promise<StopSideExecutionResponse>
+    signatureTypeName: "Promise<StopSideExecutionResponse>"
     description: A promise that resolves when the execution is stopped.
     typeArgs: []
 data:

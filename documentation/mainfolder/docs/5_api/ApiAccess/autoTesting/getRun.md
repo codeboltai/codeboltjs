@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetRunParams
       description: Parameters including the run ID.
   returns:
-    signatureTypeName: Promise<IGetRunResponse>
+    signatureTypeName: "Promise<IGetRunResponse>"
     description: A promise that resolves to the test run with detailed results.
     typeArgs: []
 data:

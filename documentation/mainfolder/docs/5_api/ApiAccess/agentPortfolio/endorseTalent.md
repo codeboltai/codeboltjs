@@ -1,14 +1,14 @@
 ---
 name: endorseTalent
 cbbaseinfo:
-  description: Endorses a talent skill to validate its quality and verify the agent's expertise.
+  description: "Endorses a talent skill to validate its quality and verify the agent's expertise."
 cbparameters:
   parameters:
     - name: talentId
       typeName: string
       description: The ID of the talent to endorse.
   returns:
-    signatureTypeName: Promise<EndorseTalentResponse>
+    signatureTypeName: "Promise<EndorseTalentResponse>"
     description: A promise that resolves when talent is endorsed.
     typeArgs: []
 data:

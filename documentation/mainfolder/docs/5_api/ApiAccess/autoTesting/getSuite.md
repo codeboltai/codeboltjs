@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetSuiteParams
       description: Parameters including the suite ID.
   returns:
-    signatureTypeName: Promise<IGetSuiteResponse>
+    signatureTypeName: "Promise<IGetSuiteResponse>"
     description: A promise that resolves to the test suite with associated test cases.
     typeArgs: []
 data:

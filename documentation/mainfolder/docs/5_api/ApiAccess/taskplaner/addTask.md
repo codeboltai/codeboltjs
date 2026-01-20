@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The task description to be added. This should be a clear, descriptive string that explains what needs to be accomplished.
   returns:
-    signatureTypeName: Promise<AddTaskResponse>
+    signatureTypeName: "Promise<AddTaskResponse>"
     description: A promise that resolves with the response containing the newly created task information.
 data:
   name: addTask

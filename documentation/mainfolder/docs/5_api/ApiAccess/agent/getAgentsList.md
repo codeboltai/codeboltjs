@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: "Optional: The type of agents to list. Defaults to 'downloaded'. Possible values are 'downloaded', 'all', 'local'."
   returns:
-    signatureTypeName: Promise<ListAgentsResponse>
+    signatureTypeName: "Promise<ListAgentsResponse>"
     description: A promise that resolves with a `ListAgentsResponse` object containing the list of agents.
 data:
   name: getAgentsList

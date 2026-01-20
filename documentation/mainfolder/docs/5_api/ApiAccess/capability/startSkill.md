@@ -1,22 +1,22 @@
 ---
 name: startSkill
 cbbaseinfo:
-  description: Starts execution of a skill with optional parameters and timeout settings. This is a convenience method for startCapability with type 'skill'.
+  description: "Starts execution of a skill with optional parameters and timeout settings. This is a convenience method for startCapability with type 'skill'."
 cbparameters:
   parameters:
     - name: skillName
       typeName: string
       description: The name of the skill to execute.
     - name: params
-      typeName: Record<string, any>
+      typeName: "Record<string, any>"
       description: Optional parameters to pass to the skill execution.
       isOptional: true
     - name: timeout
       typeName: number
-      description: Optional execution timeout in milliseconds. If not provided, uses the skill's default timeout.
+      description: "Optional execution timeout in milliseconds. If not provided, uses the skill's default timeout."
       isOptional: true
   returns:
-    signatureTypeName: Promise<StartCapabilityResponse>
+    signatureTypeName: "Promise<StartCapabilityResponse>"
     description: A promise that resolves to the execution response containing the execution ID and initial status.
     typeArgs: []
 data:

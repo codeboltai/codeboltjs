@@ -12,7 +12,7 @@ cbparameters:
       description: Optional description of the talent.
       isOptional: true
   returns:
-    signatureTypeName: Promise<AddTalentResponse>
+    signatureTypeName: "Promise<AddTalentResponse>"
     description: A promise that resolves when talent is added.
     typeArgs: []
 data:

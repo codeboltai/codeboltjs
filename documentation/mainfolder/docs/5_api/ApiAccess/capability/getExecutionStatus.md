@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The ID of the execution to check.
   returns:
-    signatureTypeName: Promise<GetExecutionStatusResponse>
+    signatureTypeName: "Promise<GetExecutionStatusResponse>"
     description: A promise that resolves to the current execution status.
     typeArgs: []
 data:

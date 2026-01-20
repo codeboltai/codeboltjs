@@ -1,7 +1,7 @@
 ---
 name: updateAgentStatus
 cbbaseinfo:
-  description: Updates an agent's status within a swarm to indicate their current activity and availability.
+  description: "Updates an agent's status within a swarm to indicate their current activity and availability."
 cbparameters:
   parameters:
     - name: swarmId
@@ -15,16 +15,16 @@ cbparameters:
       description: Status update information.
       nested:
         - name: status
-          typeName: 'active' | 'idle' | 'busy' | 'offline'
-          description: The new status of the agent (required).
+          typeName: "'active' | 'idle' | 'busy' | 'offline'"
+          description: "The new status of the agent (required)."
         - name: currentTask
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional description of the current task.
         - name: metadata
-          typeName: Record<string, any> | undefined
+          typeName: "Record<string, any> | undefined"
           description: Additional metadata about the status.
   returns:
-    signatureTypeName: Promise<UpdateStatusResponse>
+    signatureTypeName: "Promise<UpdateStatusResponse>"
     description: A promise that resolves when the status is updated.
     typeArgs: []
 data:

@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: Path to the plan file
   returns:
-    signatureTypeName: Promise<RequirementPlanGetResponse>
+    signatureTypeName: "Promise<RequirementPlanGetResponse>"
     description: A promise that resolves to the plan document
 data:
   name: get

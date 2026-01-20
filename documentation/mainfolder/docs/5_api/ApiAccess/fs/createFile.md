@@ -6,15 +6,15 @@ cbparameters:
   parameters:
     - name: fileName
       typeName: string
-      description: The name of the file to create (e.g., 'example.txt', 'script.js').
+      description: "The name of the file to create (e.g., 'example.txt', 'script.js')."
     - name: source
       typeName: string
       description: The source content to write into the file. Can be any text content including code, data, or plain text.
     - name: filePath
       typeName: string
-      description: The path where the file should be created (e.g., '.', '/home/user/documents', 'src/components').
+      description: "The path where the file should be created (e.g., '.', '/home/user/documents', 'src/components')."
   returns:
-    signatureTypeName: Promise<CreateFileResponse>
+    signatureTypeName: "Promise<CreateFileResponse>"
     description: A promise that resolves with a `CreateFileResponse` object containing the response type and file creation metadata.
 data:
   name: createFile

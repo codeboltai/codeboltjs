@@ -9,8 +9,8 @@ cbparameters:
       required: true
       description: The agent ID to get intents for.
   returns:
-    signatureTypeName: Promise<FileUpdateIntent[]>
-    description: A promise that resolves with an array of the agent's intents.
+    signatureTypeName: "Promise<FileUpdateIntent[]>"
+    description: "A promise that resolves with an array of the agent's intents."
 data:
   name: getByAgent
   category: fileUpdateIntent

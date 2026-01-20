@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The absolute path to the project directory where hooks will be managed.
   returns:
-    signatureTypeName: Promise<HookInitializeResponse>
+    signatureTypeName: "Promise<HookInitializeResponse>"
     description: A promise that resolves when the hook manager is initialized.
 data:
   name: initialize

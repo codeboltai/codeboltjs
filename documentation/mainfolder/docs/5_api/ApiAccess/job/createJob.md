@@ -11,7 +11,7 @@ cbparameters:
       typeName: CreateJobData
       description: The job data including name, type, priority, and optional fields.
   returns:
-    signatureTypeName: Promise<JobCreateResponse>
+    signatureTypeName: "Promise<JobCreateResponse>"
     description: A promise that resolves with the created job.
 data:
   name: createJob

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ListSwarmsResponse>
+    signatureTypeName: "Promise<ListSwarmsResponse>"
     description: A promise that resolves to an array of all swarms.
     typeArgs: []
 data:

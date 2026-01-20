@@ -8,7 +8,7 @@ cbparameters:
       typeName: IListFeedbacksParams
       description: Optional filters including status, participantId, limit, and offset.
   returns:
-    signatureTypeName: Promise<IListFeedbacksResponse>
+    signatureTypeName: "Promise<IListFeedbacksResponse>"
     description: A promise that resolves with an array of feedback sessions.
 data:
   name: list

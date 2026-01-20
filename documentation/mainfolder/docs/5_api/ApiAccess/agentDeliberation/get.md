@@ -8,7 +8,7 @@ cbparameters:
       typeName: IGetDeliberationParams
       description: Parameters including deliberation ID and optional view type.
   returns:
-    signatureTypeName: Promise<IGetDeliberationResponse>
+    signatureTypeName: "Promise<IGetDeliberationResponse>"
     description: A promise that resolves to deliberation details.
     typeArgs: []
 data:

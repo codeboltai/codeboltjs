@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: branch
       typeName: string
-      description: The name of the new branch to create (e.g., "feature-login", "bugfix-auth", "release-v1.0").
+      description: "The name of the new branch to create (e.g., \"feature-login\", \"bugfix-auth\", \"release-v1.0\")."
   returns:
-    signatureTypeName: Promise<GitBranchResponse>
+    signatureTypeName: "Promise<GitBranchResponse>"
     description: A promise that resolves with a `GitBranchResponse` object containing the branch creation results.
 data:
   name: branch

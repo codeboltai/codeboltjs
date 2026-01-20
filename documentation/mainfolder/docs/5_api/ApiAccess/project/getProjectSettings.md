@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetProjectSettingsResponse>
+    signatureTypeName: "Promise<GetProjectSettingsResponse>"
     description: A promise that resolves with the project settings response containing comprehensive project and user configuration.
 data:
   name: getProjectSettings

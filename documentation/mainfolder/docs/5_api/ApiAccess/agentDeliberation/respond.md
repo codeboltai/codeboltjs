@@ -8,7 +8,7 @@ cbparameters:
       typeName: IRespondParams
       description: Parameters including deliberation ID, responder info, and response body.
   returns:
-    signatureTypeName: Promise<IRespondResponse>
+    signatureTypeName: "Promise<IRespondResponse>"
     description: A promise that resolves to the submitted response.
     typeArgs: []
 data:

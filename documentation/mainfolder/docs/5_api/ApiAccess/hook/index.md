@@ -8,7 +8,7 @@ cbapicategory:
     description: Creates a new hook with the specified configuration.
   - name: update
     link: /docs/api/apiaccess/hook/update
-    description: Updates an existing hook's configuration.
+    description: "Updates an existing hook's configuration."
   - name: delete
     link: /docs/api/apiaccess/hook/delete
     description: Deletes a hook by its ID.

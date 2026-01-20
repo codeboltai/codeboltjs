@@ -9,7 +9,7 @@ cbparameters:
       description: Optional parameters including suite ID for filtering.
       isOptional: true
   returns:
-    signatureTypeName: Promise<IListRunsResponse>
+    signatureTypeName: "Promise<IListRunsResponse>"
     description: A promise that resolves to the list of test runs.
     typeArgs: []
 data:

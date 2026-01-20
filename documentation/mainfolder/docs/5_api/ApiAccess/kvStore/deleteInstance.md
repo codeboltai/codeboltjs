@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the KV store instance to delete.
   returns:
-    signatureTypeName: Promise<KVDeleteResponse>
+    signatureTypeName: "Promise<KVDeleteResponse>"
     description: A promise that resolves with the deletion status.
 data:
   name: deleteInstance

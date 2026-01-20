@@ -5,16 +5,16 @@ cbapicategory:
     description: Lists all available capabilities with optional filtering by type, tags, or author.
   - name: listCapabilitiesByType
     link: /docs/api/apiaccess/capability/listCapabilitiesByType
-    description: Lists capabilities filtered by a specific capability type (skill, power, talent, etc.).
+    description: "Lists capabilities filtered by a specific capability type (skill, power, talent, etc.)."
   - name: listSkills
     link: /docs/api/apiaccess/capability/listSkills
-    description: Lists all available skills (a shorthand for listing capabilities by type 'skill').
+    description: "Lists all available skills (a shorthand for listing capabilities by type 'skill')."
   - name: listPowers
     link: /docs/api/apiaccess/capability/listPowers
-    description: Lists all available powers (a shorthand for listing capabilities by type 'power').
+    description: "Lists all available powers (a shorthand for listing capabilities by type 'power')."
   - name: listTalents
     link: /docs/api/apiaccess/capability/listTalents
-    description: Lists all available talents (a shorthand for listing capabilities by type 'talent').
+    description: "Lists all available talents (a shorthand for listing capabilities by type 'talent')."
   - name: getCapabilityDetail
     link: /docs/api/apiaccess/capability/getCapabilityDetail
     description: Retrieves detailed information about a specific capability including metadata and execution details.

@@ -4,7 +4,7 @@ cbapicategory:
     link: /docs/api/apiaccess/search/init
     description: Initializes the search module with a specified search engine.
   - name: search
-    link: /docs/api/apiaccess/search/search
+    link: /docs/api/apiaccess/search/execute
     description: Performs a search operation for a given query string.
   - name: get_first_link
     link: /docs/api/apiaccess/search/get_first_link

@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the KV store instance.
   returns:
-    signatureTypeName: Promise<KVInstanceResponse>
+    signatureTypeName: "Promise<KVInstanceResponse>"
     description: A promise that resolves with the instance details including ID, name, description, and timestamps.
 data:
   name: getInstance

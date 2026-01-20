@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: path
       typeName: string
-      description: The file system path of the local Git repository (e.g., '.', '/path/to/repo', './my-project').
+      description: "The file system path of the local Git repository (e.g., '.', '/path/to/repo', './my-project')."
   returns:
-    signatureTypeName: Promise<GitLogsResponse>
+    signatureTypeName: "Promise<GitLogsResponse>"
     description: A promise that resolves with a `GitLogsResponse` object containing the commit history and log data.
 data:
   name: logs

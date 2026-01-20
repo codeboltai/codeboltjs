@@ -1,7 +1,7 @@
 ---
 name: listFile
 cbbaseinfo:
-  description: 'Lists all files in a specified directory.'
+  description: "'Lists all files in a specified directory.'"
 cbparameters:
   parameters:
     - name: folderPath

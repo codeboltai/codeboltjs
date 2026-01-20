@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: params
       typeName: IGetUpcomingEventsParams
-      description: Optional parameters including withinMinutes (default: 60)
+      description: "Optional parameters including withinMinutes (default: 60)"
   returns:
-    signatureTypeName: Promise<IGetUpcomingEventsResponse>
+    signatureTypeName: "Promise<IGetUpcomingEventsResponse>"
     description: A promise that resolves to upcoming events within the time window
 data:
   name: getUpcomingEvents

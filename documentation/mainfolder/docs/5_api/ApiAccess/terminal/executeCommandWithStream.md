@@ -1,18 +1,18 @@
 ---
 name: executeCommandWithStream
 cbbaseinfo:
-  description: Executes a given command and streams the output in real-time via EventEmitter. This method is ideal for long-running commands where you need to monitor output as it happens, such as build processes, server starts, or file operations with progress updates.
+  description: "Executes a given command and streams the output in real-time via EventEmitter. This method is ideal for long-running commands where you need to monitor output as it happens, such as build processes, server starts, or file operations with progress updates."
 cbparameters:
   parameters:
     - name: command
       typeName: string
-      description: The command to be executed with streaming output (e.g., "npm run build", "npm start", "git clone <url>").
+      description: "The command to be executed with streaming output (e.g., \"npm run build\", \"npm start\", \"git clone <url>\")."
     - name: executeInMain
       typeName: boolean
-      description: "Optional parameter to execute the command in the main terminal instead of a separate terminal instance. Defaults to false."
+      description: Optional parameter to execute the command in the main terminal instead of a separate terminal instance. Defaults to false.
   returns:
     signatureTypeName: EventEmitter
-    description: An EventEmitter that streams terminal events in real-time. The emitter will emit 'commandOutput', 'commandError', and 'commandFinish' events as the command executes.
+    description: "An EventEmitter that streams terminal events in real-time. The emitter will emit 'commandOutput', 'commandError', and 'commandFinish' events as the command executes."
 data:
   name: executeCommandWithStream
   category: terminal

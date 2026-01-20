@@ -9,7 +9,7 @@ cbparameters:
       description: Optional filters for the deliberation list.
       isOptional: true
   returns:
-    signatureTypeName: Promise<IListDeliberationsResponse>
+    signatureTypeName: "Promise<IListDeliberationsResponse>"
     description: A promise that resolves to the list of deliberations.
     typeArgs: []
 data:

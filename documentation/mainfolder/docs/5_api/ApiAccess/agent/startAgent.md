@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The task description for the agent to execute.
   returns:
-    signatureTypeName: Promise<TaskCompletionResponse>
+    signatureTypeName: "Promise<TaskCompletionResponse>"
     description: A promise that resolves with a `TaskCompletionResponse` object upon agent completion.
 data:
   name: startAgent

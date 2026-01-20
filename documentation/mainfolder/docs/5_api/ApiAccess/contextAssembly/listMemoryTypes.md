@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<MemoryTypesResponse>
+    signatureTypeName: "Promise<MemoryTypesResponse>"
     description: A promise that resolves with available memory types.
 data:
   name: listMemoryTypes

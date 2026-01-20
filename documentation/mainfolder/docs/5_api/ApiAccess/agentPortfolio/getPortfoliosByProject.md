@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The project ID.
   returns:
-    signatureTypeName: Promise<GetPortfoliosByProjectResponse>
+    signatureTypeName: "Promise<GetPortfoliosByProjectResponse>"
     description: A promise that resolves to the list of portfolios.
     typeArgs: []
 data:

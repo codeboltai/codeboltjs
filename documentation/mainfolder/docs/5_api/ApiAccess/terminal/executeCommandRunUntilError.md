@@ -1,17 +1,17 @@
 ---
 name: executeCommandRunUntilError
 cbbaseinfo:
-  description: Executes a given command and keeps running until an error occurs. This method is designed for long-running processes that should continue executing until they encounter an error condition. It listens for WebSocket messages and resolves the promise when an error is encountered.
+  description: "Executes a given command and keeps running until an error occurs. This method is designed for long-running processes that should continue executing until they encounter an error condition. It listens for WebSocket messages and resolves the promise when an error is encountered."
 cbparameters:
   parameters:
     - name: command
       typeName: string
-      description: The command to be executed and monitored for errors (e.g., "npm run dev", "npm start", "python server.py").
+      description: "The command to be executed and monitored for errors (e.g., \"npm run dev\", \"npm start\", \"python server.py\")."
     - name: executeInMain
       typeName: boolean
-      description: "Optional parameter to execute the command in the main terminal instead of a separate terminal instance. Defaults to false."
+      description: Optional parameter to execute the command in the main terminal instead of a separate terminal instance. Defaults to false.
   returns:
-    signatureTypeName: Promise<CommandError>
+    signatureTypeName: "Promise<CommandError>"
     description: A promise that resolves with a CommandError object when an error occurs during command execution, indicating the command has stopped due to an error condition.
 data:
   name: executeCommandRunUntilError

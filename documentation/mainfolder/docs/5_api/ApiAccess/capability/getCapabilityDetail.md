@@ -12,7 +12,7 @@ cbparameters:
       description: Optional type to narrow the search and ensure correct capability retrieval.
       isOptional: true
   returns:
-    signatureTypeName: Promise<GetCapabilityDetailResponse>
+    signatureTypeName: "Promise<GetCapabilityDetailResponse>"
     description: A promise that resolves to detailed information about the specified capability.
     typeArgs: []
 data:

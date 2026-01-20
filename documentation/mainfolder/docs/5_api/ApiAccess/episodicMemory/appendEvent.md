@@ -9,28 +9,28 @@ cbparameters:
       description: Event data object.
       nested:
         - name: memoryId
-          typeName: string | undefined
-          description: The ID of the memory (or use swarmId).
+          typeName: "string | undefined"
+          description: "The ID of the memory (or use swarmId)."
         - name: swarmId
-          typeName: string | undefined
-          description: The ID of the swarm (alternative to memoryId).
+          typeName: "string | undefined"
+          description: "The ID of the swarm (alternative to memoryId)."
         - name: event_type
           typeName: string
-          description: The type/category of the event (required).
+          description: "The type/category of the event (required)."
         - name: emitting_agent_id
           typeName: string
-          description: ID of the agent creating the event (required).
+          description: "ID of the agent creating the event (required)."
         - name: team_id
-          typeName: string | undefined
+          typeName: "string | undefined"
           description: Optional team context ID.
         - name: tags
-          typeName: string[] | undefined
+          typeName: "string[] | undefined"
           description: Optional array of tags for filtering.
         - name: payload
-          typeName: string | Record<string, any>
-          description: Event data (required).
+          typeName: "string | Record<string, any>"
+          description: "Event data (required)."
   returns:
-    signatureTypeName: Promise<IAppendEventResponse>
+    signatureTypeName: "Promise<IAppendEventResponse>"
     description: A promise that resolves to the created event details.
     typeArgs: []
 data:

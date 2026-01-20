@@ -9,7 +9,7 @@ cbparameters:
       required: true
       description: The unique identifier of the file update intent.
   returns:
-    signatureTypeName: Promise<FileUpdateIntent>
+    signatureTypeName: "Promise<FileUpdateIntent>"
     description: A promise that resolves with the intent details.
 data:
   name: get

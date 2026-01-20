@@ -5,11 +5,11 @@ cbbaseinfo:
 cbparameters:
   parameters:
     - name: mcpNames
-      typeName: string[]
+      typeName: "string[]"
       description: Array of MCP server names to get tools from. If empty, gets tools from all servers.
       optional: true
   returns:
-    signatureTypeName: Promise<GetMcpToolsResponse>
+    signatureTypeName: "Promise<GetMcpToolsResponse>"
     description: A promise that resolves with MCP tools from specified servers.
     typeArgs: []
 data:

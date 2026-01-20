@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetAllFilesMarkdownResponse>
+    signatureTypeName: "Promise<GetAllFilesMarkdownResponse>"
     description: A promise that resolves with a `GetAllFilesMarkdownResponse` object containing the Markdown content of all files in the project.
 data:
   name: getAllFilesAsMarkDown

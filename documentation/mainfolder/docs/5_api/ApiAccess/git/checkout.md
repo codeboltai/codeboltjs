@@ -6,13 +6,13 @@ cbparameters:
   parameters:
     - name: branch
       typeName: string
-      description: The name of the branch or commit hash to check out (e.g., "main", "feature-branch", "develop", "abc123def").
+      description: "The name of the branch or commit hash to check out (e.g., \"main\", \"feature-branch\", \"develop\", \"abc123def\")."
     - name: path
       typeName: string
-      description: 'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'
+      description: "'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'"
       optional: true
   returns:
-    signatureTypeName: Promise<GitCheckoutResponse>
+    signatureTypeName: "Promise<GitCheckoutResponse>"
     description: A promise that resolves with a `GitCheckoutResponse` object containing the checkout operation results.
 data:
   name: checkout

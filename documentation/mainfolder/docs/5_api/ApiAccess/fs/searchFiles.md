@@ -1,20 +1,20 @@
 ---
 name: searchFiles
 cbbaseinfo:
-  description: 'Searches for files matching a regex pattern within file contents in the specified directory. Supports advanced regex patterns and file type filtering for targeted searches.'
+  description: "'Searches for files matching a regex pattern within file contents in the specified directory. Supports advanced regex patterns and file type filtering for targeted searches.'"
 cbparameters:
   parameters:
     - name: path
       typeName: string
-      description: The directory path to search within (e.g., '.', './src', '/home/user/documents').
+      description: "The directory path to search within (e.g., '.', './src', '/home/user/documents')."
     - name: regex
       typeName: string
-      description: The regex pattern to search for within file contents (e.g., 'function', 'class\\s+\\w+', '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}').
+      description: "The regex pattern to search for within file contents (e.g., 'function', 'class\\s+\\w+', '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}')."
     - name: filePattern
       typeName: string
-      description: The file pattern to filter which files to search (e.g., '*.js', '*.json', '*.*', '*.ts').
+      description: "The file pattern to filter which files to search (e.g., '*.js', '*.json', '*.*', '*.ts')."
   returns:
-    signatureTypeName: Promise<SearchFilesResponse>
+    signatureTypeName: "Promise<SearchFilesResponse>"
     description: A promise that resolves with search results containing matching files and their locations.
 data:
   name: searchFiles

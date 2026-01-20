@@ -9,7 +9,7 @@ cbparameters:
       description: Optional project path to search for ActionBlocks.
       isOptional: true
   returns:
-    signatureTypeName: Promise<ListActionBlocksResponse>
+    signatureTypeName: "Promise<ListActionBlocksResponse>"
     description: A promise that resolves with a list of available ActionBlocks.
     typeArgs: []
 data:

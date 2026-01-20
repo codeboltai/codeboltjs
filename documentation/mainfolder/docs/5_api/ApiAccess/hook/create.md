@@ -8,7 +8,7 @@ cbparameters:
       typeName: HookConfig
       description: Hook configuration including name, events, filters, actions, and settings.
   returns:
-    signatureTypeName: Promise<HookResponse>
+    signatureTypeName: "Promise<HookResponse>"
     description: A promise that resolves with the created hook details.
 data:
   name: create

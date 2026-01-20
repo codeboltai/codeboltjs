@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: query
       typeName: string
-      description: Search string to match against toolbox metadata (name, description, tags).
+      description: "Search string to match against toolbox metadata (name, description, tags)."
   returns:
-    signatureTypeName: Promise<SearchAvailableToolBoxesResponse>
+    signatureTypeName: "Promise<SearchAvailableToolBoxesResponse>"
     description: A promise that resolves with a `SearchAvailableToolBoxesResponse` object containing matching toolbox configurations.
 data:
   name: searchAvailableToolBoxes

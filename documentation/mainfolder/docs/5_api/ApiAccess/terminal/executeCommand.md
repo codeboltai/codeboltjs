@@ -6,13 +6,13 @@ cbparameters:
   parameters:
     - name: command
       typeName: string
-      description: The command to be executed in the terminal (e.g., "node --version", "npm install", "ls -la").
+      description: "The command to be executed in the terminal (e.g., \"node --version\", \"npm install\", \"ls -la\")."
     - name: returnEmptyStringOnSuccess
       typeName: boolean
-      description: "Optional parameter to return empty string on success instead of command output. Defaults to false."
+      description: Optional parameter to return empty string on success instead of command output. Defaults to false.
   returns:
-    signatureTypeName: Promise<CommandFinish | CommandError>
-    description: A promise that resolves with either a CommandFinish object (on success) or CommandError object (on failure) containing the command's output or error information.
+    signatureTypeName: "Promise<CommandFinish | CommandError>"
+    description: "A promise that resolves with either a CommandFinish object (on success) or CommandError object (on failure) containing the command's output or error information."
 data:
   name: executeCommand
   category: terminal

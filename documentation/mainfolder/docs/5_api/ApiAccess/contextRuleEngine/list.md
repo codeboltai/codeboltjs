@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<ContextRuleEngineListResponse>
+    signatureTypeName: "Promise<ContextRuleEngineListResponse>"
     description: A promise that resolves with an array of all rule engines.
 data:
   name: list

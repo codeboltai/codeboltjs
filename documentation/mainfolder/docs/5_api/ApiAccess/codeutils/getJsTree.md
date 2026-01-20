@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: "Optional: The path of the file to retrieve the JS tree for. If not provided, an error will be returned."
   returns:
-    signatureTypeName: Promise<JSTreeResponse>
+    signatureTypeName: "Promise<JSTreeResponse>"
     description: A promise that resolves with a `JSTreeResponse` object containing file structure or error information.
 data:
   name: getJsTree

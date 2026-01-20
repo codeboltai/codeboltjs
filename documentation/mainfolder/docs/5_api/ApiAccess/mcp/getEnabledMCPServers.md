@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: Promise<GetEnabledToolBoxesResponse>
+    signatureTypeName: "Promise<GetEnabledToolBoxesResponse>"
     description: A promise that resolves with information about enabled MCP servers.
     typeArgs: []
 data:

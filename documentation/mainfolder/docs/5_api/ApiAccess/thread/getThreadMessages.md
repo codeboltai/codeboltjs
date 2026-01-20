@@ -8,7 +8,7 @@ cbparameters:
       typeName: GetThreadMessagesOptions
       description: Options including threadId, limit, offset, and filters for message retrieval.
   returns:
-    signatureTypeName: Promise<GetThreadMessagesResponse>
+    signatureTypeName: "Promise<GetThreadMessagesResponse>"
     description: A promise that resolves with an array of messages and pagination metadata.
 data:
   name: getThreadMessages

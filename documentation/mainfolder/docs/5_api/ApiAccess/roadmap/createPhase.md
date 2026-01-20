@@ -9,9 +9,9 @@ cbparameters:
       description: Phase data including name, description, and order
     - name: projectPath
       typeName: string
-      description: Optional project path (uses active project if not provided)
+      description: "Optional project path (uses active project if not provided)"
   returns:
-    signatureTypeName: Promise<RoadmapPhaseResponse>
+    signatureTypeName: "Promise<RoadmapPhaseResponse>"
     description: A promise that resolves to the created phase
 data:
   name: createPhase

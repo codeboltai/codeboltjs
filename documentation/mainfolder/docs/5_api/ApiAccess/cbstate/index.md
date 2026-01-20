@@ -2,7 +2,7 @@
 cbapicategory:
   - name: addToAgentState
     link: /docs/api/apiaccess/cbstate/addToAgentState
-    description: Adds a key-value pair to the agent's state on the server via WebSocket.
+    description: "Adds a key-value pair to the agent's state on the server via WebSocket."
   - name: getAgentState
     link: /docs/api/apiaccess/cbstate/getAgentState
     description: Retrieves the current state of the agent from the server via WebSocket.

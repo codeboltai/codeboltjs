@@ -6,7 +6,7 @@ cbparameters:
   parameters: []
   returns:
     signatureTypeName: Promise
-    description: A promise that resolves with the application state containing project information, token usage, chats, and project-specific state data.
+    description: "A promise that resolves with the application state containing project information, token usage, chats, and project-specific state data."
     typeArgs:
       - type: reference
         name: ApplicationState

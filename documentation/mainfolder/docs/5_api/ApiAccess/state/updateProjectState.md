@@ -1,7 +1,7 @@
 ---
 name: updateProjectState
 cbbaseinfo:
-  description: Updates the project state with a key-value pair.
+  description: "Updates the project state with a key-value pair."
 cbparameters:
   parameters:
     - name: key
@@ -9,9 +9,9 @@ cbparameters:
       description: The key to update in the project state.
     - name: value
       typeName: any
-      description: The value to set for the key (can be any type).
+      description: "The value to set for the key (can be any type)."
   returns:
-    signatureTypeName: Promise<UpdateProjectStateResponse>
+    signatureTypeName: "Promise<UpdateProjectStateResponse>"
     description: A promise that resolves with the response to the update request.
     typeArgs: []
 data:

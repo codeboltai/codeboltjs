@@ -1,7 +1,7 @@
 ---
 name: Job Module
 cbbaseinfo:
-  description: The Job module provides comprehensive job management functionality including CRUD operations, dependencies, labels, pheromone-based coordination, split proposals, locking, bidding, and blocker management.
+  description: "The Job module provides comprehensive job management functionality including CRUD operations, dependencies, labels, pheromone-based coordination, split proposals, locking, bidding, and blocker management."
 ---
 
 # Job Module

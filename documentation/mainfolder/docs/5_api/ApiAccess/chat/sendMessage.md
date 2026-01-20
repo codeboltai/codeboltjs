@@ -12,7 +12,7 @@ cbparameters:
       description: Additional data to send along with the message.
   returns:
     signatureTypeName: void
-    description: ' '
+    description: "' '"
     typeArgs: []
 data:
   name: sendMessage

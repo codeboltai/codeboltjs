@@ -12,7 +12,7 @@ cbparameters:
       description: The type of notification to send.
   returns:
     signatureTypeName: void
-    description: ' '
+    description: "' '"
     typeArgs: []
 data:
   name: sendNotificationEvent

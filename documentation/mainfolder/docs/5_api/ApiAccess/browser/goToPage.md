@@ -6,9 +6,9 @@ cbparameters:
   parameters:
     - name: url
       typeName: string
-      description: The URL to navigate to (must include protocol like https://).
+      description: "The URL to navigate to (must include protocol like https://)."
   returns:
-    signatureTypeName: Promise<GoToPageResponse>
+    signatureTypeName: "Promise<GoToPageResponse>"
     description: A promise that resolves when navigation is initiated with page information.
     typeArgs: []
 data:

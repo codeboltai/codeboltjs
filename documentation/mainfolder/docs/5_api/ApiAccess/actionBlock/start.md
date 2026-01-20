@@ -8,11 +8,11 @@ cbparameters:
       typeName: string
       description: The name of the ActionBlock to start.
     - name: params
-      typeName: Record<string, any>
+      typeName: "Record<string, any>"
       description: Optional parameters to pass to the ActionBlock.
       isOptional: true
   returns:
-    signatureTypeName: Promise<StartActionBlockResponse>
+    signatureTypeName: "Promise<StartActionBlockResponse>"
     description: A promise that resolves to the execution result.
     typeArgs: []
 data:

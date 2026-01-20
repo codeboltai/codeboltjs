@@ -1,14 +1,14 @@
 ---
 name: updateThreadStatus
 cbbaseinfo:
-  description: Updates the status of a mail thread (open, closed, or archived).
+  description: "Updates the status of a mail thread (open, closed, or archived)."
 cbparameters:
   parameters:
     - name: params
       typeName: IUpdateThreadStatusParams
       description: Object containing threadId and the new status value.
   returns:
-    signatureTypeName: Promise<IUpdateThreadStatusResponse>
+    signatureTypeName: "Promise<IUpdateThreadStatusResponse>"
     description: A promise that resolves with the updated thread.
 data:
   name: updateThreadStatus

@@ -8,13 +8,13 @@ cbparameters:
       typeName: string
       description: Path to the plan file
     - name: section
-      typeName: Omit<RequirementPlanSection, 'id' | 'order'>
-      description: Section data to add (id and order are auto-generated)
+      typeName: "Omit<RequirementPlanSection, 'id' | 'order'>"
+      description: "Section data to add (id and order are auto-generated)"
     - name: afterIndex
       typeName: number
-      description: Optional index to insert section after (-1 for beginning)
+      description: "Optional index to insert section after (-1 for beginning)"
   returns:
-    signatureTypeName: Promise<RequirementPlanSectionResponse>
+    signatureTypeName: "Promise<RequirementPlanSectionResponse>"
     description: A promise that resolves to the updated document
 data:
   name: addSection

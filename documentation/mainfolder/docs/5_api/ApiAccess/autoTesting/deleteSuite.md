@@ -8,7 +8,7 @@ cbparameters:
       typeName: IDeleteSuiteParams
       description: Parameters including the suite ID to delete.
   returns:
-    signatureTypeName: Promise<IDeleteSuiteResponse>
+    signatureTypeName: "Promise<IDeleteSuiteResponse>"
     description: A promise that resolves when the suite is deleted.
     typeArgs: []
 data:
