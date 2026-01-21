@@ -21,12 +21,18 @@ import type {
     DeleteThreadResponse,
     StartThreadResponse,
     UpdateThreadStatusResponse,
+    ThreadAgentStartedResponse,
+    ThreadAgentStartFailedResponse,
 } from '@codebolt/types/app-to-agent-ws-schema';
 
 /**
  * Thread service for managing conversation threads.
  * This module provides a comprehensive API for thread management using thread-specific types.
  */
+
+let backgroundAgentMap = new Map<string, any>();
+let backgroundAgentWithGroupMap = new Map<string, any>();
+
 const threadService = {
 
     /**
@@ -68,6 +74,27 @@ const threadService = {
             'startThreadResponse'
         );
     },
+
+    /**
+     * Creates a thread in the background and resolves when the agent starts or fails.
+     * @param {CreateAndStartThreadOptions} options - The thread creation and start parameters
+     * @returns {Promise<ThreadAgentStartedResponse | ThreadAgentStartFailedResponse>} A promise that resolves with ThreadAgentStarted or ThreadAgentStartFailed response
+     */
+    createThreadInBackground: async (options: CreateAndStartThreadOptions): Promise<ThreadAgentStartedResponse | ThreadAgentStartFailedResponse> => {
+        const requestId = randomUUID();
+        const event = {
+            type: 'threadEvent',
+            action: 'createAndStartThread',
+            requestId,
+            message: options
+        };
+
+        return cbws.messageManager.sendAndWaitForResponse(
+            event,
+            'ThreadAgentStarted|ThreadAgentStartFailed'
+        );
+    },
+
 
     /**
      * Retrieves a list of threads with optional filtering.

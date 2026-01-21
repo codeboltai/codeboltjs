@@ -214,6 +214,8 @@ export {
   updateThreadStatusResponseSchema,
   getThreadMessagesResponseSchema,
   threadErrorResponseSchema,
+  threadAgentStartedResponseSchema,
+  threadAgentStartFailedResponseSchema,
   threadServiceResponseSchema,
   // Thread service response types
   type ThreadStatus,
@@ -237,6 +239,8 @@ export {
   type UpdateThreadStatusResponse,
   type GetThreadMessagesResponse,
   type ThreadErrorResponse,
+  type ThreadAgentStartedResponse,
+  type ThreadAgentStartFailedResponse,
   type ThreadServiceResponse
 } from './wstypes/app-to-agent-ws/threadServiceResponses';
 

@@ -92,6 +92,7 @@ const createThreadOptionsSchema = z.object({
     executionType: z.enum(['scheduled', 'immediate', 'manual', 'conditional']).optional(),
     environmentType: z.enum(['local', 'remote']).optional(),
     groupId: z.string().optional(),
+    isGrouped: z.boolean().optional(),
     startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
     dependsOnTaskId: z.string().optional(),
     dependsOnTaskName: z.string().optional(),

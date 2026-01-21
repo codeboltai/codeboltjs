@@ -219,6 +219,25 @@ export const getThreadMessagesResponseSchema = z.object({
     error: z.string().optional(),
 });
 
+// Thread agent started response
+export const threadAgentStartedResponseSchema = z.object({
+    type: z.literal('ThreadAgentStarted'),
+    success: z.boolean(),
+    threadId: z.string(),
+    agentId: z.string(),
+    instanceId: z.string().optional(),
+    error: z.string().optional(),
+});
+
+// Thread agent start failed response
+export const threadAgentStartFailedResponseSchema = z.object({
+    type: z.literal('ThreadAgentStartFailed'),
+    success: z.boolean(),
+    threadId: z.string(),
+    agentId: z.string().optional(),
+    error: z.string(),
+});
+
 // Error response
 export const threadErrorResponseSchema = z.object({
     type: z.literal('errorResponse'),
@@ -263,5 +282,7 @@ export type StartThreadResponse = z.infer<typeof startThreadResponseSchema>;
 export type UpdateThreadStatusResponse = z.infer<typeof updateThreadStatusResponseSchema>;
 export type GetThreadMessagesResponse = z.infer<typeof getThreadMessagesResponseSchema>;
 export type ThreadErrorResponse = z.infer<typeof threadErrorResponseSchema>;
+export type ThreadAgentStartedResponse = z.infer<typeof threadAgentStartedResponseSchema>;
+export type ThreadAgentStartFailedResponse = z.infer<typeof threadAgentStartFailedResponseSchema>;
 
 export type ThreadServiceResponse = z.infer<typeof threadServiceResponseSchema>;

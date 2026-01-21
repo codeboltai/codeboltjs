@@ -100,6 +100,8 @@ export type {
   UpdateThreadStatusResponse,
   GetThreadMessagesResponse,
   ThreadErrorResponse,
+  ThreadAgentStartedResponse,
+  ThreadAgentStartFailedResponse,
   ThreadServiceResponse
 } from './wstypes/app-to-agent-ws/threadServiceResponses';
 
