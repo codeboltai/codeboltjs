@@ -31,6 +31,12 @@ groupedAgentSubscription.on('message', (message: any) => {
  * This module provides APIs for waiting on and checking for various event types.
  */
 const codeboltEvent = {
+    // Expose the maps for external access
+    backgroundAgentMap,
+    backgroundAgentGroups,
+    agentEventMap,
+    groupedAgentCompletionMap,
+
     /**
      * Checks if any background agent has completed.
      * @returns {any} The completion data if available, or null

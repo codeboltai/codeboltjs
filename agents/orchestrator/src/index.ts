@@ -23,9 +23,11 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-// Track active background agents and their groups
-let activeBackgroundAgents = new Map<string, any>();
-let backgroundAgentGroups = new Map<string, Set<string>>();
+// Use the background agent maps from codeboltEvent module
+const { backgroundAgentMap, backgroundAgentGroups } = codebolt.codeboltEvent as unknown as {
+    backgroundAgentMap: Map<string, any>;
+    backgroundAgentGroups: Map<string, Set<string>>;
+};
 
 let systemPrompt = `
 
@@ -159,7 +161,7 @@ async function messageProcessingLoop(
     });
 
     // Check if there are active background agents or pending tool calls
-    const hasActiveWork = activeBackgroundAgents.size > 0;
+    const hasActiveWork = backgroundAgentMap.size > 0;
 
     return {
         completed: executionResult.completed,
@@ -233,7 +235,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                         // Remove completed agent from active map
                         if (externalEvent.data && Array.isArray(externalEvent.data)) {
                             for (const completedAgent of externalEvent.data) {
-                                activeBackgroundAgents.delete(completedAgent.threadId);
+                                backgroundAgentMap.delete(completedAgent.threadId);
                                 // Check if part of a group
                                 for (const [groupId, agents] of backgroundAgentGroups.entries()) {
                                     if (agents.has(completedAgent.threadId)) {
@@ -273,13 +275,13 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 const result = await messageProcessingLoop(reqMessage, prompt);
                 completed = result.completed;
                 prompt = result.prompt;
-                hasActiveWork = result.hasActiveWork || activeBackgroundAgents.size > 0;
+                hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
             } else {
                 // Continue normal processing
                 const result = await messageProcessingLoop(reqMessage, prompt);
                 completed = result.completed;
                 prompt = result.prompt;
-                hasActiveWork = result.hasActiveWork || activeBackgroundAgents.size > 0;
+                hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
             }
         }
 

@@ -87,10 +87,26 @@ const threadService = {
             message: options
         };
 
-        return cbws.messageManager.sendAndWaitForResponse(
+        const response = await cbws.messageManager.sendAndWaitForResponse<ThreadAgentStartedResponse | ThreadAgentStartFailedResponse>(
             event,
             'ThreadAgentStarted|ThreadAgentStartFailed'
         );
+
+        // Add to appropriate map based on whether groupId is provided
+        if (response.threadId) {
+            if (options.groupId) {
+                // Add to grouped agents
+                if (!backgroundAgentGroups.has(options.groupId)) {
+                    backgroundAgentGroups.set(options.groupId, new Set());
+                }
+                backgroundAgentGroups.get(options.groupId)!.add(response.threadId);
+            } else {
+                // Add to background agents map
+                backgroundAgentMap.set(response.threadId, response);
+            }
+        }
+
+        return response;
     },
 
 
