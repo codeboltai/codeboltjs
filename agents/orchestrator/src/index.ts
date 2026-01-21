@@ -224,8 +224,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         prompt = updatedPrompt;
 
         // Continue processing while there are background agents or work pending
-        while (!completed || hasActiveWork) {
-            if (completed && hasActiveWork) {
+        while (!completed || backgroundAgentMap.size) {
+            if (completed && backgroundAgentMap.size) {
                 // Wait for any external event (background agent completion, agent event, etc.)
                 const externalEvent = await codebolt.codeboltEvent.waitForAnyExternalEvent();
 
