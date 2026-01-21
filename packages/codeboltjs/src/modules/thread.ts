@@ -1,5 +1,6 @@
 import cbws from '../core/websocket';
 import { randomUUID } from 'crypto';
+import { backgroundAgentMap, backgroundAgentGroups } from './codeboltEvent';
 
 // Import options types from agent-to-app-ws-schema
 import type {
@@ -29,9 +30,6 @@ import type {
  * Thread service for managing conversation threads.
  * This module provides a comprehensive API for thread management using thread-specific types.
  */
-
-let backgroundAgentMap = new Map<string, any>();
-let backgroundAgentWithGroupMap = new Map<string, any>();
 
 const threadService = {
 
@@ -301,7 +299,6 @@ const threadService = {
             'getThreadFileChangesSummaryResponse'
         );
     }
-
 };
 
 export default threadService;

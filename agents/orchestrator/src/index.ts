@@ -23,6 +23,10 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
+// Track active background agents and their groups
+let activeBackgroundAgents = new Map<string, any>();
+let backgroundAgentGroups = new Map<string, Set<string>>();
+
 let systemPrompt = `
 
 You are an AI Orchestrator Agent operating in CodeboltAi. Your **ONLY** role is to manage and coordinate work by delegating tasks to specialized worker agents using thread management tools.
@@ -131,25 +135,53 @@ When complete:
 
 `.trim();
 
+/**
+ * Process a single message through the agent pipeline
+ */
+async function messageProcessingLoop(
+    reqMessage: FlatUserMessage,
+    prompt: ProcessedMessage
+): Promise<{ completed: boolean; prompt: ProcessedMessage; hasActiveWork: boolean }> {
+    let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] });
+    let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+    prompt = result.nextMessage;
+
+    let responseExecutor = new ResponseExecutor({
+        preToolCallProcessors: [],
+        postToolCallProcessors: []
+    });
+
+    let executionResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage,
+    });
+
+    // Check if there are active background agents or pending tool calls
+    const hasActiveWork = activeBackgroundAgents.size > 0;
+
+    return {
+        completed: executionResult.completed,
+        prompt: executionResult.nextMessage,
+        hasActiveWork
+    };
+}
+
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
     try {
-
-
-
         let sessionSystemPrompt;
         try {
             let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-            // codebolt.chat.sendMessage(`Orchestrator id: ${orchestratorId}`, {})
             let orhestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-            // codebolt.chat.sendMessage(`Orchestrator config: ${JSON.stringify(orhestratorConfig)}`, {})
-            let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId
+            let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
             sessionSystemPrompt = systemPrompt;
             if (defaultWorkerAgentId) {
-                sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent id: ${defaultWorkerAgentId} in selectedAgent</important>`
+                sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent id: ${defaultWorkerAgentId} in selectedAgent</important>`;
             }
         } catch (error) {
-
+            sessionSystemPrompt = systemPrompt;
         }
 
         let promptGenerator = new InitialPromptGenerator({
@@ -157,10 +189,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 // 1. Chat History
                 new ChatHistoryMessageModifier({ enableChatHistory: true }),
                 // 2. Environment Context (date, OS)
-
                 new EnvironmentContextModifier({ enableFullContext: true }),
-
-                // 3. Directory Context (folder structure)  
+                // 3. Directory Context (folder structure)
                 new DirectoryContextModifier(),
                 // 4. IDE Context (active file, opened files)
                 new IdeContextModifier({
@@ -177,7 +207,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 new ToolInjectionModifier({
                     includeToolDescriptions: true
                 }),
-
                 // 7. At-file processing (@file mentions)
                 new AtFileProcessorModifier({
                     enableRecursiveSearch: true
@@ -185,43 +214,76 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             ],
             baseSystemPrompt: sessionSystemPrompt
         });
+
         let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        let completed = false;
-        do {
-            let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-            prompt = result.nextMessage;
 
-            let responseExecutor = new ResponseExecutor({
-                preToolCallProcessors: [],
-                postToolCallProcessors: []
+        // Initial message processing
+        let { completed, prompt: updatedPrompt, hasActiveWork } = await messageProcessingLoop(reqMessage, prompt);
+        prompt = updatedPrompt;
 
-            })
-            let executionResult = await responseExecutor.executeResponse({
-                initialUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage,
-            });
+        // Continue processing while there are background agents or work pending
+        while (!completed || hasActiveWork) {
+            if (completed && hasActiveWork) {
+                // Wait for any external event (background agent completion, agent event, etc.)
+                const externalEvent = await codebolt.codeboltEvent.waitForAnyExternalEvent();
 
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
+                // Handle the event based on its type
+                switch (externalEvent.type) {
+                    case 'backgroundAgentCompletion':
+                        // Remove completed agent from active map
+                        if (externalEvent.data && Array.isArray(externalEvent.data)) {
+                            for (const completedAgent of externalEvent.data) {
+                                activeBackgroundAgents.delete(completedAgent.threadId);
+                                // Check if part of a group
+                                for (const [groupId, agents] of backgroundAgentGroups.entries()) {
+                                    if (agents.has(completedAgent.threadId)) {
+                                        agents.delete(completedAgent.threadId);
+                                        if (agents.size === 0) {
+                                            backgroundAgentGroups.delete(groupId);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Add completion info to prompt for next iteration
+                        prompt.message.messages.push({
+                            role: 'user',
+                            content: `Background agent completed: ${JSON.stringify(externalEvent.data)}`
+                        });
+                        break;
 
+                    case 'backgroundGroupedAgentCompletion':
+                        // Handle grouped agent completion
+                        prompt.message.messages.push({
+                            role: 'user',
+                            content: `Background agent group completed: ${JSON.stringify(externalEvent.data)}`
+                        });
+                        break;
 
-            if (completed) {
-                break;
+                    case 'agentEventReceived':
+                        // Handle agent event
+                        prompt.message.messages.push({
+                            role: 'user',
+                            content: `Agent event received: ${JSON.stringify(externalEvent.data)}`
+                        });
+                        break;
+                }
+
+                // Process the event through the agent loop
+                const result = await messageProcessingLoop(reqMessage, prompt);
+                completed = result.completed;
+                prompt = result.prompt;
+                hasActiveWork = result.hasActiveWork || activeBackgroundAgents.size > 0;
+            } else {
+                // Continue normal processing
+                const result = await messageProcessingLoop(reqMessage, prompt);
+                completed = result.completed;
+                prompt = result.prompt;
+                hasActiveWork = result.hasActiveWork || activeBackgroundAgents.size > 0;
             }
-
-        } while (!completed);
-
-
-
-
+        }
 
     } catch (error) {
-        return error
+        return error;
     }
 })
-
-
-

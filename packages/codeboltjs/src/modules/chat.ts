@@ -1,9 +1,20 @@
 // chat.ts
 import cbws from '../core/websocket';
+import { randomUUID } from 'crypto';
 import { ChatMessage, UserMessage } from '@codebolt/types/sdk';
 import { ChatEventType, ChatResponseType } from '@codebolt/types/enum';
 
 type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
+
+// Steering message state
+let steeringMessageMap = new Map<string, any>();
+
+// Subscribe to steering messages
+const steeringSubscription = cbws.messageManager.subscribe('steeringMessage');
+steeringSubscription.on('message', (message: any) => {
+    const eventId = randomUUID();
+    steeringMessageMap.set(eventId, message);
+});
 /**
  * Chat module to interact with the WebSocket server.
  */
@@ -12,7 +23,7 @@ const cbchat = {
      * Retrieves the chat history from the server.
      * @returns {Promise<ChatMessage[]>} A promise that resolves with an array of ChatMessage objects representing the chat history.
      */
-    getChatHistory: (threadId:string): Promise<ChatMessage> => {
+    getChatHistory: (threadId: string): Promise<ChatMessage> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": ChatEventType.GET_CHAT_HISTORY,
@@ -86,7 +97,7 @@ const cbchat = {
         cbws.messageManager.send({
             "type": ChatEventType.PROCESS_STARTED
         });
-        
+
         // Register event listener for WebSocket messages if callback provided
         if (onStopClicked) {
             const handleStopMessage = (message: any) => {
@@ -94,9 +105,9 @@ const cbchat = {
                     onStopClicked(message);
                 }
             };
-            
+
             cbws.messageManager.on('message', handleStopMessage);
-            
+
             // Return an object that includes the stopProcess method and cleanup
             return {
                 stopProcess: () => {
@@ -172,6 +183,37 @@ const cbchat = {
             "type": ChatEventType.NOTIFICATION_EVENT,
             "message": notificationMessage,
             "eventType": type
+        });
+    },
+
+    /**
+     * Checks if any steering message has been received.
+     * @returns {any} The message data if available, or null
+     */
+    checkForSteeringMessage: () => {
+        if (steeringMessageMap.size > 0) {
+            const [key, value] = steeringMessageMap.entries().next().value || [];
+            if (key) {
+                steeringMessageMap.delete(key);
+                return value;
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Waits for a steering message.
+     * @returns {Promise<any>} A promise that resolves with the message data
+     */
+    onSteeringMessageReceived: async (): Promise<any> => {
+        const message = cbchat.checkForSteeringMessage();
+        if (message) return message;
+
+        return new Promise((resolve) => {
+            steeringSubscription.once('message', () => {
+                const data = cbchat.checkForSteeringMessage();
+                resolve(data);
+            });
         });
     },
 

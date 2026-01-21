@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import type { PendingRequest } from '../types/commonTypes';
+import type { PendingRequest, MessageRoute } from '../types/commonTypes';
 
 /**
  * Centralized message manager for handling WebSocket communications
@@ -9,6 +9,62 @@ import type { PendingRequest } from '../types/commonTypes';
 export class MessageManager extends EventEmitter {
     public pendingRequests: Map<string, PendingRequest> = new Map();
     public websocket: WebSocket | null = null;
+    private routes: MessageRoute[] = [];
+    private subscriptions: Map<string, EventEmitter> = new Map();
+
+    /**
+     * Subscribe to specific message types and get an EventEmitter that emits messages of those types.
+     * @param messageType The message type to subscribe to
+     * @returns An EventEmitter that emits 'message' events for the specified type, with an unsubscribe method
+     */
+    public subscribe(messageType: string): EventEmitter & { unsubscribe: () => void } {
+        // Check if subscription already exists
+        if (this.subscriptions.has(messageType)) {
+            const existing = this.subscriptions.get(messageType)!;
+            return Object.assign(existing, { unsubscribe: () => this.unsubscribe(messageType) });
+        }
+
+        const emitter = new EventEmitter();
+        this.subscriptions.set(messageType, emitter);
+
+        // Register a route that forwards messages to the emitter
+        this.registerRoute({
+            messageTypes: [messageType],
+            handler: (message: any) => {
+                emitter.emit('message', message);
+            }
+        });
+
+        return Object.assign(emitter, { unsubscribe: () => this.unsubscribe(messageType) });
+    }
+
+    /**
+     * Unsubscribe from a message type
+     * @param messageType The message type to unsubscribe from
+     */
+    public unsubscribe(messageType: string): void {
+        const emitter = this.subscriptions.get(messageType);
+        if (emitter) {
+            emitter.removeAllListeners();
+            this.subscriptions.delete(messageType);
+            // Remove the route
+            const routeIndex = this.routes.findIndex(r => r.messageTypes.includes(messageType));
+            if (routeIndex > -1) this.routes.splice(routeIndex, 1);
+        }
+    }
+
+    /**
+     * Register a message route handler for specific message types
+     * @param route The route configuration with message types and handler
+     * @returns A cleanup function to unregister the route
+     */
+    public registerRoute(route: MessageRoute): () => void {
+        this.routes.push(route);
+        return () => {
+            const index = this.routes.indexOf(route);
+            if (index > -1) this.routes.splice(index, 1);
+        };
+    }
 
     /**
      * Initialize the message manager with a WebSocket instance
@@ -53,6 +109,14 @@ export class MessageManager extends EventEmitter {
             if (request.messageTypes.includes(type)) {
                 this.pendingRequests.delete(id);
                 request.resolve(response);
+                return;
+            }
+        }
+
+        // Check registered routes
+        for (const route of this.routes) {
+            if (route.messageTypes.includes(type)) {
+                route.handler(response);
                 return;
             }
         }

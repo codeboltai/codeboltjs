@@ -208,6 +208,11 @@ export interface PendingRequest {
   requestId?: string;
 }
 
+export interface MessageRoute {
+  messageTypes: string[];
+  handler: (message: any) => void;
+}
+
 // ================================
 // Service Response Type Mapping
 // ================================
