@@ -2,12 +2,34 @@
 import cbws from '../core/websocket';
 import { randomUUID } from 'crypto';
 
-// Event state maps - exported for thread.ts to add background agents
-export const backgroundAgentMap = new Map<string, any>();
-export const agentEventMap = new Map<string, any>();
-export const groupedAgentCompletionMap = new Map<string, any>();
-// Track which threads belong to which groups
-export const backgroundAgentGroups = new Map<string, Set<string>>();
+// Event state maps - Internal use only
+const runningBackgroundAgents = new Map<string, any>();
+const completedBackgroundAgents = new Map<string, any>();
+const agentEventMap = new Map<string, any>();
+const groupedAgentCompletionMap = new Map<string, any>();
+const backgroundAgentGroups = new Map<string, Set<string>>();
+
+// Helper to cleanup group membership
+const cleanupAgentGroup = (threadId: string) => {
+    for (const [groupId, agents] of backgroundAgentGroups.entries()) {
+        if (agents.has(threadId)) {
+            agents.delete(threadId);
+            if (agents.size === 0) {
+                backgroundAgentGroups.delete(groupId);
+            }
+        }
+    }
+};
+
+// Handler for background agent completion messages
+const handleBackgroundAgentCompletion = (message: any) => {
+    // Add to completed queue for orchestrator to process
+    completedBackgroundAgents.set(message.threadId, message);
+    // Remove from running map since agent is now complete
+    runningBackgroundAgents.delete(message.threadId);
+    // Clean up any group associations
+    cleanupAgentGroup(message.threadId);
+};
 
 // Subscribe to message types
 const agentEventSubscription = cbws.messageManager.subscribe('agentEvent');
@@ -16,9 +38,19 @@ agentEventSubscription.on('message', (message: any) => {
     agentEventMap.set(eventId, message);
 });
 
-const backgroundAgentSubscription = cbws.messageManager.subscribe('backgroundAgentCompletion');
-backgroundAgentSubscription.on('message', (message: any) => {
-    backgroundAgentMap.set(message.threadId, message);
+// Subscribe to background agent completion - primary message type
+const backgroundAgentSubscription = cbws.messageManager.subscribe('startThreadResponse');
+backgroundAgentSubscription.on('message', handleBackgroundAgentCompletion);
+
+// Also subscribe to ThreadCompleted as an alternative message type for background agent completion
+const threadCompletedSubscription = cbws.messageManager.subscribe('ThreadCompleted');
+threadCompletedSubscription.on('message', (message: any) => {
+    // Only handle if this thread was a background agent
+    if (runningBackgroundAgents.has(message.threadId)) {
+        handleBackgroundAgentCompletion(message);
+        // Also emit on the backgroundAgentSubscription for waitForAnyExternalEvent
+        backgroundAgentSubscription.emit('message', message);
+    }
 });
 
 const groupedAgentSubscription = cbws.messageManager.subscribe('backgroundGroupedAgentCompletion');
@@ -31,20 +63,39 @@ groupedAgentSubscription.on('message', (message: any) => {
  * This module provides APIs for waiting on and checking for various event types.
  */
 const codeboltEvent = {
-    // Expose the maps for external access
-    backgroundAgentMap,
-    backgroundAgentGroups,
-    agentEventMap,
-    groupedAgentCompletionMap,
+
+    /**
+     * Adds a running background agent to tracking.
+     * @param {string} threadId - The thread ID
+     * @param {any} data - The agent data
+     * @param {string} [groupId] - Optional group ID
+     */
+    addRunningAgent: (threadId: string, data: any, groupId?: string) => {
+        runningBackgroundAgents.set(threadId, data);
+        if (groupId) {
+            if (!backgroundAgentGroups.has(groupId)) {
+                backgroundAgentGroups.set(groupId, new Set());
+            }
+            backgroundAgentGroups.get(groupId)!.add(threadId);
+        }
+    },
+
+    /**
+     * Gets the number of currently running background agents.
+     * @returns {number} The count
+     */
+    getRunningAgentCount: (): number => {
+        return runningBackgroundAgents.size;
+    },
 
     /**
      * Checks if any background agent has completed.
      * @returns {any} The completion data if available, or null
      */
     checkForBackgroundAgentCompletion: () => {
-        if (backgroundAgentMap.size > 0) {
-            const values = Array.from(backgroundAgentMap.values());
-            backgroundAgentMap.clear();
+        if (completedBackgroundAgents.size > 0) {
+            const values = Array.from(completedBackgroundAgents.values());
+            completedBackgroundAgents.clear();
             return values;
         }
         return null;
@@ -153,7 +204,11 @@ const codeboltEvent = {
             };
 
             const onBgComplete = () => {
+                // Must unhook first to avoid multi-resolution
                 cleanup();
+                // We must yield slightly to ensure handleBackgroundAgentCompletion has processed the event?
+                // Actually, handleBackgroundAgentCompletion attaches first, so it runs first on the same emitter. 
+                // That should be safe synchronously.
                 const data = codeboltEvent.checkForBackgroundAgentCompletion();
                 resolve({ type: 'backgroundAgentCompletion', data });
             };

@@ -23,11 +23,10 @@ import {
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-// Use the background agent maps from codeboltEvent module
-const { backgroundAgentMap, backgroundAgentGroups } = codebolt.codeboltEvent as unknown as {
-    backgroundAgentMap: Map<string, any>;
-    backgroundAgentGroups: Map<string, Set<string>>;
-};
+
+
+// Cast codeboltEvent to any to access new methods not yet in the published types
+const eventManager = codebolt.codeboltEvent as any;
 
 let systemPrompt = `
 
@@ -161,7 +160,7 @@ async function messageProcessingLoop(
     });
 
     // Check if there are active background agents or pending tool calls
-    const hasActiveWork = backgroundAgentMap.size > 0;
+    const hasActiveWork = eventManager.getRunningAgentCount() > 0;
 
     return {
         completed: executionResult.completed,
@@ -220,37 +219,24 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
 
         // Initial message processing
-        let { completed, prompt: updatedPrompt, hasActiveWork } = await messageProcessingLoop(reqMessage, prompt);
+        let { completed, prompt: updatedPrompt } = await messageProcessingLoop(reqMessage, prompt);
         prompt = updatedPrompt;
 
         // Continue processing while there are background agents or work pending
-        codebolt.chat.sendMessage(`Number of Background agents are running in background ${backgroundAgentMap.size}`)
-        while (!completed || backgroundAgentMap.size) {
-            if (backgroundAgentMap.size) {
+        codebolt.chat.sendMessage(`Number of Background agents are running in background ${eventManager.getRunningAgentCount()}`)
+        while (!completed || eventManager.getRunningAgentCount() > 0) {
+            if (eventManager.getRunningAgentCount() > 0) {
                 // Wait for any external event (background agent completion, agent event, etc.)
                 codebolt.chat.sendMessage(`checking for external event`)
 
-                const externalEvent = await codebolt.codeboltEvent.waitForAnyExternalEvent();
-                codebolt.chat.sendMessage(`Background agents are running in background ${backgroundAgentMap.size}`)
+                const externalEvent = await eventManager.waitForAnyExternalEvent();
+                ///codebolt.chat.sendMessage(`Exte rnal event received: ${JSON.stringify(externalEvent)}`)
+                codebolt.chat.sendMessage(`Background agents are running in background ${eventManager.getRunningAgentCount()}`)
 
                 // Handle the event based on its type
                 switch (externalEvent.type) {
                     case 'backgroundAgentCompletion':
-                        // Remove completed agent from active map
-                        if (externalEvent.data && Array.isArray(externalEvent.data)) {
-                            for (const completedAgent of externalEvent.data) {
-                                backgroundAgentMap.delete(completedAgent.threadId);
-                                // Check if part of a group
-                                for (const [groupId, agents] of backgroundAgentGroups.entries()) {
-                                    if (agents.has(completedAgent.threadId)) {
-                                        agents.delete(completedAgent.threadId);
-                                        if (agents.size === 0) {
-                                            backgroundAgentGroups.delete(groupId);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // Cleanup is now handled internally by codeboltEvent
                         // Add completion info to prompt for next iteration
                         prompt.message.messages.push({
                             role: 'user',
@@ -276,23 +262,15 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 }
 
                 // Process the event through the agent loop
-                // const result = await messageProcessingLoop(reqMessage, prompt);
-                // completed = result.completed;
-                // prompt = result.prompt;
-                // hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
-                // } else {
-                // Continue normal processing
-                // const result = await messageProcessingLoop(reqMessage, prompt);
-                // completed = result.completed;
-                // prompt = result.prompt;
-                // hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
+                const eventResult = await messageProcessingLoop(reqMessage, prompt);
+                completed = eventResult.completed;
+                prompt = eventResult.prompt;
             }
             else {
                 // Continue normal processing
                 const result = await messageProcessingLoop(reqMessage, prompt);
                 completed = result.completed;
                 prompt = result.prompt;
-                hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
             }
         }
 

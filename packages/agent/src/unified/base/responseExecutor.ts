@@ -195,13 +195,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                 }
                                 else if (item.toolName == "codebolt--thread_management") {
                                     const response = await codebolt.thread.createThreadInBackground({
-                                        title: `get current date and time`,
-                                        description: `Processing swarm task for agent `,
-                                        userMessage: 'get current date and time',
-                                        selectedAgent: {
-                                            id: 'edd6237b-9734-4f2d-ad22-b525f79c3884',
-                                            name: 'Test'
-                                        },
+                                        title: item.toolInput.title || item.toolInput.task || 'Background Thread',
+                                        description: item.toolInput.description || item.toolInput.task || '',
+                                        userMessage: item.toolInput.task || item.toolInput.userMessage || '',
+                                        selectedAgent: item.toolInput.selectedAgent,
+                                        groupId: item.toolInput.groupId,
                                     })
                                     return {
                                         role: "tool",
