@@ -89,7 +89,7 @@ const threadService = {
 
         const response = await cbws.messageManager.sendAndWaitForResponse<ThreadAgentStartedResponse | ThreadAgentStartFailedResponse>(
             event,
-            'ThreadAgentStarted|ThreadAgentStartFailed'
+            'ThreadAgentStarted'
         );
 
         // Add to appropriate map based on whether groupId is provided

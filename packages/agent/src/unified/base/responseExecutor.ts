@@ -172,7 +172,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                         try {
                             if (!userRejectedToolUse) {
                                 let [serverName] = item.toolName.replace('--', ':').split(':');
-
+                                // codebolt.chat.sendMessage(`tool call ${serverName} ${item.toolName} ${item.toolInput}`, {});
                                 if (serverName == 'subagent') {
                                     const agentResponse = await codebolt.agent.startAgent(item.toolName.replace("subagent--", ''), item.toolInput.task);
                                     const [didUserReject, result] = [false, "tool result is successful"];
@@ -191,6 +191,22 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                         role: "tool",
                                         tool_call_id: toolResult.tool_call_id,
                                         content: toolResult.content,
+                                    };
+                                }
+                                else if (item.toolName == "codebolt--thread_management") {
+                                    const response = await codebolt.thread.createThreadInBackground({
+                                        title: `get current date and time`,
+                                        description: `Processing swarm task for agent `,
+                                        userMessage: 'get current date and time',
+                                        selectedAgent: {
+                                            id: 'edd6237b-9734-4f2d-ad22-b525f79c3884',
+                                            name: 'Test'
+                                        },
+                                    })
+                                    return {
+                                        role: "tool",
+                                        tool_call_id: item.toolUseId,
+                                        content: JSON.stringify(response),
                                     };
                                 }
                                 else {

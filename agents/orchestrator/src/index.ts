@@ -224,10 +224,14 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         prompt = updatedPrompt;
 
         // Continue processing while there are background agents or work pending
+        codebolt.chat.sendMessage(`Number of Background agents are running in background ${backgroundAgentMap.size}`)
         while (!completed || backgroundAgentMap.size) {
-            if (completed && backgroundAgentMap.size) {
+            if (backgroundAgentMap.size) {
                 // Wait for any external event (background agent completion, agent event, etc.)
+                codebolt.chat.sendMessage(`checking for external event`)
+
                 const externalEvent = await codebolt.codeboltEvent.waitForAnyExternalEvent();
+                codebolt.chat.sendMessage(`Background agents are running in background ${backgroundAgentMap.size}`)
 
                 // Handle the event based on its type
                 switch (externalEvent.type) {
@@ -272,11 +276,18 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 }
 
                 // Process the event through the agent loop
-                const result = await messageProcessingLoop(reqMessage, prompt);
-                completed = result.completed;
-                prompt = result.prompt;
-                hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
-            } else {
+                // const result = await messageProcessingLoop(reqMessage, prompt);
+                // completed = result.completed;
+                // prompt = result.prompt;
+                // hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
+                // } else {
+                // Continue normal processing
+                // const result = await messageProcessingLoop(reqMessage, prompt);
+                // completed = result.completed;
+                // prompt = result.prompt;
+                // hasActiveWork = result.hasActiveWork || backgroundAgentMap.size > 0;
+            }
+            else {
                 // Continue normal processing
                 const result = await messageProcessingLoop(reqMessage, prompt);
                 completed = result.completed;
