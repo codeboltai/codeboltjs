@@ -74,11 +74,13 @@ export interface ResponseInput {
  * Output from unified response execution
  */
 export interface ResponseOutput {
+
     nextMessage: ProcessedMessage
     /** Tool execution results */
     toolResults?: ToolResult[];
     completed: boolean;
-
+    /** Final message from the agent when task is completed */
+    finalMessage?: string;
 }
 
 export interface AgentResponseExecutor {

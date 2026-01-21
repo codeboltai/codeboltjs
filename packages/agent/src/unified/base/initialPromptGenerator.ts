@@ -77,10 +77,10 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
                 });
             }
 
-            let { data } = await codebolt.todo.getAllIncompleteTodos();
+            let { todos } = await codebolt.todo.getAllIncompleteTodos();
 
 
-            if (data && data.length == 0) {
+            if (todos && todos.length == 0) {
                 createdMessage.message.messages.push({
                     role: 'user' as const,
                     content: "<system-reminder>\nThis is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.\n</system-reminder>"

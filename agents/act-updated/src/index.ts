@@ -342,6 +342,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     });
     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
     let completed = false;
+    let executionResult;
     do {
       let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
       let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
@@ -352,7 +353,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         postToolCallProcessors: []
 
       })
-      let executionResult = await responseExecutor.executeResponse({
+      executionResult = await responseExecutor.executeResponse({
         initialUserMessage: reqMessage,
         actualMessageSentToLLM: result.actualMessageSentToLLM,
         rawLLMOutput: result.rawLLMResponse,
@@ -362,19 +363,16 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
       completed = executionResult.completed;
       prompt = executionResult.nextMessage;
 
-
-      if (completed) {
-        break;
-      }
-
     } while (!completed);
 
-
-
-
+    // codebolt.chat.sendMessage(`Agent Finished with response: ${JSON.stringify(executionResult)}`, {})
+    // codebolt.chat.sendMessage(executionResult.finalMessage || "final message not found", {})
+    return executionResult.finalMessage;
 
   } catch (error) {
-
+    console.error(error);
+    // codebolt.chat.sendMessage(`Agent Finished with error: ${JSON.stringify(error)}`, {})
+    return error;
   }
 })
 

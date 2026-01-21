@@ -8,6 +8,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
     private preToolCallProcessors: PreToolCallProcessor[] = []
     private postToolCallProcessors: PostToolCallProcessor[] = []
     private completed: boolean = false;
+    private finalMessage: string | undefined = undefined;
 
     constructor(options: {
         preToolCallProcessors: PreToolCallProcessor[]
@@ -92,7 +93,8 @@ export class ResponseExecutor implements AgentResponseExecutor {
         return {
             completed: this.completed,
             nextMessage: nextMessage,
-            toolResults: toolResults
+            toolResults: toolResults,
+            finalMessage: this.finalMessage
         }
 
     }
@@ -121,10 +123,12 @@ export class ResponseExecutor implements AgentResponseExecutor {
     ): Promise<ToolResult[]> {
         try {
             let fallBackMessages: MessageObject[] = []
+            let lastMessageContent: string | undefined;
             for (const contentBlock of llmResponse.choices || []) {
                 if (contentBlock.message) {
 
                     if (contentBlock.message.content != null) {
+                        lastMessageContent = contentBlock.message.content;
                         await codebolt.chat.sendMessage(contentBlock.message.content, {});
                     }
                 }
@@ -248,12 +252,22 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 }
                 else {
                     this.completed = true
+                    // Set final message from agent's last text response when completing without tool calls
+                    if (lastMessageContent) {
+                        this.finalMessage = lastMessageContent;
+                    }
                 }
 
                 if (taskCompletedBlock) {
+                    const completionArgs = JSON.parse(taskCompletedBlock.function.arguments || "{}");
+                    // Capture the final message from attempt_completion
+                    if (completionArgs.result) {
+                        this.finalMessage = completionArgs.result;
+                    }
+
                     let [_, result] = await this.executeTool(
                         taskCompletedBlock.function.name,
-                        JSON.parse(taskCompletedBlock.function.arguments || "{}")
+                        completionArgs
                     );
 
                     if (result === "") {
