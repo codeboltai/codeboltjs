@@ -813,7 +813,37 @@ export interface EditFileWithDiffParams {
 // Browser API Types
 // ================================
 
-export interface BrowserNavigationOptions {
+// Browser Instance Management Types
+export interface BrowserInstanceInfo {
+  /** Unique identifier for the browser instance */
+  instanceId: string;
+  /** Whether the instance is currently active */
+  isActive: boolean;
+  /** Whether the instance is ready for operations */
+  isReady: boolean;
+  /** Current URL of the browser instance */
+  currentUrl?: string;
+  /** When the instance was created */
+  createdAt: string;
+  /** Page title */
+  title?: string;
+}
+
+export interface BrowserInstanceOptions {
+  /** Optional instance ID (if not provided, will be generated) */
+  instanceId?: string;
+  /** Whether to set this as the active instance */
+  setActive?: boolean;
+}
+
+export interface BrowserOperationOptions {
+  /** Browser instance ID (optional - uses active instance if not provided) */
+  instanceId?: string;
+  /** Additional operation-specific options */
+  [key: string]: any;
+}
+
+export interface BrowserNavigationOptions extends BrowserOperationOptions {
   /** URL to navigate to */
   url: string;
   /** Wait for page load (default: true) */
@@ -822,7 +852,7 @@ export interface BrowserNavigationOptions {
   timeout?: number;
 }
 
-export interface BrowserScreenshotOptions {
+export interface BrowserScreenshotOptions extends BrowserOperationOptions {
   /** Take full page screenshot */
   fullPage?: boolean;
   /** Image quality (0-100) */
@@ -831,7 +861,7 @@ export interface BrowserScreenshotOptions {
   format?: 'png' | 'jpeg';
 }
 
-export interface BrowserElementSelector {
+export interface BrowserElementSelector extends BrowserOperationOptions {
   /** CSS selector */
   selector: string;
   /** Whether to wait for element */
