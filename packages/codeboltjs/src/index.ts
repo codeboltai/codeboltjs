@@ -1029,3 +1029,58 @@ export type {
 
 // Export agentPortfolio module
 export { default as agentPortfolio } from './modules/agentPortfolio';
+
+// ================================
+// Tools Module - LLM-ready tool definitions
+// ================================
+
+// Export tools module and types
+export { default as tools } from './tools';
+export {
+    // Types (renamed to avoid conflict with libFunctionTypes.ToolResult)
+    Kind,
+    ToolErrorType,
+    ToolConfirmationOutcome,
+    type ToolResult as ToolFrameworkResult,
+    type ToolLocation,
+    type ToolInvocation,
+    type ToolBuilder,
+    type OpenAIToolSchema,
+    type OpenAIFunctionCall,
+    type ToolCallConfirmationDetails,
+    type AnyDeclarativeTool,
+    type AnyToolInvocation,
+    // Base classes
+    BaseToolInvocation,
+    DeclarativeTool,
+    BaseDeclarativeTool,
+    // Registry
+    ToolRegistry,
+    defaultRegistry,
+    // All tools
+    allTools,
+    // Tool categories
+    fileTools,
+    searchTools,
+    terminalTools,
+    gitTools,
+    browserTools,
+    orchestrationTools,
+    // Individual tools
+    ReadFileTool,
+    WriteFileTool,
+    EditTool,
+    ListDirectoryTool,
+    ReadManyFilesTool,
+    GlobTool,
+    GrepTool,
+    SearchFilesTool,
+    CodebaseSearchTool,
+    SearchMcpToolTool,
+    ListCodeDefinitionNamesTool,
+    ExecuteCommandTool,
+    GitActionTool,
+    BrowserActionTool,
+    TaskManagementTool,
+    AgentManagementTool,
+} from './tools';
