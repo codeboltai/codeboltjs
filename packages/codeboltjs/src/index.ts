@@ -39,6 +39,9 @@ export type {
     BrowserNavigationOptions,
     BrowserScreenshotOptions,
     BrowserElementSelector,
+    BrowserInstanceInfo,
+    BrowserInstanceOptions,
+    BrowserOperationOptions,
 
     // Terminal API Types
     TerminalExecuteOptions,
@@ -400,6 +403,15 @@ export const queryVectorItems = (items: any[], dbPath: string) => VectorDB.query
 // Export utils functions
 import cbutils from './modules/utils';
 export const editFileAndApplyDiff = (filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel?: string) => cbutils.editFileAndApplyDiff(filePath, diff, diffIdentifier, prompt, applyModel);
+
+// Export browser instance management functions
+import cbbrowser from './modules/browser';
+export const listBrowserInstances = cbbrowser.listBrowserInstances;
+export const getBrowserInstance = cbbrowser.getBrowserInstance;
+export const setActiveBrowserInstance = cbbrowser.setActiveBrowserInstance;
+export const openNewBrowserInstance = cbbrowser.openNewBrowserInstance;
+export const closeBrowserInstance = cbbrowser.closeBrowserInstance;
+export const executeOnInstance = cbbrowser.executeOnInstance;
 
 // Export notification functions
 export {

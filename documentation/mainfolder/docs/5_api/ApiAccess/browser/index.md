@@ -31,7 +31,7 @@ cbapicategory:
     link: /docs/api/apiaccess/browser/getBrowserInfo
     description: Gets detailed browser information including viewport dimensions, performance metrics, and page statistics.
   - name: scroll
-    link: /docs/api/apiaccess/browser/check
+    link: /docs/api/apiaccess/browser/scroll
     description: Scrolls the page in a specified direction by a given number of pixels. Supports both absolute and relative scrolling.
   - name: type
     link: /docs/api/apiaccess/browser/type
@@ -54,6 +54,24 @@ cbapicategory:
   - name: pdfToText
     link: /docs/api/apiaccess/browser/pdfToText
     description: Converts PDF content on the current page to readable text. Extracts text content from PDF documents for processing.
+  - name: listBrowserInstances
+    link: /docs/api/apiaccess/browser/listInstances
+    description: Lists all open browser instances with their status and metadata.
+  - name: getBrowserInstance
+    link: /docs/api/apiaccess/browser/getInstance
+    description: Gets detailed information about a specific browser instance.
+  - name: setActiveBrowserInstance
+    link: /docs/api/apiaccess/browser/setActiveInstance
+    description: Sets a browser instance as the active instance for subsequent operations.
+  - name: openNewBrowserInstance
+    link: /docs/api/apiaccess/browser/openNewInstance
+    description: Creates a new browser instance for isolated browsing sessions.
+  - name: closeBrowserInstance
+    link: /docs/api/apiaccess/browser/closeInstance
+    description: Closes a specific browser instance and cleans up its resources.
+  - name: executeOnInstance
+    link: /docs/api/apiaccess/browser/executeOnInstance
+    description: Executes a browser operation on a specific instance.
 
 ---
 # Browser API
@@ -63,6 +81,12 @@ The Browser API provides comprehensive web automation capabilities for CodeboltJ
 <CBAPICategory />
 
 ## Key Features
+
+### Instance Management
+- **Active Instance Pattern**: Simple usage without explicit instance management
+- **Multi-Instance Support**: Run multiple browser instances simultaneously
+- **Instance Lifecycle**: Create, manage, and cleanup browser instances
+- **Automatic Management**: Active instance tracking and automatic creation
 
 ### Navigation
 - **Page Creation**: Initialize new browser pages with `newPage()`
@@ -88,6 +112,48 @@ The Browser API provides comprehensive web automation capabilities for CodeboltJ
 - **Screenshots**: Capture page visuals with `screenshot()`
 - **Snapshots**: Take detailed snapshots with `getSnapShot()`
 - **Browser Info**: Get viewport and performance data with `getBrowserInfo()`
+
+## Usage Patterns
+
+### Active Instance Pattern (Recommended for LLM Usage)
+
+```js
+import codebolt from '@codebolt/codeboltjs';
+
+// Simple usage - no instance management needed
+await codebolt.browser.goToPage('https://example.com');
+const content = await codebolt.browser.getContent();
+await codebolt.browser.screenshot();
+
+// Active instance is automatically managed
+```
+
+### Multi-Instance Pattern (Advanced Control)
+
+```js
+// Create and manage specific instances
+const instance1 = await codebolt.openNewBrowserInstance();
+const instance2 = await codebolt.openNewBrowserInstance();
+
+// Execute on specific instances
+await codebolt.browser.goToPage('https://example.com', { 
+  instanceId: instance1.instanceId 
+});
+await codebolt.browser.goToPage('https://google.com', { 
+  instanceId: instance2.instanceId 
+});
+
+// List all instances
+const instances = await codebolt.listBrowserInstances();
+console.log('Active instances:', instances);
+
+// Set active instance
+await codebolt.setActiveBrowserInstance(instance1.instanceId);
+
+// Cleanup
+await codebolt.closeBrowserInstance(instance1.instanceId);
+await codebolt.closeBrowserInstance(instance2.instanceId);
+```
 
 ## Quick Start Guide
 
