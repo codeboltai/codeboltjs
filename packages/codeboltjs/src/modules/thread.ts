@@ -67,10 +67,16 @@ const threadService = {
             message: options
         };
 
-        return cbws.messageManager.sendAndWaitForResponse(
+        const response = await cbws.messageManager.sendAndWaitForResponse<StartThreadResponse>(
             event,
             'startThreadResponse'
         );
+
+        if (response.threadId) {
+            codeboltEvent.addRunningAgent(response.threadId, response,options.isGrouped, options.groupId);
+        }
+
+        return response;
     },
 
     /**
@@ -95,7 +101,7 @@ const threadService = {
         // Add to appropriate map based on whether groupId is provided
         // Add to appropriate map based on whether groupId is provided
         if (response.threadId) {
-            codeboltEvent.addRunningAgent(response.threadId, response, options.groupId);
+            codeboltEvent.addRunningAgent(response.threadId, response, options.isGrouped,options.groupId);
         }
 
         return response;

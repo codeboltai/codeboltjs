@@ -131,6 +131,7 @@ const updateThreadOptionsSchema = z.object({
     executionType: z.enum(['scheduled', 'immediate', 'manual', 'conditional']).optional(),
     environmentType: z.enum(['local', 'remote']).optional(),
     groupId: z.string().optional(),
+    isGrouped: z.boolean().optional(),
     startOption: z.enum(['immediately', 'manual', 'based_on_group', 'ontaskfinish']).optional(),
     dependsOnTaskId: z.string().optional(),
     dependsOnTaskName: z.string().optional(),
@@ -227,6 +228,7 @@ const createAndStartThreadOptionsSchema = z.object({
     }).optional(),
     environment: z.any().optional(),
     groupId: z.string().optional(),
+    isGrouped: z.boolean().optional(),
     processId: z.string().optional(),
     stepId: z.string().optional(),
 });

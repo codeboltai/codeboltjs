@@ -199,6 +199,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                         description: item.toolInput.description || item.toolInput.task || '',
                                         userMessage: item.toolInput.task || item.toolInput.userMessage || '',
                                         selectedAgent: item.toolInput.selectedAgent,
+                                        isGrouped:item.toolInput.isGrouped,
                                         groupId: item.toolInput.groupId,
                                     })
                                     return {

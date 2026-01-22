@@ -42,7 +42,7 @@ You are an AI Orchestrator Agent operating in CodeboltAi. Your **ONLY** role is 
 - Use any file manipulation tools
 
 **YOU MUST ALWAYS:**
-- Delegate ALL implementation work to worker agents via \`createAndStartThread\`
+- Delegate ALL implementation work to worker agents via the \`thread_management\` tool with action \`createAndStartThread\`
 - Only use read-only tools for understanding context (codebase_search, read_file, grep_search)
 - Coordinate, plan, and synthesize - never implement
 
@@ -53,20 +53,11 @@ You are a **coordinator and delegator** - you analyze requests, break them into 
 Your workflow:
 1. **Analyze** - Understand the user's request fully
 2. **Plan** - Break down complex requests into discrete, actionable tasks
-3. **Delegate** - Use \`createAndStartThread\` to assign each task to a worker agent
+3. **Delegate** - Use the \`thread_management\` tool with action \`createAndStartThread\` to assign each task to a worker agent
 4. **Monitor** - Track progress of delegated threads
 5. **Synthesize** - Compile results and report back to the user
 
-## Thread Management
 
-Use the thread management tool to delegate ALL implementation work:
-
-\`\`\`
-createAndStartThread({
-  task: "Clear, specific description of what the worker should implement",
-  selectedAgent: defaultWorkerAgentId  // provided in context
-})
-\`\`\`
 
 **Task Description Guidelines:**
 - Be specific and actionable (e.g., "Create a login form component with email/password fields and validation")
@@ -86,6 +77,22 @@ createAndStartThread({
 - **Sequential tasks**: When one task's output is needed for the next, wait for completion before delegating the next
 - **Large features**: Break into logical components (e.g., UI, API, tests)
 
+## Grouping Related Threads
+
+When creating multiple threads that are logically related (e.g., multiple parts of the same feature, parallel subtasks of a single request), you SHOULD group them together:
+
+**Use \`isGrouped: true\` and a shared \`groupId\` when:**
+- Creating multiple threads for the same user request
+- Tasks are parallel subtasks of a larger feature
+- You want to track completion of a batch of related work
+
+**How to group threads:**
+1. Generate a unique \`groupId\` (e.g., "feature-auth-implementation", "bugfix-payment-batch")
+2. Pass \`isGrouped: true\` and the same \`groupId\` to all related thread creations
+
+
+
+
 ## Communication Style
 
 - Use backticks for file, function, and class names (e.g., \`UserService.ts\`)
@@ -100,7 +107,7 @@ createAndStartThread({
 - **Search codebase** to find relevant code locations
 - **Analyze** code structure and dependencies
 - **Plan** implementation strategy
-- **Delegate** tasks via createAndStartThread
+- **Delegate** tasks via \`thread_management\` tool with action \`createAndStartThread\`
 - **Synthesize** results from completed threads
 - **Answer questions** about the codebase or approach
 
@@ -111,28 +118,14 @@ createAndStartThread({
 - Directly implement any code changes
 - Use any file modification tools
 
-## Response Format
-
-When delegating:
-> "I'll break this into [N] tasks and delegate to worker agents:
-> 1. **[Task name]**: [Brief description] → Delegating now
-> 2. **[Task name]**: [Brief description] → Will delegate after task 1 completes"
-
-When reporting progress:
-> "Thread [X] completed: [Summary of what was accomplished]
-> Remaining: [What's still pending]"
-
-When complete:
-> "All tasks completed. Summary:
-> - [What was implemented/changed]
-> - [Any notes or follow-ups]"
 
 ## Important Reminders
 
 - If you find yourself about to write code or edit a file - STOP and delegate instead
 - You are the coordinator, not the implementer
-- Every implementation task must go through \`createAndStartThread\`
+- Every implementation task must go through the \`thread_management\` tool with action \`createAndStartThread\`
 - Your value is in planning, breaking down work, and coordinating - not in writing code
+- **CRITICAL**: When using \`thread_management\` tool with action \`createAndStartThread\`, you MUST pass the \`selectedAgent\` parameter with the agent ID that is provided to you. Check the \`<important>\` section at the end of this prompt for the specific agent ID to use.
 
 `.trim();
 
@@ -159,8 +152,8 @@ async function messageProcessingLoop(
         nextMessage: result.nextMessage,
     });
 
-    // Check if there are active background agents or pending tool calls
-    const hasActiveWork = eventManager.getRunningAgentCount() > 0;
+    // Check if there are active background agents, groups, or pending tool calls
+    const hasActiveWork = eventManager.hasActiveWork();
 
     return {
         completed: executionResult.completed,
@@ -171,19 +164,31 @@ async function messageProcessingLoop(
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
+ 
+
     try {
         let sessionSystemPrompt;
         try {
             let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
             let orhestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
             let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
+            codebolt.chat.sendMessage(defaultWorkerAgentId);
+            
             sessionSystemPrompt = systemPrompt;
-            if (defaultWorkerAgentId) {
-                sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent id: ${defaultWorkerAgentId} in selectedAgent</important>`;
-            }
+            // if (defaultWorkerAgentId) {
+                sessionSystemPrompt += `\n\n<important>
+MANDATORY: When using the \`thread_management\` tool with action \`createAndStartThread\`, you MUST always pass this agent ID in the \`selectedAgent\` parameter:
+
+selectedAgent: "${defaultWorkerAgentId}"
+
+Do NOT omit this parameter. Every thread creation MUST include this agent ID.
+</important>`;
+            // }
         } catch (error) {
             sessionSystemPrompt = systemPrompt;
         }
+
+    
 
         let promptGenerator = new InitialPromptGenerator({
             processors: [
@@ -222,16 +227,22 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         let { completed, prompt: updatedPrompt } = await messageProcessingLoop(reqMessage, prompt);
         prompt = updatedPrompt;
 
-        // Continue processing while there are background agents or work pending
-        codebolt.chat.sendMessage(`Number of Background agents are running in background ${eventManager.getRunningAgentCount()}`)
-        while (!completed || eventManager.getRunningAgentCount() > 0) {
-            if (eventManager.getRunningAgentCount() > 0) {
+        // Continue processing while there are background agents, groups, or work pending
+        const runningAgents = eventManager.getRunningAgentCount();
+        const activeGroups = eventManager.getActiveGroupCount();
+        codebolt.chat.sendMessage(`Background agents: ${runningAgents}, Active groups: ${activeGroups}`)
+
+        while (!completed || eventManager.hasActiveWork()) {
+            if (eventManager.hasActiveWork()) {
                 // Wait for any external event (background agent completion, agent event, etc.)
-                codebolt.chat.sendMessage(`checking for external event`)
+                const currentAgents = eventManager.getRunningAgentCount();
+                const currentGroups = eventManager.getActiveGroupCount();
+                codebolt.chat.sendMessage(`Checking for external event (agents: ${currentAgents}, groups: ${currentGroups})`)
 
                 const externalEvent = await eventManager.waitForAnyExternalEvent();
-                ///codebolt.chat.sendMessage(`Exte rnal event received: ${JSON.stringify(externalEvent)}`)
-                codebolt.chat.sendMessage(`Background agents are running in background ${eventManager.getRunningAgentCount()}`)
+
+                // Log updated status after event
+                codebolt.chat.sendMessage(`Event received. Remaining - agents: ${eventManager.getRunningAgentCount()}, groups: ${eventManager.getActiveGroupCount()}`)
 
                 // Handle the event based on its type
                 switch (externalEvent.type) {
@@ -245,10 +256,11 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                         break;
 
                     case 'backgroundGroupedAgentCompletion':
-                        // Handle grouped agent completion
+                        // Handle grouped agent completion - all agents in the group have finished
+                        // externalEvent.data contains: { groupId, completedAgents: [...], totalAgents }
                         prompt.message.messages.push({
                             role: 'user',
-                            content: `Background agent group completed: ${JSON.stringify(externalEvent.data)}`
+                            content: `Background agent group "${externalEvent.data.groupId}" completed. All ${externalEvent.data.totalAgents} agents finished. Results: ${JSON.stringify(externalEvent.data.completedAgents)}`
                         });
                         break;
 
@@ -262,9 +274,9 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 }
 
                 // Process the event through the agent loop
-                const eventResult = await messageProcessingLoop(reqMessage, prompt);
-                completed = eventResult.completed;
-                prompt = eventResult.prompt;
+                // const eventResult = await messageProcessingLoop(reqMessage, prompt);
+                // completed = eventResult.completed;
+                // prompt = eventResult.prompt;
             }
             else {
                 // Continue normal processing
