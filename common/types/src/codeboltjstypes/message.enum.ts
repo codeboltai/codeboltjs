@@ -221,7 +221,7 @@ export enum FSResponseType {
     DELETE_FILE_RESPONSE = "deleteFileResponse",
     DELETE_FOLDER_RESPONSE = "deleteFolderResponse",
     FILE_LIST_RESPONSE = "fileListResponse",
-    LIST_CODE_DEFINITION_NAMES_RESPONSE = "listCodeDefinitionNamesResponse",
+    LIST_CODE_DEFINITION_NAMES_RESPONSE = "listCodeDefinitionsResponse",
     SEARCH_FILES_RESPONSE = "searchFilesResponse",
     WRITE_TO_FILE_RESPONSE = "writeToFileResponse",
     GREP_SEARCH_RESPONSE = "grepSearchResponse",

@@ -286,7 +286,7 @@ const cbfs = {
                     query
                 }
             },
-            FSResponseType.FILE_SEARCH_RESPONSE
+            "fuzzySearchResponse"
         );
     },
 
