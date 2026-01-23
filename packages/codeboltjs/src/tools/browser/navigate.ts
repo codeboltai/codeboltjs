@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbbrowser from '../../modules/browser';
+import cbchat from '../../modules/chat';
 
 export interface BrowserNavigateParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The URL to navigate to */
     url: string;
     /** Optional browser instance ID */
@@ -22,6 +25,9 @@ class BrowserNavigateInvocation extends BaseToolInvocation<BrowserNavigateParams
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const options = this.params.instance_id ? { instanceId: this.params.instance_id } : undefined;
             const response = await cbbrowser.goToPage(this.params.url, options);
 
@@ -68,6 +74,10 @@ export class BrowserNavigateTool extends BaseDeclarativeTool<BrowserNavigatePara
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     url: {
                         description: 'The URL to navigate to.',
                         type: 'string',

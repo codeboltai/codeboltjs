@@ -12,11 +12,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the ListCodeDefinitionNames tool
  */
 export interface ListCodeDefinitionNamesToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The path to search for code definitions
      */
@@ -37,6 +43,9 @@ class ListCodeDefinitionNamesToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's fs module
             const response = await cbfs.listCodeDefinitionNames(this.params.path);
 
@@ -114,6 +123,11 @@ export class ListCodeDefinitionNamesTool extends BaseDeclarativeTool<
             Kind.Search,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     path: {
                         description:
                             'The absolute path to the file or directory to analyze for code definitions.',

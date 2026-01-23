@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import gitService from '../../modules/git';
+import cbchat from '../../modules/chat';
 
 export interface GitAddParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     // No required parameters - adds all changes
 }
 
@@ -19,6 +22,9 @@ class GitAddInvocation extends BaseToolInvocation<GitAddParams, ToolResult> {
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await gitService.addAll();
 
             if (!response.success && response.success !== undefined) {
@@ -68,7 +74,12 @@ export class GitAddTool extends BaseDeclarativeTool<GitAddParams, ToolResult> {
             'Adds all changes to the Git staging area.',
             Kind.Execute,
             {
-                properties: {},
+                properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
+                },
                 required: [],
                 type: 'object',
             },

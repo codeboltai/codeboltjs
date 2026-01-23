@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import taskService from '../../modules/task';
+import cbchat from '../../modules/chat';
 
 export interface TaskUpdateParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The task ID to update */
     task_id: string;
     /** New name for the task */
@@ -26,6 +29,9 @@ class TaskUpdateInvocation extends BaseToolInvocation<TaskUpdateParams, ToolResu
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const updates: any = {};
             if (this.params.name !== undefined) updates.name = this.params.name;
             if (this.params.completed !== undefined) updates.completed = this.params.completed;
@@ -76,6 +82,10 @@ export class TaskUpdateTool extends BaseDeclarativeTool<TaskUpdateParams, ToolRe
             Kind.Other,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     task_id: {
                         description: 'The ID of the task to update.',
                         type: 'string',

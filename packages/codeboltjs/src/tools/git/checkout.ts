@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import gitService from '../../modules/git';
+import cbchat from '../../modules/chat';
 
 export interface GitCheckoutParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The branch name to checkout */
     branch: string;
 }
@@ -20,6 +23,9 @@ class GitCheckoutInvocation extends BaseToolInvocation<GitCheckoutParams, ToolRe
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await gitService.checkout(this.params.branch);
 
             if (!response.success && response.success !== undefined) {
@@ -70,6 +76,10 @@ export class GitCheckoutTool extends BaseDeclarativeTool<GitCheckoutParams, Tool
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     branch: {
                         description: 'The name of the branch to checkout.',
                         type: 'string',

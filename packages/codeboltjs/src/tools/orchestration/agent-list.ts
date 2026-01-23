@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import codeboltAgent from '../../modules/agent';
+import cbchat from '../../modules/chat';
 
 export interface AgentListParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     // No required parameters
 }
 
@@ -19,6 +22,9 @@ class AgentListInvocation extends BaseToolInvocation<AgentListParams, ToolResult
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await codeboltAgent.getAgentsList();
 
             if (response && response.success === false) {
@@ -105,7 +111,12 @@ export class AgentListTool extends BaseDeclarativeTool<AgentListParams, ToolResu
             'Lists all available agents.',
             Kind.Read,
             {
-                properties: {},
+                properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
+                },
                 required: [],
                 type: 'object',
             },

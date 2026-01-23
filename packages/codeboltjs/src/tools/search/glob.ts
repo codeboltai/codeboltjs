@@ -12,11 +12,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the Glob tool
  */
 export interface GlobToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The glob pattern to match files (e.g., "**\/*.ts", "src/**\/*.js")
      */
@@ -45,6 +51,9 @@ class GlobToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Use fileSearch for fuzzy/glob pattern matching
             const response = await cbfs.fileSearch(this.params.pattern);
 
@@ -113,6 +122,11 @@ export class GlobTool extends BaseDeclarativeTool<
             Kind.Search,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     pattern: {
                         description:
                             "The glob pattern to match files (e.g., '**/*.ts', 'src/**/*.{js,jsx}', '**/test/*.spec.ts').",

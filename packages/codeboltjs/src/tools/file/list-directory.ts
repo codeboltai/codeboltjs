@@ -13,11 +13,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the ListDirectory tool
  */
 export interface ListDirectoryToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The absolute path to the directory to list
      */
@@ -58,6 +64,9 @@ class ListDirectoryToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's fs module
             const response = await cbfs.listDirectory({
                 path: this.params.path,
@@ -162,6 +171,11 @@ export class ListDirectoryTool extends BaseDeclarativeTool<
             Kind.Read,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     path: {
                         description:
                             "The absolute path to the directory to list (e.g., '/home/user/project'). Relative paths are not supported.",

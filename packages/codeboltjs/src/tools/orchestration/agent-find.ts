@@ -8,8 +8,11 @@ import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import codeboltAgent from '../../modules/agent';
 import { AgentLocation, FilterUsing } from '@codebolt/types/enum';
+import cbchat from '../../modules/chat';
 
 export interface AgentFindParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** Task description to find agents for */
     task: string;
     /** Maximum number of results */
@@ -23,6 +26,9 @@ class AgentFindInvocation extends BaseToolInvocation<AgentFindParams, ToolResult
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await codeboltAgent.findAgent(
                 this.params.task,
                 this.params.max_results || 3,
@@ -119,6 +125,10 @@ export class AgentFindTool extends BaseDeclarativeTool<AgentFindParams, ToolResu
             Kind.Read,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     task: {
                         description: 'The task description to find agents for.',
                         type: 'string',

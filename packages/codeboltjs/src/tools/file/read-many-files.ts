@@ -12,11 +12,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the ReadManyFiles tool
  */
 export interface ReadManyFilesToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * An array of file paths, directory paths, or glob patterns to read
      */
@@ -72,6 +78,9 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's fs module
             const response = await cbfs.readManyFiles({
                 paths: this.params.paths,
@@ -191,6 +200,11 @@ export class ReadManyFilesTool extends BaseDeclarativeTool<
             Kind.Read,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     paths: {
                         description:
                             "An array of file paths, directory paths, or glob patterns to read (e.g., ['/path/to/file.ts', '/path/to/dir', '**/*.json']).",

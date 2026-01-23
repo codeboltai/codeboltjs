@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbbrowser from '../../modules/browser';
+import cbchat from '../../modules/chat';
 
 export interface BrowserScrollParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** Scroll direction: 'up', 'down', 'left', 'right' */
     direction: 'up' | 'down' | 'left' | 'right';
     /** Number of pixels to scroll */
@@ -24,6 +27,9 @@ class BrowserScrollInvocation extends BaseToolInvocation<BrowserScrollParams, To
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const options = this.params.instance_id ? { instanceId: this.params.instance_id } : undefined;
             const response = await cbbrowser.scroll(this.params.direction, this.params.pixels, options);
 
@@ -70,6 +76,10 @@ export class BrowserScrollTool extends BaseDeclarativeTool<BrowserScrollParams, 
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     direction: {
                         description: "Scroll direction: 'up', 'down', 'left', 'right'.",
                         type: 'string',

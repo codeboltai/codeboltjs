@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbbrowser from '../../modules/browser';
+import cbchat from '../../modules/chat';
 
 export interface BrowserTypeParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The element ID to type into */
     element_id: string;
     /** The text to type */
@@ -24,6 +27,9 @@ class BrowserTypeInvocation extends BaseToolInvocation<BrowserTypeParams, ToolRe
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const options = this.params.instance_id ? { instanceId: this.params.instance_id } : undefined;
             const response = await cbbrowser.type(this.params.element_id, this.params.text, options);
 
@@ -70,6 +76,10 @@ export class BrowserTypeTool extends BaseDeclarativeTool<BrowserTypeParams, Tool
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     element_id: {
                         description: 'The ID of the element to type into.',
                         type: 'string',
