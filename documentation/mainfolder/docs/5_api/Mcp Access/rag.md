@@ -17,6 +17,66 @@ Retrieval Augmented Generation tools for creating and querying knowledge indexes
 - `rag_update_document` - Update a document in RAG index
 - `rag_list_indexes` - List all available RAG indexes
 
+## Tool Parameters
+
+### `rag_create_index`
+
+Creates a new RAG (Retrieval Augmented Generation) index for storing and retrieving documents.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| indexName | string | Yes | The unique name for the new RAG index |
+| description | string | No | A description of what the index contains |
+
+### `rag_add_documents`
+
+Adds one or more documents to an existing RAG index.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| indexName | string | Yes | The name of the RAG index to add documents to |
+| documents | array | Yes | Array of document objects to add |
+| documents[].id | string | Yes | Unique identifier for the document |
+| documents[].content | string | Yes | The text content of the document |
+| documents[].metadata | object | No | Optional metadata associated with the document (e.g., type, version) |
+
+### `rag_query`
+
+Queries documents from a RAG index based on a natural language query.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| indexName | string | Yes | The name of the RAG index to query |
+| query | string | Yes | The natural language query to search for |
+| topK | number | No | Maximum number of results to return (default varies by implementation) |
+
+### `rag_delete_index`
+
+Deletes an existing RAG index and all its documents.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| indexName | string | Yes | The name of the RAG index to delete |
+
+### `rag_update_document`
+
+Updates an existing document in a RAG index.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| indexName | string | Yes | The name of the RAG index containing the document |
+| documentId | string | Yes | The unique identifier of the document to update |
+| content | string | Yes | The new text content for the document |
+| metadata | object | No | Optional updated metadata for the document |
+
+### `rag_list_indexes`
+
+Lists all available RAG indexes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| (none) | - | - | This tool takes no parameters |
+
 ## Sample Usage
 
 ```javascript

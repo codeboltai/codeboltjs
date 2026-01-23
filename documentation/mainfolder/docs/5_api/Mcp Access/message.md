@@ -14,6 +14,34 @@ Message handling and process management operations.
 - `message_process_start` - Start a message processing
 - `message_process_stop` - Stop a message processing
 
+## Tool Parameters
+
+### `message_send`
+
+Sends a message through the message system.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | The message content to send |
+
+### `message_process_start`
+
+Starts a message processing operation with a specified process name.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| process | string | Yes | The name/identifier of the process to start |
+| message | string | Yes | The message associated with the process |
+
+### `message_process_stop`
+
+Stops a running message processing operation.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| process | string | Yes | The name/identifier of the process to stop |
+| message | string | Yes | The message associated with stopping the process |
+
 ## Sample Usage
 
 ```javascript

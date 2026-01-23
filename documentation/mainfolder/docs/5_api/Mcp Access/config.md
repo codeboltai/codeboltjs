@@ -10,7 +10,27 @@ Configuration management for MCP servers.
 
 ## Available Tools
 
-- `configure_mcp` - Configure MCP server settings
+- `mcp_configure_server` - Configure MCP server settings
+
+## Tool Parameters
+
+### `mcp_configure_server`
+
+Configures an MCP (Model Context Protocol) server with the provided configuration object. Use this to update server settings, credentials, or other configuration options.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| serverName | string | Yes | The name of the MCP server to configure |
+| config | object | Yes | Configuration object containing the settings to apply to the MCP server |
+
+#### Config Object Properties
+
+The `config` object can contain various settings depending on the server type. Common properties include:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| command | string | Command to run the server (e.g., "npx") |
+| args | array | Array of command arguments |
 
 ## Sample Usage
 
@@ -18,7 +38,7 @@ Configuration management for MCP servers.
 // Configure filesystem MCP server
 const configResult = await codebolt.tools.executeTool(
   "codebolt.config",
-  "configure_mcp",
+  "mcp_configure_server",
   {
     serverName: "filesystem",
     config: {
@@ -32,17 +52,6 @@ const configResult = await codebolt.tools.executeTool(
   }
 );
 ```
-
-## Parameters
-
-### configure_mcp
-- `serverName` (required) - Name of the server to configure (e.g., "filesystem")
-- `config` (required) - Configuration object containing server settings
-  - `command` - Command to run the server (e.g., "npx")
-  - `args` - Array of command arguments
-    - "-y" - Non-interactive mode for npx
-    - Package name (e.g., "@modelcontextprotocol/server-filesystem")
-    - Additional arguments like allowed directories
 
 :::info
 This functionality provides server configuration management through the MCP interface. Currently supports filesystem server configuration.

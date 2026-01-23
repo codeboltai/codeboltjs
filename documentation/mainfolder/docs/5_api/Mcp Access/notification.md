@@ -24,6 +24,17 @@ The following event types are supported:
 - `console` - Console notifications
 - `preview` - Preview notifications
 
+## Tool Parameters
+
+### `notification_send`
+
+Sends a notification event with a specified type and message. The notification type determines how the message is categorized and displayed in the system.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | The notification message content to display |
+| eventType | string | Yes | The type of notification. Must be one of: `debug`, `git`, `planner`, `browser`, `editor`, `terminal`, `console`, `preview` |
+
 ## Sample Usage
 
 ```javascript

@@ -13,6 +13,24 @@ Tokenizer operations for encoding and decoding text.
 - `tokenizer_encode` - Encode text into tokens
 - `tokenizer_decode` - Decode tokens into text
 
+## Tool Parameters
+
+### `tokenizer_encode`
+
+Encodes text into a sequence of tokens. Useful for understanding token counts and text representation.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | The text to encode into tokens |
+
+### `tokenizer_decode`
+
+Decodes a sequence of tokens back into text.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tokens | array | Yes | Array of token IDs (numbers) to decode into text |
+
 ## Sample Usage
 
 ```javascript
