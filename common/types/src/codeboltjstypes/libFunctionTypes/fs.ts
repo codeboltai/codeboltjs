@@ -7,49 +7,69 @@
 export interface BaseFsSDKResponse {
   success: boolean;
   message?: string;
-  error?: string;
+  error?: string | any;
 }
 
 // File operations
 export interface CreateFileResponse extends BaseFsSDKResponse {
   path?: string;
-  fileName?: string;
-  source?: string;
+  created?: boolean;
+  bytesWritten?: number;
+  stats?: any;
 }
 
 export interface CreateFolderResponse extends BaseFsSDKResponse {
   path?: string;
-  folderName?: string;
+  created?: boolean;
+  stats?: any;
 }
 
 export interface ReadFileResponse extends BaseFsSDKResponse {
   content?: string;
   path?: string;
   encoding?: string;
-  result?: string;
+  size?: number;
+  stats?: any;
+  lineCount?: number;
+  truncated?: boolean;
 }
 
 export interface UpdateFileResponse extends BaseFsSDKResponse {
   path?: string;
-  newContent?: string;
+  updated?: boolean;
   bytesWritten?: number;
+  backupPath?: string;
+  stats?: any;
+  changeSummary?: {
+    linesAdded: number;
+    linesRemoved: number;
+    linesModified: number;
+  };
 }
 
 export interface DeleteFileResponse extends BaseFsSDKResponse {
   path?: string;
-  filename?: string;
+  deleted?: boolean;
+  moveToTrash?: boolean;
+  trashLocation?: string;
+  recoveredFromBackup?: string;
 }
 
 export interface DeleteFolderResponse extends BaseFsSDKResponse {
   path?: string;
-  foldername?: string;
+  deleted?: boolean;
+  itemsDeleted?: number;
+  moveToTrash?: boolean;
+  trashLocation?: string;
 }
 
 // File listing and search operations
 export interface FileListResponse extends BaseFsSDKResponse {
   files?: string[];
-  result?: string;
-  isRecursive?: boolean;
+  path?: string;
+  totalCount?: number;
+  hasMore?: boolean;
+  recursive?: boolean;
 }
 
 export interface ListCodeDefinitionsResponse extends BaseFsSDKResponse {
@@ -65,10 +85,15 @@ export interface SearchFilesResponse extends BaseFsSDKResponse {
       line: number;
       content: string;
       lineNumber: number;
+      startIndex?: number;
+      endIndex?: number;
     }>;
+    stats?: any;
   }>;
-  result?: string;
-  filePattern?: string;
+  totalCount?: number;
+  hasMore?: boolean;
+  searchTime?: number;
+  path?: string;
 }
 
 export interface WriteToFileResponse extends BaseFsSDKResponse {
@@ -77,22 +102,27 @@ export interface WriteToFileResponse extends BaseFsSDKResponse {
 }
 
 export interface GrepSearchResponse extends BaseFsSDKResponse {
-  query?: string;
+  pattern?: string;
+  results?: Array<{
+    path: string;
+    matches: Array<{
+      line: number;
+      content: string;
+      lineNumber: number;
+    }>;
+    stats?: any;
+  }>;
+  totalCount?: number;
+  hasMore?: boolean;
+  searchTime?: number;
+  path?: string;
   includePattern?: string;
   excludePattern?: string;
-  caseSensitive?: boolean;
-  results?: Array<{
-    file: string;
-    line: number;
-    content: string;
-    match: string;
-  }>;
-  result?: string;
 }
 
 export interface FileSearchResponse extends BaseFsSDKResponse {
   query?: string;
-  results?: string[];
+  results?: string[]; // Note: fileSearch (fuzzy) usually returns paths? Checking legacy support.
   result?: string;
 }
 
@@ -109,40 +139,19 @@ export interface EditFileAndApplyDiffResponse extends BaseFsSDKResponse {
   };
 }
 
-// Information about a single file read operation for readManyFiles
-export interface FileReadInfo {
-  filePath: string;
-  relativePath: string;
-  success: boolean;
-  content?: string;
-  error?: string;
-  size?: number;
-  modifiedTime?: Date;
-  truncated?: boolean;
-}
-
 // Result of readManyFiles operation
-export interface ReadManyFilesResult {
-  files: FileReadInfo[];
-  totalFiles: number;
-  successfullyRead: number;
-  failedToRead: number;
-  totalContentSize: number;
-  isTruncated: boolean;
-  searchedPaths: string[];
-  combinedContent: string;
-}
-
 export interface ReadManyFilesResponse extends BaseFsSDKResponse {
-  paths?: string[];
-  files?: FileReadInfo[];
-  totalFiles?: number;
-  successfullyRead?: number;
-  failedToRead?: number;
-  totalContentSize?: number;
-  isTruncated?: boolean;
-  combinedContent?: string;
-  result?: string | ReadManyFilesResult;
+  results?: Array<{
+    path: string;
+    content?: string;
+    error?: any;
+    stats?: any;
+  }>;
+  summary?: {
+    total: number;
+    successful: number;
+    failed: number;
+  };
 }
 
 // Directory entry information for listDirectory
@@ -156,20 +165,15 @@ export interface DirectoryEntry {
   isHidden?: boolean;
 }
 
-// Result of listDirectory operation
-export interface LSResult {
-  entries: DirectoryEntry[];
-  totalCount: number;
-  shownCount: number;
-  isTruncated: boolean;
-  llmContent?: string;
-}
-
 export interface ListDirectoryResponse extends BaseFsSDKResponse {
   path?: string;
   entries?: DirectoryEntry[];
   totalCount?: number;
-  shownCount?: number;
-  isTruncated?: boolean;
-  result?: string | LSResult;
+  hasMore?: boolean;
+  stats?: {
+    totalSize: number;
+    fileCount: number;
+    directoryCount: number;
+  };
 }
+
