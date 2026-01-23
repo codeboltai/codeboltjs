@@ -81,7 +81,7 @@ class GrepToolInvocation extends BaseToolInvocation<
             }
 
             // Format the search results
-            // GrepSearchResponse has results?: Array<{file, line, content, match}>
+            // GrepSearchResponse has results?: Array<{path, matches: {line, content...}, stats?}>
             const results = response.results || [];
 
             if (results.length === 0) {
@@ -91,24 +91,27 @@ class GrepToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            // Group results by file
-            const fileGroups = new Map<string, typeof results>();
+            // Results are already grouped by file in the new structure (Array of {path, matches})
+            // So we don't need to manually map.
+
+            let totalMatches = 0;
+            let output = '';
+
+            // Build output from structured results
             for (const result of results) {
-                const existing = fileGroups.get(result.file) || [];
-                existing.push(result);
-                fileGroups.set(result.file, existing);
-            }
+                const filePath = result.path;
+                const matches = result.matches || [];
+                totalMatches += matches.length;
 
-            const totalMatches = results.length;
-            let output = `Found ${totalMatches} match(es) in ${fileGroups.size} file(s) for pattern: "${this.params.pattern}"\n\n`;
-
-            for (const [file, matches] of fileGroups) {
-                output += `--- ${file} ---\n`;
+                output += `--- ${filePath} ---\n`;
                 for (const m of matches) {
                     output += `${m.line}: ${m.content}\n`;
                 }
                 output += '\n';
             }
+
+            // Prepend header
+            output = `Found ${totalMatches} match(es) in ${results.length} file(s) for pattern: "${this.params.pattern}"\n\n` + output;
 
             return {
                 llmContent: output,

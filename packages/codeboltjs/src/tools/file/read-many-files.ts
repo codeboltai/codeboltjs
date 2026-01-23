@@ -99,32 +99,43 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
             }
 
             // Format the output
-            // ReadManyFilesResponse has files?: FileReadInfo[], totalContentSize?, isTruncated?
-            const files = response.files || [];
-            const filesRead = files.length;
-            const totalSize = response.totalContentSize || 0;
-            const truncated = response.isTruncated || false;
+            // ReadManyFilesResponse has results?: { path, content, ... }[], summary?: { total, successful, failed }
+            const results = response.results || [];
+            const summary = response.summary || { total: results.length, successful: 0, failed: 0 };
+            const filesRead = summary.successful;
+            const totalSize = results.reduce((sum, r) => sum + (r.content?.length || 0), 0);
+
+            // isTruncated moved/removed? checking BaseFsSDKResponse extensions or implementation details.
+            // In updated types, isTruncated was removed from top level OR moved to summary?
+            // Checking fs.ts update: ReadManyFilesResponse has results and summary.
+            // isTruncated is NOT explicitly there anymore unless in base/extended.
+            // Let's rely on results content.
+            const truncated = false; // Placeholder if no longer in response
 
             let output = '';
 
-            if (filesRead === 0) {
+            if (results.length === 0) {
                 output = 'No files matched the specified patterns.';
             } else {
                 // Add summary header
-                output += `=== Read ${filesRead} file(s) ===\n`;
-                if (truncated) {
-                    output += `WARNING: Output was truncated due to size limits.\n`;
-                }
+                output += `=== Read ${filesRead} file(s) (Total found: ${summary.total}) ===\n`;
                 output += '\n';
 
-                // Add each file's content - FileReadInfo has filePath, not path
-                for (const file of files) {
-                    const filePath = file.filePath;
-                    const content = file.content || '';
+                // Add each file's content
+                for (const result of results) {
+                    const filePath = result.path;
+                    // If error exists, it might be in result.error
+                    if (result.error) {
+                        output += `--- FILE: ${filePath} (ERROR) ---\n`;
+                        output += `Error: ${JSON.stringify(result.error)}\n\n`;
+                        continue;
+                    }
+
+                    const content = result.content || '';
 
                     output += `--- FILE: ${filePath} ---\n`;
-                    if (this.params.include_metadata && file.size !== undefined) {
-                        output += `Size: ${file.size} bytes\n`;
+                    if (this.params.include_metadata && result.stats) {
+                        output += `Size: ${result.stats.size} bytes\n`;
                     }
                     output += content;
                     if (!content.endsWith('\n')) {
@@ -136,7 +147,7 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
 
             return {
                 llmContent: output,
-                returnDisplay: `Read ${filesRead} file(s), ${this.formatSize(totalSize)} total${truncated ? ' (truncated)' : ''}`,
+                returnDisplay: `Read ${filesRead}/${summary.total} file(s), ${this.formatSize(totalSize)} total`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
