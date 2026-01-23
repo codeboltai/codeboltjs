@@ -98,14 +98,16 @@ export interface SearchAvailableToolBoxesResponse extends BaseMCPSDKResponse {
 }
 
 export interface ListToolsFromToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: Array<{
-    toolbox: string;
+  data?: {
     tools: Array<{
-      name: string;
-      description?: string;
-      parameters?: Record<string, unknown>;
+      type: 'function';
+      function: {
+        name: string;
+        description: string;
+        parameters: Record<string, unknown>;
+      };
     }>;
-  }>;
+  };
   error?: string;
 }
 

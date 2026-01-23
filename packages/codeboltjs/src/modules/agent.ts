@@ -61,12 +61,12 @@ const codeboltAgent = {
      * Lists all available agents.
      * @returns {Promise<AgentsDetailResponse>} A promise that resolves with the list of agents.
      */
-    getAgentsDetail: (agentList = []): Promise<AgentsDetailResponse> => {
+    getAgentsDetail: (agentList?: string[]): Promise<AgentsDetailResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.AGENT_EVENT,
                 "action": AgentAction.AGENTS_DETAIL,
-                "agentList": agentList
+                "agentList": agentList || []
             },
             AgentResponseType.AGENTS_DETAIL_RESPONSE
         );

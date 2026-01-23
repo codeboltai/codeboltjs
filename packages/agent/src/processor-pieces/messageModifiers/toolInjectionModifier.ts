@@ -27,9 +27,9 @@ export class ToolInjectionModifier extends BaseMessageModifier {
 
     async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
-            const toolsResponse = await codebolt.mcp.listMcpFromServers(['codebolt']);
+            const toolsResponse:any = await codebolt.mcp.listMcpFromServers(['codebolt']);
 
-            let tools: any = toolsResponse?.data || [];
+            let tools: any = toolsResponse?.data.tools || toolsResponse?.data || [];
             let mentionedMCPs: any = originalRequest.mentionedMCPs || [];
 
             const { data: mentionedTools } = await codebolt.mcp.getTools(mentionedMCPs)

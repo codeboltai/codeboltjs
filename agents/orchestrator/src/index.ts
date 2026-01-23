@@ -171,6 +171,9 @@ async function messageProcessingLoop(
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
+
+
+      
     try {
         let sessionSystemPrompt;
         try {

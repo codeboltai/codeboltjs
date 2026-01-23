@@ -843,7 +843,9 @@ export class ToolHandler {
         toolName: event.toolName.startsWith("codebolt--") ? event.toolName.replace(/^codebolt--/, "") : event.toolName,
         params: event.params,
         result: result,
-        data: [true, result],
+        // Match app-side mcpService.cli.ts convention:
+        // data[0] === false -> success, data[0] === true -> error
+        data: [false, result],
         status: 'success',
         success: true,
         message: `Successfully executed tool: ${event.toolName}`
@@ -854,13 +856,14 @@ export class ToolHandler {
       this.connectionManager.sendToConnection(agent.id, response);
     } catch (error) {
       logger.error(`Error executing tool: ${error}`);
+      const message = error instanceof Error ? error.message : 'Failed to execute tool';
       const errorResponse: ExecuteToolResponse = {
         type: 'executeToolResponse',
         toolName: event.toolName,
         status: 'error',
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to execute tool',
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
+        error: message,
+        data: [true, message]
       };
       this.connectionManager.sendToConnection(agent.id, errorResponse);
     }
