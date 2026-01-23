@@ -148,6 +148,74 @@ export {
     type AgentDetailsParams,
 } from './orchestration';
 
+// Export state tools
+export { stateTools } from './state';
+export * from './state';
+
+// Export project tools
+export { projectTools } from './project';
+export * from './project';
+
+// Export LLM tools
+export { llmTools } from './llm';
+export * from './llm';
+
+// Export memory tools (includes basic memory, episodic memory, and persistent memory)
+export { memoryTools } from './memory';
+export * from './memory';
+
+// Export todo tools
+export { todoTools } from './todo';
+export * from './todo';
+
+// Export chat tools
+export { chatTools } from './chat';
+export * from './chat';
+
+// Export capability tools
+export { capabilityTools } from './capability';
+export * from './capability';
+
+// Export MCP tools
+export { mcpTools } from './mcp';
+export * from './mcp';
+
+// Export knowledge graph tools
+export { knowledgeTools } from './knowledge';
+export * from './knowledge';
+
+// Export planning tools (includes action plan and roadmap)
+export { planningTools } from './planning';
+export * from './planning';
+
+// Export job tools
+export { jobTools } from './job';
+export * from './job';
+
+// Export calendar tools
+export { calendarTools } from './calendar';
+export * from './calendar';
+
+// Export testing tools
+export { testingTools } from './testing';
+export * from './testing';
+
+// Export collaboration tools (includes deliberation, feedback, portfolio)
+export { collaborationTools } from './collaboration';
+export * from './collaboration';
+
+// Export review tools
+export { reviewTools } from './review';
+export * from './review';
+
+// Export admin tools (includes hook, codemap, eventlog, orchestrator)
+export { adminTools } from './admin';
+export * from './admin';
+
+// Export context tools
+export { contextTools } from './context';
+export * from './context';
+
 // Import all tool arrays
 import { fileTools } from './file';
 import { searchTools } from './search';
@@ -155,6 +223,23 @@ import { terminalTools } from './terminal';
 import { gitTools } from './git';
 import { browserTools } from './browser';
 import { orchestrationTools } from './orchestration';
+import { stateTools } from './state';
+import { projectTools } from './project';
+import { llmTools } from './llm';
+import { memoryTools } from './memory';
+import { todoTools } from './todo';
+import { chatTools } from './chat';
+import { capabilityTools } from './capability';
+import { mcpTools } from './mcp';
+import { knowledgeTools } from './knowledge';
+import { planningTools } from './planning';
+import { jobTools } from './job';
+import { calendarTools } from './calendar';
+import { testingTools } from './testing';
+import { collaborationTools } from './collaboration';
+import { reviewTools } from './review';
+import { adminTools } from './admin';
+import { contextTools } from './context';
 import { ToolRegistry } from './registry';
 
 /**
@@ -167,6 +252,23 @@ export const allTools = [
     ...gitTools,
     ...browserTools,
     ...orchestrationTools,
+    ...stateTools,
+    ...projectTools,
+    ...llmTools,
+    ...memoryTools,
+    ...todoTools,
+    ...chatTools,
+    ...capabilityTools,
+    ...mcpTools,
+    ...knowledgeTools,
+    ...planningTools,
+    ...jobTools,
+    ...calendarTools,
+    ...testingTools,
+    ...collaborationTools,
+    ...reviewTools,
+    ...adminTools,
+    ...contextTools,
 ];
 
 /**
@@ -231,6 +333,23 @@ const tools = {
     git: gitTools,
     browser: browserTools,
     orchestration: orchestrationTools,
+    state: stateTools,
+    project: projectTools,
+    llm: llmTools,
+    memory: memoryTools,
+    todo: todoTools,
+    chat: chatTools,
+    capability: capabilityTools,
+    mcp: mcpTools,
+    knowledge: knowledgeTools,
+    planning: planningTools,
+    job: jobTools,
+    calendar: calendarTools,
+    testing: testingTools,
+    collaboration: collaborationTools,
+    review: reviewTools,
+    admin: adminTools,
+    context: contextTools,
 };
 
 export default tools;
