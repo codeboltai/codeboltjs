@@ -1,6 +1,6 @@
 /**
- * Write File Tool - Creates or updates file content
- * Wraps the SDK's cbfs.createFile() and cbfs.updateFile() methods
+ * Write File Tool - Creates or overwrites file content
+ * Wraps the SDK's cbfs.createFile() method
  */
 
 import * as path from 'path';
@@ -27,11 +27,6 @@ export interface WriteFileToolParams {
      * The content to write to the file
      */
     content: string;
-
-    /**
-     * Whether to create the file if it doesn't exist (default: true)
-     */
-    create_if_missing?: boolean;
 }
 
 class WriteFileToolInvocation extends BaseToolInvocation<
@@ -53,33 +48,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
             const fileName = path.basename(filePath);
             const dirPath = path.dirname(filePath);
 
-            // Try to read the file first to check if it exists
-            let fileExists = false;
-            try {
-                const readResult = await cbfs.readFile(filePath);
-                fileExists = readResult.success === true;
-            } catch {
-                fileExists = false;
-            }
-
-            let response;
-            if (fileExists) {
-                // Update existing file
-                response = await cbfs.updateFile(fileName, filePath, content);
-            } else {
-                // Create new file
-                if (this.params.create_if_missing === false) {
-                    return {
-                        llmContent: `Error: File does not exist and create_if_missing is false: ${filePath}`,
-                        returnDisplay: `Error: File not found`,
-                        error: {
-                            message: `File does not exist: ${filePath}`,
-                            type: ToolErrorType.FILE_NOT_FOUND,
-                        },
-                    };
-                }
-                response = await cbfs.createFile(fileName, content, dirPath);
-            }
+            const response = await cbfs.createFile(fileName, content, dirPath);
 
             if (!response.success) {
                 const errorMsg = typeof response.error === 'string'
@@ -95,13 +64,12 @@ class WriteFileToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const action = fileExists ? 'Updated' : 'Created';
             const lineCount = content.split('\n').length;
             const charCount = content.length;
 
             return {
-                llmContent: `Successfully ${action.toLowerCase()} file: ${filePath}\nLines: ${lineCount}, Characters: ${charCount}`,
-                returnDisplay: `${action} ${shortenPath(filePath)} (${lineCount} lines, ${charCount} chars)`,
+                llmContent: `Successfully wrote file: ${filePath}\nLines: ${lineCount}, Characters: ${charCount}`,
+                returnDisplay: `Wrote ${shortenPath(filePath)} (${lineCount} lines, ${charCount} chars)`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -130,7 +98,7 @@ export class WriteFileTool extends BaseDeclarativeTool<
         super(
             WriteFileTool.Name,
             'WriteFile',
-            `Creates a new file or updates an existing file with the provided content. If the file already exists, it will be overwritten. If the file does not exist, it will be created (unless create_if_missing is false).`,
+            `Creates a new file or overwrites an existing file with the provided content.`,
             Kind.Edit,
             {
                 properties: {
@@ -142,11 +110,6 @@ export class WriteFileTool extends BaseDeclarativeTool<
                     content: {
                         description: 'The content to write to the file.',
                         type: 'string',
-                    },
-                    create_if_missing: {
-                        description:
-                            'Whether to create the file if it does not exist. Defaults to true.',
-                        type: 'boolean',
                     },
                 },
                 required: ['absolute_path', 'content'],
