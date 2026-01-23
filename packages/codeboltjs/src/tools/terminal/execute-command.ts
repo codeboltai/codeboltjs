@@ -62,6 +62,7 @@ class ExecuteCommandToolInvocation extends BaseToolInvocation<
                 this.params.command,
                 this.params.return_empty_on_success ?? false
             );
+            console.log("[Response from cbterminal.executeCommand]", response);
 
             // Check for errors in response
             if (response.type === 'commandError' || (response as any).error) {
@@ -108,9 +109,11 @@ class ExecuteCommandToolInvocation extends BaseToolInvocation<
         }
     }
 
-    private truncateOutput(output: string, maxLength: number = 200): string {
-        if (output.length <= maxLength) return output;
-        return output.substring(0, maxLength) + '...';
+    private truncateOutput(output: any, maxLength: number = 200): string {
+        // Ensure output is a string
+        const outputStr = typeof output === 'string' ? output : JSON.stringify(output);
+        if (outputStr.length <= maxLength) return outputStr;
+        return outputStr.substring(0, maxLength) + '...';
     }
 }
 
@@ -126,25 +129,23 @@ export class ExecuteCommandTool extends BaseDeclarativeTool<
     constructor() {
         super(
             ExecuteCommandTool.Name,
-            'ExecuteCommand',
-            `Executes a shell command in the terminal. Use this to run build commands, install dependencies, run tests, or any other shell operation. The command will be executed in the project's working directory.`,
+            'Execute Command',
+            'Execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user\'s task. You must tailor your command to the user\'s system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. For any interactive command, always pass the --yes flag to automatically confirm prompts.',
             Kind.Execute,
             {
-                properties: {
-                    command: {
-                        description:
-                            "The shell command to execute (e.g., 'npm install', 'python script.py', 'ls -la').",
-                        type: 'string',
-                    },
-                    return_empty_on_success: {
-                        description:
-                            'If true, returns empty string when command succeeds. Useful for commands where output is not needed.',
-                        type: 'boolean',
-                    },
-                },
-                required: ['command'],
                 type: 'object',
-            },
+                properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.Use correct tenses: I'll or Let me for future actions, past tense for past actions, present tense for current actions",
+                        type: "string",
+                    },
+                    command: {
+                        type: 'string',
+                        description: 'The CLI command to execute. This should be valid for the current operating system. Ensure the command is properly formatted and does not contain any harmful instructions.'
+                    }
+                },
+                required: ['command']
+            }
         );
     }
 
