@@ -121,7 +121,45 @@ export {
     type BrowserSearchParams,
 } from './browser';
 
-// Export orchestration tools (individual tools)
+// Export agent tools
+export {
+    AgentFindTool,
+    AgentStartTool,
+    AgentListTool,
+    AgentDetailsTool,
+    agentTools,
+    type AgentFindParams,
+    type AgentStartParams,
+    type AgentListParams,
+    type AgentDetailsParams,
+} from './agent';
+
+// Export thread tools
+export {
+    ThreadCreateTool,
+    ThreadCreateStartTool,
+    ThreadCreateBackgroundTool,
+    ThreadListTool,
+    ThreadGetTool,
+    ThreadStartTool,
+    ThreadUpdateTool,
+    ThreadDeleteTool,
+    ThreadGetMessagesTool,
+    ThreadUpdateStatusTool,
+    threadTools,
+    type ThreadCreateParams,
+    type ThreadCreateStartParams,
+    type ThreadCreateBackgroundParams,
+    type ThreadListParams,
+    type ThreadGetParams,
+    type ThreadStartParams,
+    type ThreadUpdateParams,
+    type ThreadDeleteParams,
+    type ThreadGetMessagesParams,
+    type ThreadUpdateStatusParams,
+} from './thread';
+
+// Export task tools
 export {
     TaskCreateTool,
     TaskUpdateTool,
@@ -130,11 +168,7 @@ export {
     TaskGetTool,
     TaskAssignTool,
     TaskExecuteTool,
-    AgentFindTool,
-    AgentStartTool,
-    AgentListTool,
-    AgentDetailsTool,
-    orchestrationTools,
+    taskTools,
     type TaskCreateParams,
     type TaskUpdateParams,
     type TaskDeleteParams,
@@ -142,11 +176,28 @@ export {
     type TaskGetParams,
     type TaskAssignParams,
     type TaskExecuteParams,
-    type AgentFindParams,
-    type AgentStartParams,
-    type AgentListParams,
-    type AgentDetailsParams,
-} from './orchestration';
+} from './task';
+
+// Export orchestrator tools
+export {
+    OrchestratorListTool,
+    OrchestratorGetTool,
+    OrchestratorGetSettingsTool,
+    OrchestratorCreateTool,
+    OrchestratorUpdateTool,
+    OrchestratorUpdateSettingsTool,
+    OrchestratorDeleteTool,
+    OrchestratorUpdateStatusTool,
+    orchestratorTools,
+    type OrchestratorListParams,
+    type OrchestratorGetParams,
+    type OrchestratorGetSettingsParams,
+    type OrchestratorCreateParams,
+    type OrchestratorUpdateParams,
+    type OrchestratorUpdateSettingsParams,
+    type OrchestratorDeleteParams,
+    type OrchestratorUpdateStatusParams,
+} from './orchestrator';
 
 // Export state tools
 export { stateTools } from './state';
@@ -222,7 +273,10 @@ import { searchTools } from './search';
 import { terminalTools } from './terminal';
 import { gitTools } from './git';
 import { browserTools } from './browser';
-import { orchestrationTools } from './orchestration';
+import { agentTools } from './agent';
+import { threadTools } from './thread';
+import { taskTools } from './task';
+import { orchestratorTools } from './orchestrator';
 import { stateTools } from './state';
 import { projectTools } from './project';
 import { llmTools } from './llm';
@@ -251,7 +305,10 @@ export const allTools = [
     ...terminalTools,
     ...gitTools,
     ...browserTools,
-    ...orchestrationTools,
+    ...agentTools,
+    ...threadTools,
+    ...taskTools,
+    ...orchestratorTools,
     ...stateTools,
     ...projectTools,
     ...llmTools,
@@ -332,7 +389,10 @@ const tools = {
     terminal: terminalTools,
     git: gitTools,
     browser: browserTools,
-    orchestration: orchestrationTools,
+    agent: agentTools,
+    thread: threadTools,
+    task: taskTools,
+    orchestrator: orchestratorTools,
     state: stateTools,
     project: projectTools,
     llm: llmTools,

@@ -1065,7 +1065,10 @@ export {
     terminalTools,
     gitTools,
     browserTools,
-    orchestrationTools,
+    agentTools,
+    threadTools,
+    taskTools,
+    orchestratorTools,
     // Individual tools
     ReadFileTool,
     WriteFileTool,
