@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import taskService from '../../modules/task';
+import cbchat from '../../modules/chat';
 
 export interface TaskExecuteParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The task ID to execute */
     task_id: string;
     /** The agent ID to execute the task with */
@@ -22,6 +25,9 @@ class TaskExecuteInvocation extends BaseToolInvocation<TaskExecuteParams, ToolRe
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await taskService.executeTaskWithAgent(this.params.task_id, this.params.agent_id);
 
             if (response && !response.success && response.success !== undefined) {
@@ -67,6 +73,10 @@ export class TaskExecuteTool extends BaseDeclarativeTool<TaskExecuteParams, Tool
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     task_id: {
                         description: 'The ID of the task to execute.',
                         type: 'string',

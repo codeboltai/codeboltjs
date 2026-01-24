@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import gitService from '../../modules/git';
+import cbchat from '../../modules/chat';
 
 export interface GitCloneParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The URL of the repository to clone */
     url: string;
     /** Optional path where to clone the repository */
@@ -22,6 +25,9 @@ class GitCloneInvocation extends BaseToolInvocation<GitCloneParams, ToolResult> 
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await gitService.clone(this.params.url, this.params.path);
 
             if (!response.success && response.success !== undefined) {
@@ -75,6 +81,10 @@ export class GitCloneTool extends BaseDeclarativeTool<GitCloneParams, ToolResult
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     url: {
                         description: 'The URL of the remote repository to clone.',
                         type: 'string',

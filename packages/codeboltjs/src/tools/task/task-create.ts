@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import taskService from '../../modules/task';
+import cbchat from '../../modules/chat';
 
 export interface TaskCreateParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** Task title/name */
     title: string;
     /** Task description */
@@ -24,6 +27,9 @@ class TaskCreateInvocation extends BaseToolInvocation<TaskCreateParams, ToolResu
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await taskService.createTask({
                 name: this.params.title,
                 description: this.params.description,
@@ -81,6 +87,10 @@ export class TaskCreateTool extends BaseDeclarativeTool<TaskCreateParams, ToolRe
             Kind.Other,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     title: {
                         description: 'The title/name of the task.',
                         type: 'string',

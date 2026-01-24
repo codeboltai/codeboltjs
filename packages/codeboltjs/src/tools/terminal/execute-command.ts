@@ -12,11 +12,17 @@ import type {
 import { ToolErrorType, Kind, ToolConfirmationOutcome } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbterminal from '../../modules/terminal';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the ExecuteCommand tool
  */
 export interface ExecuteCommandToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The shell command to execute
      */
@@ -57,6 +63,9 @@ class ExecuteCommandToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's terminal module
             const response = await cbterminal.executeCommand(
                 this.params.command,

@@ -10,11 +10,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import codebaseSearch from '../../modules/codebaseSearch';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the CodebaseSearch tool
  */
 export interface CodebaseSearchToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The search query - describe what you're looking for semantically
      */
@@ -36,6 +42,9 @@ class CodebaseSearchToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's codebaseSearch module
             const response = await codebaseSearch.search(
                 this.params.query,
@@ -114,6 +123,11 @@ export class CodebaseSearchTool extends BaseDeclarativeTool<
             Kind.Search,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     query: {
                         description:
                             "Natural language description of what you're looking for (e.g., 'function that handles user authentication', 'error handling for API requests').",

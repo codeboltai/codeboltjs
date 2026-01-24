@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import gitService from '../../modules/git';
+import cbchat from '../../modules/chat';
 
 export interface GitInitParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** Path where to initialize the Git repository */
     path: string;
 }
@@ -20,6 +23,9 @@ class GitInitInvocation extends BaseToolInvocation<GitInitParams, ToolResult> {
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await gitService.init(this.params.path);
 
             if (!response.success && response.success !== undefined) {
@@ -70,6 +76,10 @@ export class GitInitTool extends BaseDeclarativeTool<GitInitParams, ToolResult> 
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     path: {
                         description: 'The file system path where the Git repository should be initialized.',
                         type: 'string',

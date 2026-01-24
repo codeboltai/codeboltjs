@@ -14,11 +14,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the Edit tool
  */
 export interface EditToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The absolute path to the file to edit
      */
@@ -54,6 +60,9 @@ class EditToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const filePath = this.params.absolute_path;
             const oldString = this.params.old_string;
             const newString = this.params.new_string;
@@ -223,6 +232,11 @@ export class EditTool extends BaseDeclarativeTool<
             Kind.Edit,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     absolute_path: {
                         description:
                             "The absolute path to the file to edit (e.g., '/home/user/project/file.txt').",

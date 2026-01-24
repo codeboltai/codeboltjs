@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import gitService from '../../modules/git';
+import cbchat from '../../modules/chat';
 
 export interface GitLogsParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** Path to get logs for */
     path: string;
 }
@@ -20,6 +23,9 @@ class GitLogsInvocation extends BaseToolInvocation<GitLogsParams, ToolResult> {
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await gitService.logs(this.params.path);
 
             if (!response.success && response.success !== undefined) {
@@ -85,6 +91,10 @@ export class GitLogsTool extends BaseDeclarativeTool<GitLogsParams, ToolResult> 
             Kind.Read,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     path: {
                         description: 'The file system path to get logs for.',
                         type: 'string',

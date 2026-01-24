@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import taskService from '../../modules/task';
+import cbchat from '../../modules/chat';
 
 export interface TaskListParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     // No required parameters
 }
 
@@ -19,6 +22,9 @@ class TaskListInvocation extends BaseToolInvocation<TaskListParams, ToolResult> 
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await taskService.getTaskList({});
 
             if (response && !response.success && response.success !== undefined) {
@@ -72,7 +78,12 @@ export class TaskListTool extends BaseDeclarativeTool<TaskListParams, ToolResult
             'Retrieves a list of all tasks.',
             Kind.Read,
             {
-                properties: {},
+                properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
+                },
                 required: [],
                 type: 'object',
             },

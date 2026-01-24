@@ -12,11 +12,17 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import cbfs from '../../modules/fs';
+import cbchat from '../../modules/chat';
 
 /**
  * Parameters for the Grep tool
  */
 export interface GrepToolParams {
+    /**
+     * One sentence explanation of why this tool is being used
+     */
+    explanation?: string;
+
     /**
      * The path to search within (file or directory)
      */
@@ -57,6 +63,9 @@ class GrepToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             // Call the SDK's fs module
             const response = await cbfs.grepSearch(
                 this.params.path,
@@ -151,6 +160,11 @@ export class GrepTool extends BaseDeclarativeTool<
             Kind.Search,
             {
                 properties: {
+                    explanation: {
+                        description:
+                            "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     path: {
                         description:
                             "The absolute path to search within. Can be a file or directory.",

@@ -7,8 +7,11 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import codeboltAgent from '../../modules/agent';
+import cbchat from '../../modules/chat';
 
 export interface AgentStartParams {
+    /** One sentence explanation of why this tool is being used */
+    explanation?: string;
     /** The agent ID to start */
     agent_id: string;
     /** The task for the agent */
@@ -22,6 +25,9 @@ class AgentStartInvocation extends BaseToolInvocation<AgentStartParams, ToolResu
 
     async execute(): Promise<ToolResult> {
         try {
+            if (this.params.explanation) {
+                cbchat.sendMessage(this.params.explanation);
+            }
             const response = await codeboltAgent.startAgent(this.params.agent_id, this.params.task);
 
             if (response && response.success === false) {
@@ -75,6 +81,10 @@ export class AgentStartTool extends BaseDeclarativeTool<AgentStartParams, ToolRe
             Kind.Execute,
             {
                 properties: {
+                    explanation: {
+                        description: "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                        type: 'string',
+                    },
                     agent_id: {
                         description: 'The ID of the agent to start.',
                         type: 'string',
