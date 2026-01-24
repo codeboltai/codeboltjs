@@ -25,7 +25,9 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(npx jest:*)",
-      "Bash(/bin/bash -c \"cd /Users/utkarshshukla/Codebolt/codeboltjs/packages/codeboltjs && npm run build 2>&1 | head -150\")"
+      "Bash(/bin/bash -c \"cd /Users/utkarshshukla/Codebolt/codeboltjs/packages/codeboltjs && npm run build 2>&1 | head -150\")",
+      "Bash(done)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []
