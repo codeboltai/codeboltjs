@@ -1,25 +1,8 @@
 import codebolt from '@codebolt/codeboltjs';
 import { FlatUserMessage } from "@codebolt/types/sdk";
-
-// ================================
-// TYPE DEFINITIONS
-// ================================
-
-interface AgentContext {
-  swarmId: string;
-  swarmName: string;
-  agentId: string;
-  agentName: string;
-  capabilities: string[];
-  requirements: string;
-}
-
-interface SwarmConfig {
-  isJobSelfSplittingEnabled: boolean;
-  minimumJobSplitProposalRequired: number;
-  isJobSplitDeliberationRequired: boolean;
-  selectJobSplitDeliberationType: string;
-}
+import { AgentContext, SwarmConfig } from './types';
+import { pickJob } from './jobPicker';
+import { minimum } from 'zod/v4-mini';
 
 // ================================
 // MAIN AGENT ENTRY POINT
@@ -44,56 +27,35 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     requirements: additionalVariable.requirements || 'Build a web application',
   };
 
+  // Get Default Job Group
+  let defaultJobGroup = await codebolt.swarm.getDefaultJobGroup(ctx.swarmId);
+  if (!defaultJobGroup || !defaultJobGroup.data?.groupId) {
+    codebolt.chat.sendMessage(`⚠️ No default job group found for swarm ${ctx.swarmId}`);
+    return;
+  }
+  const groupId = defaultJobGroup.data.groupId;
+  codebolt.chat.sendMessage(`📂 Target Job Group: ${groupId}`);
+
   let running = true;
   while (running) {
-    // Use the find-next-job-for-agent action block to find and pick the next job
-    codebolt.chat.sendMessage(`🔍 Invoking find-next-job-for-agent action block...`);
-
-    const actionBlockResponse: any = await codebolt.actionBlock.start('find-next-job-for-agent', {
-      swarmId: ctx.swarmId,
-      swarmName: ctx.swarmName,
-      agentId: ctx.agentId,
-      agentName: ctx.agentName,
-      capabilities: ctx.capabilities,
-      requirements: ctx.requirements,
-      swarmConfig: SWARM_CONFIG
+    // Fetch open jobs sorted by importance
+    let pendingJobsResponse: any = await codebolt.job.listJobs({
+      groupId: groupId,
+      sortBy: 'importance',
+      status: ['open']
     });
 
-    codebolt.chat.sendMessage(`📋 Action block response: ${JSON.stringify(actionBlockResponse)}`);
+    const pendingJobs = pendingJobsResponse?.data?.jobs || [];
+    codebolt.chat.sendMessage(`📥 Found ${pendingJobs.length} open jobs`);
 
-    // Check if action block call itself failed
-    if (!actionBlockResponse?.success) {
-      codebolt.chat.sendMessage(`⚠️ Action block call failed: ${actionBlockResponse?.error}`);
+    if (pendingJobs.length === 0) {
+      codebolt.chat.sendMessage(`🛑 No open jobs available. Agent terminating.`);
       running = false;
       break;
     }
 
-    // Extract the actual result from the action block response
-    const findJobResult = actionBlockResponse.result;
-
-    codebolt.chat.sendMessage(`📋 Find job result: success=${findJobResult?.success}, action=${findJobResult?.action}`);
-
-    // Handle action block result
-    if (!findJobResult?.success) {
-      if (findJobResult?.action === 'terminate') {
-        codebolt.chat.sendMessage(`🛑 No open jobs available. Agent terminating.`);
-        running = false;
-        break;
-      }
-
-      if (findJobResult?.action === null) {
-        // Job was processed but is blocked, continue to next iteration
-        codebolt.chat.sendMessage(`⏳ Job processed but blocked. Continuing to next job...`);
-        continue;
-      }
-
-      codebolt.chat.sendMessage(`⚠️ Error finding job: ${findJobResult?.error}`);
-      running = false;
-      break;
-    }
-
-    const job = findJobResult.job;
-    const action = findJobResult.action;
+    // Pick a job using pheromone-based selection
+    const { job, action } = await pickJob(pendingJobs, ctx, SWARM_CONFIG);
 
     switch (action) {
       case 'implement':
@@ -143,7 +105,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         break;
 
       default:
-        codebolt.chat.sendMessage(`❓ Unknown action: ${action}. Agent terminating.`);
+        codebolt.chat.sendMessage(`❓ Unknown action. Agent terminating.`);
         running = false;
     }
   }

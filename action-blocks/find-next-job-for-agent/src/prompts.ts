@@ -1,8 +1,60 @@
-export const JOB_DEPENDENCY_ANALYSIS_PROMPT = `You are a project manager agent analyzing dependencies between tasks in a swarm.
+// ================================
+// JOB ANALYSIS PROMPTS
+// ================================
 
+export const JOB_SPLIT_ANALYSIS_PROMPT = `You are a project manager agent analyzing a job to decide if it needs to be split into smaller sub-tasks.
+
+## Job Details
+- Name: {{jobName}}
+- Description: {{jobDescription}}
+
+## Instructions
+Analyze the job description. ONLY propose splitting if the job is LARGE, COMPLEX, or explicitly asks for multiple distinct deliverables that cannot be handled by a single agent session.
+Do NOT split if the job can be reasonably completed in one go.
+
+## CRITICAL RULES FOR SUB-TASKS:
+1. **Direct Relationship**: Every sub-task MUST be directly related to the parent job and contribute to its completion.
+2. **Same Scope**: Sub-tasks must stay within the scope of the original job - do NOT add unrelated tasks or expand the scope.
+3. **Collective Completion**: When ALL sub-tasks are completed, the parent job should be considered done.
+4. **Naming Convention**: Each sub-task name should clearly reference the parent job context (e.g., for "EC2 Performance Benchmarking", use "EC2 Benchmarking - CPU Tests" not just "CPU Tests").
+5. **No Generic Tasks**: Avoid generic sub-tasks like "Documentation" or "Testing" unless specifically mentioned in the original job.
+
+You MUST respond with ONLY a valid JSON object. No markdown code blocks, no explanation, just pure JSON.
+
+## Response Format:
+{
+  "shouldSplit": boolean,
+  "reason": "Brief explanation of why splitting is or isn't needed",
+  "proposedJobs": [ // Optional, only if shouldSplit is true
+    { "name": "Sub-task 1 Name (related to parent job)", "description": "Implementation details directly contributing to the parent job" },
+    { "name": "Sub-task 2 Name (related to parent job)", "description": "Implementation details directly contributing to the parent job" }
+  ]
+}`;
+
+export const JOB_BLOCKER_ANALYSIS_PROMPT = `You are a technical lead agent analyzing a job to identify potential blockers or external dependencies.
+
+## Job Details
+- Name: {{jobName}}
+- Description: {{jobDescription}}
+
+## Instructions
+Analyze the job description for keywords indicating external dependencies (e.g., "waiting for", "blocked by", "depends on", "database", "API key", "provisioning").
+
+You MUST respond with ONLY a valid JSON object. No markdown code blocks, no explanation, just pure JSON.
+
+## Response Format:
+{
+  "hasBlocker": boolean,
+  "blockerReason": "Description of the blocker (if any)",
+  "blockerType": "external" // Default to 'external' if found
+}
+`;
+
+export const JOB_DEPENDENCY_ANALYSIS_PROMPT = `You are a project manager agent analyzing dependencies between tasks in a swarm.
 ## Current Task
 - ID: {{currentJobId}}
 - Name: {{currentJobName}}
+
 
 ## Other Open Tasks
 {{otherJobs}}
@@ -25,6 +77,6 @@ You MUST respond with ONLY a valid JSON object. No markdown code blocks, no expl
 ## Response Format:
 {
   "hasBlocker": boolean,
-  "blockingJobIds": ["<job_id_1>", "<job_id_2>"],
+  "blockingJobIds": ["<job_id_1>", "<job_id_2>"], // Array of strings. Empty if no blockers.
   "reason": "Brief explanation of the dependencies if any"
 }`;
