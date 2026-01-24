@@ -1,59 +1,183 @@
 ---
 name: codebolt-api-access
-description: Direct TypeScript SDK API reference for codebolt modules (fs, browser, terminal)
+description: Use when you need to call codebolt modules (fs, browser, terminal, git, chat, llm, thread, todo, memory, task, swarm, job, roadmap, autoTesting, mcp, actionPlan)
 ---
 
 # Codebolt API Access
 
 This skill provides reference documentation for direct TypeScript SDK calls to codebolt modules.
 
-## Key Distinction from codebolt-mcp-access
-
-| Aspect | codebolt-mcp-access | codebolt-api-access |
-|--------|---------------------|---------------------|
-| Access Pattern | `codebolt.tools.executeTool("codebolt.fs", "read_file", {...})` | `codebolt.fs.readFile(path)` |
-| Use Case | MCP tool execution | Direct TypeScript SDK calls |
-
 ## Quick Start
 
-### File System Operations
+### File System
 ```typescript
 import codebolt from '@anthropic/codeboltjs';
 
-// Read a file
+// Read and write files
 const content = await codebolt.fs.readFile('/path/to/file.ts');
-
-// Create a file
 await codebolt.fs.createFile('newfile.ts', 'const x = 1;', '/path/to/dir');
 
-// Search files with grep
+// Search files
 const results = await codebolt.fs.grepSearch('/src', 'function', '*.ts');
 ```
 
-### Browser Automation
+### Browser
 ```typescript
 import codebolt from '@anthropic/codeboltjs';
 
-// Navigate to a page
 await codebolt.browser.goToPage('https://example.com');
-
-// Take a screenshot
 const screenshot = await codebolt.browser.screenshot();
-
-// Get page content
 const markdown = await codebolt.browser.getMarkdown();
+await codebolt.browser.close();
 ```
 
-### Terminal Commands
+### Terminal
 ```typescript
 import codebolt from '@anthropic/codeboltjs';
 
-// Execute a command
 const result = await codebolt.terminal.executeCommand('npm install');
-
-// Execute with streaming output
 const stream = codebolt.terminal.executeCommandWithStream('npm run dev');
 stream.on('commandOutput', (data) => console.log(data));
+```
+
+### Git
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+await codebolt.git.init('/path/to/project');
+await codebolt.git.addAll();
+await codebolt.git.commit('Add new feature');
+await codebolt.git.push();
+const status = await codebolt.git.status();
+```
+
+### LLM
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const response = await codebolt.llm.inference({
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'What is TypeScript?' }
+  ],
+  tool_choice: 'auto',
+  max_tokens: 1000,
+  temperature: 0.7
+});
+console.log(response.completion.content);
+```
+
+### Thread
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const thread = await codebolt.thread.createThread({
+  name: 'Feature Discussion',
+  threadType: 'discussion',
+  agentId: 'agent-123'
+});
+
+await codebolt.thread.startThread(thread.thread.id, {
+  initialMessage: 'Lets discuss new feature requirements.'
+});
+
+const messages = await codebolt.thread.getThreadMessages({
+  threadId: thread.thread.id,
+  limit: 50
+});
+```
+
+### Swarm
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const swarm = await codebolt.swarm.createSwarm({
+  name: 'Processing Swarm',
+  allowExternalAgents: false,
+  maxAgents: 10
+});
+
+const agent = await codebolt.swarm.registerAgent(swarm.data.swarm.id, {
+  name: 'Agent Alpha',
+  agentType: 'internal'
+});
+
+const team = await codebolt.swarm.createTeam(swarm.data.swarm.id, {
+  name: 'Processing Team',
+  maxMembers: 5
+});
+
+const role = await codebolt.swarm.createRole(swarm.data.swarm.id, {
+  name: 'Data Processor',
+  permissions: ['task:execute', 'data:read'],
+  maxAssignees: 5
+});
+```
+
+### Job
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const group = await codebolt.job.createJobGroup({
+  name: 'Data Processing Jobs'
+});
+
+const job = await codebolt.job.createJob(group.data.groupId, {
+  title: 'Process dataset',
+  priority: 'high',
+  estimatedHours: 2
+});
+
+await codebolt.job.addDependency(job.data.job.id, otherJobId, 'finish_to_start');
+await codebolt.job.lockJob(job.data.job.id, 'agent-001', 'Worker Agent');
+await codebolt.job.unlockJob(job.data.job.id, 'agent-001');
+```
+
+### MCP Tools
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const enabled = await codebolt.mcp.getEnabledMCPServers();
+const tools = await codebolt.mcp.listMcpFromServers(['filesystem', 'browser']);
+
+const result = await codebolt.mcp.executeTool(
+  'filesystem',
+  'read_file',
+  { path: '/path/to/file.ts' }
+);
+```
+
+### Auto Testing
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+const suite = await codebolt.autoTesting.createSuite({
+  name: 'Authentication Tests'
+});
+
+const testCase = await codebolt.autoTesting.addCaseToSuite(suite.data.suite.id, {
+  name: 'Valid login',
+  steps: ['Navigate', 'Enter credentials', 'Click login'],
+  expectedResult: 'Redirected to dashboard'
+});
+
+const run = await codebolt.autoTesting.createRun({
+  suiteId: suite.data.suite.id,
+  name: 'Test Run 001'
+});
+```
+
+### Memory
+```typescript
+import codebolt from '@anthropic/codeboltjs';
+
+// Store JSON data
+await codebolt.memory.json.save({ theme: 'dark' }, { type: 'config' });
+const saved = await codebolt.memory.json.list({ type: 'config' });
+
+// Store markdown notes
+await codebolt.memory.markdown.save('# Notes', { topic: 'meetings' });
+const notes = await codebolt.memory.markdown.list({ tags: ['meetings'] });
 ```
 
 ## Module Reference
@@ -63,82 +187,61 @@ stream.on('commandOutput', (data) => console.log(data));
 | `codebolt.fs` | File system operations (read, write, search, diff) | [fs.md](references/fs.md) |
 | `codebolt.browser` | Browser automation (navigation, screenshots, DOM) | [browser.md](references/browser.md) |
 | `codebolt.terminal` | Command execution (sync, async, streaming) | [terminal.md](references/terminal.md) |
+| `codebolt.git` | Git operations (init, clone, commit, push, pull) | [git.md](references/git.md) |
+| `codebolt.chat` | Chat & WebSocket communication (messages, process lifecycle, notifications) | [chat.md](references/chat.md) |
+| `codebolt.project` | Project management (settings, path, repo map, execution) | [project.md](references/project.md) |
+| `codebolt.llm` | LLM inference with tools and model configuration | [llm.md](references/llm.md) |
+| `codebolt.agent` | Agent discovery and execution (find, start, list agents) | [agent.md](references/agent.md) |
+| `codebolt.thread` | Thread management (create, start, update, delete, messages) | [thread.md](references/thread.md) |
+| `codebolt.todo` | Todo list management (add, update, delete, export, import) | [todo.md](references/todo.md) |
+| `codebolt.memory` | Persistent memory storage (JSON, Markdown, Todo formats) | [memory.md](references/memory.md) |
+| `codebolt.task` | Task management (create, update, delete, assign, execute) | [task.md](references/task.md) |
+| `codebolt.codeutils` | Code analysis, matching, and markdown generation | [codeutils.md](references/codeutils.md) |
+| `codebolt.search` | Web search operations | [search.md](references/search.md) |
+| `codebolt.job` | Job management with pheromones, bidding, locks, blockers | [job.md](references/job.md) |
+| `codebolt.swarm` | Swarm orchestration with teams, roles, vacancies | [swarm.md](references/swarm.md) |
+| `codebolt.orchestrator` | Orchestrator management and control | [orchestrator.md](references/orchestrator.md) |
+| `codebolt.requirementPlan` | Requirement plan document management (sections, review) | [requirementPlan.md](references/requirementPlan.md) |
+| `codebolt.actionPlan` | Action plan workflow management (tasks, groups, execution) | [actionPlan.md](references/actionPlan.md) |
+| `codebolt.actionBlock` | Action block management and execution | [actionBlock.md](references/actionBlock.md) |
+| `codebolt.codebaseSearch` | Semantic code search and MCP tool search | [codebaseSearch.md](references/codebaseSearch.md) |
+| `codebolt.mcp` | MCP server and tool management (configure, list, execute) | [mcp.md](references/mcp.md) |
+| `codebolt.autoTesting` | Automated testing (suites, cases, runs) | [autoTesting.md](references/autoTesting.md) |
+| `codebolt.hook` | Hook management (event triggers, actions, conditions) | [hook.md](references/hook.md) |
+| `codebolt.crawler` | Web crawler automation (start, navigate, scroll, click, screenshot) | [crawler.md](references/crawler.md) |
+| `codebolt.vectordb` | Vector database operations (store, retrieve, query vectors) | [vectordb.md](references/vectordb.md) |
+| `codebolt.history` | Chat history summarization (full history, partial history) | [history.md](references/history.md) |
+| `codebolt.rag` | RAG system (placeholder) | [rag.md](references/rag.md) |
+| `codebolt.roadmap` | Roadmap management (phases, features, ideas) | [roadmap.md](references/roadmap.md) |
+| `codebolt.reviewMergeRequest` | Review and merge request management (create, review, merge, track) | [reviewMergeRequest.md](references/reviewMergeRequest.md) |
+| `codebolt.knowledge` | Knowledge base (placeholder) | [knowledge.md](references/knowledge.md) |
+| `codebolt.dbmemory` | In-memory key-value database operations | [dbmemory.md](references/dbmemory.md) |
 
 ## Common Patterns
 
-### Reading and Modifying Files
+### File Operations
 ```typescript
-// Read file content
-const { content } = await codebolt.fs.readFile('/path/to/file.ts');
-
-// Update with new content
+// Read, write, and search files
+const content = await codebolt.fs.readFile('/path/to/file.ts');
 await codebolt.fs.updateFile('file.ts', '/path/to', newContent);
-
-// Or use writeToFile for relative paths
-await codebolt.fs.writeToFile('src/file.ts', newContent);
+const results = await codebolt.fs.grepSearch('/src', 'function', '*.ts');
 ```
 
-### Browser Scraping Workflow
+### Browser Automation
 ```typescript
-// Open and navigate
-await codebolt.browser.newPage();
+// Navigate, capture content, screenshot
 await codebolt.browser.goToPage('https://example.com');
-
-// Get content in different formats
-const html = await codebolt.browser.getHTML();
 const markdown = await codebolt.browser.getMarkdown();
-const text = await codebolt.browser.extractText();
-
-// Take screenshot
-const screenshot = await codebolt.browser.screenshot({ fullPage: true });
-
-// Clean up
-await codebolt.browser.close();
+await codebolt.browser.screenshot({ fullPage: true });
 ```
 
-### Multi-Instance Browser Management
+### Command Streaming
 ```typescript
-// Open multiple browser instances
-const { instanceId: browser1 } = await codebolt.browser.openNewBrowserInstance();
-const { instanceId: browser2 } = await codebolt.browser.openNewBrowserInstance();
-
-// Execute on specific instance
-await codebolt.browser.goToPage('https://site1.com', { instanceId: browser1 });
-await codebolt.browser.goToPage('https://site2.com', { instanceId: browser2 });
-
-// List all instances
-const instances = await codebolt.browser.listBrowserInstances();
-
-// Close specific instance
-await codebolt.browser.closeBrowserInstance(browser1);
-```
-
-### Long-Running Command Execution
-```typescript
-// Run until error (useful for dev servers)
-const error = await codebolt.terminal.executeCommandRunUntilError('npm run dev');
-
-// Run until manually interrupted
-const result = await codebolt.terminal.executeCommandRunUntilInterrupt('npm run watch');
-
-// Send interrupt signal
-await codebolt.terminal.sendManualInterrupt();
-```
-
-### Streaming Command Output
-```typescript
+// Stream command output
 const stream = codebolt.terminal.executeCommandWithStream('npm test');
-
-stream.on('commandOutput', (data) => {
-    console.log('Output:', data);
-});
-
-stream.on('commandError', (data) => {
-    console.error('Error:', data);
-});
-
+stream.on('commandOutput', (data) => console.log('Output:', data));
 stream.on('commandFinish', (data) => {
-    console.log('Finished:', data);
-    stream.cleanup?.(); // Clean up listeners
+  console.log('Finished:', data);
+  stream.cleanup?.();
 });
 ```
