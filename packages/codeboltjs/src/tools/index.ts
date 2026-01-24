@@ -267,6 +267,26 @@ export * from './admin';
 export { contextTools } from './context';
 export * from './context';
 
+// Export tokenizer tools
+export { tokenizerTools } from './tokenizer';
+export * from './tokenizer';
+
+// Export vectordb tools
+export { vectordbTools } from './vectordb';
+export * from './vectordb';
+
+// Export debug tools
+export { debugTools } from './debug';
+export * from './debug';
+
+// Export codeutils tools
+export { codeutilsTools } from './codeutils';
+export * from './codeutils';
+
+// Export history tools
+export { historyTools } from './history';
+export * from './history';
+
 // Import all tool arrays
 import { fileTools } from './file';
 import { searchTools } from './search';
@@ -294,6 +314,11 @@ import { collaborationTools } from './collaboration';
 import { reviewTools } from './review';
 import { adminTools } from './admin';
 import { contextTools } from './context';
+import { tokenizerTools } from './tokenizer';
+import { vectordbTools } from './vectordb';
+import { debugTools } from './debug';
+import { codeutilsTools } from './codeutils';
+import { historyTools } from './history';
 import { ToolRegistry } from './registry';
 
 /**
@@ -326,6 +351,11 @@ export const allTools = [
     ...reviewTools,
     ...adminTools,
     ...contextTools,
+    ...tokenizerTools,
+    ...vectordbTools,
+    ...debugTools,
+    ...codeutilsTools,
+    ...historyTools,
 ];
 
 /**
@@ -410,6 +440,11 @@ const tools = {
     review: reviewTools,
     admin: adminTools,
     context: contextTools,
+    tokenizer: tokenizerTools,
+    vectordb: vectordbTools,
+    debug: debugTools,
+    codeutils: codeutilsTools,
+    history: historyTools,
 };
 
 export default tools;
