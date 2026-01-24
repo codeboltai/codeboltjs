@@ -1,6 +1,6 @@
 {
-  "name": "@codebolt/test-action-block",
-  "version": "1.0.11",
+  "name": "swarm",
+  "version": "1.0.2",
   "description": "TestAgent",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
