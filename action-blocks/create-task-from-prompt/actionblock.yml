@@ -1,0 +1,66 @@
+# ActionBlock Configuration File
+# This ActionBlock handles team formation for swarm agents
+
+name: create-team-for-swarm
+
+description: Handles team formation for swarm agents - creates structure deliberations, assigns roles, finds/proposes teams, and manages swarm mail threads
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - swarm
+    - team-formation
+    - deliberation
+    - agent
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+
+  inputs:
+    - name: swarmId
+      type: string
+      required: true
+      description: The ID of the swarm to join
+
+    - name: swarmName
+      type: string
+      required: false
+      description: The name of the swarm (defaults to 'Swarm')
+
+    - name: agentId
+      type: string
+      required: false
+      description: The ID of the agent (falls back to parentAgentInstanceId from metadata)
+
+    - name: agentName
+      type: string
+      required: false
+      description: The name of the agent (falls back to Agent:{parentAgentInstanceId})
+
+    - name: capabilities
+      type: array
+      required: false
+      description: List of agent capabilities (defaults to ['coding'])
+
+    - name: requirements
+      type: string
+      required: false
+      description: Project requirements for the swarm (defaults to 'Build a web application')
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether team formation completed successfully
+
+    - name: teamId
+      type: string
+      description: The ID of the team the agent joined or created
+
+    - name: roleId
+      type: string
+      description: The ID of the role assigned to the agent

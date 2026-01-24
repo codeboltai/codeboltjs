@@ -412,8 +412,14 @@ class Codebolt {
                 if (response.type === "actionBlockInvocation") {
                     console.log("ActionBlock invocation received", response);
                     try {
+                        // Merge params into threadContext so action blocks can access them
+                        // params contains the custom parameters passed via actionBlock.start()
+                        const threadContextWithParams = {
+                            ...(response.threadContext || {}),
+                            params: response.params || {}
+                        };
                         const result = await handler(
-                            response.threadContext || {},
+                            threadContextWithParams,
                             {
                                 sideExecutionId: response.sideExecutionId,
                                 threadId: response.threadId,
