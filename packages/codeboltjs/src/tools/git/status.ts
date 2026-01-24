@@ -43,7 +43,9 @@ class GitStatusInvocation extends BaseToolInvocation<GitStatusParams, ToolResult
 
             let output = 'Git status retrieved';
             const resp = response as any;
-            if (resp.status) {
+            if (resp.data) {
+                output += '\n\n' + this.formatStatus(resp.data);
+            } else if (resp.status && typeof resp.status === 'object') {
                 output += '\n\n' + this.formatStatus(resp.status);
             } else if (resp.result) {
                 output += '\n\n' + (typeof resp.result === 'string' ? resp.result : JSON.stringify(resp.result, null, 2));

@@ -175,16 +175,13 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // await codebolt.terminal.executeCommand(`mkdir -p ${gitDir} && cd ${gitDir} && git init && git config user.email "test@test.com" && git config user.name "Test"`);
         // await codebolt.fs.writeToFile(`${gitDir}/README.md`, "# Test Repo");
 
-        // // 14. git_action status (MCP) vs status (Direct API)
-        // codebolt.chat.sendMessage("--- git status ---");
-        // const mcpGitStatusResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "status",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (status): ${JSON.stringify(mcpGitStatusResult, null, 2)}`);
+        // // 14. git_status (MCP) vs status (Direct API )
+        codebolt.chat.sendMessage("--- git status ---");
+        const mcpGitStatusResult = await codebolt.mcp.executeTool("codebolt", "git_status", {});
+        codebolt.chat.sendMessage(`MCP git_status: ${JSON.stringify(mcpGitStatusResult, null, 2)}`);
 
-        const apiGitStatusResult = await codebolt.git.status();
-        codebolt.chat.sendMessage(`API git.status: ${JSON.stringify(apiGitStatusResult, null, 2)}`);
+        // const apiGitStatusResult = await codebolt.git.status();
+        // codebolt.chat.sendMessage(`API git.status: ${JSON.stringify(apiGitStatusResult, null, 2)}`);
 
         // // 15. git_action add (MCP) vs addAll (Direct API)
         // codebolt.chat.sendMessage("--- git add ---");

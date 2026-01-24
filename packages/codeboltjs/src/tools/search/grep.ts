@@ -100,18 +100,21 @@ class GrepToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            // Results are already grouped by file in the new structure (Array of {path, matches})
-            // So we don't need to manually map.
+            // Results are flat: Array<{ file, line, content, match }>
+            // Group by file for better output formatting
+            const groupedByFile = new Map<string, Array<{ line: number; content: string; match: string }>>();
 
-            let totalMatches = 0;
+            for (const result of results) {
+                const existing = groupedByFile.get(result.file) || [];
+                existing.push({ line: result.line, content: result.content, match: result.match });
+                groupedByFile.set(result.file, existing);
+            }
+
+            const totalMatches = results.length;
             let output = '';
 
-            // Build output from structured results
-            for (const result of results) {
-                const filePath = result.path;
-                const matches = result.matches || [];
-                totalMatches += matches.length;
-
+            // Build output from grouped results
+            for (const [filePath, matches] of groupedByFile) {
                 output += `--- ${filePath} ---\n`;
                 for (const m of matches) {
                     output += `${m.line}: ${m.content}\n`;
@@ -120,11 +123,11 @@ class GrepToolInvocation extends BaseToolInvocation<
             }
 
             // Prepend header
-            output = `Found ${totalMatches} match(es) in ${results.length} file(s) for pattern: "${this.params.pattern}"\n\n` + output;
+            output = `Found ${totalMatches} match(es) in ${groupedByFile.size} file(s) for pattern: "${this.params.pattern}"\n\n` + output;
 
             return {
                 llmContent: output,
-                returnDisplay: `Found ${totalMatches} match(es) in ${results.length} file(s)`,
+                returnDisplay: `Found ${totalMatches} match(es) in ${groupedByFile.size} file(s)`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
