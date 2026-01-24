@@ -1,12 +1,16 @@
 /**
- * Utility exports for tools
+ * Utils Tools
+ * 
+ * Utility tools for CodeBolt operations.
  */
 
-export { SchemaValidator } from './schema-validator';
-export {
-    shortenPath,
-    makeRelative,
-    ensureAbsolute,
-    normalizePath,
-    getExtension
-} from './paths';
+export { UtilsEditFileAndApplyDiffTool } from './utils-edit-file-and-apply-diff';
+
+import { UtilsEditFileAndApplyDiffTool } from './utils-edit-file-and-apply-diff';
+
+/**
+ * Array of all utils tools
+ */
+export const utilsTools = [
+    new UtilsEditFileAndApplyDiffTool(),
+];

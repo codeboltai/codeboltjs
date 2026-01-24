@@ -41,6 +41,51 @@ export {
     type ReadManyFilesToolParams,
 } from './file';
 
+// Export actionBlock tools
+export {
+    actionBlockTools,
+} from './actionBlock';
+
+// Export actionPlan tools
+export {
+    actionPlanTools,
+} from './actionPlan';
+
+// Export kvStore tools
+export {
+    kvStoreTools,
+} from './kvStore';
+
+// Export roadmap tools
+export {
+    roadmapTools,
+} from './roadmap';
+
+// Export reviewMergeRequest tools
+export {
+    reviewMergeRequestTools,
+} from './reviewMergeRequest';
+
+// Export memoryIngestion tools
+export {
+    memoryIngestionTools,
+} from './memoryIngestion';
+
+// Export rag tools
+export {
+    ragTools,
+} from './rag';
+
+// Export web search tools
+export {
+    webSearchTools,
+} from './search/index-web';
+
+// Export dbmemory tools
+export {
+    dbmemoryTools,
+} from './dbmemory';
+
 // Export search tools
 export {
     GlobTool,
@@ -287,6 +332,90 @@ export * from './codeutils';
 export { historyTools } from './history';
 export * from './history';
 
+// Export agentDeliberation tools
+export { agentDeliberationTools } from './agentDeliberation';
+export * from './agentDeliberation';
+
+// Export agentPortfolio tools
+export { agentPortfolioTools } from './agentPortfolio';
+export * from './agentPortfolio';
+
+// Export codebaseSearch tools
+export { codebaseSearchTools } from './codebaseSearch';
+export * from './codebaseSearch';
+
+// Export codemap tools
+export { codemapTools } from './codemap';
+export * from './codemap';
+
+// Export codeboltEvent tools
+export { codeboltEventTools } from './codeboltEvent';
+export * from './codeboltEvent';
+
+// Export contextAssembly tools
+export { contextAssemblyTools } from './contextAssembly';
+export * from './contextAssembly';
+
+// Export contextRuleEngine tools
+export { contextRuleEngineTools } from './contextRuleEngine';
+export * from './contextRuleEngine';
+
+// Export groupFeedback tools
+export { groupFeedbackTools } from './groupFeedback';
+export * from './groupFeedback';
+
+// Export autoTesting tools
+export { autoTestingTools } from './autoTesting';
+export * from './autoTesting';
+
+// Export episodicMemory tools
+export { episodicMemoryTools } from './episodicMemory';
+export * from './episodicMemory';
+
+// Export eventLog tools
+export { eventLogTools } from './eventLog';
+export * from './eventLog';
+
+// Export fs tools
+export { fsTools } from './fs';
+export * from './fs';
+
+// Export hook tools
+export { hookTools } from './hook';
+export * from './hook';
+
+// Export knowledgeGraph tools
+export { knowledgeGraphTools } from './knowledgeGraph';
+export * from './knowledgeGraph';
+
+// Export outputparsers tools
+export { outputParsersTools } from './outputparsers';
+export * from './outputparsers';
+
+// Export persistentMemory tools
+export { persistentMemoryTools } from './persistentMemory';
+export * from './persistentMemory';
+
+// Export projectStructureUpdateRequest tools
+export { projectStructureUpdateRequestTools } from './projectStructureUpdateRequest';
+export * from './projectStructureUpdateRequest';
+
+// Export requirementPlan tools
+export { requirementPlanTools } from './requirementPlan';
+export * from './requirementPlan';
+
+// Export userMessageManager tools
+export { userMessageManagerTools } from './userMessageManager';
+export * from './userMessageManager';
+
+// Export userMessageUtilities tools
+export { userMessageUtilitiesTools } from './userMessageUtilities';
+export * from './userMessageUtilities';
+
+// Export utils tools
+export { utilsTools } from './utils';
+export * from './utils';
+
 // Import all tool arrays
 import { fileTools } from './file';
 import { searchTools } from './search';
@@ -320,6 +449,36 @@ import { debugTools } from './debug';
 import { codeutilsTools } from './codeutils';
 import { historyTools } from './history';
 import { ToolRegistry } from './registry';
+import { actionBlockTools } from './actionBlock';
+import { actionPlanTools } from './actionPlan';
+import { kvStoreTools } from './kvStore';
+import { roadmapTools } from './roadmap';
+import { reviewMergeRequestTools } from './reviewMergeRequest';
+import { memoryIngestionTools } from './memoryIngestion';
+import { ragTools } from './rag';
+import { webSearchTools } from './search/index-web';
+import { dbmemoryTools } from './dbmemory';
+import { agentDeliberationTools } from './agentDeliberation';
+import { agentPortfolioTools } from './agentPortfolio';
+import { codebaseSearchTools } from './codebaseSearch';
+import { codemapTools } from './codemap';
+import { codeboltEventTools } from './codeboltEvent';
+import { contextAssemblyTools } from './contextAssembly';
+import { contextRuleEngineTools } from './contextRuleEngine';
+import { groupFeedbackTools } from './groupFeedback';
+import { autoTestingTools } from './autoTesting';
+import { episodicMemoryTools } from './episodicMemory';
+import { eventLogTools } from './eventLog';
+import { fsTools } from './fs';
+import { hookTools } from './hook';
+import { knowledgeGraphTools } from './knowledgeGraph';
+import { outputParsersTools } from './outputparsers';
+import { persistentMemoryTools } from './persistentMemory';
+import { projectStructureUpdateRequestTools } from './projectStructureUpdateRequest';
+import { requirementPlanTools } from './requirementPlan';
+import { userMessageManagerTools } from './userMessageManager';
+import { userMessageUtilitiesTools } from './userMessageUtilities';
+import { utilsTools } from './utils';
 
 /**
  * All available tools combined
@@ -356,6 +515,36 @@ export const allTools = [
     ...debugTools,
     ...codeutilsTools,
     ...historyTools,
+    ...actionBlockTools,
+    ...actionPlanTools,
+    ...kvStoreTools,
+    ...roadmapTools,
+    ...reviewMergeRequestTools,
+    ...memoryIngestionTools,
+    ...ragTools,
+    ...webSearchTools,
+    ...dbmemoryTools,
+    ...agentDeliberationTools,
+    ...agentPortfolioTools,
+    ...codebaseSearchTools,
+    ...codemapTools,
+    ...codeboltEventTools,
+    ...contextAssemblyTools,
+    ...contextRuleEngineTools,
+    ...groupFeedbackTools,
+    ...autoTestingTools,
+    ...episodicMemoryTools,
+    ...eventLogTools,
+    ...fsTools,
+    ...hookTools,
+    ...knowledgeGraphTools,
+    ...outputParsersTools,
+    ...persistentMemoryTools,
+    ...projectStructureUpdateRequestTools,
+    ...requirementPlanTools,
+    ...userMessageManagerTools,
+    ...userMessageUtilitiesTools,
+    ...utilsTools,
 ];
 
 /**
@@ -445,6 +634,31 @@ const tools = {
     debug: debugTools,
     codeutils: codeutilsTools,
     history: historyTools,
+    actionBlock: actionBlockTools,
+    rag: ragTools,
+    webSearch: webSearchTools,
+    dbmemory: dbmemoryTools,
+    agentDeliberation: agentDeliberationTools,
+    agentPortfolio: agentPortfolioTools,
+    codebaseSearch: codebaseSearchTools,
+    codemap: codemapTools,
+    codeboltEvent: codeboltEventTools,
+    contextAssembly: contextAssemblyTools,
+    contextRuleEngine: contextRuleEngineTools,
+    groupFeedback: groupFeedbackTools,
+    autoTesting: autoTestingTools,
+    episodicMemory: episodicMemoryTools,
+    eventLog: eventLogTools,
+    fs: fsTools,
+    hook: hookTools,
+    knowledgeGraph: knowledgeGraphTools,
+    outputParsers: outputParsersTools,
+    persistentMemory: persistentMemoryTools,
+    projectStructureUpdateRequest: projectStructureUpdateRequestTools,
+    requirementPlan: requirementPlanTools,
+    userMessageManager: userMessageManagerTools,
+    userMessageUtilities: userMessageUtilitiesTools,
+    utils: utilsTools,
 };
 
 export default tools;
