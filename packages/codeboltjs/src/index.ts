@@ -1031,6 +1031,39 @@ export type {
 export { default as agentPortfolio } from './modules/agentPortfolio';
 
 // ================================
+// Agent Event Queue Types
+// ================================
+export type {
+    AgentEventMessage,
+    AddEventInput,
+    SendAgentMessageInput,
+    AckEventInput,
+    GetPendingEventsInput,
+    AgentEventQueueResponse,
+    AddEventResponseData,
+    GetPendingEventsResponseData,
+    QueueStatsResponseData,
+    QueueEventHandler,
+    AgentMessagePayload,
+    CalendarUpdatePayload,
+    SystemNotificationPayload,
+    TaskUpdatePayload,
+    CustomEventPayload,
+    AgentEventPayload,
+    PullEventsInput,
+    PullEventsResponseData
+} from './types/agentEventQueue';
+
+export {
+    AgentEventType,
+    AgentEventStatus,
+    AgentEventPriority
+} from './types/agentEventQueue';
+
+// Export agentEventQueue module
+export { default as agentEventQueue } from './modules/agentEventQueue';
+
+// ================================
 // Tools Module - LLM-ready tool definitions
 // ================================
 

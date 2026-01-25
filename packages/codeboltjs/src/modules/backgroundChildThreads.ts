@@ -1,11 +1,9 @@
-// codeboltEvent.ts
+// backgroundChildThreads.ts
 import cbws from '../core/websocket';
-import { randomUUID } from 'crypto';
 
 // Event state maps - Internal use only
 const runningBackgroundAgents = new Map<string, any>();
 const completedBackgroundAgents = new Map<string, any>();
-const agentEventMap = new Map<string, any>();
 const groupedAgentCompletionMap = new Map<string, any>();
 const backgroundAgentGroups = new Map<string, Set<string>>();
 
@@ -31,13 +29,6 @@ const handleBackgroundAgentCompletion = (message: any) => {
     cleanupAgentGroup(message.threadId);
 };
 
-// Subscribe to message types
-const agentEventSubscription = cbws.messageManager.subscribe('agentEvent');
-agentEventSubscription.on('message', (message: any) => {
-    const eventId = randomUUID();
-    agentEventMap.set(eventId, message);
-});
-
 // Subscribe to background agent completion - primary message type
 const backgroundAgentSubscription = cbws.messageManager.subscribe('startThreadResponse');
 backgroundAgentSubscription.on('message', handleBackgroundAgentCompletion);
@@ -48,7 +39,7 @@ threadCompletedSubscription.on('message', (message: any) => {
     // Only handle if this thread was a background agent
     if (runningBackgroundAgents.has(message.threadId)) {
         handleBackgroundAgentCompletion(message);
-        // Also emit on the backgroundAgentSubscription for waitForAnyExternalEvent
+        // Also emit on the backgroundAgentSubscription for waiters
         backgroundAgentSubscription.emit('message', message);
     }
 });
@@ -59,10 +50,10 @@ groupedAgentSubscription.on('message', (message: any) => {
 });
 
 /**
- * Codebolt Event module for handling external events.
- * This module provides APIs for waiting on and checking for various event types.
+ * Background Child Threads module for tracking and managing background agent threads.
+ * This module provides APIs for tracking running background agents and their completion.
  */
-const codeboltEvent = {
+const backgroundChildThreads = {
 
     /**
      * Adds a running background agent to tracking.
@@ -106,12 +97,12 @@ const codeboltEvent = {
      * @returns {Promise<any>} A promise that resolves with the completion data
      */
     onBackgroundAgentCompletion: async (): Promise<any> => {
-        const completion = codeboltEvent.checkForBackgroundAgentCompletion();
+        const completion = backgroundChildThreads.checkForBackgroundAgentCompletion();
         if (completion) return completion;
 
         return new Promise((resolve) => {
             backgroundAgentSubscription.once('message', () => {
-                const data = codeboltEvent.checkForBackgroundAgentCompletion();
+                const data = backgroundChildThreads.checkForBackgroundAgentCompletion();
                 resolve(data);
             });
         });
@@ -137,99 +128,16 @@ const codeboltEvent = {
      * @returns {Promise<any>} A promise that resolves with the completion data
      */
     onBackgroundGroupedAgentCompletion: async (): Promise<any> => {
-        const completion = codeboltEvent.checkForBackgroundGroupedAgentCompletion();
+        const completion = backgroundChildThreads.checkForBackgroundGroupedAgentCompletion();
         if (completion) return completion;
 
         return new Promise((resolve) => {
             groupedAgentSubscription.once('message', () => {
-                const data = codeboltEvent.checkForBackgroundGroupedAgentCompletion();
+                const data = backgroundChildThreads.checkForBackgroundGroupedAgentCompletion();
                 resolve(data);
             });
-        });
-    },
-
-    /**
-     * Checks if any agent event has been received.
-     * @returns {any} The event data if available, or null
-     */
-    checkForAgentEventReceived: () => {
-        if (agentEventMap.size > 0) {
-            const [key, value] = agentEventMap.entries().next().value || [];
-            if (key) {
-                agentEventMap.delete(key);
-                return value;
-            }
-        }
-        return null;
-    },
-
-    /**
-     * Waits for an agent event.
-     * @returns {Promise<any>} A promise that resolves with the event data
-     */
-    onAgentEventReceived: async (): Promise<any> => {
-        const event = codeboltEvent.checkForAgentEventReceived();
-        if (event) return event;
-
-        return new Promise((resolve) => {
-            agentEventSubscription.once('message', () => {
-                const data = codeboltEvent.checkForAgentEventReceived();
-                resolve(data);
-            });
-        });
-    },
-
-    /**
-     * Waits for any external event (Background Completion, Group Completion, Agent Event).
-     * @returns {Promise<{ type: string, data: any }>} A promise that resolves with the event object
-     */
-    waitForAnyExternalEvent: async (): Promise<{ type: string, data: any }> => {
-        // Check functions mapped to their return type strings
-        const checks = [
-            { fn: () => codeboltEvent.checkForBackgroundAgentCompletion(), type: 'backgroundAgentCompletion' },
-            { fn: () => codeboltEvent.checkForBackgroundGroupedAgentCompletion(), type: 'backgroundGroupedAgentCompletion' },
-            { fn: () => codeboltEvent.checkForAgentEventReceived(), type: 'agentEventReceived' }
-        ];
-
-        for (const { fn, type } of checks) {
-            const data = fn();
-            if (data) return { type, data };
-        }
-
-        return new Promise((resolve) => {
-            const cleanup = () => {
-                backgroundAgentSubscription.removeListener('message', onBgComplete);
-                groupedAgentSubscription.removeListener('message', onGroupComplete);
-                agentEventSubscription.removeListener('message', onAgentEvent);
-            };
-
-            const onBgComplete = () => {
-                // Must unhook first to avoid multi-resolution
-                cleanup();
-                // We must yield slightly to ensure handleBackgroundAgentCompletion has processed the event?
-                // Actually, handleBackgroundAgentCompletion attaches first, so it runs first on the same emitter. 
-                // That should be safe synchronously.
-                const data = codeboltEvent.checkForBackgroundAgentCompletion();
-                resolve({ type: 'backgroundAgentCompletion', data });
-            };
-
-            const onGroupComplete = () => {
-                cleanup();
-                const data = codeboltEvent.checkForBackgroundGroupedAgentCompletion();
-                resolve({ type: 'backgroundGroupedAgentCompletion', data });
-            };
-
-            const onAgentEvent = () => {
-                cleanup();
-                const data = codeboltEvent.checkForAgentEventReceived();
-                resolve({ type: 'agentEventReceived', data });
-            };
-
-            backgroundAgentSubscription.once('message', onBgComplete);
-            groupedAgentSubscription.once('message', onGroupComplete);
-            agentEventSubscription.once('message', onAgentEvent);
         });
     }
 };
 
-export default codeboltEvent;
+export default backgroundChildThreads;

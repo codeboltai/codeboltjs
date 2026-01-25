@@ -1,5 +1,5 @@
 /**
- * Event Add Running Agent Tool
+ * Background Child Threads - Add Running Agent Tool
  * 
  * Adds a running background agent to tracking.
  */
@@ -7,12 +7,12 @@
 import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
-import cbcodeboltEvent from '../../modules/codeboltEvent';
+import backgroundChildThreads from '../../modules/backgroundChildThreads';
 
 /**
  * Parameters for adding a running agent
  */
-export interface EventAddRunningAgentParams {
+export interface AddRunningAgentParams {
     /** The thread ID */
     threadId: string;
     /** The agent data */
@@ -21,14 +21,14 @@ export interface EventAddRunningAgentParams {
     groupId?: string;
 }
 
-class EventAddRunningAgentInvocation extends BaseToolInvocation<EventAddRunningAgentParams, ToolResult> {
-    constructor(params: EventAddRunningAgentParams) {
+class AddRunningAgentInvocation extends BaseToolInvocation<AddRunningAgentParams, ToolResult> {
+    constructor(params: AddRunningAgentParams) {
         super(params);
     }
 
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
-            cbcodeboltEvent.addRunningAgent(
+            backgroundChildThreads.addRunningAgent(
                 this.params.threadId,
                 this.params.data,
                 this.params.groupId
@@ -56,10 +56,10 @@ class EventAddRunningAgentInvocation extends BaseToolInvocation<EventAddRunningA
 /**
  * Tool for adding a running agent
  */
-export class EventAddRunningAgentTool extends BaseDeclarativeTool<EventAddRunningAgentParams, ToolResult> {
+export class AddRunningAgentTool extends BaseDeclarativeTool<AddRunningAgentParams, ToolResult> {
     constructor() {
         super(
-            'event_add_running_agent',
+            'background_threads_add_running_agent',
             'Add Running Agent',
             'Adds a running background agent to tracking with optional group ID.',
             Kind.Other,
@@ -84,7 +84,7 @@ export class EventAddRunningAgentTool extends BaseDeclarativeTool<EventAddRunnin
         );
     }
 
-    protected override createInvocation(params: EventAddRunningAgentParams): ToolInvocation<EventAddRunningAgentParams, ToolResult> {
-        return new EventAddRunningAgentInvocation(params);
+    protected override createInvocation(params: AddRunningAgentParams): ToolInvocation<AddRunningAgentParams, ToolResult> {
+        return new AddRunningAgentInvocation(params);
     }
 }

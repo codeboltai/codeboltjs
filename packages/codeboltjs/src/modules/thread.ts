@@ -1,6 +1,6 @@
 import cbws from '../core/websocket';
 import { randomUUID } from 'crypto';
-import codeboltEvent from './codeboltEvent';
+import backgroundChildThreads from './backgroundChildThreads';
 
 // Import options types from agent-to-app-ws-schema
 import type {
@@ -95,7 +95,7 @@ const threadService = {
         // Add to appropriate map based on whether groupId is provided
         // Add to appropriate map based on whether groupId is provided
         if (response.threadId) {
-            codeboltEvent.addRunningAgent(response.threadId, response, options.groupId);
+            backgroundChildThreads.addRunningAgent(response.threadId, response, options.groupId);
         }
 
         return response;

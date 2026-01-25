@@ -86,6 +86,23 @@ export {
     dbmemoryTools,
 } from './dbmemory';
 
+// Export agentEventQueue tools
+export {
+    agentEventQueueTools,
+    EventQueueAddEventTool,
+    EventQueueSendMessageTool,
+    EventQueueGetStatsTool,
+    EventQueueGetPendingTool,
+    EventQueueWaitNextTool,
+    EventQueueAcknowledgeTool,
+    type EventQueueAddEventParams,
+    type EventQueueSendMessageParams,
+    type EventQueueGetStatsParams,
+    type EventQueueGetPendingParams,
+    type EventQueueWaitNextParams,
+    type EventQueueAcknowledgeParams,
+} from './agentEventQueue';
+
 // Export search tools
 export {
     GlobTool,
@@ -348,9 +365,9 @@ export * from './codebaseSearch';
 export { codemapTools } from './codemap';
 export * from './codemap';
 
-// Export codeboltEvent tools
-export { codeboltEventTools } from './codeboltEvent';
-export * from './codeboltEvent';
+// Export backgroundChildThreads tools
+export { backgroundChildThreadsTools } from './backgroundChildThreads';
+export * from './backgroundChildThreads';
 
 // Export contextAssembly tools
 export { contextAssemblyTools } from './contextAssembly';
@@ -462,7 +479,8 @@ import { agentDeliberationTools } from './agentDeliberation';
 import { agentPortfolioTools } from './agentPortfolio';
 import { codebaseSearchTools } from './codebaseSearch';
 import { codemapTools } from './codemap';
-import { codeboltEventTools } from './codeboltEvent';
+import { backgroundChildThreadsTools } from './backgroundChildThreads';
+import { agentEventQueueTools } from './agentEventQueue';
 import { contextAssemblyTools } from './contextAssembly';
 import { contextRuleEngineTools } from './contextRuleEngine';
 import { groupFeedbackTools } from './groupFeedback';
@@ -528,7 +546,7 @@ export const allTools = [
     ...agentPortfolioTools,
     ...codebaseSearchTools,
     ...codemapTools,
-    ...codeboltEventTools,
+    ...backgroundChildThreadsTools,
     ...contextAssemblyTools,
     ...contextRuleEngineTools,
     ...groupFeedbackTools,
@@ -545,6 +563,7 @@ export const allTools = [
     ...userMessageManagerTools,
     ...userMessageUtilitiesTools,
     ...utilsTools,
+    ...agentEventQueueTools,
 ];
 
 /**
@@ -642,7 +661,7 @@ const tools = {
     agentPortfolio: agentPortfolioTools,
     codebaseSearch: codebaseSearchTools,
     codemap: codemapTools,
-    codeboltEvent: codeboltEventTools,
+    backgroundChildThreads: backgroundChildThreadsTools,
     contextAssembly: contextAssemblyTools,
     contextRuleEngine: contextRuleEngineTools,
     groupFeedback: groupFeedbackTools,
@@ -659,6 +678,7 @@ const tools = {
     userMessageManager: userMessageManagerTools,
     userMessageUtilities: userMessageUtilitiesTools,
     utils: utilsTools,
+    agentEventQueue: agentEventQueueTools,
 };
 
 export default tools;

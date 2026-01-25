@@ -1,32 +1,32 @@
 /**
- * Event Get Running Agent Count Tool
+ * Background Child Threads - Get Running Agent Count Tool
  * 
- * Gets the number of currently running background agents.
+ * Gets the count of currently running background agents.
  */
 
 import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
-import cbcodeboltEvent from '../../modules/codeboltEvent';
+import backgroundChildThreads from '../../modules/backgroundChildThreads';
 
 /**
  * Parameters for getting running agent count (none required)
  */
-export interface EventGetRunningAgentCountParams {
+export interface GetRunningAgentCountParams {
 }
 
-class EventGetRunningAgentCountInvocation extends BaseToolInvocation<EventGetRunningAgentCountParams, ToolResult> {
-    constructor(params: EventGetRunningAgentCountParams) {
+class GetRunningAgentCountInvocation extends BaseToolInvocation<GetRunningAgentCountParams, ToolResult> {
+    constructor(params: GetRunningAgentCountParams) {
         super(params);
     }
 
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
-            const count = cbcodeboltEvent.getRunningAgentCount();
+            const count = backgroundChildThreads.getRunningAgentCount();
 
             return {
-                llmContent: `Currently ${count} running background agents`,
-                returnDisplay: `${count} running agents`,
+                llmContent: `Currently ${count} background agent(s) running`,
+                returnDisplay: `Count: ${count}`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -45,10 +45,10 @@ class EventGetRunningAgentCountInvocation extends BaseToolInvocation<EventGetRun
 /**
  * Tool for getting running agent count
  */
-export class EventGetRunningAgentCountTool extends BaseDeclarativeTool<EventGetRunningAgentCountParams, ToolResult> {
+export class GetRunningAgentCountTool extends BaseDeclarativeTool<GetRunningAgentCountParams, ToolResult> {
     constructor() {
         super(
-            'event_get_running_agent_count',
+            'background_threads_get_running_count',
             'Get Running Agent Count',
             'Gets the number of currently running background agents.',
             Kind.Other,
@@ -60,7 +60,7 @@ export class EventGetRunningAgentCountTool extends BaseDeclarativeTool<EventGetR
         );
     }
 
-    protected override createInvocation(params: EventGetRunningAgentCountParams): ToolInvocation<EventGetRunningAgentCountParams, ToolResult> {
-        return new EventGetRunningAgentCountInvocation(params);
+    protected override createInvocation(params: GetRunningAgentCountParams): ToolInvocation<GetRunningAgentCountParams, ToolResult> {
+        return new GetRunningAgentCountInvocation(params);
     }
 }
