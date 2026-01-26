@@ -25,8 +25,8 @@ import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
 
 
-// Cast codeboltEvent to any to access new methods not yet in the published types
-const eventManager = codebolt.codeboltEvent as any;
+// Use backgroundChildThreads module for tracking background agents
+const eventManager = codebolt.backgroundChildThreads;
 
 let systemPrompt = `
 
