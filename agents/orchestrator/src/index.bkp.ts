@@ -173,7 +173,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
 
 
-      
+
     try {
         let sessionSystemPrompt;
         try {
@@ -182,7 +182,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
             sessionSystemPrompt = systemPrompt;
             if (defaultWorkerAgentId) {
-                sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent id: ${defaultWorkerAgentId} in selectedAgent</important>`;
+                sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent <workerAgent> ${defaultWorkerAgentId} <workerAgent> </important>`;
             }
         } catch (error) {
             sessionSystemPrompt = systemPrompt;

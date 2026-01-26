@@ -192,14 +192,23 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     });
                                 }
                                 else if (item.toolName == "codebolt--thread_management") {
+                                    codebolt.chat.sendMessage(JSON.stringify({
+                                        title: item.toolInput.title || item.toolInput.task || 'Background Thread',
+                                        description: item.toolInput.description || item.toolInput.task || '',
+                                        userMessage: item.toolInput.task || item.toolInput.userMessage || '',
+                                        selectedAgent: item.toolInput.selectedAgent,
+                                        isGrouped: item.toolInput.isGrouped,
+                                        groupId: item.toolInput.groupId,
+                                    }))
                                     const response = await codebolt.thread.createThreadInBackground({
                                         title: item.toolInput.title || item.toolInput.task || 'Background Thread',
                                         description: item.toolInput.description || item.toolInput.task || '',
                                         userMessage: item.toolInput.task || item.toolInput.userMessage || '',
                                         selectedAgent: item.toolInput.selectedAgent,
-                                        isGrouped:item.toolInput.isGrouped,
+                                        isGrouped: item.toolInput.isGrouped,
                                         groupId: item.toolInput.groupId,
                                     })
+
                                     toolResults.push({
                                         role: "tool",
                                         tool_call_id: item.toolUseId,

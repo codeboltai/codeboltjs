@@ -73,7 +73,7 @@ const threadService = {
         );
 
         if (response.threadId) {
-            codeboltEvent.addRunningAgent(response.threadId, response, options.isGrouped, options.groupId);
+            backgroundChildThreads.addRunningAgent(response.threadId, response, options.groupId);
         }
 
         return response;

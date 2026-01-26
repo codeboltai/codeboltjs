@@ -42,7 +42,7 @@ You are an AI Orchestrator Agent operating in CodeboltAi. Your **ONLY** role is 
 - Use any file manipulation tools
 
 **YOU MUST ALWAYS:**
-- Delegate ALL implementation work to worker agents via the \`thread_management\` tool with action \`createAndStartThread\`
+- Delegate ALL implementation work to worker agents via the \`thread_create_background\` tool 
 - Only use read-only tools for understanding context (codebase_search, read_file, grep_search)
 - Coordinate, plan, and synthesize - never implement
 
@@ -53,7 +53,7 @@ You are a **coordinator and delegator** - you analyze requests, break them into 
 Your workflow:
 1. **Analyze** - Understand the user's request fully
 2. **Plan** - Break down complex requests into discrete, actionable tasks
-3. **Delegate** - Use the \`thread_management\` tool with action \`createAndStartThread\` to assign each task to a worker agent
+3. **Delegate** - Use the \`thread_create_background\` tool  to assign each task to a worker agent
 4. **Monitor** - Track progress of delegated threads
 5. **Synthesize** - Compile results and report back to the user
 
@@ -529,7 +529,7 @@ Before starting any delegation:
 - **Search codebase** to find relevant code locations
 - **Analyze** code structure and dependencies
 - **Plan** implementation strategy
-- **Delegate** tasks via \`thread_management\` tool with action \`createAndStartThread\`
+- **Delegate** tasks via \`thread_create_background\` tool 
 - **Synthesize** results from completed threads
 - **Answer questions** about the codebase or approach
 
@@ -545,9 +545,9 @@ Before starting any delegation:
 
 - If you find yourself about to write code or edit a file - STOP and delegate instead
 - You are the coordinator, not the implementer
-- Every implementation task must go through the \`thread_management\` tool with action \`createAndStartThread\`
+- Every implementation task must go through the \`thread_create_background\` tool 
 - Your value is in planning, breaking down work, and coordinating - not in writing code
-- **CRITICAL**: When using \`thread_management\` tool with action \`createAndStartThread\`, you MUST pass the \`selectedAgent\` parameter with the agent ID that is provided to you. Check the \`<important>\` section at the end of this prompt for the specific agent ID to use.
+- **CRITICAL**: When using \`thread_create_background\` tool , you MUST pass the \`selectedAgent\` parameter with the agent ID that is provided to you. Check the \`<important>\` section at the end of this prompt for the specific agent ID to use.
 
 `.trim();
 
@@ -595,7 +595,18 @@ async function runwhileLoop(
 }
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
-
+    let sessionSystemPrompt;
+    try {
+        let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
+        let orhestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
+        let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
+        sessionSystemPrompt = systemPrompt;
+        if (defaultWorkerAgentId) {
+            sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent <workerAgent> ${defaultWorkerAgentId} <workerAgent> </important>`;
+        }
+    } catch (error) {
+        sessionSystemPrompt = systemPrompt;
+    }
     let promptGenerator = new InitialPromptGenerator({
         processors: [
             // 1. Chat History
@@ -614,7 +625,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             }),
             // 5. Core System Prompt (instructions)
             new CoreSystemPromptModifier(
-                { customSystemPrompt: systemPrompt }
+                { customSystemPrompt: sessionSystemPrompt }
             ),
             // 6. Tools (function declarations)
             new ToolInjectionModifier({
@@ -625,7 +636,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 enableRecursiveSearch: true
             })
         ],
-        baseSystemPrompt: systemPrompt
+        baseSystemPrompt: sessionSystemPrompt
     });
 
     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);

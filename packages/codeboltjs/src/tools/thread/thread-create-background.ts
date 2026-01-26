@@ -9,10 +9,14 @@ import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import threadService from '../../modules/thread';
 
 export interface ThreadCreateBackgroundParams {
-    /** Thread creation options */
-    options: Record<string, any>;
     /** Optional group ID for the thread */
     groupId?: string;
+    title?: string;
+    task?: string;
+    description?: string;
+    userMessage?: string;
+    selectedAgent?: any;
+    isGrouped?: boolean;
 }
 
 class ThreadCreateBackgroundInvocation extends BaseToolInvocation<ThreadCreateBackgroundParams, ToolResult> {
@@ -22,9 +26,12 @@ class ThreadCreateBackgroundInvocation extends BaseToolInvocation<ThreadCreateBa
 
     async execute(): Promise<ToolResult> {
         try {
-            // Include groupId in options if provided
             const optionsWithGroup = {
-                ...this.params.options,
+                title: this.params.title || this.params.task || 'Background Thread',
+                description: this.params.description || this.params.task || '',
+                userMessage: this.params.task || this.params.userMessage || '',
+                selectedAgent: { id: this.params.selectedAgent },
+                isGrouped: this.params.isGrouped,
                 groupId: this.params.groupId,
             };
 
@@ -82,25 +89,42 @@ export class ThreadCreateBackgroundTool extends BaseDeclarativeTool<ThreadCreate
             Kind.Execute,
             {
                 properties: {
-                    options: {
-                        description: 'Thread creation options object containing thread parameters.',
-                        type: 'object',
-                    },
                     groupId: {
                         description: 'Optional group ID for organizing threads.',
                         type: 'string',
                     },
+                    title: {
+                        description: 'Title of the background thread.',
+                        type: 'string',
+                    },
+                    task: {
+                        description: 'Task description related to the thread.',
+                        type: 'string',
+                    },
+                    description: {
+                        description: 'Description of the thread.',
+                        type: 'string',
+                    },
+                    userMessage: {
+                        description: 'The user message to start the thread with.',
+                        type: 'string',
+                    },
+                    selectedAgent: {
+                        description: 'The selected agent id get it from <workerAgent> tag ',
+                        type: 'string',
+                    },
+                    isGrouped: {
+                        description: 'Whether the thread belongs to a group.',
+                        type: 'boolean',
+                    },
                 },
-                required: ['options'],
+                required: ['task', 'selectedAgent'],
                 type: 'object',
             },
         );
     }
 
-    protected override validateToolParamValues(params: ThreadCreateBackgroundParams): string | null {
-        if (!params.options || typeof params.options !== 'object') {
-            return "'options' is required and must be an object";
-        }
+    protected override validateToolParamValues(_params: ThreadCreateBackgroundParams): string | null {
         return null;
     }
 
