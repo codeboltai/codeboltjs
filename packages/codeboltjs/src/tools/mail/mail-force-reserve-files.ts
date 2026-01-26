@@ -46,7 +46,13 @@ class MailForceReserveFilesToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
-            const response = await mailService.forceReserveFiles(this.params);
+            // Map files to paths for the SDK call
+            const response = await mailService.forceReserveFiles({
+                paths: this.params.files,
+                agentId: this.params.agentId,
+                reason: this.params.reason,
+                duration: this.params.duration,
+            } as any);
 
             return {
                 llmContent: JSON.stringify(response, null, 2),

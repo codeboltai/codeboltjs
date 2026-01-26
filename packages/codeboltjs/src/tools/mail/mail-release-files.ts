@@ -36,7 +36,11 @@ class MailReleaseFilesToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
-            const response = await mailService.releaseFiles(this.params);
+            // Map files to paths for the SDK call
+            const response = await mailService.releaseFiles({
+                paths: this.params.files,
+                agentId: this.params.agentId,
+            } as any);
 
             return {
                 llmContent: JSON.stringify(response, null, 2),

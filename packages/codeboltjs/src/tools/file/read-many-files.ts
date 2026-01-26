@@ -94,9 +94,7 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
             });
 
             if (!response.success) {
-                const errorMsg = typeof response.error === 'string'
-                    ? response.error
-                    : (response.error as any)?.message || 'Unknown error';
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
                     llmContent: `Error reading files: ${errorMsg}`,
                     returnDisplay: `Error reading files: ${errorMsg}`,
@@ -108,13 +106,20 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
             }
 
             // Format the output
-            // ReadManyFilesResponse has files?: FileReadInfo[], successfullyRead, failedToRead, totalFiles, etc.
-            const files = response.files || [];
-            const totalFiles = response.totalFiles ?? files.length;
-            const filesRead = response.successfullyRead ?? files.filter(f => f.success).length;
-            const totalSize = response.totalContentSize ?? files.reduce((sum: number, f) => sum + (f.content?.length || 0), 0);
+            // ReadManyFilesResponse has results?: Array<{ path, content, error }>, etc.
+            const results = (response as any).results || [];
+            const files = results.map((r: any) => ({
+                filePath: r.path,
+                content: r.content,
+                error: r.error,
+                success: !r.error,
+                size: r.content?.length || 0
+            }));
+            const totalFiles = files.length;
+            const filesRead = files.filter((f: any) => f.success).length;
+            const totalSize = files.reduce((sum: number, f: any) => sum + (f.content?.length || 0), 0);
 
-            const truncated = response.isTruncated ?? false;
+            const truncated = false;
 
             let output = '';
 

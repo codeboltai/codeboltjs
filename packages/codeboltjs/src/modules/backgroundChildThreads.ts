@@ -137,6 +137,48 @@ const backgroundChildThreads = {
                 resolve(data);
             });
         });
+    },
+
+    /**
+     * Waits for any external event (background agent completion, grouped agent completion, or agent event).
+     * Returns the first event that occurs.
+     * @returns {Promise<{type: string, data: any}>} A promise that resolves with the event type and data
+     */
+    waitForAnyExternalEvent: async (): Promise<{ type: string; data: any }> => {
+        // First check if there are any already completed events
+        const backgroundCompletion = backgroundChildThreads.checkForBackgroundAgentCompletion();
+        if (backgroundCompletion) {
+            return { type: 'backgroundAgentCompletion', data: backgroundCompletion };
+        }
+
+        const groupedCompletion = backgroundChildThreads.checkForBackgroundGroupedAgentCompletion();
+        if (groupedCompletion) {
+            return { type: 'backgroundGroupedAgentCompletion', data: groupedCompletion };
+        }
+
+        // Wait for the first event to occur
+        return new Promise((resolve) => {
+            let resolved = false;
+
+            const backgroundHandler = () => {
+                if (resolved) return;
+                resolved = true;
+                groupedAgentSubscription.off('message', groupedHandler);
+                const data = backgroundChildThreads.checkForBackgroundAgentCompletion();
+                resolve({ type: 'backgroundAgentCompletion', data });
+            };
+
+            const groupedHandler = () => {
+                if (resolved) return;
+                resolved = true;
+                backgroundAgentSubscription.off('message', backgroundHandler);
+                const data = backgroundChildThreads.checkForBackgroundGroupedAgentCompletion();
+                resolve({ type: 'backgroundGroupedAgentCompletion', data });
+            };
+
+            backgroundAgentSubscription.once('message', backgroundHandler);
+            groupedAgentSubscription.once('message', groupedHandler);
+        });
     }
 };
 

@@ -42,9 +42,7 @@ class PortfolioGetRankingToolInvocation extends BaseToolInvocation<
             );
 
             if (!response.success) {
-                const errorMsg = typeof response.error === 'string'
-                    ? response.error
-                    : (response.error as any)?.message || 'Unknown error';
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
                     llmContent: `Error getting ranking: ${errorMsg}`,
                     returnDisplay: `Error getting ranking: ${errorMsg}`,
@@ -55,7 +53,7 @@ class PortfolioGetRankingToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const rankingData = JSON.stringify(response.ranking, null, 2);
+            const rankingData = JSON.stringify(response.data, null, 2);
             const sortByInfo = this.params.sort_by ? ` sorted by ${this.params.sort_by}` : '';
             const limitInfo = this.params.limit ? ` (top ${this.params.limit})` : '';
 

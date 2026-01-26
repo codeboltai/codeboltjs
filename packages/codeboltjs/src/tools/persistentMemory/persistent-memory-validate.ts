@@ -17,10 +17,11 @@ class PersistentMemoryValidateInvocation extends BaseToolInvocation<PersistentMe
         try {
             const response = await persistentMemory.validate(this.params.memory);
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: `Validation failed: ${response.error}`,
-                    returnDisplay: `Validation failed: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Validation failed: ${errorMsg}`,
+                    returnDisplay: `Validation failed: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
             return {

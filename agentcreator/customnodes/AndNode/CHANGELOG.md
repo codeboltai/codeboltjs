@@ -1,5 +1,12 @@
 # andnode
 
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/litegraph@0.0.10
+
 ## 1.0.2
 
 ### Patch Changes

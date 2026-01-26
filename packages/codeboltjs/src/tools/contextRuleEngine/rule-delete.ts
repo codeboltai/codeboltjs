@@ -26,7 +26,7 @@ class RuleDeleteInvocation extends BaseToolInvocation<RuleDeleteParams, ToolResu
         try {
             const response = await cbcontextRuleEngine.delete(this.params.id);
 
-            if (!response.payload?.success) {
+            if (!response.data?.deleted) {
                 return {
                     llmContent: 'Error: Failed to delete rule engine',
                     returnDisplay: 'Error: Failed to delete rule engine',

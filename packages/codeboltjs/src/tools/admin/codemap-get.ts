@@ -41,7 +41,19 @@ class CodemapGetToolInvocation extends BaseToolInvocation<
                 this.params.project_path
             );
 
-            if (!response || !response.codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Unknown error';
+                return {
+                    llmContent: `Error getting codemap: ${errorMsg}`,
+                    returnDisplay: `Error getting codemap: ${errorMsg}`,
+                    error: {
+                        message: errorMsg,
+                        type: ToolErrorType.EXECUTION_FAILED,
+                    },
+                };
+            }
+
+            if (!response.data?.codemap) {
                 return {
                     llmContent: `Codemap with ID '${this.params.codemap_id}' not found.`,
                     returnDisplay: `Codemap not found: ${this.params.codemap_id}`,
@@ -52,11 +64,11 @@ class CodemapGetToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const llmContent = JSON.stringify(response.codemap, null, 2);
+            const llmContent = JSON.stringify(response.data.codemap, null, 2);
 
             return {
                 llmContent,
-                returnDisplay: `Retrieved codemap: ${response.codemap.title}`,
+                returnDisplay: `Retrieved codemap: ${response.data.codemap.title}`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

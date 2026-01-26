@@ -46,7 +46,13 @@ class MailRegisterAgentToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
-            const response = await mailService.registerAgent(this.params);
+            // Map agentId to id for the SDK call
+            const response = await mailService.registerAgent({
+                id: this.params.agentId,
+                name: this.params.name,
+                capabilities: this.params.capabilities,
+                metadata: this.params.metadata,
+            } as any);
 
             return {
                 llmContent: JSON.stringify(response, null, 2),

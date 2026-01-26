@@ -7,6 +7,11 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "outputLogs": "errors-only"
     },
+    "@codebolt/docs#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["build/**", ".docusaurus/**"],
+      "outputLogs": "errors-only"
+    },
     "lint": {
       "outputs": []
     },

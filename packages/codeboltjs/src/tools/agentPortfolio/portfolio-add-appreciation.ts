@@ -31,21 +31,22 @@ class PortfolioAddAppreciationInvocation extends BaseToolInvocation<PortfolioAdd
                 this.params.message
             );
 
-            const appreciation = response.payload?.appreciation;
-
-            if (!appreciation) {
+            if (!response.success && response.error) {
                 return {
-                    llmContent: 'Error: Failed to add appreciation - no appreciation returned',
-                    returnDisplay: 'Error: Failed to add appreciation',
+                    llmContent: `Error: Failed to add appreciation - ${response.error}`,
+                    returnDisplay: `Error: ${response.error}`,
                     error: {
-                        message: 'No appreciation returned from add operation',
+                        message: response.error,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const appreciation = response.data;
+            const appreciationId = appreciation?.id;
+
             return {
-                llmContent: `Successfully added appreciation for agent ${this.params.toAgentId} (ID: ${appreciation.id})`,
+                llmContent: `Successfully added appreciation for agent ${this.params.toAgentId}${appreciationId ? ` (ID: ${appreciationId})` : ''}`,
                 returnDisplay: `Added appreciation for agent ${this.params.toAgentId}`,
             };
         } catch (error) {

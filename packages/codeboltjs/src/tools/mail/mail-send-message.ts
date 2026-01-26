@@ -18,32 +18,47 @@ export interface MailSendMessageToolParams {
     /**
      * The thread ID to send the message to
      */
-    threadId: string;
+    threadId?: string;
 
     /**
      * The sender agent ID
      */
-    from: string;
+    senderId: string;
+
+    /**
+     * The sender name
+     */
+    senderName: string;
 
     /**
      * The recipient agent IDs
      */
-    to: string[];
+    recipients: string[];
 
     /**
      * The message content
      */
-    content: string;
+    body: string;
 
     /**
-     * The message type
+     * The message subject (used when creating new thread)
      */
-    messageType?: string;
+    subject?: string;
 
     /**
-     * Additional metadata for the message
+     * The message importance
      */
-    metadata?: Record<string, unknown>;
+    importance?: 'low' | 'normal' | 'high';
+
+    /**
+     * Whether acknowledgement is required
+     */
+    ackRequired?: boolean;
+
+    /**
+     * File references for attachments
+     */
+    fileReferences?: string[];
 }
 
 class MailSendMessageToolInvocation extends BaseToolInvocation<
@@ -94,32 +109,46 @@ export class MailSendMessageTool extends BaseDeclarativeTool<
             {
                 properties: {
                     threadId: {
-                        description: 'The thread ID to send the message to',
+                        description: 'The thread ID to send the message to (optional for new thread)',
                         type: 'string',
                     },
-                    from: {
+                    senderId: {
                         description: 'The sender agent ID',
                         type: 'string',
                     },
-                    to: {
+                    senderName: {
+                        description: 'The sender name',
+                        type: 'string',
+                    },
+                    recipients: {
                         description: 'The recipient agent IDs',
                         type: 'array',
                         items: { type: 'string' },
                     },
-                    content: {
+                    body: {
                         description: 'The message content',
                         type: 'string',
                     },
-                    messageType: {
-                        description: 'The message type',
+                    subject: {
+                        description: 'The message subject (used when creating new thread)',
                         type: 'string',
                     },
-                    metadata: {
-                        description: 'Additional metadata for the message',
-                        type: 'object',
+                    importance: {
+                        description: 'The message importance',
+                        type: 'string',
+                        enum: ['low', 'normal', 'high'],
+                    },
+                    ackRequired: {
+                        description: 'Whether acknowledgement is required',
+                        type: 'boolean',
+                    },
+                    fileReferences: {
+                        description: 'File references for attachments',
+                        type: 'array',
+                        items: { type: 'string' },
                     },
                 },
-                required: ['threadId', 'from', 'to', 'content'],
+                required: ['senderId', 'senderName', 'recipients', 'body'],
                 type: 'object',
             },
         );

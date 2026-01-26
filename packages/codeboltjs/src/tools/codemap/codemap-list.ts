@@ -26,18 +26,19 @@ class CodemapListInvocation extends BaseToolInvocation<CodemapListParams, ToolRe
         try {
             const response = await cbcodemap.list(this.params.projectPath);
 
-            const codemaps = response.payload?.codemaps;
-
-            if (!codemaps) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'List operation failed';
                 return {
-                    llmContent: 'Error: Failed to list codemaps - no codemaps returned',
-                    returnDisplay: 'Error: Failed to list codemaps',
+                    llmContent: `Error: Failed to list codemaps - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemaps returned from list operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const codemaps = response.data?.codemaps || [];
 
             return {
                 llmContent: `Found ${codemaps.length} codemaps`,

@@ -14,7 +14,8 @@ class AutoTestingDeleteCaseInvocation extends BaseToolInvocation<AutoTestingDele
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
             const response: IDeleteCaseResponse = await autoTesting.deleteCase(this.params);
-            if (!response.payload?.ok && !response.payload?.caseId) {
+            const payload = response.payload as { ok?: boolean; caseId?: string };
+            if (!payload?.ok && !payload?.caseId) {
                 return {
                     llmContent: `Error: Failed to delete test case`,
                     returnDisplay: `Error: Failed to delete test case`,

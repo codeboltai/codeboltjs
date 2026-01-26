@@ -40,14 +40,13 @@ class CodemapUpdateInvocation extends BaseToolInvocation<CodemapUpdateParams, To
                 this.params.projectPath
             );
 
-            const codemap = response.payload?.codemap;
-
-            if (!codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Update operation failed';
                 return {
-                    llmContent: 'Error: Failed to update codemap - no codemap returned',
-                    returnDisplay: 'Error: Failed to update codemap',
+                    llmContent: `Error: Failed to update codemap - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemap returned from update operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

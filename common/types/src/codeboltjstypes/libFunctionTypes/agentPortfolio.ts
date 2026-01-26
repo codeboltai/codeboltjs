@@ -134,78 +134,79 @@ export interface RankingEntry {
 }
 
 // Agent portfolio operation responses
+// All responses follow the pattern: { type, success, data, error, timestamp, requestId }
+// The actual data is in the 'data' property
+
 export interface GetPortfolioResponse extends BaseAgentPortfolioSDKResponse {
-  /** Agent portfolio data */
-  portfolio?: AgentPortfolio;
+  /** Agent portfolio data - returned in 'data' property from cliLib */
+  data?: AgentPortfolio;
 }
 
 export interface GetConversationsResponse extends BaseAgentPortfolioSDKResponse {
-  /** Conversations list */
-  conversations?: AgentConversation[];
-  /** Total count */
-  total?: number;
+  /** Conversations data - returned in 'data' property from cliLib */
+  data?: AgentConversation[];
 }
 
 export interface AddTestimonialResponse extends BaseAgentPortfolioSDKResponse {
-  /** Created testimonial ID */
-  testimonialId?: string;
+  /** Created testimonial data - returned in 'data' property from cliLib */
+  data?: Testimonial;
 }
 
 export interface UpdateTestimonialResponse extends BaseAgentPortfolioSDKResponse {
-  /** Updated testimonial data */
-  testimonial?: Testimonial;
+  /** Updated testimonial data - returned in 'data' property from cliLib */
+  data?: Testimonial;
 }
 
 export interface DeleteTestimonialResponse extends BaseAgentPortfolioSDKResponse {
-  /** Whether deletion was successful */
-  deleted?: boolean;
+  /** Deletion result - returned in 'data' property from cliLib */
+  data?: { deleted: boolean };
 }
 
 export interface AddKarmaResponse extends BaseAgentPortfolioSDKResponse {
-  /** Karma entry ID */
-  karmaId?: string;
-  /** New total karma */
-  newTotal?: number;
+  /** Karma result - returned in 'data' property from cliLib */
+  data?: {
+    karmaId?: string;
+    newTotal?: number;
+    transaction?: KarmaEntry;
+  };
 }
 
 export interface GetKarmaHistoryResponse extends BaseAgentPortfolioSDKResponse {
-  /** Karma history entries */
-  history?: KarmaEntry[];
-  /** Total count */
-  total?: number;
+  /** Karma history - returned in 'data' property from cliLib */
+  data?: KarmaEntry[];
 }
 
 export interface AddAppreciationResponse extends BaseAgentPortfolioSDKResponse {
-  /** Appreciation ID */
-  appreciationId?: string;
+  /** Appreciation data - returned in 'data' property from cliLib */
+  data?: Appreciation;
 }
 
 export interface AddTalentResponse extends BaseAgentPortfolioSDKResponse {
-  /** Talent ID */
-  talentId?: string;
+  /** Talent data - returned in 'data' property from cliLib */
+  data?: Talent;
 }
 
 export interface EndorseTalentResponse extends BaseAgentPortfolioSDKResponse {
-  /** Updated talent data */
-  talent?: Talent;
+  /** Endorsement result - returned in 'data' property from cliLib */
+  data?: Talent;
 }
 
 export interface GetTalentsResponse extends BaseAgentPortfolioSDKResponse {
-  /** Talents list */
-  talents?: Talent[];
+  /** Talents list - returned in 'data' property from cliLib */
+  data?: Talent[];
 }
 
 export interface GetRankingResponse extends BaseAgentPortfolioSDKResponse {
-  /** Ranking entries */
-  ranking?: RankingEntry[];
+  /** Ranking entries - returned in 'data' property from cliLib */
+  data?: RankingEntry[];
 }
 
 export interface GetPortfoliosByProjectResponse extends BaseAgentPortfolioSDKResponse {
-  /** Project portfolios */
-  portfolios?: AgentPortfolio[];
+  /** Project portfolios - returned in 'data' property from cliLib */
+  data?: AgentPortfolio[];
 }
 
 export interface UpdateProfileResponse extends BaseAgentPortfolioSDKResponse {
-  /** Updated profile data */
-  profile?: AgentProfile;
+  /** Updated portfolio data - returned in 'data' property from cliLib */
+  data?: AgentPortfolio;
 }

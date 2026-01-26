@@ -31,18 +31,19 @@ class PortfolioGetKarmaHistoryInvocation extends BaseToolInvocation<PortfolioGet
                 this.params.limit
             );
 
-            const history = response.payload?.history;
-
-            if (!history) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to get karma history';
                 return {
-                    llmContent: 'Error: Failed to get karma history - no history returned',
-                    returnDisplay: 'Error: Failed to get karma history',
+                    llmContent: `Error: Failed to get karma history - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No history returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const history = response.data || [];
 
             return {
                 llmContent: `Retrieved ${history.length} karma history entries for agent ${this.params.agentId}`,

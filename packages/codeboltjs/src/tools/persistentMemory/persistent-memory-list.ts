@@ -17,16 +17,17 @@ class PersistentMemoryListInvocation extends BaseToolInvocation<PersistentMemory
         try {
             const response = await persistentMemory.list(this.params.filters);
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const memories = response.data || [];
+            const memoriesData = response.data?.memories || [];
             return {
-                llmContent: `Found ${memories.length} persistent memories: ${JSON.stringify(memories)}`,
-                returnDisplay: `Listed ${memories.length} persistent memories`,
+                llmContent: `Found ${memoriesData.length} persistent memories: ${JSON.stringify(memoriesData)}`,
+                returnDisplay: `Listed ${memoriesData.length} persistent memories`,
             };
         } catch (error) {
             return {

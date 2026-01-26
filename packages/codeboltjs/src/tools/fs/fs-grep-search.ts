@@ -33,9 +33,10 @@ class FsGrepSearchInvocation extends BaseToolInvocation<FsGrepSearchParams, Tool
                     error: { message: response.message || 'Failed to perform grep search', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const results = response.result?.matches || [];
+            const results = response.results || [];
+            const totalMatches = results.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
             return {
-                llmContent: `Found ${results.length} match(es) for "${this.params.query}"`,
+                llmContent: `Found ${totalMatches} match(es) for "${this.params.query}" in ${results.length} file(s)`,
                 returnDisplay: JSON.stringify(results, null, 2),
             };
         } catch (error) {

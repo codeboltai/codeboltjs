@@ -14,6 +14,8 @@ import type { IGetFeedbackParams } from '../../types/groupFeedback';
  * Parameters for getting feedback
  */
 export interface FeedbackGetParams extends IGetFeedbackParams {
+    /** Alias for id - the feedback ID to get */
+    feedbackId?: string;
 }
 
 class FeedbackGetInvocation extends BaseToolInvocation<FeedbackGetParams, ToolResult> {
@@ -23,7 +25,9 @@ class FeedbackGetInvocation extends BaseToolInvocation<FeedbackGetParams, ToolRe
 
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
-            const response = await cbgroupFeedback.get(this.params);
+            // Map feedbackId to id for the SDK call
+            const feedbackId = this.params.feedbackId || this.params.id;
+            const response = await cbgroupFeedback.get({ ...this.params, id: feedbackId });
 
             const feedback = response.payload?.feedback;
 
@@ -39,8 +43,8 @@ class FeedbackGetInvocation extends BaseToolInvocation<FeedbackGetParams, ToolRe
             }
 
             return {
-                llmContent: `Retrieved feedback ${this.params.feedbackId}: ${feedback.title}`,
-                returnDisplay: `Retrieved feedback ${this.params.feedbackId}`,
+                llmContent: `Retrieved feedback ${feedbackId}: ${feedback.title}`,
+                returnDisplay: `Retrieved feedback ${feedbackId}`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);

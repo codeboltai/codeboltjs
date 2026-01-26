@@ -19,14 +19,15 @@ class CreateKVInstanceInvocation extends BaseToolInvocation<CreateKVInstancePara
             const response = await kvStore.createInstance(this.params.name, this.params.description);
 
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const instance = response.data;
+            const instance = response.data?.instance;
             const content = `KV store instance created: ${instance?.id || this.params.name}`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {

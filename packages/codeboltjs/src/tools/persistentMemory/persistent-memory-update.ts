@@ -18,10 +18,11 @@ class PersistentMemoryUpdateInvocation extends BaseToolInvocation<PersistentMemo
         try {
             const response = await persistentMemory.update(this.params.memoryId, this.params.updates);
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
             return {

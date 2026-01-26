@@ -36,7 +36,12 @@ class MailMarkReadToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
-            const response = await mailService.markRead(this.params);
+            // Map messageIds to messageId for the SDK call (it takes a single messageId)
+            // For multiple messages, we may need to call multiple times or check SDK
+            const response = await mailService.markRead({
+                messageId: this.params.messageIds[0], // SDK expects single messageId
+                agentId: this.params.agentId,
+            } as any);
 
             return {
                 llmContent: JSON.stringify(response, null, 2),

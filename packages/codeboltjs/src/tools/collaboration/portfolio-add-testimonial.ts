@@ -48,9 +48,7 @@ class PortfolioAddTestimonialToolInvocation extends BaseToolInvocation<
             );
 
             if (!response.success) {
-                const errorMsg = typeof response.error === 'string'
-                    ? response.error
-                    : (response.error as any)?.message || 'Unknown error';
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
                     llmContent: `Error adding testimonial: ${errorMsg}`,
                     returnDisplay: `Error adding testimonial: ${errorMsg}`,
@@ -61,7 +59,7 @@ class PortfolioAddTestimonialToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const responseData = JSON.stringify(response, null, 2);
+            const responseData = JSON.stringify(response.data, null, 2);
 
             return {
                 llmContent: `Successfully added testimonial for agent ${this.params.to_agent_id}:\n${responseData}`,

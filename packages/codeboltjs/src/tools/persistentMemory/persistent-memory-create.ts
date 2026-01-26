@@ -17,15 +17,16 @@ class PersistentMemoryCreateInvocation extends BaseToolInvocation<PersistentMemo
         try {
             const response = await persistentMemory.create(this.params.config);
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
             return {
                 llmContent: `Persistent memory created: ${JSON.stringify(response.data)}`,
-                returnDisplay: `Created persistent memory: ${response.data?.id || 'unknown'}`,
+                returnDisplay: `Created persistent memory: ${response.data?.memory?.id || 'unknown'}`,
             };
         } catch (error) {
             return {

@@ -28,21 +28,22 @@ class CodemapGetInvocation extends BaseToolInvocation<CodemapGetParams, ToolResu
         try {
             const response = await cbcodemap.get(this.params.codemapId, this.params.projectPath);
 
-            const codemap = response.payload?.codemap;
-
-            if (!codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Get operation failed';
                 return {
-                    llmContent: 'Error: Failed to get codemap - no codemap returned',
-                    returnDisplay: 'Error: Failed to get codemap',
+                    llmContent: `Error: Failed to get codemap - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemap returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const codemap = response.data?.codemap;
+
             return {
-                llmContent: `Retrieved codemap ${this.params.codemapId}: ${codemap.title || 'Untitled'}`,
+                llmContent: `Retrieved codemap ${this.params.codemapId}: ${codemap?.title || 'Untitled'}`,
                 returnDisplay: `Retrieved codemap ${this.params.codemapId}`,
             };
         } catch (error) {

@@ -27,9 +27,9 @@ class ContextValidateInvocation extends BaseToolInvocation<ContextValidateParams
         try {
             const response = await cbcontextAssembly.validate(this.params.request);
 
-            const isValid = response.payload?.isValid;
+            const validation = response.data?.validation;
 
-            if (isValid === undefined) {
+            if (!validation) {
                 return {
                     llmContent: 'Error: Failed to validate context - no validation result returned',
                     returnDisplay: 'Error: Failed to validate context',
@@ -40,7 +40,8 @@ class ContextValidateInvocation extends BaseToolInvocation<ContextValidateParams
                 };
             }
 
-            const errors = response.payload?.errors || [];
+            const isValid = validation.valid;
+            const errors = validation.errors || [];
             const errorInfo = errors.length > 0 ? `\nErrors: ${errors.join(', ')}` : '';
 
             return {

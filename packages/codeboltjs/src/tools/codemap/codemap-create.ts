@@ -36,21 +36,22 @@ class CodemapCreateInvocation extends BaseToolInvocation<CodemapCreateParams, To
                 this.params.projectPath
             );
 
-            const codemap = response.payload?.codemap;
-
-            if (!codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Create operation failed';
                 return {
-                    llmContent: 'Error: Failed to create codemap - no codemap returned',
-                    returnDisplay: 'Error: Failed to create codemap',
+                    llmContent: `Error: Failed to create codemap - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemap returned from create operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const codemap = response.data?.codemap;
+
             return {
-                llmContent: `Successfully created codemap "${this.params.title}" (ID: ${codemap.id})`,
+                llmContent: `Successfully created codemap "${this.params.title}"${codemap?.id ? ` (ID: ${codemap.id})` : ''}`,
                 returnDisplay: `Created codemap "${this.params.title}"`,
             };
         } catch (error) {

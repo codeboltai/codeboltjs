@@ -14,7 +14,8 @@ class AutoTestingDeleteSuiteInvocation extends BaseToolInvocation<AutoTestingDel
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
             const response: IDeleteSuiteResponse = await autoTesting.deleteSuite(this.params);
-            if (!response.payload?.ok && !response.payload?.suiteId) {
+            const payload = response.payload as { ok?: boolean; suiteId?: string };
+            if (!payload?.ok && !payload?.suiteId) {
                 return {
                     llmContent: `Error: Failed to delete test suite`,
                     returnDisplay: `Error: Failed to delete test suite`,

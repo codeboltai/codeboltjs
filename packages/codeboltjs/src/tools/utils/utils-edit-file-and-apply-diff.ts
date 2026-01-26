@@ -54,7 +54,7 @@ export class UtilsEditFileAndApplyDiffTool extends BaseDeclarativeTool<UtilsEdit
             'utils_edit_file_and_apply_diff',
             'Edit File and Apply Diff',
             'Edits a file and applies a diff with AI assistance',
-            Kind.FileSystem,
+            Kind.Edit,
             {
                 type: 'object',
                 properties: {

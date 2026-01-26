@@ -34,9 +34,7 @@ class PortfolioGetToolInvocation extends BaseToolInvocation<
             const response = await codeboltAgentPortfolio.getPortfolio(this.params.agent_id);
 
             if (!response.success) {
-                const errorMsg = typeof response.error === 'string'
-                    ? response.error
-                    : (response.error as any)?.message || 'Unknown error';
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
                     llmContent: `Error getting portfolio: ${errorMsg}`,
                     returnDisplay: `Error getting portfolio: ${errorMsg}`,
@@ -47,7 +45,7 @@ class PortfolioGetToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const portfolioData = JSON.stringify(response.portfolio, null, 2);
+            const portfolioData = JSON.stringify(response.data, null, 2);
 
             return {
                 llmContent: `Portfolio for agent ${this.params.agent_id}:\n${portfolioData}`,

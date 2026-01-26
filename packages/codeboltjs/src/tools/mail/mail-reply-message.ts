@@ -23,17 +23,22 @@ export interface MailReplyMessageToolParams {
     /**
      * The sender agent ID
      */
-    from: string;
+    senderId: string;
+
+    /**
+     * The sender name
+     */
+    senderName: string;
 
     /**
      * The reply content
      */
-    content: string;
+    body: string;
 
     /**
-     * Additional metadata for the reply
+     * File references for attachments
      */
-    metadata?: Record<string, unknown>;
+    fileReferences?: string[];
 }
 
 class MailReplyMessageToolInvocation extends BaseToolInvocation<
@@ -87,20 +92,25 @@ export class MailReplyMessageTool extends BaseDeclarativeTool<
                         description: 'The message ID to reply to',
                         type: 'string',
                     },
-                    from: {
+                    senderId: {
                         description: 'The sender agent ID',
                         type: 'string',
                     },
-                    content: {
+                    senderName: {
+                        description: 'The sender name',
+                        type: 'string',
+                    },
+                    body: {
                         description: 'The reply content',
                         type: 'string',
                     },
-                    metadata: {
-                        description: 'Additional metadata for the reply',
-                        type: 'object',
+                    fileReferences: {
+                        description: 'File references for attachments',
+                        type: 'array',
+                        items: { type: 'string' },
                     },
                 },
-                required: ['messageId', 'from', 'content'],
+                required: ['messageId', 'senderId', 'senderName', 'body'],
                 type: 'object',
             },
         );

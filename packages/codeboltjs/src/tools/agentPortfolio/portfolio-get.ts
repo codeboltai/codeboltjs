@@ -26,7 +26,19 @@ class PortfolioGetInvocation extends BaseToolInvocation<PortfolioGetParams, Tool
         try {
             const response = await cbagentPortfolio.getPortfolio(this.params.agentId);
 
-            const portfolio = response.portfolio;
+            if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
+                return {
+                    llmContent: `Error: Failed to get portfolio - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: {
+                        message: errorMsg,
+                        type: ToolErrorType.EXECUTION_FAILED,
+                    },
+                };
+            }
+
+            const portfolio = response.data;
 
             if (!portfolio) {
                 return {

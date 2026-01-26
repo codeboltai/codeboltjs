@@ -11,6 +11,7 @@ import type {
     Kind,
     OpenAIToolSchema,
     OpenAIFunctionCall,
+    FunctionDeclaration,
 } from './types';
 import { ToolErrorType } from './types';
 import { SchemaValidator } from './utils/schema-validator';
@@ -69,6 +70,14 @@ export abstract class DeclarativeTool<
     ) { }
 
     /**
+     * One sentence explanation as to why this tool is being used, and how it contributes to the goal.
+     * Defaults to description if not implemented by subclass.
+     */
+    get explanation(): string {
+        return this.description;
+    }
+
+    /**
      * Primary schema format (OpenAI tool schema)
      */
     get schema(): OpenAIToolSchema {
@@ -100,6 +109,17 @@ export abstract class DeclarativeTool<
                 required: (this.parameterSchema as any)?.required || [],
                 additionalProperties: false,
             },
+        };
+    }
+
+    /**
+     * Get Google GenAI schema format (for backward compatibility)
+     */
+    get genAISchema(): FunctionDeclaration {
+        return {
+            name: this.name,
+            description: this.description,
+            parameters: this.parameterSchema as any,
         };
     }
 

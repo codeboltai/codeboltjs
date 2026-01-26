@@ -31,15 +31,15 @@ class CreateRoadmapPhaseInvocation extends BaseToolInvocation<CreateRoadmapPhase
             };
             const response = await roadmap.createPhase(data, this.params.projectPath);
 
-            if (!response.success) {
+            if (!response.phase) {
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: 'Error: Failed to create phase',
+                    returnDisplay: 'Error: Failed to create phase',
+                    error: { message: 'Failed to create phase', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const content = `Phase "${this.params.name}" created in roadmap`;
+            const content = `Phase "${this.params.name}" created in roadmap (ID: ${response.phase.id})`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

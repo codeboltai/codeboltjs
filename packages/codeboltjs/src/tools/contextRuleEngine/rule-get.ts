@@ -26,7 +26,7 @@ class RuleGetInvocation extends BaseToolInvocation<RuleGetParams, ToolResult> {
         try {
             const response = await cbcontextRuleEngine.get(this.params.id);
 
-            const ruleEngine = response.payload?.ruleEngine;
+            const ruleEngine = response.data?.ruleEngine;
 
             if (!ruleEngine) {
                 return {

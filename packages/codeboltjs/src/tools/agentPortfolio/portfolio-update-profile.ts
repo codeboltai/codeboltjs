@@ -44,14 +44,13 @@ class PortfolioUpdateProfileInvocation extends BaseToolInvocation<PortfolioUpdat
                 this.params.profile
             );
 
-            const profile = response.payload?.profile;
-
-            if (!profile) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to update profile';
                 return {
-                    llmContent: 'Error: Failed to update profile - no profile returned',
-                    returnDisplay: 'Error: Failed to update profile',
+                    llmContent: `Error: Failed to update profile - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No profile returned from update operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

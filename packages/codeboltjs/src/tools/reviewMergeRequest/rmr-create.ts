@@ -20,18 +20,22 @@ class CreateReviewMergeRequestInvocation extends BaseToolInvocation<CreateReview
 
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
+            // Map tool params to CreateReviewMergeRequest interface
             const response = await reviewMergeRequest.create({
+                type: 'review_merge',
                 title: this.params.title,
                 description: this.params.description,
-                sourceBranch: this.params.sourceBranch,
-                targetBranch: this.params.targetBranch,
-                authorId: this.params.authorId,
+                initialTask: this.params.description,
+                majorFilesChanged: [],
+                diffPatch: '',
+                agentId: this.params.authorId,
+                agentName: this.params.authorId,
                 swarmId: this.params.swarmId,
             });
 
             if (!response.request) {
                 return {
-                    llmContent: `Error: Failed to create review merge request`,
+                    llmContent: `Error: Failed to create review merge request - no request returned`,
                     returnDisplay: `Error: Failed to create`,
                     error: { message: 'Failed to create', type: ToolErrorType.EXECUTION_FAILED },
                 };

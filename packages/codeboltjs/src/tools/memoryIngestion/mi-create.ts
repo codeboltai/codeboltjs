@@ -2,13 +2,16 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import memoryIngestion from '../../modules/memoryIngestion';
+import type { IngestionTrigger, IngestionProcessor, IngestionRouting } from '../../types/memoryIngestion';
 
 export interface CreateMemoryIngestionPipelineParams {
-    pipelineId: string;
+    pipelineId?: string;
     label: string;
     description?: string;
-    source: { type: string; [key: string]: any };
-    processors: Array<{ type: string; [key: string]: any }>;
+    trigger: IngestionTrigger;
+    trigger_config?: Record<string, any>;
+    processors: IngestionProcessor[];
+    routing: IngestionRouting;
     explanation?: string;
 }
 
@@ -20,22 +23,33 @@ class CreateMemoryIngestionPipelineInvocation extends BaseToolInvocation<CreateM
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
             const response = await memoryIngestion.create({
-                pipelineId: this.params.pipelineId,
+                id: this.params.pipelineId,
                 label: this.params.label,
                 description: this.params.description,
-                source: this.params.source,
+                trigger: this.params.trigger,
+                trigger_config: this.params.trigger_config,
                 processors: this.params.processors,
+                routing: this.params.routing,
             });
 
-            if (!response.success || !response.pipeline) {
+            if (!response.success) {
+                const errorMsg = response.error || response.message || 'Failed to create';
                 return {
-                    llmContent: `Error: ${response.error || 'Failed to create'}`,
-                    returnDisplay: `Error: ${response.error || 'Failed'}`,
-                    error: { message: response.error || 'Failed', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const content = `Memory ingestion pipeline created: ${response.pipeline.id} - ${response.pipeline.label}`;
+            if (!response.data?.pipeline) {
+                return {
+                    llmContent: `Error: No pipeline returned`,
+                    returnDisplay: `Error: No pipeline returned`,
+                    error: { message: 'No pipeline returned', type: ToolErrorType.EXECUTION_FAILED },
+                };
+            }
+
+            const content = `Memory ingestion pipeline created: ${response.data.pipeline.id} - ${response.data.pipeline.label}`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

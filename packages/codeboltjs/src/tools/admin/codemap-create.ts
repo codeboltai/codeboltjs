@@ -51,7 +51,19 @@ class CodemapCreateToolInvocation extends BaseToolInvocation<
                 this.params.project_path
             );
 
-            if (!response || !response.codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Unknown error';
+                return {
+                    llmContent: `Error creating codemap: ${errorMsg}`,
+                    returnDisplay: `Error creating codemap: ${errorMsg}`,
+                    error: {
+                        message: errorMsg,
+                        type: ToolErrorType.EXECUTION_FAILED,
+                    },
+                };
+            }
+
+            if (!response.data?.codemap) {
                 return {
                     llmContent: 'Failed to create codemap. No response received.',
                     returnDisplay: 'Failed to create codemap',
@@ -64,12 +76,12 @@ class CodemapCreateToolInvocation extends BaseToolInvocation<
 
             const llmContent = JSON.stringify({
                 message: 'Codemap created successfully',
-                codemap: response.codemap,
+                codemap: response.data.codemap,
             }, null, 2);
 
             return {
                 llmContent,
-                returnDisplay: `Created codemap: ${response.codemap.title} (ID: ${response.codemap.id})`,
+                returnDisplay: `Created codemap: ${response.data.codemap.title} (ID: ${response.data.codemap.id})`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

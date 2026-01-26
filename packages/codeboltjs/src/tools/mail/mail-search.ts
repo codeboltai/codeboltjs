@@ -21,9 +21,9 @@ export interface MailSearchToolParams {
     query: string;
 
     /**
-     * The agent ID performing the search
+     * The agent ID performing the search (optional)
      */
-    agentId: string;
+    agentId?: string;
 
     /**
      * Filter by thread ID
@@ -39,11 +39,6 @@ export interface MailSearchToolParams {
      * Maximum number of results
      */
     limit?: number;
-
-    /**
-     * Offset for pagination
-     */
-    offset?: number;
 }
 
 class MailSearchToolInvocation extends BaseToolInvocation<
@@ -98,7 +93,7 @@ export class MailSearchTool extends BaseDeclarativeTool<
                         type: 'string',
                     },
                     agentId: {
-                        description: 'The agent ID performing the search',
+                        description: 'The agent ID performing the search (optional)',
                         type: 'string',
                     },
                     threadId: {
@@ -113,12 +108,8 @@ export class MailSearchTool extends BaseDeclarativeTool<
                         description: 'Maximum number of results',
                         type: 'number',
                     },
-                    offset: {
-                        description: 'Offset for pagination',
-                        type: 'number',
-                    },
                 },
-                required: ['query', 'agentId'],
+                required: ['query'],
                 type: 'object',
             },
         );

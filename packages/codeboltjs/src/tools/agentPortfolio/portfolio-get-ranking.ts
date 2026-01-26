@@ -31,18 +31,19 @@ class PortfolioGetRankingInvocation extends BaseToolInvocation<PortfolioGetRanki
                 this.params.sortBy
             );
 
-            const ranking = response.payload?.ranking;
-
-            if (!ranking) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to get ranking';
                 return {
-                    llmContent: 'Error: Failed to get ranking - no ranking returned',
-                    returnDisplay: 'Error: Failed to get ranking',
+                    llmContent: `Error: Failed to get ranking - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No ranking returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const ranking = response.data || [];
 
             const sortInfo = this.params.sortBy ? ` sorted by ${this.params.sortBy}` : '';
             return {

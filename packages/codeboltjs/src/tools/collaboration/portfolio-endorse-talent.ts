@@ -34,9 +34,7 @@ class PortfolioEndorseTalentToolInvocation extends BaseToolInvocation<
             const response = await codeboltAgentPortfolio.endorseTalent(this.params.talent_id);
 
             if (!response.success) {
-                const errorMsg = typeof response.error === 'string'
-                    ? response.error
-                    : (response.error as any)?.message || 'Unknown error';
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
                     llmContent: `Error endorsing talent: ${errorMsg}`,
                     returnDisplay: `Error endorsing talent: ${errorMsg}`,
@@ -47,7 +45,7 @@ class PortfolioEndorseTalentToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            const responseData = JSON.stringify(response, null, 2);
+            const responseData = JSON.stringify(response.data, null, 2);
 
             return {
                 llmContent: `Successfully endorsed talent ${this.params.talent_id}:\n${responseData}`,

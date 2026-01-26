@@ -27,7 +27,7 @@ class ContextGetInvocation extends BaseToolInvocation<ContextGetParams, ToolResu
         try {
             const response = await cbcontextAssembly.getContext(this.params.request);
 
-            const context = response.payload?.context;
+            const context = response.data?.context;
 
             if (!context) {
                 return {

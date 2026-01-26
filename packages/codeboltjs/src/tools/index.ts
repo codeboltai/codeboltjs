@@ -275,7 +275,7 @@ export * from './llm';
 
 // Export memory tools (includes basic memory, episodic memory, and persistent memory)
 export { memoryTools } from './memory';
-export * from './memory';
+// Note: Don't re-export * from './memory' since individual modules (persistentMemory, episodicMemory) already export them
 
 // Export todo tools
 export { todoTools } from './todo';
@@ -315,7 +315,7 @@ export * from './testing';
 
 // Export collaboration tools (includes deliberation, feedback, portfolio)
 export { collaborationTools } from './collaboration';
-export * from './collaboration';
+// Note: Don't re-export * from './collaboration' since individual modules (agentDeliberation, agentPortfolio, groupFeedback) already export them
 
 // Export review tools
 export { reviewTools } from './review';
@@ -323,7 +323,7 @@ export * from './review';
 
 // Export admin tools (includes hook, codemap, eventlog, orchestrator)
 export { adminTools } from './admin';
-export * from './admin';
+// Note: Don't re-export * from './admin' since individual modules (hook, codemap, eventLog) already export them
 
 // Export context tools
 export { contextTools } from './context';

@@ -39,6 +39,7 @@ export interface CodemapInfo {
 
 export interface CreateCodemapData {
     title: string;
+    description?: string;
     query?: string;
 }
 
@@ -58,29 +59,50 @@ export interface UpdateCodemapData {
     error?: string;
 }
 
-// Response types
+// Response types - follow cliLib pattern: { success, code, message, data, error }
 
-export interface CodemapListResponse {
-    codemaps: CodemapInfo[];
-    count: number;
-}
-
-export interface CodemapGetResponse {
-    codemap: Codemap | CodemapInfo;
-}
-
-export interface CodemapCreateResponse {
-    codemap: CodemapInfo;
-}
-
-export interface CodemapSaveResponse {
-    codemap: CodemapInfo;
-}
-
-export interface CodemapUpdateResponse {
-    codemap: CodemapInfo;
-}
-
-export interface CodemapDeleteResponse {
+export interface CodemapBaseResponse {
     success: boolean;
+    code?: string;
+    message?: string;
+    error?: {
+        code: string;
+        message: string;
+        details?: any;
+    };
+}
+
+export interface CodemapListResponse extends CodemapBaseResponse {
+    data?: {
+        codemaps: CodemapInfo[];
+        count: number;
+    };
+}
+
+export interface CodemapGetResponse extends CodemapBaseResponse {
+    data?: {
+        codemap: Codemap | CodemapInfo;
+    };
+}
+
+export interface CodemapCreateResponse extends CodemapBaseResponse {
+    data?: {
+        codemap: CodemapInfo;
+    };
+}
+
+export interface CodemapSaveResponse extends CodemapBaseResponse {
+    data?: {
+        codemap: CodemapInfo;
+    };
+}
+
+export interface CodemapUpdateResponse extends CodemapBaseResponse {
+    data?: {
+        codemap: CodemapInfo;
+    };
+}
+
+export interface CodemapDeleteResponse extends CodemapBaseResponse {
+    // No data on delete, just success/error
 }

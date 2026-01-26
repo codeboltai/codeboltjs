@@ -25,7 +25,7 @@ class FsReadFileInvocation extends BaseToolInvocation<FsReadFileParams, ToolResu
             }
             return {
                 llmContent: `File read successfully`,
-                returnDisplay: response.result?.content || '',
+                returnDisplay: response.content || '',
             };
         } catch (error) {
             return {

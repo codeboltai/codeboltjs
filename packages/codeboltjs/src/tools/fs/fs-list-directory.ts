@@ -28,7 +28,7 @@ class FsListDirectoryInvocation extends BaseToolInvocation<FsListDirectoryParams
                     error: { message: response.message || 'Failed to list directory', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const entries = response.result?.entries || [];
+            const entries = response.entries || [];
             return {
                 llmContent: `Found ${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} in ${this.params.path}`,
                 returnDisplay: JSON.stringify(entries, null, 2),

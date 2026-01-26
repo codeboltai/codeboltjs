@@ -24,7 +24,7 @@ class ContextListMemoryTypesInvocation extends BaseToolInvocation<ContextListMem
         try {
             const response = await cbcontextAssembly.listMemoryTypes();
 
-            const memoryTypes = response.payload?.memoryTypes;
+            const memoryTypes = response.data?.memoryTypes;
 
             if (!memoryTypes) {
                 return {

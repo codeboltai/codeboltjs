@@ -22,7 +22,7 @@ Tools for searching files, code patterns, and discovering available MCP tools ac
 ### `glob`
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| pattern | string | Yes | The glob pattern to match files (e.g., '**/*.ts', 'src/**/*.{js,jsx}') |
+| pattern | string | Yes | The glob pattern to match files (e.g., `**/*.ts`, `src/**/*.&#123;js,jsx&#125;`) |
 | path | string | No | The directory to search in. If not specified, searches from project root |
 
 ---
@@ -32,7 +32,7 @@ Tools for searching files, code patterns, and discovering available MCP tools ac
 |-----------|------|----------|-------------|
 | path | string | Yes | The absolute path to search within. Can be a file or directory |
 | pattern | string | Yes | The text pattern or regex to search for |
-| include | string | No | Glob pattern for files to include (e.g., '*.ts', '*.{js,jsx,ts,tsx}') |
+| include | string | No | Glob pattern for files to include (e.g., `*.ts`, `*.&#123;js,jsx,ts,tsx&#125;`) |
 | exclude | string | No | Glob pattern for files/directories to exclude (e.g., 'node_modules/**') |
 | case_sensitive | boolean | No | Whether the search is case sensitive. Defaults to true |
 
