@@ -15,7 +15,7 @@ export enum EventType {
     PROJECT_EVENT = "projectEvent",
     CHAT_SUMMARY_EVENT = "chatSummaryEvent",
     MEMORY_EVENT = "memoryEvent",
-    ACTION_PLAN="actionPlanEvent",
+    ACTION_PLAN = "actionPlanEvent",
     TODO_EVENT = "todoEvent",
     AGENT_PORTFOLIO_EVENT = "agentPortfolioEvent"
 }
@@ -28,24 +28,24 @@ export enum AgentAction {
 }
 
 
-export enum ActionPlanAction{
-    GETALL_ACTION_PLAN="getAllActionPlans",
-    GET_PLAN_DETAIL="getPlanDetail",
-    GET_ACTION_PLAN_DETAIL="getActionPlanDetail",
-    CREATE_ACTION_PLAN="createActionPlan",
-    UPDATE_ACTION_PLAN="updateActionPlan",
-    ADD_TASK_TO_ACTION_PLAN="addTaskToActionPlan",
-    START_TASK_STEP="startTaskStep"
+export enum ActionPlanAction {
+    GETALL_ACTION_PLAN = "getAllActionPlans",
+    GET_PLAN_DETAIL = "getPlanDetail",
+    GET_ACTION_PLAN_DETAIL = "getActionPlanDetail",
+    CREATE_ACTION_PLAN = "createActionPlan",
+    UPDATE_ACTION_PLAN = "updateActionPlan",
+    ADD_TASK_TO_ACTION_PLAN = "addTaskToActionPlan",
+    START_TASK_STEP = "startTaskStep"
 }
 
-export enum ActionPlanResponseType{
-    GETALL_ACTION_PLAN_RESPONSE="getAllActionPlanResponse",
-    GET_PLAN_DETAIL_RESPONSE="getPlanDetailResponse",
-    GET_ACTION_PLAN_DETAIL_RESPONSE="getActionPlanDetailResponse",
-    CREATE_ACTION_PLAN_RESPONSE="createActionPlanResponse",
-    UPDATE_ACTION_PLAN_RESPONSE="updateActionPlanResponse",
-    ADD_TASK_TO_ACTION_PLAN_RESPONSE="addTaskToActionPlanResponse",
-    START_TASK_STEP_RESPONSE="startTaskStepResponse"
+export enum ActionPlanResponseType {
+    GETALL_ACTION_PLAN_RESPONSE = "getAllActionPlanResponse",
+    GET_PLAN_DETAIL_RESPONSE = "getPlanDetailResponse",
+    GET_ACTION_PLAN_DETAIL_RESPONSE = "getActionPlanDetailResponse",
+    CREATE_ACTION_PLAN_RESPONSE = "createActionPlanResponse",
+    UPDATE_ACTION_PLAN_RESPONSE = "updateActionPlanResponse",
+    ADD_TASK_TO_ACTION_PLAN_RESPONSE = "addTaskToActionPlanResponse",
+    START_TASK_STEP_RESPONSE = "startTaskStepResponse"
 }
 
 export enum AgentResponseType {
@@ -210,7 +210,7 @@ export enum FSAction {
     EDIT_FILE_WITH_DIFF = "edit_file_with_diff",
     EDIT_FILE_AND_APPLY_DIFF = "edit_file_and_apply_diff",
     READ_MANY_FILES = "read_many_files",
-    LIST_DIRECTORY = "list_directory",
+    LIST_DIRECTORY = "listDirectory",
 }
 
 export enum FSResponseType {
@@ -221,7 +221,7 @@ export enum FSResponseType {
     DELETE_FILE_RESPONSE = "deleteFileResponse",
     DELETE_FOLDER_RESPONSE = "deleteFolderResponse",
     FILE_LIST_RESPONSE = "fileListResponse",
-    LIST_CODE_DEFINITION_NAMES_RESPONSE = "listCodeDefinitionNamesResponse",
+    LIST_CODE_DEFINITION_NAMES_RESPONSE = "listCodeDefinitionsResponse",
     SEARCH_FILES_RESPONSE = "searchFilesResponse",
     WRITE_TO_FILE_RESPONSE = "writeToFileResponse",
     GREP_SEARCH_RESPONSE = "grepSearchResponse",
@@ -441,7 +441,7 @@ export enum TokenizerAction {
     ADD_TOKEN = "addToken",
     GET_TOKEN = "getToken",
 }
-    
+
 export enum TokenizerResponseType {
     ADD_TOKEN_RESPONSE = "addTokenResponse",
     GET_TOKEN_RESPONSE = "getTokenResponse",
@@ -483,7 +483,7 @@ export enum MemoryResponseType {
     SET_MEMORY_RESPONSE = "setMemoryResponse",
 }
 
-export enum LLMResponseType {   
+export enum LLMResponseType {
     LLM_RESPONSE = "llmResponse",
 }
 

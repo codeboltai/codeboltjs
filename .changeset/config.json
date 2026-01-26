@@ -13,15 +13,65 @@
     [
       "@codebolt/codeparser",
       "@codebolt/mcp"
+    ],
+    [
+      "@codebolt/litegraph",
+      "@codebolt/agent-shared-nodes"
+    ],
+    [
+      "@codebolt/provider",
+      "@codebolt/agentfs-provider",
+      "@codebolt/git-worktree-production"
     ]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
   "ignore": [
     "@codebolt/plugin-template",
     "@codebolt/plugin-and-logic",
     "@codebolt/plugin-enhanced-math",
-    "@codebolt/plugin-text-processor"
+    "@codebolt/plugin-text-processor",
+    "@agent-creator/frontend",
+    "@agent-creator/backend",
+    "@agent-creator/agent",
+    "dockerprovideragent",
+    "@codebolt/git-worktree-provider",
+    "remoteserverprovideragent",
+    "andnode",
+    "codebolt-code",
+    "codebolt-wsproxyserver",
+    "act",
+    "@codebolt/agentserver",
+    "@codebolt/act",
+    "@codebolt/act-claude",
+    "@codebolt/act-old",
+    "@codebolt/actionBlockTest",
+    "@codebolt/clitestagent",
+    "@codebolt/docs",
+    "@codebolt/epomlagent",
+    "@codebolt/orchestrator",
+    "@codebolt/orchestrator-worker",
+    "@codebolt/taskTestAgent",
+    "@codebolt/taskTestingAgent",
+    "@codebolt/testAgent",
+    "@codebolt/tui",
+    "@epoml/example",
+    "@tests",
+    "Planner",
+    "calender-agent",
+    "codebolt-dummytui",
+    "codeboltcontainers",
+    "main-swarm-agent",
+    "main-swarm-agent-bkp",
+    "projectStructure_fileUpdateIntent",
+    "review-agent",
+    "swarm",
+    "swarm-initializer",
+    "swarm-task-spliter-agent",
+    "swarmbkp",
+    "swarmfunctiontester",
+    "testingagent"
   ]
 }

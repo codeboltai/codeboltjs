@@ -1,0 +1,51 @@
+# ActionBlock Configuration File
+# This ActionBlock finds and assigns the next available job to a swarm agent
+
+name: find-next-job
+
+description: Finds and assigns the next available job to a swarm agent by analyzing dependencies, checking blockers, and locking the job
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - swarm
+    - job
+    - task-assignment
+    - agent
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+
+  inputs:
+    - name: swarmId
+      type: string
+      required: true
+      description: The ID of the swarm to find jobs from
+
+    - name: agentId
+      type: string
+      required: false
+      description: The ID of the agent (falls back to parentAgentInstanceId from metadata)
+
+    - name: agentName
+      type: string
+      required: false
+      description: The name of the agent (falls back to Agent:{parentAgentInstanceId})
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether a job was successfully found and assigned
+
+    - name: job
+      type: object
+      description: The assigned job details - contains id, name, description, status, groupId
+
+    - name: error
+      type: string
+      description: Error message if no job was found or an error occurred

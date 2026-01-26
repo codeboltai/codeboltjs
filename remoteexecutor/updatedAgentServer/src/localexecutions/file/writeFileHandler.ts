@@ -8,13 +8,8 @@ import { FileServices, createFileServices } from "../../main/server/services/Fil
 import { DefaultFileSystem } from "../../utils/DefaultFileSystem";
 import { DefaultWorkspaceContext } from "../../utils/DefaultWorkspaceContext";
 import { logger } from "../../main/utils/logger";
-import { PermissionManager, PermissionUtils } from "../PermissionManager";
 import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../../shared";
 
-import type {
-  FileWriteConfirmation,
-  FileWriteSuccess,
-} from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
 
 export interface WriteFileEvent {
   type: "fsEvent";
@@ -42,12 +37,15 @@ export class WriteFileHandler {
   private connectionManager = ConnectionManager.getInstance();
   // Use FileServices instead of the missing WriteFileService
   private fileServices: FileServices;
-  private permissionManager: PermissionManager;
   private approvalService = new ApprovalService();
   private notificationService = NotificationService.getInstance();
   private clientResolver = new ClientResolver();
 
   private pendingRequests = new Map<string, PendingRequest>();
+
+  // Session-wide write permission flag (same as createFile behavior)
+  // Once user approves one write, all subsequent writes are allowed
+  private alwaysAllowWrite = false;
 
   constructor() {
     // Initialize FileServices with default configuration
@@ -57,10 +55,6 @@ export class WriteFileHandler {
       fileSystemService: new DefaultFileSystem(),
     };
     this.fileServices = createFileServices(config);
-    
-    // Initialize PermissionManager
-    this.permissionManager = PermissionManager.getInstance();
-    this.permissionManager.initialize();
   }
 
   async handleWriteFile(agent: ClientConnection, event: WriteFileEvent): Promise<void> {
@@ -70,15 +64,15 @@ export class WriteFileHandler {
     const targetClient = this.clientResolver.resolveParent(agent);
 
     if (!targetClient) {
-      // Use FileServices to write the file instead of the missing performWrite method
+      // No target client - write directly without confirmation
       const result = await this.fileServices.writeFile(relPath, newContent);
       this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
       return;
     }
 
-    // Check if permission exists using centralized permission system
-    if (PermissionUtils.hasPermission('write_file', relPath, 'write')) {
-      // Use FileServices to write the file instead of the missing performWrite method
+    // Check session-wide write permission (same as createFile behavior)
+    // Once approved, all subsequent writes are allowed without confirmation
+    if (this.alwaysAllowWrite) {
       const result = await this.fileServices.writeFile(relPath, newContent);
       this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
       return;
@@ -127,7 +121,7 @@ export class WriteFileHandler {
 
     if (message.userMessage?.toLowerCase() !== "approve") {
       const response = {
-        type: "writeFileResponse",
+        type: "writeToFileResponse",
         requestId,
         success: false,
         message: message.userMessage || "Write file request rejected",
@@ -149,8 +143,8 @@ export class WriteFileHandler {
       return;
     }
 
-    PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
-    // Use FileServices to write the file instead of the missing performWrite method
+    // Set session-wide write permission (same as createFile behavior)
+    this.alwaysAllowWrite = true;
     const result = await this.fileServices.writeFile(payload.relPath, payload.newContent);
     this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result, targetClient);
   }
@@ -177,7 +171,7 @@ export class WriteFileHandler {
 
     if (message.state !== "approved") {
       const response = {
-        type: "writeFileResponse",
+        type: "writeToFileResponse",
         requestId,
         success: false,
         message: message.reason || "Write file request rejected",
@@ -199,8 +193,8 @@ export class WriteFileHandler {
       return;
     }
 
-    PermissionUtils.grantPermission('write_file', payload.relPath, 'write');
-    // Use FileServices to write the file instead of the missing performWrite method
+    // Set session-wide write permission (same as createFile behavior)
+    this.alwaysAllowWrite = true;
     this.fileServices.writeFile(payload.relPath, payload.newContent).then(result => {
       this.sendWriteResponse(agent, requestId, payload.relPath, payload.newContent, result, targetClient);
     }).catch(error => {
@@ -220,7 +214,7 @@ export class WriteFileHandler {
     if (result.success) {
       // Send success response
       const response = {
-        type: "writeFileResponse",
+        type: "writeToFileResponse",
         requestId,
         success: true,
         originalContent: result.originalContent,
@@ -246,7 +240,7 @@ export class WriteFileHandler {
     } else {
       // Send error response
       const response = {
-        type: "writeFileResponse",
+        type: "writeToFileResponse",
         requestId,
         success: false,
         message: result.error || "Error writing file",

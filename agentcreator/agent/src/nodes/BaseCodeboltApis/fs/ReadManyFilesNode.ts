@@ -20,7 +20,7 @@ export class ReadManyFilesNode extends BaseReadManyFilesNode {
     try {
       const result = await codebolt.fs.readManyFiles(params);
       this.setOutputData(1, true);
-      this.setOutputData(2, result.files || null);
+      this.setOutputData(2, result.results || null);
       this.triggerSlot(0, null, null);
     } catch (error) {
       console.error('ReadManyFilesNode error:', error);

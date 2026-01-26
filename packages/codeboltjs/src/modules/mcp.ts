@@ -1,6 +1,8 @@
 
 // To use UserMessage functionality, install @codebolt/agent-utils
 import cbws from '../core/websocket';
+import tools from '../tools';
+import type { AnyDeclarativeTool, ToolResult } from '../tools/types';
 import {
     GetEnabledToolBoxesResponse,
     GetLocalToolBoxesResponse,
@@ -20,6 +22,42 @@ import {
     ConfigureMCPToolResponse
 } from '@codebolt/types/sdk';
 import { EventType, CodeboltToolsAction, CodeboltToolsResponse } from '@codebolt/types/enum';
+
+const CODEBOLT_TOOLBOX = 'codebolt';
+
+/**
+ * Checks if toolbox is the codebolt local toolbox (case-insensitive)
+ */
+function isCodeboltToolbox(toolbox: string): boolean {
+    return toolbox.toLowerCase() === CODEBOLT_TOOLBOX;
+}
+
+/**
+ * Converts a local declarative tool to OpenAI tool format.
+ * Prefixes tool name with 'codebolt--' for consistent naming.
+ */
+function convertLocalToolToOpenAIFormat(tool: AnyDeclarativeTool) {
+    return {
+        type: 'function' as const,
+        function: {
+            name: `${CODEBOLT_TOOLBOX}--${tool.name}`,
+            description: tool.description,
+            parameters: tool.schema.function.parameters
+        }
+    };
+}
+
+/**
+ * Extracts the actual tool name from a prefixed tool name.
+ * e.g., "codebolt--read_file" -> "read_file"
+ */
+function extractToolName(prefixedName: string): string {
+    const prefix = `${CODEBOLT_TOOLBOX}--`;
+    return prefixedName.startsWith(prefix)
+        ? prefixedName.substring(prefix.length)
+        : prefixedName;
+}
+
 /**
  * Object containing methods for interacting with Codebolt MCP (Model Context Protocol) tools.
  * Provides functionality to discover, list, and execute tools.
@@ -90,19 +128,46 @@ const codeboltMCP = {
 
     /**
      * Lists all tools from the specified toolboxes.
-     * 
+     *
      * @param toolBoxes - Array of toolbox names to list tools from
-     * @returns Promise with tools from the specified toolboxes
+     * @returns Promise with tools from the specified toolboxes (in OpenAI format)
      */
-    listMcpFromServers: (toolBoxes: string[]): Promise<ListToolsFromToolBoxesResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                "type": EventType.CODEBOLT_TOOLS_EVENT,
-                "action": CodeboltToolsAction.ListToolsFromToolBoxes,
-                "toolBoxes": toolBoxes
-            },
-            CodeboltToolsResponse.ListToolsFromToolBoxesResponse
-        );
+    listMcpFromServers: async (toolBoxes: string[]): Promise<ListToolsFromToolBoxesResponse> => {
+        const hasCodebolt = toolBoxes.some(tb => isCodeboltToolbox(tb));
+        const otherToolBoxes = toolBoxes.filter(tb => !isCodeboltToolbox(tb));
+
+        // Type matches ListToolsFromToolBoxesResponse.data.tools (OpenAI format)
+        const toolsList: Array<{
+            type: 'function';
+            function: {
+                name: string;
+                description: string;
+                parameters: Record<string, unknown>;
+            };
+        }> = [];
+
+        // Get local codebolt tools in OpenAI format (names prefixed as codebolt--<toolName>)
+        if (hasCodebolt) {
+            const localTools = tools.getAllTools().map(tool => convertLocalToolToOpenAIFormat(tool));
+            toolsList.push(...localTools);
+        }
+
+        // Get remote tools if needed
+        if (otherToolBoxes.length > 0) {
+            const response = await cbws.messageManager.sendAndWaitForResponse(
+                {
+                    "type": EventType.CODEBOLT_TOOLS_EVENT,
+                    "action": CodeboltToolsAction.ListToolsFromToolBoxes,
+                    "toolBoxes": otherToolBoxes
+                },
+                CodeboltToolsResponse.ListToolsFromToolBoxesResponse
+            );
+            if (response.data?.tools) {
+                toolsList.push(...response.data.tools);
+            }
+        }
+
+        return { data: { tools: toolsList } };
     },
 
     /**
@@ -126,19 +191,48 @@ const codeboltMCP = {
 
     /**
      * Gets detailed information about specific tools.
-     * 
-     * @param tools - Array of toolbox and tool name pairs
+     *
+     * @param toolRequests - Array of toolbox and tool name pairs
      * @returns Promise with detailed information about the tools
      */
-    getTools: (tools: { toolbox: string, toolName: string }[]): Promise<GetToolsResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                "type": EventType.CODEBOLT_TOOLS_EVENT,
-                "action": CodeboltToolsAction.GetTools,
-                "toolboxes": tools
-            },
-            CodeboltToolsResponse.GetToolsResponse
-        );
+    getTools: async (toolRequests: { toolbox: string, toolName: string }[]): Promise<GetToolsResponse> => {
+        const codeboltRequests = toolRequests.filter(t => isCodeboltToolbox(t.toolbox));
+        const otherRequests = toolRequests.filter(t => !isCodeboltToolbox(t.toolbox));
+
+        let result: Array<{ toolbox: string; toolName: string; description?: string; parameters?: Record<string, unknown> }> = [];
+
+        // Get local codebolt tools
+        if (codeboltRequests.length > 0) {
+            for (const req of codeboltRequests) {
+                const actualToolName = extractToolName(req.toolName);
+                const tool = tools.getTool(actualToolName);
+                if (tool) {
+                    result.push({
+                        toolbox: CODEBOLT_TOOLBOX,
+                        toolName: `${CODEBOLT_TOOLBOX}--${tool.name}`,
+                        description: tool.description,
+                        parameters: tool.schema.function.parameters
+                    });
+                }
+            }
+        }
+
+        // Get remote tools if needed
+        if (otherRequests.length > 0) {
+            const response = await cbws.messageManager.sendAndWaitForResponse(
+                {
+                    "type": EventType.CODEBOLT_TOOLS_EVENT,
+                    "action": CodeboltToolsAction.GetTools,
+                    "toolboxes": otherRequests
+                },
+                CodeboltToolsResponse.GetToolsResponse
+            );
+            if (response.data) {
+                result = [...result, ...response.data];
+            }
+        }
+
+        return { data: result } as GetToolsResponse;
     },
 
 
@@ -152,7 +246,48 @@ const codeboltMCP = {
      * @param params - Parameters to pass to the tool
      * @returns Promise with the execution result
      */
-    executeTool: (toolbox: string, toolName: string, params: ToolParameters): Promise<ExecuteToolResponse> => {
+    executeTool: async (toolbox: string, toolName: string, params: ToolParameters): Promise<ExecuteToolResponse> => {
+        // Handle local codebolt tools
+        if (isCodeboltToolbox(toolbox)) {
+            // Extract actual tool name (in case it comes prefixed)
+            const actualToolName = extractToolName(toolName);
+
+            if (!tools.hasTool(actualToolName)) {
+                return {
+                    success: false,
+                    error: `Tool '${actualToolName}' not found in codebolt toolbox`
+                } as ExecuteToolResponse;
+            }
+
+            const result: ToolResult = await tools.executeTool(actualToolName, params as object);
+
+            // Match MCP service "executeToolResponse" semantics used by the app:
+            // - data: [false, toolResponse] on success
+            // - data: [true, errorMessage] on error
+            const toolResponse =
+                typeof result.llmContent === 'string'
+                    ? result.llmContent
+                    : JSON.stringify(result.llmContent);
+
+            if (result.error) {
+                return {
+                    success: false,
+                    status: 'error',
+                    error: result.error.message,
+                    result: toolResponse,
+                    data: [true, result.error.message],
+                } as ExecuteToolResponse;
+            }
+
+            return {
+                success: true,
+                status: 'success',
+                result: toolResponse,
+                data: [false, toolResponse],
+            } as ExecuteToolResponse;
+        }
+
+        // Use websocket for other toolboxes
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.CODEBOLT_TOOLS_EVENT,
@@ -170,15 +305,34 @@ const codeboltMCP = {
      * @param mcpNames - Array of MCP server names to get tools from
      * @returns Promise with MCP tools data
      */
-    getMcpTools: (mcpNames?: string[]): Promise<GetMcpToolsResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
-            {
-                "type": EventType.CODEBOLT_TOOLS_EVENT,
-                "action": CodeboltToolsAction.GetMcpTools,
-                "mcpNames": mcpNames
-            },
-            CodeboltToolsResponse.GetMcpToolsResponse
-        );
+    getMcpTools: async (mcpNames?: string[]): Promise<GetMcpToolsResponse> => {
+        const includesCodebolt = !mcpNames || mcpNames.some(n => isCodeboltToolbox(n));
+        const otherMcpNames = mcpNames?.filter(n => !isCodeboltToolbox(n));
+
+        let result: any[] = [];
+
+        // Include local codebolt tools (names prefixed as codebolt--<toolName>)
+        if (includesCodebolt) {
+            const localTools = tools.getAllTools().map(convertLocalToolToOpenAIFormat);
+            result = [...result, ...localTools];
+        }
+
+        // Get remote MCP tools if needed
+        if (!mcpNames || (otherMcpNames && otherMcpNames.length > 0)) {
+            const response = await cbws.messageManager.sendAndWaitForResponse(
+                {
+                    "type": EventType.CODEBOLT_TOOLS_EVENT,
+                    "action": CodeboltToolsAction.GetMcpTools,
+                    "mcpNames": otherMcpNames
+                },
+                CodeboltToolsResponse.GetMcpToolsResponse
+            );
+            if (response.tools) {
+                result = [...result, ...response.tools];
+            }
+        }
+
+        return { tools: result } as GetMcpToolsResponse;
     },
 
     /**
@@ -201,14 +355,22 @@ const codeboltMCP = {
      *
      * @returns Promise with all MCP tools data
      */
-    getAllMcpTools: (): Promise<GetAllMCPToolsResponse> => {
-        return cbws.messageManager.sendAndWaitForResponse(
+    getAllMcpTools: async (): Promise<GetAllMCPToolsResponse> => {
+        // Get local codebolt tools
+        const localTools = tools.getAllTools().map(convertLocalToolToOpenAIFormat);
+
+        // Get remote MCP tools
+        const response = await cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.CODEBOLT_TOOLS_EVENT,
                 "action": CodeboltToolsAction.GetAllMcpTools
             },
             CodeboltToolsResponse.GetAllMcpToolsResponse
         );
+
+        const remoteTools = response.tools || [];
+
+        return { tools: [...localTools, ...remoteTools] } as GetAllMCPToolsResponse;
     },
 
     /**

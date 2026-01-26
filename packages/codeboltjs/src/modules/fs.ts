@@ -19,14 +19,27 @@ const cbfs = {
      * @returns {Promise<CreateFileResponse>} A promise that resolves with the server response.
      */
     createFile: (fileName: string, source: string, filePath: string): Promise<CreateFileResponse> => {
+        // Construct full path if filePath is a directory, or handle as is if it looks like a path
+        // Since write-file tool sends dirPath as filePath, we should try to join. 
+        // However, we don't have 'path' module easily here without importing it? 
+        // This is a node module, so we can likely import path or use simple string concat if we assume separator.
+        // Let's use a safe join approach or just template string if we are sure of environment.
+        // Since this is codeboltjs which runs in node (usually), we can try to use delimiters.
+        // But to be safe and simple: let's assume filePath is the DIRECTORY as per usages.
+
+        let fullPath = filePath;
+        if (fileName) {
+            const separator = filePath.includes('\\') ? '\\' : '/';
+            fullPath = filePath.endsWith(separator) ? `${filePath}${fileName}` : `${filePath}${separator}${fileName}`;
+        }
+
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
                 "action": FSAction.CREATE_FILE,
                 "message": {
-                    fileName,
-                    source,
-                    filePath
+                    filePath: fullPath,
+                    content: source
                 },
             },
             FSResponseType.CREATE_FILE_RESPONSE
@@ -40,13 +53,18 @@ const cbfs = {
      * @returns {Promise<CreateFolderResponse>} A promise that resolves with the server response.
      */
     createFolder: (folderName: string, folderPath: string): Promise<CreateFolderResponse> => {
+        // Similar logic for folder
+        let fullPath = folderPath;
+        if (folderName) {
+            const separator = folderPath.includes('\\') ? '\\' : '/';
+            fullPath = folderPath.endsWith(separator) ? `${folderPath}${folderName}` : `${folderPath}${separator}${folderName}`;
+        }
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
                 "action": FSAction.CREATE_FOLDER,
                 "message": {
-                    folderName,
-                    folderPath
+                    path: fullPath
                 },
             },
             FSResponseType.CREATE_FOLDER_RESPONSE
@@ -85,9 +103,8 @@ const cbfs = {
                 "type": EventType.FS_EVENT,
                 "action": FSAction.UPDATE_FILE,
                 "message": {
-                    filename,
-                    filePath,
-                    newContent
+                    path: filePath, // Server expects 'path'
+                    content: newContent // Server expects 'content'
                 },
             },
             FSResponseType.UPDATE_FILE_RESPONSE
@@ -142,13 +159,15 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.FILE_LIST,
-                message:{
-                    folderPath,
-                    isRecursive
+                "action": "listFiles" as FSAction,
+                "message": {
+                    path: folderPath,
+                    options: {
+                        recursive: isRecursive
+                    }
                 }
             },
-            FSResponseType.FILE_LIST_RESPONSE
+            "listFilesResponse" as FSResponseType
         );
     },
     /**
@@ -161,7 +180,7 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.LIST_CODE_DEFINITION_NAMES,
+                "action": "listCodeDefinitions" as FSAction,
                 "message": {
                     path
                 }
@@ -199,7 +218,7 @@ const cbfs = {
      * @param {string} newContent - The new content to write into the file.
      * @returns {Promise<WriteToFileResponse>} A promise that resolves with the write operation result.
      */
-    writeToFile: (relPath:string, newContent:string) => {
+    writeToFile: (relPath: string, newContent: string) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
@@ -212,7 +231,7 @@ const cbfs = {
             FSResponseType.WRITE_TO_FILE_RESPONSE
         );
     },
-    
+
     /**
      * @function listFiles
      * @description Lists all files in a directory.
@@ -221,8 +240,8 @@ const cbfs = {
      * @param {boolean} askForPermission - Whether to ask for permission before listing.
      * @returns {Promise<{success: boolean, result: any}>} A promise that resolves with the list of files.
      */
-   
-    
+
+
     /**
      * @function grepSearch
      * @description Performs a grep search in files.
@@ -237,19 +256,21 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.GREP_SEARCH,
+                "action": "grepSearch" as FSAction,
                 "message": {
                     path,
-                    query,
-                    includePattern,
-                    excludePattern,
-                    caseSensitive
+                    pattern: query,
+                    options: {
+                        includePattern,
+                        excludePattern,
+                        caseSensitive
+                    }
                 }
             },
             FSResponseType.GREP_SEARCH_RESPONSE
         );
     },
-    
+
     /**
      * @function fileSearch
      * @description Performs a fuzzy search for files.
@@ -260,15 +281,15 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.FILE_SEARCH,
+                "action": "fuzzySearch" as FSAction,
                 "message": {
                     query
                 }
             },
-            FSResponseType.FILE_SEARCH_RESPONSE
+            "fuzzySearchResponse"
         );
     },
-    
+
     /**
      * @function editFileWithDiff
      * @description Edits a file by applying a diff.
@@ -283,13 +304,15 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.EDIT_FILE_WITH_DIFF,
+                "action": "applyDiff" as FSAction,
                 "message": {
-                    target_file: targetFile,
-                    code_edit: codeEdit,
-                    diffIdentifier,
-                    prompt,
-                    applyModel
+                    path: targetFile,
+                    diff: codeEdit,
+                    options: {
+                        diffIdentifier,
+                        prompt,
+                        applyModel
+                    }
                 }
             },
             FSResponseType.EDIT_FILE_AND_APPLY_DIFF_RESPONSE
@@ -326,7 +349,7 @@ const cbfs = {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.FS_EVENT,
-                "action": FSAction.READ_MANY_FILES,
+                "action": "readManyFiles" as FSAction,
                 "message": params
             },
             FSResponseType.READ_MANY_FILES_RESPONSE
@@ -361,7 +384,7 @@ const cbfs = {
             FSResponseType.LIST_DIRECTORY_RESPONSE
         );
     },
-  
+
 };
 
 export default cbfs;

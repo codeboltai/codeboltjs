@@ -48,6 +48,18 @@ export interface ToolParameters {
   [key: string]: unknown;
 }
 
+/**
+ * Standard tuple format for tool execution responses used over MCP:
+ * - [false, result] => success
+ * - [true, error]   => error
+ *
+ * TSuccess: shape of the successful result payload
+ * TError:   shape of the error payload (usually string)
+ */
+export type ToolExecutionTuple<TSuccess = unknown, TError = string> =
+  | [false, TSuccess]
+  | [true, TError];
+
 // MCP toolbox responses
 export interface GetEnabledToolBoxesResponse extends BaseMCPSDKResponse {
   data?: Array<{
@@ -98,14 +110,16 @@ export interface SearchAvailableToolBoxesResponse extends BaseMCPSDKResponse {
 }
 
 export interface ListToolsFromToolBoxesResponse extends BaseMCPSDKResponse {
-  data?: Array<{
-    toolbox: string;
+  data?: {
     tools: Array<{
-      name: string;
-      description?: string;
-      parameters?: Record<string, unknown>;
+      type: 'function';
+      function: {
+        name: string;
+        description: string;
+        parameters: Record<string, unknown>;
+      };
     }>;
-  }>;
+  };
   error?: string;
 }
 
@@ -138,7 +152,7 @@ export interface ExecuteToolResponse extends BaseMCPSDKResponse {
   toolName?: string;
   serverName?: string;
   params?: ToolParameters;
-  data?: [boolean, unknown] | { error?: string };
+  data?: ToolExecutionTuple | { error?: string };
   result?: unknown;
   status?: 'pending' | 'executing' | 'success' | 'error' | 'rejected';
 }

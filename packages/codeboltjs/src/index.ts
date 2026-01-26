@@ -1029,3 +1029,148 @@ export type {
 
 // Export agentPortfolio module
 export { default as agentPortfolio } from './modules/agentPortfolio';
+
+// ================================
+// Agent Event Queue Types
+// ================================
+export type {
+    AgentEventMessage,
+    AddEventInput,
+    SendAgentMessageInput,
+    AckEventInput,
+    GetPendingEventsInput,
+    AgentEventQueueResponse,
+    AddEventResponseData,
+    GetPendingEventsResponseData,
+    QueueStatsResponseData,
+    QueueEventHandler,
+    AgentMessagePayload,
+    CalendarUpdatePayload,
+    SystemNotificationPayload,
+    TaskUpdatePayload,
+    CustomEventPayload,
+    AgentEventPayload,
+    PullEventsInput,
+    PullEventsResponseData
+} from './types/agentEventQueue';
+
+export {
+    AgentEventType,
+    AgentEventStatus,
+    AgentEventPriority
+} from './types/agentEventQueue';
+
+// Export agentEventQueue module
+export { default as agentEventQueue } from './modules/agentEventQueue';
+
+// ================================
+// Tools Module - LLM-ready tool definitions
+// ================================
+
+// Export tools module and types
+export { default as tools } from './tools';
+export {
+    // Types (renamed to avoid conflict with libFunctionTypes.ToolResult)
+    Kind,
+    ToolErrorType,
+    ToolConfirmationOutcome,
+    type ToolResult as ToolFrameworkResult,
+    type ToolLocation,
+    type ToolInvocation,
+    type ToolBuilder,
+    type OpenAIToolSchema,
+    type OpenAIFunctionCall,
+    type ToolCallConfirmationDetails,
+    type AnyDeclarativeTool,
+    type AnyToolInvocation,
+    // Base classes
+    BaseToolInvocation,
+    DeclarativeTool,
+    BaseDeclarativeTool,
+    // Registry
+    ToolRegistry,
+    defaultRegistry,
+    // All tools
+    allTools,
+    // Tool categories
+    fileTools,
+    searchTools,
+    terminalTools,
+    gitTools,
+    browserTools,
+    agentTools,
+    threadTools,
+    taskTools,
+    orchestratorTools,
+    // Individual tools
+    ReadFileTool,
+    WriteFileTool,
+    EditTool,
+    ListDirectoryTool,
+    ReadManyFilesTool,
+    GlobTool,
+    GrepTool,
+    SearchFilesTool,
+    CodebaseSearchTool,
+    SearchMcpToolTool,
+    ListCodeDefinitionNamesTool,
+    ExecuteCommandTool,
+    // Git tools (individual)
+    GitInitTool,
+    GitStatusTool,
+    GitAddTool,
+    GitCommitTool,
+    GitPushTool,
+    GitPullTool,
+    GitCheckoutTool,
+    GitBranchTool,
+    GitLogsTool,
+    GitDiffTool,
+    GitCloneTool,
+    // Browser tools (individual)
+    BrowserNavigateTool,
+    BrowserScreenshotTool,
+    BrowserClickTool,
+    BrowserTypeTool,
+    BrowserScrollTool,
+    BrowserGetContentTool,
+    BrowserGetHtmlTool,
+    BrowserGetMarkdownTool,
+    BrowserGetUrlTool,
+    BrowserCloseTool,
+    BrowserEnterTool,
+    BrowserSearchTool,
+    // Task tools (individual)
+    TaskCreateTool,
+    TaskUpdateTool,
+    TaskDeleteTool,
+    TaskListTool,
+    TaskGetTool,
+    TaskAssignTool,
+    TaskExecuteTool,
+    // Agent tools (individual)
+    AgentFindTool,
+    AgentStartTool,
+    AgentListTool,
+    AgentDetailsTool,
+    // Thread tools (individual)
+    ThreadCreateTool,
+    ThreadCreateStartTool,
+    ThreadCreateBackgroundTool,
+    ThreadListTool,
+    ThreadGetTool,
+    ThreadStartTool,
+    ThreadUpdateTool,
+    ThreadDeleteTool,
+    ThreadGetMessagesTool,
+    ThreadUpdateStatusTool,
+    // Orchestrator tools (individual)
+    OrchestratorListTool,
+    OrchestratorGetTool,
+    OrchestratorGetSettingsTool,
+    OrchestratorCreateTool,
+    OrchestratorUpdateTool,
+    OrchestratorUpdateSettingsTool,
+    OrchestratorDeleteTool,
+    OrchestratorUpdateStatusTool,
+} from './tools';

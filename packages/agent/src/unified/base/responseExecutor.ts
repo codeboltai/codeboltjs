@@ -165,10 +165,8 @@ export class ResponseExecutor implements AgentResponseExecutor {
                         }
                     }
 
-                    // Second pass: Execute tools respecting parallel groups
-                    let currentBatch: Promise<ToolResult>[] = [];
-
-                    const executeSingleTool = async (item: typeof toolsToExecute[0]): Promise<ToolResult> => {
+                    // Second pass: Execute tools sequentially (one by one)
+                    for (const item of toolsToExecute) {
                         try {
                             if (!userRejectedToolUse) {
                                 let [serverName] = item.toolName.replace('--', ':').split(':');
@@ -187,11 +185,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     if (didUserReject) {
                                         userRejectedToolUse = true;
                                     }
-                                    return {
+                                    toolResults.push({
                                         role: "tool",
                                         tool_call_id: toolResult.tool_call_id,
                                         content: toolResult.content,
-                                    };
+                                    });
                                 }
                                 else if (item.toolName == "codebolt--thread_management") {
                                     const response = await codebolt.thread.createThreadInBackground({
@@ -202,11 +200,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                         isGrouped:item.toolInput.isGrouped,
                                         groupId: item.toolInput.groupId,
                                     })
-                                    return {
+                                    toolResults.push({
                                         role: "tool",
                                         tool_call_id: item.toolUseId,
                                         content: JSON.stringify(response),
-                                    };
+                                    });
                                 }
                                 else {
                                     const [didUserReject, result] = await this.executeTool(item.toolName, item.toolInput);
@@ -221,11 +219,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     if (didUserReject) {
                                         userRejectedToolUse = true;
                                     }
-                                    return {
+                                    toolResults.push({
                                         role: "tool",
                                         tool_call_id: toolResult.tool_call_id,
                                         content: toolResult.content,
-                                    };
+                                    });
                                 }
                             } else {
                                 let toolResult = this.parseToolResult(item.toolUseId, "Skipping tool execution due to previous tool user rejection.")
@@ -235,34 +233,19 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                         content: toolResult.userMessage.toString()
                                     })
                                 }
-                                return {
+                                toolResults.push({
                                     role: "tool",
                                     tool_call_id: toolResult.tool_call_id,
                                     content: toolResult.content,
-                                };
+                                });
                             }
                         } catch (error) {
-                            return {
+                            toolResults.push({
                                 role: "tool",
                                 tool_call_id: item.tool.id,
                                 content: String(error),
-                            };
+                            });
                         }
-                    };
-
-                    for (const item of toolsToExecute) {
-                        if (item.waitForPrevious && currentBatch.length > 0) {
-                            // Wait for current batch to finish before starting this one
-                            const batchResults = await Promise.all(currentBatch);
-                            toolResults.push(...batchResults);
-                            currentBatch = [];
-                        }
-                        currentBatch.push(executeSingleTool(item));
-                    }
-                    // Await remaining
-                    if (currentBatch.length > 0) {
-                        const batchResults = await Promise.all(currentBatch);
-                        toolResults.push(...batchResults);
                     }
                 }
                 else {

@@ -62,7 +62,7 @@ import cbcontextAssembly from '../modules/contextAssembly';
 import cbcontextRuleEngine from '../modules/contextRuleEngine';
 import cbagentPortfolio from '../modules/agentPortfolio';
 import orchestrator from '../modules/orchestrator';
-import cbcodeboltEvent from '../modules/codeboltEvent';
+import cbbackgroundChildThreads from '../modules/backgroundChildThreads';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -188,7 +188,7 @@ class Codebolt {
     contextRuleEngine = cbcontextRuleEngine;
     agentPortfolio = cbagentPortfolio;
     orchestrator = orchestrator;
-    codeboltEvent = cbcodeboltEvent;
+    backgroundChildThreads = cbbackgroundChildThreads;
 
     /**
      * User message utilities for accessing current user message and context
@@ -412,8 +412,14 @@ class Codebolt {
                 if (response.type === "actionBlockInvocation") {
                     console.log("ActionBlock invocation received", response);
                     try {
+                        // Merge params into threadContext so action blocks can access them
+                        // params contains the custom parameters passed via actionBlock.start()
+                        const threadContextWithParams = {
+                            ...(response.threadContext || {}),
+                            params: response.params || {}
+                        };
                         const result = await handler(
-                            response.threadContext || {},
+                            threadContextWithParams,
                             {
                                 sideExecutionId: response.sideExecutionId,
                                 threadId: response.threadId,
