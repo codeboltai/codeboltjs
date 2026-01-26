@@ -6,7 +6,7 @@
  * WebSocket connections.
  */
 
-import type { ToolResult } from '../../src/tools/types';
+import type { ToolResult } from '../../../src/tools/types';
 
 /**
  * Standard module response structure
@@ -24,14 +24,14 @@ export function createMockModule<T extends Record<string, any>>(
     mockResponses: Partial<Record<keyof T, any>>
 ): T {
     const mockModule = {} as T;
-    
+
     for (const [key, value] of Object.entries(mockResponses)) {
         (mockModule as any)[key] = jest.fn().mockResolvedValue({
             success: true,
             payload: value,
         });
     }
-    
+
     return mockModule;
 }
 
@@ -230,7 +230,7 @@ export const toolResultAssertions = {
         expect(result.error).toBeDefined();
         expect(result.error?.message).toBeDefined();
         expect(result.error?.type).toBeDefined();
-        
+
         if (expectedErrorType) {
             expect(result.error?.type).toBe(expectedErrorType);
         }

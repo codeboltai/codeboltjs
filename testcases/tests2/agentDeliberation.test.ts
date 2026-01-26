@@ -9,7 +9,7 @@
  * - Managing deliberation state
  */
 
-import Codebolt from '../src/core/Codebolt';
+import Codebolt from '../../src/core/Codebolt';
 
 const codebolt = new Codebolt();
 

@@ -9,7 +9,7 @@
  * Each test includes proper state cleanup and AskUserQuestion for verification.
  */
 
-import Codebolt from '../src/core/Codebolt';
+import Codebolt from '../../src/core/Codebolt';
 
 const codebolt = new Codebolt();
 

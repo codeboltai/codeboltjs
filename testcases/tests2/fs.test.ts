@@ -1,4 +1,4 @@
-import codebolt from '../dist';
+import codebolt from '../../dist';
 
 /**
  * Comprehensive Test Suite for File System Module
