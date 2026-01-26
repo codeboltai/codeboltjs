@@ -26,18 +26,19 @@ class PortfolioGetByProjectInvocation extends BaseToolInvocation<PortfolioGetByP
         try {
             const response = await cbagentPortfolio.getPortfoliosByProject(this.params.projectId);
 
-            const portfolios = response.payload?.portfolios;
-
-            if (!portfolios) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to get portfolios';
                 return {
-                    llmContent: 'Error: Failed to get portfolios - no portfolios returned',
-                    returnDisplay: 'Error: Failed to get portfolios',
+                    llmContent: `Error: Failed to get portfolios - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No portfolios returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const portfolios = response.data || [];
 
             return {
                 llmContent: `Retrieved ${portfolios.length} portfolios for project ${this.params.projectId}`,

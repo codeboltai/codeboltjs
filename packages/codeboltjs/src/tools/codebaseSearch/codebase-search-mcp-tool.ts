@@ -31,7 +31,7 @@ class CodebaseSearchMcpToolInvocation extends BaseToolInvocation<CodebaseSearchM
                 this.params.tags
             );
 
-            const tools = response.payload?.tools;
+            const tools = response.results;
 
             if (!tools) {
                 return {

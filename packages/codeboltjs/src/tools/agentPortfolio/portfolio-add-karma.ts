@@ -34,21 +34,21 @@ class PortfolioAddKarmaInvocation extends BaseToolInvocation<PortfolioAddKarmaPa
                 this.params.reason
             );
 
-            const karma = response.payload?.karma;
-
-            if (karma === undefined) {
+            if (!response.success) {
+                const errorMsg = response.error || response.message || 'Unknown error';
                 return {
-                    llmContent: 'Error: Failed to add karma - no karma returned',
-                    returnDisplay: 'Error: Failed to add karma',
+                    llmContent: `Error: Failed to add karma - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No karma returned from add operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const newTotal = response.data?.newTotal;
             return {
-                llmContent: `Successfully added ${this.params.amount} karma to agent ${this.params.toAgentId}. New total: ${karma}${this.params.reason ? `. Reason: ${this.params.reason}` : ''}`,
+                llmContent: `Successfully added ${this.params.amount} karma to agent ${this.params.toAgentId}${newTotal !== undefined ? `. New total: ${newTotal}` : ''}${this.params.reason ? `. Reason: ${this.params.reason}` : ''}`,
                 returnDisplay: `Added ${this.params.amount} karma to agent ${this.params.toAgentId}`,
             };
         } catch (error) {

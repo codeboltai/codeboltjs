@@ -31,21 +31,22 @@ class PortfolioAddTalentInvocation extends BaseToolInvocation<PortfolioAddTalent
                 this.params.description
             );
 
-            const talent = response.payload?.talent;
-
-            if (!talent) {
+            if (!response.success && response.error) {
                 return {
-                    llmContent: 'Error: Failed to add talent - no talent returned',
-                    returnDisplay: 'Error: Failed to add talent',
+                    llmContent: `Error: Failed to add talent - ${response.error}`,
+                    returnDisplay: `Error: ${response.error}`,
                     error: {
-                        message: 'No talent returned from add operation',
+                        message: response.error,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const talent = response.data;
+            const talentId = talent?.id;
+
             return {
-                llmContent: `Successfully added talent "${this.params.name}" (ID: ${talent.id})`,
+                llmContent: `Successfully added talent "${this.params.name}"${talentId ? ` (ID: ${talentId})` : ''}`,
                 returnDisplay: `Added talent "${this.params.name}"`,
             };
         } catch (error) {

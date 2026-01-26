@@ -1,5 +1,11 @@
 # @codebolt/litegraph
 
+## 0.0.10
+
+### Patch Changes
+
+- Fixing the Workspace Error
+
 ## 0.0.6
 
 ### Patch Changes

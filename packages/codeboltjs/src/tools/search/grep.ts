@@ -100,34 +100,28 @@ class GrepToolInvocation extends BaseToolInvocation<
                 };
             }
 
-            // Results are flat: Array<{ file, line, content, match }>
-            // Group by file for better output formatting
-            const groupedByFile = new Map<string, Array<{ line: number; content: string; match: string }>>();
-
-            for (const result of results) {
-                const existing = groupedByFile.get(result.file) || [];
-                existing.push({ line: result.line, content: result.content, match: result.match });
-                groupedByFile.set(result.file, existing);
-            }
-
-            const totalMatches = results.length;
+            // Results are grouped by file: Array<{ path, matches: Array<{ line, content, lineNumber }> }>
+            let totalMatches = 0;
             let output = '';
 
             // Build output from grouped results
-            for (const [filePath, matches] of groupedByFile) {
-                output += `--- ${filePath} ---\n`;
-                for (const m of matches) {
+            for (const result of results) {
+                output += `--- ${result.path} ---\n`;
+                for (const m of result.matches) {
                     output += `${m.line}: ${m.content}\n`;
+                    totalMatches++;
                 }
                 output += '\n';
             }
 
+            const fileCount = results.length;
+
             // Prepend header
-            output = `Found ${totalMatches} match(es) in ${groupedByFile.size} file(s) for pattern: "${this.params.pattern}"\n\n` + output;
+            output = `Found ${totalMatches} match(es) in ${fileCount} file(s) for pattern: "${this.params.pattern}"\n\n` + output;
 
             return {
                 llmContent: output,
-                returnDisplay: `Found ${totalMatches} match(es) in ${groupedByFile.size} file(s)`,
+                returnDisplay: `Found ${totalMatches} match(es) in ${fileCount} file(s)`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

@@ -22,16 +22,22 @@ export interface SearchMcpToolOptions {
     tags?: string[];
 }
 
-// Response from codebase search
+// Response from codebase search - data returned directly, no payload wrapper
 export interface CodebaseSearchResponse {
+    type?: string;
     success: boolean;
-    results: CodeSearchResult[];
     message?: string;
+    results?: CodeSearchResult[];
+    timestamp?: string;
+    requestId?: string;
 }
 
-// Response from MCP tool search
+// Response from MCP tool search - data returned directly, no payload wrapper
 export interface McpToolSearchResponse {
+    type?: string;
     success: boolean;
-    results: any[];
     message?: string;
+    results?: any[];
+    timestamp?: string;
+    requestId?: string;
 }

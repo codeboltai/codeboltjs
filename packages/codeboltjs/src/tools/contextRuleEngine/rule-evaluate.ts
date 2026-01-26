@@ -25,7 +25,7 @@ class RuleEvaluateInvocation extends BaseToolInvocation<RuleEvaluateParams, Tool
         try {
             const response = await cbcontextRuleEngine.evaluate(this.params);
 
-            const results = response.payload?.results;
+            const results = response.data;
 
             if (!results) {
                 return {

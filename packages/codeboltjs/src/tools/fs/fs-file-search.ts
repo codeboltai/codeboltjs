@@ -23,7 +23,7 @@ class FsFileSearchInvocation extends BaseToolInvocation<FsFileSearchParams, Tool
                     error: { message: response.message || 'Failed to perform file search', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const results = response.result?.files || [];
+            const results = response.results || [];
             return {
                 llmContent: `Found ${results.length} file(s) matching "${this.params.query}"`,
                 returnDisplay: JSON.stringify(results, null, 2),

@@ -31,7 +31,7 @@ class CodebaseSearchInvocation extends BaseToolInvocation<CodebaseSearchParams, 
                 this.params.targetDirectories
             );
 
-            const results = response.payload?.results;
+            const results = response.results;
 
             if (!results) {
                 return {

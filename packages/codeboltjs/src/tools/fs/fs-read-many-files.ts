@@ -32,10 +32,12 @@ class FsReadManyFilesInvocation extends BaseToolInvocation<FsReadManyFilesParams
                     error: { message: response.message || 'Failed to read files', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const filesRead = response.result?.files_read || 0;
+            const results = response.results || [];
+            const filesRead = results.length;
+            const content = results.map(r => `--- ${r.path} ---\n${r.content || r.error || ''}`).join('\n\n');
             return {
                 llmContent: `Successfully read ${filesRead} file(s)`,
-                returnDisplay: response.result?.content || '',
+                returnDisplay: content,
             };
         } catch (error) {
             return {

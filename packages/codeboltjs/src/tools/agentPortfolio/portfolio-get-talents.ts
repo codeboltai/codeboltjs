@@ -26,18 +26,19 @@ class PortfolioGetTalentsInvocation extends BaseToolInvocation<PortfolioGetTalen
         try {
             const response = await cbagentPortfolio.getTalents(this.params.agentId);
 
-            const talents = response.payload?.talents;
-
-            if (!talents) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to get talents';
                 return {
-                    llmContent: 'Error: Failed to get talents - no talents returned',
-                    returnDisplay: 'Error: Failed to get talents',
+                    llmContent: `Error: Failed to get talents - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No talents returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const talents = response.data || [];
 
             const scope = this.params.agentId ? `for agent ${this.params.agentId}` : 'all talents';
             return {

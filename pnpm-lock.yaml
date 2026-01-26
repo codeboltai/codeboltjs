@@ -40,272 +40,6 @@ importers:
         specifier: ^8.39.0
         version: 8.46.0(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3)
 
-  action-blocks/create-team-for-swarm:
-    dependencies:
-      '@babel/core':
-        specifier: ^7.26.0
-        version: 7.28.4
-      '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
-      '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      copy-webpack-plugin:
-        specifier: ^12.0.2
-        version: 12.0.2(webpack@5.103.0)
-      node-loader:
-        specifier: ^2.1.0
-        version: 2.1.0(webpack@5.103.0)
-      utf-8-validate:
-        specifier: ^6.0.5
-        version: 6.0.5
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
-    devDependencies:
-      '@babel/preset-env':
-        specifier: ^7.26.0
-        version: 7.28.3(@babel/core@7.28.4)
-      '@types/node':
-        specifier: ^20.11.25
-        version: 20.19.19
-      assert:
-        specifier: ^2.1.0
-        version: 2.1.0
-      babel-loader:
-        specifier: ^9.2.1
-        version: 9.2.1(@babel/core@7.28.4)(webpack@5.103.0)
-      browserify-zlib:
-        specifier: ^0.2.0
-        version: 0.2.0
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
-      bufferutil:
-        specifier: ^4.0.8
-        version: 4.0.9
-      console-browserify:
-        specifier: ^1.2.0
-        version: 1.2.0
-      constants-browserify:
-        specifier: ^1.0.0
-        version: 1.0.0
-      crypto-browserify:
-        specifier: ^3.12.1
-        version: 3.12.1
-      domain-browser:
-        specifier: ^5.7.0
-        version: 5.7.0
-      events:
-        specifier: ^3.3.0
-        version: 3.3.0
-      https-browserify:
-        specifier: ^1.0.0
-        version: 1.0.0
-      ignore-loader:
-        specifier: ^0.1.2
-        version: 0.1.2
-      node-polyfill-webpack-plugin:
-        specifier: ^4.1.0
-        version: 4.1.0(webpack@5.103.0)
-      os-browserify:
-        specifier: ^0.3.0
-        version: 0.3.0
-      path-browserify:
-        specifier: ^1.0.1
-        version: 1.0.1
-      process:
-        specifier: ^0.11.10
-        version: 0.11.10
-      punycode:
-        specifier: ^2.3.1
-        version: 2.3.1
-      querystring-es3:
-        specifier: ^0.2.1
-        version: 0.2.1
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      stream-browserify:
-        specifier: ^3.0.0
-        version: 3.0.0
-      stream-http:
-        specifier: ^3.2.0
-        version: 3.2.0
-      string_decoder:
-        specifier: ^1.3.0
-        version: 1.3.0
-      timers-browserify:
-        specifier: ^2.0.12
-        version: 2.0.12
-      ts-loader:
-        specifier: ^9.5.1
-        version: 9.5.4(typescript@5.9.3)(webpack@5.103.0)
-      tsx:
-        specifier: ^4.7.0
-        version: 4.20.6
-      tty-browserify:
-        specifier: ^0.0.1
-        version: 0.0.1
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-      url:
-        specifier: ^0.11.4
-        version: 0.11.4
-      util:
-        specifier: ^0.12.5
-        version: 0.12.5
-      vm-browserify:
-        specifier: ^1.1.2
-        version: 1.1.2
-      webpack:
-        specifier: ^5.103.0
-        version: 5.103.0(webpack-cli@5.1.4)
-      webpack-cli:
-        specifier: ^5.1.4
-        version: 5.1.4(webpack@5.103.0)
-      webpack-node-externals:
-        specifier: ^3.0.0
-        version: 3.0.0
-
-  action-blocks/find-next-job-for-agent:
-    dependencies:
-      '@babel/core':
-        specifier: ^7.26.0
-        version: 7.28.4
-      '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
-      '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      copy-webpack-plugin:
-        specifier: ^12.0.2
-        version: 12.0.2(webpack@5.103.0)
-      node-loader:
-        specifier: ^2.1.0
-        version: 2.1.0(webpack@5.103.0)
-      utf-8-validate:
-        specifier: ^6.0.5
-        version: 6.0.5
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
-    devDependencies:
-      '@babel/preset-env':
-        specifier: ^7.26.0
-        version: 7.28.3(@babel/core@7.28.4)
-      '@types/node':
-        specifier: ^20.11.25
-        version: 20.19.19
-      assert:
-        specifier: ^2.1.0
-        version: 2.1.0
-      babel-loader:
-        specifier: ^9.2.1
-        version: 9.2.1(@babel/core@7.28.4)(webpack@5.103.0)
-      browserify-zlib:
-        specifier: ^0.2.0
-        version: 0.2.0
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
-      bufferutil:
-        specifier: ^4.0.8
-        version: 4.0.9
-      console-browserify:
-        specifier: ^1.2.0
-        version: 1.2.0
-      constants-browserify:
-        specifier: ^1.0.0
-        version: 1.0.0
-      crypto-browserify:
-        specifier: ^3.12.1
-        version: 3.12.1
-      domain-browser:
-        specifier: ^5.7.0
-        version: 5.7.0
-      events:
-        specifier: ^3.3.0
-        version: 3.3.0
-      https-browserify:
-        specifier: ^1.0.0
-        version: 1.0.0
-      ignore-loader:
-        specifier: ^0.1.2
-        version: 0.1.2
-      node-polyfill-webpack-plugin:
-        specifier: ^4.1.0
-        version: 4.1.0(webpack@5.103.0)
-      os-browserify:
-        specifier: ^0.3.0
-        version: 0.3.0
-      path-browserify:
-        specifier: ^1.0.1
-        version: 1.0.1
-      process:
-        specifier: ^0.11.10
-        version: 0.11.10
-      punycode:
-        specifier: ^2.3.1
-        version: 2.3.1
-      querystring-es3:
-        specifier: ^0.2.1
-        version: 0.2.1
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      stream-browserify:
-        specifier: ^3.0.0
-        version: 3.0.0
-      stream-http:
-        specifier: ^3.2.0
-        version: 3.2.0
-      string_decoder:
-        specifier: ^1.3.0
-        version: 1.3.0
-      timers-browserify:
-        specifier: ^2.0.12
-        version: 2.0.12
-      ts-loader:
-        specifier: ^9.5.1
-        version: 9.5.4(typescript@5.9.3)(webpack@5.103.0)
-      tsx:
-        specifier: ^4.7.0
-        version: 4.20.6
-      tty-browserify:
-        specifier: ^0.0.1
-        version: 0.0.1
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-      url:
-        specifier: ^0.11.4
-        version: 0.11.4
-      util:
-        specifier: ^0.12.5
-        version: 0.12.5
-      vm-browserify:
-        specifier: ^1.1.2
-        version: 1.1.2
-      webpack:
-        specifier: ^5.103.0
-        version: 5.103.0(webpack-cli@5.1.4)
-      webpack-cli:
-        specifier: ^5.1.4
-        version: 5.1.4(webpack@5.103.0)
-      webpack-node-externals:
-        specifier: ^3.0.0
-        version: 3.0.0
-
   agentcreator/agent:
     dependencies:
       '@codebolt/agent':
@@ -1328,6 +1062,37 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  agents/mainSwarmAgentbkp:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.19
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.10
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   agents/memoryTestAgent:
     dependencies:
       '@codebolt/agent':
@@ -2086,7 +1851,7 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
-  providers/gitWorkTreeProvider:
+  providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: workspace:*
@@ -19999,32 +19764,32 @@ snapshots:
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.103.0)':
     dependencies:
-      webpack: 5.103.0(webpack-cli@5.1.4)
+      webpack: 5.103.0(esbuild@0.27.0)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.103.0)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.103.0)':
     dependencies:
-      webpack: 5.103.0(webpack-cli@5.1.4)
+      webpack: 5.103.0(esbuild@0.27.0)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.103.0)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.103.0)':
     dependencies:
-      webpack: 5.103.0(webpack-cli@5.1.4)
+      webpack: 5.103.0(esbuild@0.27.0)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.103.0)
 
   '@xtuc/ieee754@1.2.0': {}
@@ -27955,7 +27720,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
+      webpack: 5.102.1(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-cli@5.1.4(webpack@5.103.0):
@@ -27972,7 +27737,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.103.0(webpack-cli@5.1.4)
+      webpack: 5.103.0(esbuild@0.27.0)(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-dev-middleware@7.4.5(webpack@5.103.0):
@@ -28152,7 +27917,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.15.0
       acorn-import-phases: 1.0.4(acorn@8.15.0)
-      browserslist: 4.28.1
+      browserslist: 4.26.3
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.3
       es-module-lexer: 1.7.0

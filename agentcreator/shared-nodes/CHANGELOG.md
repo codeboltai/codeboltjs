@@ -1,5 +1,13 @@
 # @codebolt/agent-shared-nodes
 
+## 0.0.10
+
+### Patch Changes
+
+- Fixing the Workspace Error
+- Updated dependencies
+  - @codebolt/litegraph@0.0.10
+
 ## 0.0.4
 
 ### Patch Changes

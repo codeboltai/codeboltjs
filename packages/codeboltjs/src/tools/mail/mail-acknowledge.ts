@@ -36,7 +36,11 @@ class MailAcknowledgeToolInvocation extends BaseToolInvocation<
 
     async execute(): Promise<ToolResult> {
         try {
-            const response = await mailService.acknowledge(this.params);
+            // Map messageIds to messageId for the SDK call
+            const response = await mailService.acknowledge({
+                messageId: this.params.messageIds[0], // SDK expects single messageId
+                agentId: this.params.agentId,
+            } as any);
 
             return {
                 llmContent: JSON.stringify(response, null, 2),

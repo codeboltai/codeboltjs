@@ -26,14 +26,13 @@ class PortfolioEndorseTalentInvocation extends BaseToolInvocation<PortfolioEndor
         try {
             const response = await cbagentPortfolio.endorseTalent(this.params.talentId);
 
-            const endorsement = response.payload?.endorsement;
-
-            if (!endorsement) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Endorse operation failed';
                 return {
-                    llmContent: 'Error: Failed to endorse talent - no endorsement returned',
-                    returnDisplay: 'Error: Failed to endorse talent',
+                    llmContent: `Error: Failed to endorse talent - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No endorsement returned from endorse operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

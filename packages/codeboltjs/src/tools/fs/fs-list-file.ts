@@ -24,7 +24,7 @@ class FsListFileInvocation extends BaseToolInvocation<FsListFileParams, ToolResu
                     error: { message: response.message || 'Failed to list files', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const files = response.result?.files || [];
+            const files = response.files || [];
             return {
                 llmContent: `Found ${files.length} file(s) in ${this.params.folderPath}`,
                 returnDisplay: JSON.stringify(files, null, 2),

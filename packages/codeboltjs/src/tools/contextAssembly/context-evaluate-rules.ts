@@ -32,7 +32,7 @@ class ContextEvaluateRulesInvocation extends BaseToolInvocation<ContextEvaluateR
                 this.params.ruleEngineIds
             );
 
-            const evaluations = response.payload?.evaluations;
+            const evaluations = response.data;
 
             if (!evaluations) {
                 return {

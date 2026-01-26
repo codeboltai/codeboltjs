@@ -34,21 +34,22 @@ class PortfolioAddTestimonialInvocation extends BaseToolInvocation<PortfolioAddT
                 this.params.projectId
             );
 
-            const testimonial = response.payload?.testimonial;
-
-            if (!testimonial) {
+            if (!response.success && response.error) {
                 return {
-                    llmContent: 'Error: Failed to add testimonial - no testimonial returned',
-                    returnDisplay: 'Error: Failed to add testimonial',
+                    llmContent: `Error: Failed to add testimonial - ${response.error}`,
+                    returnDisplay: `Error: ${response.error}`,
                     error: {
-                        message: 'No testimonial returned from add operation',
+                        message: response.error,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
 
+            const testimonial = response.data;
+            const testimonialId = testimonial?.id;
+
             return {
-                llmContent: `Successfully added testimonial for agent ${this.params.toAgentId} (ID: ${testimonial.id})`,
+                llmContent: `Successfully added testimonial for agent ${this.params.toAgentId}${testimonialId ? ` (ID: ${testimonialId})` : ''}`,
                 returnDisplay: `Added testimonial for agent ${this.params.toAgentId}`,
             };
         } catch (error) {

@@ -29,7 +29,7 @@ class RuleUpdateInvocation extends BaseToolInvocation<RuleUpdateParams, ToolResu
         try {
             const response = await cbcontextRuleEngine.update(this.params.id, this.params.updates);
 
-            const ruleEngine = response.payload?.ruleEngine;
+            const ruleEngine = response.data?.ruleEngine;
 
             if (!ruleEngine) {
                 return {

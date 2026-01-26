@@ -50,6 +50,15 @@ export interface Part {
 export type PartListUnion = string | Part | (string | Part)[];
 
 /**
+ * Function declaration schema format (for Google GenAI compatibility)
+ */
+export interface FunctionDeclaration {
+    name: string;
+    description: string;
+    parameters?: Record<string, any>;
+}
+
+/**
  * Enum representing tool categories for permissions and organization
  */
 export enum Kind {
@@ -62,6 +71,7 @@ export enum Kind {
     Think = 'think',
     Fetch = 'fetch',
     Other = 'other',
+    FileSystem = 'filesystem',
 }
 
 /**
@@ -303,11 +313,17 @@ export interface ToolBuilder<
     /** Description of what the tool does */
     description: string;
 
+    /** One sentence explanation as to why this tool is being used, and how it contributes to the goal. */
+    explanation: string;
+
     /** The kind of tool for categorization and permissions */
     kind: Kind;
 
     /** Primary schema format (OpenAI tool schema) */
     schema: OpenAIToolSchema;
+
+    /** Function declaration schema for Google GenAI (for backward compatibility) */
+    genAISchema: FunctionDeclaration;
 
     /** Whether the tool's output should be rendered as markdown */
     isOutputMarkdown: boolean;

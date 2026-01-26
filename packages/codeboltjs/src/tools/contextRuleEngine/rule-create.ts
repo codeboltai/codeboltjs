@@ -25,7 +25,7 @@ class RuleCreateInvocation extends BaseToolInvocation<RuleCreateParams, ToolResu
         try {
             const response = await cbcontextRuleEngine.create(this.params);
 
-            const ruleEngine = response.payload?.ruleEngine;
+            const ruleEngine = response.data?.ruleEngine;
 
             if (!ruleEngine) {
                 return {

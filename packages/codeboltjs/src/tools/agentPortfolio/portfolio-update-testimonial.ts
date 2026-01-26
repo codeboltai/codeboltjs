@@ -31,14 +31,13 @@ class PortfolioUpdateTestimonialInvocation extends BaseToolInvocation<PortfolioU
                 this.params.content
             );
 
-            const testimonial = response.payload?.testimonial;
-
-            if (!testimonial) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to update testimonial';
                 return {
-                    llmContent: 'Error: Failed to update testimonial - no testimonial returned',
-                    returnDisplay: 'Error: Failed to update testimonial',
+                    llmContent: `Error: Failed to update testimonial - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No testimonial returned from update operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

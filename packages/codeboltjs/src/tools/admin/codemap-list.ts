@@ -33,14 +33,26 @@ class CodemapListToolInvocation extends BaseToolInvocation<
         try {
             const response = await codeboltCodemap.list(this.params.project_path);
 
-            if (!response || !response.codemaps) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Unknown error';
+                return {
+                    llmContent: `Error listing codemaps: ${errorMsg}`,
+                    returnDisplay: `Error listing codemaps: ${errorMsg}`,
+                    error: {
+                        message: errorMsg,
+                        type: ToolErrorType.EXECUTION_FAILED,
+                    },
+                };
+            }
+
+            if (!response.data?.codemaps) {
                 return {
                     llmContent: 'No codemaps found or empty response received.',
                     returnDisplay: 'No codemaps found',
                 };
             }
 
-            const codemapList = response.codemaps.map((codemap) => ({
+            const codemapList = response.data.codemaps.map((codemap) => ({
                 id: codemap.id,
                 title: codemap.title,
                 description: codemap.description,
@@ -50,13 +62,13 @@ class CodemapListToolInvocation extends BaseToolInvocation<
             }));
 
             const llmContent = JSON.stringify({
-                count: response.count,
+                count: response.data.count,
                 codemaps: codemapList,
             }, null, 2);
 
             return {
                 llmContent,
-                returnDisplay: `Found ${response.count} codemap(s)`,
+                returnDisplay: `Found ${response.data.count} codemap(s)`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

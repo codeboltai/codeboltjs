@@ -35,14 +35,13 @@ class CodemapSaveInvocation extends BaseToolInvocation<CodemapSaveParams, ToolRe
                 this.params.projectPath
             );
 
-            const codemap = response.payload?.codemap;
-
-            if (!codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Save operation failed';
                 return {
-                    llmContent: 'Error: Failed to save codemap - no codemap returned',
-                    returnDisplay: 'Error: Failed to save codemap',
+                    llmContent: `Error: Failed to save codemap - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemap returned from save operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

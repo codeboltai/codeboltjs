@@ -13,15 +13,31 @@
     [
       "@codebolt/codeparser",
       "@codebolt/mcp"
+    ],
+    [
+      "@codebolt/litegraph",
+      "@codebolt/agent-shared-nodes"
+    ],
+    [
+      "@codebolt/provider",
+      "@codebolt/agentfs-provider",
+      "@codebolt/git-worktree-production"
     ]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
   "ignore": [
     "@codebolt/plugin-template",
     "@codebolt/plugin-and-logic",
     "@codebolt/plugin-enhanced-math",
-    "@codebolt/plugin-text-processor"
+    "@codebolt/plugin-text-processor",
+    "@agent-creator/frontend",
+    "@agent-creator/backend",
+    "@agent-creator/agent",
+    "dockerprovideragent",
+    "@codebolt/git-worktree-provider",
+    "remoteserverprovideragent"
   ]
 }

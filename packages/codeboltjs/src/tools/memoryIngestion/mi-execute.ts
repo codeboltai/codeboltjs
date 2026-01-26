@@ -5,7 +5,13 @@ import memoryIngestion from '../../modules/memoryIngestion';
 
 export interface ExecuteMemoryIngestionPipelineParams {
     pipelineId: string;
-    inputData?: any;
+    eventType?: string;
+    trigger?: string;
+    threadId?: string;
+    agentId?: string;
+    swarmId?: string;
+    projectId?: string;
+    payload?: Record<string, any>;
     explanation?: string;
 }
 
@@ -18,18 +24,26 @@ class ExecuteMemoryIngestionPipelineInvocation extends BaseToolInvocation<Execut
         try {
             const response = await memoryIngestion.execute({
                 pipelineId: this.params.pipelineId,
-                inputData: this.params.inputData,
+                eventType: this.params.eventType,
+                trigger: this.params.trigger,
+                threadId: this.params.threadId,
+                agentId: this.params.agentId,
+                swarmId: this.params.swarmId,
+                projectId: this.params.projectId,
+                payload: this.params.payload,
             });
 
             if (!response.success) {
+                const errorMsg = response.error || response.message || 'Failed to execute';
                 return {
-                    llmContent: `Error: ${response.error || 'Failed to execute'}`,
-                    returnDisplay: `Error: ${response.error || 'Failed'}`,
-                    error: { message: response.error || 'Failed', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: `Error: ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
+                    error: { message: errorMsg, type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const content = `Pipeline executed. Records processed: ${response.recordsProcessed || 0}`;
+            const result = response.data?.result;
+            const content = `Pipeline executed. Records processed: ${result?.processedCount || 0}`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

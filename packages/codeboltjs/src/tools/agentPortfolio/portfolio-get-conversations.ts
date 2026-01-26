@@ -34,18 +34,19 @@ class PortfolioGetConversationsInvocation extends BaseToolInvocation<PortfolioGe
                 this.params.offset
             );
 
-            const conversations = response.payload?.conversations;
-
-            if (!conversations) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Failed to get conversations';
                 return {
-                    llmContent: 'Error: Failed to get conversations - no conversations returned',
-                    returnDisplay: 'Error: Failed to get conversations',
+                    llmContent: `Error: Failed to get conversations - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No conversations returned from get operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };
             }
+
+            const conversations = response.data || [];
 
             return {
                 llmContent: `Retrieved ${conversations.length} conversations for agent ${this.params.agentId}`,

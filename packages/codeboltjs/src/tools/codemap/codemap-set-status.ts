@@ -38,14 +38,13 @@ class CodemapSetStatusInvocation extends BaseToolInvocation<CodemapSetStatusPara
                 this.params.projectPath
             );
 
-            const codemap = response.payload?.codemap;
-
-            if (!codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'SetStatus operation failed';
                 return {
-                    llmContent: 'Error: Failed to set codemap status - no codemap returned',
-                    returnDisplay: 'Error: Failed to set codemap status',
+                    llmContent: `Error: Failed to set codemap status - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'No codemap returned from setStatus operation',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

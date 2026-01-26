@@ -29,15 +29,15 @@ class CreateRoadmapIdeaInvocation extends BaseToolInvocation<CreateRoadmapIdeaPa
             };
             const response = await roadmap.createIdea(data, this.params.projectPath);
 
-            if (!response.success) {
+            if (!response.idea) {
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: 'Error: Failed to create idea',
+                    returnDisplay: 'Error: Failed to create idea',
+                    error: { message: 'Failed to create idea', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const content = `Idea "${this.params.title}" added to roadmap`;
+            const content = `Idea "${this.params.title}" added to roadmap (ID: ${response.idea.id})`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

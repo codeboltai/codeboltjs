@@ -24,7 +24,7 @@ class RuleGetPossibleVariablesInvocation extends BaseToolInvocation<RuleGetPossi
         try {
             const response = await cbcontextRuleEngine.getPossibleVariables();
 
-            const variables = response.payload?.variables;
+            const variables = response.data?.variables;
 
             if (!variables) {
                 return {

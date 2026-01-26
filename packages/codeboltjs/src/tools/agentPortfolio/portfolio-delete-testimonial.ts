@@ -26,12 +26,13 @@ class PortfolioDeleteTestimonialInvocation extends BaseToolInvocation<PortfolioD
         try {
             const response = await cbagentPortfolio.deleteTestimonial(this.params.testimonialId);
 
-            if (!response.payload?.success) {
+            if (!response.success) {
+                const errorMsg = response.error || 'Delete operation failed';
                 return {
-                    llmContent: 'Error: Failed to delete testimonial',
-                    returnDisplay: 'Error: Failed to delete testimonial',
+                    llmContent: `Error: Failed to delete testimonial - ${errorMsg}`,
+                    returnDisplay: `Error: ${errorMsg}`,
                     error: {
-                        message: 'Delete operation failed',
+                        message: errorMsg,
                         type: ToolErrorType.EXECUTION_FAILED,
                     },
                 };

@@ -83,7 +83,19 @@ class CodemapUpdateToolInvocation extends BaseToolInvocation<
                 this.params.project_path
             );
 
-            if (!response || !response.codemap) {
+            if (!response.success) {
+                const errorMsg = response.error?.message || response.message || 'Unknown error';
+                return {
+                    llmContent: `Error updating codemap: ${errorMsg}`,
+                    returnDisplay: `Error updating codemap: ${errorMsg}`,
+                    error: {
+                        message: errorMsg,
+                        type: ToolErrorType.EXECUTION_FAILED,
+                    },
+                };
+            }
+
+            if (!response.data?.codemap) {
                 return {
                     llmContent: `Failed to update codemap with ID '${this.params.codemap_id}'.`,
                     returnDisplay: `Failed to update codemap: ${this.params.codemap_id}`,
@@ -96,12 +108,12 @@ class CodemapUpdateToolInvocation extends BaseToolInvocation<
 
             const llmContent = JSON.stringify({
                 message: 'Codemap updated successfully',
-                codemap: response.codemap,
+                codemap: response.data.codemap,
             }, null, 2);
 
             return {
                 llmContent,
-                returnDisplay: `Updated codemap: ${response.codemap.title} (ID: ${response.codemap.id})`,
+                returnDisplay: `Updated codemap: ${response.data.codemap.title} (ID: ${response.data.codemap.id})`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

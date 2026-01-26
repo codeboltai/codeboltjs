@@ -23,7 +23,7 @@ class FsListCodeDefinitionsInvocation extends BaseToolInvocation<FsListCodeDefin
                     error: { message: response.message || 'Failed to list code definitions', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const definitions = response.result?.definitions || [];
+            const definitions = response.definitions || [];
             return {
                 llmContent: `Found ${definitions.length} code definition(s) in ${this.params.path}`,
                 returnDisplay: JSON.stringify(definitions, null, 2),

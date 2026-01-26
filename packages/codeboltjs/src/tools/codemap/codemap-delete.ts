@@ -28,7 +28,7 @@ class CodemapDeleteInvocation extends BaseToolInvocation<CodemapDeleteParams, To
         try {
             const response = await cbcodemap.delete(this.params.codemapId, this.params.projectPath);
 
-            if (!response.payload?.success) {
+            if (!response.success) {
                 return {
                     llmContent: 'Error: Failed to delete codemap',
                     returnDisplay: 'Error: Failed to delete codemap',

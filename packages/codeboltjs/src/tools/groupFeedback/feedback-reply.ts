@@ -14,6 +14,8 @@ import type { IReplyParams } from '../../types/groupFeedback';
  * Parameters for replying to feedback
  */
 export interface FeedbackReplyParams extends IReplyParams {
+    /** The feedback ID this reply belongs to */
+    feedbackId: string;
 }
 
 class FeedbackReplyInvocation extends BaseToolInvocation<FeedbackReplyParams, ToolResult> {
@@ -25,9 +27,9 @@ class FeedbackReplyInvocation extends BaseToolInvocation<FeedbackReplyParams, To
         try {
             const response = await cbgroupFeedback.reply(this.params);
 
-            const reply = response.payload?.reply;
+            const replyResponse = response.payload?.response;
 
-            if (!reply) {
+            if (!replyResponse) {
                 return {
                     llmContent: 'Error: Failed to reply to feedback - no reply returned',
                     returnDisplay: 'Error: Failed to reply to feedback',

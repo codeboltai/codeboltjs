@@ -25,9 +25,10 @@ class FsSearchFilesInvocation extends BaseToolInvocation<FsSearchFilesParams, To
                     error: { message: response.message || 'Failed to search files', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            const results = response.result?.matches || [];
+            const results = response.results || [];
+            const totalMatches = results.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
             return {
-                llmContent: `Found ${results.length} match(es) in files`,
+                llmContent: `Found ${totalMatches} match(es) in ${results.length} file(s)`,
                 returnDisplay: JSON.stringify(results, null, 2),
             };
         } catch (error) {

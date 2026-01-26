@@ -17,16 +17,18 @@ class GetRoadmapInvocation extends BaseToolInvocation<GetRoadmapParams, ToolResu
         try {
             const response = await roadmap.getRoadmap(this.params.projectPath);
 
-            if (!response.success) {
+            const map = response.roadmap;
+            if (!map) {
                 return {
-                    llmContent: `Error: ${response.error}`,
-                    returnDisplay: `Error: ${response.error}`,
-                    error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
+                    llmContent: 'Error: No roadmap data found',
+                    returnDisplay: 'Error: No roadmap data found',
+                    error: { message: 'No roadmap data found', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
 
-            const map = response.roadmap;
-            const content = `Roadmap:\n${map ? `${map.phases?.length || 0} phases, ${map.features?.length || 0} features, ${map.ideas?.length || 0} ideas` : 'No roadmap data'}`;
+            // Count all features across all phases
+            const totalFeatures = map.phases?.reduce((sum, phase) => sum + (phase.features?.length || 0), 0) || 0;
+            const content = `Roadmap:\n${map.phases?.length || 0} phases, ${totalFeatures} features, ${map.ideas?.length || 0} ideas`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

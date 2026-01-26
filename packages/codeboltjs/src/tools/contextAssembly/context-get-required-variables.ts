@@ -26,7 +26,7 @@ class ContextGetRequiredVariablesInvocation extends BaseToolInvocation<ContextGe
         try {
             const response = await cbcontextAssembly.getRequiredVariables(this.params.memoryNames);
 
-            const variables = response.payload?.variables;
+            const variables = response.data;
 
             if (!variables) {
                 return {

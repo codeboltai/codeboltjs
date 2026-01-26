@@ -24,7 +24,7 @@ class RuleListInvocation extends BaseToolInvocation<RuleListParams, ToolResult> 
         try {
             const response = await cbcontextRuleEngine.list();
 
-            const ruleEngines = response.payload?.ruleEngines;
+            const ruleEngines = response.data?.ruleEngines;
 
             if (!ruleEngines) {
                 return {
