@@ -19,6 +19,7 @@ import {
 
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
+import { promise } from 'zod/v4';
 const eventManager = codebolt.backgroundChildThreads;
 let systemPrompt = `
 
@@ -487,25 +488,30 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     let result: any = await runwhileLoop(reqMessage, prompt);
     executionResult = result.executionResult;
     prompt = result.prompt;
+
+    await new Promise(resolve => setTimeout(resolve, 5000));
     let pendingMessages = await codebolt.agentEventQueue.getPendingQueueEvents();
     if (pendingMessages.length) {
       continueLoop=true;
       pendingMessages.forEach((event: any) => {
       
         if (event.eventType == 'agentEvent') {
-          const parentAgentMessage = {
-            role: "user" as const,
-            content: `<parent_agent_message>
-<source_agent>${event.sourceAgentId}</source_agent>
-<message_type>instruction</message_type>
-<content>
-${event.payload.content}
-</content>
-<context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
-</parent_agent_message>`
-          };
-          if (prompt && prompt.message.messages) {
-            prompt.message.messages.push(parentAgentMessage);
+        let  messageContent= `<parent_agent_message>
+          <source_agent>${event.sourceAgentId}</source_agent>
+          <source_thread>${event.sourceThreadId}</source_thread>
+
+          <message_type>instruction</message_type>
+          <content>
+          ${event.payload.content}
+          </content>
+          <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
+          <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
+          </parent_agent_message>`;
+
+          codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`)
+          if (reqMessage.userMessage) {
+            reqMessage.userMessage=messageContent;
+      
           }
         }
       })
@@ -513,8 +519,8 @@ ${event.payload.content}
     }
 
   } while (continueLoop);
-
-  return executionResult?.finalMessage || "No response generated";
+// codebolt.chat.sendMessage('Agent finished')
+  // return executionResult?.finalMessage || "No response generated";
 })
 
 
