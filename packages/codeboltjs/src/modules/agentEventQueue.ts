@@ -101,7 +101,8 @@ const agentEventQueue = {
                 requestId,
                 params
             },
-            'agentEventQueueResponse'
+            'agentEventQueueResponse',
+            30000 // 30 second timeout
         );
     },
 
@@ -118,7 +119,8 @@ const agentEventQueue = {
                 requestId,
                 params
             },
-            'agentEventQueueResponse'
+            'agentEventQueueResponse',
+            30000 // 30 second timeout
         );
     },
 
@@ -134,7 +136,8 @@ const agentEventQueue = {
                 requestId,
                 params: {}
             },
-            'agentEventQueueResponse'
+            'agentEventQueueResponse',
+            30000 // 30 second timeout
         );
     },
 
@@ -151,7 +154,8 @@ const agentEventQueue = {
                 requestId,
                 params: { agentId }
             },
-            'agentEventQueueResponse'
+            'agentEventQueueResponse',
+            30000 // 30 second timeout
         );
     },
 
@@ -177,7 +181,8 @@ const agentEventQueue = {
                     errorMessage
                 } as AckEventInput
             },
-            'agentEventQueueResponse'
+            'agentEventQueueResponse',
+            30000 // 30 second timeout
         );
     },
 
@@ -187,19 +192,33 @@ const agentEventQueue = {
      */
     _fetchPendingFromBackend: async (params: GetPendingEventsInput = {}): Promise<AgentEventMessage[]> => {
         const requestId = randomUUID();
-        const response = await cbws.messageManager.sendAndWaitForResponse<AgentEventQueueResponse<GetPendingEventsResponseData>>(
-            {
-                type: 'agentEventQueue.getPendingEvents',
-                requestId,
-                params
-            },
-            'agentEventQueueResponse'
-        );
+        try {
+            const response = await cbws.messageManager.sendAndWaitForResponse<AgentEventQueueResponse<GetPendingEventsResponseData>>(
+                {
+                    type: 'agentEventQueue.getPendingEvents',
+                    requestId,
+                    params
+                },
+                'agentEventQueueResponse',
+                30000 // 30 second timeout
+            );
 
-        if (response.success && response.data) {
-            return response.data.events;
+            console.log('[AgentEventQueue] Backend response:', JSON.stringify(response, null, 2));
+
+            if (response.success && response.data) {
+                const events = response.data.events;
+                // Ensure we always return an array
+                if (Array.isArray(events)) {
+                    return events;
+                }
+                console.warn('[AgentEventQueue] response.data.events is not an array:', typeof events, events);
+                return [];
+            }
+            return [];
+        } catch (error) {
+            console.error('[AgentEventQueue] Error fetching pending events from backend:', error);
+            return [];
         }
-        return [];
     },
 
     // ========================================================================
@@ -218,6 +237,8 @@ const agentEventQueue = {
         const events: AgentEventMessage[] = [];
         const eventIds = Array.from(localEventCache.keys());
 
+        console.log('[AgentEventQueue] getPendingQueueEvents - localEventCache size:', localEventCache.size);
+
         // Determine how many events to process
         const limit = maxDepth !== undefined ? Math.min(maxDepth, eventIds.length) : eventIds.length;
 
@@ -226,6 +247,7 @@ const agentEventQueue = {
             const eventId = eventIds[i];
             const event = localEventCache.get(eventId);
             if (event) {
+                console.log('[AgentEventQueue] Local cache event:', eventId, 'has eventId field:', !!event.eventId);
                 events.push(event);
             }
         }
@@ -234,10 +256,24 @@ const agentEventQueue = {
         if (events.length === 0) {
             const backendEvents = await agentEventQueue._fetchPendingFromBackend({ limit: maxDepth });
 
+            console.log('[AgentEventQueue] getPendingQueueEvents - backendEvents:',
+                Array.isArray(backendEvents) ? `array of ${backendEvents.length}` : typeof backendEvents,
+                JSON.stringify(backendEvents, null, 2));
+
+            // Ensure backendEvents is an array
+            if (!Array.isArray(backendEvents)) {
+                console.error('[AgentEventQueue] backendEvents is not an array, returning empty array');
+                return [];
+            }
+
             // Acknowledge backend events
             for (const event of backendEvents) {
                 try {
-                    await agentEventQueue._acknowledgeEvent(event.eventId, true);
+                    const ackResponse = await agentEventQueue._acknowledgeEvent(event.eventId, true);
+                    console.log(`[AgentEventQueue] Ack response for ${event.eventId}:`, JSON.stringify(ackResponse));
+                    if (!ackResponse.success) {
+                        console.error(`[AgentEventQueue] Failed to acknowledge event ${event.eventId}:`, ackResponse.message);
+                    }
                 } catch (error) {
                     console.error(`[AgentEventQueue] Error acknowledging event ${event.eventId}:`, error);
                 }

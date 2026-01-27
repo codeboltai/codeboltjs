@@ -305,69 +305,83 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
   try {
 
-    codebolt.chat.sendMessage("Gemini agent started", {})
+
     // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
-    let promptGenerator = new InitialPromptGenerator({
+    // let promptGenerator = new InitialPromptGenerator({
 
-      processors: [
-        // 1. Chat History
-        new ChatHistoryMessageModifier({ enableChatHistory: true }),
-        // 2. Environment Context (date, OS)
-        new EnvironmentContextModifier({ enableFullContext: true }),
-        // 3. Directory Context (folder structure)  
-        new DirectoryContextModifier(),
+    //   processors: [
+    //     // 1. Chat History
+    //     new ChatHistoryMessageModifier({ enableChatHistory: true }),
+    //     // 2. Environment Context (date, OS)
+    //     new EnvironmentContextModifier({ enableFullContext: true }),
+    //     // 3. Directory Context (folder structure)  
+    //     new DirectoryContextModifier(),
 
-        // 4. IDE Context (active file, opened files)
-        new IdeContextModifier({
-          includeActiveFile: true,
-          includeOpenFiles: true,
-          includeCursorPosition: true,
-          includeSelectedText: true
-        }),
-        // 5. Core System Prompt (instructions)
-        new CoreSystemPromptModifier(
-          { customSystemPrompt: systemPrompt }
-        ),
-        // 6. Tools (function declarations)
-        new ToolInjectionModifier({
-          includeToolDescriptions: true
-        }),
+    //     // 4. IDE Context (active file, opened files)
+    //     new IdeContextModifier({
+    //       includeActiveFile: true,
+    //       includeOpenFiles: true,
+    //       includeCursorPosition: true,
+    //       includeSelectedText: true
+    //     }),
+    //     // 5. Core System Prompt (instructions)
+    //     new CoreSystemPromptModifier(
+    //       { customSystemPrompt: systemPrompt }
+    //     ),
+    //     // 6. Tools (function declarations)
+    //     new ToolInjectionModifier({
+    //       includeToolDescriptions: true
+    //     }),
 
-        // 7. At-file processing (@file mentions)
-        new AtFileProcessorModifier({
-          enableRecursiveSearch: true
-        })
-      ],
-      baseSystemPrompt: systemPrompt
-    });
-    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    //     // 7. At-file processing (@file mentions)
+    //     new AtFileProcessorModifier({
+    //       enableRecursiveSearch: true
+    //     })
+    //   ],
+    //   baseSystemPrompt: systemPrompt
+    // });
+    // let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
     let completed = false;
     let executionResult;
-    do {
-      let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-      prompt = result.nextMessage;
+    // do {
+    //   let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+    //   let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+    //   prompt = result.nextMessage;
 
-      let responseExecutor = new ResponseExecutor({
-        preToolCallProcessors: [],
-        postToolCallProcessors: []
+    //   let responseExecutor = new ResponseExecutor({
+    //     preToolCallProcessors: [],
+    //     postToolCallProcessors: []
 
-      })
-      executionResult = await responseExecutor.executeResponse({
-        initialUserMessage: reqMessage,
-        actualMessageSentToLLM: result.actualMessageSentToLLM,
-        rawLLMOutput: result.rawLLMResponse,
-        nextMessage: result.nextMessage,
-      });
+    //   })
+    //   executionResult = await responseExecutor.executeResponse({
+    //     initialUserMessage: reqMessage,
+    //     actualMessageSentToLLM: result.actualMessageSentToLLM,
+    //     rawLLMOutput: result.rawLLMResponse,
+    //     nextMessage: result.nextMessage,
+    //   });
 
-      completed = executionResult.completed;
-      prompt = executionResult.nextMessage;
+    //   completed = executionResult.completed;
+    //   prompt = executionResult.nextMessage;
+    while (true) {
+      codebolt.chat.sendMessage(`Pending Messages: ${JSON.stringify(reqMessage)}`, {})
+      let pendingMessages = await codebolt.agentEventQueue.getPendingQueueEvents();
+      codebolt.chat.sendMessage(`Pending Messages: ${JSON.stringify(pendingMessages)}`, {})
+      if (pendingMessages.length)
+        codebolt.chat.sendMessage('Message received form parent', JSON.stringify(pendingMessages));
+      completed = true
+      codebolt.chat.sendMessage(`Pending Messages: ${JSON.stringify(pendingMessages)}`, {})
+    }
 
-    } while (!completed);
+    // completed = true
+    // codebolt.chat.sendMessage(`Pending Messages: ${JSON.stringify(pendingMessages)}`, {})
+
+    // } while (!completed);
+
 
     // codebolt.chat.sendMessage(`Agent Finished with response: ${JSON.stringify(executionResult)}`, {})
     // codebolt.chat.sendMessage(executionResult.finalMessage || "final message not found", {})
-    return executionResult.finalMessage;
+    // return executionResult.finalMessage;
+    // return "Child agent finished"
 
   } catch (error) {
     console.error(error);

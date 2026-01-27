@@ -63,6 +63,7 @@ import cbcontextRuleEngine from '../modules/contextRuleEngine';
 import cbagentPortfolio from '../modules/agentPortfolio';
 import orchestrator from '../modules/orchestrator';
 import cbbackgroundChildThreads from '../modules/backgroundChildThreads';
+import cbagentEventQueue from '../modules/agentEventQueue';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -189,6 +190,7 @@ class Codebolt {
     agentPortfolio = cbagentPortfolio;
     orchestrator = orchestrator;
     backgroundChildThreads = cbbackgroundChildThreads;
+    agentEventQueue = cbagentEventQueue;
 
     /**
      * User message utilities for accessing current user message and context

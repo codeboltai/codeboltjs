@@ -125,7 +125,7 @@ export class EventQueueSendMessageTool extends BaseDeclarativeTool<
                         description: 'Optional event ID this message is replying to'
                     }
                 },
-                required: ['targetAgentId', 'content']
+                required: ['targetAgentId', 'targetThreadId', 'content']
             }
         );
     }
