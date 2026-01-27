@@ -3,13 +3,23 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [],
+  "linked": [
+    [
+      "@codebolt/codeboltjs",
+      "@codebolt/types",
+      "@codebolt/agent"
+    ],
+    [
+      "@codebolt/litegraph",
+      "@codebolt/agent-shared-nodes"
+    ]
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "bumpVersionsWithWorkspaceProtocolOnly": true,
   "ignore": [
-    "@codebolt/agent-creator-agent",
+    "@codebolt/agentcreator-agent",
     "@codebolt/create-task-from-prompt",
     "@agent-creator/backend",
     "@codebolt/agent-creator-frontend",
@@ -17,7 +27,6 @@
     "@codebolt/act-claude",
     "@codebolt/act-old",
     "@codebolt/actionBlockTest",
-    "@codebolt/agent",
     "@codebolt/agentfs-provider",
     "@codebolt/agentserver",
     "@codebolt/clitestagent",
@@ -45,8 +54,6 @@
     "@codeboltagent/main-swarm-agent-bkp",
     "@epoml/example",
     "@tests",
-    "Orchestrator Agent",
-    "Planning Agent",
     "Planner",
     "act",
     "andnode",

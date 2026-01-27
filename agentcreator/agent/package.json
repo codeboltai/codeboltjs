@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/agent-creator-agent",
+  "name": "@codebolt/agentcreator-agent",
   "version": "0.0.2",
   "type": "module",
   "main": "./dist/index.js",
