@@ -40,11 +40,34 @@ export {
 } from '../types/agentEventQueue';
 
 // ============================================================================
+// Unified External Event Types
+// ============================================================================
+
+/**
+ * Types of external events that can be received
+ */
+export type ExternalEventType =
+    | 'agentQueueEvent'
+    | 'backgroundAgentCompletion'
+    | 'backgroundGroupedAgentCompletion';
+
+/**
+ * Unified external event structure
+ */
+export interface UnifiedExternalEvent {
+    type: ExternalEventType;
+    data: any;
+}
+
+// ============================================================================
 // Local Event Cache
 // ============================================================================
 
-/** Local cache for events received via WebSocket */
+/** Local cache for agent events received via WebSocket */
 const localEventCache = new Map<string, AgentEventMessage>();
+
+/** Unified cache for all external events (queue events, background completions, grouped completions) */
+const pendingExternalEvents: UnifiedExternalEvent[] = [];
 
 /** Registered event handlers */
 const eventHandlers = new Set<QueueEventHandler>();
@@ -54,7 +77,7 @@ import { EventEmitter } from 'events';
 const eventEmitter = new EventEmitter();
 
 // ============================================================================
-// WebSocket Subscription
+// WebSocket Subscriptions
 // ============================================================================
 
 // Subscribe to agentEvent messages from WebSocket
@@ -65,8 +88,12 @@ agentEventSubscription.on('message', (message: any) => {
         // Store in local cache
         localEventCache.set(event.eventId, event);
 
+        // Also push to unified external events cache
+        pendingExternalEvents.push({ type: 'agentQueueEvent', data: event });
+
         // Notify waiting promises
         eventEmitter.emit('newEvent', event);
+        eventEmitter.emit('externalEvent', { type: 'agentQueueEvent', data: event });
 
         // Call registered handlers
         for (const handler of eventHandlers) {
@@ -76,6 +103,36 @@ agentEventSubscription.on('message', (message: any) => {
                 console.error('[AgentEventQueue] Error in event handler:', error);
             }
         }
+    }
+});
+
+// Subscribe to background agent completion messages
+const backgroundAgentSubscription = cbws.messageManager.subscribe('startThreadResponse');
+backgroundAgentSubscription.on('message', (message: any) => {
+    if (message.threadId) {
+        const externalEvent: UnifiedExternalEvent = { type: 'backgroundAgentCompletion', data: message };
+        pendingExternalEvents.push(externalEvent);
+        eventEmitter.emit('externalEvent', externalEvent);
+    }
+});
+
+// Subscribe to ThreadCompleted as an alternative message type
+const threadCompletedSubscription = cbws.messageManager.subscribe('ThreadCompleted');
+threadCompletedSubscription.on('message', (message: any) => {
+    if (message.threadId) {
+        const externalEvent: UnifiedExternalEvent = { type: 'backgroundAgentCompletion', data: message };
+        pendingExternalEvents.push(externalEvent);
+        eventEmitter.emit('externalEvent', externalEvent);
+    }
+});
+
+// Subscribe to grouped agent completion messages
+const groupedAgentSubscription = cbws.messageManager.subscribe('backgroundGroupedAgentCompletion');
+groupedAgentSubscription.on('message', (message: any) => {
+    if (message.threadId) {
+        const externalEvent: UnifiedExternalEvent = { type: 'backgroundGroupedAgentCompletion', data: message };
+        pendingExternalEvents.push(externalEvent);
+        eventEmitter.emit('externalEvent', externalEvent);
     }
 });
 
@@ -399,6 +456,100 @@ const agentEventQueue = {
      */
     clearLocalCache: (): void => {
         localEventCache.clear();
+    },
+
+    // ========================================================================
+    // Unified External Event Handling
+    // ========================================================================
+
+    /**
+     * Check for any pending external events without waiting.
+     * Returns the first pending event or null if none available.
+     *
+     * @returns {UnifiedExternalEvent | null} The first pending event or null
+     */
+    checkForPendingExternalEvent: (): UnifiedExternalEvent | null => {
+        if (pendingExternalEvents.length > 0) {
+            return pendingExternalEvents.shift() || null;
+        }
+        return null;
+    },
+
+    /**
+     * Get all pending external events.
+     * Returns all pending events and clears the cache.
+     *
+     * @returns {UnifiedExternalEvent[]} Array of pending events
+     */
+    getPendingExternalEvents: (): UnifiedExternalEvent[] => {
+        const events = [...pendingExternalEvents];
+        pendingExternalEvents.length = 0;
+        return events;
+    },
+
+    /**
+     * Get the count of pending external events.
+     *
+     * @returns {number} Number of pending events
+     */
+    getPendingExternalEventCount: (): number => {
+        return pendingExternalEvents.length;
+    },
+
+    /**
+     * Waits for any external event from multiple sources:
+     * - Agent queue events (from local cache or WebSocket)
+     * - Background agent completions
+     * - Grouped agent completions
+     *
+     * Returns the first event that occurs from any source.
+     *
+     * @returns {Promise<UnifiedExternalEvent>} A promise that resolves with the event type and data
+     */
+    waitForAnyExternalEvent: async (): Promise<UnifiedExternalEvent> => {
+        // Check if there are already pending events
+        if (pendingExternalEvents.length > 0) {
+            const event = pendingExternalEvents.shift()!;
+
+            // If it's an agent queue event, acknowledge it
+            if (event.type === 'agentQueueEvent' && event.data?.eventId) {
+                try {
+                    await agentEventQueue._acknowledgeEvent(event.data.eventId, true);
+                    localEventCache.delete(event.data.eventId);
+                } catch (error) {
+                    console.error(`[AgentEventQueue] Error acknowledging event ${event.data.eventId}:`, error);
+                }
+            }
+
+            return event;
+        }
+
+        // Wait for the next external event
+        return new Promise((resolve) => {
+            const handler = async (event: UnifiedExternalEvent) => {
+                eventEmitter.removeListener('externalEvent', handler);
+
+                // Remove from pending queue (it was added by the subscription)
+                const index = pendingExternalEvents.findIndex(e => e === event);
+                if (index !== -1) {
+                    pendingExternalEvents.splice(index, 1);
+                }
+
+                // If it's an agent queue event, acknowledge it
+                if (event.type === 'agentQueueEvent' && event.data?.eventId) {
+                    try {
+                        await agentEventQueue._acknowledgeEvent(event.data.eventId, true);
+                        localEventCache.delete(event.data.eventId);
+                    } catch (error) {
+                        console.error(`[AgentEventQueue] Error acknowledging event ${event.data.eventId}:`, error);
+                    }
+                }
+
+                resolve(event);
+            };
+
+            eventEmitter.once('externalEvent', handler);
+        });
     }
 };
 
