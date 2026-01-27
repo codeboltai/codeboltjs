@@ -101,8 +101,7 @@ const agentEventQueue = {
                 requestId,
                 params
             },
-            'agentEventQueueResponse',
-            30000 // 30 second timeout
+            'agentEventQueue.addEventForAgentResponse'
         );
     },
 
@@ -119,8 +118,7 @@ const agentEventQueue = {
                 requestId,
                 params
             },
-            'agentEventQueueResponse',
-            30000 // 30 second timeout
+            'agentEventQueue.sendAgentMessageResponse'
         );
     },
 
@@ -136,8 +134,7 @@ const agentEventQueue = {
                 requestId,
                 params: {}
             },
-            'agentEventQueueResponse',
-            30000 // 30 second timeout
+            'agentEventQueue.getQueueStatsResponse',
         );
     },
 
@@ -154,8 +151,7 @@ const agentEventQueue = {
                 requestId,
                 params: { agentId }
             },
-            'agentEventQueueResponse',
-            30000 // 30 second timeout
+            'agentEventQueue.clearQueueResponse',
         );
     },
 
@@ -181,8 +177,7 @@ const agentEventQueue = {
                     errorMessage
                 } as AckEventInput
             },
-            'agentEventQueueResponse',
-            30000 // 30 second timeout
+            'agentEventQueue.ackEventResponse',
         );
     },
 
@@ -199,8 +194,7 @@ const agentEventQueue = {
                     requestId,
                     params
                 },
-                'agentEventQueueResponse',
-                30000 // 30 second timeout
+                'agentEventQueue.getPendingEventsResponse'
             );
 
             console.log('[AgentEventQueue] Backend response:', JSON.stringify(response, null, 2));
