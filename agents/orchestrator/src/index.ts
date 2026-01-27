@@ -609,6 +609,37 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     } catch (error) {
         sessionSystemPrompt = systemPrompt;
     }
+
+    // Phase 1: Create plan using action block
+    codebolt.chat.sendMessage("Creating implementation plan...", {});
+    try {
+        const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
+            userMessage: reqMessage
+        });
+
+        if (planResult.success && planResult.result) {
+            const { planId, requirementPlanPath } = planResult.result;
+            codebolt.chat.sendMessage(`Plan created successfully. Plan ID: ${planId}`, {});
+
+            // Add plan context to system prompt
+            if (planId) {
+                sessionSystemPrompt += `\n\n<action_plan>
+The following action plan has been created for this task:
+- Plan ID: ${planId}
+${requirementPlanPath ? `- Requirement Plan: ${requirementPlanPath}` : ''}
+
+Use the action plan to guide task delegation. Refer to the plan when breaking down and assigning tasks to worker agents.
+</action_plan>`;
+            }
+        } else {
+            codebolt.chat.sendMessage("Plan creation skipped or failed, proceeding with direct orchestration...", {});
+        }
+    } catch (planError) {
+        console.error('Plan creation failed:', planError);
+        codebolt.chat.sendMessage("Plan creation failed, proceeding with direct orchestration...", {});
+    }
+
+    // Phase 2: Run agent loop
     let promptGenerator = new InitialPromptGenerator({
         processors: [
             // 1. Chat History

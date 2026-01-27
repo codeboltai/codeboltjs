@@ -1,9 +1,9 @@
 # ActionBlock Configuration File
-# This ActionBlock finds and assigns the next available job to a swarm agent
+# This ActionBlock creates a detailed plan for a given task
 
-name: find-next-job
+name: create-plan-for-given-task
 
-description: Finds and assigns the next available job to a swarm agent by analyzing dependencies, checking blockers, and locking the job
+description: Creates a detailed implementation plan by analyzing requirements and breaking them down into actionable tasks
 
 version: 1.0.0
 
@@ -13,39 +13,35 @@ metadata:
   author: Codebolt Team
 
   tags:
-    - swarm
-    - job
-    - task-assignment
-    - agent
+    - planner
+    - plan
+    - task-breakdown
+    - requirements
 
   dependencies:
     - "@codebolt/codeboltjs"
+    - "@codebolt/agent"
+    - "@codebolt/types"
 
   inputs:
-    - name: swarmId
-      type: string
+    - name: userMessage
+      type: object
       required: true
-      description: The ID of the swarm to find jobs from
-
-    - name: agentId
-      type: string
-      required: false
-      description: The ID of the agent (falls back to parentAgentInstanceId from metadata)
-
-    - name: agentName
-      type: string
-      required: false
-      description: The name of the agent (falls back to Agent:{parentAgentInstanceId})
+      description: The user message containing the task/requirement to plan
 
   outputs:
     - name: success
       type: boolean
-      description: Whether a job was successfully found and assigned
+      description: Whether the plan was successfully created
 
-    - name: job
-      type: object
-      description: The assigned job details - contains id, name, description, status, groupId
+    - name: planId
+      type: string
+      description: The ID of the created action plan
+
+    - name: requirementPlanPath
+      type: string
+      description: The path to the created requirement plan document
 
     - name: error
       type: string
-      description: Error message if no job was found or an error occurred
+      description: Error message if plan creation failed

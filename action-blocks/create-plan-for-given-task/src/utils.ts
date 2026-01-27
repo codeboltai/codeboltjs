@@ -1,4 +1,5 @@
 import codebolt from '@codebolt/codeboltjs';
+import { TaskPlan } from './types';
 
 // ================================
 // JSON PARSING HELPERS
@@ -52,7 +53,7 @@ export async function llmWithJsonRetry<T>(
         if (attempt > 1 && lastError) {
             currentPrompt = `${userPrompt}
 
-IMPORTANT: Your previous response was not valid JSON. 
+IMPORTANT: Your previous response was not valid JSON.
 Error: ${lastError}
 Your response was: ${lastResponse.substring(0, 500)}...
 
@@ -74,9 +75,23 @@ Please respond with ONLY a valid JSON object. No markdown, no explanation, just 
             lastError = e instanceof Error ? e.message : 'Invalid JSON format';
         }
 
-        codebolt.chat.sendMessage(`⚠️ JSON parse failed (attempt ${attempt}/${maxRetries}), retrying...`);
+        codebolt.chat.sendMessage(`JSON parse failed (attempt ${attempt}/${maxRetries}), retrying...`);
     }
 
-    codebolt.chat.sendMessage(`❌ Failed to get valid JSON after ${maxRetries} attempts`);
+    codebolt.chat.sendMessage(`Failed to get valid JSON after ${maxRetries} attempts`);
     return null;
+}
+
+/**
+ * Parse task plan from LLM response with retry support
+ */
+export async function parseTaskPlanWithRetry(
+    systemPrompt: string,
+    maxRetries: number = 3
+): Promise<TaskPlan | null> {
+    return llmWithJsonRetry<TaskPlan>(
+        systemPrompt,
+        'create task list for given plan',
+        maxRetries
+    );
 }
