@@ -481,44 +481,46 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
   let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
   let executionResult: any;
 
-  let continueLoop = false;
   do {
-    continueLoop = false;
-
+    // Run the agent loop
     let result: any = await runwhileLoop(reqMessage, prompt);
     executionResult = result.executionResult;
     prompt = result.prompt;
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    let pendingMessages = await codebolt.agentEventQueue.getPendingQueueEvents();
-    if (pendingMessages.length) {
-      continueLoop=true;
-      pendingMessages.forEach((event: any) => {
-      
+    // Wait for next message
+    let hasValidMessage = false;
+    while (!hasValidMessage) {
+      let pendingMessages = await codebolt.agentEventQueue.waitForNextQueueEvent();
+
+      const messages = Array.isArray(pendingMessages) ? pendingMessages : [pendingMessages];
+
+      if (!messages || messages.length === 0) {
+        continue;
+      }
+
+      messages.forEach((event: any) => {
         if (event.eventType == 'agentEvent') {
-        let  messageContent= `<parent_agent_message>
-          <source_agent>${event.sourceAgentId}</source_agent>
-          <source_thread>${event.sourceThreadId}</source_thread>
+          hasValidMessage = true;
+          let messageContent = `<parent_agent_message>
+            <source_agent>${event.sourceAgentId}</source_agent>
+            <source_thread>${event.sourceThreadId}</source_thread>
 
-          <message_type>instruction</message_type>
-          <content>
-          ${event.payload.content}
-          </content>
-          <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
-          <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
-          </parent_agent_message>`;
+            <message_type>instruction</message_type>
+            <content>
+            ${event.payload.content}
+            </content>
+            <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
+            <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
+            </parent_agent_message>`;
 
-          codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`)
+          codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`);
           if (reqMessage.userMessage) {
-            reqMessage.userMessage=messageContent;
-      
+            reqMessage.userMessage = messageContent;
           }
         }
-      })
-
+      });
     }
-
-  } while (continueLoop);
+  } while (true);
 // codebolt.chat.sendMessage('Agent finished')
   // return executionResult?.finalMessage || "No response generated";
 })
