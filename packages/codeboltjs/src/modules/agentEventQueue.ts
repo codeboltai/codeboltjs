@@ -200,13 +200,22 @@ const agentEventQueue = {
             console.log('[AgentEventQueue] Backend response:', JSON.stringify(response, null, 2));
 
             if (response.success && response.data) {
+                // Handle case where data itself is the array
+                if (Array.isArray(response.data)) {
+                    return response.data;
+                }
+                // Handle case where events are nested under data.events
                 const events = response.data.events;
-                // Ensure we always return an array
                 if (Array.isArray(events)) {
                     return events;
                 }
                 console.warn('[AgentEventQueue] response.data.events is not an array:', typeof events, events);
                 return [];
+            }
+            // Handle case where events are at response root level (not nested under data)
+            const responseAny = response as any;
+            if (response.success && Array.isArray(responseAny.events)) {
+                return responseAny.events;
             }
             return [];
         } catch (error) {
