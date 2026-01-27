@@ -5,6 +5,12 @@
 - `pnpm` and `@changesets/cli` installed (run `pnpm install` in the repo)
 - Logged into npm with credentials that have publish rights for all packages (`pnpm npm login`)
 
+# Creating New Project
+By Default Any new Project in this monorepo should be:
+ - Added in the workspace
+ - Added To ignore in changeset config (unless you know what you are doing)
+ - Must have private:true
+
 ## Publishable Packages
 
 The following packages are configured for publishing:
@@ -93,13 +99,30 @@ pnpm run publish:codeboltjs:skip
 
 ## Selective Publishing (Publish Specific Packages Only)
 
-When you want to publish only certain packages (e.g., `codeboltjs` and `provider` but NOT `agent`), use `pnpm pack` + `npm publish`:
-
-**Why not `pnpm publish --filter`?** - It may not properly convert `workspace:*` to actual versions.
+When you want to publish only certain packages (e.g., `codeboltjs` and `provider` but NOT `agent`):
 
 **Why not `changeset publish`?** - It publishes ALL packages with version mismatches, not just the ones you want.
 
-### Steps for selective publishing:
+### Recommended: Use `pnpm publish --filter`
+
+```bash
+# First, build
+pnpm run build
+
+# Dry run to verify (shows what would be published without actually publishing)
+pnpm --filter @codebolt/codeboltjs publish --dry-run --access public
+pnpm --filter @codebolt/provider publish --dry-run --access public
+
+# Then publish
+pnpm --filter @codebolt/codeboltjs publish --access public
+pnpm --filter @codebolt/provider publish --access public
+```
+
+### Alternative: Use `pnpm pack` + `npm publish`
+
+Use this method if `pnpm publish --filter` has issues with `workspace:*` conversion:
+
+#### Steps for selective publishing:
 
 ```bash
 # 1. Build the packages first
@@ -158,8 +181,8 @@ This means if you have a package with version `1.0.0` locally and npm doesn't ha
 ### Preventing unwanted publishing
 
 To prevent a package from being published:
-1. **Add `"private": true`** to the package.json (recommended for internal packages)
-2. **Add to ignore list** in `.changeset/config.json` (changeset will skip it entirely)
+1. **Add `"private": true`** to the package.json (recommended - this is the ONLY reliable way)
+2. **Add to ignore list** in `.changeset/config.json` - **WARNING**: This only prevents version bumping during `changeset version`, it does NOT prevent `changeset publish` from publishing the package if its version doesn't exist on npm!
 
 ## Notes
 

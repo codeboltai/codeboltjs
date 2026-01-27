@@ -1,7 +1,6 @@
 {
-  "name": "@agent-creator/agent",
+  "name": "@codebolt/agent-creator-agent",
   "version": "0.0.2",
-  "private": true,
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
@@ -34,5 +33,6 @@
   },
   "files": [
     "dist/**/*"
-  ]
+  ],
+  "private": true
 }

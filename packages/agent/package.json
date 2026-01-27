@@ -72,5 +72,6 @@
       "types": "./dist/unified/index.d.ts",
       "default": "./dist/unified/index.js"
     }
-  }
+  },
+  "private": true
 }

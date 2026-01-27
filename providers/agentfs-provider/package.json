@@ -1,43 +1,44 @@
 {
-    "name": "@codebolt/agentfs-provider",
-    "version": "1.0.0",
-    "description": "AgentFS Provider for CodeBolt",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "files": [
-        "dist"
-    ],
-    "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
-        "clean": "rm -rf dist",
-        "lint": "eslint src/**/*.ts",
-        "type-check": "tsc --noEmit",
-        "prepublishOnly": "npm run clean && npm run build",
-        "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
-        "test:server": "NODE_ENV=test npx ts-node --esm test-local.ts server",
-        "test:full": "NODE_ENV=test npx ts-node --esm test-local.ts full",
-        "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts"
-    },
-    "keywords": [
-        "codebolt",
-        "agentfs",
-        "provider"
-    ],
-    "author": "CodeBolt",
-    "license": "MIT",
-    "dependencies": {
-        "@codebolt/codeboltjs": "workspace:*",
-        "@codebolt/provider": "workspace:*",
-        "@codebolt/types": "workspace:*",
-        "ws": "^8.18.0"
-    },
-    "devDependencies": {
-        "@types/node": "^20.14.2",
-        "@types/ws": "^8.5.13",
-        "typescript": "^5.4.5"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    }
+  "name": "@codebolt/agentfs-provider",
+  "version": "1.0.0",
+  "description": "AgentFS Provider for CodeBolt",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
+    "test:server": "NODE_ENV=test npx ts-node --esm test-local.ts server",
+    "test:full": "NODE_ENV=test npx ts-node --esm test-local.ts full",
+    "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts"
+  },
+  "keywords": [
+    "codebolt",
+    "agentfs",
+    "provider"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/provider": "workspace:*",
+    "@codebolt/types": "workspace:*",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
 }

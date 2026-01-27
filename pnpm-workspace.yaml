@@ -7,10 +7,14 @@ packages:
   - tui/*
   - remoteexecutor/*
   - remoteenvironments/*
+  - remoteenvironments/wranglercontainers/container_src
   - agentcreator/*
   - agentcreator/customnodes/*
   - actionBlocks/*
+  - action-blocks/*
   - documentation/mainfolder
+  - documentation/internaldocuments
+  - testcases
   
 ignoredBuiltDependencies:
   - esbuild

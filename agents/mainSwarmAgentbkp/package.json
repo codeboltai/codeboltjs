@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/main-swarm-agent-bkp",
+  "name": "@codeboltagent/main-swarm-agent-bkp",
   "version": "1.0.2",
   "description": "Main Swarm Agent",
   "main": "dist/index.js",
