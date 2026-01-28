@@ -28,7 +28,10 @@
       "Bash(/bin/bash -c \"cd /Users/utkarshshukla/Codebolt/codeboltjs/packages/codeboltjs && npm run build 2>&1 | head -150\")",
       "Bash(done)",
       "Bash(wc:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(pnpm build:*)",
+      "Bash(npx webpack)",
+      "Bash(npx webpack:*)"
     ],
     "deny": [],
     "ask": []

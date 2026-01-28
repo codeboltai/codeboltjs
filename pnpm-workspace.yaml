@@ -10,6 +10,7 @@ packages:
   - agentcreator/*
   - agentcreator/customnodes/*
   - actionBlocks/*
+  - action-blocks/*
   - documentation/mainfolder
   
 ignoredBuiltDependencies:

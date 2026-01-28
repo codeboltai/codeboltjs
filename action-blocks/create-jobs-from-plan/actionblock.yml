@@ -1,0 +1,89 @@
+# ActionBlock Configuration File
+# This ActionBlock creates a single job for a task using LLM-enhanced descriptions
+
+name: create-jobs-from-plan
+
+description: Creates a single executable job from an action plan task. Uses LLM to generate detailed job specification based on task context and the full plan. The orchestrator calls this once per task.
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - orchestrator
+    - job-creation
+    - task-execution
+    - llm-enhanced
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/types"
+
+  inputs:
+    - name: plan
+      type: object
+      required: true
+      description: |
+        The full action plan object for context:
+        - planId: string (required)
+        - name: string
+        - description: string
+        - tasks: array (full task list for context)
+
+    - name: task
+      type: object
+      required: true
+      description: |
+        Single task to create a job for:
+        - taskId: string (required)
+        - name: string (required)
+        - description: string (required)
+        - priority: 'High' | 'Medium' | 'Low' (optional)
+        - dependencies: string[] (optional)
+        - estimated_time: string (optional)
+
+    - name: groupId
+      type: string
+      required: true
+      description: The job group ID where the job will be created
+
+    - name: workerAgentId
+      type: string
+      required: false
+      description: Optional worker agent ID to assign the job to
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the job creation was successful
+
+    - name: jobId
+      type: string
+      description: Created job ID
+
+    - name: taskId
+      type: string
+      description: Task ID that was processed
+
+    - name: groupId
+      type: string
+      description: The group ID where job was created
+
+    - name: job
+      type: object
+      description: |
+        Created job details:
+        - jobId: string
+        - taskId: string
+        - name: string
+        - description: string
+        - type: 'bug' | 'feature' | 'task' | 'epic' | 'chore'
+        - priority: 1 | 2 | 3 | 4
+        - status: 'open' | 'working' | 'hold' | 'closed'
+
+    - name: error
+      type: string
+      description: Error message if job creation failed
