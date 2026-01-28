@@ -1,0 +1,80 @@
+# ActionBlock Configuration File
+# This ActionBlock breaks a task into multiple executable sub-jobs using LLM
+
+name: break-task-into-jobs
+
+description: Analyzes a task using LLM and breaks it into multiple implementation sub-jobs. Each sub-job represents a discrete step that can be executed independently by a worker agent.
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - orchestrator
+    - job-creation
+    - task-breakdown
+    - llm-enhanced
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/types"
+
+  inputs:
+    - name: plan
+      type: object
+      required: true
+      description: |
+        The full action plan object for context:
+        - planId: string (required)
+        - name: string
+        - description: string
+        - tasks: array (full task list for context)
+
+    - name: task
+      type: object
+      required: true
+      description: |
+        Single task to break into sub-jobs:
+        - taskId: string (required)
+        - name: string (required)
+        - description: string (required)
+        - priority: 'High' | 'Medium' | 'Low' (optional)
+        - dependencies: string[] (optional)
+        - estimated_time: string (optional)
+
+    - name: existingJobs
+      type: array
+      required: false
+      description: Array of already created jobs for dependency analysis
+
+    - name: workerAgentId
+      type: string
+      required: false
+      description: Optional worker agent ID to assign jobs to
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the task breakdown was successful
+
+    - name: taskId
+      type: string
+      description: Task ID that was processed
+
+    - name: subJobs
+      type: array
+      description: |
+        Array of sub-job definitions:
+        - name: string
+        - description: string
+        - type: 'bug' | 'feature' | 'task' | 'epic' | 'chore'
+        - priority: 1 | 2 | 3 | 4
+        - estimatedEffort: 'small' | 'medium' | 'large'
+        - dependencies: string[] (names of other sub-jobs this depends on)
+
+    - name: error
+      type: string
+      description: Error message if breakdown failed

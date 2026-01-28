@@ -64,6 +64,14 @@ interface CreateJobResult {
     jobId?: string;
     taskId?: string;
     groupId: string;
+    job?: CreatedJob;
+}
+
+interface CreatedJob {
+    jobId: string;
+    name: string;
+    taskName?: string;
+    groupId: string;
 }
 
 // Track context for better messaging (aligned with orchestrator-worker pattern)
@@ -76,13 +84,31 @@ interface TaskContext {
     waitForCompletion?: boolean;
 }
 
-// Processing context passed through the call chain
+// Sub-job definition from break-task-into-jobs action block
+interface SubJobDefinition {
+    name: string;
+    description: string;
+    type: 'bug' | 'feature' | 'task' | 'epic' | 'chore';
+    priority: 1 | 2 | 3 | 4;
+    estimatedEffort: 'small' | 'medium' | 'large';
+    internalDependencies?: string[];
+    externalDependencies?: string[];
+    labels?: string[];
+}
+
+// Processing context passed through the call chain (enhanced for hierarchical groups)
 interface ProcessingContext {
     plan: ActionPlan;
-    groupId: string;
+    rootGroupId: string;           // Root job group for the plan
+    currentGroupId: string;        // Current group (may be a sub-group)
     taskIndexRef: { value: number };
     workerAgentId?: string;
     taskContext?: TaskContext;
+
+    // NEW: Track created jobs for dependency resolution
+    createdJobs: CreatedJob[];
+    taskJobMap: Map<string, CreatedJob[]>;  // taskName -> jobs created for that task
+    previousTaskJobs?: CreatedJob[];        // Jobs from the previous task (for sequential deps)
 }
 
 // ================================
@@ -134,7 +160,7 @@ async function createJobForTask(
     taskId: string,
     ctx: ProcessingContext
 ): Promise<CreateJobResult> {
-    const { plan, groupId, workerAgentId, taskContext = {} } = ctx;
+    const { plan, currentGroupId, workerAgentId, taskContext = {} } = ctx;
     const contextMsg = buildContextMessage(taskContext);
 
     try {
@@ -156,7 +182,7 @@ async function createJobForTask(
                 dependencies: task.dependencies,
                 estimated_time: task.estimated_time
             },
-            groupId,
+            groupId: currentGroupId,
             workerAgentId
         });
 
@@ -171,7 +197,7 @@ async function createJobForTask(
         return {
             success: false,
             error: result.error || 'Failed to create job',
-            groupId
+            groupId: currentGroupId
         };
     } catch (error) {
         console.error(`[Orchestrator] Error creating job: ${task.name}${contextMsg}`, error);
@@ -179,14 +205,387 @@ async function createJobForTask(
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error',
-            groupId
+            groupId: currentGroupId
         };
+    }
+}
+
+/**
+ * Maps task priority string to job priority number
+ */
+function mapPriority(priority?: string): 1 | 2 | 3 | 4 {
+    switch (priority?.toLowerCase()) {
+        case 'high':
+            return 2;
+        case 'medium':
+            return 3;
+        case 'low':
+            return 4;
+        default:
+            return 3;
+    }
+}
+
+/**
+ * Adds cross-task dependencies based on task.dependencies[]
+ * The first job of the current task depends on the LAST job of each dependent task
+ */
+async function addCrossTaskDependencies(
+    firstJobId: string,
+    taskDependencies: string[],
+    ctx: ProcessingContext
+): Promise<void> {
+    for (const depTaskName of taskDependencies) {
+        const depTaskJobs = ctx.taskJobMap.get(depTaskName);
+        if (depTaskJobs && depTaskJobs.length > 0) {
+            const lastDepJob = depTaskJobs[depTaskJobs.length - 1];
+            try {
+                await codebolt.job.addDependency(firstJobId, lastDepJob.jobId, 'blocks');
+                console.log(`[Orchestrator] Added dependency: ${firstJobId} depends on ${lastDepJob.jobId}`);
+            } catch (error) {
+                console.warn(`[Orchestrator] Failed to add dependency:`, error);
+            }
+        }
+    }
+}
+
+/**
+ * Adds sequential dependency from previous task (for top-level sequential processing)
+ */
+async function addSequentialDependency(
+    firstJobId: string,
+    ctx: ProcessingContext
+): Promise<void> {
+    if (ctx.previousTaskJobs && ctx.previousTaskJobs.length > 0) {
+        const lastPreviousJob = ctx.previousTaskJobs[ctx.previousTaskJobs.length - 1];
+        try {
+            await codebolt.job.addDependency(firstJobId, lastPreviousJob.jobId, 'blocks');
+            console.log(`[Orchestrator] Added sequential dependency: ${firstJobId} depends on ${lastPreviousJob.jobId}`);
+        } catch (error) {
+            console.warn(`[Orchestrator] Failed to add sequential dependency:`, error);
+        }
+    }
+}
+
+/**
+ * Executes a job by starting a worker thread and waits for completion
+ */
+async function executeJobWithWorker(
+    job: CreatedJob,
+    workerAgentId: string,
+    _ctx: ProcessingContext
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        console.log(`[Orchestrator] Starting worker for job: ${job.name}`);
+        codebolt.chat.sendMessage(`🚀 Starting worker for: ${job.name}`);
+
+        // Update job status to working
+        await codebolt.job.updateJob(job.jobId, { status: 'working' });
+
+        // Create and start thread for this job
+        const threadResult = await codebolt.thread.createAndStartThread({
+            title: job.name,
+            description: `Executing job: ${job.name}`,
+            userMessage: job.name,
+            selectedAgent: {
+                id: workerAgentId,
+                name: 'Worker Agent'
+            },
+            metadata: {
+                jobId: job.jobId,
+                taskName: job.taskName,
+                groupId: job.groupId
+            }
+        });
+
+        if (threadResult.success) {
+            console.log(`[Orchestrator] Job completed successfully: ${job.name}`);
+            codebolt.chat.sendMessage(`✅ Job completed: ${job.name}`);
+            await codebolt.job.updateJob(job.jobId, { status: 'closed' });
+            return { success: true };
+        } else {
+            console.error(`[Orchestrator] Job failed: ${job.name}`, threadResult.error);
+            codebolt.chat.sendMessage(`❌ Job failed: ${job.name}`);
+            await codebolt.job.updateJob(job.jobId, { status: 'hold' });
+            return { success: false, error: threadResult.error };
+        }
+    } catch (error) {
+        console.error(`[Orchestrator] Error executing job: ${job.name}`, error);
+        codebolt.chat.sendMessage(`❌ Error executing job: ${job.name}`);
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+}
+
+/**
+ * Executes all jobs for a task sequentially (respecting dependencies)
+ * Jobs are executed one by one - later jobs depend on earlier ones
+ */
+async function executeTaskJobsSequential(
+    jobs: CreatedJob[],
+    ctx: ProcessingContext
+): Promise<{ success: boolean; completedCount: number; failedCount: number }> {
+    const workerAgentId = ctx.workerAgentId || 'mainact';
+    let completedCount = 0;
+    let failedCount = 0;
+
+    codebolt.chat.sendMessage(`⚙️ Executing ${jobs.length} jobs sequentially...`);
+
+    for (const job of jobs) {
+        const result = await executeJobWithWorker(job, workerAgentId, ctx);
+        if (result.success) {
+            completedCount++;
+        } else {
+            failedCount++;
+            // Continue with next jobs even if one fails (dependencies handle blocking)
+        }
+    }
+
+    return {
+        success: failedCount === 0,
+        completedCount,
+        failedCount
+    };
+}
+
+/**
+ * Executes all jobs for a task in PARALLEL
+ * All jobs start at the same time and we wait for all to complete
+ */
+async function executeTaskJobsParallel(
+    jobs: CreatedJob[],
+    ctx: ProcessingContext
+): Promise<{ success: boolean; completedCount: number; failedCount: number }> {
+    const workerAgentId = ctx.workerAgentId || 'mainact';
+
+    codebolt.chat.sendMessage(`⚡ Executing ${jobs.length} jobs in parallel...`);
+
+    // Start all jobs in parallel
+    const jobPromises = jobs.map(job => executeJobWithWorker(job, workerAgentId, ctx));
+
+    // Wait for all to complete
+    const results = await Promise.allSettled(jobPromises);
+
+    let completedCount = 0;
+    let failedCount = 0;
+
+    for (const result of results) {
+        if (result.status === 'fulfilled' && result.value.success) {
+            completedCount++;
+        } else {
+            failedCount++;
+        }
+    }
+
+    return {
+        success: failedCount === 0,
+        completedCount,
+        failedCount
+    };
+}
+
+/**
+ * Executes jobs based on execution mode (sequential or parallel)
+ */
+async function executeTaskJobs(
+    jobs: CreatedJob[],
+    ctx: ProcessingContext,
+    parallel: boolean = false
+): Promise<{ success: boolean; completedCount: number; failedCount: number }> {
+    if (parallel) {
+        return executeTaskJobsParallel(jobs, ctx);
+    }
+    return executeTaskJobsSequential(jobs, ctx);
+}
+
+/**
+ * Processes a normal task: creates a sub-group, breaks into sub-jobs, adds dependencies
+ * @param parallel - If true, executes sub-jobs in parallel (for parallel groups)
+ */
+async function processNormalTask(
+    task: TaskInfo,
+    taskId: string,
+    ctx: ProcessingContext,
+    parallel: boolean = false
+): Promise<CreateJobResult[]> {
+    const { plan, rootGroupId, taskContext = {} } = ctx;
+    const contextMsg = buildContextMessage(taskContext);
+    const results: CreateJobResult[] = [];
+
+    try {
+        console.log(`[Orchestrator] Processing normal task: ${task.name}${contextMsg}`);
+        codebolt.chat.sendMessage(`📦 Creating job group for task: ${task.name}`);
+
+        // 1. Create a sub-group for this task
+        const taskGroupResponse = await codebolt.job.createJobGroup({
+            name: task.name,
+            parentId: rootGroupId
+        });
+
+        if (!taskGroupResponse?.group?.id) {
+            console.error(`[Orchestrator] Failed to create job group for task: ${task.name}`);
+            return [{
+                success: false,
+                error: `Failed to create job group for task: ${task.name}`,
+                groupId: rootGroupId
+            }];
+        }
+
+        const taskGroupId = taskGroupResponse.group.id;
+        console.log(`[Orchestrator] Created task job group: ${taskGroupId}`);
+
+        // 2. Break task into sub-jobs using LLM
+        codebolt.chat.sendMessage(`🔄 Breaking down task: ${task.name}`);
+        const breakdownResult = await codebolt.actionBlock.start('break-task-into-jobs', {
+            plan: {
+                planId: plan.planId,
+                name: plan.name,
+                description: plan.description,
+                tasks: plan.tasks
+            },
+            task: {
+                taskId,
+                name: task.name,
+                description: task.description,
+                priority: task.priority,
+                dependencies: task.dependencies,
+                estimated_time: task.estimated_time
+            },
+            existingJobs: ctx.createdJobs
+        });
+
+        let subJobs: SubJobDefinition[] = [];
+        if (breakdownResult.success && breakdownResult.result?.subJobs) {
+            subJobs = breakdownResult.result.subJobs;
+        } else {
+            // Fallback: create a single job
+            subJobs = [{
+                name: `Implement: ${task.name}`,
+                description: task.description,
+                type: 'task',
+                priority: mapPriority(task.priority),
+                estimatedEffort: 'medium'
+            }];
+        }
+
+        codebolt.chat.sendMessage(`📋 Task broken into ${subJobs.length} sub-jobs`);
+
+        // 3. Create jobs for each sub-job with proper dependencies
+        const createdJobsForTask: CreatedJob[] = [];
+        const subJobNameToId: Map<string, string> = new Map();
+
+        for (let i = 0; i < subJobs.length; i++) {
+            const subJob = subJobs[i];
+
+            try {
+                const jobResponse = await codebolt.job.createJob(taskGroupId, {
+                    name: subJob.name,
+                    description: subJob.description,
+                    type: subJob.type,
+                    priority: subJob.priority,
+                    labels: subJob.labels || [],
+                    status: 'open'
+                });
+
+                if (jobResponse?.job?.id) {
+                    const jobId = jobResponse.job.id;
+                    subJobNameToId.set(subJob.name, jobId);
+
+                    const createdJob: CreatedJob = {
+                        jobId,
+                        name: subJob.name,
+                        taskName: task.name,
+                        groupId: taskGroupId
+                    };
+                    createdJobsForTask.push(createdJob);
+                    ctx.createdJobs.push(createdJob);
+
+                    results.push({
+                        success: true,
+                        jobId,
+                        taskId,
+                        groupId: taskGroupId,
+                        job: createdJob
+                    });
+
+                    // Add internal dependency (on previous sub-job if sequential)
+                    if (i > 0 && (!subJob.internalDependencies || subJob.internalDependencies.length === 0)) {
+                        // Default: sequential dependency on previous job
+                        const prevJobId = createdJobsForTask[i - 1].jobId;
+                        await codebolt.job.addDependency(jobId, prevJobId, 'blocks');
+                    } else if (subJob.internalDependencies && subJob.internalDependencies.length > 0) {
+                        // Use declared internal dependencies
+                        for (const depName of subJob.internalDependencies) {
+                            const depJobId = subJobNameToId.get(depName);
+                            if (depJobId) {
+                                await codebolt.job.addDependency(jobId, depJobId, 'blocks');
+                            }
+                        }
+                    }
+
+                    console.log(`[Orchestrator] Created sub-job ${i + 1}/${subJobs.length}: ${subJob.name}`);
+                } else {
+                    results.push({
+                        success: false,
+                        error: `Failed to create sub-job: ${subJob.name}`,
+                        groupId: taskGroupId
+                    });
+                }
+            } catch (error) {
+                console.error(`[Orchestrator] Error creating sub-job: ${subJob.name}`, error);
+                results.push({
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                    groupId: taskGroupId
+                });
+            }
+        }
+
+        // 4. Store jobs for this task in the map
+        ctx.taskJobMap.set(task.name, createdJobsForTask);
+
+        // 5. Add cross-task dependencies (first job depends on dependent tasks)
+        if (task.dependencies && task.dependencies.length > 0 && createdJobsForTask.length > 0) {
+            await addCrossTaskDependencies(createdJobsForTask[0].jobId, task.dependencies, ctx);
+        }
+
+        // 6. Add sequential dependency from previous task
+        if (createdJobsForTask.length > 0) {
+            await addSequentialDependency(createdJobsForTask[0].jobId, ctx);
+        }
+
+        const executionMode = parallel ? 'parallel' : 'sequential';
+        codebolt.chat.sendMessage(`📋 Task "${task.name}": ${createdJobsForTask.length} jobs created, starting ${executionMode} execution...`);
+
+        // 7. Execute all jobs for this task and WAIT for completion
+        if (createdJobsForTask.length > 0) {
+            const executionResult = await executeTaskJobs(createdJobsForTask, ctx, parallel);
+
+            if (executionResult.success) {
+                codebolt.chat.sendMessage(`✅ Task "${task.name}" completed: ${executionResult.completedCount} jobs finished (${executionMode})`);
+            } else {
+                codebolt.chat.sendMessage(`⚠️ Task "${task.name}" partially completed: ${executionResult.completedCount} succeeded, ${executionResult.failedCount} failed`);
+            }
+        } else {
+            codebolt.chat.sendMessage(`✅ Task "${task.name}" processed (no jobs to execute)`);
+        }
+
+        return results;
+
+    } catch (error) {
+        console.error(`[Orchestrator] Error processing task: ${task.name}`, error);
+        codebolt.chat.sendMessage(`❌ Error processing task: ${task.name}`);
+        return [{
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            groupId: rootGroupId
+        }];
     }
 }
 
 /**
  * Processes a track within a parallel group (items within track run in parallel)
  * Aligned with orchestrator-worker pattern
+ * All items in track and their jobs execute in PARALLEL
  */
 async function processTrack(
     trackName: string,
@@ -196,7 +595,7 @@ async function processTrack(
     ctx: ProcessingContext
 ): Promise<CreateJobResult[]> {
     console.log(`[Orchestrator] Processing track: ${trackName} (${trackIndex + 1}/${totalTracks}) with ${trackItems.length} items`);
-    codebolt.chat.sendMessage(`🔀 Starting track [${trackIndex + 1}/${totalTracks}]: ${trackName} (${trackItems.length} items)`);
+    codebolt.chat.sendMessage(`⚡ Starting parallel track [${trackIndex + 1}/${totalTracks}]: ${trackName} (${trackItems.length} items)`);
 
     const results: CreateJobResult[] = [];
     const taskPromises: Promise<CreateJobResult[]>[] = [];
@@ -212,13 +611,13 @@ async function processTrack(
             waitForCompletion: false
         };
 
-        // Process item and collect the promise
-        const promise = processItemWithContext(item, { ...ctx, taskContext: itemContext });
+        // Process item with parallel=true (jobs within task will run in parallel)
+        const promise = processItemWithContext(item, { ...ctx, taskContext: itemContext }, true);
         taskPromises.push(promise);
     }
 
-    // Wait for all tasks in this track to complete
-    codebolt.chat.sendMessage(`⏳ Track [${trackIndex + 1}/${totalTracks}]: ${trackName} - waiting for ${taskPromises.length} item(s)...`);
+    // Wait for all tasks in this track to complete (all running in parallel)
+    codebolt.chat.sendMessage(`⏳ Track [${trackIndex + 1}/${totalTracks}]: ${trackName} - ${taskPromises.length} item(s) running in parallel...`);
     const trackResults = await Promise.allSettled(taskPromises);
 
     // Collect results
@@ -359,10 +758,12 @@ async function processWaitUntilGroup(group: WaitUntilGroup, ctx: ProcessingConte
 /**
  * Routes item to appropriate handler based on type
  * Aligned with orchestrator-worker processItemWithContext pattern
+ * @param parallel - If true, execute jobs in parallel (used for parallel groups)
  */
 async function processItemWithContext(
     item: PlanItem | TaskReference | StepGroup,
-    ctx: ProcessingContext
+    ctx: ProcessingContext,
+    parallel: boolean = false
 ): Promise<CreateJobResult[]> {
     // Check if item is a parallel group
     if (typeof item === 'object' && 'type' in item && item.type === 'parallelGroup') {
@@ -384,15 +785,31 @@ async function processItemWithContext(
     else if (typeof item === 'object' && 'type' in item && item.type === 'task') {
         const taskInfo = extractTaskInfo(item as TaskReference);
         const taskId = generateTaskId(taskInfo.name, ctx.taskIndexRef.value++);
-        const result = await createJobForTask(taskInfo, taskId, ctx);
-        return [result];
+        // Use processNormalTask - pass parallel flag for parallel group execution
+        const results = await processNormalTask(taskInfo, taskId, ctx, parallel);
+        // Update previousTaskJobs for sequential dependency tracking (only if not parallel)
+        if (!parallel) {
+            const taskJobs = ctx.taskJobMap.get(taskInfo.name);
+            if (taskJobs) {
+                ctx.previousTaskJobs = taskJobs;
+            }
+        }
+        return results;
     }
     // Check if item is a direct task (TopLevelTask with name property)
     else if (typeof item === 'object' && 'name' in item && 'description' in item) {
         const taskInfo = item as TaskInfo;
         const taskId = generateTaskId(taskInfo.name, ctx.taskIndexRef.value++);
-        const result = await createJobForTask(taskInfo, taskId, ctx);
-        return [result];
+        // Use processNormalTask - pass parallel flag for parallel group execution
+        const results = await processNormalTask(taskInfo, taskId, ctx, parallel);
+        // Update previousTaskJobs for sequential dependency tracking (only if not parallel)
+        if (!parallel) {
+            const taskJobs = ctx.taskJobMap.get(taskInfo.name);
+            if (taskJobs) {
+                ctx.previousTaskJobs = taskJobs;
+            }
+        }
+        return results;
     }
     else {
         console.warn('[Orchestrator] Unknown item type:', item);
@@ -447,19 +864,22 @@ export async function processActionPlanTasks(
             };
         }
 
-        const groupId = jobGroupResponse.group.id;
-        codebolt.chat.sendMessage(`Job group created: ${groupId}`, {});
+        const rootGroupId = jobGroupResponse.group.id;
+        codebolt.chat.sendMessage(`Job group created: ${rootGroupId}`, {});
 
         // 3. Process all tasks from the plan using processItemWithContext pattern
         const allResults: CreateJobResult[] = [];
         const taskIndexRef = { value: 0 };
 
-        // Create processing context
+        // Create processing context with tracking for dependencies
         const ctx: ProcessingContext = {
             plan,
-            groupId,
+            rootGroupId,
+            currentGroupId: rootGroupId,
             taskIndexRef,
-            workerAgentId
+            workerAgentId,
+            createdJobs: [],
+            taskJobMap: new Map<string, CreatedJob[]>()
         };
 
         console.log(`[Orchestrator] Starting action plan: ${plan.name}`);
@@ -490,7 +910,7 @@ export async function processActionPlanTasks(
 
         return {
             success: failureCount === 0,
-            groupId,
+            groupId: rootGroupId,
             jobs: allResults
         };
 
