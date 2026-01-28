@@ -19,6 +19,7 @@ import {
 } from './prompts';
 import { runWhileLoop, AgentLoopResult } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
+import { processActionPlanTasks } from './taskProcessor';
 
 // Use agentEventQueue for centralized event handling
 const eventQueue = codebolt.agentEventQueue;
@@ -44,9 +45,12 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     // Phase 1: Create plan using action block
     codebolt.chat.sendMessage("Creating implementation plan...", {});
     try {
-        const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
-            userMessage: reqMessage
-        });
+        // const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
+        //     userMessage: reqMessage
+        // });
+        let planResult= {"type":"startActionBlockResponse","success":true,"sideExecutionId":"side_1769598460408_a5d3c30f","result":{"success":true,"planId":"plan-85570fd4-874d-4cef-ae00-369b4d3277e0","requirementPlanPath":"/Users/ravirawat/Documents/cbtest/testing-orchestrator/plans/whatsapp-clone-implementation.plan"},"requestId":"28f30a11-c94d-4ae7-8985-ed066f4ff138"}
+
+
         codebolt.chat.sendMessage(JSON.stringify(planResult))
 
         if (planResult.success && planResult.result) {
@@ -59,6 +63,28 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                     planId,
                     requirementPlanPath
                 );
+
+                // Phase 2: Create jobs from the plan tasks
+                codebolt.chat.sendMessage("Creating jobs from plan tasks...", {});
+                const defaultWorkerAgentId = additionalVariable?.orchestratorId
+                    ? (await codebolt.orchestrator.getOrchestrator(additionalVariable.orchestratorId))?.data?.orchestrator?.defaultWorkerAgentId
+                    : undefined;
+
+                const jobsResult = await processActionPlanTasks(planId, defaultWorkerAgentId);
+
+                if (jobsResult.success) {
+                    codebolt.chat.sendMessage(
+                        `Jobs created successfully. Group: ${jobsResult.groupId}, Total jobs: ${jobsResult.jobs.length}`,
+                        {}
+                    );
+                } else {
+                    codebolt.chat.sendMessage(
+                        `Some jobs failed to create: ${jobsResult.error || 'Unknown error'}`,
+                        {}
+                    );
+                }
+
+                return;
             }
         } else {
             codebolt.chat.sendMessage("Plan creation skipped or failed, proceeding with direct orchestration...", {});
@@ -67,8 +93,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         console.error('Plan creation failed:', planError);
         codebolt.chat.sendMessage("Plan creation failed, proceeding with direct orchestration...", {});
     }
-
-    return;
 
     // Phase 2: Run agent loop
     const promptGenerator = new InitialPromptGenerator({
