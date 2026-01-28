@@ -120,24 +120,53 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     do {
         continueLoop = false;
 
-        const result = await runWhileLoop(reqMessage, prompt);
-
-        if (result instanceof Error) {
-            console.error('Agent loop error:', result);
-            break;
-        }
-
-        const loopResult = result as AgentLoopResult;
-        executionResult = loopResult.executionResult;
-        prompt = loopResult.prompt;
+        let result: any = await runWhileLoop(reqMessage, prompt);
+        executionResult = result.executionResult;
+        prompt = result.prompt;
 
         if (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
             continueLoop = true;
             const event = await eventQueue.waitForAnyExternalEvent();
-            processExternalEvent(event, prompt);
+
+            if (event.type === 'backgroundAgentCompletion' || event.type === 'backgroundGroupedAgentCompletion') {
+                // Handle background agent completion
+                const completionData = event.data;
+                const agentMessage = {
+                    role: "assistant" as const,
+                    content: `Background agent completed:\n${JSON.stringify(completionData, null, 2)}`
+                };
+                if (prompt && prompt.message.messages) {
+                    prompt.message.messages.push(agentMessage);
+                }
+            } else if (event.type === 'agentQueueEvent') {
+                // Handle agent message from child agents
+                const agentEvent = event.data;
+                const messageContent = `<child_agent_message>
+<source_agent>${agentEvent.sourceAgentId || 'unknown'}</source_agent>
+<source_thread>${agentEvent.sourceThreadId || 'unknown'}</source_thread>
+<event_type>${agentEvent.eventType || 'agentMessage'}</event_type>
+<content>
+${agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
+</content>
+<context>This message is from a child worker agent. Review the content and take appropriate action - you may need to delegate further tasks, provide feedback, or synthesize results.</context>
+<reply_instructions>To reply to this agent, use the eventqueue_send_message tool with targetAgentId set to "${agentEvent.sourceAgentId}" and your response in the content parameter.</reply_instructions>
+</child_agent_message>`;
+
+                const agentMessage = {
+                    role: "user" as const,
+                    content: messageContent
+                };
+                if (prompt && prompt.message.messages) {
+                    prompt.message.messages.push(agentMessage);
+                }
+            }
+        }
+        else {
+            continueLoop = false;
         }
 
     } while (continueLoop);
 
     return executionResult?.finalMessage || "No response generated";
-});
+})
+

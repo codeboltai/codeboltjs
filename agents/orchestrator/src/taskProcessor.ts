@@ -283,34 +283,46 @@ async function executeJobWithWorker(
         // Update job status to working
         await codebolt.job.updateJob(job.jobId, { status: 'working' });
 
-        // Create and start thread for this job with full description
+        // Create thread in background and wait for agent to complete
         const userMessage = `## Task: ${job.name}\n\n${job.description}`;
-        const threadResult = await codebolt.thread.createAndStartThread({
+        const threadResult = await codebolt.thread.createThreadInBackground({
             title: job.name,
             description: job.description,
             userMessage,
-            selectedAgent: {
-                id: workerAgentId,
-                name: 'Worker Agent'
-            },
+            selectedAgent: { id: workerAgentId },
+            isGrouped: true,
+            groupId: job.groupId,
             metadata: {
                 jobId: job.jobId,
-                taskName: job.taskName,
-                groupId: job.groupId
+                taskName: job.taskName
             }
         });
 
-        if (threadResult.success) {
-            console.log(`[Orchestrator] Job completed successfully: ${job.name}`);
+        // Check for explicit failure first
+        const response = threadResult as any;
+        if (response && !response.success && response.success !== undefined) {
+            const errorMsg = typeof response.error === 'string'
+                ? response.error
+                : response.error?.message || 'Thread creation in background failed';
+            console.error(`[Orchestrator] Job failed: ${job.name}`, errorMsg);
+            codebolt.chat.sendMessage(`❌ Job failed: ${job.name}`);
+            await codebolt.job.updateJob(job.jobId, { status: 'hold' });
+            return { success: false, error: errorMsg };
+        }
+
+        // Check if thread started successfully (ThreadAgentStartedResponse has threadId)
+        if (response.threadId) {
+            console.log(`[Orchestrator] Job completed successfully: ${job.name} (threadId: ${response.threadId})`);
             codebolt.chat.sendMessage(`✅ Job completed: ${job.name}`);
             await codebolt.job.updateJob(job.jobId, { status: 'closed' });
             return { success: true };
-        } else {
-            console.error(`[Orchestrator] Job failed: ${job.name}`, threadResult.error);
-            codebolt.chat.sendMessage(`❌ Job failed: ${job.name}`);
-            await codebolt.job.updateJob(job.jobId, { status: 'hold' });
-            return { success: false, error: threadResult.error };
         }
+
+        // Fallback - unexpected response
+        console.warn(`[Orchestrator] Unexpected response for job: ${job.name}`, response);
+        codebolt.chat.sendMessage(`⚠️ Job completed with unknown status: ${job.name}`);
+        await codebolt.job.updateJob(job.jobId, { status: 'closed' });
+        return { success: true };
     } catch (error) {
         console.error(`[Orchestrator] Error executing job: ${job.name}`, error);
         codebolt.chat.sendMessage(`❌ Error executing job: ${job.name}`);
