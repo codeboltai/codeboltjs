@@ -44,6 +44,39 @@ function isGroupItem(item: TaskItem): boolean {
            item.type === 'waitUntilGroup';
 }
 
+async function findLatestSpecsFile(): Promise<string | null> {
+    const { projectPath } = await codebolt.project.getProjectPath();
+    const specsDir = `${projectPath}/specs`;
+
+    try {
+        const result = await codebolt.fs.listDirectory({ path: specsDir });
+        const entries = result.entries || [];
+
+        if (entries.length === 0) {
+            return null;
+        }
+
+        // Filter for .specs files
+        const specsFiles = entries
+            .filter((entry: any) => {
+                const name = entry.name || entry;
+                return name?.endsWith('.specs');
+            })
+            .map((entry: any) => entry.name || entry);
+
+        if (specsFiles.length === 0) {
+            return null;
+        }
+
+        // Return the latest specs file (last in list)
+        const latestSpecsFile = specsFiles[specsFiles.length - 1];
+        return `${specsDir}/${latestSpecsFile}`;
+    } catch (error) {
+        console.error('Error finding specs files:', error);
+        return null;
+    }
+}
+
 // ================================
 // DETAIL PLANNER
 // ================================
@@ -104,15 +137,15 @@ async function runDetailPlanner(reqMessage: FlatUserMessage): Promise<boolean> {
 // TASK PLANNER
 // ================================
 
-async function runTaskPlanner(): Promise<PlanResult> {
-    const { projectPath } = await codebolt.project.getProjectPath();
-    const { content } = await codebolt.fs.readFile(`${projectPath}/specs/plan.specs`);
+async function runTaskPlanner(specsFilePath: string): Promise<PlanResult> {
+    const { content } = await codebolt.fs.readFile(specsFilePath);
 
     if (!content) {
-        return { success: false, error: 'No plan.specs file found' };
+        return { success: false, error: `No specs file found at ${specsFilePath}` };
     }
 
     const systemPrompt = TASK_PLANNER_SYSTEM_PROMPT.replace('{{PLAN_CONTENT}}', content);
+    codebolt.chat.sendMessage("Creating task plan from specification...")
 
     const { completion } = await codebolt.llm.inference({
         messages: [
@@ -161,19 +194,9 @@ async function runTaskPlanner(): Promise<PlanResult> {
             const filePath = createResult.data.filePath as string;
             requirementPlanPath = filePath;
 
-            // Add overview section
-            await codebolt.requirementPlan.addSection(filePath, {
-                type: 'markdown',
-                title: 'Overview',
-                content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
-            });
+           
 
-            // Add spec link section
-            await codebolt.requirementPlan.addSection(filePath, {
-                type: 'specs-link',
-                title: 'Specification',
-                linkedFile: `${projectPath}/specs/plan.specs`
-            });
+         
 
             // Add action plan link section
             await codebolt.requirementPlan.addSection(filePath, {
@@ -182,7 +205,20 @@ async function runTaskPlanner(): Promise<PlanResult> {
                 linkedFile: planId
             });
 
-            codebolt.chat.sendMessage(`Created requirement plan: ${filePath}`, {});
+               // Add spec link section
+               await codebolt.requirementPlan.addSection(filePath, {
+                type: 'specs-link',
+                title: 'Specification',
+                linkedFile: specsFilePath
+            });
+
+             // Add overview section
+             await codebolt.requirementPlan.addSection(filePath, {
+              type: 'markdown',
+              title: 'Overview',
+              content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
+          });
+            // codebolt.chat.sendMessage(`Created requirement plan: ${filePath}`, {});
 
             // Request review for the plan
             await codebolt.requirementPlan.review(filePath);
@@ -204,9 +240,7 @@ async function runTaskPlanner(): Promise<PlanResult> {
 
 codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanResult> => {
     try {
-        codebolt.chat.sendMessage("Plan creation action block started", {});
-        codebolt.chat.sendMessage(JSON.stringify(threadContext));
-
+  
         // Extract parameters from threadContext
         const params = threadContext?.params || {};
         const userMessage = params.userMessage as FlatUserMessage;
@@ -216,10 +250,20 @@ codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanR
         }
 
         // Phase 1: Run Detail Planner
-        await runDetailPlanner(userMessage);
+        try {
+            await runDetailPlanner(userMessage);
+        } catch (error) {
+            codebolt.chat.sendMessage(error);
+        }
+
+        // Find the specs file created by detail planner
+        const specsFilePath = await findLatestSpecsFile();
+        if (!specsFilePath) {
+            return { success: false, error: 'No specs file was created by the detail planner' };
+        }
 
         // Phase 2: Run Task Planner
-        const result = await runTaskPlanner();
+        const result = await runTaskPlanner(specsFilePath);
 
         if (result.success) {
             codebolt.chat.sendMessage("Plan creation completed successfully", {});

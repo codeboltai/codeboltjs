@@ -47,6 +47,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
             userMessage: reqMessage
         });
+        codebolt.chat.sendMessage(JSON.stringify(planResult))
 
         if (planResult.success && planResult.result) {
             const { planId, requirementPlanPath } = planResult.result;
