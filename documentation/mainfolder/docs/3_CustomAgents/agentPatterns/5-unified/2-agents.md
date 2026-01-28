@@ -4,109 +4,62 @@ Agents are the primary interface for building intelligent AI systems. They handl
 
 ## Creating Agents
 
-```typescript
-import { createAgent } from '@codebolt/agent/unified';
+The framework provides two main ways to create agents:
 
-const agent = createAgent({
+### Using CodeboltAgent (Recommended)
+
+```typescript
+import { CodeboltAgent, createCodeboltAgent } from '@codebolt/agent/unified';
+
+// Using the factory function
+const agent = createCodeboltAgent({
+  systemPrompt: 'You are a helpful customer support representative.',
+  tools: [searchTool, ticketTool, emailTool]
+});
+
+// Or using the class directly
+const agent = new CodeboltAgent({
+  instructions: 'You are a helpful customer support representative.',
+  tools: [searchTool, ticketTool, emailTool]
+});
+```
+
+### Using Base Agent Class
+
+For more control, you can use the base `Agent` class:
+
+```typescript
+import { Agent } from '@codebolt/agent/unified';
+import {
+  ToolValidationModifier,
+  ConversationCompactorModifier
+} from '@codebolt/agent/processor-pieces';
+
+const agent = new Agent({
   name: 'Customer Support Agent',
   instructions: 'You are a helpful customer support representative.',
-  description: 'Handles customer inquiries and support requests',
-  
-  // Tools the agent can use
   tools: [searchTool, ticketTool, emailTool],
-  
-  // Configuration options
-  maxIterations: 10,
-  maxConversationLength: 50,
-  enableLogging: true,
-  
-  // LLM configuration
-  llmConfig: {
-    model: 'gpt-4',
-    temperature: 0.7,
-    maxTokens: 2000
-  },
-  
+
   // Custom processors
-  processors: {
-    followUpConversation: [new ConversationCompactorProcessor()],
-    preToolCall: [new ToolValidationProcessor()]
-  }
+  preToolCallProcessors: [new ToolValidationModifier()],
+  postToolCallProcessors: [new ConversationCompactorModifier()]
 });
 ```
 
 ## Agent Execution
 
 ```typescript
-// Simple execution
-const result = await agent.execute('Help me with my order #12345');
-
-// Advanced execution with options
-const result = await agent.execute('Complex query', {
-  maxIterations: 5,
-  includeHistory: true,
-  context: { userId: '123', sessionId: 'abc' }
+// Execute with a message
+const result = await agent.execute({
+  role: 'user',
+  content: 'Help me with my order #12345'
 });
 
 console.log({
   success: result.success,
-  response: result.response,
-  iterations: result.iterations,
-  toolsUsed: result.toolResults?.length || 0
+  result: result.result,
+  error: result.error
 });
-```
-
-## Agent as a Tool
-
-Agents can be converted to tools for use by other agents or orchestrators:
-
-```typescript
-// Convert agent to tool
-const agentTool = agent.toTool();
-
-// Use in another agent
-const supervisorAgent = createAgent({
-  name: 'Supervisor',
-  instructions: 'You coordinate multiple specialist agents.',
-  tools: [agentTool]
-});
-
-// OpenAI-compatible tool format
-const openAITool = agent.toOpenAITool();
-```
-
-## Managing Agent Tools
-
-```typescript
-// Add tools dynamically
-agent.addTool(newTool);
-
-// Remove tools
-agent.removeTool('tool-id');
-
-// List tools
-const tools = agent.listTools();
-
-// Clear all tools
-agent.clearTools();
-```
-
-## Agent Workflows
-
-Agents can execute workflows:
-
-```typescript
-// Add workflow to agent
-agent.addWorkflow('research-pipeline', researchWorkflow);
-
-// Execute workflow
-const result = await agent.executeWorkflow('research-pipeline', {
-  topic: 'AI trends',
-  depth: 'comprehensive'
-});
-
-// List workflows
-const workflows = agent.listWorkflows();
 ```
 
 ## Agent Configuration Options
@@ -114,113 +67,73 @@ const workflows = agent.listWorkflows();
 ### Basic Configuration
 
 ```typescript
-const agent = createAgent({
-  name: 'My Agent',                    // Required: Agent name
-  instructions: 'You are helpful.',    // Required: System instructions
-  description: 'Agent description',    // Optional: Agent description
-  
-  // Execution limits
-  maxIterations: 10,                   // Max tool execution iterations
-  maxConversationLength: 50,           // Max conversation history length
-  
-  // Logging and debugging
-  enableLogging: true,                 // Enable console logging
-  logLevel: 'info',                    // Log level: 'debug', 'info', 'warn', 'error'
-  
-  // Default processors
-  defaultProcessors: true,             // Use sensible default processors
+const agent = new CodeboltAgent({
+  instructions: 'You are helpful.',     // System instructions
+  tools: [myTool],                      // Array of tools
+
+  // Optional: Custom processors
+  messageModifiers: [],
+  preInferenceProcessors: [],
+  postInferenceProcessors: [],
+  preToolCallProcessors: [],
+  postToolCallProcessors: []
 });
 ```
 
-### LLM Configuration
-
-```typescript
-const agent = createAgent({
-  name: 'Configured Agent',
-  instructions: 'You are a helpful assistant.',
-  
-  llmConfig: {
-    model: 'gpt-4-turbo',              // LLM model to use
-    temperature: 0.7,                  // Response creativity (0-1)
-    maxTokens: 4000,                   // Maximum response tokens
-    topP: 0.9,                         // Nucleus sampling parameter
-    frequencyPenalty: 0.0,             // Frequency penalty (-2 to 2)
-    presencePenalty: 0.0,              // Presence penalty (-2 to 2)
-    stopSequences: ['END'],            // Stop generation at these sequences
-    
-    // Advanced options
-    stream: false,                     // Enable streaming responses
-    timeout: 30000,                    // Request timeout in milliseconds
-    retries: 3,                        // Number of retry attempts
-  }
-});
-```
-
-### Processor Configuration
+### Adding Processors
 
 ```typescript
 import {
-  ConversationCompactorProcessor,
-  ToolValidationProcessor,
-  TelemetryProcessor
-} from '@codebolt/agent/unified';
+  ConversationCompactorModifier,
+  ToolValidationModifier,
+  LoopDetectionModifier,
+  ChatCompressionModifier
+} from '@codebolt/agent/processor-pieces';
 
-const agent = createAgent({
-  name: 'Enhanced Agent',
+const agent = new CodeboltAgent({
   instructions: 'You are an enhanced agent.',
-  
-  processors: {
-    // Follow-up conversation processors
-    followUpConversation: [
-      new ConversationCompactorProcessor({
-        maxConversationLength: 30,
-        compactionThreshold: 0.8
-      }),
-      new TelemetryProcessor({
-        enableMetrics: true
-      })
-    ],
-    
-    // Pre-tool call processors
-    preToolCall: [
-      new ToolValidationProcessor({
-        strictMode: true,
-        enableInputValidation: true
-      })
-    ]
-  }
+  tools: [myTool],
+
+  // Post-tool call processors
+  postToolCallProcessors: [
+    new ConversationCompactorModifier({
+      maxConversationLength: 30
+    })
+  ],
+
+  // Pre-tool call processors
+  preToolCallProcessors: [
+    new ToolValidationModifier({
+      strictMode: true
+    })
+  ],
+
+  // Pre-inference processors
+  preInferenceProcessors: [
+    new ChatCompressionModifier()
+  ],
+
+  // Post-inference processors
+  postInferenceProcessors: [
+    new LoopDetectionModifier({
+      maxIterations: 10
+    })
+  ]
 });
 ```
 
-## Advanced Agent Features
-
-### Context Management
+## Context Management
 
 ```typescript
-// Execute with context
-const result = await agent.execute('Query', {
-  context: {
-    userId: 'user123',
-    sessionId: 'session456',
-    preferences: {
-      language: 'en',
-      timezone: 'UTC'
-    },
-    customData: {
-      department: 'support',
-      priority: 'high'
-    }
-  }
-});
-
-// Access context in tools
+// Tools can access context
 const contextAwareTool = createTool({
   id: 'context-tool',
-  name: 'Context Aware Tool',
+  description: 'A context-aware tool',
+  inputSchema: z.object({ query: z.string() }),
   execute: async ({ input, context }) => {
     const userId = context?.userId;
     const preferences = context?.preferences;
-    
+
     return {
       message: `Hello user ${userId}`,
       language: preferences?.language || 'en'
@@ -229,58 +142,17 @@ const contextAwareTool = createTool({
 });
 ```
 
-### Error Handling
+## Error Handling
 
 ```typescript
-const result = await agent.execute('User message');
+const result = await agent.execute({
+  role: 'user',
+  content: 'User message'
+});
 
 if (!result.success) {
   console.error('Agent failed:', result.error);
-  
-  // Check specific error types
-  if (result.error?.includes('timeout')) {
-    // Handle timeout
-  } else if (result.error?.includes('validation')) {
-    // Handle validation error
-  }
 }
-
-// Access detailed execution info
-console.log({
-  iterations: result.iterations,
-  conversationHistory: result.conversationHistory,
-  toolResults: result.toolResults,
-  executionTime: result.executionTime
-});
-```
-
-### Conversation History
-
-```typescript
-// Get conversation history
-const history = agent.getConversationHistory();
-
-// Clear conversation history
-agent.clearConversationHistory();
-
-// Execute with history included
-const result = await agent.execute('Follow-up question', {
-  includeHistory: true
-});
-
-// Manage conversation length
-const agent = createAgent({
-  name: 'History Manager',
-  maxConversationLength: 20,  // Keep last 20 messages
-  processors: {
-    followUpConversation: [
-      new ConversationCompactorProcessor({
-        maxConversationLength: 20,
-        preserveRecentMessages: 5  // Always keep last 5 messages
-      })
-    ]
-  }
-});
 ```
 
 ## Agent Patterns
@@ -289,181 +161,90 @@ const agent = createAgent({
 
 ```typescript
 // Create domain-specific agents
-const researchAgent = createAgent({
-  name: 'Research Specialist',
+const researchAgent = new CodeboltAgent({
   instructions: 'You are an expert researcher with access to academic databases and web search.',
-  tools: [webSearchTool, academicSearchTool, citationTool],
-  llmConfig: {
-    temperature: 0.3,  // Lower temperature for factual accuracy
-    maxTokens: 3000
-  }
+  tools: [webSearchTool, academicSearchTool, citationTool]
 });
 
-const analysisAgent = createAgent({
-  name: 'Data Analyst',
-  instructions: 'You are a data analysis expert specializing in statistical analysis and visualization.',
-  tools: [dataAnalysisTool, chartTool, statisticsTool],
-  llmConfig: {
-    temperature: 0.2,  // Very low temperature for analytical work
-    maxTokens: 2500
-  }
+const analysisAgent = new CodeboltAgent({
+  instructions: 'You are a data analysis expert specializing in statistical analysis.',
+  tools: [dataAnalysisTool, chartTool, statisticsTool]
 });
 
-const creativeAgent = createAgent({
-  name: 'Creative Writer',
-  instructions: 'You are a creative writing expert specializing in storytelling and content creation.',
-  tools: [grammarTool, thesaurusTool, styleGuideTool],
-  llmConfig: {
-    temperature: 0.8,  // Higher temperature for creativity
-    maxTokens: 4000
-  }
+const creativeAgent = new CodeboltAgent({
+  instructions: 'You are a creative writing expert specializing in storytelling.',
+  tools: [grammarTool, thesaurusTool, styleGuideTool]
 });
 ```
 
-### Supervisor Agents
+### Agents with Message Modifiers
 
 ```typescript
-// Create a supervisor that coordinates specialist agents
-const supervisorAgent = createAgent({
-  name: 'Task Supervisor',
-  instructions: `You are a supervisor that coordinates specialist agents:
-  
-  - For research tasks, use the research specialist
-  - For data analysis, use the data analyst  
-  - For creative writing, use the creative writer
-  - For complex tasks, coordinate multiple specialists`,
-  
-  tools: [
-    researchAgent.toTool(),
-    analysisAgent.toTool(),
-    creativeAgent.toTool()
+import {
+  EnvironmentContextModifier,
+  DirectoryContextModifier,
+  ToolInjectionModifier
+} from '@codebolt/agent/processor-pieces';
+
+const enhancedAgent = new CodeboltAgent({
+  instructions: 'You are a file system assistant.',
+  tools: [fileTools],
+
+  messageModifiers: [
+    new EnvironmentContextModifier(),
+    new DirectoryContextModifier(),
+    new ToolInjectionModifier()
   ]
 });
-
-// Use supervisor for complex tasks
-const result = await supervisorAgent.execute(
-  'Research AI trends, analyze the data, and write a creative summary report'
-);
 ```
 
-### Multi-Modal Agents
+## Available Processors
+
+### Message Modifiers
+Transform user messages into prompts:
+- `EnvironmentContextModifier` - Add environment variables and system info
+- `CoreSystemPromptModifier` - Handle core system prompt
+- `DirectoryContextModifier` - Add working directory context
+- `IdeContextModifier` - Add IDE integration context
+- `AtFileProcessorModifier` - Process @file references
+- `ArgumentProcessorModifier` - Process command arguments
+- `MemoryImportModifier` - Import memory/context from previous sessions
+- `ToolInjectionModifier` - Inject tool descriptions into prompts
+- `ChatRecordingModifier` - Record chat for persistence
+- `ChatHistoryMessageModifier` - Include conversation history
+
+### PreInference Processors
+Run before LLM calls:
+- `ChatCompressionModifier` - Compress chat history to save tokens
+
+### PostInference Processors
+Run after LLM calls:
+- `LoopDetectionModifier` - Detect and prevent infinite loops
+
+### PreToolCall Processors
+Validate and modify tool calls before execution:
+- `ToolParameterModifier` - Transform tool parameters
+- `ToolValidationModifier` - Validate tool inputs
+
+### PostToolCall Processors
+Process tool results:
+- `ConversationCompactorModifier` - Compact long conversations
+- `ShellProcessorModifier` - Process shell command results
+
+## Debugging
 
 ```typescript
-import { ImageAttachmentMessageModifier } from '@codebolt/agent/unified';
+import { ChatRecordingModifier } from '@codebolt/agent/processor-pieces';
 
-const multiModalAgent = createAgent({
-  name: 'Multi-Modal Assistant',
-  instructions: 'You can process text, images, and other media types.',
-  
-  tools: [
-    imageAnalysisTool,
-    textExtractionTool,
-    documentProcessingTool
-  ],
-  
-  processors: {
-    messageModifiers: [
-      new ImageAttachmentMessageModifier({
-        maxSize: 10 * 1024 * 1024,  // 10MB
-        supportedFormats: ['jpg', 'png', 'pdf', 'docx']
-      })
-    ]
-  }
-});
-```
-
-## Agent Monitoring and Debugging
-
-### Telemetry
-
-```typescript
-import { TelemetryProcessor } from '@codebolt/agent/unified';
-
-const monitoredAgent = createAgent({
-  name: 'Monitored Agent',
-  instructions: 'You are a monitored agent.',
-  
-  processors: {
-    followUpConversation: [
-      new TelemetryProcessor({
-        enableMetrics: true,
-        enableTracing: true,
-        metricsEndpoint: 'https://metrics.example.com',
-        
-        // Custom metrics
-        customMetrics: {
-          'agent.execution.duration': (context) => context.executionTime,
-          'agent.tool.usage': (context) => context.toolResults?.length || 0,
-          'agent.conversation.length': (context) => context.conversationHistory?.length || 0
-        }
-      })
-    ]
-  }
-});
-```
-
-### Logging
-
-```typescript
-import { ChatRecordingProcessor } from '@codebolt/agent/unified';
-
-const debugAgent = createAgent({
-  name: 'Debug Agent',
+const debugAgent = new CodeboltAgent({
   instructions: 'You are a debug agent.',
-  enableLogging: true,
-  logLevel: 'debug',
-  
-  processors: {
-    followUpConversation: [
-      new ChatRecordingProcessor({
-        enableRecording: true,
-        storageLocation: './agent-logs',
-        includeMetadata: true,
-        
-        // Custom log format
-        logFormat: 'json',
-        includeTimestamps: true,
-        includeContext: true
-      })
-    ]
-  }
-});
-```
+  tools: [myTools],
 
-### Performance Monitoring
-
-```typescript
-import { 
-  TokenManagementProcessor,
-  ResponseValidationProcessor 
-} from '@codebolt/agent/unified';
-
-const optimizedAgent = createAgent({
-  name: 'Optimized Agent',
-  instructions: 'You are an optimized agent.',
-  
-  processors: {
-    followUpConversation: [
-      new TokenManagementProcessor({
-        maxTokens: 3000,
-        reserveTokens: 500,
-        enableCompression: true,
-        compressionRatio: 0.7
-      }),
-      
-      new ResponseValidationProcessor({
-        enableContentValidation: true,
-        enableFormatValidation: true,
-        maxResponseLength: 2000,
-        
-        customValidators: [
-          (response) => ({
-            isValid: response.length > 10,
-            reason: response.length <= 10 ? 'Response too short' : undefined
-          })
-        ]
-      })
-    ]
-  }
+  messageModifiers: [
+    new ChatRecordingModifier({
+      enabled: true,
+      outputPath: './agent-logs'
+    })
+  ]
 });
 ```

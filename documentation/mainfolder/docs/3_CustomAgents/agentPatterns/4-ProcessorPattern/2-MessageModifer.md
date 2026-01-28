@@ -1,5 +1,9 @@
 # Message Modifier
 
+> **Note**: This document describes a planned pattern. Some modifiers referenced below (like `BaseContextMessageModifier`, `WorkingDirectoryMessageModifier`, `BaseSystemInstructionMessageModifier`, `HandleUrlMessageModifier`, `ImageAttachmentMessageModifier`, `AddToolsListMessageModifier`) are not yet implemented. See the [Roadmap](../5-unified/6-roadmap.md) for current status.
+>
+> For currently available message modifiers, see the [Processors documentation](../5-unified/4-processors.md).
+
 The Message Modifier class is similar to [[2-InitialPromptBuilder]] but Instead of using builder pattern of . it uses the Processor Pattern. 
 
 The Processor Allow for much more control of the Modification as you can add custom processors.

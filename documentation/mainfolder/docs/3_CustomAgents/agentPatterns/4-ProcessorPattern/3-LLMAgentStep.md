@@ -1,5 +1,9 @@
 # LLM Agent Step
 
+> **Note**: This document describes a planned pattern. Some processors referenced below (like `AdvancedLoopDetectionProcessor`, `TokenManagementProcessor`, `ResponseValidationProcessor`, `TelemetryProcessor`) are not yet implemented. See the [Roadmap](../5-unified/6-roadmap.md) for current status.
+>
+> For currently available APIs, see the [Unified Agent Framework](../5-unified/README.md) documentation.
+
 This is the main LLMAgentStep that takes various Processors as Input and output. This helps it to control the internal processing. 
 
 This is slightly differnet from [[3_CustomAgents/agentPatterns/2-ComposablePattern/Agent|Agent]] Where we are configuring only based on parameters. This seems to be more scalable but might need to write some more Code.

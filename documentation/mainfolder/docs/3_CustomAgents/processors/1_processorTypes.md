@@ -1,61 +1,165 @@
 # Processor Types
 
-There are multiple types of processors:
-1. **Message Modifiers**: These are the ones that modify the message from the user Message to the prompt. 
-	- This is a single Type as it is simple Prompt type.
-	- This has the format of calling ***modify*** function and passing 
-		```
-		{originalRequest, createdMessage, and some Context
-		```
-		This returns:
-		```
-		createdMessage
-		```
-	- This is called by the InitialPromptGenerator 
-	
-2. **PreInferenceProcessors**: This is called before the Agent calls the LLM. 
-	- This is Called by AgentStep
-	- Called before the LLM Calling Step
-	- The ***Modify*** function is called which gets:
-		```
-		IntialUserMessage, currentMessage, exitEvent
-		```
-		This returns:
-		```
-		currentMessage
-		```
-		
-3. **PostInferenceProcessors**: This is called by Agent after the LLM is called and we have gotten the response. This is before the actual Tool Call is done. 
-	- This is Called after Inference Processor. 
-	- This is Mostly used for things like Response Validation 
-	- The Modify function is called which gets:
-		```
-		llmmessagesent, llmresponsemessage, nextprompt, context
-		```
-	- This will give output:
-		```
-		nextprompt, context
-		```
-	
-		The lllminferencetriggerEvent is an event that triggers the recalling of the LLM Inference. This is usually for cases where lets say the llm has not given a proper response.  We need to send the updated message along with the llminferenceTriggerEvent.
-		
-		The Exit Event is an event that exists the system and sends an error. This is in case lets say the inference is in loop, or other things. In that Case the next Step is not able to proceed.
-		
-1. **PreToolCallProcessors**:  This is the processor called before the Tool Call. This is used to check if the Tool Call is proper. This is also used to handle the Local Tool Interceptor or any other custom exotic tool Processor. 
-	- This will get the inputs:
-		```
-		llmMessagesent, llmresponsemessage, nextprompt context
-		```
-	- This will give the result as 
-		```
-		nextpromt, context, shouldexit
-		```
-2. **PostToolCallProcessors**: This is the Processor called after the Tool Call. This can help in checking the tool Calls Result and also adding it to the llmMessage. This LLM Message will be used as prompt for the next time. 
-	- This will ge the inputs:
-		```
-		userMessage, llmmessageSent, llmresponsemessage,nextprompt, context
-		```
-	- This will give result
-	```
-	nextprompt, context
-	```
+Processors are extensible components that modify behavior at different stages of agent execution. All processors use the `*Modifier` suffix and are imported from `@codebolt/agent/processor-pieces`.
+
+## Types of Processors
+
+### 1. Message Modifiers
+
+Transform user messages into prompts. Called by the `InitialPromptGenerator`.
+
+**Interface:**
+```typescript
+// Input
+{
+  originalRequest,
+  createdMessage,
+  context
+}
+
+// Output
+{
+  createdMessage
+}
+```
+
+**Available Modifiers:**
+- `EnvironmentContextModifier` - Add environment context
+- `CoreSystemPromptModifier` - Core system prompt handling
+- `DirectoryContextModifier` - Working directory context
+- `IdeContextModifier` - IDE integration context
+- `AtFileProcessorModifier` - Process @file references
+- `ArgumentProcessorModifier` - Process arguments
+- `MemoryImportModifier` - Import memory context
+- `ToolInjectionModifier` - Inject tool descriptions
+- `ChatRecordingModifier` - Record chat history
+- `ChatHistoryMessageModifier` - Include chat history
+
+### 2. PreInference Processors
+
+Run before the LLM is called. Called by `AgentStep`.
+
+**Interface:**
+```typescript
+// Input
+{
+  initialUserMessage,
+  currentMessage,
+  exitEvent
+}
+
+// Output
+{
+  currentMessage
+}
+```
+
+**Available Processors:**
+- `ChatCompressionModifier` - Compress chat history to reduce tokens
+
+### 3. PostInference Processors
+
+Run after LLM response, before tool execution. Called by `AgentStep`.
+
+**Interface:**
+```typescript
+// Input
+{
+  llmMessageSent,
+  llmResponseMessage,
+  nextPrompt,
+  context
+}
+
+// Output
+{
+  nextPrompt,
+  context
+}
+```
+
+Special events:
+- `llmInferenceTriggerEvent` - Triggers re-calling the LLM (e.g., for invalid responses)
+- `exitEvent` - Exits the system with an error (e.g., for detected loops)
+
+**Available Processors:**
+- `LoopDetectionModifier` - Detect and prevent infinite loops
+
+### 4. PreToolCall Processors
+
+Run before tool execution. Called by `ResponseExecutor`.
+
+**Interface:**
+```typescript
+// Input
+{
+  llmMessageSent,
+  llmResponseMessage,
+  nextPrompt,
+  context
+}
+
+// Output
+{
+  nextPrompt,
+  context,
+  shouldExit
+}
+```
+
+**Available Processors:**
+- `ToolParameterModifier` - Modify tool parameters before execution
+- `ToolValidationModifier` - Validate tool calls before execution
+
+### 5. PostToolCall Processors
+
+Run after tool execution. Called by `ResponseExecutor`.
+
+**Interface:**
+```typescript
+// Input
+{
+  userMessage,
+  llmMessageSent,
+  llmResponseMessage,
+  nextPrompt,
+  context
+}
+
+// Output
+{
+  nextPrompt,
+  context
+}
+```
+
+**Available Processors:**
+- `ConversationCompactorModifier` - Compact long conversations
+- `ShellProcessorModifier` - Process shell command outputs
+
+## Import Example
+
+```typescript
+import {
+  // Message Modifiers
+  EnvironmentContextModifier,
+  CoreSystemPromptModifier,
+  DirectoryContextModifier,
+  ToolInjectionModifier,
+  ChatRecordingModifier,
+
+  // PreInference Processors
+  ChatCompressionModifier,
+
+  // PostInference Processors
+  LoopDetectionModifier,
+
+  // PreToolCall Processors
+  ToolParameterModifier,
+  ToolValidationModifier,
+
+  // PostToolCall Processors
+  ConversationCompactorModifier,
+  ShellProcessorModifier
+} from '@codebolt/agent/processor-pieces';
+```
