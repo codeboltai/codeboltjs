@@ -70,6 +70,7 @@ interface CreateJobResult {
 interface CreatedJob {
     jobId: string;
     name: string;
+    description: string;
     taskName?: string;
     groupId: string;
 }
@@ -282,11 +283,12 @@ async function executeJobWithWorker(
         // Update job status to working
         await codebolt.job.updateJob(job.jobId, { status: 'working' });
 
-        // Create and start thread for this job
+        // Create and start thread for this job with full description
+        const userMessage = `## Task: ${job.name}\n\n${job.description}`;
         const threadResult = await codebolt.thread.createAndStartThread({
             title: job.name,
-            description: `Executing job: ${job.name}`,
-            userMessage: job.name,
+            description: job.description,
+            userMessage,
             selectedAgent: {
                 id: workerAgentId,
                 name: 'Worker Agent'
@@ -493,6 +495,7 @@ async function processNormalTask(
                     const createdJob: CreatedJob = {
                         jobId,
                         name: subJob.name,
+                        description: subJob.description,
                         taskName: task.name,
                         groupId: taskGroupId
                     };
