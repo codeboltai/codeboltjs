@@ -31,11 +31,12 @@ import { pickJob } from './jobPicker';
  */
 codebolt.onActionBlockInvocation(async (threadContext, metadata): Promise<FindJobResult> => {
     try {
-        // Extract parameters from threadContext (custom params from parent agent)
+        codebolt.chat.sendMessage("Find next job action block started", {});
+        codebolt.chat.sendMessage(JSON.stringify(threadContext));
+
+        // Extract parameters from threadContext
         // metadata contains: sideExecutionId, threadId, parentAgentId, parentAgentInstanceId, timestamp
-        // Note: params may be directly in threadContext or nested under threadContext.params
-        const rawContext = threadContext as any;
-        const vars = rawContext?.params || rawContext || {};
+        const vars = threadContext?.params || {};
 
         const ctx: AgentContext = {
             swarmId: vars.swarmId || '',
