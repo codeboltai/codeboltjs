@@ -126,7 +126,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
         if (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
             continueLoop = true;
-            const event = await eventQueue.waitForAnyExternalEvent();
+            const events = await eventQueue.getPendingQueueEvents();
+            events.forEach((event:any) => {
 
             if (event.type === 'backgroundAgentCompletion' || event.type === 'backgroundGroupedAgentCompletion') {
                 // Handle background agent completion
@@ -160,6 +161,7 @@ ${agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
                     prompt.message.messages.push(agentMessage);
                 }
             }
+            });
         }
         else {
             continueLoop = false;
