@@ -15,9 +15,9 @@ export class CoreSystemPromptModifier extends BaseMessageModifier {
         this.options = options;
     }
 
-    modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         // Get user memory from metadata or options
-        const userMemory = createdMessage.metadata?.userMemory as string || this.options.userMemory;
+        const userMemory = createdMessage.metadata?.['userMemory'] as string || this.options.userMemory;
         const systemPrompt = this.options.customSystemPrompt || this.getCoreSystemPrompt(userMemory);
 
         const systemMessage: MessageObject = {

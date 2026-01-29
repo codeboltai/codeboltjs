@@ -1,16 +1,25 @@
-import type { 
-    CodeboltAPI,
-    OpenAITool 
-} from '../types/libTypes';
-import type {  MessageModifier} from '@codebolt/types/agent';
+// Utility exports for the unified agent framework
 
-import type {
-    UnifiedAgentConfig,
-    LLMConfig
-} from '../types/types';
-import { 
-   createDefaultMessageProcessor
-} from '../index';
+/**
+ * Configuration for unified agent - defined locally as it's not exported from types
+ */
+export interface UnifiedAgentConfig {
+    maxIterations?: number;
+    maxConversationLength?: number;
+    enableLogging?: boolean;
+    llmConfig?: {
+        llmname?: string;
+        model?: string;
+        temperature?: number;
+        maxTokens?: number;
+        apiKey?: string;
+        baseUrl?: string;
+    };
+    retryConfig?: {
+        maxRetries?: number;
+        retryDelay?: number;
+    };
+}
 
 // /**
 //  * Quick agent creation for simple use cases
@@ -268,13 +277,24 @@ export async function benchmarkAgent(
         const duration = Date.now() - startTime;
         totalDuration += duration;
 
-        results.push({
+        const resultEntry: {
+            name: string;
+            success: boolean;
+            duration: number;
+            output: any;
+            error?: string;
+        } = {
             name: testCase.name,
             success,
             duration,
-            output,
-            error
-        });
+            output
+        };
+
+        if (error !== undefined) {
+            resultEntry.error = error;
+        }
+
+        results.push(resultEntry);
     }
 
     const summary = {

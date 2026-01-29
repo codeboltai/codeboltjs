@@ -1,7 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
 import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
-import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import codebolt from "@codebolt/codeboltjs";
@@ -42,7 +41,7 @@ export class EnvironmentContextModifier extends BaseMessageModifier {
         };
     }
 
-    async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             // Get current date formatted to user's locale
             const today = new Date().toLocaleDateString(undefined, {

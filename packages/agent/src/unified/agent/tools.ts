@@ -5,14 +5,13 @@
 import { z, ZodType } from 'zod';
 import type { OpenAITool } from '../types/libTypes';
 import { ToolConfig, ToolInterface } from '@codebolt/types/agent';
-import { success } from 'zod/v4';
 
 export class Tool implements ToolInterface {
     id: string;
     description: string;
-    inputSchema: ZodType<any, any, any>;
-    outputSchema?: ZodType<any, any, any>;
-    executionFunction: (context: any) => any;
+    inputSchema: ZodType;
+    outputSchema?: ZodType | undefined;
+    executionFunction: (context: unknown) => unknown;
 
     constructor(config: ToolConfig) {
         this.id = config.id;
@@ -21,25 +20,34 @@ export class Tool implements ToolInterface {
         this.outputSchema = config.outputSchema;
         this.executionFunction = config.execute
     }
-    async execute(input: any, context: any) {
+    async execute(input: unknown, context: unknown): Promise<{ success: boolean; result?: unknown; error?: string }> {
         const inputValidation = this.validateInput(input);
         if (!inputValidation.valid) {
-            return { success: false, error: inputValidation.error };
+            const result: { success: boolean; error?: string } = { success: false };
+            if (inputValidation.error) {
+                result.error = inputValidation.error;
+            }
+            return result;
         }
 
         try {
-            let output = await this.executionFunction({ input, ...context });
-            
+            const execContext = typeof context === 'object' && context !== null ? context : {};
+            const output = await this.executionFunction({ input, ...execContext });
+
             const outputValidation = this.validateOutput(output);
             if (!outputValidation.valid) {
-                return { success: false, error: outputValidation.error };
+                const result: { success: boolean; error?: string } = { success: false };
+                if (outputValidation.error) {
+                    result.error = outputValidation.error;
+                }
+                return result;
             }
-            
+
             return { success: true, result: output };
         } catch (error) {
-            return { 
-                success: false, 
-                error: `Tool "${this.id}" execution failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+            return {
+                success: false,
+                error: `Tool "${this.id}" execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
             };
         }
     }

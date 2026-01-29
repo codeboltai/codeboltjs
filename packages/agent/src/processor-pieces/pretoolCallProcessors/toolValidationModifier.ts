@@ -8,8 +8,6 @@ import {
     PreToolCallProcessorInput,
     PreToolCallProcessorOutput,
     ToolValidationRule,
-    ToolValidationResult,
-    ToolCall,
     ProcessedMessage
 } from '@codebolt/types/agent';
 

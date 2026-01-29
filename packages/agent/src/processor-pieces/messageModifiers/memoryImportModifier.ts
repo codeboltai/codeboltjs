@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { FlatUserMessage } from "@codebolt/types/sdk";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -26,7 +26,7 @@ export class MemoryImportModifier extends BaseMessageModifier {
         };
     }
 
-    async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             if (!this.options.enableMemoryImport) {
                 return createdMessage;
@@ -45,9 +45,17 @@ export class MemoryImportModifier extends BaseMessageModifier {
             let match;
             let importCount = 0;
 
-            while ((match = memoryImportPattern.exec(userMessage.content)) !== null && importCount < this.options.maxImports!) {
+            const basePath = this.options.basePath ?? process.cwd();
+            const maxImports = this.options.maxImports ?? 10;
+            const maxFileSize = this.options.maxFileSize ?? 1024 * 1024;
+            const allowedExtensions = this.options.allowedExtensions ?? [];
+
+            while ((match = memoryImportPattern.exec(userMessage.content)) !== null && importCount < maxImports) {
                 const filePath = match[1];
-                const fullPath = path.isAbsolute(filePath) ? filePath : path.join(this.options.basePath!, filePath);
+                if (!filePath) {
+                    continue;
+                }
+                const fullPath = path.isAbsolute(filePath) ? filePath : path.join(basePath, filePath);
 
                 try {
                     // Check if file exists and is allowed
@@ -56,13 +64,13 @@ export class MemoryImportModifier extends BaseMessageModifier {
                         continue;
                     }
 
-                    if (stats.size > this.options.maxFileSize!) {
+                    if (stats.size > maxFileSize) {
                         content = content.replace(match[0], `[File too large: ${filePath}]`);
                         continue;
                     }
 
                     const ext = path.extname(filePath);
-                    if (!this.options.allowedExtensions!.includes(ext)) {
+                    if (!allowedExtensions.includes(ext)) {
                         content = content.replace(match[0], `[Unsupported file type: ${filePath}]`);
                         continue;
                     }
@@ -70,7 +78,7 @@ export class MemoryImportModifier extends BaseMessageModifier {
                     // Read and import the file content
                     const fileContent = await fs.promises.readFile(fullPath, 'utf-8');
                     const importedContent = `--- Content from ${filePath} ---\n${fileContent}\n--- End of ${filePath} ---`;
-                    
+
                     content = content.replace(match[0], importedContent);
                     processedImports.push(filePath);
                     importCount++;

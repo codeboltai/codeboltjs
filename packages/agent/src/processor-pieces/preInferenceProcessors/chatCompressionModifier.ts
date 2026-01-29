@@ -1,5 +1,5 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
-import { BaseMessageModifier, BasePreInferenceProcessor } from "../base";
+import { BasePreInferenceProcessor } from "../base";
 import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 
 /**
@@ -63,7 +63,8 @@ function findIndexAfterFraction(
 
   let charactersSoFar = 0;
   for (let i = 0; i < contentLengths.length; i++) {
-    charactersSoFar += contentLengths[i];
+    const length = contentLengths[i] ?? 0;
+    charactersSoFar += length;
     if (charactersSoFar >= targetCharacters) {
       return i;
     }
@@ -102,7 +103,7 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         };
     }
 
-    async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             const compressionResult = await this.tryCompressChat(
                 createdMessage.message.messages, 
@@ -193,11 +194,10 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         );
         
         // Find the first user message after the index. This is the start of the next turn.
-        while (
-            compressBeforeIndex < curatedHistory.length &&
-            (curatedHistory[compressBeforeIndex]?.role === 'assistant' ||
-            isFunctionResponse(curatedHistory[compressBeforeIndex]))
-        ) {
+        while (compressBeforeIndex < curatedHistory.length) {
+            const currentMessage = curatedHistory[compressBeforeIndex];
+            if (!currentMessage) break;
+            if (currentMessage.role !== 'assistant' && !isFunctionResponse(currentMessage)) break;
             compressBeforeIndex++;
         }
 
@@ -247,28 +247,20 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         };
     }
 
-    private async countTokens(model: string, messages: MessageObject[]): Promise<number | undefined> {
+    private async countTokens(_model: string, messages: MessageObject[]): Promise<number | undefined> {
         // Mock token counting - should be replaced with actual API call
         // Rough approximation: 4 characters per token
         const totalCharacters = messages.reduce((sum, msg) => {
             return sum + (typeof msg.content === 'string' ? msg.content.length : JSON.stringify(msg.content).length);
         }, 0);
-        
+
         return Math.ceil(totalCharacters / 4);
     }
 
     private async generateCompressionSummary(messages: MessageObject[]): Promise<string> {
         // This should use the actual compression prompt and LLM call
         // For now, using a simplified version similar to the original
-        const compressionPrompt = `You are tasked with creating a concise summary of a conversation history to preserve context while reducing token usage.
-
-Please analyze the conversation and create a state snapshot that captures:
-1. Key topics discussed
-2. Important decisions made
-3. Current context and progress
-4. Any ongoing tasks or issues
-
-Format your response as a clear, structured summary that maintains the essential information needed to continue the conversation effectively.`;
+        // Compression prompt would be used for LLM summarization in a full implementation
 
         // Mock LLM call - should be replaced with actual LLM integration
         const summaryParts: string[] = [];

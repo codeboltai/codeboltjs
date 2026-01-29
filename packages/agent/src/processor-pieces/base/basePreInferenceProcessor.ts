@@ -4,10 +4,8 @@
  * These are called before the Agent calls the LLM
  */
 
-import { 
+import {
     PreInferenceProcessor,
-
-    ExitEvent,
     ProcessedMessage
 } from '@codebolt/types/agent';
 import { FlatUserMessage } from '@codebolt/types/sdk';

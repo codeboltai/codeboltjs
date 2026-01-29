@@ -80,8 +80,7 @@ export class Agent implements AgentInterface {
 
             return {
                 success: true,
-                result: prompt,
-                error: undefined
+                result: prompt
             };
 
         } catch (error) {

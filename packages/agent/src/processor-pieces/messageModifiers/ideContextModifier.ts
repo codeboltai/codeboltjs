@@ -68,16 +68,21 @@ export class IdeContextModifier extends BaseMessageModifier {
             
             if (systemMessageIndex !== -1) {
                 // Append to existing system message
-                messages[systemMessageIndex] = {
-                    ...messages[systemMessageIndex],
-                    content: `${messages[systemMessageIndex].content}\n\n${ideContextMessage.content}`
-                };
+                const existingMessage = messages[systemMessageIndex];
+                if (existingMessage) {
+                    messages[systemMessageIndex] = {
+                        role: existingMessage.role,
+                        content: `${existingMessage.content}\n\n${ideContextMessage.content}`
+                    };
+                }
             } else {
                 // Add new system message
                 messages.unshift(ideContextMessage);
             }
 
-            this.lastSentIdeContext = newIdeContext;
+            if (newIdeContext) {
+                this.lastSentIdeContext = newIdeContext;
+            }
             this.forceFullContext = false;
 
             return Promise.resolve({
@@ -99,8 +104,8 @@ export class IdeContextModifier extends BaseMessageModifier {
 
     private getIdeContext(originalRequest: FlatUserMessage, metadata?: Record<string, unknown>): IdeContext | undefined {
         // Try to get IDE context from the metadata parameter first
-        if (metadata?.ideContext) {
-            return metadata.ideContext as IdeContext;
+        if (metadata?.['ideContext']) {
+            return metadata['ideContext'] as IdeContext;
         }
 
         // Extract IDE context from the original message
@@ -170,15 +175,17 @@ export class IdeContextModifier extends BaseMessageModifier {
                     path: activeFile.path
                 };
 
-                if (this.options.includeCursorPosition && activeFile.cursor) {
-                    activeFileData.cursor = {
-                        line: activeFile.cursor.line,
-                        character: activeFile.cursor.character,
+                const cursor = activeFile['cursor'];
+                if (this.options.includeCursorPosition && cursor) {
+                    activeFileData['cursor'] = {
+                        line: cursor.line,
+                        character: cursor.character,
                     };
                 }
 
-                if (this.options.includeSelectedText && activeFile.selectedText) {
-                    activeFileData.selectedText = activeFile.selectedText;
+                const selectedText = activeFile['selectedText'];
+                if (this.options.includeSelectedText && selectedText) {
+                    activeFileData['selectedText'] = selectedText;
                 }
 
                 contextData['activeFile'] = activeFileData;

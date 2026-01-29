@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { FlatUserMessage } from "@codebolt/types/sdk";
 
 export interface ArgumentProcessorOptions {
     appendRawInvocation?: boolean;
@@ -20,10 +20,10 @@ export class ArgumentProcessorModifier extends BaseMessageModifier {
         };
     }
 
-    modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             // Get arguments from metadata
-            const invocation = createdMessage.metadata?.invocation as { raw?: string; name?: string; args?: string } | undefined;
+            const invocation = createdMessage.metadata?.['invocation'] as { raw?: string; name?: string; args?: string } | undefined;
             
             if (!invocation?.args) {
                 return Promise.resolve(createdMessage);

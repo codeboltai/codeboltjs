@@ -11,18 +11,6 @@ export interface AtFileProcessorOptions {
     enableRecursiveSearch?: boolean;
 }
 
-
-
-interface FileFilteringOptions {
-    respectGitIgnore: boolean;
-    respectGeminiIgnore: boolean;
-}
-
-const DEFAULT_FILE_FILTERING_OPTIONS: FileFilteringOptions = {
-    respectGitIgnore: true,
-    respectGeminiIgnore: true,
-};
-
 export class AtFileProcessorModifier extends BaseMessageModifier {
     private readonly options: AtFileProcessorOptions;
 
@@ -57,26 +45,28 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
             
             if (lastUserMessageIndex !== -1 && result.processedContent) {
                 const lastUserMessage = messages[lastUserMessageIndex];
-                
-                // Convert string content to array format if needed
-                let currentContent: any[];
-                if (Array.isArray(lastUserMessage.content)) {
-                    currentContent = lastUserMessage.content;
-                } else {
-                    // Convert string content to array format
-                    currentContent = [{ type: 'text', text: lastUserMessage.content as string }];
+
+                if (lastUserMessage) {
+                    // Convert string content to array format if needed
+                    let currentContent: unknown[];
+                    if (Array.isArray(lastUserMessage.content)) {
+                        currentContent = lastUserMessage.content;
+                    } else {
+                        // Convert string content to array format
+                        currentContent = [{ type: 'text', text: lastUserMessage.content as string }];
+                    }
+
+                    // Ensure processedContent is in array format
+                    const newContent = Array.isArray(result.processedContent)
+                        ? result.processedContent
+                        : [{ type: 'text', text: result.processedContent }];
+
+                    // Merge existing content with processed content
+                    messages[lastUserMessageIndex] = {
+                        role: lastUserMessage.role,
+                        content: [...currentContent, ...newContent]
+                    };
                 }
-                
-                // Ensure processedContent is in array format
-                const newContent = Array.isArray(result.processedContent) 
-                    ? result.processedContent 
-                    : [{ type: 'text', text: result.processedContent }];
-                
-                // Merge existing content with processed content
-                messages[lastUserMessageIndex] = {
-                    ...lastUserMessage,
-                    content: [...currentContent, ...newContent]
-                };
             }
 
             return {
@@ -263,8 +253,9 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
         try {
             const pattern = `**/*${pathName}*`;
             const matches = await this.findFiles(dir, pattern);
-            if (matches.length > 0) {
-                return path.relative(dir, matches[0]);
+            const firstMatch = matches[0];
+            if (firstMatch !== undefined) {
+                return path.relative(dir, firstMatch);
             }
         } catch (error) {
             console.error('Glob search error:', error);
@@ -300,17 +291,6 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
         
         // Try to use read_many_files tool if available (like gemini-cli)
         try {
-            // In a real implementation, this would use the actual tool registry
-            // For now, we'll simulate the tool behavior
-            const toolArgs = {
-                paths: pathSpecs,
-                useDefaultExcludes: true,
-                file_filtering_options: {
-                    respect_git_ignore: DEFAULT_FILE_FILTERING_OPTIONS.respectGitIgnore,
-                    respect_gemini_ignore: DEFAULT_FILE_FILTERING_OPTIONS.respectGeminiIgnore,
-                }
-            };
-
             // Simulate read_many_files tool execution
             for (const pathSpec of pathSpecs) {
                 try {
@@ -446,7 +426,8 @@ export class AtFileProcessorModifier extends BaseMessageModifier {
 
     private findLastUserMessage(messages: MessageObject[]): number {
         for (let i = messages.length - 1; i >= 0; i--) {
-            if (messages[i].role === 'user') {
+            const message = messages[i];
+            if (message && message.role === 'user') {
                 return i;
             }
         }

@@ -26,7 +26,7 @@ interface FolderStructureOptions {
 type MergedFolderStructureOptions = Required<
   Omit<FolderStructureOptions, 'fileIncludePattern'>
 > & {
-  fileIncludePattern?: RegExp;
+  fileIncludePattern?: RegExp | undefined;
 };
 
 /** Represents the full, unfiltered information about a folder and its contents. */
@@ -75,7 +75,7 @@ export class DirectoryContextModifier extends BaseMessageModifier {
         };
     }
 
-    async modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
+    async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             // Get workspace directories from codebolt or use provided options
             let workspaceDirectories = this.options.workspaceDirectories;
@@ -241,8 +241,10 @@ ${folderStructure}`;
       const mergedOptions: MergedFolderStructureOptions = {
         maxItems: options?.maxItems ?? MAX_ITEMS,
         ignoredFolders: options?.ignoredFolders ?? DEFAULT_IGNORED_FOLDERS,
-        fileIncludePattern: options?.fileIncludePattern,
       };
+      if (options?.fileIncludePattern) {
+        mergedOptions.fileIncludePattern = options.fileIncludePattern;
+      }
     
       try {
         // 1. Read the structure using BFS, respecting maxItems
@@ -485,13 +487,16 @@ ${folderStructure}`;
         const isLastSubfolderAmongSiblings =
           i === subFolderCount - 1 && !node.hasMoreSubfolders;
         // Children are never the root node being processed initially.
-        this.formatStructure(
-          node.subFolders[i],
-          indentForChildren,
-          isLastSubfolderAmongSiblings,
-          false,
-          builder,
-        );
+        const subFolder = node.subFolders[i];
+        if (subFolder) {
+          this.formatStructure(
+            subFolder,
+            indentForChildren,
+            isLastSubfolderAmongSiblings,
+            false,
+            builder,
+          );
+        }
       }
       if (node.hasMoreSubfolders) {
         builder.push(`${indentForChildren}└───${TRUNCATION_INDICATOR}`);

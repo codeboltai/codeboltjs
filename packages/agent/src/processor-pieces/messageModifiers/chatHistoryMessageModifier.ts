@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject, ChatMessage, ToolCall } from "@codebolt/types/sdk";
+import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 import codebolt from '@codebolt/codeboltjs';
 
 export interface ChatHistoryMessageModifierOptions {

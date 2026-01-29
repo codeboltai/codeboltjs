@@ -1,5 +1,5 @@
 import { AgentInterface, BaseWorkFlowStep, StepConfig, StepType, ToolInterface, workflowContext, workflowStepOutput } from "@codebolt/types/agent";
-import { ZodType } from "zod";
+import type { ZodType } from "zod";
 
 
 export class ParallelStep implements BaseWorkFlowStep{
@@ -14,8 +14,12 @@ export class ParallelStep implements BaseWorkFlowStep{
         this.id=config.id;
         this.description=config.description;
         this.type=config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
        }
        async execute(context: any): Promise<workflowContext> {
             try {
@@ -56,17 +60,22 @@ export class ConditionStep implements BaseWorkFlowStep{
         this.id=config.id;
         this.description=config.description;
         this.type=config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
     }
     async execute(context: any): Promise<workflowContext> {
         try {
             // For condition step, execute steps sequentially based on conditions
             // This is a basic implementation - you may want to add condition logic
             const results: workflowStepOutput[] = [];
-            
+
             for (let i = 0; i < this.steps.length; i++) {
                 const step = this.steps[i];
+                if (!step) continue;
                 try {
                     const result = await step.execute(context);
                     results.push(result);
@@ -109,29 +118,34 @@ export class LoopStep implements BaseWorkFlowStep{
     public outputSchema?: ZodType<any, any, any>;
     private steps:WorkFlowStep[]
     private maxIterations: number;
-    
+
     constructor(config:StepConfig,steps:WorkFlowStep[], maxIterations: number = 10){
         this.steps=steps;
         this.id=config.id;
         this.description=config.description;
         this.type=config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
         this.maxIterations = maxIterations;
     }
-    
+
     async execute(context: any): Promise<workflowContext> {
         try {
             const allResults: workflowStepOutput[] = [];
             let iteration = 0;
             let shouldContinue = true;
-            
+
             while (shouldContinue && iteration < this.maxIterations) {
                 const iterationResults: workflowStepOutput[] = [];
-                
+
                 // Execute all steps in this iteration
                 for (let i = 0; i < this.steps.length; i++) {
                     const step = this.steps[i];
+                    if (!step) continue;
                     try {
                         const result = await step.execute(context);
                         result.stepId = `${result.stepId}_loop_${iteration}`;
@@ -182,14 +196,18 @@ export class WorkFlowStep implements BaseWorkFlowStep {
     public inputSchema?: ZodType<any, any, any>;
     public outputSchema?: ZodType<any, any, any>;
     private config: StepConfig;
-   
+
     constructor(config: StepConfig) {
         this.config = config;
         this.id = config.id;
         this.description = config.description;
         this.type = config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
     }
     
     async execute(context: any): Promise<workflowStepOutput> {
@@ -224,17 +242,24 @@ export class AgentStep implements BaseWorkFlowStep {
         this.id=config.id;
         this.description=config.description;
         this.type=config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
     }
    async execute(context: any): Promise<workflowStepOutput> {
-        let {result,success,error} = await this.agent.execute(context)
-        return {
+        const {result,success,error} = await this.agent.execute(context)
+        const output: workflowStepOutput = {
             stepId: this.id,
             success: success,
-            result:result,
-            error:error
+            result: result
+        };
+        if (error !== undefined) {
+            output.error = error;
         }
+        return output;
     }
 }
 export class ToolStep implements BaseWorkFlowStep {
@@ -244,32 +269,40 @@ export class ToolStep implements BaseWorkFlowStep {
     public type: StepType;
     public inputSchema?: ZodType<any, any, any>;
     public outputSchema?: ZodType<any, any, any>;
-    
+
     constructor(config: StepConfig, tool: ToolInterface) {
         this.id=config.id;
         this.description=config.description;
         this.type=config.type;
-        this.inputSchema = config.inputSchema;
-        this.outputSchema = config.outputSchema;
+        if (config.inputSchema !== undefined) {
+            this.inputSchema = config.inputSchema;
+        }
+        if (config.outputSchema !== undefined) {
+            this.outputSchema = config.outputSchema;
+        }
         this.tool=tool;
     }
     async execute(context:any): Promise<workflowStepOutput> {
         try {
-            let {result,success,error} = await this.tool.execute({},context)
-            return {
+            const {result,success,error} = await this.tool.execute({},context)
+            const output: workflowStepOutput = {
                 stepId: this.id,
                 success: success,
-                result:result,
-                error:error
+                result: result
+            };
+            if (error !== undefined) {
+                output.error = error;
             }
+            return output;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            return {
+            const output: workflowStepOutput = {
                 stepId: this.id,
                 success: false,
-                result: null,
-                error: errorMessage
+                result: null
             };
+            output.error = errorMessage;
+            return output;
         }
     }
 }

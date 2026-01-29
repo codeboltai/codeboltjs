@@ -26,7 +26,9 @@ export class InitialPromptGenerator implements InitialPromptGeneratorInterface {
         this.processors = options.processors || [];
         this.metaData = options.metaData || {};
         this.enableLogging = options.enableLogging !== false;
-        this.baseSystemPrompt = options.baseSystemPrompt;
+        if (options.baseSystemPrompt !== undefined) {
+            this.baseSystemPrompt = options.baseSystemPrompt;
+        }
     }
 
     /**

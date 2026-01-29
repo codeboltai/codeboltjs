@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BasePostInferenceProcessor } from "../base";
-import { FlatUserMessage, LLMResponse, MessageObject } from "@codebolt/types/sdk";
+import { LLMResponse, MessageObject } from "@codebolt/types/sdk";
 
 export interface LoopDetectionOptions {
     maxSimilarMessages?: number;
@@ -155,9 +155,13 @@ export class LoopDetectionModifier extends BasePostInferenceProcessor {
         // Compare each message with every other message
         for (let i = 0; i < messages.length - 1; i++) {
             for (let j = i + 1; j < messages.length; j++) {
-                const similarity = this.calculateSimilarity(messages[i].content, messages[j].content);
-                if (similarity >= this.options.similarityThreshold!) {
-                    return true;
+                const msgI = messages[i];
+                const msgJ = messages[j];
+                if (msgI && msgJ) {
+                    const similarity = this.calculateSimilarity(msgI.content, msgJ.content);
+                    if (similarity >= this.options.similarityThreshold!) {
+                        return true;
+                    }
                 }
             }
         }
@@ -182,25 +186,37 @@ export class LoopDetectionModifier extends BasePostInferenceProcessor {
             matrix[i] = [i];
         }
 
-        for (let j = 0; j <= str1.length; j++) {
-            matrix[0][j] = j;
+        const firstRow = matrix[0];
+        if (firstRow) {
+            for (let j = 0; j <= str1.length; j++) {
+                firstRow[j] = j;
+            }
         }
 
         for (let i = 1; i <= str2.length; i++) {
+            const currentRow = matrix[i];
+            const prevRow = matrix[i - 1];
+            if (!currentRow || !prevRow) continue;
+
             for (let j = 1; j <= str1.length; j++) {
+                const prevDiag = prevRow[j - 1] ?? 0;
+                const prevUp = prevRow[j] ?? 0;
+                const prevLeft = currentRow[j - 1] ?? 0;
+
                 if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
+                    currentRow[j] = prevDiag;
                 } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1,
-                        matrix[i][j - 1] + 1,
-                        matrix[i - 1][j] + 1
+                    currentRow[j] = Math.min(
+                        prevDiag + 1,
+                        prevLeft + 1,
+                        prevUp + 1
                     );
                 }
             }
         }
 
-        return matrix[str2.length][str1.length];
+        const lastRow = matrix[str2.length];
+        return lastRow?.[str1.length] ?? 0;
     }
 
     private cleanOldMessages(currentTime: number): void {
