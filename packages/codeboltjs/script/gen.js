@@ -17,8 +17,8 @@ function getFiles(dir) {
     }, []);
 }
 
-// Get all TypeScript files
-const tsFiles = getFiles(dir).filter(file => file.endsWith('.ts'));
+// Get all TypeScript files (exclude .d.ts declaration files)
+const tsFiles = getFiles(dir).filter(file => file.endsWith('.ts') && !file.endsWith('.d.ts'));
 
 // Generate documentation for each TypeScript file
 tsFiles.forEach(file => {
