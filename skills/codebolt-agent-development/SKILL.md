@@ -14,10 +14,10 @@ description: Build AI agents for the Codebolt platform using @codebolt/agent. Us
 > ```typescript
 > // ❌ OLD (SDK v1) - Do NOT use
 > await codebolt.waitForConnection();
-> codebolt.onMessage(async (msg) => { ... });
+> codebolt.onMessage(async (msg:FlatUserMessage) => { ... });
 >
 > // ✅ NEW (SDK v2) - Use this
-> codebolt.onMessage(async (msg) => { ... });
+> codebolt.onMessage(async (msg:FlatUserMessage) => { ... });
 > ```
 
 ## Architecture Overview
@@ -118,8 +118,9 @@ Always provide constructive feedback with examples.
 // Example: Level 3 agent + Level 1 direct API calls outside the loop
 import { CodeboltAgent } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import { FlatUserMessage } from "@codebolt/types/sdk";
 
-codebolt.onMessage(async (msg) => {
+codebolt.onMessage(async (msg:FlatUserMessage) => {
   // Level 1: Send initial status message
   codebolt.chat.sendMessage('Starting analysis...');
 
@@ -166,7 +167,7 @@ Codebolt agents follow a standard execution pattern:
 ### Basic Pattern
 
 ```typescript
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage:FlatUserMessage) => {
   // 1. Process message into prompt
   let prompt = await promptGenerator.processMessage(reqMessage);
 
@@ -190,7 +191,7 @@ codebolt.onMessage(async (reqMessage) => {
 const eventQueue = codebolt.agentEventQueue;
 const agentTracker = codebolt.backgroundChildThreads;
 
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage:FlatUserMessage) => {
   let prompt = await promptGenerator.processMessage(reqMessage);
   let continueLoop = true;
 
