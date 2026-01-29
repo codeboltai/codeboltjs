@@ -1,12 +1,29 @@
 /**
  * TypeScript types for the public API functions exported by the codeboltjs library
- * 
+ *
  * This file contains types for:
  * - Public function parameters and return types
  * - API interfaces exposed to library users
  * - Configuration options for library functions
  * - User-facing data structures
+ *
+ * Note: Core message and tool types are imported from @codebolt/types/sdk.
+ * Local extensions are provided for backward compatibility.
  */
+
+// Import common types from @codebolt/types/sdk
+import type {
+  MessageObject,
+  ToolCall as SDKToolCall,
+  ToolChoice,
+  LLMCompletion
+} from '@codebolt/types/sdk';
+
+import type { ToolResult as AgentToolResult } from '@codebolt/types/agent';
+
+// Re-export SDK types for consumers
+export type { MessageObject, ToolChoice, LLMCompletion };
+export type { AgentToolResult };
 
 // ================================
 // Message Types for Library API
@@ -14,6 +31,7 @@
 
 /**
  * Represents a message in the conversation with roles and content.
+ * Extended version with looser typing for backward compatibility.
  */
 export interface Message {
   /** The role of the message sender: user, assistant, tool, or system */
@@ -30,23 +48,13 @@ export interface Message {
 
 /**
  * Represents a tool call in OpenAI format
+ * Re-exported from SDK with same structure
  */
-export interface ToolCall {
-  /** Unique identifier for this tool call */
-  id: string;
-  /** The type of tool call */
-  type: 'function';
-  /** Function call details */
-  function: {
-    /** Name of the function to call */
-    name: string;
-    /** Arguments for the function call as JSON string */
-    arguments: string;
-  };
-}
+export type ToolCall = SDKToolCall;
 
 /**
  * Represents a tool definition in OpenAI format
+ * Extended with looser parameter typing for flexibility
  */
 export interface Tool {
   /** The type of tool */
@@ -64,6 +72,7 @@ export interface Tool {
 
 /**
  * LLM inference request parameters
+ * Local version with required llmrole for backward compatibility
  */
 export interface LLMInferenceParams {
   /** Array of messages in the conversation */
@@ -71,7 +80,7 @@ export interface LLMInferenceParams {
   /** Available tools for the model to use */
   tools?: Tool[];
   /** How the model should use tools */
-  tool_choice?: 'auto' | 'none' | 'required' | { type: 'function'; function: { name: string } };
+  tool_choice?: ToolChoice;
   /** The LLM role to determine which model to use */
   llmrole: string;
   /** Maximum number of tokens to generate */

@@ -1,20 +1,20 @@
 /**
  * Processor types and interfaces for the Unified Agent Framework
- * @deprecated Use specific processor type files instead
- * 
+ * @deprecated Use types from @codebolt/types/agent instead
+ *
  * This file is kept for backward compatibility.
- * New code should import from the specific processor type files:
- * - './processorTypes/messageModifierTypes'
- * - './processorTypes/preInferenceProcessorTypes'
- * - './processorTypes/postInferenceTypes'
- * - './processorTypes/preToolCallProcessorTypes' 
- * - './processorTypes/postToolCallProcessorTypes'
+ * New code should import from @codebolt/types/agent:
+ * - MessageModifier, MessageModifierOptions
+ * - PreInferenceProcessor, PostInferenceProcessor
+ * - PreToolCallProcessor, PostToolCallProcessor
+ * - ProcessedMessage, ToolCall, ToolResult
  */
 
-// Re-export all processor types from their specific modules
-export * from './processorTypes';
+// Import and re-export common types from @codebolt/types/agent
+import type { ToolResult } from '@codebolt/types/agent';
+export type { ToolResult };
 
-// Keep the legacy exports for backward compatibility
+// Keep legacy ToolCall export with extended compatibility
 export interface ToolCall {
     id: string;
     function: {
@@ -41,6 +41,7 @@ export interface Message {
     [key: string]: unknown;
 }
 
+// Local ProcessedMessage differs from common type - kept for backward compatibility
 export interface ProcessedMessage {
     messages: Message[];
     metadata?: Record<string, unknown>;
