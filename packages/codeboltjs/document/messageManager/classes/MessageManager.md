@@ -1,167 +1,120 @@
-[@codebolt/codeboltjs](../README.md) / [Exports](../modules.md) / MessageManager
+[**@codebolt/codeboltjs**](../README.md)
+
+***
+
+[@codebolt/codeboltjs](../globals.md) / MessageManager
 
 # Class: MessageManager
 
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:9](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L9)
+
 Centralized message manager for handling WebSocket communications
 
-## Hierarchy
+## Extends
 
 - `EventEmitter`
 
-  ↳ **`MessageManager`**
-
-## Table of contents
-
-### Constructors
-
-- [constructor](MessageManager.md#constructor)
-
-### Properties
-
-- [pendingRequests](MessageManager.md#pendingrequests)
-- [requestCounter](MessageManager.md#requestcounter)
-- [websocket](MessageManager.md#websocket)
-- [captureRejectionSymbol](MessageManager.md#capturerejectionsymbol)
-- [captureRejections](MessageManager.md#capturerejections)
-- [defaultMaxListeners](MessageManager.md#defaultmaxlisteners)
-- [errorMonitor](MessageManager.md#errormonitor)
-
-### Methods
-
-- [[captureRejectionSymbol]](MessageManager.md#[capturerejectionsymbol])
-- [addListener](MessageManager.md#addlistener)
-- [cleanup](MessageManager.md#cleanup)
-- [emit](MessageManager.md#emit)
-- [eventNames](MessageManager.md#eventnames)
-- [getMaxListeners](MessageManager.md#getmaxlisteners)
-- [getWebSocket](MessageManager.md#getwebsocket)
-- [handleMessage](MessageManager.md#handlemessage)
-- [initialize](MessageManager.md#initialize)
-- [listenerCount](MessageManager.md#listenercount)
-- [listeners](MessageManager.md#listeners)
-- [off](MessageManager.md#off)
-- [on](MessageManager.md#on)
-- [once](MessageManager.md#once)
-- [prependListener](MessageManager.md#prependlistener)
-- [prependOnceListener](MessageManager.md#prependoncelistener)
-- [rawListeners](MessageManager.md#rawlisteners)
-- [removeAllListeners](MessageManager.md#removealllisteners)
-- [removeListener](MessageManager.md#removelistener)
-- [send](MessageManager.md#send)
-- [sendAndWaitForResponse](MessageManager.md#sendandwaitforresponse)
-- [setMaxListeners](MessageManager.md#setmaxlisteners)
-- [setupMessageListener](MessageManager.md#setupmessagelistener)
-- [addAbortListener](MessageManager.md#addabortlistener)
-- [getEventListeners](MessageManager.md#geteventlisteners)
-- [getMaxListeners](MessageManager.md#getmaxlisteners-1)
-- [listenerCount](MessageManager.md#listenercount-1)
-- [on](MessageManager.md#on-1)
-- [once](MessageManager.md#once-1)
-- [setMaxListeners](MessageManager.md#setmaxlisteners-1)
-
 ## Constructors
 
-### constructor
+### Constructor
 
-• **new MessageManager**(`options?`): [`MessageManager`](MessageManager.md)
+> **new MessageManager**(`options?`): `MessageManager`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:101
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `options?` | `EventEmitterOptions` |
+##### options?
+
+`EventEmitterOptions`
 
 #### Returns
 
-[`MessageManager`](MessageManager.md)
+`MessageManager`
 
 #### Inherited from
 
-EventEmitter.constructor
-
-#### Defined in
-
-node_modules/@types/node/events.d.ts:134
+`EventEmitter.constructor`
 
 ## Properties
 
 ### pendingRequests
 
-• **pendingRequests**: `Map`\<`string`, [`PendingRequest`](../interfaces/PendingRequest.md)\>
+> **pendingRequests**: `Map`\<`string`, `PendingRequest`\>
 
-#### Defined in
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:10](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L10)
 
-[src/core/messageManager.ts:15](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L15)
+***
 
-___
+### routes
 
-### requestCounter
+> `private` **routes**: `MessageRoute`[] = `[]`
 
-• **requestCounter**: `number` = `0`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:12](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L12)
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:17](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L17)
+### subscriptions
 
-___
+> `private` **subscriptions**: `Map`\<`string`, `EventEmitter`\<`DefaultEventMap`\>\>
+
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:13](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L13)
+
+***
 
 ### websocket
 
-• **websocket**: ``null`` \| `WebSocket` = `null`
+> **websocket**: `null` \| `WebSocket` = `null`
 
-#### Defined in
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:11](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L11)
 
-[src/core/messageManager.ts:16](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L16)
-
-___
-
-### captureRejectionSymbol
-
-▪ `Static` `Readonly` **captureRejectionSymbol**: typeof [`captureRejectionSymbol`](MessageManager.md#capturerejectionsymbol)
-
-Value: `Symbol.for('nodejs.rejection')`
-
-See how to write a custom `rejection handler`.
-
-**`Since`**
-
-v13.4.0, v12.16.0
-
-#### Inherited from
-
-EventEmitter.captureRejectionSymbol
-
-#### Defined in
-
-node_modules/@types/node/events.d.ts:452
-
-___
+***
 
 ### captureRejections
 
-▪ `Static` **captureRejections**: `boolean`
+> `static` **captureRejections**: `boolean`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:426
 
 Value: [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type)
 
 Change the default `captureRejections` option on all new `EventEmitter` objects.
 
-**`Since`**
+#### Since
 
 v13.4.0, v12.16.0
 
 #### Inherited from
 
-EventEmitter.captureRejections
+`EventEmitter.captureRejections`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:459
+### captureRejectionSymbol
 
-___
+> `readonly` `static` **captureRejectionSymbol**: *typeof* [`captureRejectionSymbol`](#capturerejectionsymbol)
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:419
+
+Value: `Symbol.for('nodejs.rejection')`
+
+See how to write a custom `rejection handler`.
+
+#### Since
+
+v13.4.0, v12.16.0
+
+#### Inherited from
+
+`EventEmitter.captureRejectionSymbol`
+
+***
 
 ### defaultMaxListeners
 
-▪ `Static` **defaultMaxListeners**: `number`
+> `static` **defaultMaxListeners**: `number`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:465
 
 By default, a maximum of `10` listeners can be registered for any single
 event. This limit can be changed for individual `EventEmitter` instances
@@ -199,60 +152,62 @@ the event emitter instance, the event's name and the number of attached
 listeners, respectively.
 Its `name` property is set to `'MaxListenersExceededWarning'`.
 
-**`Since`**
+#### Since
 
 v0.11.2
 
 #### Inherited from
 
-EventEmitter.defaultMaxListeners
+`EventEmitter.defaultMaxListeners`
 
-#### Defined in
-
-node_modules/@types/node/events.d.ts:498
-
-___
+***
 
 ### errorMonitor
 
-▪ `Static` `Readonly` **errorMonitor**: typeof [`errorMonitor`](MessageManager.md#errormonitor)
+> `readonly` `static` **errorMonitor**: *typeof* [`errorMonitor`](#errormonitor)
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:412
 
 This symbol shall be used to install a listener for only monitoring `'error'` events. Listeners installed using this symbol are called before the regular `'error'` listeners are called.
 
 Installing a listener using this symbol does not change the behavior once an `'error'` event is emitted. Therefore, the process will still crash if no
 regular `'error'` listener is installed.
 
-**`Since`**
+#### Since
 
 v13.6.0, v12.17.0
 
 #### Inherited from
 
-EventEmitter.errorMonitor
-
-#### Defined in
-
-node_modules/@types/node/events.d.ts:445
+`EventEmitter.errorMonitor`
 
 ## Methods
 
-### [captureRejectionSymbol]
+### \[captureRejectionSymbol\]()?
 
-▸ **[captureRejectionSymbol]**\<`K`\>(`error`, `event`, `...args`): `void`
+> `optional` **\[captureRejectionSymbol\]**\<`K`\>(`error`, `event`, ...`args`): `void`
 
-#### Type parameters
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:103
 
-| Name |
-| :------ |
-| `K` |
+#### Type Parameters
+
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `error` | `Error` |
-| `event` | `string` \| `symbol` |
-| `...args` | `AnyRest` |
+##### error
+
+`Error`
+
+##### event
+
+`string` | `symbol`
+
+##### args
+
+...`AnyRest`
 
 #### Returns
 
@@ -260,54 +215,53 @@ node_modules/@types/node/events.d.ts:445
 
 #### Inherited from
 
-EventEmitter.[captureRejectionSymbol]
+`EventEmitter.[captureRejectionSymbol]`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:136
+### addListener()
 
-___
+> **addListener**\<`K`\>(`eventName`, `listener`): `this`
 
-### addListener
-
-▸ **addListener**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:643
 
 Alias for `emitter.on(eventName, listener)`.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
-| `listener` | (...`args`: `any`[]) => `void` |
+##### eventName
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.1.26
 
 #### Inherited from
 
-EventEmitter.addListener
+`EventEmitter.addListener`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:597
+### cleanup()
 
-___
+> **cleanup**(): `void`
 
-### cleanup
-
-▸ **cleanup**(): `void`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:211](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L211)
 
 Clean up all pending requests
 
@@ -315,15 +269,13 @@ Clean up all pending requests
 
 `void`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:144](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L144)
+### emit()
 
-___
+> **emit**\<`K`\>(`eventName`, ...`args`): `boolean`
 
-### emit
-
-▸ **emit**\<`K`\>(`eventName`, `...args`): `boolean`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:905
 
 Synchronously calls each of the listeners registered for the event named `eventName`, in the order they were registered, passing the supplied arguments
 to each.
@@ -363,40 +315,41 @@ myEmitter.emit('event', 1, 2, 3, 4, 5);
 // event with parameters 1, 2, 3, 4, 5 in third listener
 ```
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
-| `...args` | `AnyRest` |
+##### eventName
+
+`string` | `symbol`
+
+##### args
+
+...`AnyRest`
 
 #### Returns
 
 `boolean`
 
-**`Since`**
+#### Since
 
 v0.1.26
 
 #### Inherited from
 
-EventEmitter.emit
+`EventEmitter.emit`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:859
+### eventNames()
 
-___
+> **eventNames**(): (`string` \| `symbol`)[]
 
-### eventNames
-
-▸ **eventNames**(): (`string` \| `symbol`)[]
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:968
 
 Returns an array listing the events for which the emitter has registered
 listeners. The values in the array are strings or `Symbol`s.
@@ -419,147 +372,142 @@ console.log(myEE.eventNames());
 
 (`string` \| `symbol`)[]
 
-**`Since`**
+#### Since
 
 v6.0.0
 
 #### Inherited from
 
-EventEmitter.eventNames
+`EventEmitter.eventNames`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:922
+### getMaxListeners()
 
-___
+> **getMaxListeners**(): `number`
 
-### getMaxListeners
-
-▸ **getMaxListeners**(): `number`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:820
 
 Returns the current max listener value for the `EventEmitter` which is either
-set by `emitter.setMaxListeners(n)` or defaults to [EventEmitter.defaultMaxListeners](MessageManager.md#defaultmaxlisteners).
+set by `emitter.setMaxListeners(n)` or defaults to [EventEmitter.defaultMaxListeners](#defaultmaxlisteners).
 
 #### Returns
 
 `number`
 
-**`Since`**
+#### Since
 
 v1.0.0
 
 #### Inherited from
 
-EventEmitter.getMaxListeners
+`EventEmitter.getMaxListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:774
+### getWebSocket()
 
-___
+> **getWebSocket**(): `null` \| `WebSocket`
 
-### getWebSocket
-
-▸ **getWebSocket**(): ``null`` \| `WebSocket`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:204](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L204)
 
 Get the WebSocket instance
 
 #### Returns
 
-``null`` \| `WebSocket`
+`null` \| `WebSocket`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:137](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L137)
+### handleMessage()
 
-___
+> **handleMessage**(`response`): `void`
 
-### handleMessage
-
-▸ **handleMessage**(`response`): `void`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:96](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L96)
 
 Handle incoming messages and resolve pending requests
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `response` | `any` |
+##### response
+
+`any`
 
 #### Returns
 
 `void`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:46](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L46)
+### initialize()
 
-___
+> **initialize**(`websocket`): `void`
 
-### initialize
-
-▸ **initialize**(`websocket`): `void`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:72](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L72)
 
 Initialize the message manager with a WebSocket instance
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `websocket` | `WebSocket` |
+##### websocket
+
+`WebSocket`
 
 #### Returns
 
 `void`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:22](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L22)
+### listenerCount()
 
-___
+> **listenerCount**\<`K`\>(`eventName`, `listener?`): `number`
 
-### listenerCount
-
-▸ **listenerCount**\<`K`\>(`eventName`, `listener?`): `number`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:914
 
 Returns the number of listeners listening for the event named `eventName`.
 If `listener` is provided, it will return how many times the listener is found
 in the list of the listeners of the event.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `eventName` | `string` \| `symbol` | The name of the event being listened for |
-| `listener?` | `Function` | The event handler function |
+##### eventName
+
+The name of the event being listened for
+
+`string` | `symbol`
+
+##### listener?
+
+`Function`
+
+The event handler function
 
 #### Returns
 
 `number`
 
-**`Since`**
+#### Since
 
 v3.2.0
 
 #### Inherited from
 
-EventEmitter.listenerCount
+`EventEmitter.listenerCount`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:868
+### listeners()
 
-___
+> **listeners**\<`K`\>(`eventName`): `Function`[]
 
-### listeners
-
-▸ **listeners**\<`K`\>(`eventName`): `Function`[]
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:833
 
 Returns a copy of the array of listeners for the event named `eventName`.
 
@@ -571,76 +519,75 @@ console.log(util.inspect(server.listeners('connection')));
 // Prints: [ [Function] ]
 ```
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
+##### eventName
+
+`string` | `symbol`
 
 #### Returns
 
 `Function`[]
 
-**`Since`**
+#### Since
 
 v0.1.26
 
 #### Inherited from
 
-EventEmitter.listeners
+`EventEmitter.listeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:787
+### off()
 
-___
+> **off**\<`K`\>(`eventName`, `listener`): `this`
 
-### off
-
-▸ **off**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:793
 
 Alias for `emitter.removeListener()`.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
-| `listener` | (...`args`: `any`[]) => `void` |
+##### eventName
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v10.0.0
 
 #### Inherited from
 
-EventEmitter.off
+`EventEmitter.off`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:747
+### on()
 
-___
+> **on**\<`K`\>(`eventName`, `listener`): `this`
 
-### on
-
-▸ **on**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:675
 
 Adds the `listener` function to the end of the listeners array for the event
 named `eventName`. No checks are made to see if the `listener` has already
@@ -669,40 +616,45 @@ myEE.emit('foo');
 //   a
 ```
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `eventName` | `string` \| `symbol` | The name of the event. |
-| `listener` | (...`args`: `any`[]) => `void` | The callback function |
+##### eventName
+
+The name of the event.
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
+
+The callback function
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.1.101
 
 #### Inherited from
 
-EventEmitter.on
+`EventEmitter.on`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:629
+### once()
 
-___
+> **once**\<`K`\>(`eventName`, `listener`): `this`
 
-### once
-
-▸ **once**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:705
 
 Adds a **one-time** `listener` function for the event named `eventName`. The
 next time `eventName` is triggered, this listener is removed and then invoked.
@@ -729,40 +681,45 @@ myEE.emit('foo');
 //   a
 ```
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `eventName` | `string` \| `symbol` | The name of the event. |
-| `listener` | (...`args`: `any`[]) => `void` | The callback function |
+##### eventName
+
+The name of the event.
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
+
+The callback function
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.3.0
 
 #### Inherited from
 
-EventEmitter.once
+`EventEmitter.once`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:659
+### prependListener()
 
-___
+> **prependListener**\<`K`\>(`eventName`, `listener`): `this`
 
-### prependListener
-
-▸ **prependListener**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:932
 
 Adds the `listener` function to the _beginning_ of the listeners array for the
 event named `eventName`. No checks are made to see if the `listener` has
@@ -777,40 +734,45 @@ server.prependListener('connection', (stream) => {
 
 Returns a reference to the `EventEmitter`, so that calls can be chained.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `eventName` | `string` \| `symbol` | The name of the event. |
-| `listener` | (...`args`: `any`[]) => `void` | The callback function |
+##### eventName
+
+The name of the event.
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
+
+The callback function
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v6.0.0
 
 #### Inherited from
 
-EventEmitter.prependListener
+`EventEmitter.prependListener`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:886
+### prependOnceListener()
 
-___
+> **prependOnceListener**\<`K`\>(`eventName`, `listener`): `this`
 
-### prependOnceListener
-
-▸ **prependOnceListener**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:948
 
 Adds a **one-time**`listener` function for the event named `eventName` to the _beginning_ of the listeners array. The next time `eventName` is triggered, this
 listener is removed, and then invoked.
@@ -823,40 +785,45 @@ server.prependOnceListener('connection', (stream) => {
 
 Returns a reference to the `EventEmitter`, so that calls can be chained.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `eventName` | `string` \| `symbol` | The name of the event. |
-| `listener` | (...`args`: `any`[]) => `void` | The callback function |
+##### eventName
+
+The name of the event.
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
+
+The callback function
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v6.0.0
 
 #### Inherited from
 
-EventEmitter.prependOnceListener
+`EventEmitter.prependOnceListener`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:902
+### rawListeners()
 
-___
+> **rawListeners**\<`K`\>(`eventName`): `Function`[]
 
-### rawListeners
-
-▸ **rawListeners**\<`K`\>(`eventName`): `Function`[]
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:864
 
 Returns a copy of the array of listeners for the event named `eventName`,
 including any wrappers (such as those created by `.once()`).
@@ -886,39 +853,65 @@ newListeners[0]();
 emitter.emit('log');
 ```
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
+##### eventName
+
+`string` | `symbol`
 
 #### Returns
 
 `Function`[]
 
-**`Since`**
+#### Since
 
 v9.4.0
 
 #### Inherited from
 
-EventEmitter.rawListeners
+`EventEmitter.rawListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:818
+### registerRoute()
 
-___
+> **registerRoute**(`route`): () => `void`
 
-### removeAllListeners
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:61](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L61)
 
-▸ **removeAllListeners**(`eventName?`): `this`
+Register a message route handler for specific message types
+
+#### Parameters
+
+##### route
+
+`MessageRoute`
+
+The route configuration with message types and handler
+
+#### Returns
+
+A cleanup function to unregister the route
+
+> (): `void`
+
+##### Returns
+
+`void`
+
+***
+
+### removeAllListeners()
+
+> **removeAllListeners**(`eventName?`): `this`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:804
 
 Removes all listeners, or those of the specified `eventName`.
 
@@ -930,31 +923,29 @@ Returns a reference to the `EventEmitter`, so that calls can be chained.
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName?` | `string` \| `symbol` |
+##### eventName?
+
+`string` | `symbol`
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.1.26
 
 #### Inherited from
 
-EventEmitter.removeAllListeners
+`EventEmitter.removeAllListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:758
+### removeListener()
 
-___
+> **removeListener**\<`K`\>(`eventName`, `listener`): `this`
 
-### removeListener
-
-▸ **removeListener**\<`K`\>(`eventName`, `listener`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:788
 
 Removes the specified `listener` from the listener array for the event named `eventName`.
 
@@ -1036,92 +1027,101 @@ ee.emit('ping');
 
 Returns a reference to the `EventEmitter`, so that calls can be chained.
 
-#### Type parameters
+#### Type Parameters
 
-| Name |
-| :------ |
-| `K` |
+##### K
+
+`K`
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `eventName` | `string` \| `symbol` |
-| `listener` | (...`args`: `any`[]) => `void` |
+##### eventName
+
+`string` | `symbol`
+
+##### listener
+
+(...`args`) => `void`
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.1.26
 
 #### Inherited from
 
-EventEmitter.removeListener
+`EventEmitter.removeListener`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:742
+### send()
 
-___
+> **send**(`message`): `void`
 
-### send
-
-▸ **send**(`message`): `void`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:192](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L192)
 
 Send a message without waiting for response
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `message` | `any` |
+##### message
+
+`any`
 
 #### Returns
 
 `void`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:127](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L127)
+### sendAndWaitForResponse()
 
-___
+> **sendAndWaitForResponse**\<`T`\>(`message`, `expectedResponseType`, `timeout`): `Promise`\<`T`\>
 
-### sendAndWaitForResponse
-
-▸ **sendAndWaitForResponse**\<`T`\>(`message`, `expectedResponseType`, `timeout?`): `Promise`\<`T`\>
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:134](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L134)
 
 Send a message and wait for a specific response type
 
-#### Type parameters
+#### Type Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `T` | `any` |
+##### T
+
+`T` = `any`
 
 #### Parameters
 
-| Name | Type | Default value |
-| :------ | :------ | :------ |
-| `message` | `any` | `undefined` |
-| `expectedResponseType` | `string` | `undefined` |
-| `timeout` | `number` | `30000` |
+##### message
+
+`any`
+
+The message to send
+
+##### expectedResponseType
+
+`string`
+
+The type of response to wait for
+
+##### timeout
+
+`number` = `0`
+
+Optional timeout in milliseconds. If not provided or set to 0, will wait indefinitely
 
 #### Returns
 
 `Promise`\<`T`\>
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:73](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L73)
+### setMaxListeners()
 
-___
+> **setMaxListeners**(`n`): `this`
 
-### setMaxListeners
-
-▸ **setMaxListeners**(`n`): `this`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:814
 
 By default `EventEmitter`s will print a warning if more than `10` listeners are
 added for a particular event. This is a useful default that helps finding
@@ -1132,31 +1132,29 @@ Returns a reference to the `EventEmitter`, so that calls can be chained.
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `n` | `number` |
+##### n
+
+`number`
 
 #### Returns
 
 `this`
 
-**`Since`**
+#### Since
 
 v0.3.5
 
 #### Inherited from
 
-EventEmitter.setMaxListeners
+`EventEmitter.setMaxListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:768
+### setupMessageListener()
 
-___
+> **setupMessageListener**(): `void`
 
-### setupMessageListener
-
-▸ **setupMessageListener**(): `void`
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:80](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L80)
 
 Setup the centralized message listener
 
@@ -1164,15 +1162,61 @@ Setup the centralized message listener
 
 `void`
 
-#### Defined in
+***
 
-[src/core/messageManager.ts:30](https://github.com/codeboltai/codeboltjs/blob/1ae9852f107cfee4a652d6d80c0a92c9344ec151/src/core/messageManager.ts#L30)
+### subscribe()
 
-___
+> **subscribe**(`messageType`): `EventEmitter`\<`DefaultEventMap`\> & `object`
 
-### addAbortListener
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:20](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L20)
 
-▸ **addAbortListener**(`signal`, `resource`): `Disposable`
+Subscribe to specific message types and get an EventEmitter that emits messages of those types.
+
+#### Parameters
+
+##### messageType
+
+`string`
+
+The message type to subscribe to
+
+#### Returns
+
+`EventEmitter`\<`DefaultEventMap`\> & `object`
+
+An EventEmitter that emits 'message' events for the specified type, with an unsubscribe method
+
+***
+
+### unsubscribe()
+
+> **unsubscribe**(`messageType`): `void`
+
+Defined in: [packages/codeboltjs/src/core/messageManager.ts:45](https://github.com/codeboltai/codeboltjs/blob/a8724faf1fbd91d41208870e38936af70f149d77/packages/codeboltjs/src/core/messageManager.ts#L45)
+
+Unsubscribe from a message type
+
+#### Parameters
+
+##### messageType
+
+`string`
+
+The message type to unsubscribe from
+
+#### Returns
+
+`void`
+
+***
+
+### addAbortListener()
+
+> `static` **addAbortListener**(`signal`, `resource`): `Disposable`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:404
+
+**`Experimental`**
 
 Listens once to the `abort` event on the provided `signal`.
 
@@ -1206,10 +1250,13 @@ function example(signal) {
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `signal` | `AbortSignal` |
-| `resource` | (`event`: `Event`) => `void` |
+##### signal
+
+`AbortSignal`
+
+##### resource
+
+(`event`) => `void`
 
 #### Returns
 
@@ -1217,23 +1264,21 @@ function example(signal) {
 
 Disposable that removes the `abort` listener.
 
-**`Since`**
+#### Since
 
 v20.5.0
 
 #### Inherited from
 
-EventEmitter.addAbortListener
+`EventEmitter.addAbortListener`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:437
+### getEventListeners()
 
-___
+> `static` **getEventListeners**(`emitter`, `name`): `Function`[]
 
-### getEventListeners
-
-▸ **getEventListeners**(`emitter`, `name`): `Function`[]
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:325
 
 Returns a copy of the array of listeners for the event named `eventName`.
 
@@ -1262,32 +1307,33 @@ import { getEventListeners, EventEmitter } from 'node:events';
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventEmitter`\<`DefaultEventMap`\> \| `EventTarget` |
-| `name` | `string` \| `symbol` |
+##### emitter
+
+`EventEmitter`\<`DefaultEventMap`\> | `EventTarget`
+
+##### name
+
+`string` | `symbol`
 
 #### Returns
 
 `Function`[]
 
-**`Since`**
+#### Since
 
 v15.2.0, v14.17.0
 
 #### Inherited from
 
-EventEmitter.getEventListeners
+`EventEmitter.getEventListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:358
+### getMaxListeners()
 
-___
+> `static` **getMaxListeners**(`emitter`): `number`
 
-### getMaxListeners
-
-▸ **getMaxListeners**(`emitter`): `number`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:354
 
 Returns the currently set max amount of listeners.
 
@@ -1317,31 +1363,29 @@ import { getMaxListeners, setMaxListeners, EventEmitter } from 'node:events';
 
 #### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventEmitter`\<`DefaultEventMap`\> \| `EventTarget` |
+##### emitter
+
+`EventEmitter`\<`DefaultEventMap`\> | `EventTarget`
 
 #### Returns
 
 `number`
 
-**`Since`**
+#### Since
 
 v19.9.0
 
 #### Inherited from
 
-EventEmitter.getMaxListeners
+`EventEmitter.getMaxListeners`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:387
+### ~~listenerCount()~~
 
-___
+> `static` **listenerCount**(`emitter`, `eventName`): `number`
 
-### listenerCount
-
-▸ **listenerCount**(`emitter`, `eventName`): `number`
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:297
 
 A class method that returns the number of listeners for the given `eventName` registered on the given `emitter`.
 
@@ -1357,36 +1401,43 @@ console.log(listenerCount(myEmitter, 'event'));
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `emitter` | `EventEmitter`\<`DefaultEventMap`\> | The emitter to query |
-| `eventName` | `string` \| `symbol` | The event name |
+##### emitter
+
+`EventEmitter`
+
+The emitter to query
+
+##### eventName
+
+The event name
+
+`string` | `symbol`
 
 #### Returns
 
 `number`
 
-**`Since`**
+#### Since
 
 v0.9.12
 
-**`Deprecated`**
+#### Deprecated
 
 Since v3.2.0 - Use `listenerCount` instead.
 
 #### Inherited from
 
-EventEmitter.listenerCount
+`EventEmitter.listenerCount`
 
-#### Defined in
+***
 
-node_modules/@types/node/events.d.ts:330
+### on()
 
-___
+#### Call Signature
 
-### on
+> `static` **on**(`emitter`, `eventName`, `options?`): `AsyncIterator`\<`any`[]\>
 
-▸ **on**(`emitter`, `eventName`, `options?`): `AsyncIterator`\<`any`[], `any`, `any`\>
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:270
 
 ```js
 import { on, EventEmitter } from 'node:events';
@@ -1465,59 +1516,154 @@ for await (const event of on(ee, 'foo', { close: ['close'] })) {
 console.log('done'); // prints 'done'
 ```
 
-#### Parameters
+##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventEmitter`\<`DefaultEventMap`\> |
-| `eventName` | `string` \| `symbol` |
-| `options?` | `StaticEventEmitterIteratorOptions` |
+###### emitter
 
-#### Returns
+`EventEmitter`
 
-`AsyncIterator`\<`any`[], `any`, `any`\>
+###### eventName
+
+`string` | `symbol`
+
+###### options?
+
+`StaticEventEmitterIteratorOptions`
+
+##### Returns
+
+`AsyncIterator`\<`any`[]\>
 
 An `AsyncIterator` that iterates `eventName` events emitted by the `emitter`
 
-**`Since`**
+##### Since
 
 v13.6.0, v12.16.0
 
-#### Inherited from
+##### Inherited from
 
-EventEmitter.on
+`EventEmitter.on`
 
-#### Defined in
+#### Call Signature
 
-node_modules/@types/node/events.d.ts:303
+> `static` **on**(`emitter`, `eventName`, `options?`): `AsyncIterator`\<`any`[]\>
 
-▸ **on**(`emitter`, `eventName`, `options?`): `AsyncIterator`\<`any`[], `any`, `any`\>
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:275
 
-#### Parameters
+```js
+import { on, EventEmitter } from 'node:events';
+import process from 'node:process';
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventTarget` |
-| `eventName` | `string` |
-| `options?` | `StaticEventEmitterIteratorOptions` |
+const ee = new EventEmitter();
 
-#### Returns
+// Emit later on
+process.nextTick(() => {
+  ee.emit('foo', 'bar');
+  ee.emit('foo', 42);
+});
 
-`AsyncIterator`\<`any`[], `any`, `any`\>
+for await (const event of on(ee, 'foo')) {
+  // The execution of this inner block is synchronous and it
+  // processes one event at a time (even with await). Do not use
+  // if concurrent execution is required.
+  console.log(event); // prints ['bar'] [42]
+}
+// Unreachable here
+```
 
-#### Inherited from
+Returns an `AsyncIterator` that iterates `eventName` events. It will throw
+if the `EventEmitter` emits `'error'`. It removes all listeners when
+exiting the loop. The `value` returned by each iteration is an array
+composed of the emitted event arguments.
 
-EventEmitter.on
+An `AbortSignal` can be used to cancel waiting on events:
 
-#### Defined in
+```js
+import { on, EventEmitter } from 'node:events';
+import process from 'node:process';
 
-node_modules/@types/node/events.d.ts:308
+const ac = new AbortController();
 
-___
+(async () => {
+  const ee = new EventEmitter();
 
-### once
+  // Emit later on
+  process.nextTick(() => {
+    ee.emit('foo', 'bar');
+    ee.emit('foo', 42);
+  });
 
-▸ **once**(`emitter`, `eventName`, `options?`): `Promise`\<`any`[]\>
+  for await (const event of on(ee, 'foo', { signal: ac.signal })) {
+    // The execution of this inner block is synchronous and it
+    // processes one event at a time (even with await). Do not use
+    // if concurrent execution is required.
+    console.log(event); // prints ['bar'] [42]
+  }
+  // Unreachable here
+})();
+
+process.nextTick(() => ac.abort());
+```
+
+Use the `close` option to specify an array of event names that will end the iteration:
+
+```js
+import { on, EventEmitter } from 'node:events';
+import process from 'node:process';
+
+const ee = new EventEmitter();
+
+// Emit later on
+process.nextTick(() => {
+  ee.emit('foo', 'bar');
+  ee.emit('foo', 42);
+  ee.emit('close');
+});
+
+for await (const event of on(ee, 'foo', { close: ['close'] })) {
+  console.log(event); // prints ['bar'] [42]
+}
+// the loop will exit after 'close' is emitted
+console.log('done'); // prints 'done'
+```
+
+##### Parameters
+
+###### emitter
+
+`EventTarget`
+
+###### eventName
+
+`string`
+
+###### options?
+
+`StaticEventEmitterIteratorOptions`
+
+##### Returns
+
+`AsyncIterator`\<`any`[]\>
+
+An `AsyncIterator` that iterates `eventName` events emitted by the `emitter`
+
+##### Since
+
+v13.6.0, v12.16.0
+
+##### Inherited from
+
+`EventEmitter.on`
+
+***
+
+### once()
+
+#### Call Signature
+
+> `static` **once**(`emitter`, `eventName`, `options?`): `Promise`\<`any`[]\>
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:184
 
 Creates a `Promise` that is fulfilled when the `EventEmitter` emits the given
 event or that is rejected if the `EventEmitter` emits `'error'` while waiting.
@@ -1596,57 +1742,148 @@ ac.abort(); // Abort waiting for the event
 ee.emit('foo'); // Prints: Waiting for the event was canceled!
 ```
 
-#### Parameters
+##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventEmitter`\<`DefaultEventMap`\> |
-| `eventName` | `string` \| `symbol` |
-| `options?` | `StaticEventEmitterOptions` |
+###### emitter
 
-#### Returns
+`EventEmitter`
+
+###### eventName
+
+`string` | `symbol`
+
+###### options?
+
+`StaticEventEmitterOptions`
+
+##### Returns
 
 `Promise`\<`any`[]\>
 
-**`Since`**
+##### Since
 
 v11.13.0, v10.16.0
 
-#### Inherited from
+##### Inherited from
 
-EventEmitter.once
+`EventEmitter.once`
 
-#### Defined in
+#### Call Signature
 
-node_modules/@types/node/events.d.ts:217
+> `static` **once**(`emitter`, `eventName`, `options?`): `Promise`\<`any`[]\>
 
-▸ **once**(`emitter`, `eventName`, `options?`): `Promise`\<`any`[]\>
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:189
 
-#### Parameters
+Creates a `Promise` that is fulfilled when the `EventEmitter` emits the given
+event or that is rejected if the `EventEmitter` emits `'error'` while waiting.
+The `Promise` will resolve with an array of all the arguments emitted to the
+given event.
 
-| Name | Type |
-| :------ | :------ |
-| `emitter` | `EventTarget` |
-| `eventName` | `string` |
-| `options?` | `StaticEventEmitterOptions` |
+This method is intentionally generic and works with the web platform [EventTarget](https://dom.spec.whatwg.org/#interface-eventtarget) interface, which has no special`'error'` event
+semantics and does not listen to the `'error'` event.
 
-#### Returns
+```js
+import { once, EventEmitter } from 'node:events';
+import process from 'node:process';
+
+const ee = new EventEmitter();
+
+process.nextTick(() => {
+  ee.emit('myevent', 42);
+});
+
+const [value] = await once(ee, 'myevent');
+console.log(value);
+
+const err = new Error('kaboom');
+process.nextTick(() => {
+  ee.emit('error', err);
+});
+
+try {
+  await once(ee, 'myevent');
+} catch (err) {
+  console.error('error happened', err);
+}
+```
+
+The special handling of the `'error'` event is only used when `events.once()` is used to wait for another event. If `events.once()` is used to wait for the
+'`error'` event itself, then it is treated as any other kind of event without
+special handling:
+
+```js
+import { EventEmitter, once } from 'node:events';
+
+const ee = new EventEmitter();
+
+once(ee, 'error')
+  .then(([err]) => console.log('ok', err.message))
+  .catch((err) => console.error('error', err.message));
+
+ee.emit('error', new Error('boom'));
+
+// Prints: ok boom
+```
+
+An `AbortSignal` can be used to cancel waiting for the event:
+
+```js
+import { EventEmitter, once } from 'node:events';
+
+const ee = new EventEmitter();
+const ac = new AbortController();
+
+async function foo(emitter, event, signal) {
+  try {
+    await once(emitter, event, { signal });
+    console.log('event emitted!');
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Waiting for the event was canceled!');
+    } else {
+      console.error('There was an error', error.message);
+    }
+  }
+}
+
+foo(ee, 'foo', ac.signal);
+ac.abort(); // Abort waiting for the event
+ee.emit('foo'); // Prints: Waiting for the event was canceled!
+```
+
+##### Parameters
+
+###### emitter
+
+`EventTarget`
+
+###### eventName
+
+`string`
+
+###### options?
+
+`StaticEventEmitterOptions`
+
+##### Returns
 
 `Promise`\<`any`[]\>
 
-#### Inherited from
+##### Since
 
-EventEmitter.once
+v11.13.0, v10.16.0
 
-#### Defined in
+##### Inherited from
 
-node_modules/@types/node/events.d.ts:222
+`EventEmitter.once`
 
-___
+***
 
-### setMaxListeners
+### setMaxListeners()
 
-▸ **setMaxListeners**(`n?`, `...eventTargets`): `void`
+> `static` **setMaxListeners**(`n?`, ...`eventTargets?`): `void`
+
+Defined in: node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:369
 
 ```js
 import { setMaxListeners, EventEmitter } from 'node:events';
@@ -1659,23 +1896,27 @@ setMaxListeners(5, target, emitter);
 
 #### Parameters
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `n?` | `number` | A non-negative number. The maximum number of listeners per `EventTarget` event. |
-| `...eventTargets` | (`EventEmitter`\<`DefaultEventMap`\> \| `EventTarget`)[] | Zero or more {EventTarget} or {EventEmitter} instances. If none are specified, `n` is set as the default max for all newly created {EventTarget} and {EventEmitter} objects. |
+##### n?
+
+`number`
+
+A non-negative number. The maximum number of listeners per `EventTarget` event.
+
+##### eventTargets?
+
+...(`EventEmitter`\<`DefaultEventMap`\> \| `EventTarget`)[]
+
+Zero or more {EventTarget} or {EventEmitter} instances. If none are specified, `n` is set as the default max for all newly created {EventTarget} and {EventEmitter}
+objects.
 
 #### Returns
 
 `void`
 
-**`Since`**
+#### Since
 
 v15.4.0
 
 #### Inherited from
 
-EventEmitter.setMaxListeners
-
-#### Defined in
-
-node_modules/@types/node/events.d.ts:402
+`EventEmitter.setMaxListeners`
