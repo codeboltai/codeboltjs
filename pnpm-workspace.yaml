@@ -12,8 +12,7 @@ packages:
   - agentcreator/customnodes/*
   - actionBlocks/*
   - action-blocks/*
-  - documentation/mainfolder
-  - documentation/internaldocuments
+  - documentation/*
   - testcases
   - cli/*
   
