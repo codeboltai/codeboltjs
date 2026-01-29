@@ -27,9 +27,9 @@ import path from "path";
  * Result from a single optimization cycle
  * @typedef {Object} CycleResult
  * @property {number} cycle - Cycle number
- * @property {string} generatedOutput - Output generated using the skill
+ * @property {string} generatedOutputcontent - Output generated using the skill
  * @property {string} critique - Critique comparing generated vs expected output
- * @property {string} improvedSkill - The improved skill content
+ * @property {string} generateInprovingChatContent - The improved skill content
  * @property {number} score - Quality score (0-100)
  */
 
@@ -229,9 +229,9 @@ async function saveCycleResult(outputDir, cycle, result) {
   await fs.mkdir(cycleDir, { recursive: true });
 
   await Promise.all([
-    fs.writeFile(path.join(cycleDir, "generated-output.txt"), result.generatedOutput),
+    fs.writeFile(path.join(cycleDir, "generated-output.txt"), result.generatedOutputcontent),
     fs.writeFile(path.join(cycleDir, "critique.md"), result.critique),
-    fs.writeFile(path.join(cycleDir, "improved-skill.md"), result.improvedSkill),
+    fs.writeFile(path.join(cycleDir, "improved-skill.md"), result.generateInprovingChatContent),
     fs.writeFile(path.join(cycleDir, "metadata.json"), JSON.stringify({
       cycle: result.cycle,
       score: result.score,
