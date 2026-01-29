@@ -1,8 +1,23 @@
 import cbws from '../core/websocket';
 import { EventEmitter } from 'events';
-import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse, TerminalInterrupted } from '@codebolt/types/sdk';
+import { CommandError, CommandFinish, CommandOutput, TerminalInterruptResponse } from '@codebolt/types/sdk';
 
 import { TerminalEventType, TerminalResponseType } from '@codebolt/types/enum';
+
+/**
+ * Terminal stream response with type discriminator
+ */
+interface TerminalStreamResponse {
+    type: string;
+    output?: string;
+    error?: string;
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    success?: boolean;
+    message?: string;
+}
+
 /**
  * CustomEventEmitter class that extends the Node.js EventEmitter class.
  */
@@ -23,7 +38,7 @@ const cbterminal = {
      * @param {string} command - The command to be executed.
      * @returns {Promise<CommandOutput|CommandError>} A promise that resolves with the command's output, error, or finish signal.
      */
-    executeCommand: async (command:string, returnEmptyStringOnSuccess:boolean = false) => {
+    executeCommand: async (command: string, returnEmptyStringOnSuccess: boolean = false): Promise<CommandOutput | CommandError | CommandFinish> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": TerminalEventType.EXECUTE_COMMAND,
@@ -102,7 +117,7 @@ const cbterminal = {
         });
         
         // Listen for streaming messages through the message manager
-        const handleStreamMessage = (response: any) => {
+        const handleStreamMessage = (response: TerminalStreamResponse) => {
             if (response.type === TerminalResponseType.COMMAND_OUTPUT || response.type === TerminalResponseType.COMMAND_ERROR || response.type === TerminalResponseType.COMMAND_FINISH) {
                 this.eventEmitter.emit(response.type, response);
             }

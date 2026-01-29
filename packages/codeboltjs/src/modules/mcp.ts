@@ -309,7 +309,7 @@ const codeboltMCP = {
         const includesCodebolt = !mcpNames || mcpNames.some(n => isCodeboltToolbox(n));
         const otherMcpNames = mcpNames?.filter(n => !isCodeboltToolbox(n));
 
-        let result: any[] = [];
+        let result: ReturnType<typeof convertLocalToolToOpenAIFormat>[] = [];
 
         // Include local codebolt tools (names prefixed as codebolt--<toolName>)
         if (includesCodebolt) {

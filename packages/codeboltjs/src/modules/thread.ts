@@ -1,6 +1,11 @@
 import cbws from '../core/websocket';
 import { randomUUID } from 'crypto';
 import backgroundChildThreads from './backgroundChildThreads';
+import type {
+    ThreadFileChange,
+    ThreadFileChangesResponse,
+    ThreadFileChangesSummaryResponse
+} from '@codebolt/types/sdk';
 
 // Import options types from agent-to-app-ws-schema
 import type {
@@ -26,6 +31,13 @@ import type {
     ThreadAgentStartFailedResponse,
 } from '@codebolt/types/app-to-agent-ws-schema';
 
+// Re-export types for consumers
+export type {
+    ThreadFileChange,
+    ThreadFileChangesResponse,
+    ThreadFileChangesSummaryResponse
+};
+
 /**
  * Thread service for managing conversation threads.
  * This module provides a comprehensive API for thread management using thread-specific types.
@@ -35,10 +47,10 @@ const threadService = {
 
     /**
      * Creates a new thread with comprehensive options.
-     * @param {CreateThreadOptions} options - The thread creation parameters
-     * @returns {Promise<CreateThreadResponse>} A promise that resolves with the thread creation response
+     * @param options - The thread creation parameters
+     * @returns A promise that resolves with the thread creation response
      */
-    createThread: async (options: any): Promise<CreateThreadResponse> => {
+    createThread: async (options: CreateThreadOptions): Promise<CreateThreadResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -269,10 +281,10 @@ const threadService = {
 
     /**
      * Retrieves file changes associated with a specific thread.
-     * @param {string} threadId - The thread ID
-     * @returns {Promise<any>} A promise that resolves with the file changes
+     * @param threadId - The thread ID
+     * @returns A promise that resolves with the file changes
      */
-    getThreadFileChanges: async (threadId: string): Promise<any> => {
+    getThreadFileChanges: async (threadId: string): Promise<ThreadFileChangesResponse> => {
         const requestId = randomUUID();
 
         const event = {
@@ -293,10 +305,10 @@ const threadService = {
     /**
      * Retrieves file changes summary for ChangesSummaryPanel.
      * Returns data in the format: { title, changes, files }
-     * @param {string} threadId - The thread ID
-     * @returns {Promise<any>} A promise that resolves with the file changes summary
+     * @param threadId - The thread ID
+     * @returns A promise that resolves with the file changes summary
      */
-    getThreadFileChangesSummary: async (threadId: string): Promise<any> => {
+    getThreadFileChangesSummary: async (threadId: string): Promise<ThreadFileChangesSummaryResponse> => {
         const requestId = randomUUID();
 
         const event = {

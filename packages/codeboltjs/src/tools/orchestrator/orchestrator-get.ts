@@ -6,7 +6,7 @@
 import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
-import orchestrator from '../../modules/orchestrator';
+import orchestrator, { OrchestratorInstance } from '../../modules/orchestrator';
 
 export interface OrchestratorGetParams {
     /** The orchestrator ID to retrieve */
@@ -36,7 +36,7 @@ class OrchestratorGetInvocation extends BaseToolInvocation<OrchestratorGetParams
 
             let output = `Retrieved orchestrator: ${this.params.orchestrator_id}`;
             if (response.data) {
-                const orch = response.data;
+                const orch = response.data as OrchestratorInstance;
                 output += `\n\nOrchestrator Details:\n`;
                 output += `ID: ${orch.id}\n`;
                 output += `Name: ${orch.name || 'N/A'}\n`;

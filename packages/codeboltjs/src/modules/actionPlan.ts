@@ -1,7 +1,20 @@
 
 import cbws from '../core/websocket';
 import { EventType, ActionPlanAction, ActionPlanResponseType } from '@codebolt/types/enum';
+import type {
+    ActionPlanUpdateData,
+    ActionPlanTask,
+    ActionPlanGroup,
+    TaskStepResponse
+} from '@codebolt/types/sdk';
 
+// Re-export types for consumers
+export type {
+    ActionPlanUpdateData,
+    ActionPlanTask,
+    ActionPlanGroup,
+    TaskStepResponse
+};
 
 const codeboltActionPlan = {
 
@@ -80,7 +93,7 @@ const codeboltActionPlan = {
      * @param updateData - Data to update in the action plan
      * @returns Promise with updated action plan
      */
-    updateActionPlan: (planId: string, updateData: any) => {
+    updateActionPlan: (planId: string, updateData: ActionPlanUpdateData) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.ACTION_PLAN,
@@ -97,13 +110,7 @@ const codeboltActionPlan = {
      * @param task - Task data to add (name, description, priority, taskType, etc.)
      * @returns Promise with added task and updated action plan
      */
-    addTaskToActionPlan: (planId: string, task: {
-        name: string;
-        description?: string;
-        priority?: string;
-        taskType?: string;
-        [key: string]: any;
-    }) => {
+    addTaskToActionPlan: (planId: string, task: ActionPlanTask) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.ACTION_PLAN,
@@ -120,15 +127,7 @@ const codeboltActionPlan = {
      * @param group - Group data to add (type, name, groupItems/loopTasks/ifTasks/waitTasks, etc.)
      * @returns Promise with added group and updated action plan
      */
-    addGroupToActionPlan: (planId: string, group: {
-        type: 'parallelGroup' | 'loopGroup' | 'ifGroup' | 'waitUntilGroup';
-        name?: string;
-        groupItems?: Record<string, any[]>; // For parallelGroup
-        loopTasks?: any[]; // For loopGroup
-        ifTasks?: any[]; // For ifGroup
-        waitTasks?: any[]; // For waitUntilGroup
-        [key: string]: any;
-    }) => {
+    addGroupToActionPlan: (planId: string, group: ActionPlanGroup) => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 "type": EventType.ACTION_PLAN,
@@ -166,10 +165,10 @@ const codeboltActionPlan = {
     startTaskStepWithListener: (
         planId: string,
         taskId: string,
-        onResponse: (response: any) => void
-    ) => {
+        onResponse: (response: TaskStepResponse) => void
+    ): (() => void) => {
         // Set up event listener
-        const listener = (response: any) => {
+        const listener = (response: TaskStepResponse): void => {
             // Filter responses related to this specific task
             if (response.type === ActionPlanResponseType.START_TASK_STEP_RESPONSE) {
                 if (response?.taskId === taskId) {

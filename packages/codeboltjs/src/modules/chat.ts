@@ -1,17 +1,36 @@
 // chat.ts
 import cbws from '../core/websocket';
 import { randomUUID } from 'crypto';
-import { ChatMessage, UserMessage } from '@codebolt/types/sdk';
+import {
+    ChatMessage,
+    UserMessage,
+    ChatRequest,
+    ChatResponseData,
+    SteeringMessage,
+    StopProcessMessage,
+    ProcessControl,
+    ProcessControlWithCleanup
+} from '@codebolt/types/sdk';
 import { ChatEventType, ChatResponseType } from '@codebolt/types/enum';
 
-type RequestHandler = (request: any, response: (data: any) => void) => Promise<void> | void;
+// Re-export types for consumers
+export type {
+    ChatRequest,
+    ChatResponseData,
+    SteeringMessage,
+    StopProcessMessage,
+    ProcessControl,
+    ProcessControlWithCleanup
+};
+
+type RequestHandler = (request: ChatRequest, response: (data: ChatResponseData) => void) => Promise<void> | void;
 
 // Steering message state
-let steeringMessageMap = new Map<string, any>();
+const steeringMessageMap = new Map<string, SteeringMessage>();
 
 // Subscribe to steering messages
 const steeringSubscription = cbws.messageManager.subscribe('steeringMessage');
-steeringSubscription.on('message', (message: any) => {
+steeringSubscription.on('message', (message: SteeringMessage) => {
     const eventId = randomUUID();
     steeringMessageMap.set(eventId, message);
 });
@@ -36,13 +55,13 @@ const cbchat = {
      * Sets a global request handler for all incoming messages
      * @param handler The async handler function
      */
-    setRequestHandler: (handler: RequestHandler) => {
-        const waitForConnection = () => {
-            const setupHandler = () => {
+    setRequestHandler: (handler: RequestHandler): void => {
+        const waitForConnection = (): void => {
+            const setupHandler = (): void => {
                 if (cbws.messageManager) {
-                    cbws.messageManager.on('message', async (request: any) => {
+                    cbws.messageManager.on('message', async (request: ChatRequest) => {
                         try {
-                            await handler(request, (responseData: any) => {
+                            await handler(request, (responseData: ChatResponseData) => {
                                 cbws.messageManager.send({
                                     type: ChatEventType.PROCESS_STOPPED,
                                     ...responseData
@@ -58,15 +77,16 @@ const cbchat = {
             };
 
             setupHandler();
-        }
+        };
         waitForConnection();
     },
 
     /**
      * Sends a message through the WebSocket connection.
      * @param {string} message - The message to be sent.
+     * @param {object} payload - Optional additional payload data.
      */
-    sendMessage: (message: string, payload?: any) => {
+    sendMessage: (message: string, payload?: object): void => {
         cbws.messageManager.send({
             "type": ChatEventType.SEND_MESSAGE,
             "message": message,
@@ -92,7 +112,7 @@ const cbchat = {
      * @param {Function} onStopClicked - Callback function to handle stop process events.
      * @returns An object containing a stopProcess method.
      */
-    processStarted: (onStopClicked?: (message: any) => void) => {
+    processStarted: (onStopClicked?: (message: StopProcessMessage) => void): ProcessControl | ProcessControlWithCleanup => {
         // Send the process started message
         cbws.messageManager.send({
             "type": ChatEventType.PROCESS_STARTED
@@ -100,7 +120,7 @@ const cbchat = {
 
         // Register event listener for WebSocket messages if callback provided
         if (onStopClicked) {
-            const handleStopMessage = (message: any) => {
+            const handleStopMessage = (message: StopProcessMessage): void => {
                 if (message.type === ChatEventType.STOP_PROCESS_CLICKED) {
                     onStopClicked(message);
                 }
@@ -110,12 +130,12 @@ const cbchat = {
 
             // Return an object that includes the stopProcess method and cleanup
             return {
-                stopProcess: () => {
+                stopProcess: (): void => {
                     cbws.messageManager.send({
                         "type": ChatEventType.PROCESS_STOPPED
                     });
                 },
-                cleanup: () => {
+                cleanup: (): void => {
                     cbws.messageManager.removeListener('message', handleStopMessage);
                 }
             };
@@ -123,7 +143,7 @@ const cbchat = {
 
         // Return an object that includes the stopProcess method
         return {
-            stopProcess: () => {
+            stopProcess: (): void => {
                 cbws.messageManager.send({
                     "type": ChatEventType.PROCESS_STOPPED
                 });
@@ -188,12 +208,13 @@ const cbchat = {
 
     /**
      * Checks if any steering message has been received.
-     * @returns {any} The message data if available, or null
+     * @returns The message data if available, or null
      */
-    checkForSteeringMessage: () => {
+    checkForSteeringMessage: (): SteeringMessage | null => {
         if (steeringMessageMap.size > 0) {
-            const [key, value] = steeringMessageMap.entries().next().value || [];
-            if (key) {
+            const entry = steeringMessageMap.entries().next().value;
+            if (entry) {
+                const [key, value] = entry;
                 steeringMessageMap.delete(key);
                 return value;
             }
@@ -203,9 +224,9 @@ const cbchat = {
 
     /**
      * Waits for a steering message.
-     * @returns {Promise<any>} A promise that resolves with the message data
+     * @returns A promise that resolves with the message data
      */
-    onSteeringMessageReceived: async (): Promise<any> => {
+    onSteeringMessageReceived: async (): Promise<SteeringMessage | null> => {
         const message = cbchat.checkForSteeringMessage();
         if (message) return message;
 

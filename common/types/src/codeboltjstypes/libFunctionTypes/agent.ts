@@ -3,6 +3,8 @@
  * Types for the cbagent module functions
  */
 
+import { AgentInfo, AgentDetail, TaskResult } from './baseappResponse';
+
 // Base response interface for agent operations
 export interface BaseAgentSDKResponse {
   success?: boolean;
@@ -12,16 +14,16 @@ export interface BaseAgentSDKResponse {
 
 // Agent operation responses
 export interface FindAgentByTaskResponse extends BaseAgentSDKResponse {
-  agents?: any[]; // AgentFunction[] from commonTypes
+  agents?: AgentInfo[];
 }
 
 export interface ListAgentsResponse extends BaseAgentSDKResponse {
-  agents?: any[]; // AgentFunction[] from commonTypes
+  agents?: AgentInfo[];
 }
 
 export interface AgentsDetailResponse extends BaseAgentSDKResponse {
   payload?: {
-    agents: any[]; // AgentDetail[] from commonTypes
+    agents: AgentDetail[];
   };
 }
 
@@ -29,7 +31,16 @@ export interface TaskCompletionResponse extends BaseAgentSDKResponse {
   from?: string;
   agentId?: string;
   task?: string;
-  result?: any;
+  result?: TaskResult;
+}
+
+/**
+ * MCP tool processing result
+ */
+export interface MCPToolResult {
+  success: boolean;
+  data?: unknown;
+  error?: string;
 }
 
 // Agent configuration types
@@ -45,5 +56,5 @@ export interface AgentProcessingConfig {
   /** Custom file content processor */
   fileContentProcessor?: (filePath: string) => Promise<string>;
   /** Custom MCP tool processor */
-  mcpToolProcessor?: (toolbox: string, toolName: string) => Promise<any | null>;
+  mcpToolProcessor?: (toolbox: string, toolName: string) => Promise<MCPToolResult | null>;
 }

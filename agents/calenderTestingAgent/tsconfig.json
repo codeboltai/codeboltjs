@@ -31,6 +31,9 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.bkp.ts",
+    "**/*.bcp.ts",
+    "**/*.ts.bkp"
   ]
 }

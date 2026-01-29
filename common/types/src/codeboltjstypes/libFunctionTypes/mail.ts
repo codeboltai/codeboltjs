@@ -1,5 +1,45 @@
 import { BaseApplicationResponse } from './baseappResponse';
 
+/**
+ * Mail agent info structure
+ */
+export interface MailAgentInfo {
+    id: string;
+    name: string;
+    description?: string;
+    capabilities?: string[];
+    status?: string;
+    metadata?: Record<string, unknown>;
+}
+
+/**
+ * Mail thread structure
+ */
+export interface MailThread {
+    id: string;
+    subject: string;
+    participants: string[];
+    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
+    status?: 'open' | 'closed' | 'archived';
+    createdAt?: string;
+    updatedAt?: string;
+    metadata?: Record<string, unknown>;
+}
+
+/**
+ * Mail message structure
+ */
+export interface MailMessage {
+    id: string;
+    threadId: string;
+    content: string;
+    sender: string;
+    timestamp: string;
+    read?: boolean;
+    acknowledged?: boolean;
+    metadata?: Record<string, unknown>;
+}
+
 export interface IRegisterAgentParams {
     id: string;
     name: string;
@@ -161,6 +201,116 @@ export interface ICheckConflictsParams {
 
 export interface ICheckConflictsResponse extends BaseApplicationResponse {
     success?: boolean;
-    conflicts?: any[];
+    conflicts?: unknown[];
+    error?: string;
+}
+
+// Additional interfaces for mail operations
+export interface IListAgentsResponse {
+    success: boolean;
+    agents?: MailAgentInfo[];
+    error?: string;
+}
+
+export interface IGetAgentParams {
+    agentId: string;
+}
+
+export interface IGetAgentResponse {
+    success: boolean;
+    agent?: MailAgentInfo;
+    error?: string;
+}
+
+export interface ICreateThreadParams {
+    subject: string;
+    participants: string[];
+    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
+    metadata?: Record<string, unknown>;
+}
+
+export interface ICreateThreadResponse {
+    success: boolean;
+    thread?: MailThread;
+    error?: string;
+}
+
+export interface IFindOrCreateThreadParams {
+    subject: string;
+    participants: string[];
+    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
+    metadata?: Record<string, unknown>;
+}
+
+export interface IFindOrCreateThreadResponse {
+    success: boolean;
+    thread?: MailThread;
+    created?: boolean;
+    error?: string;
+}
+
+export interface IListThreadsParams {
+    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
+    status?: 'open' | 'closed' | 'archived';
+    participant?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+}
+
+export interface IListThreadsResponse {
+    success: boolean;
+    threads?: MailThread[];
+    total?: number;
+    error?: string;
+}
+
+export interface IGetThreadParams {
+    threadId: string;
+}
+
+export interface IGetThreadResponse {
+    success: boolean;
+    thread?: MailThread;
+    error?: string;
+}
+
+export interface IUpdateThreadStatusParams {
+    threadId: string;
+    status: 'open' | 'closed' | 'archived';
+}
+
+export interface IUpdateThreadStatusResponse {
+    success: boolean;
+    thread?: MailThread;
+    error?: string;
+}
+
+export interface IArchiveThreadParams {
+    threadId: string;
+}
+
+export interface IArchiveThreadResponse {
+    success: boolean;
+    error?: string;
+}
+
+export interface IGetMessageParams {
+    messageId: string;
+}
+
+export interface IGetMessageResponse {
+    success: boolean;
+    message?: MailMessage;
+    error?: string;
+}
+
+export interface IGetMessagesParams {
+    threadId: string;
+}
+
+export interface IGetMessagesResponse {
+    success: boolean;
+    messages?: MailMessage[];
     error?: string;
 }

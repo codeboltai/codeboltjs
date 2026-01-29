@@ -1,14 +1,26 @@
 // backgroundChildThreads.ts
 import cbws from '../core/websocket';
+import type {
+    BackgroundAgentData,
+    BackgroundAgentCompletion,
+    BackgroundExternalEvent
+} from '@codebolt/types/sdk';
+
+// Re-export types for consumers
+export type {
+    BackgroundAgentData,
+    BackgroundAgentCompletion,
+    BackgroundExternalEvent
+};
 
 // Event state maps - Internal use only
-const runningBackgroundAgents = new Map<string, any>();
-const completedBackgroundAgents = new Map<string, any>();
-const groupedAgentCompletionMap = new Map<string, any>();
+const runningBackgroundAgents = new Map<string, BackgroundAgentData>();
+const completedBackgroundAgents = new Map<string, BackgroundAgentCompletion>();
+const groupedAgentCompletionMap = new Map<string, BackgroundAgentCompletion>();
 const backgroundAgentGroups = new Map<string, Set<string>>();
 
 // Helper to cleanup group membership
-const cleanupAgentGroup = (threadId: string) => {
+const cleanupAgentGroup = (threadId: string): void => {
     for (const [groupId, agents] of backgroundAgentGroups.entries()) {
         if (agents.has(threadId)) {
             agents.delete(threadId);
@@ -20,7 +32,8 @@ const cleanupAgentGroup = (threadId: string) => {
 };
 
 // Handler for background agent completion messages
-const handleBackgroundAgentCompletion = (message: any) => {
+const handleBackgroundAgentCompletion = (message: BackgroundAgentCompletion): void => {
+    if (!message.threadId) return;
     // Add to completed queue for orchestrator to process
     completedBackgroundAgents.set(message.threadId, message);
     // Remove from running map since agent is now complete
@@ -35,9 +48,9 @@ backgroundAgentSubscription.on('message', handleBackgroundAgentCompletion);
 
 // Also subscribe to ThreadCompleted as an alternative message type for background agent completion
 const threadCompletedSubscription = cbws.messageManager.subscribe('ThreadCompleted');
-threadCompletedSubscription.on('message', (message: any) => {
+threadCompletedSubscription.on('message', (message: BackgroundAgentCompletion) => {
     // Only handle if this thread was a background agent
-    if (runningBackgroundAgents.has(message.threadId)) {
+    if (message.threadId && runningBackgroundAgents.has(message.threadId)) {
         handleBackgroundAgentCompletion(message);
         // Also emit on the backgroundAgentSubscription for waiters
         backgroundAgentSubscription.emit('message', message);
@@ -45,8 +58,10 @@ threadCompletedSubscription.on('message', (message: any) => {
 });
 
 const groupedAgentSubscription = cbws.messageManager.subscribe('backgroundGroupedAgentCompletion');
-groupedAgentSubscription.on('message', (message: any) => {
-    groupedAgentCompletionMap.set(message.threadId, message);
+groupedAgentSubscription.on('message', (message: BackgroundAgentCompletion) => {
+    if (message.threadId) {
+        groupedAgentCompletionMap.set(message.threadId, message);
+    }
 });
 
 /**
@@ -57,11 +72,11 @@ const backgroundChildThreads = {
 
     /**
      * Adds a running background agent to tracking.
-     * @param {string} threadId - The thread ID
-     * @param {any} data - The agent data
-     * @param {string} [groupId] - Optional group ID
+     * @param threadId - The thread ID
+     * @param data - The agent data
+     * @param groupId - Optional group ID
      */
-    addRunningAgent: (threadId: string, data: any, groupId?: string) => {
+    addRunningAgent: (threadId: string, data: BackgroundAgentData, groupId?: string): void => {
         runningBackgroundAgents.set(threadId, data);
         if (groupId) {
             if (!backgroundAgentGroups.has(groupId)) {
@@ -81,9 +96,9 @@ const backgroundChildThreads = {
 
     /**
      * Checks if any background agent has completed.
-     * @returns {any} The completion data if available, or null
+     * @returns The completion data if available, or null
      */
-    checkForBackgroundAgentCompletion: () => {
+    checkForBackgroundAgentCompletion: (): BackgroundAgentCompletion[] | null => {
         if (completedBackgroundAgents.size > 0) {
             const values = Array.from(completedBackgroundAgents.values());
             completedBackgroundAgents.clear();
@@ -94,9 +109,9 @@ const backgroundChildThreads = {
 
     /**
      * Waits for background agent completion.
-     * @returns {Promise<any>} A promise that resolves with the completion data
+     * @returns A promise that resolves with the completion data
      */
-    onBackgroundAgentCompletion: async (): Promise<any> => {
+    onBackgroundAgentCompletion: async (): Promise<BackgroundAgentCompletion[] | null> => {
         const completion = backgroundChildThreads.checkForBackgroundAgentCompletion();
         if (completion) return completion;
 
@@ -110,12 +125,13 @@ const backgroundChildThreads = {
 
     /**
      * Checks if any grouped background agent has completed.
-     * @returns {any} The completion data if available, or null
+     * @returns The completion data if available, or null
      */
-    checkForBackgroundGroupedAgentCompletion: () => {
+    checkForBackgroundGroupedAgentCompletion: (): BackgroundAgentCompletion | null => {
         if (groupedAgentCompletionMap.size > 0) {
-            const [key, value] = groupedAgentCompletionMap.entries().next().value || [];
-            if (key) {
+            const entry = groupedAgentCompletionMap.entries().next().value;
+            if (entry) {
+                const [key, value] = entry;
                 groupedAgentCompletionMap.delete(key);
                 return value;
             }
@@ -125,9 +141,9 @@ const backgroundChildThreads = {
 
     /**
      * Waits for grouped background agent completion.
-     * @returns {Promise<any>} A promise that resolves with the completion data
+     * @returns A promise that resolves with the completion data
      */
-    onBackgroundGroupedAgentCompletion: async (): Promise<any> => {
+    onBackgroundGroupedAgentCompletion: async (): Promise<BackgroundAgentCompletion | null> => {
         const completion = backgroundChildThreads.checkForBackgroundGroupedAgentCompletion();
         if (completion) return completion;
 
@@ -142,9 +158,9 @@ const backgroundChildThreads = {
     /**
      * Waits for any external event (background agent completion, grouped agent completion, or agent event).
      * Returns the first event that occurs.
-     * @returns {Promise<{type: string, data: any}>} A promise that resolves with the event type and data
+     * @returns A promise that resolves with the event type and data
      */
-    waitForAnyExternalEvent: async (): Promise<{ type: string; data: any }> => {
+    waitForAnyExternalEvent: async (): Promise<BackgroundExternalEvent> => {
         // First check if there are any already completed events
         const backgroundCompletion = backgroundChildThreads.checkForBackgroundAgentCompletion();
         if (backgroundCompletion) {

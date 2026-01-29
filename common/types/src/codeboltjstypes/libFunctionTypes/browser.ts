@@ -114,5 +114,27 @@ export interface BrowserActionResponseData extends BaseBrowserSDKResponse {
   }>;
   selector?: string;
   fullPage?: boolean;
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 }
+
+/**
+ * Browser operation type for executeOnInstance
+ */
+export type BrowserOperationType = 'goToPage' | 'screenshot' | 'getContent';
+
+/**
+ * Parameters for browser operations
+ */
+export interface BrowserOperationParams {
+  url?: string;
+  fullPage?: boolean;
+  quality?: number;
+  format?: 'png' | 'jpeg';
+  instanceId?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Union type for possible browser operation responses
+ */
+export type BrowserOperationResponse = GoToPageResponse | BrowserScreenshotResponse | GetContentResponse;

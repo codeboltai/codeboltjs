@@ -23,7 +23,7 @@ export interface ChatSendToolParams {
     /**
      * Additional payload data (optional)
      */
-    payload?: object;
+    payload?: Record<string, unknown>;
 }
 
 class ChatSendToolInvocation extends BaseToolInvocation<
