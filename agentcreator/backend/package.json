@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/agent-creator-agent": "workspace:*",
+    "@@codebolt/agentcreator-agent": "workspace:*",
     "@codebolt/agent-shared-nodes": "workspace:*",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
