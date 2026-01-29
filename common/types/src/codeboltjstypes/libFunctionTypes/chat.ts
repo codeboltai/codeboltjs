@@ -98,3 +98,59 @@ export interface ChatSummaryResponse extends BaseChatSDKResponse {
   messageCount?: number;
   agentId?: string;
 }
+
+/**
+ * Chat request structure for WebSocket communication
+ */
+export interface ChatRequest {
+  type: string;
+  message?: string;
+  threadId?: string;
+  payload?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * Chat response data structure
+ */
+export interface ChatResponseData {
+  type?: string;
+  message?: string;
+  success?: boolean;
+  error?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Steering message structure
+ */
+export interface SteeringMessage {
+  type: string;
+  message?: string;
+  data?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * Stop process message structure
+ */
+export interface StopProcessMessage {
+  type: string;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Process control return type with cleanup
+ */
+export interface ProcessControlWithCleanup {
+  stopProcess: () => void;
+  cleanup: () => void;
+}
+
+/**
+ * Process control return type without cleanup
+ */
+export interface ProcessControl {
+  stopProcess: () => void;
+}

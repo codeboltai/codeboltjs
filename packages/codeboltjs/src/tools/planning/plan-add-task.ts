@@ -10,6 +10,7 @@ import type {
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import codeboltActionPlan from '../../modules/actionPlan';
+import type { ActionPlanTask } from '@codebolt/types/sdk';
 
 /**
  * Parameters for the PlanAddTask tool
@@ -23,32 +24,7 @@ export interface PlanAddTaskToolParams {
     /**
      * The task to add to the action plan
      */
-    task: {
-        /**
-         * The name/title of the task
-         */
-        name: string;
-
-        /**
-         * Optional description of the task
-         */
-        description?: string;
-
-        /**
-         * Optional priority of the task
-         */
-        priority?: string;
-
-        /**
-         * Optional task type
-         */
-        taskType?: string;
-
-        /**
-         * Any other task fields
-         */
-        [key: string]: any;
-    };
+    task: ActionPlanTask;
 }
 
 class PlanAddTaskToolInvocation extends BaseToolInvocation<

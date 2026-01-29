@@ -1,7 +1,28 @@
 import cbws from '../core/websocket';
-import { GoToPageResponse, UrlResponse, GetMarkdownResponse, HtmlReceived, ExtractTextResponse, GetContentResponse, BrowserActionResponseData, BrowserScreenshotResponse, BrowserInfoResponse, BrowserSnapshotResponse } from '@codebolt/types/sdk';
+import {
+    GoToPageResponse,
+    UrlResponse,
+    GetMarkdownResponse,
+    HtmlReceived,
+    ExtractTextResponse,
+    GetContentResponse,
+    BrowserActionResponseData,
+    BrowserScreenshotResponse,
+    BrowserInfoResponse,
+    BrowserSnapshotResponse,
+    BrowserOperationType,
+    BrowserOperationParams,
+    BrowserOperationResponse
+} from '@codebolt/types/sdk';
 import { EventType, BrowserAction, BrowserResponseType } from '@codebolt/types/enum';
 import type { BrowserInstanceOptions, BrowserOperationOptions, BrowserInstanceInfo, BrowserScreenshotOptions } from '../types/libFunctionTypes';
+
+// Re-export types for consumers
+export type {
+    BrowserOperationType,
+    BrowserOperationParams,
+    BrowserOperationResponse
+};
 
 // Active instance management
 let activeInstanceId: string | null = null;
@@ -435,23 +456,23 @@ const cbbrowser = {
 
     /**
      * Execute action on specific browser instance
-     * @param {string} instanceId - The instance ID to execute on
-     * @param {string} operation - The operation to execute
-     * @param {any} params - Parameters for the operation
-     * @returns {Promise<any>} The operation result
+     * @param instanceId - The instance ID to execute on
+     * @param operation - The operation to execute
+     * @param params - Parameters for the operation
+     * @returns The operation result
      */
     executeOnInstance: async (
         instanceId: string,
-        operation: string,
-        params: any
-    ): Promise<any> => {
+        operation: BrowserOperationType,
+        params: BrowserOperationParams
+    ): Promise<BrowserOperationResponse> => {
         // This will be implemented with proper backend communication
         // For now, use the existing browser functions with explicit instanceId
         const options = { instanceId, ...params };
-        
+
         switch (operation) {
             case 'goToPage':
-                return await cbbrowser.goToPage(params.url, options);
+                return await cbbrowser.goToPage(params.url as string, options);
             case 'screenshot':
                 return await cbbrowser.screenshot(options);
             case 'getContent':

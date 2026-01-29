@@ -1,58 +1,40 @@
-
-import { AgentResponseType, EventType } from '@codebolt/types/enum';
 import cbws from '../core/websocket';
-import { AgentAction } from '@codebolt/types/enum';
+import type {
+    OrchestratorEventType,
+    OrchestratorError,
+    OrchestratorInstance,
+    OrchestratorResponse,
+    OrchestratorStatus,
+    CreateOrchestratorParams,
+    UpdateOrchestratorParams,
+    UpdateOrchestratorSettingsParams,
+    ListOrchestratorsResponse,
+    GetOrchestratorResponse,
+    CreateOrchestratorResponse,
+    UpdateOrchestratorResponse,
+    DeleteOrchestratorResponse,
+    UpdateOrchestratorStatusResponse
+} from '@codebolt/types/sdk';
 
-// Define types locally since we can't easily modify the types package
-// These mirrors the server-side OrchestratorInstance interface
-export interface OrchestratorInstance {
-    id: string;
-    name: string;
-    description: string;
-    agentId: string;
-    defaultWorkerAgentId?: string | null;
-    threadId: string;
-    status: 'idle' | 'running' | 'paused';
-    metadata?: Record<string, any>;
-    createdAt: Date;
-    updatedAt: Date;
-}
+// Re-export types for consumers
+export type {
+    OrchestratorEventType,
+    OrchestratorError,
+    OrchestratorInstance,
+    OrchestratorResponse,
+    OrchestratorStatus,
+    CreateOrchestratorParams,
+    UpdateOrchestratorParams,
+    UpdateOrchestratorSettingsParams,
+    ListOrchestratorsResponse,
+    GetOrchestratorResponse,
+    CreateOrchestratorResponse,
+    UpdateOrchestratorResponse,
+    DeleteOrchestratorResponse,
+    UpdateOrchestratorStatusResponse
+};
 
-export interface OrchestratorResponse {
-    success: boolean;
-    requestId?: string;
-    data?: any;
-    error?: {
-        code: string;
-        message: string;
-        details?: any;
-    };
-}
-
-export interface CreateOrchestratorParams {
-    name: string;
-    description: string;
-    agentId: string;
-    defaultWorkerAgentId?: string;
-    metadata?: Record<string, any>;
-}
-
-export interface UpdateOrchestratorParams {
-    name?: string;
-    description?: string;
-    agentId?: string;
-    defaultWorkerAgentId?: string;
-    metadata?: Record<string, any>;
-}
-
-export interface UpdateOrchestratorSettingsParams {
-    name?: string;
-    description?: string;
-    defaultWorkerAgentId?: string;
-    metadata?: Record<string, any>;
-}
-
-// We use a custom event type string for orchestrator events since we can't add to the enum 
+// We use a custom event type string for orchestrator events since we can't add to the enum
 // The server parses 'orchestrator.<action>' type strings
 const ORCHESTRATOR_EVENT_PREFIX = 'orchestrator.';
 
@@ -153,7 +135,7 @@ const orchestrator = {
     /**
      * Updates orchestrator status
      */
-    updateOrchestratorStatus: (orchestratorId: string, status: 'idle' | 'running' | 'paused'): Promise<OrchestratorResponse> => {
+    updateOrchestratorStatus: (orchestratorId: string, status: OrchestratorStatus): Promise<OrchestratorResponse> => {
         return cbws.messageManager.sendAndWaitForResponse(
             {
                 type: `${ORCHESTRATOR_EVENT_PREFIX}updateStatus` as any,

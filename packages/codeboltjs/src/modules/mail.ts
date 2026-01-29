@@ -13,118 +13,57 @@ import {
     IReleaseFilesParams, IReleaseFilesResponse,
     IForceReserveFilesParams, IForceReserveFilesResponse,
     IListReservationsParams, IListReservationsResponse,
-    ICheckConflictsParams, ICheckConflictsResponse
+    ICheckConflictsParams, ICheckConflictsResponse,
+    // Mail-specific types
+    MailAgentInfo,
+    MailThread,
+    MailMessage,
+    IListAgentsResponse,
+    IGetAgentParams,
+    IGetAgentResponse,
+    ICreateThreadParams,
+    ICreateThreadResponse,
+    IFindOrCreateThreadParams,
+    IFindOrCreateThreadResponse,
+    IListThreadsParams,
+    IListThreadsResponse,
+    IGetThreadParams,
+    IGetThreadResponse,
+    IUpdateThreadStatusParams,
+    IUpdateThreadStatusResponse,
+    IArchiveThreadParams,
+    IArchiveThreadResponse,
+    IGetMessageParams,
+    IGetMessageResponse,
+    IGetMessagesParams,
+    IGetMessagesResponse
 } from '@codebolt/types/sdk';
 
-// Additional interfaces for new functions
-export interface IListAgentsResponse {
-    success: boolean;
-    agents?: any[];
-    error?: string;
-}
-
-export interface IGetAgentParams {
-    agentId: string;
-}
-
-export interface IGetAgentResponse {
-    success: boolean;
-    agent?: any;
-    error?: string;
-}
-
-export interface ICreateThreadParams {
-    subject: string;
-    participants: string[];
-    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
-    metadata?: Record<string, unknown>;
-}
-
-export interface ICreateThreadResponse {
-    success: boolean;
-    thread?: any;
-    error?: string;
-}
-
-export interface IFindOrCreateThreadParams {
-    subject: string;
-    participants: string[];
-    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
-    metadata?: Record<string, unknown>;
-}
-
-export interface IFindOrCreateThreadResponse {
-    success: boolean;
-    thread?: any;
-    created?: boolean;
-    error?: string;
-}
-
-export interface IListThreadsParams {
-    type?: 'agent-to-agent' | 'agent-to-user' | 'broadcast';
-    status?: 'open' | 'closed' | 'archived';
-    participant?: string;
-    search?: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface IListThreadsResponse {
-    success: boolean;
-    threads?: any[];
-    total?: number;
-    error?: string;
-}
-
-export interface IGetThreadParams {
-    threadId: string;
-}
-
-export interface IGetThreadResponse {
-    success: boolean;
-    thread?: any;
-    error?: string;
-}
-
-export interface IUpdateThreadStatusParams {
-    threadId: string;
-    status: 'open' | 'closed' | 'archived';
-}
-
-export interface IUpdateThreadStatusResponse {
-    success: boolean;
-    thread?: any;
-    error?: string;
-}
-
-export interface IArchiveThreadParams {
-    threadId: string;
-}
-
-export interface IArchiveThreadResponse {
-    success: boolean;
-    error?: string;
-}
-
-export interface IGetMessageParams {
-    messageId: string;
-}
-
-export interface IGetMessageResponse {
-    success: boolean;
-    message?: any;
-    error?: string;
-}
-
-export interface IGetMessagesParams {
-    threadId: string;
-}
-
-export interface IGetMessagesResponse {
-    success: boolean;
-    messages?: any[];
-    error?: string;
-}
+// Re-export types for consumers
+export type {
+    MailAgentInfo,
+    MailThread,
+    MailMessage,
+    IListAgentsResponse,
+    IGetAgentParams,
+    IGetAgentResponse,
+    ICreateThreadParams,
+    ICreateThreadResponse,
+    IFindOrCreateThreadParams,
+    IFindOrCreateThreadResponse,
+    IListThreadsParams,
+    IListThreadsResponse,
+    IGetThreadParams,
+    IGetThreadResponse,
+    IUpdateThreadStatusParams,
+    IUpdateThreadStatusResponse,
+    IArchiveThreadParams,
+    IArchiveThreadResponse,
+    IGetMessageParams,
+    IGetMessageResponse,
+    IGetMessagesParams,
+    IGetMessagesResponse
+};
 
 const cbmail = {
     // Agent operations

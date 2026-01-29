@@ -5,6 +5,7 @@
 
 // Base response interface for terminal operations
 export interface BaseTerminalSDKResponse {
+  type?: string;
   success?: boolean;
   message?: string;
   error?: string;
@@ -12,18 +13,21 @@ export interface BaseTerminalSDKResponse {
 
 // Command execution responses
 export interface CommandOutput extends BaseTerminalSDKResponse {
+  type?: 'commandOutput';
   output: string;
   stdout?: string;
   stderr?: string;
 }
 
 export interface CommandError extends BaseTerminalSDKResponse {
+  type?: 'commandError';
   error: string;
   exitCode?: number;
   stderr?: string;
 }
 
 export interface CommandFinish extends BaseTerminalSDKResponse {
+  type?: 'commandFinish';
   exitCode: number;
   stdout?: string;
   stderr?: string;
@@ -31,10 +35,12 @@ export interface CommandFinish extends BaseTerminalSDKResponse {
 
 // Terminal interrupt responses
 export interface TerminalInterruptResponse extends BaseTerminalSDKResponse {
+  type?: 'terminalInterruptResponse';
   interrupted?: boolean;
 }
 
 export interface TerminalInterrupted extends BaseTerminalSDKResponse {
+  type?: 'terminalInterrupted';
   interrupted: boolean;
 }
 
@@ -47,3 +53,8 @@ export interface TerminalExecuteResponse extends BaseTerminalSDKResponse {
   stdout?: string;
   stderr?: string;
 }
+
+/**
+ * Union type for terminal stream responses
+ */
+export type TerminalStreamResponse = CommandOutput | CommandError | CommandFinish;

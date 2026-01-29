@@ -2,15 +2,16 @@ import type { ToolInvocation, ToolResult } from '../types';
 import { ToolErrorType, Kind } from '../types';
 import { BaseDeclarativeTool, BaseToolInvocation } from '../base-tool';
 import actionPlan from '../../modules/actionPlan';
+import type { ActionPlanTask, TaskPriority, TaskStatus } from '@codebolt/types/sdk';
 
 export interface AddTaskToActionPlanParams {
     planId: string;
     task: {
         name: string;
         description?: string;
-        priority?: string;
+        priority?: TaskPriority;
         taskType?: string;
-        status?: string;
+        status?: TaskStatus;
         assignedTo?: string;
         estimatedTime?: number;
         dependencies?: string[];

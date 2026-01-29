@@ -3,6 +3,8 @@
  * Types for the cbgit module functions
  */
 
+import { GitStatusData, GitCommitSummary, GitDiffResult } from './baseappResponse';
+
 // Base response interface for git operations
 export interface BaseGitSDKResponse {
   success?: boolean;
@@ -27,15 +29,15 @@ export interface GitPullResponse extends BaseGitSDKResponse {
 }
 
 export interface GitStatusResponse extends BaseGitSDKResponse {
-  data?: any; // StatusResult from commonTypes
+  data?: GitStatusData;
 }
 
 export interface GitLogsResponse extends BaseGitSDKResponse {
-  data?: any[]; // CommitSummary[] from commonTypes
+  data?: GitCommitSummary[];
 }
 
 export interface GitDiffResponse extends BaseGitSDKResponse {
-  data?: any; // DiffResult | string from commonTypes
+  data?: GitDiffResult | string;
   commitHash?: string;
 }
 
