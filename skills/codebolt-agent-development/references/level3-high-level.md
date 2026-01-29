@@ -189,14 +189,20 @@ const agent = createCodeboltAgent({
 ## Result Type
 
 ```typescript
-interface AgentExecutionResult {
+import type { MessageObject } from '@codebolt/types/sdk';
+
+// Generic AgentExecutionResult for type-safe results
+interface AgentExecutionResult<T = unknown> {
   success: boolean;
-  result?: any;
+  result?: T;                          // Typed result
   error?: string;
   conversation?: MessageObject[];
   toolsExecuted?: string[];
   iterationCount?: number;
 }
+
+// Example with typed result:
+// const result: AgentExecutionResult<{ code: string; explanation: string }> = await agent.processMessage(msg);
 ```
 
 ---
@@ -270,13 +276,14 @@ const agent = new CodeboltAgent({
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
 import { CodeboltAgent } from '@codebolt/agent/unified';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const agent = new CodeboltAgent({
   instructions: 'You are a coding assistant.'
 });
 
 // Handle user messages
-codebolt.onMessage(async (userMessage) => {
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
   const result = await agent.processMessage(userMessage);
 
   if (result.success) {

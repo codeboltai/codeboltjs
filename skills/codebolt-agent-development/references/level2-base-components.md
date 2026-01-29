@@ -245,6 +245,144 @@ if (result.completed) {
 }
 ```
 
+### Built-in Tool Routing
+
+ResponseExecutor automatically routes tools based on naming patterns:
+
+| Tool Name Pattern | Execution Route |
+|-------------------|-----------------|
+| `toolbox--toolname` | MCP: `codebolt.mcp.executeTool(toolbox, toolname, args)` |
+| `subagent--agentname` | Subagent: `codebolt.agent.startAgent(agentname, task)` |
+| `codebolt--thread_management` | Thread: `codebolt.thread.createThreadInBackground(options)` |
+| `attempt_completion` | Completion: Sets `completed = true` |
+
+---
+
+## Adding Custom/Local Tools
+
+When you need tools that don't go through MCP, use `PreToolCallProcessor` to intercept tool calls and execute custom logic.
+
+### Pattern: Intercept and Handle Custom Tools
+
+```typescript
+import { BasePreToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+
+class CustomLocalToolProcessor extends BasePreToolCallProcessor {
+  async modify(input: PreToolCallProcessorInput): Promise<{
+    nextPrompt: ProcessedMessage;
+    shouldExit: boolean;
+  }> {
+    const toolCalls = input.rawLLMResponseMessage.choices?.[0]?.message?.tool_calls || [];
+    const handledToolIds = new Set<string>();
+
+    for (const toolCall of toolCalls) {
+      // Check if this is your custom tool
+      if (toolCall.function.name === 'my_local_calculator') {
+        const args = JSON.parse(toolCall.function.arguments);
+
+        // Execute your custom logic
+        const result = this.calculate(args.expression);
+
+        // Add result to message history
+        input.nextPrompt.message.messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify({ result })
+        });
+
+        handledToolIds.add(toolCall.id);
+      }
+    }
+
+    // Remove handled tool calls so ResponseExecutor doesn't try to execute them
+    if (handledToolIds.size > 0) {
+      const message = input.rawLLMResponseMessage.choices?.[0]?.message;
+      if (message?.tool_calls) {
+        message.tool_calls = message.tool_calls.filter(tc => !handledToolIds.has(tc.id));
+      }
+    }
+
+    return { nextPrompt: input.nextPrompt, shouldExit: false };
+  }
+
+  private calculate(expression: string): number {
+    // Your custom logic here
+    return eval(expression); // Example only - use proper parser in production
+  }
+}
+```
+
+### Using Custom Tools with ResponseExecutor
+
+```typescript
+import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
+import { ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
+
+// Define your custom tool schema for the LLM
+const customToolSchema = {
+  type: 'function',
+  function: {
+    name: 'my_local_calculator',
+    description: 'Calculate a mathematical expression',
+    parameters: {
+      type: 'object',
+      properties: {
+        expression: { type: 'string', description: 'Math expression to evaluate' }
+      },
+      required: ['expression']
+    }
+  }
+};
+
+// Create components
+const promptGenerator = new InitialPromptGenerator({
+  processors: [
+    new ToolInjectionModifier({
+      additionalTools: [customToolSchema]  // Inject custom tool into LLM context
+    })
+  ]
+});
+
+const agentStep = new AgentStep({});
+
+const responseExecutor = new ResponseExecutor({
+  preToolCallProcessors: [
+    new CustomLocalToolProcessor()  // Handle custom tools before MCP execution
+  ],
+  postToolCallProcessors: []
+});
+
+// Agent loop
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
+  let prompt = await promptGenerator.processMessage(userMessage);
+  let completed = false;
+
+  while (!completed) {
+    const stepResult = await agentStep.executeStep(userMessage, prompt);
+
+    const execResult = await responseExecutor.executeResponse({
+      initialUserMessage: userMessage,
+      actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
+      rawLLMOutput: stepResult.rawLLMResponse,
+      nextMessage: stepResult.nextMessage
+    });
+
+    completed = execResult.completed;
+    prompt = execResult.nextMessage;
+  }
+});
+```
+
+### When to Use Custom Tools vs MCP
+
+| Use Case | Approach |
+|----------|----------|
+| Tool specific to this agent | Custom tool via `PreToolCallProcessor` |
+| Tool shared across agents | MCP server via `@codebolt/mcp` |
+| Tool needs local resources | Custom tool (access to local variables/state) |
+| Tool is a web service | MCP server (standard interface) |
+
 ---
 
 ## Complete Level 2 Agent
@@ -258,6 +396,7 @@ import {
   LoopDetectionModifier
 } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const MAX_ITERATIONS = 20;
 
@@ -285,7 +424,7 @@ class Level2Agent {
     });
   }
 
-  async execute(userMessage: FlatUserMessage) {
+  async execute(userMessage: FlatUserMessage): Promise<string | undefined> {
     let prompt = await this.promptGen.processMessage(userMessage);
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
@@ -316,7 +455,7 @@ class Level2Agent {
 }
 
 // Usage
-codebolt.onMessage(async (msg) => {
+codebolt.onMessage(async (msg: FlatUserMessage) => {
   const agent = new Level2Agent('You are a coding assistant.');
   const result = await agent.execute(msg);
   codebolt.chat.sendMessage(result);
@@ -327,32 +466,50 @@ codebolt.onMessage(async (msg) => {
 
 ## Key Types
 
+Import types from their respective packages:
+
 ```typescript
+// From @codebolt/types/sdk
+import type { FlatUserMessage, LLMCompletion, MessageObject, ToolCall } from '@codebolt/types/sdk';
+
+// From @codebolt/types/agent
+import type { ProcessedMessage, AgentStepOutput, ResponseInput, ResponseOutput, ToolResult } from '@codebolt/types/agent';
+```
+
+**Type Definitions (for reference):**
+
+```typescript
+// ProcessedMessage - Output from InitialPromptGenerator
 interface ProcessedMessage {
   message: {
     messages: MessageObject[];
     tools?: Tool[];
     tool_choice?: string;
   };
-  metadata: {
-    timestamp: string;
-    messageId: string;
-    threadId: string;
-    [key: string]: unknown;
-  };
+  metadata?: Record<string, unknown>;
 }
 
+// AgentStepOutput - Output from AgentStep.executeStep()
 interface AgentStepOutput {
   rawLLMResponse: LLMCompletion;
   nextMessage: ProcessedMessage;
   actualMessageSentToLLM: ProcessedMessage;
 }
 
+// ResponseOutput - Output from ResponseExecutor.executeResponse()
 interface ResponseOutput {
   completed: boolean;
   nextMessage: ProcessedMessage;
-  toolResults: ToolResult[];
+  toolResults?: ToolResult[];
   finalMessage?: string;
+}
+
+// ResponseInput - Input for ResponseExecutor.executeResponse()
+interface ResponseInput {
+  initialUserMessage: FlatUserMessage;
+  actualMessageSentToLLM: ProcessedMessage;
+  rawLLMOutput: LLMCompletion;
+  nextMessage: ProcessedMessage;
 }
 ```
 
@@ -400,11 +557,12 @@ interface UnifiedExternalEvent {
 ```typescript
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const eventQueue = codebolt.agentEventQueue;
 const agentTracker = codebolt.backgroundChildThreads;
 
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
   const promptGenerator = new InitialPromptGenerator({ /* ... */ });
   let prompt = await promptGenerator.processMessage(reqMessage);
   let continueLoop = true;
@@ -452,7 +610,10 @@ codebolt.onMessage(async (reqMessage) => {
 For orchestrators that should stay alive indefinitely:
 
 ```typescript
-codebolt.onMessage(async (reqMessage) => {
+import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
   // Initial processing...
 
   // Keep orchestrator alive, waiting for events

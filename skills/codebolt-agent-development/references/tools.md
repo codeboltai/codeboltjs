@@ -77,19 +77,30 @@ const openAITool = tool.toOpenAI();
 ### Tool Configuration
 
 ```typescript
-interface ToolConfig {
+import type { ZodType } from 'zod';
+
+// Generic ToolConfig for type-safe tools
+interface ToolConfig<TInput = unknown, TOutput = unknown> {
   id: string;                              // Unique identifier
   description: string;                     // Human-readable description
-  inputSchema: ZodType<any, any, any>;    // Zod schema for input validation
-  outputSchema?: ZodType<any, any, any>;  // Optional output validation
-  execute: (context: ToolContext) => Promise<any>;  // Execution function
+  inputSchema: ZodType<TInput>;           // Zod schema for input validation
+  outputSchema?: ZodType<TOutput>;        // Optional output validation
+  execute: (context: ToolContext<TInput>) => Promise<TOutput>;  // Execution function
 }
 
-interface ToolContext {
-  input: T;                    // Validated input
+// Generic ToolContext with typed input
+interface ToolContext<TInput = unknown> {
+  input: TInput;               // Validated input (typed)
   threadId?: string;
   messageId?: string;
-  [key: string]: unknown;      // Additional context
+  metadata?: Record<string, unknown>;  // Additional context
+}
+
+// Tool execution result
+interface ToolExecutionResult<TOutput = unknown> {
+  success: boolean;
+  result?: TOutput;
+  error?: string;
 }
 ```
 

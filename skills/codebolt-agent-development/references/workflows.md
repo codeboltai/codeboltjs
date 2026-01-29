@@ -159,12 +159,18 @@ const toolStep = new ToolStep(
 ## Step Result
 
 ```typescript
-interface WorkflowStepResult {
+// Generic WorkflowStepResult for type-safe step outputs
+interface WorkflowStepResult<T = unknown> {
   success: boolean;
-  data?: any;
+  data?: T;           // Typed step data
   error?: string;
   nextStep?: string;  // Override next step
 }
+
+// Example usage with typed data:
+// execute: async (context): Promise<WorkflowStepResult<{ processed: boolean }>> => {
+//   return { success: true, data: { processed: true } };
+// }
 ```
 
 ---

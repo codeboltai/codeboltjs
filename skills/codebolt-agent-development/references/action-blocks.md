@@ -46,12 +46,12 @@ const result = await codebolt.actionBlock.start('my-action-block', {
   param2: { nested: 'data' }
 });
 
-// Response structure
-interface StartActionBlockResponse {
+// Response structure (generic for type safety)
+interface StartActionBlockResponse<T = unknown> {
   type: 'startActionBlockResponse';
   success: boolean;
   sideExecutionId?: string;  // Execution tracking ID
-  result?: any;              // ActionBlock return value
+  result?: T;                // ActionBlock return value
   error?: string;
   requestId?: string;
 }
@@ -82,7 +82,23 @@ interface StartActionBlockResponse {
 import codebolt from '@codebolt/codeboltjs';
 import { MyInput, MyResult } from './types';
 
-codebolt.onActionBlockInvocation(async (threadContext: any, metadata: any): Promise<MyResult> => {
+// Type definitions for ActionBlock invocation (define in your types.ts)
+interface ThreadContext {
+  params?: Record<string, unknown>;
+  threadId?: string;
+  messageId?: string;
+  [key: string]: unknown;
+}
+
+interface ActionBlockInvocationMetadata {
+  sideExecutionId: string;
+  threadId: string;
+  parentAgentId: string;
+  parentAgentInstanceId: string;
+  timestamp: string;
+}
+
+codebolt.onActionBlockInvocation(async (threadContext: ThreadContext, metadata: ActionBlockInvocationMetadata): Promise<MyResult> => {
   try {
     // 1. Extract parameters
     const params = threadContext?.params || {};
@@ -133,10 +149,10 @@ export interface MyInput {
   };
 }
 
-export interface MyResult {
+export interface MyResult<T = unknown> {
   success: boolean;
   error?: string;
-  data?: any;
+  data?: T;
   taskId?: string;
 }
 ```
@@ -208,20 +224,30 @@ npm run build  # Creates dist/index.js
 
 ## Metadata Access
 
-ActionBlocks receive context and metadata:
+ActionBlocks receive context and metadata. Define these types in your project:
 
 ```typescript
-codebolt.onActionBlockInvocation(async (threadContext, metadata) => {
-  // threadContext contains:
-  // - params: Record<string, any> - Parameters passed via start()
-  // - Original thread context data
+// Type definitions (add to your types.ts)
+interface ThreadContext {
+  params?: Record<string, unknown>;  // Parameters passed via start()
+  threadId?: string;
+  messageId?: string;
+  [key: string]: unknown;            // Additional context data
+}
 
-  // metadata contains:
-  // - sideExecutionId: string - Unique execution ID
-  // - threadId: string - Parent thread ID
-  // - parentAgentId: string - Calling agent ID
-  // - parentAgentInstanceId: string - Calling agent instance
-  // - timestamp: string - Execution timestamp
+interface ActionBlockInvocationMetadata {
+  sideExecutionId: string;           // Unique execution ID
+  threadId: string;                  // Parent thread ID
+  parentAgentId: string;             // Calling agent ID
+  parentAgentInstanceId: string;     // Calling agent instance
+  timestamp: string;                 // Execution timestamp
+}
+
+// Usage
+codebolt.onActionBlockInvocation(async (threadContext: ThreadContext, metadata: ActionBlockInvocationMetadata) => {
+  const params = threadContext?.params || {};
+  const executionId = metadata.sideExecutionId;
+  // ...
 });
 ```
 

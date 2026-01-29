@@ -88,12 +88,23 @@ codebolt.chat.sendNotificationEvent('File saved', 'editor');
 
 ## Manual Agent Loop Pattern
 
+> **Recommendation:** The manual pattern below is for learning and understanding how agents work at the lowest level.
+>
+> **For production code, use Level 2's `ResponseExecutor`** which:
+> - Automatically handles MCP tools, subagents, and thread management
+> - Provides processor hooks for custom tool logic via `PreToolCallProcessor`
+> - Handles error recovery, user rejection, and message formatting
+> - Supports adding custom/local tools without reimplementing execution logic
+>
+> See [Level 2: Adding Custom Tools](level2-base-components.md#adding-customlocal-tools) for extending with local tools.
+
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const MAX_ITERATIONS = 10;
 
-codebolt.onMessage(async (userMessage) => {
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
   // 1. Initialize conversation
   const messages = [
     { role: 'system', content: 'You are a helpful coding assistant.' },
@@ -151,16 +162,35 @@ codebolt.onMessage(async (userMessage) => {
 
 ## Key Types
 
+Import these types from `@codebolt/types`:
+
 ```typescript
+// Import types for type-safe development
+import type {
+  FlatUserMessage,
+  MessageObject,
+  LLMCompletion,
+  ToolCall,
+  Attachment,
+  ContentBlock
+} from '@codebolt/types/sdk';
+```
+
+**Type Definitions (for reference):**
+
+```typescript
+// FlatUserMessage - Input from user
 interface FlatUserMessage {
   userMessage: string;
   threadId: string;
   messageId: string;
   mentionedFiles?: string[];
+  mentionedFolders?: string[];
   attachments?: Attachment[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
+// MessageObject - Messages in conversation
 interface MessageObject {
   role: 'user' | 'assistant' | 'tool' | 'system';
   content: string | ContentBlock[];
@@ -168,12 +198,23 @@ interface MessageObject {
   tool_calls?: ToolCall[];
 }
 
+// LLMCompletion - Response from LLM inference
 interface LLMCompletion {
-  choices: [{
+  choices: Array<{
     message: MessageObject;
     finish_reason: 'stop' | 'tool_calls' | 'length';
-  }];
+  }>;
   usage?: { prompt_tokens: number; completion_tokens: number };
+}
+
+// ToolCall - Tool invocation request
+interface ToolCall {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
 }
 ```
 
