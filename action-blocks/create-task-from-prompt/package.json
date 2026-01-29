@@ -1,8 +1,8 @@
 {
-  "name": "@codebolt/create-team-for-swarm",
+  "name": "@codebolt/create-task-from-prompt",
   "private": true,
   "version": "1.0.11",
-  "description": "Handles team formation for swarm agents",
+  "description": "Creates tasks from prompts",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

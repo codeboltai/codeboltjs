@@ -1,4 +1,4 @@
-import Codebolt from '../src/core/Codebolt';
+import Codebolt from '../../src/core/Codebolt';
 import assert from 'assert';
 
 const codebolt = new Codebolt();

@@ -14,7 +14,7 @@
  * - Proper cleanup and teardown
  */
 
-import Codebolt from '../src/core/Codebolt';
+import Codebolt from '../../src/core/Codebolt';
 
 // ============================================================================
 // SECTION 1: Type Definitions

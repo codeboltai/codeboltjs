@@ -11,7 +11,7 @@
  * - getEnabledMcps, configureMcpTool (newly added)
  */
 
-import codebolt from '../src/index';
+import codebolt from '../../src/index';
 
 describe('MCP Module Comprehensive Test Suite', () => {
     const TEST_TIMEOUT = 30000; // 30 seconds for server operations

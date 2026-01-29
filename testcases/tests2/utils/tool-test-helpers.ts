@@ -5,7 +5,7 @@
  * including mock creation, response validation, and common test patterns.
  */
 
-import { ToolResult, ToolErrorType } from '../../src/tools/types';
+import { ToolResult, ToolErrorType } from '../../../src/tools/types';
 
 /**
  * Creates a mock successful module response
@@ -55,11 +55,11 @@ export function validateErrorResult(result: ToolResult, expectedErrorType?: Tool
     expect(result.error).toBeDefined();
     expect(result.error?.message).toBeDefined();
     expect(result.error?.type).toBeDefined();
-    
+
     if (expectedErrorType) {
         expect(result.error?.type).toBe(expectedErrorType);
     }
-    
+
     expect(result.llmContent).toMatch(/^Error:/);
 }
 
@@ -121,15 +121,15 @@ export async function expectAsyncError(
     expectedMessage?: string | RegExp
 ): Promise<void> {
     let error: Error | undefined;
-    
+
     try {
         await fn();
     } catch (e) {
         error = e as Error;
     }
-    
+
     expect(error).toBeDefined();
-    
+
     if (expectedMessage) {
         if (typeof expectedMessage === 'string') {
             expect(error?.message).toContain(expectedMessage);
@@ -202,11 +202,11 @@ export const toolTestPatterns = {
         const tool = new toolClass();
         const invocation = tool.build(params);
         const signal = createMockAbortSignal();
-        
+
         const result = await invocation.execute(signal);
-        
+
         validateSuccessResult(result);
-        
+
         if (expectedLlmContentPattern) {
             if (typeof expectedLlmContentPattern === 'string') {
                 expect(result.llmContent).toContain(expectedLlmContentPattern);
@@ -214,7 +214,7 @@ export const toolTestPatterns = {
                 expect(result.llmContent).toMatch(expectedLlmContentPattern);
             }
         }
-        
+
         return result;
     },
 
@@ -230,12 +230,12 @@ export const toolTestPatterns = {
         const tool = new toolClass();
         const invocation = tool.build(params);
         const signal = createMockAbortSignal();
-        
+
         const result = await invocation.execute(signal);
-        
+
         validateErrorResult(result, expectedErrorType);
         expect(result.error?.message).toContain(errorMessage);
-        
+
         return result;
     },
 
@@ -250,11 +250,11 @@ export const toolTestPatterns = {
         const tool = new toolClass();
         const invocation = tool.build(params);
         const signal = createMockAbortSignal();
-        
+
         const result = await invocation.execute(signal);
-        
+
         validateErrorResult(result, ToolErrorType.EXECUTION_FAILED);
-        
+
         return result;
     },
 
@@ -267,11 +267,11 @@ export const toolTestPatterns = {
         expectedErrorPattern?: string | RegExp
     ): void {
         const tool = new toolClass();
-        
+
         expect(() => {
             tool.build(invalidParams);
         }).toThrow();
-        
+
         if (expectedErrorPattern) {
             try {
                 tool.build(invalidParams);

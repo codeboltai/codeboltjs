@@ -1,5 +1,11 @@
 # @codebolt/types
 
+## 5.0.6
+
+### Patch Changes
+
+- updated types
+
 ## 1.0.23
 
 ### Patch Changes

@@ -1,22 +1,47 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
       "outputLogs": "errors-only"
     },
     "@codebolt/docs#build": {
-      "dependsOn": ["^build"],
-      "outputs": ["build/**", ".docusaurus/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "build/**",
+        ".docusaurus/**"
+      ],
+      "outputLogs": "errors-only"
+    },
+    "internaldocuments#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "build/**",
+        ".docusaurus/**"
+      ],
       "outputLogs": "errors-only"
     },
     "lint": {
       "outputs": []
     },
     "test": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "outputs": []
     },
     "dev": {
@@ -27,20 +52,34 @@
       "cache": false
     },
     "build:docs": {
-      "dependsOn": ["build"],
-      "outputs": ["docs/**", "out.json"]
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "docs/**",
+        "out.json"
+      ]
     },
     "build:webpack": {
-      "dependsOn": ["build"],
-      "outputs": ["build/**"]
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "build/**"
+      ]
     },
     "build:all": {
-      "dependsOn": ["build", "build:webpack"],
+      "dependsOn": [
+        "build",
+        "build:webpack"
+      ],
       "outputs": []
     },
     "example:basic": {
       "cache": false,
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "outputLogs": "new-only"
     }
   }
