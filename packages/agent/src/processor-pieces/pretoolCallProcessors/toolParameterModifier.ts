@@ -7,14 +7,13 @@ import { BasePreToolCallProcessor } from '../base/basePreToolCallProcessor';
 import {
     PreToolCallProcessorInput,
     PreToolCallProcessorOutput,
-    ToolCall,
     ProcessedMessage
 } from '@codebolt/types/agent';
 
 export interface ParameterTransformation {
     sourcePath: string;
     targetPath: string;
-    transformation?: (value: any) => any;
+    transformation?: (value: unknown) => unknown;
     description?: string;
 }
 
@@ -24,11 +23,8 @@ export interface ToolParameterModifierOptions {
 }
 
 export class ToolParameterModifier extends BasePreToolCallProcessor {
-    private options: ToolParameterModifierOptions;
-
-    constructor(options: ToolParameterModifierOptions) {
+    constructor(_options: ToolParameterModifierOptions) {
         super();
-        this.options = options;
     }
 
     async modify(input: PreToolCallProcessorInput): Promise<PreToolCallProcessorOutput> {

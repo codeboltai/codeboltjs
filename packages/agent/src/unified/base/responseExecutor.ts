@@ -1,6 +1,6 @@
 
-import { AgentResponseExecutor, PostInferenceProcessor, PostToolCallProcessor, PreToolCallProcessor, ProcessedMessage, ResponseInput, ResponseOutput, ToolResult } from '@codebolt/types/agent';
-import { LLMCompletion, MessageObject, Tool, ToolCall } from '@codebolt/types/sdk';
+import { AgentResponseExecutor, PostToolCallProcessor, PreToolCallProcessor, ProcessedMessage, ResponseInput, ResponseOutput, ToolResult } from '@codebolt/types/agent';
+import { LLMCompletion, MessageObject, ToolCall } from '@codebolt/types/sdk';
 import codebolt from '@codebolt/codeboltjs';
 
 export class ResponseExecutor implements AgentResponseExecutor {
@@ -90,12 +90,15 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 // Continue with other modifiers
             }
         }
-        return {
+        const output: ResponseOutput = {
             completed: this.completed,
             nextMessage: nextMessage,
-            toolResults: toolResults,
-            finalMessage: this.finalMessage
+            toolResults: toolResults
+        };
+        if (this.finalMessage !== undefined) {
+            output.finalMessage = this.finalMessage;
         }
+        return output;
 
     }
     /**
@@ -172,7 +175,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                 let [serverName] = item.toolName.replace('--', ':').split(':');
                                 // codebolt.chat.sendMessage(`tool call ${serverName} ${item.toolName} ${item.toolInput}`, {});
                                 if (serverName == 'subagent') {
-                                    const agentResponse = await codebolt.agent.startAgent(item.toolName.replace("subagent--", ''), item.toolInput.task);
+                                    await codebolt.agent.startAgent(item.toolName.replace("subagent--", ''), item.toolInput.task);
                                     const [didUserReject, result] = [false, "tool result is successful"];
                                     let toolResult = this.parseToolResult(item.toolUseId, result)
                                     // Handle side effects (fallback messages)
@@ -320,7 +323,9 @@ export class ResponseExecutor implements AgentResponseExecutor {
     private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
         //codebolttools--readfile
         // console.log("Executing tool: ", toolName, toolInput);
-        const [toolboxName, actualToolName] = toolName.split('--');
+        const parts = toolName.split('--');
+        const toolboxName = parts[0] ?? '';
+        const actualToolName = parts[1] ?? '';
         // console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
 
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);

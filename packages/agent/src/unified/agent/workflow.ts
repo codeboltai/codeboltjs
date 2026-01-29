@@ -1,4 +1,4 @@
-import { BaseWorkflow, workflowConfig, WorkflowResult, workflowStepOutput, workflowContext } from "@codebolt/types/agent";
+import { BaseWorkflow, workflowConfig, WorkflowResult, workflowStepOutput } from "@codebolt/types/agent";
 import { randomUUID } from 'crypto';
 
 export class Workflow implements BaseWorkflow {
@@ -35,26 +35,30 @@ export class Workflow implements BaseWorkflow {
                 this.config.outputSchema.parse(this.context);
             }
 
-            return {
+            const result: WorkflowResult = {
                 executionId: this.executionId,
                 success,
                 data: this.context,
                 stepResults,
-                executionTime,
-                error: success ? undefined : 'One or more steps failed'
+                executionTime
             };
+            if (!success) {
+                result.error = 'One or more steps failed';
+            }
+            return result;
         } catch (error) {
             const executionTime = Date.now() - this.startTime;
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            
-            return {
+
+            const result: WorkflowResult = {
                 executionId: this.executionId,
                 success: false,
                 data: this.context,
                 stepResults: this.stepResults,
-                executionTime,
-                error: errorMessage
+                executionTime
             };
+            result.error = errorMessage;
+            return result;
         }
     }
 
@@ -64,7 +68,10 @@ export class Workflow implements BaseWorkflow {
         }
 
         const step = this.config.steps[this.currentStepIndex];
-        
+        if (!step) {
+            throw new Error('Step not found at current index');
+        }
+
         try {
             // Note: Since BaseWorkflow expects sync methods, we can't properly handle async step execution
             // This is a design limitation that would need to be addressed in the BaseWorkflow interface
@@ -74,21 +81,21 @@ export class Workflow implements BaseWorkflow {
                 result: null,
                 metaData: this.context
             };
-            
+
             this.currentStepIndex++;
             this.stepResults.push(result);
             return result;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             this.currentStepIndex++;
-            
+
             const errorResult: workflowStepOutput = {
                 stepId: step.id,
                 success: false,
-                result: null,
-                error: errorMessage
+                result: null
             };
-            
+            errorResult.error = errorMessage;
+
             this.stepResults.push(errorResult);
             return errorResult;
         }
@@ -96,10 +103,11 @@ export class Workflow implements BaseWorkflow {
 
     executeSteps(): workflowStepOutput[] {
         const allResults: workflowStepOutput[] = [];
-        
+
         for (let i = 0; i < this.config.steps.length; i++) {
             const step = this.config.steps[i];
-            
+            if (!step) continue;
+
             try {
                 // Note: This is a synchronous implementation due to BaseWorkflow interface constraints
                 // In a real async implementation, you would await step.execute(this.context)
@@ -109,9 +117,9 @@ export class Workflow implements BaseWorkflow {
                     result: `Step ${step.id} executed synchronously`,
                     metaData: this.context
                 };
-                
+
                 allResults.push(result);
-                
+
                 // Update context with successful result
                 if (result.success && result.result !== null) {
                     this.updateContext({
@@ -124,16 +132,16 @@ export class Workflow implements BaseWorkflow {
                 const errorResult: workflowStepOutput = {
                     stepId: step.id,
                     success: false,
-                    result: null,
-                    error: errorMessage
+                    result: null
                 };
+                errorResult.error = errorMessage;
                 allResults.push(errorResult);
-                
+
                 // Break on error (can be made configurable)
                 break;
             }
         }
-        
+
         this.stepResults = allResults;
         return allResults;
     }
@@ -180,7 +188,7 @@ export class Workflow implements BaseWorkflow {
     async executeAsync(): Promise<WorkflowResult> {
         this.executionId = randomUUID();
         this.startTime = Date.now();
-        
+
         try {
             // Validate input if schema exists
             if (this.config.inputSchema) {
@@ -189,35 +197,39 @@ export class Workflow implements BaseWorkflow {
 
             // Execute all steps asynchronously
             const stepResults = await this.executeStepsAsync();
-            
+
             const executionTime = Date.now() - this.startTime;
             const success = stepResults.every(result => result.success);
-            
+
             // Validate output if schema exists
             if (this.config.outputSchema && success) {
                 this.config.outputSchema.parse(this.context);
             }
 
-            return {
+            const result: WorkflowResult = {
                 executionId: this.executionId,
                 success,
                 data: this.context,
                 stepResults,
-                executionTime,
-                error: success ? undefined : 'One or more steps failed'
+                executionTime
             };
+            if (!success) {
+                result.error = 'One or more steps failed';
+            }
+            return result;
         } catch (error) {
             const executionTime = Date.now() - this.startTime;
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            
-            return {
+
+            const result: WorkflowResult = {
                 executionId: this.executionId,
                 success: false,
                 data: this.context,
                 stepResults: this.stepResults,
-                executionTime,
-                error: errorMessage
+                executionTime
             };
+            result.error = errorMessage;
+            return result;
         }
     }
 
@@ -227,10 +239,13 @@ export class Workflow implements BaseWorkflow {
         }
 
         const step = this.config.steps[this.currentStepIndex];
-        
+        if (!step) {
+            throw new Error('Step not found at current index');
+        }
+
         try {
             const result = await step.execute(this.context);
-            
+
             // Handle different return types based on step type
             if (Array.isArray(result)) {
                 // For parallel, condition, or loop steps that return multiple results
@@ -247,14 +262,14 @@ export class Workflow implements BaseWorkflow {
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             this.currentStepIndex++;
-            
+
             const errorResult: workflowStepOutput = {
                 stepId: step.id,
                 success: false,
-                result: null,
-                error: errorMessage
+                result: null
             };
-            
+            errorResult.error = errorMessage;
+
             this.stepResults.push(errorResult);
             return errorResult;
         }
@@ -262,18 +277,19 @@ export class Workflow implements BaseWorkflow {
 
     async executeStepsAsync(): Promise<workflowStepOutput[]> {
         const allResults: workflowStepOutput[] = [];
-        
+
         for (let i = 0; i < this.config.steps.length; i++) {
             const step = this.config.steps[i];
-            
+            if (!step) continue;
+
             try {
                 const result = await step.execute(this.context);
-                
+
                 // Handle different return types based on step type
                 if (Array.isArray(result)) {
                     // For parallel, condition, or loop steps that return multiple results
                     allResults.push(...result);
-                    
+
                     // Update context with successful results
                     result.forEach(stepResult => {
                         if (stepResult.success && stepResult.result !== null) {
@@ -286,7 +302,7 @@ export class Workflow implements BaseWorkflow {
                 } else {
                     // For single step execution
                     allResults.push(result);
-                    
+
                     // Update context with successful result
                     if (result.success && result.result !== null) {
                         this.updateContext({
@@ -300,16 +316,16 @@ export class Workflow implements BaseWorkflow {
                 const errorResult: workflowStepOutput = {
                     stepId: step.id,
                     success: false,
-                    result: null,
-                    error: errorMessage
+                    result: null
                 };
+                errorResult.error = errorMessage;
                 allResults.push(errorResult);
-                
+
                 // Break on error (can be made configurable)
                 break;
             }
         }
-        
+
         this.stepResults = allResults;
         return allResults;
     }

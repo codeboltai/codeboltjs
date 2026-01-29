@@ -1,4 +1,3 @@
-import codebolt from '@codebolt/codeboltjs';
 import {
     AgentConfig,
     AgentStepOutput,
@@ -187,8 +186,7 @@ export class CodeboltAgent {
 
             return {
                 success: true,
-                result: prompt,
-                error: undefined
+                result: prompt
             };
 
         } catch (error) {
@@ -270,6 +268,6 @@ export function createCodeboltAgent(options: {
             preToolCallProcessors: options.preToolCallProcessors || [],
             postToolCallProcessors: options.postToolCallProcessors || []
         },
-        enableLogging: options.enableLogging
+        enableLogging: options.enableLogging ?? true
     });
 }

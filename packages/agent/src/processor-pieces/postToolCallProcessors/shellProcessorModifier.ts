@@ -32,7 +32,7 @@ export class ShellProcessorModifier extends BasePostToolCallProcessor {
 
     async modify(input: PostToolCallProcessorInput): Promise<PostToolCallProcessorOutput> {
         try {
-            const { llmMessageSent, rawLLMResponseMessage, nextPrompt, toolResults } = input;
+            const { nextPrompt, toolResults } = input;
 
             // Process shell commands in tool results if they exist
             let processedNextPrompt = nextPrompt;
@@ -65,7 +65,7 @@ export class ShellProcessorModifier extends BasePostToolCallProcessor {
                     let processedContent = message.content;
                     
                     // Replace {{args}} placeholders if metadata has args
-                    const args = processedNextPrompt.metadata?.args as string || '';
+                    const args = processedNextPrompt.metadata?.['args'] as string || '';
                     if (processedContent.includes(this.ARGS_PLACEHOLDER)) {
                         processedContent = processedContent.replace(
                             new RegExp(this.escapeRegex(this.ARGS_PLACEHOLDER), 'g'), 
@@ -122,7 +122,7 @@ export class ShellProcessorModifier extends BasePostToolCallProcessor {
         
         for (const result of shellResults) {
             if (result.content && typeof result.content === 'string') {
-                const args = processedPrompt.metadata?.args as string || '';
+                const args = processedPrompt.metadata?.['args'] as string || '';
                 
                 // Process any shell injections in the tool result content
                 if (result.content.includes(this.SHELL_TRIGGER)) {
@@ -158,23 +158,25 @@ export class ShellProcessorModifier extends BasePostToolCallProcessor {
         // Process injections in reverse order to maintain correct indices
         for (let i = injections.length - 1; i >= 0; i--) {
             const injection = injections[i];
+            if (!injection) continue;
+
             try {
                 // Replace {{args}} in the command with shell-escaped args
                 const command = injection.command.replace(new RegExp(this.escapeRegex(this.ARGS_PLACEHOLDER), 'g'), this.escapeShellArg(args));
-                
+
                 // Validate and execute command
                 this.validateCommand(command);
                 const result = await this.executeCommand(command);
-                
+
                 const replacement = result;
-                
+
                 processedContent = processedContent.substring(0, injection.startIndex) +
                                 replacement +
                                 processedContent.substring(injection.endIndex);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 const replacement = `[Shell command error: ${errorMessage}]`;
-                
+
                 processedContent = processedContent.substring(0, injection.startIndex) +
                                 replacement +
                                 processedContent.substring(injection.endIndex);
@@ -223,15 +225,15 @@ export class ShellProcessorModifier extends BasePostToolCallProcessor {
         }
 
         // Extract the base command (first word)
-        const baseCommand = command.trim().split(/\s+/)[0];
-        
+        const baseCommand = command.trim().split(/\s+/)[0] ?? '';
+
         // Check blocked commands
         if (this.options.blockedCommands!.some(blocked => baseCommand.includes(blocked))) {
             throw new Error(`Command '${baseCommand}' is blocked for security reasons`);
         }
 
         // Check allowed commands (if allowlist is defined)
-        if (this.options.allowedCommands!.length > 0 && 
+        if (this.options.allowedCommands!.length > 0 &&
             !this.options.allowedCommands!.some(allowed => baseCommand.includes(allowed))) {
             throw new Error(`Command '${baseCommand}' is not in the allowed commands list`);
         }

@@ -1,6 +1,6 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { FlatUserMessage } from "@codebolt/types/sdk";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -14,16 +14,16 @@ export interface ChatRecordingOptions {
 
 interface ChatRecord {
     timestamp: string;
-    messageId?: string;
-    threadId?: string;
+    messageId?: string | undefined;
+    threadId?: string | undefined;
     role: string;
     content: string;
-    metadata?: any;
+    metadata?: Record<string, unknown> | undefined;
 }
 
 export class ChatRecordingModifier extends BaseMessageModifier {
     private readonly options: ChatRecordingOptions;
-    private recordingFile?: string;
+    private recordingFile: string | undefined;
 
     constructor(options: ChatRecordingOptions = {}){
         super()
@@ -104,8 +104,8 @@ export class ChatRecordingModifier extends BaseMessageModifier {
             for (const message of createdMessage.message.messages) {
                 const record: ChatRecord = {
                     timestamp,
-                    messageId: createdMessage.metadata?.messageId as string | undefined,
-                    threadId: createdMessage.metadata?.threadId as string | undefined,
+                    messageId: createdMessage.metadata?.['messageId'] as string | undefined,
+                    threadId: createdMessage.metadata?.['threadId'] as string | undefined,
                     role: message.role,
                     content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
                 };

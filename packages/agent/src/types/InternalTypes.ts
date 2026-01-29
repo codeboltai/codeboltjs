@@ -206,22 +206,25 @@ export interface StateChangeEvent {
 // Internal Error Types
 // ================================
 
-export interface InternalError extends Error {
+export interface InternalErrorInfo {
   code: string;
   module: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  context?: Record<string, any>;
+  context?: Record<string, unknown> | undefined;
   timestamp: number;
-  stackTrace?: string;
+  stackTrace?: string | undefined;
 }
 
-export class InternalError extends Error {
+export class InternalError extends Error implements InternalErrorInfo {
+  public timestamp: number;
+  public stackTrace: string | undefined;
+
   constructor(
     message: string,
     public code: string,
     public module: string,
     public severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
-    public context?: Record<string, any>
+    public context?: Record<string, unknown> | undefined
   ) {
     super(message);
     this.name = 'InternalError';

@@ -2,12 +2,11 @@ import { ProcessedMessage } from "@codebolt/types/agent";
 
   // Helper method to merge messages
   export const mergeMessages=(existing: ProcessedMessage, additional: ProcessedMessage): ProcessedMessage=>{
-    return {
+    const result: ProcessedMessage = {
         message: {
             ...existing.message,
             ...additional.message,
             messages: [...existing.message.messages, ...additional.message.messages],
-            tools: additional.message.tools
         },
         metadata: {
             ...existing.metadata,
@@ -16,6 +15,10 @@ import { ProcessedMessage } from "@codebolt/types/agent";
             mergedAt: new Date().toISOString()
         }
     };
+    if (additional.message.tools) {
+        result.message.tools = additional.message.tools;
+    }
+    return result;
 }
 
 // Helper method to add system message

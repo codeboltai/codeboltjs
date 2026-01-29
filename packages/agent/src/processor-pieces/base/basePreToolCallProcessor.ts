@@ -5,7 +5,7 @@
  * Used to check if the Tool Call is proper and handle Local Tool Interceptor
  */
 
-import { 
+import {
     PreToolCallProcessor,
     PreToolCallProcessorInput,
     PreToolCallProcessorOutput,
@@ -14,7 +14,6 @@ import {
     ToolValidationResult,
     ToolCall
 } from '@codebolt/types/agent';
-import { Tool } from '@codebolt/types/sdk';
 
 export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
     protected context: Record<string, unknown> = {};
@@ -49,13 +48,16 @@ export abstract class BasePreToolCallProcessor implements PreToolCallProcessor {
         result?: unknown,
         reason?: string
     ): InterceptedTool {
-        return {
+        const interceptedTool: InterceptedTool = {
             toolName,
             originalInput,
             result,
             intercepted: true,
-            reason,
         };
+        if (reason !== undefined) {
+            interceptedTool.reason = reason;
+        }
+        return interceptedTool;
     }
 
     // Helper method to validate tool call
