@@ -20,6 +20,18 @@ description: Build AI agents for the Codebolt platform using @codebolt/agent. Us
 > codebolt.onMessage(async (msg) => { ... });
 > ```
 
+> **⚠️ IMPORTANT: Use Strict Typings & Always Check for Errors**
+>
+> Always use strict TypeScript typings when developing agents. **You do NOT need to create custom typings** — types for most Codebolt functionality are already provided by the packages (`@codebolt/codeboltjs`, `@codebolt/agent`, `@codebolt/types`). Just use the existing types.
+>
+> After writing any agent code, **always run type checking and linting to catch errors before running the agent**.
+>
+> ```bash
+> # Always run after writing code
+> npx tsc --noEmit    # Check for type errors
+> npx eslint src/     # Check for code quality issues
+> ```
+
 ## Architecture Overview
 
 Codebolt provides a **4-tier architecture** for building AI agents:
@@ -607,7 +619,28 @@ import codebolt from '@codebolt/codeboltjs';
 
 ## Code Quality: Linting & Error Checking
 
-**IMPORTANT:** After writing or modifying agent code, always lint and check for errors before running:
+**IMPORTANT:** After writing or modifying agent code, **ALWAYS** lint and check for errors before running. This is a critical step that should never be skipped.
+
+### Use Strict Typings
+
+**You do NOT need to create custom typings.** Types for most Codebolt functionality are already provided by the packages:
+
+- `@codebolt/codeboltjs` - Types for direct SDK APIs
+- `@codebolt/agent` - Types for agent components, workflows, tools
+- `@codebolt/types` - Shared type definitions
+
+Simply use the existing types — they are automatically available when you import from these packages:
+
+```typescript
+// Types are included with the packages - no separate install needed
+import codebolt from '@codebolt/codeboltjs';
+import { CodeboltAgent, Workflow, createTool } from '@codebolt/agent/unified';
+
+// If you need to explicitly import types
+import type { ThreadContext, ActionBlockResult } from '@codebolt/types';
+```
+
+### Run Error Checks
 
 ```bash
 # Run TypeScript compiler to check for type errors
@@ -621,12 +654,14 @@ npm run lint
 npm run typecheck
 ```
 
-**Common checks to perform:**
-1. **Type errors** - Ensure all TypeScript types are correct
+### Common Checks to Perform
+
+1. **Type errors** - Ensure all TypeScript types are correct (use `@codebolt/types`)
 2. **Import errors** - Verify all imports resolve correctly
 3. **Unused variables** - Remove or use declared variables
 4. **Missing dependencies** - Install required packages
 5. **Schema validation** - Validate `codeboltagent.yaml` structure
+6. **Async/await errors** - Ensure proper handling of promises
 
 **Tip:** Configure your IDE to show errors inline, or run `npx tsc --watch` during development for real-time feedback.
 
