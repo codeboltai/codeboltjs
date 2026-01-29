@@ -1,0 +1,21 @@
+{
+  "name": "skill-optimization-script",
+  "version": "1.0.0",
+  "description": "Script to optimize Claude Code skills using iterative feedback loops",
+  "type": "module",
+  "main": "optimize-skill.js",
+  "scripts": {
+    "optimize": "node optimize-skill.js",
+    "example": "node example.js"
+  },
+  "keywords": [
+    "claude",
+    "skill",
+    "optimization",
+    "ai",
+    "agent-sdk"
+  ],
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.23"
+  }
+}

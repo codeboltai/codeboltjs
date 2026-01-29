@@ -1,0 +1,39 @@
+title: Simple Agent
+unique_id: simple-codebolt-agent
+version: 1.0.0
+author: Codebolt Developer
+
+initial_message: Hello! I'm a simple Codebolt agent. How can I help you today?
+description: A simple agent that uses YAML configuration for system prompts and tasks
+longDescription: >
+  This agent demonstrates the pattern of using UserMessage, SystemPrompt,
+  TaskInstruction, and Agent classes with YAML configuration files for
+  flexible and maintainable agent development.
+
+tags:
+  - simple
+  - starter
+  - yaml-config
+
+avatarFallback: SA
+
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportRemix: true
+
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-20250514
+      - gpt-4-turbo
+
+actions:
+  - name: Help
+    description: Get help with a task
+    detailDescription: Ask the agent for assistance
+    actionPrompt: Please help me with my task

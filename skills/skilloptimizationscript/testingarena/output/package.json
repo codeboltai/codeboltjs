@@ -1,0 +1,28 @@
+{
+  "name": "simple-codebolt-agent",
+  "version": "1.0.0",
+  "description": "A simple Codebolt agent using Agent class with YAML configuration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx webpack",
+    "dev": "npx tsx src/index.ts",
+    "typecheck": "npx tsc --noEmit",
+    "lint": "npx eslint src/"
+  },
+  "dependencies": {
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/agent": "latest",
+    "@codebolt/types": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0",
+    "ts-loader": "^9.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  }
+}
