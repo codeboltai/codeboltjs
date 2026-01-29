@@ -590,7 +590,35 @@ import codebolt from '@codebolt/codeboltjs';
 | Workflows | [references/workflows.md](references/workflows.md) |
 | Examples | [references/examples.md](references/examples.md) |
 
+## Code Quality: Linting & Error Checking
+
+**IMPORTANT:** After writing or modifying agent code, always lint and check for errors before running:
+
+```bash
+# Run TypeScript compiler to check for type errors
+npx tsc --noEmit
+
+# Run ESLint to check for code quality issues
+npx eslint src/
+
+# Or if the project has npm scripts configured
+npm run lint
+npm run typecheck
+```
+
+**Common checks to perform:**
+1. **Type errors** - Ensure all TypeScript types are correct
+2. **Import errors** - Verify all imports resolve correctly
+3. **Unused variables** - Remove or use declared variables
+4. **Missing dependencies** - Install required packages
+5. **Schema validation** - Validate `codeboltagent.yaml` structure
+
+**Tip:** Configure your IDE to show errors inline, or run `npx tsc --watch` during development for real-time feedback.
+
 ## Related Skills
 
-- **codebolt-api-access** - Direct TypeScript SDK APIs
-- **codebolt-mcp-access** - MCP tool execution
+Use these skills to get detailed information about Codebolt APIs and MCP tools:
+
+- **codebolt_api_access** - Access detailed documentation for all direct TypeScript SDK APIs (`codebolt.fs`, `codebolt.llm`, `codebolt.terminal`, `codebolt.chat`, etc.). Use this skill when you need to understand the exact method signatures, parameters, and return types for Level 1 direct API calls.
+
+- **codebolt-mcp-access** - Access documentation for MCP (Model Context Protocol) functions and tool execution (`codebolt.tools.executeTool`, `codebolt.tools.getTools`, etc.). Use this skill when you need to understand how to execute MCP tools, list available tools, or build custom MCP servers.
