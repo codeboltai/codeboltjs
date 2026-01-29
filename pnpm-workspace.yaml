@@ -15,6 +15,7 @@ packages:
   - documentation/mainfolder
   - documentation/internaldocuments
   - testcases
+  - cli/*
   
 ignoredBuiltDependencies:
   - esbuild

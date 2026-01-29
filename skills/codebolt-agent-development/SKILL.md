@@ -32,6 +32,64 @@ description: Build AI agents for the Codebolt platform using @codebolt/agent. Us
 > npx eslint src/     # Check for code quality issues
 > ```
 
+## Getting Started: Codebolt CLI
+
+Use the **`codebolt-cli`** command-line tool to generate templates for agents and MCP tools. This is the recommended starting point for creating new agents or tools.
+
+### Create an Agent Template
+
+```bash
+# Interactive mode (recommended)
+npx codebolt-cli createagent
+
+# Quick mode with name
+npx codebolt-cli createagent -n "MyAgent" --quick
+```
+
+This generates a complete agent project structure with:
+- `codeboltagent.yaml` - Agent configuration
+- `package.json` - Dependencies
+- `src/index.ts` - Entry point with boilerplate code
+
+### Create an MCP Tool Template
+
+```bash
+# Interactive mode
+npx codebolt-cli createtool
+
+# With options
+npx codebolt-cli createtool -n "MyTool" -i "my-tool-id" -d "Tool description"
+```
+
+This generates an MCP tool project with:
+- `codebolttool.yaml` - Tool configuration
+- `package.json` - Dependencies
+- `src/index.ts` - MCP server boilerplate
+
+### Other Useful CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `npx codebolt-cli login` | Authenticate with Codebolt platform |
+| `npx codebolt-cli publishagent [path]` | Publish agent to registry |
+| `npx codebolt-cli publishtool [path]` | Publish MCP tool to registry |
+| `npx codebolt-cli listagents` | List your published agents |
+| `npx codebolt-cli listtools` | List your published MCP tools |
+| `npx codebolt-cli startagent [path]` | Start agent locally for testing |
+| `npx codebolt-cli cloneagent <id> [path]` | Clone an existing agent |
+| `npx codebolt-cli inspecttool <file>` | Debug tool with MCP inspector |
+
+### Project Structure
+
+```
+my-agent/
+├── codeboltagent.yaml    # Agent configuration (required)
+├── package.json          # Dependencies
+├── src/
+│   └── index.ts          # Agent entry point
+└── dist/                 # Compiled output
+```
+
 ## Architecture Overview
 
 Codebolt provides a **4-tier architecture** for building AI agents:
