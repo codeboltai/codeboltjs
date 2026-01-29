@@ -34,3 +34,50 @@ export interface AgentInterface {
         error?: string;
     }>;
 }
+
+export type AgentYamlConfig = {
+    title: string;
+    version: string;
+    unique_id: string;
+
+    initial_message: string;
+    description: string;
+
+    tags: string[];
+    longDescription: string;
+
+    avatarSrc?: string;
+    avatarFallback: string;
+
+    metadata?: {
+        agent_routing?: {
+            worksonblankcode?: boolean;
+            worksonexistingcode?: boolean;
+            supportedlanguages?: string[];
+            supportedframeworks?: string[];
+            supportRemix?: boolean;
+        };
+
+        defaultagentllm?: {
+            strict?: boolean;
+            modelorder?: string[];
+        };
+
+        llm_role?: Array<{
+            name: string;
+            description: string;
+            strict?: boolean;
+            modelorder?: string[];
+        }>;
+    };
+
+    actions: Array<{
+        name: string;
+        description: string;
+        detailDescription: string;
+        actionPrompt: string;
+    }>;
+
+    supportRemix: boolean;
+    author: string;
+};
