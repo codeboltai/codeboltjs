@@ -237,6 +237,118 @@ class InspectableAgent {
 }
 ```
 
+### Orchestrator with Child Agents
+
+```typescript
+import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
+import { ChatHistoryMessageModifier, CoreSystemPromptModifier, ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
+import codebolt from '@codebolt/codeboltjs';
+
+const eventQueue = codebolt.agentEventQueue;
+const agentTracker = codebolt.backgroundChildThreads;
+
+codebolt.onMessage(async (reqMessage) => {
+  const promptGenerator = new InitialPromptGenerator({
+    processors: [
+      new ChatHistoryMessageModifier({ enableChatHistory: true }),
+      new CoreSystemPromptModifier({ customSystemPrompt: ORCHESTRATOR_PROMPT }),
+      new ToolInjectionModifier({ includeToolDescriptions: true })
+    ]
+  });
+
+  let prompt = await promptGenerator.processMessage(reqMessage);
+  let continueLoop = true;
+
+  do {
+    // Run inner agent loop until no tool calls
+    let completed = false;
+    while (!completed) {
+      const agent = new AgentStep({});
+      const result = await agent.executeStep(reqMessage, prompt);
+      prompt = result.nextMessage;
+
+      const executor = new ResponseExecutor({});
+      const execResult = await executor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage
+      });
+
+      completed = execResult.completed;
+      prompt = execResult.nextMessage;
+    }
+
+    // Check for async events from child agents
+    if (agentTracker.getRunningAgentCount() > 0 ||
+        eventQueue.getPendingExternalEventCount() > 0) {
+
+      const events = await eventQueue.getPendingQueueEvents();
+
+      for (const event of events) {
+        if (event.type === 'backgroundAgentCompletion') {
+          prompt.message.messages.push({
+            role: 'assistant',
+            content: `Background agent completed:\n${JSON.stringify(event.data, null, 2)}`
+          });
+        } else if (event.type === 'agentQueueEvent') {
+          prompt.message.messages.push({
+            role: 'user',
+            content: `<child_agent_message>
+              <source_agent>${event.data.sourceAgentId}</source_agent>
+              <content>${event.data.payload?.content || JSON.stringify(event.data.payload)}</content>
+            </child_agent_message>`
+          });
+        }
+      }
+      continueLoop = true;
+    } else {
+      continueLoop = false;
+    }
+
+  } while (continueLoop);
+});
+```
+
+### Long-Running Orchestrator (Waits for Events)
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+
+const eventQueue = codebolt.agentEventQueue;
+
+codebolt.onMessage(async (reqMessage) => {
+  // Initial setup and task distribution...
+  await distributeTasksToWorkers(reqMessage);
+
+  // Keep orchestrator alive, waiting for child agent events
+  while (true) {
+    const event = await eventQueue.waitForAnyExternalEvent();
+
+    switch (event.type) {
+      case 'agentQueueEvent':
+        // Message from child agent
+        await handleChildMessage(event.data);
+        break;
+
+      case 'backgroundAgentCompletion':
+        // Child agent finished
+        const allComplete = await checkAllTasksComplete();
+        if (allComplete) {
+          codebolt.chat.sendMessage('All tasks completed!');
+          return;
+        }
+        break;
+
+      case 'backgroundGroupedAgentCompletion':
+        // Group of agents finished
+        await handleGroupCompletion(event.data);
+        break;
+    }
+  }
+});
+```
+
 ### Rate-Limited Agent
 
 ```typescript

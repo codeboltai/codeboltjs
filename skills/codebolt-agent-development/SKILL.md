@@ -130,6 +130,85 @@ codebolt.onMessage(async (msg) => {
 | Level 3 + ActionBlocks | Use CodeboltAgent with ActionBlocks for reusable subtasks |
 | Workflow + ActionBlocks | Workflow steps that invoke ActionBlocks |
 
+## The Agent Loop Pattern
+
+Codebolt agents follow a standard execution pattern:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  1. onMessage() receives user message                          │
+│  2. Process into initial prompt (attach context, tools, etc.)  │
+│  3. AGENT LOOP:                                                │
+│     ├─► Send prompt to LLM                                     │
+│     ├─► Get response (may include tool_calls)                  │
+│     ├─► If tool_calls: execute tools, add results to prompt    │
+│     ├─► Check for async events (child agents, completions)     │
+│     └─► Repeat until no tool_calls AND no pending events       │
+│  4. Return final response                                      │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### Basic Pattern
+
+```typescript
+codebolt.onMessage(async (reqMessage) => {
+  // 1. Process message into prompt
+  let prompt = await promptGenerator.processMessage(reqMessage);
+
+  // 2. Agent loop
+  let completed = false;
+  while (!completed) {
+    const stepResult = await agentStep.executeStep(reqMessage, prompt);
+    const execResult = await responseExecutor.executeResponse({...});
+
+    completed = execResult.completed;
+    prompt = execResult.nextMessage;
+  }
+
+  return execResult.finalMessage;
+});
+```
+
+### With Async Event Handling (Orchestrator Pattern)
+
+```typescript
+const eventQueue = codebolt.agentEventQueue;
+const agentTracker = codebolt.backgroundChildThreads;
+
+codebolt.onMessage(async (reqMessage) => {
+  let prompt = await promptGenerator.processMessage(reqMessage);
+  let continueLoop = true;
+
+  do {
+    // Run agent loop until no tool calls
+    const result = await runAgentLoop(reqMessage, prompt);
+    prompt = result.prompt;
+
+    // Check for events from child agents
+    if (agentTracker.getRunningAgentCount() > 0 ||
+        eventQueue.getPendingExternalEventCount() > 0) {
+      const events = await eventQueue.getPendingQueueEvents();
+      // Process events, add to prompt
+      continueLoop = true;
+    } else {
+      continueLoop = false;
+    }
+  } while (continueLoop);
+});
+```
+
+### Long-Running Orchestrator (Never Exits)
+
+```typescript
+// For orchestrators that wait for child agents indefinitely
+while (true) {
+  const event = await eventQueue.waitForAnyExternalEvent();
+  // Process event...
+}
+```
+
+**See:** [references/level2-base-components.md](references/level2-base-components.md) for full details.
+
 ## ActionBlocks
 
 ActionBlocks are **reusable, independently executable units** of logic that can be invoked from agents, workflows, or other ActionBlocks.
@@ -222,6 +301,8 @@ const orchestrationWorkflow = new Workflow({
 | Custom agent loop logic | Level 2 | `InitialPromptGenerator` + `AgentStep` + `ResponseExecutor` |
 | Full manual control | Level 1 | Direct `codebolt.*` APIs |
 | Multi-step orchestration | Level 3 | `Workflow` with steps |
+| Orchestrator with child agents | Level 2 | Agent loop + `agentEventQueue` |
+| Long-running orchestrator | Level 2 | `waitForAnyExternalEvent()` loop |
 | Reusable logic units | ActionBlocks | `codebolt.actionBlock.start()` |
 | Tools for single agent | Level 3 | `createTool()` with Zod schemas |
 | Shared tools across agents | MCP | `MCPServer` from `@codebolt/mcp` |
@@ -379,9 +460,12 @@ import {
 // Custom MCP Servers
 import { MCPServer } from '@codebolt/mcp';
 
-// Level 1 - Direct APIs & ActionBlocks
+// Level 1 - Direct APIs, ActionBlocks & Event Queue
 import codebolt from '@codebolt/codeboltjs';
 // codebolt.actionBlock.start(), codebolt.actionBlock.list()
+// codebolt.agentEventQueue.getPendingQueueEvents()
+// codebolt.agentEventQueue.waitForAnyExternalEvent()
+// codebolt.backgroundChildThreads.getRunningAgentCount()
 ```
 
 ## References

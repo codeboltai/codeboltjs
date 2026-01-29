@@ -358,6 +358,144 @@ interface ResponseOutput {
 
 ---
 
+## Agent Loop with Async Events
+
+For orchestrators and long-running agents, you can handle async events from child agents within the loop.
+
+### Event Queue API
+
+```typescript
+const eventQueue = codebolt.agentEventQueue;
+const agentTracker = codebolt.backgroundChildThreads;
+
+// Check for pending events (non-blocking)
+const events = await eventQueue.getPendingQueueEvents();
+
+// Wait for next event (blocking - keeps agent alive)
+const event = await eventQueue.waitForNextQueueEvent();
+
+// Get pending event count
+const count = eventQueue.getPendingExternalEventCount();
+
+// Wait for any external event (queue events, background completions)
+const externalEvent = await eventQueue.waitForAnyExternalEvent();
+```
+
+### Event Types
+
+```typescript
+type ExternalEventType =
+  | 'agentQueueEvent'              // Message from child agent
+  | 'backgroundAgentCompletion'    // Background agent finished
+  | 'backgroundGroupedAgentCompletion'; // Grouped agents finished
+
+interface UnifiedExternalEvent {
+  type: ExternalEventType;
+  data: any;
+}
+```
+
+### Orchestrator Pattern (Long-Running)
+
+```typescript
+import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
+import codebolt from '@codebolt/codeboltjs';
+
+const eventQueue = codebolt.agentEventQueue;
+const agentTracker = codebolt.backgroundChildThreads;
+
+codebolt.onMessage(async (reqMessage) => {
+  const promptGenerator = new InitialPromptGenerator({ /* ... */ });
+  let prompt = await promptGenerator.processMessage(reqMessage);
+  let continueLoop = true;
+
+  do {
+    // Run agent loop until no more tool calls
+    const result = await runAgentLoop(reqMessage, prompt);
+    prompt = result.prompt;
+
+    // Check for async events from child agents
+    if (agentTracker.getRunningAgentCount() > 0 ||
+        eventQueue.getPendingExternalEventCount() > 0) {
+
+      const events = await eventQueue.getPendingQueueEvents();
+
+      for (const event of events) {
+        if (event.type === 'backgroundAgentCompletion') {
+          // Handle child agent completion
+          prompt.message.messages.push({
+            role: 'assistant',
+            content: `Background agent completed: ${JSON.stringify(event.data)}`
+          });
+        } else if (event.type === 'agentQueueEvent') {
+          // Handle message from child agent
+          prompt.message.messages.push({
+            role: 'user',
+            content: `<child_agent_message>
+              <source_agent>${event.data.sourceAgentId}</source_agent>
+              <content>${event.data.payload?.content}</content>
+            </child_agent_message>`
+          });
+        }
+      }
+      continueLoop = true;
+    } else {
+      continueLoop = false;
+    }
+
+  } while (continueLoop);
+});
+```
+
+### Persistent Orchestrator (Never Exits)
+
+For orchestrators that should stay alive indefinitely:
+
+```typescript
+codebolt.onMessage(async (reqMessage) => {
+  // Initial processing...
+
+  // Keep orchestrator alive, waiting for events
+  while (true) {
+    const event = await eventQueue.waitForAnyExternalEvent();
+
+    // Process the event
+    if (event.type === 'agentQueueEvent') {
+      // Handle message from child agent
+      await processChildAgentMessage(event.data);
+    } else if (event.type === 'backgroundAgentCompletion') {
+      // Handle completion
+      await processCompletion(event.data);
+    }
+
+    // Optional: break condition
+    if (shouldTerminate(event)) {
+      break;
+    }
+  }
+});
+```
+
+### Sending Messages to Other Agents
+
+```typescript
+// Send message to another agent's queue
+await eventQueue.sendAgentMessage({
+  targetAgentId: 'worker-agent-123',
+  content: 'Task completed successfully',
+  metadata: { taskId: 'task-456' }
+});
+
+// Add event to agent's queue
+await eventQueue.addEvent({
+  targetAgentId: 'worker-agent-123',
+  eventType: 'taskAssignment',
+  payload: { task: 'Implement feature X' }
+});
+```
+
+---
+
 ## When to Move to Level 3
 
 Consider moving to Level 3 (CodeboltAgent) when:
