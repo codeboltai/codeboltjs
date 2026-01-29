@@ -3,10 +3,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Define the directory containing your TypeScript files
-const dir = './src';
+const dir = '../src';
 
 // Define the output directory for the documentation
-const outDir = './document';
+const outDir = '../document';
 
 // Use a recursive function to find all TypeScript files in the directory and its subdirectories
 function getFiles(dir) {
