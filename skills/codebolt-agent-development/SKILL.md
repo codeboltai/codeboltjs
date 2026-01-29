@@ -168,7 +168,7 @@ Always provide constructive feedback with examples.
 | `reasoningEffort` | 'low' \| 'medium' \| 'high' | For reasoning models |
 | `skills` | string[] | Skills to auto-load |
 | `remixedFromId` | string | Original agent ID (when remixing) |
-| `additionalSubAgent` | any[] | Sub-agents to include |
+| `additionalSubAgent` | SubAgentConfig[] | Sub-agents to include |
 
 ### When to Use Remix Agents
 
@@ -325,7 +325,21 @@ if (result.success) {
 // src/index.ts
 import codebolt from '@codebolt/codeboltjs';
 
-codebolt.onActionBlockInvocation(async (threadContext, metadata) => {
+// Define types for ActionBlock invocation (see references/action-blocks.md for full definitions)
+interface ThreadContext {
+  params?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface ActionBlockInvocationMetadata {
+  sideExecutionId: string;
+  threadId: string;
+  parentAgentId: string;
+  parentAgentInstanceId: string;
+  timestamp: string;
+}
+
+codebolt.onActionBlockInvocation(async (threadContext: ThreadContext, metadata: ActionBlockInvocationMetadata) => {
   const params = threadContext?.params || {};
   const { task, options } = params;
 
@@ -393,6 +407,73 @@ const orchestrationWorkflow = new Workflow({
 | Tools for single agent | Level 3 | `createTool()` with Zod schemas |
 | Shared tools across agents | MCP | `MCPServer` from `@codebolt/mcp` |
 | Custom context injection | Any | Extend `BaseMessageModifier` |
+
+## Tool Execution Architecture
+
+**ResponseExecutor** automatically handles tool execution from LLM responses. You should use it instead of manually parsing and executing tools.
+
+### Built-in Tool Routes
+
+The `ResponseExecutor` routes tools based on naming conventions:
+
+| Tool Pattern | Route | Execution |
+|--------------|-------|-----------|
+| `toolbox--toolname` | MCP | `codebolt.mcp.executeTool(toolbox, toolname, args)` |
+| `subagent--agentname` | Subagent | `codebolt.agent.startAgent(agentname, task)` |
+| `codebolt--thread_management` | Thread | `codebolt.thread.createThreadInBackground(options)` |
+| `attempt_completion` | Completion | Marks task as complete |
+
+### When to Use What
+
+| Need | Approach |
+|------|----------|
+| Standard MCP tools | Just use `ResponseExecutor` - it handles them automatically |
+| Custom local tools | Add a `PreToolCallProcessor` to intercept and handle |
+| Enhance tool results | Add a `PostToolCallProcessor` to modify results |
+| Manual control | Level 1 direct APIs (not recommended for production) |
+
+### Adding Custom/Local Tools
+
+Use `PreToolCallProcessor` to intercept tool calls and execute custom logic:
+
+```typescript
+import { BasePreToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+
+class MyLocalToolProcessor extends BasePreToolCallProcessor {
+  async modify(input: PreToolCallProcessorInput): Promise<{
+    nextPrompt: ProcessedMessage;
+    shouldExit: boolean;
+  }> {
+    const toolCalls = input.rawLLMResponseMessage.choices?.[0]?.message?.tool_calls || [];
+
+    for (const toolCall of toolCalls) {
+      if (toolCall.function.name === 'my_local_tool') {
+        // Execute your custom tool
+        const args = JSON.parse(toolCall.function.arguments);
+        const result = await myLocalHandler(args);
+
+        // Add result to message history
+        input.nextPrompt.message.messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(result)
+        });
+      }
+    }
+
+    return { nextPrompt: input.nextPrompt, shouldExit: false };
+  }
+}
+
+// Register with ResponseExecutor
+const responseExecutor = new ResponseExecutor({
+  preToolCallProcessors: [new MyLocalToolProcessor()],
+  postToolCallProcessors: []
+});
+```
+
+**See:** [references/level2-base-components.md](references/level2-base-components.md) for complete examples, [references/processors.md](references/processors.md) for processor details.
 
 ## Agent Configuration (codeboltagent.yaml)
 
@@ -695,8 +776,9 @@ Simply use the existing types — they are automatically available when you impo
 import codebolt from '@codebolt/codeboltjs';
 import { CodeboltAgent, Workflow, createTool } from '@codebolt/agent/unified';
 
-// If you need to explicitly import types
-import type { ThreadContext, ActionBlockResult } from '@codebolt/types';
+// Common SDK types
+import type { FlatUserMessage, MessageObject, LLMCompletion } from '@codebolt/types/sdk';
+import type { ProcessedMessage, AgentConfig } from '@codebolt/types/agent';
 ```
 
 ### Run Error Checks

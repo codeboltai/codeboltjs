@@ -34,6 +34,8 @@ Transform user messages before LLM inference. Applied by `InitialPromptGenerator
 
 ```typescript
 import { BaseMessageModifier } from '@codebolt/agent/processor-pieces';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
 
 class CustomModifier extends BaseMessageModifier {
   async modify(
@@ -137,6 +139,8 @@ Process messages immediately before LLM inference.
 
 ```typescript
 import { BasePreInferenceProcessor } from '@codebolt/agent/processor-pieces';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
 
 class CustomPreProcessor extends BasePreInferenceProcessor {
   async process(
@@ -202,11 +206,13 @@ Process LLM responses after inference, before tool execution.
 
 ```typescript
 import { BasePostInferenceProcessor } from '@codebolt/agent/processor-pieces';
+import type { LLMCompletion } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
 
 class CustomPostProcessor extends BasePostInferenceProcessor {
   async modify(
     llmMessageSent: ProcessedMessage,
-    llmResponseMessage: LLMResponse,
+    llmResponseMessage: LLMCompletion,
     nextPrompt: ProcessedMessage
   ): Promise<ProcessedMessage> {
     // Analyze or modify response
@@ -277,6 +283,7 @@ Validate or intercept tool calls before execution.
 
 ```typescript
 import { BasePreToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
 
 class CustomToolValidator extends BasePreToolCallProcessor {
   async modify(input: PreToolCallProcessorInput): Promise<{
@@ -350,6 +357,89 @@ class ArgumentSanitizer extends BasePreToolCallProcessor {
 }
 ```
 
+#### Creating Custom/Local Tools
+
+Use `PreToolCallProcessor` to handle custom tools that execute locally instead of through MCP.
+
+**Pattern:**
+1. Intercept tool calls matching your custom tool name
+2. Execute your local logic
+3. Add the result to the message history
+4. Remove handled tools from the LLM response so ResponseExecutor skips them
+
+```typescript
+import { BasePreToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+
+class MyCustomToolProcessor extends BasePreToolCallProcessor {
+  async modify(input: PreToolCallProcessorInput): Promise<{
+    nextPrompt: ProcessedMessage;
+    shouldExit: boolean;
+  }> {
+    const toolCalls = input.rawLLMResponseMessage.choices?.[0]?.message?.tool_calls || [];
+    const handledToolIds = new Set<string>();
+
+    for (const toolCall of toolCalls) {
+      if (toolCall.function.name === 'my_custom_tool') {
+        const args = JSON.parse(toolCall.function.arguments);
+
+        // Execute your custom logic
+        const result = await this.executeCustomLogic(args);
+
+        // Add result to message history
+        input.nextPrompt.message.messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(result)
+        });
+
+        handledToolIds.add(toolCall.id);
+      }
+    }
+
+    // Remove handled tools so ResponseExecutor doesn't try to execute them via MCP
+    if (handledToolIds.size > 0) {
+      const message = input.rawLLMResponseMessage.choices?.[0]?.message;
+      if (message?.tool_calls) {
+        message.tool_calls = message.tool_calls.filter(tc => !handledToolIds.has(tc.id));
+      }
+    }
+
+    return { nextPrompt: input.nextPrompt, shouldExit: false };
+  }
+
+  private async executeCustomLogic(args: Record<string, unknown>): Promise<unknown> {
+    // Your implementation here
+    return { success: true, data: args };
+  }
+}
+```
+
+**Important:** Also inject your tool schema via `ToolInjectionModifier.additionalTools` so the LLM knows about it:
+
+```typescript
+const promptGenerator = new InitialPromptGenerator({
+  processors: [
+    new ToolInjectionModifier({
+      additionalTools: [{
+        type: 'function',
+        function: {
+          name: 'my_custom_tool',
+          description: 'Description for LLM',
+          parameters: {
+            type: 'object',
+            properties: { /* your params */ },
+            required: []
+          }
+        }
+      }]
+    })
+  ]
+});
+```
+
+See [examples.md](examples.md#agent-with-custom-local-tool) for a complete working example.
+
 ---
 
 ## Post-Tool Call Processors
@@ -360,6 +450,7 @@ Process tool results after execution.
 
 ```typescript
 import { BasePostToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import type { PostToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
 
 class CustomResultProcessor extends BasePostToolCallProcessor {
   async modify(input: PostToolCallProcessorInput): Promise<{

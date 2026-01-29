@@ -115,8 +115,9 @@ Generate comprehensive API documentation.
 
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
-codebolt.onMessage(async (userMessage) => {
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
   const response = await codebolt.llm.inference({
     messages: [
       { role: 'system', content: 'You are a friendly assistant.' },
@@ -132,10 +133,11 @@ codebolt.onMessage(async (userMessage) => {
 
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const MAX_ITERATIONS = 15;
 
-codebolt.onMessage(async (userMessage) => {
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
   const messages = [
     { role: 'system', content: 'You are a file assistant. Help with file operations.' },
     { role: 'user', content: userMessage.userMessage }
@@ -178,6 +180,7 @@ codebolt.onMessage(async (userMessage) => {
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
 import { ChatHistoryMessageModifier, CoreSystemPromptModifier, ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 class InspectableAgent {
   private promptGen: InitialPromptGenerator;
@@ -198,7 +201,7 @@ class InspectableAgent {
     this.responseExec = new ResponseExecutor({ preToolCallProcessors: [], postToolCallProcessors: [] });
   }
 
-  async execute(userMessage) {
+  async execute(userMessage: FlatUserMessage) {
     let prompt = await this.promptGen.processMessage(userMessage);
     this.log(`Processed message with ${prompt.message.messages.length} messages`);
 
@@ -243,11 +246,12 @@ class InspectableAgent {
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
 import { ChatHistoryMessageModifier, CoreSystemPromptModifier, ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const eventQueue = codebolt.agentEventQueue;
 const agentTracker = codebolt.backgroundChildThreads;
 
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
   const promptGenerator = new InitialPromptGenerator({
     processors: [
       new ChatHistoryMessageModifier({ enableChatHistory: true }),
@@ -314,10 +318,11 @@ codebolt.onMessage(async (reqMessage) => {
 
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const eventQueue = codebolt.agentEventQueue;
 
-codebolt.onMessage(async (reqMessage) => {
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
   // Initial setup and task distribution...
   await distributeTasksToWorkers(reqMessage);
 
@@ -353,12 +358,14 @@ codebolt.onMessage(async (reqMessage) => {
 
 ```typescript
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
 
 class RateLimitedAgent {
   private lastCallTime = 0;
   private minDelayMs = 1000;
 
-  async executeStep(userMessage, prompt) {
+  async executeStep(userMessage: FlatUserMessage, prompt: ProcessedMessage) {
     // Ensure minimum delay between LLM calls
     const elapsed = Date.now() - this.lastCallTime;
     if (elapsed < this.minDelayMs) {
@@ -374,6 +381,133 @@ class RateLimitedAgent {
 }
 ```
 
+### Agent with Custom Local Tool
+
+This example shows how to add a custom tool that executes locally (not through MCP) while still using ResponseExecutor for standard tools.
+
+```typescript
+import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
+import { BasePreToolCallProcessor, ToolInjectionModifier, CoreSystemPromptModifier } from '@codebolt/agent/processor-pieces';
+import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+
+// 1. Define your custom tool processor
+class DataTransformToolProcessor extends BasePreToolCallProcessor {
+  async modify(input: PreToolCallProcessorInput): Promise<{
+    nextPrompt: ProcessedMessage;
+    shouldExit: boolean;
+  }> {
+    const toolCalls = input.rawLLMResponseMessage.choices?.[0]?.message?.tool_calls || [];
+    const handledToolIds = new Set<string>();
+
+    for (const toolCall of toolCalls) {
+      if (toolCall.function.name === 'transform_data') {
+        const args = JSON.parse(toolCall.function.arguments);
+
+        // Execute custom transformation logic
+        const result = this.transformData(args.data, args.format);
+
+        // Add result to conversation
+        input.nextPrompt.message.messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(result)
+        });
+
+        handledToolIds.add(toolCall.id);
+      }
+    }
+
+    // Remove handled tools so ResponseExecutor skips them
+    if (handledToolIds.size > 0) {
+      const message = input.rawLLMResponseMessage.choices?.[0]?.message;
+      if (message?.tool_calls) {
+        message.tool_calls = message.tool_calls.filter(tc => !handledToolIds.has(tc.id));
+      }
+    }
+
+    return { nextPrompt: input.nextPrompt, shouldExit: false };
+  }
+
+  private transformData(data: unknown, format: string): { transformed: string } {
+    // Your custom logic here
+    if (format === 'json') {
+      return { transformed: JSON.stringify(data, null, 2) };
+    } else if (format === 'csv') {
+      // Convert to CSV...
+      return { transformed: 'col1,col2\nval1,val2' };
+    }
+    return { transformed: String(data) };
+  }
+}
+
+// 2. Define the tool schema for LLM
+const transformToolSchema = {
+  type: 'function',
+  function: {
+    name: 'transform_data',
+    description: 'Transform data into different formats (json, csv, etc.)',
+    parameters: {
+      type: 'object',
+      properties: {
+        data: { type: 'object', description: 'Data to transform' },
+        format: { type: 'string', enum: ['json', 'csv', 'text'], description: 'Target format' }
+      },
+      required: ['data', 'format']
+    }
+  }
+};
+
+// 3. Set up the agent with custom tool
+const promptGenerator = new InitialPromptGenerator({
+  processors: [
+    new CoreSystemPromptModifier({
+      customSystemPrompt: 'You are a data processing assistant. Use transform_data for conversions.'
+    }),
+    new ToolInjectionModifier({
+      additionalTools: [transformToolSchema]  // Add custom tool to available tools
+    })
+  ]
+});
+
+const agentStep = new AgentStep({});
+
+const responseExecutor = new ResponseExecutor({
+  preToolCallProcessors: [
+    new DataTransformToolProcessor()  // Handle custom tool before MCP execution
+  ],
+  postToolCallProcessors: []
+});
+
+// 4. Agent loop
+codebolt.onMessage(async (userMessage: FlatUserMessage) => {
+  let prompt = await promptGenerator.processMessage(userMessage);
+  let completed = false;
+
+  while (!completed) {
+    const stepResult = await agentStep.executeStep(userMessage, prompt);
+
+    // ResponseExecutor handles both custom tools (via processor) and MCP tools
+    const execResult = await responseExecutor.executeResponse({
+      initialUserMessage: userMessage,
+      actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
+      rawLLMOutput: stepResult.rawLLMResponse,
+      nextMessage: stepResult.nextMessage
+    });
+
+    completed = execResult.completed;
+    prompt = execResult.nextMessage;
+  }
+});
+```
+
+**Key Points:**
+- Custom tools are handled by `PreToolCallProcessor` before ResponseExecutor runs
+- Standard MCP tools are still executed by ResponseExecutor automatically
+- The tool schema must be injected via `ToolInjectionModifier.additionalTools`
+- Remove handled tool calls from the LLM response so ResponseExecutor skips them
+
 ---
 
 ## Level 3 Examples (High-Level)
@@ -383,13 +517,14 @@ class RateLimitedAgent {
 ```typescript
 import { CodeboltAgent } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
 const agent = new CodeboltAgent({
   instructions: 'You are a coding assistant. Help with code, debugging, and explanations.',
   enableLogging: true
 });
 
-codebolt.onMessage(async (msg) => {
+codebolt.onMessage(async (msg: FlatUserMessage) => {
   const result = await agent.processMessage(msg);
   if (!result.success) {
     codebolt.chat.sendMessage(`Error: ${result.error}`);
@@ -710,6 +845,8 @@ class AgentOrchestrator {
 ### Specialist Delegation
 
 ```typescript
+import { CodeboltAgent } from '@codebolt/agent/unified';
+
 class SpecialistRouter {
   private specialists = new Map<string, CodeboltAgent>();
 
@@ -727,7 +864,7 @@ class SpecialistRouter {
     }));
   }
 
-  async route(task: string, context: any) {
+  async route(task: string, context: { threadId: string; messageId: string }) {
     // Determine specialist
     const keywords = task.toLowerCase();
     let specialist = 'backend'; // default
@@ -753,15 +890,18 @@ class SpecialistRouter {
 ### Resilient Agent
 
 ```typescript
+import { CodeboltAgent } from '@codebolt/agent/unified';
+import type { FlatUserMessage, CodeboltAgentConfig } from '@codebolt/types/agent';
+
 class ResilientAgent {
   private agent: CodeboltAgent;
   private maxRetries = 3;
 
-  constructor(config: any) {
+  constructor(config: CodeboltAgentConfig) {
     this.agent = new CodeboltAgent(config);
   }
 
-  async execute(message: any) {
+  async execute(message: FlatUserMessage) {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -785,6 +925,9 @@ class ResilientAgent {
 ### Graceful Degradation
 
 ```typescript
+import { CodeboltAgent } from '@codebolt/agent/unified';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
 class GracefulAgent {
   private primaryAgent: CodeboltAgent;
   private fallbackAgent: CodeboltAgent;
@@ -800,7 +943,7 @@ class GracefulAgent {
     });
   }
 
-  async execute(message: any) {
+  async execute(message: FlatUserMessage) {
     try {
       const result = await this.primaryAgent.processMessage(message);
       if (result.success) return result;
