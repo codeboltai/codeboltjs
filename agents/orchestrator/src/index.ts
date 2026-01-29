@@ -45,10 +45,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     // Phase 1: Create plan using action block
     codebolt.chat.sendMessage("Creating implementation plan...", {});
     try {
-        // const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
-        //     userMessage: reqMessage
-        // });
-        let planResult= {"type":"startActionBlockResponse","success":true,"sideExecutionId":"side_1769598460408_a5d3c30f","result":{"success":true,"planId":"plan-85570fd4-874d-4cef-ae00-369b4d3277e0","requirementPlanPath":"/Users/ravirawat/Documents/cbtest/testing-orchestrator/plans/whatsapp-clone-implementation.plan"},"requestId":"28f30a11-c94d-4ae7-8985-ed066f4ff138"}
+        const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
+            userMessage: reqMessage
+        });
+        // let planResult= {"type":"startActionBlockResponse","success":true,"sideExecutionId":"side_1769598460408_a5d3c30f","result":{"success":true,"planId":"plan-85570fd4-874d-4cef-ae00-369b4d3277e0","requirementPlanPath":"/Users/ravirawat/Documents/cbtest/testing-orchestrator/plans/whatsapp-clone-implementation.plan"},"requestId":"28f30a11-c94d-4ae7-8985-ed066f4ff138"}
 
 
         codebolt.chat.sendMessage(JSON.stringify(planResult))
