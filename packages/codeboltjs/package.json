@@ -17,6 +17,7 @@
     "build:webpack": "webpack",
     "build:all": "npm run build && npm run build:webpack",
     "build:docs": "typedoc --plugin typedoc-plugin-missing-exports",
+    "build:docs:md": "node script/gen-docusaurus-types.js --clean",
     "build:jsondocs": "typedoc --plugin typedoc-plugin-missing-exports --json out.json --pretty",
     "test": "jest",
     "test:watch": "jest --watch",

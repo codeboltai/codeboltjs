@@ -1,0 +1,18 @@
+---
+title: IRespondResponse
+---
+
+[**@codebolt/codeboltjs**](../index)
+
+***
+
+# Interface: IRespondResponse
+
+Defined in: [packages/codeboltjs/src/types/groupFeedback.ts:129](https://github.com/codeboltai/codeboltjs/blob/36eac18c55e0c3027fd350e40230c8db1c7ff3af/packages/codeboltjs/src/types/groupFeedback.ts#L129)
+
+## Properties
+
+| Property | Type | Defined in |
+| ------ | ------ | ------ |
+| <a id="payload"></a> `payload` | \{ `response`: [`FeedbackResponse`](FeedbackResponse); \} | [packages/codeboltjs/src/types/groupFeedback.ts:130](https://github.com/codeboltai/codeboltjs/blob/36eac18c55e0c3027fd350e40230c8db1c7ff3af/packages/codeboltjs/src/types/groupFeedback.ts#L130) |
+| `payload.response` | [`FeedbackResponse`](FeedbackResponse) | [packages/codeboltjs/src/types/groupFeedback.ts:130](https://github.com/codeboltai/codeboltjs/blob/36eac18c55e0c3027fd350e40230c8db1c7ff3af/packages/codeboltjs/src/types/groupFeedback.ts#L130) |
