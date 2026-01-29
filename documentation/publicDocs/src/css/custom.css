@@ -516,3 +516,22 @@ div[class*='codeBlockContainer'] {
   padding: 0.4rem 0.8rem !important;
   line-height: 1.4;
 }
+
+/* Premium Image Styling */
+.theme-doc-markdown img {
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+[data-theme='dark'] .theme-doc-markdown img {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-doc-markdown img:hover {
+  transform: scale(1.01);
+}
