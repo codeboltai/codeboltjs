@@ -18,6 +18,11 @@ const config: Config = {
     format: 'mdx',
   },
 
+  onBrokenAnchors: 'warn',
+  customFields: {
+    onDuplicatePresets: 'warn',
+    onExtraPlugins: 'warn',
+  },
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'codeboltai', // Usually your GitHub org/user name.
