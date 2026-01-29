@@ -16,6 +16,9 @@ const config: Config = {
   markdown: {
     mermaid: true,
     format: 'mdx',
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
   },
 
   onBrokenAnchors: 'warn',
@@ -29,7 +32,6 @@ const config: Config = {
   projectName: 'codeboltai.github.io', // Usually your repo name.
 
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -38,7 +40,21 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        docsRouteBasePath: '/docs',
+        indexBlog: true,
+        indexDocs: true,
+      },
+    ],
+  ],
 
   presets: [
     [
@@ -135,7 +151,7 @@ const config: Config = {
     },
     prism: {
       theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      darkTheme: prismThemes.vsDark,
     },
   } satisfies Preset.ThemeConfig,
 };
