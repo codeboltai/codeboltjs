@@ -1,6 +1,6 @@
 ---
 name: codebolt-agent-development
-description: Build AI agents for the Codebolt platform using @codebolt/agent. Use when creating agents, configuring the agent loop, writing custom message modifiers, implementing processors, creating tools, building workflows, or choosing between abstraction levels. Covers Level 1 (direct APIs), Level 2 (base components), and Level 3 (high-level CodeboltAgent).
+description: Build AI agents for the Codebolt platform using @codebolt/agent. Use when creating agents, configuring the agent loop, writing custom message modifiers, implementing processors, creating tools, building workflows, ActionBlocks, or choosing between abstraction levels. Covers Level 1 (direct APIs), Level 2 (base components), Level 3 (high-level CodeboltAgent), and ActionBlocks for reusable logic.
 ---
 
 # Codebolt Agent Development
@@ -23,7 +23,129 @@ Codebolt provides a **3-tier architecture** for building AI agents:
 │  codebolt.llm, codebolt.fs, codebolt.terminal, etc.            │
 │  → Use when: You want to build everything from scratch          │
 └─────────────────────────────────────────────────────────────────┘
+         ↑↓ Mix & Match ↑↓
+┌─────────────────────────────────────────────────────────────────┐
+│  ActionBlocks: Reusable logic units invoked from any level      │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+## Mixing and Matching Levels
+
+**Levels are NOT exclusive.** You can combine them based on your needs:
+
+```typescript
+// Example: Level 3 agent + Level 1 direct API calls outside the loop
+import { CodeboltAgent } from '@codebolt/agent/unified';
+import codebolt from '@codebolt/codeboltjs';
+
+codebolt.onMessage(async (msg) => {
+  // Level 1: Send initial status message
+  codebolt.chat.sendMessage('Starting analysis...');
+
+  // Level 1: Do pre-processing with direct APIs
+  const files = await codebolt.fs.listFile('./src', true);
+
+  // Level 3: Use high-level agent for the main work
+  const agent = new CodeboltAgent({ instructions: 'You are a code reviewer.' });
+  const result = await agent.processMessage(msg);
+
+  // Level 1: Post-processing with direct APIs
+  await codebolt.memory.json.save({ review: result, files: files.data });
+  codebolt.chat.sendMessage('Review complete and saved!');
+});
+```
+
+**Common mixing patterns:**
+
+| Pattern | Description |
+|---------|-------------|
+| Level 3 + Level 1 outside loop | Use CodeboltAgent but add direct API calls before/after |
+| Level 2 + custom loop logic | Use base components but add custom iteration control |
+| Level 3 + ActionBlocks | Use CodeboltAgent with ActionBlocks for reusable subtasks |
+| Workflow + ActionBlocks | Workflow steps that invoke ActionBlocks |
+
+## ActionBlocks
+
+ActionBlocks are **reusable, independently executable units** of logic that can be invoked from agents, workflows, or other ActionBlocks.
+
+### When to Use ActionBlocks
+
+- Extract complex logic into reusable components
+- Share functionality across multiple agents
+- Create modular, testable units of work
+- Build orchestration pipelines with Workflows
+
+### Quick Start
+
+```typescript
+// Invoke an ActionBlock
+const result = await codebolt.actionBlock.start('create-plan-for-given-task', {
+  userMessage: reqMessage
+});
+
+if (result.success) {
+  console.log('Plan created:', result.result.planId);
+}
+```
+
+### Creating an ActionBlock
+
+```typescript
+// src/index.ts
+import codebolt from '@codebolt/codeboltjs';
+
+codebolt.onActionBlockInvocation(async (threadContext, metadata) => {
+  const params = threadContext?.params || {};
+  const { task, options } = params;
+
+  // Validate
+  if (!task) {
+    return { success: false, error: 'task is required' };
+  }
+
+  // Send status
+  codebolt.chat.sendMessage(`Processing: ${task.name}`);
+
+  // Do work
+  const result = await processTask(task, options);
+
+  // Return structured result
+  return { success: true, data: result };
+});
+```
+
+### ActionBlocks + Workflows
+
+```typescript
+import { Workflow } from '@codebolt/agent/unified';
+import codebolt from '@codebolt/codeboltjs';
+
+const orchestrationWorkflow = new Workflow({
+  name: 'Task Orchestration',
+  steps: [
+    {
+      id: 'create-plan',
+      execute: async (ctx) => {
+        const result = await codebolt.actionBlock.start('create-plan-for-given-task', {
+          userMessage: ctx.userMessage
+        });
+        return { success: result.success, data: { planId: result.result?.planId } };
+      }
+    },
+    {
+      id: 'create-jobs',
+      execute: async (ctx) => {
+        const result = await codebolt.actionBlock.start('create-jobs-from-plan', {
+          planId: ctx.planId
+        });
+        return { success: result.success, data: { jobs: result.result?.jobs } };
+      }
+    }
+  ]
+});
+```
+
+**See:** [references/action-blocks.md](references/action-blocks.md)
 
 ## Choosing the Right Level
 
@@ -33,6 +155,7 @@ Codebolt provides a **3-tier architecture** for building AI agents:
 | Custom agent loop logic | Level 2 | `InitialPromptGenerator` + `AgentStep` + `ResponseExecutor` |
 | Full manual control | Level 1 | Direct `codebolt.*` APIs |
 | Multi-step orchestration | Level 3 | `Workflow` with steps |
+| Reusable logic units | ActionBlocks | `codebolt.actionBlock.start()` |
 | Custom tools | Level 3 | `createTool()` with Zod schemas |
 | Custom context injection | Any | Extend `BaseMessageModifier` |
 
@@ -44,37 +167,6 @@ For building agents manually without any framework.
 - **`codebolt-api-access`** - TypeScript SDK calls (`codebolt.fs`, `codebolt.llm`, etc.)
 - **`codebolt-mcp-access`** - MCP tool execution (`codebolt.tools.executeTool`)
 
-**Manual agent loop pattern:**
-```typescript
-import codebolt from '@codebolt/codeboltjs';
-
-codebolt.onMessage(async (userMessage) => {
-  // 1. Build messages array
-  const messages = [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: userMessage.userMessage }
-  ];
-
-  // 2. Call LLM
-  const response = await codebolt.llm.inference({ messages, tools: [...] });
-
-  // 3. Handle tool calls manually
-  if (response.completion.choices[0].message.tool_calls) {
-    for (const toolCall of response.completion.choices[0].message.tool_calls) {
-      const result = await codebolt.mcp.executeTool(
-        toolCall.function.name.split('--')[0],
-        toolCall.function.name.split('--')[1],
-        JSON.parse(toolCall.function.arguments)
-      );
-      // Add result to messages and loop...
-    }
-  }
-
-  // 4. Send response
-  codebolt.chat.sendMessage(response.completion.choices[0].message.content);
-});
-```
-
 **See:** [references/level1-direct-apis.md](references/level1-direct-apis.md)
 
 ## Level 2: Base Components
@@ -85,35 +177,16 @@ For custom agent loop with helper functions.
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
 import { ChatHistoryMessageModifier, CoreSystemPromptModifier } from '@codebolt/agent/processor-pieces';
 
-// 1. Setup message processor
 const promptGenerator = new InitialPromptGenerator({
-  processors: [
-    new ChatHistoryMessageModifier(),
-    new CoreSystemPromptModifier({ customSystemPrompt: 'You are helpful.' })
-  ]
+  processors: [new ChatHistoryMessageModifier(), new CoreSystemPromptModifier()]
 });
+const agentStep = new AgentStep({});
+const responseExecutor = new ResponseExecutor({});
 
-// 2. Setup inference step
-const agentStep = new AgentStep({
-  preInferenceProcessors: [],
-  postInferenceProcessors: []
-});
-
-// 3. Setup tool executor
-const responseExecutor = new ResponseExecutor({
-  preToolCallProcessors: [],
-  postToolCallProcessors: []
-});
-
-// 4. Custom loop
 let prompt = await promptGenerator.processMessage(userMessage);
 while (!completed) {
   const stepResult = await agentStep.executeStep(userMessage, prompt);
-  const execResult = await responseExecutor.executeResponse({
-    nextMessage: stepResult.nextMessage,
-    rawLLMOutput: stepResult.rawLLMResponse,
-    actualMessageSentToLLM: stepResult.actualMessageSentToLLM
-  });
+  const execResult = await responseExecutor.executeResponse({...});
   completed = execResult.completed;
   prompt = execResult.nextMessage;
 }
@@ -124,8 +197,6 @@ while (!completed) {
 ## Level 3: High-Level Abstractions
 
 For production-ready agents with minimal setup.
-
-### CodeboltAgent (Recommended)
 
 ```typescript
 import { CodeboltAgent } from '@codebolt/agent/unified';
@@ -142,34 +213,6 @@ const result = await agent.processMessage({
 });
 ```
 
-### With Custom Processors
-
-```typescript
-import { CodeboltAgent } from '@codebolt/agent/unified';
-import {
-  CoreSystemPromptModifier,
-  ChatHistoryMessageModifier,
-  ToolInjectionModifier,
-  IdeContextModifier
-} from '@codebolt/agent/processor-pieces';
-
-const agent = new CodeboltAgent({
-  instructions: 'You are a code assistant.',
-  processors: {
-    messageModifiers: [
-      new CoreSystemPromptModifier({ customSystemPrompt: 'Custom prompt...' }),
-      new ChatHistoryMessageModifier({ maxHistoryMessages: 10 }),
-      new ToolInjectionModifier({ toolsLocation: 'Tool' }),
-      new IdeContextModifier({ includeActiveFile: true })
-    ],
-    preInferenceProcessors: [],
-    postInferenceProcessors: [],
-    preToolCallProcessors: [],
-    postToolCallProcessors: []
-  }
-});
-```
-
 **See:** [references/level3-high-level.md](references/level3-high-level.md)
 
 ## Creating Custom Tools
@@ -181,13 +224,8 @@ import { z } from 'zod';
 const searchTool = createTool({
   id: 'search-files',
   description: 'Search for files matching a pattern',
-  inputSchema: z.object({
-    pattern: z.string().describe('Glob pattern'),
-    directory: z.string().optional()
-  }),
-  execute: async ({ input }) => {
-    return { files: ['file1.ts', 'file2.ts'] };
-  }
+  inputSchema: z.object({ pattern: z.string(), directory: z.string().optional() }),
+  execute: async ({ input }) => ({ files: ['file1.ts', 'file2.ts'] })
 });
 ```
 
@@ -195,17 +233,12 @@ const searchTool = createTool({
 
 ## Creating Custom Modifiers & Processors
 
-Extend base classes to inject custom behavior:
-
 ```typescript
 import { BaseMessageModifier } from '@codebolt/agent/processor-pieces';
 
 class MyModifier extends BaseMessageModifier {
   async modify(originalRequest, createdMessage) {
-    createdMessage.message.messages.push({
-      role: 'system',
-      content: 'Custom context here'
-    });
+    createdMessage.message.messages.push({ role: 'system', content: 'Custom context' });
     return createdMessage;
   }
 }
@@ -242,30 +275,26 @@ import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/a
 
 // Processors & Modifiers
 import {
-  BaseMessageModifier,
-  CoreSystemPromptModifier,
-  ChatHistoryMessageModifier,
-  ToolInjectionModifier,
-  EnvironmentContextModifier,
-  DirectoryContextModifier,
-  IdeContextModifier,
-  BasePreInferenceProcessor,
-  BasePostInferenceProcessor,
-  BasePreToolCallProcessor,
-  BasePostToolCallProcessor
+  BaseMessageModifier, CoreSystemPromptModifier, ChatHistoryMessageModifier,
+  ToolInjectionModifier, EnvironmentContextModifier, DirectoryContextModifier,
+  IdeContextModifier, BasePreInferenceProcessor, BasePostInferenceProcessor,
+  BasePreToolCallProcessor, BasePostToolCallProcessor
 } from '@codebolt/agent/processor-pieces';
 
-// Level 1 - Direct APIs
+// Level 1 - Direct APIs & ActionBlocks
 import codebolt from '@codebolt/codeboltjs';
+// codebolt.actionBlock.start(), codebolt.actionBlock.list()
 ```
 
 ## References
 
 | Topic | File |
 |-------|------|
+| Mixing & Matching Levels | This file (above) |
 | Level 1: Direct APIs | [references/level1-direct-apis.md](references/level1-direct-apis.md) |
 | Level 2: Base Components | [references/level2-base-components.md](references/level2-base-components.md) |
 | Level 3: High-Level | [references/level3-high-level.md](references/level3-high-level.md) |
+| ActionBlocks | [references/action-blocks.md](references/action-blocks.md) |
 | Tools | [references/tools.md](references/tools.md) |
 | Processors & Modifiers | [references/processors.md](references/processors.md) |
 | Workflows | [references/workflows.md](references/workflows.md) |
