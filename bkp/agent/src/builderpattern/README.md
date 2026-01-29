@@ -5,6 +5,9 @@ This library provides a set of classes for building and managing AI agent workfl
 ## Classes
 
 ### PromptBuilder
+```
+THis is Now Replaced with InitialPromptGenerator in Unified. That has the concept of processors which is more flexible
+```
 
 The `PromptBuilder` class helps construct complex prompts with tools, environment details, and system instructions.
 
@@ -22,6 +25,10 @@ const prompt = await promptBuilder
 ```
 
 ### LLMOutputHandler
+
+```
+THis is Replaced by Execute Response in Unified
+```
 
 The `LLMOutputHandler` class processes LLM responses, executes tool calls, and manages completion detection.
 
@@ -44,6 +51,10 @@ if (outputHandler.isCompleted()) {
 ```
 
 ### FollowUpQuestionBuilder
+
+```
+THis is replaced by buildFollowUpConversation in unified
+```
 
 The `FollowUpQuestionBuilder` class manages conversation continuation and summarization.
 
