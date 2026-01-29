@@ -1,16 +1,20 @@
 ---
 name: codebolt-agent-development
-description: Build AI agents for the Codebolt platform using @codebolt/agent. Use when creating agents, configuring the agent loop, writing custom message modifiers, implementing processors, creating tools, building workflows, ActionBlocks, or choosing between abstraction levels. Covers Level 1 (direct APIs), Level 2 (base components), Level 3 (high-level CodeboltAgent), and ActionBlocks for reusable logic.
+description: Build AI agents for the Codebolt platform using @codebolt/agent. Use when creating agents, configuring the agent loop, writing custom message modifiers, implementing processors, creating tools, building workflows, ActionBlocks, or choosing between abstraction levels. Covers Remix Agents (no-code), Level 1 (direct APIs), Level 2 (base components), Level 3 (high-level CodeboltAgent), and ActionBlocks for reusable logic.
 ---
 
 # Codebolt Agent Development
 
 ## Architecture Overview
 
-Codebolt provides a **3-tier architecture** for building AI agents:
+Codebolt provides a **4-tier architecture** for building AI agents:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
+│  REMIX AGENTS: No-Code Configuration                            │
+│  Markdown files with YAML frontmatter + custom instructions     │
+│  → Use when: You want agents without writing any code           │
+├─────────────────────────────────────────────────────────────────┤
 │  LEVEL 3: High-Level Abstractions                               │
 │  CodeboltAgent, Agent, Workflow, Tools                          │
 │  → Use when: You want a ready-to-use agent with minimal setup   │
@@ -28,6 +32,68 @@ Codebolt provides a **3-tier architecture** for building AI agents:
 │  ActionBlocks: Reusable logic units invoked from any level      │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+## Remix Agents (No-Code)
+
+Remix Agents let you create agents **without writing any code**. They're stored as markdown files with YAML frontmatter in `.codebolt/agents/remix/`.
+
+### File Format
+
+```markdown
+---
+name: my-code-reviewer
+description: A specialized code review agent
+model: claude-sonnet-4-20250514
+provider: anthropic
+tools:
+  - codebolt--readFile
+  - codebolt--writeFile
+  - codebolt--search
+maxSteps: 100
+reasoningEffort: medium
+skills:
+  - code-review
+remixedFromId: base-coding-agent
+remixedFromTitle: Base Coding Agent
+version: 1.0.0
+---
+
+# Custom Instructions
+
+You are a code review specialist. When reviewing code:
+
+1. Check for security vulnerabilities
+2. Identify performance issues
+3. Suggest improvements
+4. Note style inconsistencies
+
+Always provide constructive feedback with examples.
+```
+
+### MarkdownAgent Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Agent identifier (becomes filename) |
+| `description` | string | Brief description |
+| `model` | string | Model to use (e.g., "claude-sonnet-4-20250514") |
+| `provider` | string | Provider name (e.g., "anthropic", "openai") |
+| `tools` | string[] | Tools available to the agent |
+| `maxSteps` | number | Max agentic iterations |
+| `reasoningEffort` | 'low' \| 'medium' \| 'high' | For reasoning models |
+| `skills` | string[] | Skills to auto-load |
+| `remixedFromId` | string | Original agent ID (when remixing) |
+| `additionalSubAgent` | any[] | Sub-agents to include |
+
+### When to Use Remix Agents
+
+- Quick customization of existing agents
+- Non-developers creating agents
+- Prototyping before building full code agents
+- Sharing agents as portable markdown files
+- Compatible with external tools (OpenCode, Factory.ai, Claude Code)
+
+**See:** [references/remix-agents.md](references/remix-agents.md)
 
 ## Mixing and Matching Levels
 
@@ -151,6 +217,7 @@ const orchestrationWorkflow = new Workflow({
 
 | Need | Level | What to Use |
 |------|-------|-------------|
+| No-code agent creation | Remix | Markdown file with YAML frontmatter |
 | Quick agent with defaults | Level 3 | `CodeboltAgent` |
 | Custom agent loop logic | Level 2 | `InitialPromptGenerator` + `AgentStep` + `ResponseExecutor` |
 | Full manual control | Level 1 | Direct `codebolt.*` APIs |
@@ -321,6 +388,7 @@ import codebolt from '@codebolt/codeboltjs';
 
 | Topic | File |
 |-------|------|
+| Remix Agents (No-Code) | [references/remix-agents.md](references/remix-agents.md) |
 | Mixing & Matching Levels | This file (above) |
 | Level 1: Direct APIs | [references/level1-direct-apis.md](references/level1-direct-apis.md) |
 | Level 2: Base Components | [references/level2-base-components.md](references/level2-base-components.md) |
