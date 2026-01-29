@@ -503,7 +503,9 @@ server.addTool({
   name: 'greet',
   description: 'Greet someone',
   parameters: z.object({ name: z.string() }),
-  execute: async (args) => `Hello, ${args.name}!`
+  execute: async (args) => {
+    return 'Hello, ' + args.name + '!';
+  }
 });
 
 await server.start({ transportType: 'stdio' });

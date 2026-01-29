@@ -128,7 +128,7 @@ server.addTool({
   }),
   execute: async (args, context) => {
     const greetings = { en: 'Hello', es: 'Hola', fr: 'Bonjour' };
-    return `${greetings[args.language || 'en']}, ${args.name}!`;
+    return greetings[args.language || 'en'] + ', ' + args.name + '!';
   }
 });
 
