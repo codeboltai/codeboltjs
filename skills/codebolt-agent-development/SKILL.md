@@ -156,7 +156,8 @@ const orchestrationWorkflow = new Workflow({
 | Full manual control | Level 1 | Direct `codebolt.*` APIs |
 | Multi-step orchestration | Level 3 | `Workflow` with steps |
 | Reusable logic units | ActionBlocks | `codebolt.actionBlock.start()` |
-| Custom tools | Level 3 | `createTool()` with Zod schemas |
+| Tools for single agent | Level 3 | `createTool()` with Zod schemas |
+| Shared tools across agents | MCP | `MCPServer` from `@codebolt/mcp` |
 | Custom context injection | Any | Extend `BaseMessageModifier` |
 
 ## Level 1: Direct APIs
@@ -217,6 +218,15 @@ const result = await agent.processMessage({
 
 ## Creating Custom Tools
 
+Two approaches for adding custom tools:
+
+| Approach | Package | Use Case |
+|----------|---------|----------|
+| **Local Tools** | `@codebolt/agent` | Tools used within your agent code |
+| **MCP Servers** | `@codebolt/mcp` | Standalone tool servers, shared across agents |
+
+### Local Tools (Quick)
+
 ```typescript
 import { createTool } from '@codebolt/agent/unified';
 import { z } from 'zod';
@@ -227,6 +237,24 @@ const searchTool = createTool({
   inputSchema: z.object({ pattern: z.string(), directory: z.string().optional() }),
   execute: async ({ input }) => ({ files: ['file1.ts', 'file2.ts'] })
 });
+```
+
+### Custom MCP Servers (Shared)
+
+```typescript
+import { MCPServer } from '@codebolt/mcp';
+import { z } from 'zod';
+
+const server = new MCPServer({ name: 'my-tools', version: '1.0.0' });
+
+server.addTool({
+  name: 'greet',
+  description: 'Greet someone',
+  parameters: z.object({ name: z.string() }),
+  execute: async (args) => `Hello, ${args.name}!`
+});
+
+await server.start({ transportType: 'stdio' });
 ```
 
 **See:** [references/tools.md](references/tools.md)
@@ -280,6 +308,9 @@ import {
   IdeContextModifier, BasePreInferenceProcessor, BasePostInferenceProcessor,
   BasePreToolCallProcessor, BasePostToolCallProcessor
 } from '@codebolt/agent/processor-pieces';
+
+// Custom MCP Servers
+import { MCPServer } from '@codebolt/mcp';
 
 // Level 1 - Direct APIs & ActionBlocks
 import codebolt from '@codebolt/codeboltjs';
