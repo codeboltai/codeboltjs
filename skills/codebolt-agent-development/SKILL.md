@@ -308,6 +308,110 @@ const orchestrationWorkflow = new Workflow({
 | Shared tools across agents | MCP | `MCPServer` from `@codebolt/mcp` |
 | Custom context injection | Any | Extend `BaseMessageModifier` |
 
+## Agent Configuration (codeboltagent.yaml)
+
+Every code-based agent requires a `codeboltagent.yaml` file that defines how Codebolt reads and presents the agent.
+
+### Basic Structure
+
+```yaml
+title: My Agent
+unique_id: my-agent
+version: 1.0.0
+author: your-name
+
+initial_message: Hello! How can I help you today?
+description: Short description of the agent
+longDescription: >
+  A longer description explaining what this agent does,
+  its capabilities, and use cases.
+
+tags:
+  - coding
+  - review
+
+avatarSrc: https://example.com/avatar.png
+avatarFallback: MA
+
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportedframeworks:
+      - react
+      - node
+    supportRemix: true
+
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - claude-sonnet-4-20250514
+      - gpt-4-turbo
+
+  llm_role:
+    - name: documentationllm
+      description: LLM for documentation tasks
+      strict: false
+      modelorder:
+        - gpt-4-turbo
+        - claude-sonnet-4-20250514
+
+actions:
+  - name: Review
+    description: Review code for issues
+    detailDescription: Performs comprehensive code review
+    actionPrompt: Please review this code
+  - name: Refactor
+    description: Refactor selected code
+    detailDescription: Improves code structure
+    actionPrompt: Please refactor this code
+```
+
+### Key Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Display name of the agent |
+| `unique_id` | string | Unique identifier (used internally) |
+| `version` | string | Semantic version (e.g., "1.0.0") |
+| `initial_message` | string | First message shown to user |
+| `description` | string | Short description (shown in agent list) |
+| `longDescription` | string | Detailed description |
+| `tags` | string[] | Categorization tags |
+| `avatarSrc` | string | URL to agent avatar image |
+| `avatarFallback` | string | Fallback text for avatar |
+| `author` | string | Agent author/creator |
+
+### Metadata Fields
+
+| Field | Description |
+|-------|-------------|
+| `agent_routing.worksonblankcode` | Can work on new projects |
+| `agent_routing.worksonexistingcode` | Can work on existing projects |
+| `agent_routing.supportedlanguages` | List of supported languages |
+| `agent_routing.supportedframeworks` | List of supported frameworks |
+| `agent_routing.supportRemix` | Allow users to remix this agent |
+| `defaultagentllm.strict` | Require exact model match |
+| `defaultagentllm.modelorder` | Preferred models in order |
+| `llm_role` | Role-specific LLM configurations |
+
+### Actions
+
+Actions are quick commands users can trigger:
+
+```yaml
+actions:
+  - name: ActionName
+    description: Short description shown in UI
+    detailDescription: Longer explanation
+    actionPrompt: The prompt sent to the agent
+```
+
+**See:** [references/agent-yaml.md](references/agent-yaml.md) for full reference.
+
 ## Level 1: Direct APIs
 
 For building agents manually without any framework.
@@ -472,6 +576,7 @@ import codebolt from '@codebolt/codeboltjs';
 
 | Topic | File |
 |-------|------|
+| Agent YAML Configuration | [references/agent-yaml.md](references/agent-yaml.md) |
 | Remix Agents (No-Code) | [references/remix-agents.md](references/remix-agents.md) |
 | Mixing & Matching Levels | This file (above) |
 | Level 1: Direct APIs | [references/level1-direct-apis.md](references/level1-direct-apis.md) |
