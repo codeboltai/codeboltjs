@@ -5,6 +5,21 @@ description: Build AI agents for the Codebolt platform using @codebolt/agent. Us
 
 # Codebolt Agent Development
 
+> **SDK Version 2** - This documentation covers Codebolt SDK v2.
+
+> **⚠️ IMPORTANT: Do NOT use `codebolt.waitForConnection()`**
+>
+> In SDK v2, `waitForConnection()` has been removed. Connection handling is now automatically managed inside `codebolt.onMessage()`. If you're migrating from v1 or see old examples using `waitForConnection()`, simply remove those calls.
+>
+> ```typescript
+> // ❌ OLD (SDK v1) - Do NOT use
+> await codebolt.waitForConnection();
+> codebolt.onMessage(async (msg) => { ... });
+>
+> // ✅ NEW (SDK v2) - Use this
+> codebolt.onMessage(async (msg) => { ... });
+> ```
+
 ## Architecture Overview
 
 Codebolt provides a **4-tier architecture** for building AI agents:
