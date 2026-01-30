@@ -2,12 +2,28 @@
 /**
  * Update Documentation Script
  * Uses OpenCode AI agent to generate/update documentation based on diff-report.json
+ * Connects to an EXISTING OpenCode server as a client.
  *
- * Usage: node update_docs.js [--limit=N] [--type=new_function|signature_changed] [--module=moduleName]
+ * Usage: node update_docs.js [options]
+ *
+ * Options:
+ *   --limit=N          Process only N items (default: all)
+ *   --type=TYPE        Filter by diff type: new_function, signature_changed, examples_missing
+ *   --module=NAME      Filter by module name
+ *   --base-url=URL     OpenCode server URL (default: http://localhost:5067)
+ *   --dry-run          Show what would be processed without actually doing it
+ *   --reset            Clear all tracking data and start fresh
+ *   --force            Reprocess items even if already completed
+ *
+ * Examples:
+ *   node update_docs.js --limit=5                    # Process up to 5 pending items
+ *   node update_docs.js --module=fs --limit=3       # Process 3 items from 'fs' module
+ *   node update_docs.js --type=new_function         # Only process new functions
+ *   node update_docs.js --reset --limit=10          # Clear tracking and process 10 items
+ *   node update_docs.js --force --module=browser    # Reprocess all browser module items
  */
 
-import { createOpencode } from "@opencode-ai/sdk";
-import net from "net";
+import { createOpencodeClient } from "@opencode-ai/sdk";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -26,28 +42,9 @@ const CONFIG = {
   docTypeRefPath: path.resolve(__dirname, "../../docs/5_api/11_doc-type-ref"),
   codeboltjsPath: path.resolve(__dirname, "../../../../packages/codeboltjs"),
 
-  // OpenCode configuration
-  model: {
-    providerID: "zai-coding-plan",
-    modelID: "glm-4.7",
-  },
+  // OpenCode client configuration
+  defaultBaseUrl: "http://localhost:5067",
 };
-
-/**
- * Find an available port for OpenCode server
- */
-function findAvailablePort(startPort = 4096) {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.listen(startPort, () => {
-      const port = server.address().port;
-      server.close(() => resolve(port));
-    });
-    server.on("error", () => {
-      server.close(() => findAvailablePort(startPort + 1).then(resolve));
-    });
-  });
-}
 
 /**
  * Load JSON data files
@@ -92,6 +89,19 @@ function loadDataFiles() {
   }
 
   return { diffReport, typedocData, documentationData, updatedData };
+}
+
+/**
+ * Get set of successfully processed keys from tracking data
+ */
+function getCompletedKeys(updatedData) {
+  const completedKeys = new Set();
+  for (const update of updatedData.updates || []) {
+    if (update.success === true) {
+      completedKeys.add(update.key);
+    }
+  }
+  return completedKeys;
 }
 
 /**
@@ -241,9 +251,9 @@ After the frontmatter, include:
 
 ## Type References
 For any types mentioned (like ${typedocFunc?.returns?.signatureTypeName || "Promise<void>"}), link to the type documentation at:
-\`/docs/api/11_doc-type-ref/codeboltjs/\`
+\`@documentation/publicDocs/docs/5_api/11_doc-type-ref/codeboltjs/\`
 
-Example: [SomeType](/docs/api/11_doc-type-ref/codeboltjs/interfaces/SomeType)
+Example: [SomeType](@documentation/publicDocs/docs/api/11_doc-type-ref/codeboltjs/interfaces/SomeType)
 
 ${existingDoc
       ? `
@@ -283,9 +293,44 @@ Please generate the documentation now.`;
 }
 
 /**
- * Process a single diff item using OpenCode
+ * Wait for session to become idle using event subscription
  */
-async function processItem(client, session, diffItem, typedocMap, docMap) {
+async function waitForSessionIdle(client, timeoutMs = 300000) {
+  return new Promise(async (resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error("Timeout waiting for session.idle"));
+    }, timeoutMs);
+
+    try {
+      const events = await client.event.subscribe();
+
+      for await (const event of events.stream) {
+        console.log(`    Event: ${event.type}`);
+
+        if (event.type === "session.idle") {
+          clearTimeout(timeout);
+          resolve(event);
+          break;
+        }
+
+        // Handle error events
+        if (event.type === "session.error" || event.type === "error") {
+          clearTimeout(timeout);
+          reject(new Error(event.properties?.message || "Session error"));
+          break;
+        }
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      reject(error);
+    }
+  });
+}
+
+/**
+ * Process a single diff item using OpenCode TUI
+ */
+async function processItem(client, diffItem, typedocMap, docMap) {
   const key = diffItem.key;
   const typedocFunc = typedocMap.get(key) || diffItem.source;
   const existingDocFunc = docMap.get(key);
@@ -314,32 +359,22 @@ async function processItem(client, session, diffItem, typedocMap, docMap) {
   console.log(`\n  Sending prompt for ${key}...`);
 
   try {
-    // Send prompt to OpenCode
-    const promptResult = await client.session.prompt({
-      path: { id: session.id },
-      body: {
-        model: CONFIG.model,
-        parts: [
-          {
-            type: "text",
-            text: prompt,
-          },
-        ],
-      },
+    // Send prompt using TUI methods (like existing OpenCode client)
+    await client.tui.appendPrompt({
+      body: { text: prompt },
     });
 
-    // Extract response
-    const responseText =
-      promptResult.parts?.find((p) => p.type === "text")?.text ||
-      promptResult.info?.parts?.find((p) => p.type === "text")?.text ||
-      promptResult.data?.content ||
-      promptResult.content ||
-      "";
+    console.log(`  Submitting prompt...`);
+    await client.tui.submitPrompt();
+
+    // Wait for the session to become idle (processing complete)
+    console.log(`  Waiting for completion...`);
+    await waitForSessionIdle(client);
 
     return {
       success: true,
       key,
-      response: responseText,
+      response: "", // Response is handled by the OpenCode server directly
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
@@ -394,6 +429,9 @@ function parseArgs() {
     type: null,
     module: null,
     dryRun: false,
+    baseUrl: CONFIG.defaultBaseUrl,
+    reset: false,
+    force: false,
   };
 
   for (const arg of args) {
@@ -405,6 +443,12 @@ function parseArgs() {
       options.module = arg.split("=")[1];
     } else if (arg === "--dry-run") {
       options.dryRun = true;
+    } else if (arg.startsWith("--base-url=")) {
+      options.baseUrl = arg.split("=")[1];
+    } else if (arg === "--reset") {
+      options.reset = true;
+    } else if (arg === "--force") {
+      options.force = true;
     }
   }
 
@@ -422,7 +466,7 @@ async function main() {
 
   // Load data files
   console.log("\nLoading data files...");
-  const { diffReport, typedocData, documentationData, updatedData } =
+  let { diffReport, typedocData, documentationData, updatedData } =
     loadDataFiles();
 
   console.log(`  Diff report: ${diffReport.items?.length || 0} items`);
@@ -431,8 +475,36 @@ async function main() {
     `  Documentation data: ${documentationData.modules?.length || 0} modules`
   );
 
+  // Handle --reset option
+  if (options.reset) {
+    console.log("\n[RESET] Clearing tracking data...");
+    updatedData = {
+      schemaVersion: "1.0.0",
+      updates: [],
+      lastUpdated: null,
+      stats: {
+        totalProcessed: 0,
+        successful: 0,
+        failed: 0
+      }
+    };
+    fs.writeFileSync(
+      CONFIG.updatedDataPath,
+      JSON.stringify(updatedData, null, 2)
+    );
+    console.log("  Tracking data cleared.");
+  }
+
   // Build lookup maps
   const { typedocMap, docMap } = buildLookupMaps(typedocData, documentationData);
+
+  // Get already completed items from tracking (unless --force is used)
+  const completedKeys = options.force ? new Set() : getCompletedKeys(updatedData);
+  if (options.force) {
+    console.log(`  [FORCE] Ignoring previously completed items`);
+  } else {
+    console.log(`  Already completed: ${completedKeys.size} items`);
+  }
 
   // Filter items to process
   let itemsToProcess = diffReport.items || [];
@@ -455,6 +527,14 @@ async function main() {
       item.type === "examples_missing"
   );
 
+  // Skip already successfully processed items
+  const beforeSkip = itemsToProcess.length;
+  itemsToProcess = itemsToProcess.filter((item) => !completedKeys.has(item.key));
+  const skipped = beforeSkip - itemsToProcess.length;
+  if (skipped > 0) {
+    console.log(`  Skipping ${skipped} already completed items`);
+  }
+
   // Apply limit
   itemsToProcess = itemsToProcess.slice(0, options.limit);
 
@@ -473,74 +553,15 @@ async function main() {
     return;
   }
 
-  // Initialize OpenCode
-  console.log("\nInitializing OpenCode...");
-  const port = await findAvailablePort(5058);
-  console.log(`  Using port: ${port}`);
+  // Connect to existing OpenCode server
+  console.log("\nConnecting to OpenCode server...");
+  console.log(`  Base URL: ${options.baseUrl}`);
 
-  const { client, server } = await createOpencode({
-    hostname: "127.0.0.1",
-    port,
+  const client = createOpencodeClient({
+    baseUrl: options.baseUrl,
   });
 
-  console.log(`  OpenCode server running at ${server.url}`);
-
-  // Create a session
-  const sessionResult = await client.session.create({
-    body: { title: "Documentation Update" },
-  });
-  const session = sessionResult.data || sessionResult;
-
-  if (!session?.id) {
-    throw new Error("Failed to create session");
-  }
-
-  console.log(`  Session ID: ${session.id}`);
-
-  // Add the documentation folders as context
-  console.log("\nAdding context folders...");
-
-  try {
-    // Add ApiAccess folder
-    await client.session.share.create({
-      path: { id: session.id },
-      body: {
-        share: CONFIG.apiAccessPath,
-        type: "folder",
-      },
-    });
-    console.log(`  Added: ${CONFIG.apiAccessPath}`);
-  } catch (e) {
-    console.log(`  Note: Could not add ApiAccess folder: ${e.message}`);
-  }
-
-  try {
-    // Add codeboltjs source folder
-    await client.session.share.create({
-      path: { id: session.id },
-      body: {
-        share: path.join(CONFIG.codeboltjsPath, "src"),
-        type: "folder",
-      },
-    });
-    console.log(`  Added: ${CONFIG.codeboltjsPath}/src`);
-  } catch (e) {
-    console.log(`  Note: Could not add codeboltjs folder: ${e.message}`);
-  }
-
-  try {
-    // Add doc-type-ref folder
-    await client.session.share.create({
-      path: { id: session.id },
-      body: {
-        share: CONFIG.docTypeRefPath,
-        type: "folder",
-      },
-    });
-    console.log(`  Added: ${CONFIG.docTypeRefPath}`);
-  } catch (e) {
-    console.log(`  Note: Could not add doc-type-ref folder: ${e.message}`);
-  }
+  console.log("  Connected to OpenCode client");
 
   // Process items
   console.log("\n=== Processing Items ===");
@@ -557,16 +578,11 @@ async function main() {
     console.log(`  Module: ${item.module}`);
     console.log(`  Function: ${item.function}`);
 
-    const result = await processItem(client, session, item, typedocMap, docMap);
+    const result = await processItem(client, item, typedocMap, docMap);
 
     if (result.success) {
       successCount++;
       console.log(`  Status: SUCCESS`);
-
-      // Extract if documentation was actually created/updated
-      if (result.response && result.response.length > 100) {
-        console.log(`  Response length: ${result.response.length} characters`);
-      }
     } else {
       errorCount++;
       console.log(`  Status: FAILED - ${result.error}`);
@@ -575,24 +591,12 @@ async function main() {
     // Update the tracking file
     updateUpdatedDataFile(updatedData, result);
 
-    // Small delay between requests to avoid rate limiting
+    // Small delay between requests to avoid overwhelming the server
     if (i < itemsToProcess.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("  Waiting before next item...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
-
-  // Cleanup
-  console.log("\n=== Cleanup ===");
-
-  try {
-    await client.session.delete({ path: { id: session.id } });
-    console.log("  Session deleted");
-  } catch (e) {
-    console.log(`  Note: Could not delete session: ${e.message}`);
-  }
-
-  server.close();
-  console.log("  Server closed");
 
   // Summary
   console.log("\n=== Summary ===");
