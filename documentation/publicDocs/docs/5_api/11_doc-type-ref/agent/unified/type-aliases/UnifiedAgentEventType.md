@@ -1,4 +1,8 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: UnifiedAgentEventType
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
@@ -20,6 +24,6 @@ type UnifiedAgentEventType =
   | "iteration_completed";
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:247](packages/agent/src/unified/types/types.ts#L247)
+Defined in: packages/agent/src/unified/types/types.ts:247
 
 Main unified agent interface

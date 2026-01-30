@@ -1,4 +1,8 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: createTool
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
@@ -8,7 +12,7 @@
 function createTool(config: ToolConfig): Tool;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:320](packages/agent/src/unified/agent/tools.ts#L320)
+Defined in: packages/agent/src/unified/agent/tools.ts:320
 
 ## Parameters
 
@@ -18,4 +22,4 @@ Defined in: [packages/agent/src/unified/agent/tools.ts:320](packages/agent/src/u
 
 ## Returns
 
-[`Tool`](../classes/Tool.md)
+[`Tool`](../classes/Tool)

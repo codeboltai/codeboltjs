@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: IdeContextModifier
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: IdeContextModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:29](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L29)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:29
 
 ## Extends
 
@@ -18,13 +22,13 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModi
 new IdeContextModifier(options: IdeContextOptions): IdeContextModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:34](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L34)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:34
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`IdeContextOptions`](../interfaces/IdeContextOptions.md) |
+| `options` | [`IdeContextOptions`](../interfaces/IdeContextOptions) |
 
 #### Returns
 
@@ -40,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -50,7 +54,7 @@ BaseMessageModifier.constructor
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:45](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L45)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:45
 
 #### Parameters
 
@@ -77,7 +81,7 @@ BaseMessageModifier.modify
 setForceFullContext(force: boolean): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:219](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L219)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:219
 
 #### Parameters
 

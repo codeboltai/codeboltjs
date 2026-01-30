@@ -1,4 +1,8 @@
-[**@codebolt/mcp**](../README.md)
+---
+title: imageContent
+---
+
+[**@codebolt/mcp**](../index)
 
 ***
 
@@ -17,7 +21,7 @@ function imageContent(input:
 }): Promise<ImageContent>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:65](packages/mcp/src/mcpServer.ts#L65)
+Defined in: packages/mcp/src/mcpServer.ts:65
 
 Generates an image content object from a URL, file path, or buffer.
 

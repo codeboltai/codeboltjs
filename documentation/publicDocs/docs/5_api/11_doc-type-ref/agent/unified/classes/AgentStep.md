@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: AgentStep
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: AgentStep
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:13](packages/agent/src/unified/base/agentStep.ts#L13)
+Defined in: packages/agent/src/unified/base/agentStep.ts:13
 
 Unified agent step that handles LLM interaction and tool call analysis
 
@@ -24,7 +28,7 @@ new AgentStep(options: {
 }): AgentStep;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:20](packages/agent/src/unified/base/agentStep.ts#L20)
+Defined in: packages/agent/src/unified/base/agentStep.ts:20
 
 #### Parameters
 
@@ -47,7 +51,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:20](packages/agent/src
 executeStep(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<AgentStepOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:34](packages/agent/src/unified/base/agentStep.ts#L34)
+Defined in: packages/agent/src/unified/base/agentStep.ts:34
 
 Execute a single agent step
 
@@ -76,7 +80,7 @@ AgentStepInterface.executeStep
 getLLMConfig(): string;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:103](packages/agent/src/unified/base/agentStep.ts#L103)
+Defined in: packages/agent/src/unified/base/agentStep.ts:103
 
 Get current LLM configuration
 
@@ -92,7 +96,7 @@ Get current LLM configuration
 getPostInferenceProcessors(): PostInferenceProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:120](packages/agent/src/unified/base/agentStep.ts#L120)
+Defined in: packages/agent/src/unified/base/agentStep.ts:120
 
 #### Returns
 
@@ -106,7 +110,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:120](packages/agent/sr
 getPreInferenceProcessors(): PreInferenceProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:111](packages/agent/src/unified/base/agentStep.ts#L111)
+Defined in: packages/agent/src/unified/base/agentStep.ts:111
 
 #### Returns
 
@@ -120,7 +124,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:111](packages/agent/sr
 setLLMConfig(config: string): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:96](packages/agent/src/unified/base/agentStep.ts#L96)
+Defined in: packages/agent/src/unified/base/agentStep.ts:96
 
 Update LLM configuration
 
@@ -142,7 +146,7 @@ Update LLM configuration
 updatePostInferenceProcessors(processors: PostInferenceProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:116](packages/agent/src/unified/base/agentStep.ts#L116)
+Defined in: packages/agent/src/unified/base/agentStep.ts:116
 
 #### Parameters
 
@@ -162,7 +166,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:116](packages/agent/sr
 updatePreInferenceProcessors(processors: PreInferenceProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:107](packages/agent/src/unified/base/agentStep.ts#L107)
+Defined in: packages/agent/src/unified/base/agentStep.ts:107
 
 #### Parameters
 

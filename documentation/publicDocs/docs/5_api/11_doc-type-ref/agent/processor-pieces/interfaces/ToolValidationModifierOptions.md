@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: ToolValidationModifierOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: ToolValidationModifierOptions
 
-Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:14](packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts#L14)
+Defined in: packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:14
 
 ## Properties
 

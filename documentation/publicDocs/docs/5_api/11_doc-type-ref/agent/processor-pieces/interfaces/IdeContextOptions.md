@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: IdeContextOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: IdeContextOptions
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:5](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L5)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:5
 
 ## Properties
 

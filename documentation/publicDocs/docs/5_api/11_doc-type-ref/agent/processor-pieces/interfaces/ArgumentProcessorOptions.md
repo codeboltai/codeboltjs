@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: ArgumentProcessorOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: ArgumentProcessorOptions
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:5](packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts#L5)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:5
 
 ## Properties
 

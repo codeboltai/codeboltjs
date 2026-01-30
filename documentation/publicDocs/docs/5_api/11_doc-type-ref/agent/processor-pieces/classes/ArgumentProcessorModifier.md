@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: ArgumentProcessorModifier
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: ArgumentProcessorModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:11](packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts#L11)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:11
 
 ## Extends
 
@@ -18,13 +22,13 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/argumentProces
 new ArgumentProcessorModifier(options: ArgumentProcessorOptions): ArgumentProcessorModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:14](packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts#L14)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:14
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ArgumentProcessorOptions`](../interfaces/ArgumentProcessorOptions.md) |
+| `options` | [`ArgumentProcessorOptions`](../interfaces/ArgumentProcessorOptions) |
 
 #### Returns
 
@@ -40,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -50,7 +54,7 @@ BaseMessageModifier.constructor
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:23](packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts#L23)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/argumentProcessorModifier.ts:23
 
 #### Parameters
 

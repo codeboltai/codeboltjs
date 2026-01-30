@@ -1,10 +1,14 @@
-[**@codebolt/mcp**](../README.md)
+---
+title: FastMCPSession
+---
+
+[**@codebolt/mcp**](../index)
 
 ***
 
 # Class: FastMCPSession\<T\>
 
-Defined in: [packages/mcp/src/mcpServer.ts:556](packages/mcp/src/mcpServer.ts#L556)
+Defined in: packages/mcp/src/mcpServer.ts:556
 
 Class representing a FastMCP session.
 Manages communication between the client and server.
@@ -51,7 +55,7 @@ new FastMCPSession<T>(options: {
 }): FastMCPSession<T>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:572](packages/mcp/src/mcpServer.ts#L572)
+Defined in: packages/mcp/src/mcpServer.ts:572
 
 Creates a new FastMCPSession.
 
@@ -114,7 +118,7 @@ get clientCapabilities():
   | null;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:718](packages/mcp/src/mcpServer.ts#L718)
+Defined in: packages/mcp/src/mcpServer.ts:718
 
 ##### Returns
 
@@ -163,7 +167,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:718](packages/mcp/src/mcpServer.ts#L7
 get loggingLevel(): LoggingLevel;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:799](packages/mcp/src/mcpServer.ts#L799)
+Defined in: packages/mcp/src/mcpServer.ts:799
 
 ##### Returns
 
@@ -186,7 +190,7 @@ get roots(): {
 }[];
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:777](packages/mcp/src/mcpServer.ts#L777)
+Defined in: packages/mcp/src/mcpServer.ts:777
 
 ##### Returns
 
@@ -200,7 +204,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:777](packages/mcp/src/mcpServer.ts#L7
 get server(): Server;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:722](packages/mcp/src/mcpServer.ts#L722)
+Defined in: packages/mcp/src/mcpServer.ts:722
 
 ##### Returns
 
@@ -279,7 +283,7 @@ FastMCPSessionEventEmitter.addListener
 close(): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:781](packages/mcp/src/mcpServer.ts#L781)
+Defined in: packages/mcp/src/mcpServer.ts:781
 
 #### Returns
 
@@ -293,7 +297,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:781](packages/mcp/src/mcpServer.ts#L7
 connect(transport: Transport): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:734](packages/mcp/src/mcpServer.ts#L734)
+Defined in: packages/mcp/src/mcpServer.ts:734
 
 #### Parameters
 
@@ -1038,7 +1042,7 @@ requestSampling(message: {
 }): Promise<SamplingResponse>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:728](packages/mcp/src/mcpServer.ts#L728)
+Defined in: packages/mcp/src/mcpServer.ts:728
 
 #### Parameters
 

@@ -1,10 +1,14 @@
-[**@codebolt/provider**](../README.md)
+---
+title: ProviderTransport
+---
+
+[**@codebolt/provider**](../index)
 
 ***
 
 # Interface: ProviderTransport
 
-Defined in: [ProviderTypes.ts:60](packages/provider/src/lib/ProviderTypes.ts#L60)
+Defined in: ProviderTypes.ts:60
 
 ## Methods
 
@@ -14,7 +18,7 @@ Defined in: [ProviderTypes.ts:60](packages/provider/src/lib/ProviderTypes.ts#L60
 ensureTransportConnection(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:61](packages/provider/src/lib/ProviderTypes.ts#L61)
+Defined in: ProviderTypes.ts:61
 
 #### Parameters
 
@@ -34,7 +38,7 @@ Defined in: [ProviderTypes.ts:61](packages/provider/src/lib/ProviderTypes.ts#L61
 sendToAgentServer(message: AgentStartMessage | RawMessageForAgent): Promise<boolean>;
 ```
 
-Defined in: [ProviderTypes.ts:62](packages/provider/src/lib/ProviderTypes.ts#L62)
+Defined in: ProviderTypes.ts:62
 
 #### Parameters
 

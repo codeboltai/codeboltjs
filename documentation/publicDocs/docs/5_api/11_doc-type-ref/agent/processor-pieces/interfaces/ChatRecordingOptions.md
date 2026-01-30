@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: ChatRecordingOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: ChatRecordingOptions
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:7](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L7)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:7
 
 ## Properties
 

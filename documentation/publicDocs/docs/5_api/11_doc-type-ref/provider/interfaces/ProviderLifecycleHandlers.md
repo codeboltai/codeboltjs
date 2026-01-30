@@ -1,10 +1,14 @@
-[**@codebolt/provider**](../README.md)
+---
+title: ProviderLifecycleHandlers
+---
+
+[**@codebolt/provider**](../index)
 
 ***
 
 # Interface: ProviderLifecycleHandlers
 
-Defined in: [ProviderTypes.ts:51](packages/provider/src/lib/ProviderTypes.ts#L51)
+Defined in: ProviderTypes.ts:51
 
 ## Methods
 
@@ -14,7 +18,7 @@ Defined in: [ProviderTypes.ts:51](packages/provider/src/lib/ProviderTypes.ts#L51
 onCloseSignal(): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:56](packages/provider/src/lib/ProviderTypes.ts#L56)
+Defined in: ProviderTypes.ts:56
 
 #### Returns
 
@@ -28,7 +32,7 @@ Defined in: [ProviderTypes.ts:56](packages/provider/src/lib/ProviderTypes.ts#L56
 onGetDiffFiles(): Promise<any>;
 ```
 
-Defined in: [ProviderTypes.ts:55](packages/provider/src/lib/ProviderTypes.ts#L55)
+Defined in: ProviderTypes.ts:55
 
 #### Returns
 
@@ -42,7 +46,7 @@ Defined in: [ProviderTypes.ts:55](packages/provider/src/lib/ProviderTypes.ts#L55
 onProviderAgentStart(message: AgentStartMessage): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:53](packages/provider/src/lib/ProviderTypes.ts#L53)
+Defined in: ProviderTypes.ts:53
 
 #### Parameters
 
@@ -62,7 +66,7 @@ Defined in: [ProviderTypes.ts:53](packages/provider/src/lib/ProviderTypes.ts#L53
 onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
 ```
 
-Defined in: [ProviderTypes.ts:52](packages/provider/src/lib/ProviderTypes.ts#L52)
+Defined in: ProviderTypes.ts:52
 
 #### Parameters
 
@@ -72,7 +76,7 @@ Defined in: [ProviderTypes.ts:52](packages/provider/src/lib/ProviderTypes.ts#L52
 
 #### Returns
 
-`Promise`\<[`ProviderStartResult`](ProviderStartResult.md)\>
+`Promise`\<[`ProviderStartResult`](ProviderStartResult)\>
 
 ***
 
@@ -82,7 +86,7 @@ Defined in: [ProviderTypes.ts:52](packages/provider/src/lib/ProviderTypes.ts#L52
 onProviderStop(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:54](packages/provider/src/lib/ProviderTypes.ts#L54)
+Defined in: ProviderTypes.ts:54
 
 #### Parameters
 
@@ -102,7 +106,7 @@ Defined in: [ProviderTypes.ts:54](packages/provider/src/lib/ProviderTypes.ts#L54
 onRawMessage(message: RawMessageForAgent): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:57](packages/provider/src/lib/ProviderTypes.ts#L57)
+Defined in: ProviderTypes.ts:57
 
 #### Parameters
 

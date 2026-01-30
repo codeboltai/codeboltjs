@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: Tool
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: Tool
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:9](packages/agent/src/unified/agent/tools.ts#L9)
+Defined in: packages/agent/src/unified/agent/tools.ts:9
 
 ## Implements
 
@@ -18,7 +22,7 @@ Defined in: [packages/agent/src/unified/agent/tools.ts:9](packages/agent/src/uni
 new Tool(config: ToolConfig): Tool;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:16](packages/agent/src/unified/agent/tools.ts#L16)
+Defined in: packages/agent/src/unified/agent/tools.ts:16
 
 #### Parameters
 
@@ -52,7 +56,7 @@ execute(input: unknown, context: unknown): Promise<{
 }>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:23](packages/agent/src/unified/agent/tools.ts#L23)
+Defined in: packages/agent/src/unified/agent/tools.ts:23
 
 #### Parameters
 
@@ -83,7 +87,7 @@ ToolInterface.execute
 getToolDescription(): string;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:54](packages/agent/src/unified/agent/tools.ts#L54)
+Defined in: packages/agent/src/unified/agent/tools.ts:54
 
 #### Returns
 
@@ -103,7 +107,7 @@ ToolInterface.getToolDescription
 getToolSchema(): ZodType<any, ZodTypeDef, any>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:57](packages/agent/src/unified/agent/tools.ts#L57)
+Defined in: packages/agent/src/unified/agent/tools.ts:57
 
 #### Returns
 
@@ -123,12 +127,12 @@ ToolInterface.getToolSchema
 toOpenAITool(): OpenAITool;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:116](packages/agent/src/unified/agent/tools.ts#L116)
+Defined in: packages/agent/src/unified/agent/tools.ts:116
 
 Converts the tool to OpenAI function format
 
 #### Returns
 
-[`OpenAITool`](../interfaces/OpenAITool.md)
+[`OpenAITool`](../interfaces/OpenAITool)
 
 OpenAI function specification

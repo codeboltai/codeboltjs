@@ -1,10 +1,14 @@
-[**@codebolt/provider**](../README.md)
+---
+title: AgentServerConnection
+---
+
+[**@codebolt/provider**](../index)
 
 ***
 
 # Interface: AgentServerConnection
 
-Defined in: [ProviderTypes.ts:26](packages/provider/src/lib/ProviderTypes.ts#L26)
+Defined in: ProviderTypes.ts:26
 
 ## Properties
 

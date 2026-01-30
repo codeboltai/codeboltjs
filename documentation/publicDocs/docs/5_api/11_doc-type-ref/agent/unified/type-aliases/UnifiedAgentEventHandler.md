@@ -1,4 +1,8 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: UnifiedAgentEventHandler
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
@@ -8,7 +12,7 @@
 type UnifiedAgentEventHandler = (event: UnifiedAgentEvent) => void | Promise<void>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:271](packages/agent/src/unified/types/types.ts#L271)
+Defined in: packages/agent/src/unified/types/types.ts:271
 
 Event handler for unified agent events
 
@@ -16,7 +20,7 @@ Event handler for unified agent events
 
 | Parameter | Type |
 | ------ | ------ |
-| `event` | [`UnifiedAgentEvent`](../interfaces/UnifiedAgentEvent.md) |
+| `event` | [`UnifiedAgentEvent`](../interfaces/UnifiedAgentEvent) |
 
 ## Returns
 

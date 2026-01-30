@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: UnifiedResponseExecutor
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: UnifiedResponseExecutor
 
-Defined in: [packages/agent/src/unified/types/types.ts:192](packages/agent/src/unified/types/types.ts#L192)
+Defined in: packages/agent/src/unified/types/types.ts:192
 
 Unified response executor interface
 
@@ -16,7 +20,7 @@ Unified response executor interface
 addFollowUpConversationProcessor(processor: Processor): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:208](packages/agent/src/unified/types/types.ts#L208)
+Defined in: packages/agent/src/unified/types/types.ts:208
 
 Add a follow-up conversation processor
 
@@ -38,7 +42,7 @@ Add a follow-up conversation processor
 addPreToolCallProcessor(processor: Processor): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:216](packages/agent/src/unified/types/types.ts#L216)
+Defined in: packages/agent/src/unified/types/types.ts:216
 
 Add a pre-tool call processor
 
@@ -63,7 +67,7 @@ buildFollowUpConversation(
 llmResponse: any): Promise<OpenAIMessage[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:198](packages/agent/src/unified/types/types.ts#L198)
+Defined in: packages/agent/src/unified/types/types.ts:198
 
 Build follow-up conversation
 
@@ -71,13 +75,13 @@ Build follow-up conversation
 
 | Parameter | Type |
 | ------ | ------ |
-| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage.md)[] |
-| `toolResults` | [`ToolResult`](ToolResult.md)[] |
+| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage)[] |
+| `toolResults` | [`ToolResult`](ToolResult)[] |
 | `llmResponse` | `any` |
 
 #### Returns
 
-`Promise`\<[`OpenAIMessage`](OpenAIMessage.md)[]\>
+`Promise`\<[`OpenAIMessage`](OpenAIMessage)[]\>
 
 ***
 
@@ -87,7 +91,7 @@ Build follow-up conversation
 clearFollowUpConversationProcessors(): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:214](packages/agent/src/unified/types/types.ts#L214)
+Defined in: packages/agent/src/unified/types/types.ts:214
 
 Clear all follow-up conversation processors
 
@@ -103,7 +107,7 @@ Clear all follow-up conversation processors
 clearPreToolCallProcessors(): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:222](packages/agent/src/unified/types/types.ts#L222)
+Defined in: packages/agent/src/unified/types/types.ts:222
 
 Clear all pre-tool call processors
 
@@ -119,7 +123,7 @@ Clear all pre-tool call processors
 executeResponse(input: UnifiedResponseInput): Promise<UnifiedResponseOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:194](packages/agent/src/unified/types/types.ts#L194)
+Defined in: packages/agent/src/unified/types/types.ts:194
 
 Execute response processing including tool execution
 
@@ -127,11 +131,11 @@ Execute response processing including tool execution
 
 | Parameter | Type |
 | ------ | ------ |
-| `input` | [`UnifiedResponseInput`](UnifiedResponseInput.md) |
+| `input` | [`UnifiedResponseInput`](UnifiedResponseInput) |
 
 #### Returns
 
-`Promise`\<[`UnifiedResponseOutput`](UnifiedResponseOutput.md)\>
+`Promise`\<[`UnifiedResponseOutput`](UnifiedResponseOutput)\>
 
 ***
 
@@ -144,7 +148,7 @@ executeTools(
 context?: Record<string, any>): Promise<ToolResult[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:196](packages/agent/src/unified/types/types.ts#L196)
+Defined in: packages/agent/src/unified/types/types.ts:196
 
 Execute tools from LLM response
 
@@ -153,12 +157,12 @@ Execute tools from LLM response
 | Parameter | Type |
 | ------ | ------ |
 | `llmResponse` | `any` |
-| `tools` | [`OpenAITool`](OpenAITool.md)[] |
+| `tools` | [`OpenAITool`](OpenAITool)[] |
 | `context?` | `Record`\<`string`, `any`\> |
 
 #### Returns
 
-`Promise`\<[`ToolResult`](ToolResult.md)[]\>
+`Promise`\<[`ToolResult`](ToolResult)[]\>
 
 ***
 
@@ -168,7 +172,7 @@ Execute tools from LLM response
 getFollowUpConversationProcessors(): Processor[];
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:212](packages/agent/src/unified/types/types.ts#L212)
+Defined in: packages/agent/src/unified/types/types.ts:212
 
 Get all follow-up conversation processors
 
@@ -184,7 +188,7 @@ Get all follow-up conversation processors
 getPreToolCallProcessors(): Processor[];
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:220](packages/agent/src/unified/types/types.ts#L220)
+Defined in: packages/agent/src/unified/types/types.ts:220
 
 Get all pre-tool call processors
 
@@ -200,7 +204,7 @@ Get all pre-tool call processors
 removeFollowUpConversationProcessor(processor: Processor): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:210](packages/agent/src/unified/types/types.ts#L210)
+Defined in: packages/agent/src/unified/types/types.ts:210
 
 Remove a follow-up conversation processor
 
@@ -222,7 +226,7 @@ Remove a follow-up conversation processor
 removePreToolCallProcessor(processor: Processor): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:218](packages/agent/src/unified/types/types.ts#L218)
+Defined in: packages/agent/src/unified/types/types.ts:218
 
 Remove a pre-tool call processor
 
@@ -244,7 +248,7 @@ Remove a pre-tool call processor
 shouldSummarizeConversation(conversationHistory: OpenAIMessage[]): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:204](packages/agent/src/unified/types/types.ts#L204)
+Defined in: packages/agent/src/unified/types/types.ts:204
 
 Check if conversation needs summarization
 
@@ -252,7 +256,7 @@ Check if conversation needs summarization
 
 | Parameter | Type |
 | ------ | ------ |
-| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage.md)[] |
+| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage)[] |
 
 #### Returns
 
@@ -266,7 +270,7 @@ Check if conversation needs summarization
 summarizeConversation(conversationHistory: OpenAIMessage[]): Promise<OpenAIMessage[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:206](packages/agent/src/unified/types/types.ts#L206)
+Defined in: packages/agent/src/unified/types/types.ts:206
 
 Summarize conversation
 
@@ -274,8 +278,8 @@ Summarize conversation
 
 | Parameter | Type |
 | ------ | ------ |
-| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage.md)[] |
+| `conversationHistory` | [`OpenAIMessage`](OpenAIMessage)[] |
 
 #### Returns
 
-`Promise`\<[`OpenAIMessage`](OpenAIMessage.md)[]\>
+`Promise`\<[`OpenAIMessage`](OpenAIMessage)[]\>

@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: UnifiedMessageModifier
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: UnifiedMessageModifier
 
-Defined in: [packages/agent/src/unified/types/types.ts:174](packages/agent/src/unified/types/types.ts#L174)
+Defined in: packages/agent/src/unified/types/types.ts:174
 
 Unified message modifier interface
 
@@ -16,7 +20,7 @@ Unified message modifier interface
 addProcessor(processor: Processor): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:178](packages/agent/src/unified/types/types.ts#L178)
+Defined in: packages/agent/src/unified/types/types.ts:178
 
 Add a processor to the modifier
 
@@ -38,7 +42,7 @@ Add a processor to the modifier
 clearContext(): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:184](packages/agent/src/unified/types/types.ts#L184)
+Defined in: packages/agent/src/unified/types/types.ts:184
 
 Clear all context
 
@@ -54,7 +58,7 @@ Clear all context
 getContext(key: string): any;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:182](packages/agent/src/unified/types/types.ts#L182)
+Defined in: packages/agent/src/unified/types/types.ts:182
 
 Get context value
 
@@ -76,7 +80,7 @@ Get context value
 processMessage(input: any): Promise<UnifiedMessageOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:176](packages/agent/src/unified/types/types.ts#L176)
+Defined in: packages/agent/src/unified/types/types.ts:176
 
 Process and modify input messages
 
@@ -88,7 +92,7 @@ Process and modify input messages
 
 #### Returns
 
-`Promise`\<[`UnifiedMessageOutput`](UnifiedMessageOutput.md)\>
+`Promise`\<[`UnifiedMessageOutput`](UnifiedMessageOutput)\>
 
 ***
 
@@ -98,7 +102,7 @@ Process and modify input messages
 setContext(key: string, value: any): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:180](packages/agent/src/unified/types/types.ts#L180)
+Defined in: packages/agent/src/unified/types/types.ts:180
 
 Set context value
 

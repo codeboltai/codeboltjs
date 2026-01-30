@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: LLMConfig
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: LLMConfig
 
-Defined in: [packages/agent/src/unified/types/libTypes.ts:235](packages/agent/src/unified/types/libTypes.ts#L235)
+Defined in: packages/agent/src/unified/types/libTypes.ts:235
 
 LLM configuration
 

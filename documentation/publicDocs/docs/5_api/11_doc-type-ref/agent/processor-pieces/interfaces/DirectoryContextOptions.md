@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: DirectoryContextOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: DirectoryContextOptions
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/directoryContextModifier.ts:45](packages/agent/src/processor-pieces/messageModifiers/directoryContextModifier.ts#L45)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/directoryContextModifier.ts:45
 
 ## Properties
 

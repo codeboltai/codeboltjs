@@ -1,4 +1,8 @@
-[**@codebolt/provider**](../README.md)
+---
+title: ProviderTransportType
+---
+
+[**@codebolt/provider**](../index)
 
 ***
 
@@ -8,4 +12,4 @@
 type ProviderTransportType = "websocket" | "custom";
 ```
 
-Defined in: [ProviderTypes.ts:6](packages/provider/src/lib/ProviderTypes.ts#L6)
+Defined in: ProviderTypes.ts:6

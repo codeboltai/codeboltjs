@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: LoopDetectionOptions
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: LoopDetectionOptions
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:5](packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L5)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:5
 
 ## Properties
 

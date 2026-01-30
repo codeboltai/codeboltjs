@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: CoreSystemPromptModifier
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: CoreSystemPromptModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:10](packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L10)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:10
 
 ## Extends
 
@@ -18,13 +22,13 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemProm
 new CoreSystemPromptModifier(options: CoreSystemPromptOptions): CoreSystemPromptModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:13](packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L13)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:13
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`CoreSystemPromptOptions`](../interfaces/CoreSystemPromptOptions.md) |
+| `options` | [`CoreSystemPromptOptions`](../interfaces/CoreSystemPromptOptions) |
 
 #### Returns
 
@@ -40,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -50,7 +54,7 @@ BaseMessageModifier.constructor
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:18](packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L18)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:18
 
 #### Parameters
 

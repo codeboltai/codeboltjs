@@ -1,10 +1,14 @@
-[**@codebolt/agent**](../../README.md)
+---
+title: CodeboltAgentConfig
+---
+
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: CodeboltAgentConfig
 
-Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:28](packages/agent/src/unified/agent/codeboltAgent.ts#L28)
+Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:28
 
 Configuration options for CodeboltAgent
 

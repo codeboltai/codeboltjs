@@ -1,10 +1,14 @@
-[**@codebolt/mcp**](../README.md)
+---
+title: UnexpectedStateError
+---
+
+[**@codebolt/mcp**](../index)
 
 ***
 
 # Class: UnexpectedStateError
 
-Defined in: [packages/mcp/src/mcpServer.ts:124](packages/mcp/src/mcpServer.ts#L124)
+Defined in: packages/mcp/src/mcpServer.ts:124
 
 Error class for unexpected state conditions.
 
@@ -14,7 +18,7 @@ Error class for unexpected state conditions.
 
 ## Extended by
 
-- [`UserError`](UserError.md)
+- [`UserError`](UserError)
 
 ## Constructors
 
@@ -24,7 +28,7 @@ Error class for unexpected state conditions.
 new UnexpectedStateError(message: string, extras?: Extras): UnexpectedStateError;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:134](packages/mcp/src/mcpServer.ts#L134)
+Defined in: packages/mcp/src/mcpServer.ts:134
 
 Creates a new UnexpectedStateError.
 
