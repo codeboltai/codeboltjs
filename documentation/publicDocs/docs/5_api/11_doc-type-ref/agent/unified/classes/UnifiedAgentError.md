@@ -8,7 +8,7 @@ title: UnifiedAgentError
 
 # Class: UnifiedAgentError
 
-Defined in: [packages/agent/src/unified/types/types.ts:277](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L277)
+Defined in: packages/agent/src/unified/types/types.ts:277
 
 ## Extends
 
@@ -32,7 +32,7 @@ new UnifiedAgentError(
    context?: Record<string, any>): UnifiedAgentError;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:278](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L278)
+Defined in: packages/agent/src/unified/types/types.ts:278
 
 #### Parameters
 
@@ -56,8 +56,8 @@ Error.constructor
 
 | Property | Modifier | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="code"></a> `code` | `readonly` | `string` | - | - | [packages/agent/src/unified/types/types.ts:280](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L280) |
-| <a id="context"></a> `context?` | `readonly` | `Record`\<`string`, `any`\> | - | - | [packages/agent/src/unified/types/types.ts:281](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L281) |
+| <a id="code"></a> `code` | `readonly` | `string` | - | - | [packages/agent/src/unified/types/types.ts:280](packages/agent/src/unified/types/types.ts#L280) |
+| <a id="context"></a> `context?` | `readonly` | `Record`\<`string`, `any`\> | - | - | [packages/agent/src/unified/types/types.ts:281](packages/agent/src/unified/types/types.ts#L281) |
 | <a id="message"></a> `message` | `public` | `string` | - | `Error.message` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1077 |
 | <a id="name"></a> `name` | `public` | `string` | - | `Error.name` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1076 |
 | <a id="stack"></a> `stack?` | `public` | `string` | - | `Error.stack` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1078 |

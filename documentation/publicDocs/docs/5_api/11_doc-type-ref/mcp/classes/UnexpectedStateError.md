@@ -8,7 +8,7 @@ title: UnexpectedStateError
 
 # Class: UnexpectedStateError
 
-Defined in: [packages/mcp/src/mcpServer.ts:124](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L124)
+Defined in: packages/mcp/src/mcpServer.ts:124
 
 Error class for unexpected state conditions.
 
@@ -28,7 +28,7 @@ Error class for unexpected state conditions.
 new UnexpectedStateError(message: string, extras?: Extras): UnexpectedStateError;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:134](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L134)
+Defined in: packages/mcp/src/mcpServer.ts:134
 
 Creates a new UnexpectedStateError.
 
@@ -53,7 +53,7 @@ FastMCPError.constructor
 
 | Property | Modifier | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="extras"></a> `extras?` | `public` | `Extras` | Additional context for the error | - | [packages/mcp/src/mcpServer.ts:126](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L126) |
+| <a id="extras"></a> `extras?` | `public` | `Extras` | Additional context for the error | - | [packages/mcp/src/mcpServer.ts:126](packages/mcp/src/mcpServer.ts#L126) |
 | <a id="message"></a> `message` | `public` | `string` | - | `FastMCPError.message` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1077 |
 | <a id="name"></a> `name` | `public` | `string` | - | `FastMCPError.name` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1076 |
 | <a id="stack"></a> `stack?` | `public` | `string` | - | `FastMCPError.stack` | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1078 |

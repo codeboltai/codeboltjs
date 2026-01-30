@@ -8,7 +8,7 @@ title: ProviderLifecycleHandlers
 
 # Interface: ProviderLifecycleHandlers
 
-Defined in: [ProviderTypes.ts:51](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L51)
+Defined in: ProviderTypes.ts:51
 
 ## Methods
 
@@ -18,7 +18,7 @@ Defined in: [ProviderTypes.ts:51](https://github.com/codeboltai/codeboltjs/blob/
 onCloseSignal(): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:56](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L56)
+Defined in: ProviderTypes.ts:56
 
 #### Returns
 
@@ -32,7 +32,7 @@ Defined in: [ProviderTypes.ts:56](https://github.com/codeboltai/codeboltjs/blob/
 onGetDiffFiles(): Promise<any>;
 ```
 
-Defined in: [ProviderTypes.ts:55](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L55)
+Defined in: ProviderTypes.ts:55
 
 #### Returns
 
@@ -46,7 +46,7 @@ Defined in: [ProviderTypes.ts:55](https://github.com/codeboltai/codeboltjs/blob/
 onProviderAgentStart(message: AgentStartMessage): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:53](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L53)
+Defined in: ProviderTypes.ts:53
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [ProviderTypes.ts:53](https://github.com/codeboltai/codeboltjs/blob/
 onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
 ```
 
-Defined in: [ProviderTypes.ts:52](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L52)
+Defined in: ProviderTypes.ts:52
 
 #### Parameters
 
@@ -86,7 +86,7 @@ Defined in: [ProviderTypes.ts:52](https://github.com/codeboltai/codeboltjs/blob/
 onProviderStop(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:54](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L54)
+Defined in: ProviderTypes.ts:54
 
 #### Parameters
 
@@ -106,7 +106,7 @@ Defined in: [ProviderTypes.ts:54](https://github.com/codeboltai/codeboltjs/blob/
 onRawMessage(message: RawMessageForAgent): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:57](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L57)
+Defined in: ProviderTypes.ts:57
 
 #### Parameters
 

@@ -90,6 +90,7 @@ const CONFIG = {
         excludeInternal: true,
         excludeNotDocumented: false,
         disableSources: false,
+        sourceLinkTemplate: '{path}#L{line}',
         sort: ['alphabetical'],
         kindSortOrder: [
             'Module',
@@ -216,6 +217,9 @@ function postProcessMarkdown(outDir) {
         // Remove HTML comments that might cause MDX issues
         content = content.replace(/<!--[\s\S]*?-->/g, '');
 
+        // Convert "Defined in:" links to plain text paths
+        content = content.replace(/Defined in: \[([^\]]+)\]\([^)]+\)/g, 'Defined in: $1');
+
         // Ensure proper frontmatter exists
         if (!content.startsWith('---')) {
             const fileName = path.basename(filePath, '.md');
@@ -298,6 +302,7 @@ function buildTypedocCommand(pkg, outDir) {
         'propertiesFormat',
         'enumMembersFormat',
         'typeDeclarationFormat',
+        'sourceLinkTemplate',
     ];
 
     stringOptions.forEach(opt => {
@@ -335,7 +340,7 @@ function generatePackageDocs(pkg, baseOutDir) {
     try {
         execSync(cmd, {
             stdio: 'inherit',
-            cwd: pkg.cwd,
+            cwd: PUBLIC_DOCS_DIR,
         });
 
         // Create package-specific category file

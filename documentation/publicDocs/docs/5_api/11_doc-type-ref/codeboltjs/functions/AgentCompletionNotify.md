@@ -16,7 +16,7 @@ function AgentCompletionNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/system.ts:56](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/system.ts#L56)
+Defined in: packages/codeboltjs/src/notificationfunctions/system.ts:56
 
 Sends an agent completion notification
 

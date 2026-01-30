@@ -8,7 +8,7 @@ title: Agent
 
 # Class: Agent
 
-Defined in: [packages/agent/src/unified/agent/agent.ts:9](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/agent.ts#L9)
+Defined in: packages/agent/src/unified/agent/agent.ts:9
 
 ## Implements
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/unified/agent/agent.ts:9](https://github.com/cod
 new Agent(config: AgentConfig): Agent;
 ```
 
-Defined in: [packages/agent/src/unified/agent/agent.ts:18](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/agent.ts#L18)
+Defined in: packages/agent/src/unified/agent/agent.ts:18
 
 #### Parameters
 
@@ -46,7 +46,7 @@ execute(reqMessage: FlatUserMessage): Promise<{
 }>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/agent.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/agent.ts#L28)
+Defined in: packages/agent/src/unified/agent/agent.ts:28
 
 #### Parameters
 

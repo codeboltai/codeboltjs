@@ -8,7 +8,7 @@ title: BrowserScreenshotOptions
 
 # Interface: BrowserScreenshotOptions
 
-Defined in: [packages/codeboltjs/src/types/libFunctionTypes.ts:855](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L855)
+Defined in: packages/codeboltjs/src/types/libFunctionTypes.ts:855
 
 ## Extends
 
@@ -26,7 +26,7 @@ Additional operation-specific options
 
 | Property | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="format"></a> `format?` | `"png"` \| `"jpeg"` | Image format | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:861](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L861) |
-| <a id="fullpage"></a> `fullPage?` | `boolean` | Take full page screenshot | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:857](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L857) |
-| <a id="instanceid"></a> `instanceId?` | `string` | Browser instance ID (optional - uses active instance if not provided) | [`BrowserOperationOptions`](BrowserOperationOptions).[`instanceId`](BrowserOperationOptions.md#instanceid) | [packages/codeboltjs/src/types/libFunctionTypes.ts:841](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L841) |
-| <a id="quality"></a> `quality?` | `number` | Image quality (0-100) | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:859](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L859) |
+| <a id="format"></a> `format?` | `"png"` \| `"jpeg"` | Image format | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:861](packages/codeboltjs/src/types/libFunctionTypes.ts#L861) |
+| <a id="fullpage"></a> `fullPage?` | `boolean` | Take full page screenshot | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:857](packages/codeboltjs/src/types/libFunctionTypes.ts#L857) |
+| <a id="instanceid"></a> `instanceId?` | `string` | Browser instance ID (optional - uses active instance if not provided) | [`BrowserOperationOptions`](BrowserOperationOptions).[`instanceId`](BrowserOperationOptions.md#instanceid) | [packages/codeboltjs/src/types/libFunctionTypes.ts:841](packages/codeboltjs/src/types/libFunctionTypes.ts#L841) |
+| <a id="quality"></a> `quality?` | `number` | Image quality (0-100) | - | [packages/codeboltjs/src/types/libFunctionTypes.ts:859](packages/codeboltjs/src/types/libFunctionTypes.ts#L859) |

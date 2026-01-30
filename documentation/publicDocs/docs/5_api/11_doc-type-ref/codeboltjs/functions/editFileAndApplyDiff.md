@@ -17,7 +17,7 @@ function editFileAndApplyDiff(
 applyModel?: string): Promise<FsEditFileAndApplyDiffResponse>;
 ```
 
-Defined in: [packages/codeboltjs/src/index.ts:405](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/index.ts#L405)
+Defined in: packages/codeboltjs/src/index.ts:405
 
 ## Parameters
 

@@ -8,7 +8,7 @@ title: ProviderTransport
 
 # Interface: ProviderTransport
 
-Defined in: [ProviderTypes.ts:60](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L60)
+Defined in: ProviderTypes.ts:60
 
 ## Methods
 
@@ -18,7 +18,7 @@ Defined in: [ProviderTypes.ts:60](https://github.com/codeboltai/codeboltjs/blob/
 ensureTransportConnection(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: [ProviderTypes.ts:61](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L61)
+Defined in: ProviderTypes.ts:61
 
 #### Parameters
 
@@ -38,7 +38,7 @@ Defined in: [ProviderTypes.ts:61](https://github.com/codeboltai/codeboltjs/blob/
 sendToAgentServer(message: AgentStartMessage | RawMessageForAgent): Promise<boolean>;
 ```
 
-Defined in: [ProviderTypes.ts:62](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/provider/src/lib/ProviderTypes.ts#L62)
+Defined in: ProviderTypes.ts:62
 
 #### Parameters
 

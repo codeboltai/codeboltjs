@@ -15,7 +15,7 @@ function StartSubagentTaskResponseNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/agent.ts:75](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/agent.ts#L75)
+Defined in: packages/codeboltjs/src/notificationfunctions/agent.ts:75
 
 Sends a response to a subagent task request
 

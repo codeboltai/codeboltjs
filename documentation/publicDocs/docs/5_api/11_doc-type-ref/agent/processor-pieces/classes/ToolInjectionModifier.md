@@ -8,7 +8,7 @@ title: ToolInjectionModifier
 
 # Class: ToolInjectionModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:14](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts#L14)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:14
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/toolInjectionM
 new ToolInjectionModifier(options: ToolInjectionOptions): ToolInjectionModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:17](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts#L17)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:17
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BaseMessageModifier.constructor
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts#L28)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:28
 
 #### Parameters
 

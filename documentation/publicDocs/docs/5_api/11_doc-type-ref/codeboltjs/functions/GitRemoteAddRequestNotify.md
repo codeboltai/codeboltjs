@@ -16,7 +16,7 @@ function GitRemoteAddRequestNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:621](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L621)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:621
 
 Sends a git remote add request notification
 

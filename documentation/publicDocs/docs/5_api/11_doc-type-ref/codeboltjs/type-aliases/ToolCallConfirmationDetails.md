@@ -16,6 +16,6 @@ type ToolCallConfirmationDetails =
   | ToolInfoConfirmationDetails;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/types.ts:269](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L269)
+Defined in: packages/codeboltjs/src/tools/types.ts:269
 
 Union type for all confirmation details

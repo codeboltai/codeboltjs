@@ -8,7 +8,7 @@ title: ChatHistoryMessageModifier
 
 # Class: ChatHistoryMessageModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:15](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L15)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:15
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMes
 new ChatHistoryMessageModifier(options: ChatHistoryMessageModifierOptions): ChatHistoryMessageModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:20](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L20)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:20
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BaseMessageModifier.constructor
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:27](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L27)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:27
 
 #### Parameters
 
@@ -81,7 +81,7 @@ BaseMessageModifier.modify
 setMaxHistoryMessages(max: number): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:126](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L126)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:126
 
 #### Parameters
 

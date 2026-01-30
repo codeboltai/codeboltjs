@@ -14,7 +14,7 @@ type SSEServer = {
 };
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:39](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L39)
+Defined in: packages/mcp/src/mcpServer.ts:39
 
 Type definition for SSE Server that can be closed.
 
@@ -22,4 +22,4 @@ Type definition for SSE Server that can be closed.
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="close"></a> `close` | () => `Promise`\<`void`\> | [packages/mcp/src/mcpServer.ts:40](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L40) |
+| <a id="close"></a> `close` | () => `Promise`\<`void`\> | [packages/mcp/src/mcpServer.ts:40](packages/mcp/src/mcpServer.ts#L40) |

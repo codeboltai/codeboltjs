@@ -8,7 +8,7 @@ title: ChatCompressionModifier
 
 # Class: ChatCompressionModifier
 
-Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:93](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L93)
+Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:93
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatComp
 new ChatCompressionModifier(options: ChatCompressionOptions): ChatCompressionModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:97](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L97)
+Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:97
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BasePreInferenceProcessor.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePreInferenceProcessor.context` | [packages/agent/src/processor-pieces/base/basePreInferenceProcessor.ts:15](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreInferenceProcessor.ts#L15) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePreInferenceProcessor.context` | [packages/agent/src/processor-pieces/base/basePreInferenceProcessor.ts:15](packages/agent/src/processor-pieces/base/basePreInferenceProcessor.ts#L15) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BasePreInferenceProcessor.constructor
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:106](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L106)
+Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:106
 
 #### Parameters
 
@@ -81,7 +81,7 @@ BasePreInferenceProcessor.modify
 resetCompressionState(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:310](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L310)
+Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:310
 
 #### Returns
 
@@ -97,7 +97,7 @@ tryCompressChat(messages: MessageObject[], force: boolean): Promise<ChatCompress
 }>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:145](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L145)
+Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:145
 
 #### Parameters
 

@@ -8,7 +8,7 @@ title: ResponseExecutor
 
 # Class: ResponseExecutor
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:6](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L6)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:6
 
 ## Implements
 
@@ -25,7 +25,7 @@ new ResponseExecutor(options: {
 }): ResponseExecutor;
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:13](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L13)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:13
 
 #### Parameters
 
@@ -47,7 +47,7 @@ Defined in: [packages/agent/src/unified/base/responseExecutor.ts:13](https://git
 executeResponse(input: ResponseInput): Promise<ResponseOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L23)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:23
 
 Execute response processing including tool execution
 
@@ -75,7 +75,7 @@ AgentResponseExecutor.executeResponse
 getPostToolCallProcessors(): PostToolCallProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:386](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L386)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:386
 
 #### Returns
 
@@ -95,7 +95,7 @@ AgentResponseExecutor.getPostToolCallProcessors
 getPreToolCallProcessors(): PreToolCallProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:383](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L383)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:383
 
 #### Returns
 
@@ -115,7 +115,7 @@ AgentResponseExecutor.getPreToolCallProcessors
 setPostToolCallProcessors(processors: PostToolCallProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:379](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L379)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:379
 
 #### Parameters
 
@@ -141,7 +141,7 @@ AgentResponseExecutor.setPostToolCallProcessors
 setPreToolCallProcessors(processors: PreToolCallProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/responseExecutor.ts:376](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/responseExecutor.ts#L376)
+Defined in: packages/agent/src/unified/base/responseExecutor.ts:376
 
 #### Parameters
 

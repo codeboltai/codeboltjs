@@ -8,7 +8,7 @@ title: CreateFileUpdateIntentRequest
 
 # Interface: CreateFileUpdateIntentRequest
 
-Defined in: [packages/codeboltjs/src/types/fileUpdateIntent.ts:81](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L81)
+Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:81
 
 Request to create a file update intent
 
@@ -16,10 +16,10 @@ Request to create a file update intent
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="autoexpire"></a> `autoExpire?` | `boolean` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:87](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L87) |
-| <a id="description"></a> `description` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:84](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L84) |
-| <a id="environmentid"></a> `environmentId` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:82](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L82) |
-| <a id="estimatedduration"></a> `estimatedDuration?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:85](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L85) |
-| <a id="files"></a> `files` | [`FileIntent`](FileIntent)[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:83](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L83) |
-| <a id="maxautoexpireminutes"></a> `maxAutoExpireMinutes?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:88](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L88) |
-| <a id="priority"></a> `priority?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:86](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/fileUpdateIntent.ts#L86) |
+| <a id="autoexpire"></a> `autoExpire?` | `boolean` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:87](packages/codeboltjs/src/types/fileUpdateIntent.ts#L87) |
+| <a id="description"></a> `description` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:84](packages/codeboltjs/src/types/fileUpdateIntent.ts#L84) |
+| <a id="environmentid"></a> `environmentId` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:82](packages/codeboltjs/src/types/fileUpdateIntent.ts#L82) |
+| <a id="estimatedduration"></a> `estimatedDuration?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:85](packages/codeboltjs/src/types/fileUpdateIntent.ts#L85) |
+| <a id="files"></a> `files` | [`FileIntent`](FileIntent)[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:83](packages/codeboltjs/src/types/fileUpdateIntent.ts#L83) |
+| <a id="maxautoexpireminutes"></a> `maxAutoExpireMinutes?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:88](packages/codeboltjs/src/types/fileUpdateIntent.ts#L88) |
+| <a id="priority"></a> `priority?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:86](packages/codeboltjs/src/types/fileUpdateIntent.ts#L86) |

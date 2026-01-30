@@ -8,7 +8,7 @@ title: EnvironmentContextModifier
 
 # Class: EnvironmentContextModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L16)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:16
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentCon
 new EnvironmentContextModifier(options: EnvironmentContextOptions): EnvironmentContextModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:33](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L33)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:33
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BaseMessageModifier.constructor
 disableFullContext(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:248](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L248)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:248
 
 #### Returns
 
@@ -68,7 +68,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentCon
 enableFullContext(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:244](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L244)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:244
 
 #### Returns
 
@@ -82,7 +82,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentCon
 isFullContextEnabled(): boolean;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:252](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L252)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:252
 
 #### Returns
 
@@ -96,7 +96,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentCon
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:44](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L44)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:44
 
 #### Parameters
 

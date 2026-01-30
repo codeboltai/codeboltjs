@@ -8,7 +8,7 @@ title: BaseToolInvocation
 
 # Abstract Class: BaseToolInvocation\<TParams, TResult\>
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:33](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L33)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:33
 
 A convenience base class for ToolInvocation
 
@@ -31,7 +31,7 @@ A convenience base class for ToolInvocation
 new BaseToolInvocation<TParams, TResult>(params: TParams): BaseToolInvocation<TParams, TResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:37](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L37)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:37
 
 #### Parameters
 
@@ -47,7 +47,7 @@ Defined in: [packages/codeboltjs/src/tools/base-tool.ts:37](https://github.com/c
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="params"></a> `params` | `readonly` | `TParams` | The validated parameters for this specific invocation | [packages/codeboltjs/src/tools/base-tool.ts:37](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L37) |
+| <a id="params"></a> `params` | `readonly` | `TParams` | The validated parameters for this specific invocation | [packages/codeboltjs/src/tools/base-tool.ts:37](packages/codeboltjs/src/tools/base-tool.ts#L37) |
 
 ## Methods
 
@@ -57,7 +57,7 @@ Defined in: [packages/codeboltjs/src/tools/base-tool.ts:37](https://github.com/c
 abstract execute(signal: AbortSignal, updateOutput?: (output: string) => void): Promise<TResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:49](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L49)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:49
 
 Executes the tool with the validated parameters
 
@@ -86,7 +86,7 @@ shouldConfirmExecute(_abortSignal: AbortSignal): Promise<
 | ToolCallConfirmationDetails>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:43](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L43)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:43
 
 Determines if the tool should prompt for confirmation before execution
 
@@ -114,7 +114,7 @@ Determines if the tool should prompt for confirmation before execution
 toolLocations(): ToolLocation[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:39](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L39)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:39
 
 Determines what file system paths the tool will affect
 

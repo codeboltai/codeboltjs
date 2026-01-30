@@ -8,7 +8,7 @@ title: ToolInvocation
 
 # Interface: ToolInvocation\<TParams, TResult\>
 
-Defined in: [packages/codeboltjs/src/tools/types.ts:278](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L278)
+Defined in: packages/codeboltjs/src/tools/types.ts:278
 
 Represents a validated and ready-to-execute tool call
 
@@ -23,7 +23,7 @@ Represents a validated and ready-to-execute tool call
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="params"></a> `params` | `TParams` | The validated parameters for this specific invocation | [packages/codeboltjs/src/tools/types.ts:283](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L283) |
+| <a id="params"></a> `params` | `TParams` | The validated parameters for this specific invocation | [packages/codeboltjs/src/tools/types.ts:283](packages/codeboltjs/src/tools/types.ts#L283) |
 
 ## Methods
 
@@ -33,7 +33,7 @@ Represents a validated and ready-to-execute tool call
 execute(signal: AbortSignal, updateOutput?: (output: string) => void): Promise<TResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/types.ts:294](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L294)
+Defined in: packages/codeboltjs/src/tools/types.ts:294
 
 Executes the tool with the validated parameters
 
@@ -58,7 +58,7 @@ shouldConfirmExecute(abortSignal: AbortSignal): Promise<
 | ToolCallConfirmationDetails>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/types.ts:289](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L289)
+Defined in: packages/codeboltjs/src/tools/types.ts:289
 
 Determines if the tool should prompt for confirmation before execution
 
@@ -82,7 +82,7 @@ Determines if the tool should prompt for confirmation before execution
 toolLocations(): ToolLocation[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/types.ts:286](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/types.ts#L286)
+Defined in: packages/codeboltjs/src/tools/types.ts:286
 
 Determines what file system paths the tool will affect
 

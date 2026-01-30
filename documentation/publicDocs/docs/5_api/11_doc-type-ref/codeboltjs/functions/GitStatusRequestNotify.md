@@ -12,7 +12,7 @@ title: GitStatusRequestNotify
 function GitStatusRequestNotify(path?: string, toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:201](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L201)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:201
 
 Sends a git status request notification
 

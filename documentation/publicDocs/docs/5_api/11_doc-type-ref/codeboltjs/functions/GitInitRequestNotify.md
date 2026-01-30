@@ -12,7 +12,7 @@ title: GitInitRequestNotify
 function GitInitRequestNotify(path?: string, toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:51](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L51)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:51
 
 Sends a git init request notification
 

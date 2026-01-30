@@ -8,7 +8,7 @@ title: UnifiedResponseExecutionError
 
 # Class: UnifiedResponseExecutionError
 
-Defined in: [packages/agent/src/unified/types/types.ts:302](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L302)
+Defined in: packages/agent/src/unified/types/types.ts:302
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/unified/types/types.ts:302](https://github.com/c
 new UnifiedResponseExecutionError(message: string, context?: Record<string, any>): UnifiedResponseExecutionError;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:303](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L303)
+Defined in: packages/agent/src/unified/types/types.ts:303
 
 #### Parameters
 
@@ -43,8 +43,8 @@ Defined in: [packages/agent/src/unified/types/types.ts:303](https://github.com/c
 
 | Property | Modifier | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="code"></a> `code` | `readonly` | `string` | - | [`UnifiedAgentError`](UnifiedAgentError).[`code`](UnifiedAgentError.md#code) | [packages/agent/src/unified/types/types.ts:280](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L280) |
-| <a id="context"></a> `context?` | `readonly` | `Record`\<`string`, `any`\> | - | [`UnifiedAgentError`](UnifiedAgentError).[`context`](UnifiedAgentError.md#context) | [packages/agent/src/unified/types/types.ts:281](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L281) |
+| <a id="code"></a> `code` | `readonly` | `string` | - | [`UnifiedAgentError`](UnifiedAgentError).[`code`](UnifiedAgentError.md#code) | [packages/agent/src/unified/types/types.ts:280](packages/agent/src/unified/types/types.ts#L280) |
+| <a id="context"></a> `context?` | `readonly` | `Record`\<`string`, `any`\> | - | [`UnifiedAgentError`](UnifiedAgentError).[`context`](UnifiedAgentError.md#context) | [packages/agent/src/unified/types/types.ts:281](packages/agent/src/unified/types/types.ts#L281) |
 | <a id="message"></a> `message` | `public` | `string` | - | [`UnifiedAgentError`](UnifiedAgentError).[`message`](UnifiedAgentError.md#message) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1077 |
 | <a id="name"></a> `name` | `public` | `string` | - | [`UnifiedAgentError`](UnifiedAgentError).[`name`](UnifiedAgentError.md#name) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1076 |
 | <a id="stack"></a> `stack?` | `public` | `string` | - | [`UnifiedAgentError`](UnifiedAgentError).[`stack`](UnifiedAgentError.md#stack) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1078 |

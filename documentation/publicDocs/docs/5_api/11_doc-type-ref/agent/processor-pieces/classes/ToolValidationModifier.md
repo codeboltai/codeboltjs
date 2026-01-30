@@ -8,7 +8,7 @@ title: ToolValidationModifier
 
 # Class: ToolValidationModifier
 
-Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:20](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts#L20)
+Defined in: packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:20
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolValid
 new ToolValidationModifier(options: ToolValidationModifierOptions): ToolValidationModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts#L23)
+Defined in: packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:23
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BasePreToolCallProcessor.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePreToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:19](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L19) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePreToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:19](packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L19) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BasePreToolCallProcessor.constructor
 clearContext(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:40](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L40)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:40
 
 #### Returns
 
@@ -78,7 +78,7 @@ protected createInterceptedTool(
    reason?: string): InterceptedTool;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:45](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L45)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:45
 
 #### Parameters
 
@@ -107,7 +107,7 @@ BasePreToolCallProcessor.createInterceptedTool
 getContext(key: string): unknown;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:36](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L36)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:36
 
 #### Parameters
 
@@ -133,7 +133,7 @@ BasePreToolCallProcessor.getContext
 optional interceptTool(_toolName: string, _toolInput: unknown): Promise<boolean>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L28)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:28
 
 #### Parameters
 
@@ -160,7 +160,7 @@ BasePreToolCallProcessor.interceptTool
 modify(input: PreToolCallProcessorInput): Promise<PreToolCallProcessorOutput>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:32](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts#L32)
+Defined in: packages/agent/src/processor-pieces/pretoolCallProcessors/toolValidationModifier.ts:32
 
 #### Parameters
 
@@ -186,7 +186,7 @@ BasePreToolCallProcessor.modify
 setContext(key: string, value: unknown): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:32](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L32)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:32
 
 #### Parameters
 
@@ -213,7 +213,7 @@ BasePreToolCallProcessor.setContext
 protected validateToolCall(toolCall: ToolCall, validationRules: ToolValidationRule[]): ToolValidationResult;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:64](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts#L64)
+Defined in: packages/agent/src/processor-pieces/base/basePreToolCallProcessor.ts:64
 
 #### Parameters
 

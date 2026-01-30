@@ -8,7 +8,7 @@ title: PaginationOptions
 
 # Interface: PaginationOptions
 
-Defined in: [packages/codeboltjs/src/types/libFunctionTypes.ts:1732](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L1732)
+Defined in: packages/codeboltjs/src/types/libFunctionTypes.ts:1732
 
 Pagination options for list operations
 
@@ -16,7 +16,7 @@ Pagination options for list operations
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="page"></a> `page?` | `number` | Page number (1-based) | [packages/codeboltjs/src/types/libFunctionTypes.ts:1734](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L1734) |
-| <a id="pagesize"></a> `pageSize?` | `number` | Number of items per page | [packages/codeboltjs/src/types/libFunctionTypes.ts:1736](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L1736) |
-| <a id="sortby"></a> `sortBy?` | `string` | Sort field | [packages/codeboltjs/src/types/libFunctionTypes.ts:1738](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L1738) |
-| <a id="sortorder"></a> `sortOrder?` | `"asc"` \| `"desc"` | Sort direction | [packages/codeboltjs/src/types/libFunctionTypes.ts:1740](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/libFunctionTypes.ts#L1740) |
+| <a id="page"></a> `page?` | `number` | Page number (1-based) | [packages/codeboltjs/src/types/libFunctionTypes.ts:1734](packages/codeboltjs/src/types/libFunctionTypes.ts#L1734) |
+| <a id="pagesize"></a> `pageSize?` | `number` | Number of items per page | [packages/codeboltjs/src/types/libFunctionTypes.ts:1736](packages/codeboltjs/src/types/libFunctionTypes.ts#L1736) |
+| <a id="sortby"></a> `sortBy?` | `string` | Sort field | [packages/codeboltjs/src/types/libFunctionTypes.ts:1738](packages/codeboltjs/src/types/libFunctionTypes.ts#L1738) |
+| <a id="sortorder"></a> `sortOrder?` | `"asc"` \| `"desc"` | Sort direction | [packages/codeboltjs/src/types/libFunctionTypes.ts:1740](packages/codeboltjs/src/types/libFunctionTypes.ts#L1740) |

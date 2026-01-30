@@ -18,7 +18,7 @@ function SubagentTaskCompletedNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/agent.ts:111](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/agent.ts#L111)
+Defined in: packages/codeboltjs/src/notificationfunctions/agent.ts:111
 
 Notifies that a subagent task has been completed
 
