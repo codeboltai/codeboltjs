@@ -2,13 +2,13 @@
 title: FastMCPSession
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 
 # Class: FastMCPSession\<T\>
 
-Defined in: [packages/mcp/src/mcpServer.ts:556](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L556)
+Defined in: packages/mcp/src/mcpServer.ts:556
 
 Class representing a FastMCP session.
 Manages communication between the client and server.
@@ -55,7 +55,7 @@ new FastMCPSession<T>(options: {
 }): FastMCPSession<T>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:572](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L572)
+Defined in: packages/mcp/src/mcpServer.ts:572
 
 Creates a new FastMCPSession.
 
@@ -118,7 +118,7 @@ get clientCapabilities():
   | null;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:718](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L718)
+Defined in: packages/mcp/src/mcpServer.ts:718
 
 ##### Returns
 
@@ -167,7 +167,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:718](https://github.com/codeboltai/co
 get loggingLevel(): LoggingLevel;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:799](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L799)
+Defined in: packages/mcp/src/mcpServer.ts:799
 
 ##### Returns
 
@@ -190,7 +190,7 @@ get roots(): {
 }[];
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:777](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L777)
+Defined in: packages/mcp/src/mcpServer.ts:777
 
 ##### Returns
 
@@ -204,7 +204,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:777](https://github.com/codeboltai/co
 get server(): Server;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:722](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L722)
+Defined in: packages/mcp/src/mcpServer.ts:722
 
 ##### Returns
 
@@ -283,7 +283,7 @@ FastMCPSessionEventEmitter.addListener
 close(): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:781](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L781)
+Defined in: packages/mcp/src/mcpServer.ts:781
 
 #### Returns
 
@@ -297,7 +297,7 @@ Defined in: [packages/mcp/src/mcpServer.ts:781](https://github.com/codeboltai/co
 connect(transport: Transport): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:734](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L734)
+Defined in: packages/mcp/src/mcpServer.ts:734
 
 #### Parameters
 
@@ -1042,7 +1042,7 @@ requestSampling(message: {
 }): Promise<SamplingResponse>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:728](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L728)
+Defined in: packages/mcp/src/mcpServer.ts:728
 
 #### Parameters
 

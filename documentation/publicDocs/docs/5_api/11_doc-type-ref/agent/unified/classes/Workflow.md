@@ -2,13 +2,13 @@
 title: Workflow
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: Workflow
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:4](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L4)
+Defined in: packages/agent/src/unified/agent/workflow.ts:4
 
 ## Implements
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:4](https://github.com/
 new Workflow(config: workflowConfig): Workflow;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:12](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L12)
+Defined in: packages/agent/src/unified/agent/workflow.ts:12
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:12](https://github.com
 execute(): WorkflowResult;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L16)
+Defined in: packages/agent/src/unified/agent/workflow.ts:16
 
 #### Returns
 
@@ -62,7 +62,7 @@ BaseWorkflow.execute
 executeAsync(): Promise<WorkflowResult>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:188](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L188)
+Defined in: packages/agent/src/unified/agent/workflow.ts:188
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:188](https://github.co
 executeStep(): workflowStepOutput;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:65](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L65)
+Defined in: packages/agent/src/unified/agent/workflow.ts:65
 
 #### Returns
 
@@ -96,7 +96,7 @@ BaseWorkflow.executeStep
 executeStepAsync(): Promise<workflowStepOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:236](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L236)
+Defined in: packages/agent/src/unified/agent/workflow.ts:236
 
 #### Returns
 
@@ -110,7 +110,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:236](https://github.co
 executeSteps(): workflowStepOutput[];
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:104](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L104)
+Defined in: packages/agent/src/unified/agent/workflow.ts:104
 
 #### Returns
 
@@ -130,7 +130,7 @@ BaseWorkflow.executeSteps
 executeStepsAsync(): Promise<workflowStepOutput[]>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:278](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L278)
+Defined in: packages/agent/src/unified/agent/workflow.ts:278
 
 #### Returns
 
@@ -144,7 +144,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:278](https://github.co
 getContext(): any;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:149](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L149)
+Defined in: packages/agent/src/unified/agent/workflow.ts:149
 
 #### Returns
 
@@ -164,7 +164,7 @@ BaseWorkflow.getContext
 getCurrentStepIndex(): number;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:166](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L166)
+Defined in: packages/agent/src/unified/agent/workflow.ts:166
 
 #### Returns
 
@@ -178,7 +178,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:166](https://github.co
 getExecutionId(): string;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:174](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L174)
+Defined in: packages/agent/src/unified/agent/workflow.ts:174
 
 #### Returns
 
@@ -192,7 +192,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:174](https://github.co
 getStepResults(): workflowStepOutput[];
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:182](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L182)
+Defined in: packages/agent/src/unified/agent/workflow.ts:182
 
 #### Returns
 
@@ -206,7 +206,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:182](https://github.co
 getTotalSteps(): number;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:170](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L170)
+Defined in: packages/agent/src/unified/agent/workflow.ts:170
 
 #### Returns
 
@@ -220,7 +220,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:170](https://github.co
 reset(): void;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:158](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L158)
+Defined in: packages/agent/src/unified/agent/workflow.ts:158
 
 #### Returns
 
@@ -234,7 +234,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:158](https://github.co
 setInitialContext(context: any): void;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:178](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L178)
+Defined in: packages/agent/src/unified/agent/workflow.ts:178
 
 #### Parameters
 
@@ -254,7 +254,7 @@ Defined in: [packages/agent/src/unified/agent/workflow.ts:178](https://github.co
 updateContext(newContext: any): void;
 ```
 
-Defined in: [packages/agent/src/unified/agent/workflow.ts:153](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/workflow.ts#L153)
+Defined in: packages/agent/src/unified/agent/workflow.ts:153
 
 #### Parameters
 

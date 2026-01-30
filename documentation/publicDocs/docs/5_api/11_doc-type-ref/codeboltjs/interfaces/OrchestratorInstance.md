@@ -2,7 +2,7 @@
 title: OrchestratorInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

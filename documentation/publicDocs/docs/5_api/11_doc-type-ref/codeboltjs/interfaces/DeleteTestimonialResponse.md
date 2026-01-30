@@ -2,7 +2,7 @@
 title: DeleteTestimonialResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

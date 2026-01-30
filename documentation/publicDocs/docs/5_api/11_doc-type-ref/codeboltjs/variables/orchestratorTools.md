@@ -2,7 +2,7 @@
 title: orchestratorTools
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -20,6 +20,6 @@ const orchestratorTools: (
   | OrchestratorUpdateStatusTool)[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/orchestrator/index.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/orchestrator/index.ts#L28)
+Defined in: packages/codeboltjs/src/tools/orchestrator/index.ts:28
 
 All orchestrator tools

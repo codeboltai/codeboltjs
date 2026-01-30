@@ -2,7 +2,7 @@
 title: GitCheckoutRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -15,7 +15,7 @@ function GitCheckoutRequestNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:358](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L358)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:358
 
 Sends a git checkout request notification
 

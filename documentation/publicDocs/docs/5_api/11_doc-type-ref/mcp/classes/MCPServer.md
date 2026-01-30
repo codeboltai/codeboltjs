@@ -2,13 +2,13 @@
 title: MCPServer
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 
 # Class: MCPServer\<T\>
 
-Defined in: [packages/mcp/src/mcpServer.ts:1221](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1221)
+Defined in: packages/mcp/src/mcpServer.ts:1221
 
 Class representing a toolbox for FastMCP.
 Manages tools, resources, and prompts for a Model Context Protocol server.
@@ -31,7 +31,7 @@ Manages tools, resources, and prompts for a Model Context Protocol server.
 new MCPServer<T>(options: ServerOptions<T>): MCPServer<T>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1236](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1236)
+Defined in: packages/mcp/src/mcpServer.ts:1236
 
 Creates a new ToolBox instance.
 
@@ -59,7 +59,7 @@ FastMCPEventEmitter.constructor
 | <a id="_emittype"></a> ` _emitType?` | `public` | `FastMCPEvents`\<`FastMCPSessionAuth`\> | - | `FastMCPEventEmitter. _emitType` | node\_modules/.pnpm/strict-event-emitter-types@2.0.0/node\_modules/strict-event-emitter-types/types/src/index.d.ts:7 |
 | <a id="_eventstype"></a> ` _eventsType?` | `public` | `FastMCPEvents`\<`FastMCPSessionAuth`\> | - | `FastMCPEventEmitter. _eventsType` | node\_modules/.pnpm/strict-event-emitter-types@2.0.0/node\_modules/strict-event-emitter-types/types/src/index.d.ts:6 |
 | <a id="capturerejectionsymbol"></a> `[captureRejectionSymbol]?` | `public` | \<`K`\>(`error`: `Error`, `event`: `string` \| `symbol`, ...`args`: `AnyRest`) => `void` | - | `FastMCPEventEmitter.[captureRejectionSymbol]` | node\_modules/.pnpm/@types+node@20.19.19/node\_modules/@types/node/events.d.ts:103 |
-| <a id="options"></a> `options` | `public` | `ServerOptions`\<`T`\> | Configuration options for the toolbox | - | [packages/mcp/src/mcpServer.ts:1236](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1236) |
+| <a id="options"></a> `options` | `public` | `ServerOptions`\<`T`\> | Configuration options for the toolbox | - | [packages/mcp/src/mcpServer.ts:1236](packages/mcp/src/mcpServer.ts#L1236) |
 
 ## Accessors
 
@@ -71,7 +71,7 @@ FastMCPEventEmitter.constructor
 get sessions(): FastMCPSession<T>[];
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1246](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1246)
+Defined in: packages/mcp/src/mcpServer.ts:1246
 
 Gets all active sessions.
 
@@ -97,7 +97,7 @@ activate(options:
 }): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1346](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1346)
+Defined in: packages/mcp/src/mcpServer.ts:1346
 
 Activates the server.
 
@@ -105,7 +105,7 @@ Activates the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 
@@ -184,7 +184,7 @@ FastMCPEventEmitter.addListener
 addPrompt<Args>(prompt: InputPrompt<Args>): void;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1284](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1284)
+Defined in: packages/mcp/src/mcpServer.ts:1284
 
 Adds a prompt to the server.
 
@@ -212,7 +212,7 @@ Adds a prompt to the server.
 addResource(resource: Resource): void;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1264](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1264)
+Defined in: packages/mcp/src/mcpServer.ts:1264
 
 Adds a resource to the server.
 
@@ -234,7 +234,7 @@ Adds a resource to the server.
 addResourceTemplate<Args>(resource: InputResourceTemplate<Args>): void;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1273](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1273)
+Defined in: packages/mcp/src/mcpServer.ts:1273
 
 Adds a resource template to the server.
 
@@ -262,7 +262,7 @@ Adds a resource template to the server.
 addTool<Params>(tool: Tool<T, Params>): void;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1255](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1255)
+Defined in: packages/mcp/src/mcpServer.ts:1255
 
 Adds a tool to the server.
 
@@ -991,7 +991,7 @@ start(options:
 }): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1295](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1295)
+Defined in: packages/mcp/src/mcpServer.ts:1295
 
 Starts the server.
 
@@ -999,7 +999,7 @@ Starts the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 
@@ -1013,7 +1013,7 @@ Starts the server.
 stop(): Promise<void>;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:1335](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L1335)
+Defined in: packages/mcp/src/mcpServer.ts:1335
 
 Stops the server.
 

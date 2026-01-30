@@ -2,13 +2,13 @@
 title: CoreSystemPromptModifier
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: CoreSystemPromptModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:10](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L10)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:10
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemProm
 new CoreSystemPromptModifier(options: CoreSystemPromptOptions): CoreSystemPromptModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:13](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L13)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:13
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BaseMessageModifier.constructor
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:18](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L18)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:18
 
 #### Parameters
 

@@ -2,7 +2,7 @@
 title: UnifiedAgentEventType
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
@@ -24,6 +24,6 @@ type UnifiedAgentEventType =
   | "iteration_completed";
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:247](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L247)
+Defined in: packages/agent/src/unified/types/types.ts:247
 
 Main unified agent interface

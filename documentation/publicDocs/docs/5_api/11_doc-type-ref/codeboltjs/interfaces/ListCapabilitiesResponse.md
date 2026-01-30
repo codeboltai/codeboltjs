@@ -2,7 +2,7 @@
 title: ListCapabilitiesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

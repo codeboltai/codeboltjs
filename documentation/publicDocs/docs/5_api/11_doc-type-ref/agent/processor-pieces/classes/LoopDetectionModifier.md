@@ -2,13 +2,13 @@
 title: LoopDetectionModifier
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: LoopDetectionModifier
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:18](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L18)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:18
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDet
 new LoopDetectionModifier(options: LoopDetectionOptions): LoopDetectionModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L23)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:23
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BasePostInferenceProcessor.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePostInferenceProcessor.context` | [packages/agent/src/processor-pieces/base/basePostInferenceProcessor.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/basePostInferenceProcessor.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BasePostInferenceProcessor.context` | [packages/agent/src/processor-pieces/base/basePostInferenceProcessor.ts:16](packages/agent/src/processor-pieces/base/basePostInferenceProcessor.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BasePostInferenceProcessor.constructor
 getMessageHistory(): MessageHistory[];
 ```
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:232](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L232)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:232
 
 #### Returns
 
@@ -71,7 +71,7 @@ modify(
 nextPrompt: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:33](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L33)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:33
 
 #### Parameters
 
@@ -99,7 +99,7 @@ BasePostInferenceProcessor.modify
 resetLoopDetection(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:227](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts#L227)
+Defined in: packages/agent/src/processor-pieces/postInferenceProcessors/loopDetectionModifier.ts:227
 
 #### Returns
 

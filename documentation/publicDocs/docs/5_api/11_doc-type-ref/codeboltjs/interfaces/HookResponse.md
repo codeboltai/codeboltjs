@@ -2,13 +2,13 @@
 title: HookResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Interface: HookResponse
 
-Defined in: [packages/codeboltjs/src/types/hook.ts:74](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L74)
+Defined in: packages/codeboltjs/src/types/hook.ts:74
 
 Hook Types
 Type definitions for hook operations
@@ -21,8 +21,8 @@ Type definitions for hook operations
 
 | Property | Type | Overrides | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | [`Hook`](Hook) | [`HookBaseResponse`](HookBaseResponse).[`data`](HookBaseResponse.md#data) | - | [packages/codeboltjs/src/types/hook.ts:75](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L75) |
-| <a id="error"></a> `error?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`error`](HookBaseResponse.md#error) | [packages/codeboltjs/src/types/hook.ts:11](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L11) |
-| <a id="message"></a> `message?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`message`](HookBaseResponse.md#message) | [packages/codeboltjs/src/types/hook.ts:10](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L10) |
-| <a id="success"></a> `success` | `boolean` | - | [`HookBaseResponse`](HookBaseResponse).[`success`](HookBaseResponse.md#success) | [packages/codeboltjs/src/types/hook.ts:8](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L8) |
-| <a id="type"></a> `type` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`type`](HookBaseResponse.md#type) | [packages/codeboltjs/src/types/hook.ts:7](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/hook.ts#L7) |
+| <a id="data"></a> `data?` | [`Hook`](Hook) | [`HookBaseResponse`](HookBaseResponse).[`data`](HookBaseResponse.md#data) | - | [packages/codeboltjs/src/types/hook.ts:75](packages/codeboltjs/src/types/hook.ts#L75) |
+| <a id="error"></a> `error?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`error`](HookBaseResponse.md#error) | [packages/codeboltjs/src/types/hook.ts:11](packages/codeboltjs/src/types/hook.ts#L11) |
+| <a id="message"></a> `message?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`message`](HookBaseResponse.md#message) | [packages/codeboltjs/src/types/hook.ts:10](packages/codeboltjs/src/types/hook.ts#L10) |
+| <a id="success"></a> `success` | `boolean` | - | [`HookBaseResponse`](HookBaseResponse).[`success`](HookBaseResponse.md#success) | [packages/codeboltjs/src/types/hook.ts:8](packages/codeboltjs/src/types/hook.ts#L8) |
+| <a id="type"></a> `type` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`type`](HookBaseResponse.md#type) | [packages/codeboltjs/src/types/hook.ts:7](packages/codeboltjs/src/types/hook.ts#L7) |

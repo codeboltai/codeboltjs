@@ -2,7 +2,7 @@
 title: queryVectorItems
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,7 +12,7 @@ title: queryVectorItems
 function queryVectorItems(items: any[], dbPath: string): Promise<QueryVectorItemResponse>;
 ```
 
-Defined in: [packages/codeboltjs/src/index.ts:401](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/index.ts#L401)
+Defined in: packages/codeboltjs/src/index.ts:401
 
 ## Parameters
 

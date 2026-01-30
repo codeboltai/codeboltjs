@@ -2,7 +2,7 @@
 title: EndorseTalentResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

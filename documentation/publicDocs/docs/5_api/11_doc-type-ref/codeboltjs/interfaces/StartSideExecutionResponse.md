@@ -2,7 +2,7 @@
 title: StartSideExecutionResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

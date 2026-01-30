@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/create-jobs-from-plan",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Creates executable jobs for the orchestrator from an action plan with incremental execution support",
   "main": "index.js",
   "scripts": {

@@ -2,7 +2,7 @@
 title: GitPullRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,7 +12,7 @@ title: GitPullRequestNotify
 function GitPullRequestNotify(path?: string, toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:101](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L101)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:101
 
 Sends a git pull request notification
 

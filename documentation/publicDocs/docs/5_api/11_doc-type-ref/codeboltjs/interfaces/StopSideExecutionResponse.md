@@ -2,7 +2,7 @@
 title: StopSideExecutionResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

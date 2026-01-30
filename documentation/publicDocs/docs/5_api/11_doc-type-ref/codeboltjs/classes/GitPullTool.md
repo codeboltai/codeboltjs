@@ -2,13 +2,13 @@
 title: GitPullTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Class: GitPullTool
 
-Defined in: [packages/codeboltjs/src/tools/git/pull.ts:67](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/git/pull.ts#L67)
+Defined in: packages/codeboltjs/src/tools/git/pull.ts:67
 
 Base class for declarative tools with built-in validation
 
@@ -24,7 +24,7 @@ Base class for declarative tools with built-in validation
 new GitPullTool(): GitPullTool;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/git/pull.ts:70](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/git/pull.ts#L70)
+Defined in: packages/codeboltjs/src/tools/git/pull.ts:70
 
 #### Returns
 
@@ -38,14 +38,14 @@ Defined in: [packages/codeboltjs/src/tools/git/pull.ts:70](https://github.com/co
 
 | Property | Modifier | Type | Default value | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="canupdateoutput"></a> `canUpdateOutput` | `readonly` | `boolean` | `false` | Whether the tool supports live (streaming) output | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`canUpdateOutput`](BaseDeclarativeTool.md#canupdateoutput) | [packages/codeboltjs/src/tools/base-tool.ts:69](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L69) |
-| <a id="description"></a> `description` | `readonly` | `string` | `undefined` | Description of what the tool does | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`description`](BaseDeclarativeTool.md#description) | [packages/codeboltjs/src/tools/base-tool.ts:65](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L65) |
-| <a id="displayname"></a> `displayName` | `readonly` | `string` | `undefined` | The user-friendly display name of the tool | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`displayName`](BaseDeclarativeTool.md#displayname) | [packages/codeboltjs/src/tools/base-tool.ts:64](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L64) |
-| <a id="isoutputmarkdown"></a> `isOutputMarkdown` | `readonly` | `boolean` | `true` | Whether the tool's output should be rendered as markdown | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`isOutputMarkdown`](BaseDeclarativeTool.md#isoutputmarkdown) | [packages/codeboltjs/src/tools/base-tool.ts:68](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L68) |
-| <a id="kind"></a> `kind` | `readonly` | [`Kind`](../enumerations/Kind) | `undefined` | The kind of tool for categorization and permissions | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`kind`](BaseDeclarativeTool.md#kind) | [packages/codeboltjs/src/tools/base-tool.ts:66](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L66) |
-| <a id="name"></a> `name` | `readonly` | `string` | `undefined` | The internal name of the tool (used for API calls) | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`name`](BaseDeclarativeTool.md#name) | [packages/codeboltjs/src/tools/base-tool.ts:63](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L63) |
-| <a id="name-1"></a> `Name` | `readonly` | `string` | `'git_pull'` | - | - | [packages/codeboltjs/src/tools/git/pull.ts:68](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/git/pull.ts#L68) |
-| <a id="parameterschema"></a> `parameterSchema` | `readonly` | `unknown` | `undefined` | - | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`parameterSchema`](BaseDeclarativeTool.md#parameterschema) | [packages/codeboltjs/src/tools/base-tool.ts:67](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L67) |
+| <a id="canupdateoutput"></a> `canUpdateOutput` | `readonly` | `boolean` | `false` | Whether the tool supports live (streaming) output | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`canUpdateOutput`](BaseDeclarativeTool.md#canupdateoutput) | [packages/codeboltjs/src/tools/base-tool.ts:69](packages/codeboltjs/src/tools/base-tool.ts#L69) |
+| <a id="description"></a> `description` | `readonly` | `string` | `undefined` | Description of what the tool does | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`description`](BaseDeclarativeTool.md#description) | [packages/codeboltjs/src/tools/base-tool.ts:65](packages/codeboltjs/src/tools/base-tool.ts#L65) |
+| <a id="displayname"></a> `displayName` | `readonly` | `string` | `undefined` | The user-friendly display name of the tool | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`displayName`](BaseDeclarativeTool.md#displayname) | [packages/codeboltjs/src/tools/base-tool.ts:64](packages/codeboltjs/src/tools/base-tool.ts#L64) |
+| <a id="isoutputmarkdown"></a> `isOutputMarkdown` | `readonly` | `boolean` | `true` | Whether the tool's output should be rendered as markdown | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`isOutputMarkdown`](BaseDeclarativeTool.md#isoutputmarkdown) | [packages/codeboltjs/src/tools/base-tool.ts:68](packages/codeboltjs/src/tools/base-tool.ts#L68) |
+| <a id="kind"></a> `kind` | `readonly` | [`Kind`](../enumerations/Kind) | `undefined` | The kind of tool for categorization and permissions | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`kind`](BaseDeclarativeTool.md#kind) | [packages/codeboltjs/src/tools/base-tool.ts:66](packages/codeboltjs/src/tools/base-tool.ts#L66) |
+| <a id="name"></a> `name` | `readonly` | `string` | `undefined` | The internal name of the tool (used for API calls) | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`name`](BaseDeclarativeTool.md#name) | [packages/codeboltjs/src/tools/base-tool.ts:63](packages/codeboltjs/src/tools/base-tool.ts#L63) |
+| <a id="name-1"></a> `Name` | `readonly` | `string` | `'git_pull'` | - | - | [packages/codeboltjs/src/tools/git/pull.ts:68](packages/codeboltjs/src/tools/git/pull.ts#L68) |
+| <a id="parameterschema"></a> `parameterSchema` | `readonly` | `unknown` | `undefined` | - | [`BaseDeclarativeTool`](BaseDeclarativeTool).[`parameterSchema`](BaseDeclarativeTool.md#parameterschema) | [packages/codeboltjs/src/tools/base-tool.ts:67](packages/codeboltjs/src/tools/base-tool.ts#L67) |
 
 ## Accessors
 
@@ -57,7 +57,7 @@ Defined in: [packages/codeboltjs/src/tools/git/pull.ts:70](https://github.com/co
 get explanation(): string;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:76](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L76)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:76
 
 One sentence explanation as to why this tool is being used, and how it contributes to the goal.
 Defaults to description if not implemented by subclass.
@@ -82,7 +82,7 @@ One sentence explanation as to why this tool is being used, and how it contribut
 get genAISchema(): FunctionDeclaration;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:118](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L118)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:118
 
 Get Google GenAI schema format (for backward compatibility)
 
@@ -106,7 +106,7 @@ Function declaration schema for Google GenAI (for backward compatibility)
 get openAIFunctionCall(): OpenAIFunctionCall;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:102](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L102)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:102
 
 Get OpenAI function call format
 
@@ -128,7 +128,7 @@ Get OpenAI function call format
 get schema(): OpenAIToolSchema;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:83](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L83)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:83
 
 Primary schema format (OpenAI tool schema)
 
@@ -150,7 +150,7 @@ Primary schema format (OpenAI tool schema)
 build(params: GitPullParams): ToolInvocation<GitPullParams, ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:215](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L215)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:215
 
 The core of the pattern. It validates parameters and, if successful,
 returns a `ToolInvocation` object that encapsulates the logic for the
@@ -181,7 +181,7 @@ buildAndExecute(
 updateOutput?: (output: string) => void): Promise<ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:145](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L145)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:145
 
 A convenience method that builds and executes the tool in one step.
 
@@ -209,7 +209,7 @@ A convenience method that builds and executes the tool in one step.
 protected createInvocation(params: GitPullParams): ToolInvocation<GitPullParams, ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/git/pull.ts:89](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/git/pull.ts#L89)
+Defined in: packages/codeboltjs/src/tools/git/pull.ts:89
 
 #### Parameters
 
@@ -233,7 +233,7 @@ Defined in: [packages/codeboltjs/src/tools/git/pull.ts:89](https://github.com/co
 validateBuildAndExecute(params: GitPullParams, abortSignal: AbortSignal): Promise<ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:174](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L174)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:174
 
 A convenience method that builds and executes the tool in one step.
 Never throws.
@@ -261,7 +261,7 @@ Never throws.
 validateToolParams(params: GitPullParams): string | null;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:223](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L223)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:223
 
 Validates the raw tool parameters.
 Subclasses should override this to add custom validation logic
@@ -289,7 +289,7 @@ beyond the JSON schema check.
 protected validateToolParamValues(_params: GitPullParams): string | null;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/base-tool.ts:235](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/base-tool.ts#L235)
+Defined in: packages/codeboltjs/src/tools/base-tool.ts:235
 
 #### Parameters
 

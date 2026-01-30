@@ -2,13 +2,13 @@
 title: ReviewFeedback
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Interface: ReviewFeedback
 
-Defined in: [packages/codeboltjs/src/types/reviewMergeRequest.ts:59](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L59)
+Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:59
 
 Review feedback from reviewing agents
 
@@ -16,9 +16,9 @@ Review feedback from reviewing agents
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="agentid"></a> `agentId` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:61](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L61) |
-| <a id="agentname"></a> `agentName` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:62](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L62) |
-| <a id="comment"></a> `comment` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:64](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L64) |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:65](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L65) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:60](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L60) |
-| <a id="type"></a> `type` | `"approve"` \| `"request_changes"` \| `"comment"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:63](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L63) |
+| <a id="agentid"></a> `agentId` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:61](packages/codeboltjs/src/types/reviewMergeRequest.ts#L61) |
+| <a id="agentname"></a> `agentName` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:62](packages/codeboltjs/src/types/reviewMergeRequest.ts#L62) |
+| <a id="comment"></a> `comment` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:64](packages/codeboltjs/src/types/reviewMergeRequest.ts#L64) |
+| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:65](packages/codeboltjs/src/types/reviewMergeRequest.ts#L65) |
+| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:60](packages/codeboltjs/src/types/reviewMergeRequest.ts#L60) |
+| <a id="type"></a> `type` | `"approve"` \| `"request_changes"` \| `"comment"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:63](packages/codeboltjs/src/types/reviewMergeRequest.ts#L63) |

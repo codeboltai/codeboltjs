@@ -2,13 +2,13 @@
 title: EventLogBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Interface: EventLogBaseResponse
 
-Defined in: [packages/codeboltjs/src/types/eventLog.ts:6](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L6)
+Defined in: packages/codeboltjs/src/types/eventLog.ts:6
 
 Event Log Types
 Type definitions for event log operations
@@ -26,10 +26,10 @@ Type definitions for event log operations
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | `any` | [packages/codeboltjs/src/types/eventLog.ts:9](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L9) |
-| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/eventLog.ts:11](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L11) |
-| <a id="message"></a> `message?` | `string` | [packages/codeboltjs/src/types/eventLog.ts:10](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L10) |
-| <a id="requestid"></a> `requestId` | `string` | [packages/codeboltjs/src/types/eventLog.ts:13](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L13) |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/eventLog.ts:8](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L8) |
-| <a id="timestamp"></a> `timestamp` | `string` | [packages/codeboltjs/src/types/eventLog.ts:12](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L12) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/eventLog.ts:7](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/eventLog.ts#L7) |
+| <a id="data"></a> `data?` | `any` | [packages/codeboltjs/src/types/eventLog.ts:9](packages/codeboltjs/src/types/eventLog.ts#L9) |
+| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/eventLog.ts:11](packages/codeboltjs/src/types/eventLog.ts#L11) |
+| <a id="message"></a> `message?` | `string` | [packages/codeboltjs/src/types/eventLog.ts:10](packages/codeboltjs/src/types/eventLog.ts#L10) |
+| <a id="requestid"></a> `requestId` | `string` | [packages/codeboltjs/src/types/eventLog.ts:13](packages/codeboltjs/src/types/eventLog.ts#L13) |
+| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/eventLog.ts:8](packages/codeboltjs/src/types/eventLog.ts#L8) |
+| <a id="timestamp"></a> `timestamp` | `string` | [packages/codeboltjs/src/types/eventLog.ts:12](packages/codeboltjs/src/types/eventLog.ts#L12) |
+| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/eventLog.ts:7](packages/codeboltjs/src/types/eventLog.ts#L7) |

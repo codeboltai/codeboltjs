@@ -2,7 +2,7 @@
 title: StartSubagentTaskRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -18,7 +18,7 @@ function StartSubagentTaskRequestNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/agent.ts:35](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/agent.ts#L35)
+Defined in: packages/codeboltjs/src/notificationfunctions/agent.ts:35
 
 Sends a request to start a subagent task
 

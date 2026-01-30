@@ -2,13 +2,13 @@
 title: UnifiedResponseExecutor
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: UnifiedResponseExecutor
 
-Defined in: [packages/agent/src/unified/types/types.ts:192](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L192)
+Defined in: packages/agent/src/unified/types/types.ts:192
 
 Unified response executor interface
 
@@ -20,7 +20,7 @@ Unified response executor interface
 addFollowUpConversationProcessor(processor: Processor): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:208](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L208)
+Defined in: packages/agent/src/unified/types/types.ts:208
 
 Add a follow-up conversation processor
 
@@ -42,7 +42,7 @@ Add a follow-up conversation processor
 addPreToolCallProcessor(processor: Processor): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:216](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L216)
+Defined in: packages/agent/src/unified/types/types.ts:216
 
 Add a pre-tool call processor
 
@@ -67,7 +67,7 @@ buildFollowUpConversation(
 llmResponse: any): Promise<OpenAIMessage[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:198](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L198)
+Defined in: packages/agent/src/unified/types/types.ts:198
 
 Build follow-up conversation
 
@@ -91,7 +91,7 @@ Build follow-up conversation
 clearFollowUpConversationProcessors(): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:214](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L214)
+Defined in: packages/agent/src/unified/types/types.ts:214
 
 Clear all follow-up conversation processors
 
@@ -107,7 +107,7 @@ Clear all follow-up conversation processors
 clearPreToolCallProcessors(): void;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:222](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L222)
+Defined in: packages/agent/src/unified/types/types.ts:222
 
 Clear all pre-tool call processors
 
@@ -123,7 +123,7 @@ Clear all pre-tool call processors
 executeResponse(input: UnifiedResponseInput): Promise<UnifiedResponseOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:194](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L194)
+Defined in: packages/agent/src/unified/types/types.ts:194
 
 Execute response processing including tool execution
 
@@ -148,7 +148,7 @@ executeTools(
 context?: Record<string, any>): Promise<ToolResult[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:196](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L196)
+Defined in: packages/agent/src/unified/types/types.ts:196
 
 Execute tools from LLM response
 
@@ -172,7 +172,7 @@ Execute tools from LLM response
 getFollowUpConversationProcessors(): Processor[];
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:212](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L212)
+Defined in: packages/agent/src/unified/types/types.ts:212
 
 Get all follow-up conversation processors
 
@@ -188,7 +188,7 @@ Get all follow-up conversation processors
 getPreToolCallProcessors(): Processor[];
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:220](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L220)
+Defined in: packages/agent/src/unified/types/types.ts:220
 
 Get all pre-tool call processors
 
@@ -204,7 +204,7 @@ Get all pre-tool call processors
 removeFollowUpConversationProcessor(processor: Processor): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:210](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L210)
+Defined in: packages/agent/src/unified/types/types.ts:210
 
 Remove a follow-up conversation processor
 
@@ -226,7 +226,7 @@ Remove a follow-up conversation processor
 removePreToolCallProcessor(processor: Processor): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:218](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L218)
+Defined in: packages/agent/src/unified/types/types.ts:218
 
 Remove a pre-tool call processor
 
@@ -248,7 +248,7 @@ Remove a pre-tool call processor
 shouldSummarizeConversation(conversationHistory: OpenAIMessage[]): boolean;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:204](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L204)
+Defined in: packages/agent/src/unified/types/types.ts:204
 
 Check if conversation needs summarization
 
@@ -270,7 +270,7 @@ Check if conversation needs summarization
 summarizeConversation(conversationHistory: OpenAIMessage[]): Promise<OpenAIMessage[]>;
 ```
 
-Defined in: [packages/agent/src/unified/types/types.ts:206](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L206)
+Defined in: packages/agent/src/unified/types/types.ts:206
 
 Summarize conversation
 

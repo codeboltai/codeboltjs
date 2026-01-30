@@ -2,7 +2,7 @@
 title: openNewBrowserInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -14,7 +14,7 @@ const openNewBrowserInstance: (options?: BrowserInstanceOptions) => Promise<{
 }> = cbbrowser.openNewBrowserInstance;
 ```
 
-Defined in: [packages/codeboltjs/src/index.ts:412](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/index.ts#L412)
+Defined in: packages/codeboltjs/src/index.ts:412
 
 ## Parameters
 

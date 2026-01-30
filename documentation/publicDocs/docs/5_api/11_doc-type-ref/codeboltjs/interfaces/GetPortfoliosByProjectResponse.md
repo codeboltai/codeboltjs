@@ -2,7 +2,7 @@
 title: GetPortfoliosByProjectResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

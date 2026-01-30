@@ -2,13 +2,13 @@
 title: ChatRecordingModifier
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: ChatRecordingModifier
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:24](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L24)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:24
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingM
 new ChatRecordingModifier(options: ChatRecordingOptions): ChatRecordingModifier;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L28)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:28
 
 #### Parameters
 
@@ -44,7 +44,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +54,7 @@ BaseMessageModifier.constructor
 getRecordingFile(): string | undefined;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:163](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L163)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:163
 
 #### Returns
 
@@ -68,7 +68,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingM
 isRecording(): boolean;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:167](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L167)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:167
 
 #### Returns
 
@@ -82,7 +82,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingM
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:43](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L43)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:43
 
 #### Parameters
 
@@ -109,7 +109,7 @@ BaseMessageModifier.modify
 startRecording(customPath?: string): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:147](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L147)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:147
 
 #### Parameters
 
@@ -129,7 +129,7 @@ Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingM
 stopRecording(): void;
 ```
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:155](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L155)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:155
 
 #### Returns
 

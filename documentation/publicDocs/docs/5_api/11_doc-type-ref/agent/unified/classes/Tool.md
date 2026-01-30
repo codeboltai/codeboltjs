@@ -2,13 +2,13 @@
 title: Tool
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: Tool
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:9](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L9)
+Defined in: packages/agent/src/unified/agent/tools.ts:9
 
 ## Implements
 
@@ -22,7 +22,7 @@ Defined in: [packages/agent/src/unified/agent/tools.ts:9](https://github.com/cod
 new Tool(config: ToolConfig): Tool;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L16)
+Defined in: packages/agent/src/unified/agent/tools.ts:16
 
 #### Parameters
 
@@ -38,11 +38,11 @@ Defined in: [packages/agent/src/unified/agent/tools.ts:16](https://github.com/co
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description` | `string` | [packages/agent/src/unified/agent/tools.ts:11](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L11) |
-| <a id="executionfunction"></a> `executionFunction` | (`context`: `unknown`) => `unknown` | [packages/agent/src/unified/agent/tools.ts:14](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L14) |
-| <a id="id"></a> `id` | `string` | [packages/agent/src/unified/agent/tools.ts:10](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L10) |
-| <a id="inputschema"></a> `inputSchema` | `ZodType` | [packages/agent/src/unified/agent/tools.ts:12](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L12) |
-| <a id="outputschema"></a> `outputSchema?` | `ZodType`\<`any`, `ZodTypeDef`, `any`\> | [packages/agent/src/unified/agent/tools.ts:13](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L13) |
+| <a id="description"></a> `description` | `string` | [packages/agent/src/unified/agent/tools.ts:11](packages/agent/src/unified/agent/tools.ts#L11) |
+| <a id="executionfunction"></a> `executionFunction` | (`context`: `unknown`) => `unknown` | [packages/agent/src/unified/agent/tools.ts:14](packages/agent/src/unified/agent/tools.ts#L14) |
+| <a id="id"></a> `id` | `string` | [packages/agent/src/unified/agent/tools.ts:10](packages/agent/src/unified/agent/tools.ts#L10) |
+| <a id="inputschema"></a> `inputSchema` | `ZodType` | [packages/agent/src/unified/agent/tools.ts:12](packages/agent/src/unified/agent/tools.ts#L12) |
+| <a id="outputschema"></a> `outputSchema?` | `ZodType`\<`any`, `ZodTypeDef`, `any`\> | [packages/agent/src/unified/agent/tools.ts:13](packages/agent/src/unified/agent/tools.ts#L13) |
 
 ## Methods
 
@@ -56,7 +56,7 @@ execute(input: unknown, context: unknown): Promise<{
 }>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L23)
+Defined in: packages/agent/src/unified/agent/tools.ts:23
 
 #### Parameters
 
@@ -87,7 +87,7 @@ ToolInterface.execute
 getToolDescription(): string;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:54](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L54)
+Defined in: packages/agent/src/unified/agent/tools.ts:54
 
 #### Returns
 
@@ -107,7 +107,7 @@ ToolInterface.getToolDescription
 getToolSchema(): ZodType<any, ZodTypeDef, any>;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:57](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L57)
+Defined in: packages/agent/src/unified/agent/tools.ts:57
 
 #### Returns
 
@@ -127,7 +127,7 @@ ToolInterface.getToolSchema
 toOpenAITool(): OpenAITool;
 ```
 
-Defined in: [packages/agent/src/unified/agent/tools.ts:116](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/tools.ts#L116)
+Defined in: packages/agent/src/unified/agent/tools.ts:116
 
 Converts the tool to OpenAI function format
 

@@ -2,7 +2,7 @@
 title: listBrowserInstances
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,7 +12,7 @@ title: listBrowserInstances
 const listBrowserInstances: () => Promise<BrowserInstanceInfo[]> = cbbrowser.listBrowserInstances;
 ```
 
-Defined in: [packages/codeboltjs/src/index.ts:409](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/index.ts#L409)
+Defined in: packages/codeboltjs/src/index.ts:409
 
 ## Returns
 

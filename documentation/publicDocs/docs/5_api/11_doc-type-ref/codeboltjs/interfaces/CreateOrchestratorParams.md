@@ -2,7 +2,7 @@
 title: CreateOrchestratorParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

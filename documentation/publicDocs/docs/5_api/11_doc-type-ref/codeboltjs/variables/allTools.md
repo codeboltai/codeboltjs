@@ -2,7 +2,7 @@
 title: allTools
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -477,6 +477,6 @@ const allTools: (
   | UserUtilitiesGetSelectionTool)[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/index.ts:504](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/index.ts#L504)
+Defined in: packages/codeboltjs/src/tools/index.ts:504
 
 All available tools combined

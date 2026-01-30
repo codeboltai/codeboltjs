@@ -2,13 +2,13 @@
 title: ToolRegistry
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Class: ToolRegistry
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L16)
+Defined in: packages/codeboltjs/src/tools/registry.ts:16
 
 Registry for managing tools
 
@@ -32,7 +32,7 @@ new ToolRegistry(): ToolRegistry;
 clear(): void;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:223](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L223)
+Defined in: packages/codeboltjs/src/tools/registry.ts:223
 
 Clear all registered tools
 
@@ -52,7 +52,7 @@ executeTool(
 updateOutput?: (output: string) => void): Promise<ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:119](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L119)
+Defined in: packages/codeboltjs/src/tools/registry.ts:119
 
 Execute a tool by name with given parameters
 
@@ -84,7 +84,7 @@ executeToolWithConfirmation(
 updateOutput?: (output: string) => void): Promise<ToolFrameworkResult>;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:164](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L164)
+Defined in: packages/codeboltjs/src/tools/registry.ts:164
 
 Execute a tool with confirmation support
 
@@ -112,7 +112,7 @@ The tool execution result
 getAllTools(): AnyDeclarativeTool[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:71](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L71)
+Defined in: packages/codeboltjs/src/tools/registry.ts:71
 
 Get all registered tools
 
@@ -130,7 +130,7 @@ Array of all registered tools
 getFunctionCallSchemas(): OpenAIFunctionCall[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:103](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L103)
+Defined in: packages/codeboltjs/src/tools/registry.ts:103
 
 Get OpenAI function call schemas for all registered tools
 
@@ -150,7 +150,7 @@ getTool(name: string):
   | undefined;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:54](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L54)
+Defined in: packages/codeboltjs/src/tools/registry.ts:54
 
 Get a tool by name
 
@@ -175,7 +175,7 @@ The tool if found, undefined otherwise
 getToolCount(): number;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:87](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L87)
+Defined in: packages/codeboltjs/src/tools/registry.ts:87
 
 Get the count of registered tools
 
@@ -193,7 +193,7 @@ Number of registered tools
 getToolNames(): string[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:79](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L79)
+Defined in: packages/codeboltjs/src/tools/registry.ts:79
 
 Get the names of all registered tools
 
@@ -211,7 +211,7 @@ Array of tool names
 getToolSchemas(): OpenAIToolSchema[];
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:95](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L95)
+Defined in: packages/codeboltjs/src/tools/registry.ts:95
 
 Get OpenAI tool schemas for all registered tools
 
@@ -229,7 +229,7 @@ Array of OpenAI tool schemas
 hasTool(name: string): boolean;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:63](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L63)
+Defined in: packages/codeboltjs/src/tools/registry.ts:63
 
 Check if a tool is registered
 
@@ -253,7 +253,7 @@ true if the tool is registered
 registerTool(tool: AnyDeclarativeTool): void;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L23)
+Defined in: packages/codeboltjs/src/tools/registry.ts:23
 
 Register a tool with the registry
 
@@ -275,7 +275,7 @@ Register a tool with the registry
 registerTools(tools: AnyDeclarativeTool[]): void;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:34](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L34)
+Defined in: packages/codeboltjs/src/tools/registry.ts:34
 
 Register multiple tools at once
 
@@ -297,7 +297,7 @@ Register multiple tools at once
 unregisterTool(name: string): boolean;
 ```
 
-Defined in: [packages/codeboltjs/src/tools/registry.ts:45](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/tools/registry.ts#L45)
+Defined in: packages/codeboltjs/src/tools/registry.ts:45
 
 Unregister a tool by name
 

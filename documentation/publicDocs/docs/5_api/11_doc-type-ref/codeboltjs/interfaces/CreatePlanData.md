@@ -2,16 +2,16 @@
 title: CreatePlanData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Interface: CreatePlanData
 
-Defined in: [packages/codeboltjs/src/modules/requirementPlan.ts:27](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/modules/requirementPlan.ts#L27)
+Defined in: packages/codeboltjs/src/modules/requirementPlan.ts:27
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="filename"></a> `fileName` | `string` | [packages/codeboltjs/src/modules/requirementPlan.ts:28](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/modules/requirementPlan.ts#L28) |
+| <a id="filename"></a> `fileName` | `string` | [packages/codeboltjs/src/modules/requirementPlan.ts:28](packages/codeboltjs/src/modules/requirementPlan.ts#L28) |

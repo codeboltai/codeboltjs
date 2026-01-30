@@ -1,5 +1,14 @@
 # @codebolt/testAgent
 
+## 1.0.12
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@5.0.7
+  - @codebolt/agent@5.0.7
+  - @codebolt/codeboltjs@5.0.7
+
 ## 1.0.11
 
 ### Patch Changes

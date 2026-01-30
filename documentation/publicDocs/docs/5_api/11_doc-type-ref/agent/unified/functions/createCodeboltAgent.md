@@ -2,7 +2,7 @@
 title: createCodeboltAgent
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
@@ -20,7 +20,7 @@ function createCodeboltAgent(options: {
 }): CodeboltAgent;
 ```
 
-Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:253](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/agent/codeboltAgent.ts#L253)
+Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:253
 
 Factory function to create a CodeboltAgent with common defaults
 

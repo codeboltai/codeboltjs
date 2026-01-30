@@ -2,7 +2,7 @@
 title: MergeStrategy
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,6 +12,6 @@ title: MergeStrategy
 type MergeStrategy = "patch" | "git_worktree";
 ```
 
-Defined in: [packages/codeboltjs/src/types/reviewMergeRequest.ts:25](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L25)
+Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:25
 
 Merge strategy types

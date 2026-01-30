@@ -2,7 +2,7 @@
 title: IngestionTrigger
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -17,4 +17,4 @@ type IngestionTrigger =
   | "manual";
 ```
 
-Defined in: [packages/codeboltjs/src/types/memoryIngestion.ts:16](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/memoryIngestion.ts#L16)
+Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:16

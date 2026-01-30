@@ -2,7 +2,7 @@
 title: Required
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,7 +12,7 @@ title: Required
 type Required<T, K> = T & { [P in K]-?: T[P] };
 ```
 
-Defined in: [packages/codeboltjs/src/types/commonTypes.ts:288](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/commonTypes.ts#L288)
+Defined in: packages/codeboltjs/src/types/commonTypes.ts:288
 
 Make specific properties required
 

@@ -2,13 +2,13 @@
 title: UserError
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 
 # Class: UserError
 
-Defined in: [packages/mcp/src/mcpServer.ts:144](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L144)
+Defined in: packages/mcp/src/mcpServer.ts:144
 
 Error that is meant to be surfaced to the user.
 
@@ -24,7 +24,7 @@ Error that is meant to be surfaced to the user.
 new UserError(message: string, extras?: Extras): UserError;
 ```
 
-Defined in: [packages/mcp/src/mcpServer.ts:134](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L134)
+Defined in: packages/mcp/src/mcpServer.ts:134
 
 Creates a new UnexpectedStateError.
 
@@ -47,7 +47,7 @@ Creates a new UnexpectedStateError.
 
 | Property | Modifier | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="extras"></a> `extras?` | `public` | `Extras` | Additional context for the error | [`UnexpectedStateError`](UnexpectedStateError).[`extras`](UnexpectedStateError.md#extras) | [packages/mcp/src/mcpServer.ts:126](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/mcp/src/mcpServer.ts#L126) |
+| <a id="extras"></a> `extras?` | `public` | `Extras` | Additional context for the error | [`UnexpectedStateError`](UnexpectedStateError).[`extras`](UnexpectedStateError.md#extras) | [packages/mcp/src/mcpServer.ts:126](packages/mcp/src/mcpServer.ts#L126) |
 | <a id="message"></a> `message` | `public` | `string` | - | [`UnexpectedStateError`](UnexpectedStateError).[`message`](UnexpectedStateError.md#message) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1077 |
 | <a id="name"></a> `name` | `public` | `string` | - | [`UnexpectedStateError`](UnexpectedStateError).[`name`](UnexpectedStateError.md#name) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1076 |
 | <a id="stack"></a> `stack?` | `public` | `string` | - | [`UnexpectedStateError`](UnexpectedStateError).[`stack`](UnexpectedStateError.md#stack) | node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/lib.es5.d.ts:1078 |

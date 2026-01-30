@@ -2,7 +2,7 @@
 title: GitCloneRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -15,7 +15,7 @@ function GitCloneRequestNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:676](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L676)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:676
 
 Sends a git clone request notification
 

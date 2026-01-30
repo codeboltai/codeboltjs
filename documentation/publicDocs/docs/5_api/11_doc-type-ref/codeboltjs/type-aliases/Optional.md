@@ -2,7 +2,7 @@
 title: Optional
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -12,7 +12,7 @@ title: Optional
 type Optional<T, K> = Omit<T, K> & Partial<Pick<T, K>>;
 ```
 
-Defined in: [packages/codeboltjs/src/types/commonTypes.ts:283](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/commonTypes.ts#L283)
+Defined in: packages/codeboltjs/src/types/commonTypes.ts:283
 
 Make specific properties optional
 

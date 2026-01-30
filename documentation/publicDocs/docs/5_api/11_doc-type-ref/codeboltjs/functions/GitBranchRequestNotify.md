@@ -2,7 +2,7 @@
 title: GitBranchRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -15,7 +15,7 @@ function GitBranchRequestNotify(
    toolUseId?: string): void;
 ```
 
-Defined in: [packages/codeboltjs/src/notificationfunctions/git.ts:411](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/notificationfunctions/git.ts#L411)
+Defined in: packages/codeboltjs/src/notificationfunctions/git.ts:411
 
 Sends a git branch request notification
 

@@ -2,17 +2,17 @@
 title: IdeContext
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Interface: IdeContext
 
-Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:23](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L23)
+Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:23
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="workspacestate"></a> `workspaceState?` | \{ `openFiles`: [`FileInfo`](FileInfo)[]; \} | [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:24](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L24) |
-| `workspaceState.openFiles` | [`FileInfo`](FileInfo)[] | [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:25](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L25) |
+| <a id="workspacestate"></a> `workspaceState?` | \{ `openFiles`: [`FileInfo`](FileInfo)[]; \} | [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:24](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L24) |
+| `workspaceState.openFiles` | [`FileInfo`](FileInfo)[] | [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:25](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L25) |

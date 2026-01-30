@@ -2,13 +2,13 @@
 title: AgentStep
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
 # Class: AgentStep
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:13](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L13)
+Defined in: packages/agent/src/unified/base/agentStep.ts:13
 
 Unified agent step that handles LLM interaction and tool call analysis
 
@@ -28,7 +28,7 @@ new AgentStep(options: {
 }): AgentStep;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:20](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L20)
+Defined in: packages/agent/src/unified/base/agentStep.ts:20
 
 #### Parameters
 
@@ -51,7 +51,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:20](https://github.com
 executeStep(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<AgentStepOutput>;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:34](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L34)
+Defined in: packages/agent/src/unified/base/agentStep.ts:34
 
 Execute a single agent step
 
@@ -80,7 +80,7 @@ AgentStepInterface.executeStep
 getLLMConfig(): string;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:103](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L103)
+Defined in: packages/agent/src/unified/base/agentStep.ts:103
 
 Get current LLM configuration
 
@@ -96,7 +96,7 @@ Get current LLM configuration
 getPostInferenceProcessors(): PostInferenceProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:120](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L120)
+Defined in: packages/agent/src/unified/base/agentStep.ts:120
 
 #### Returns
 
@@ -110,7 +110,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:120](https://github.co
 getPreInferenceProcessors(): PreInferenceProcessor[];
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:111](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L111)
+Defined in: packages/agent/src/unified/base/agentStep.ts:111
 
 #### Returns
 
@@ -124,7 +124,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:111](https://github.co
 setLLMConfig(config: string): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:96](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L96)
+Defined in: packages/agent/src/unified/base/agentStep.ts:96
 
 Update LLM configuration
 
@@ -146,7 +146,7 @@ Update LLM configuration
 updatePostInferenceProcessors(processors: PostInferenceProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:116](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L116)
+Defined in: packages/agent/src/unified/base/agentStep.ts:116
 
 #### Parameters
 
@@ -166,7 +166,7 @@ Defined in: [packages/agent/src/unified/base/agentStep.ts:116](https://github.co
 updatePreInferenceProcessors(processors: PreInferenceProcessor[]): void;
 ```
 
-Defined in: [packages/agent/src/unified/base/agentStep.ts:107](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/base/agentStep.ts#L107)
+Defined in: packages/agent/src/unified/base/agentStep.ts:107
 
 #### Parameters
 

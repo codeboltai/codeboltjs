@@ -2,7 +2,7 @@
 title: ReviewRequestStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
@@ -21,6 +21,6 @@ type ReviewRequestStatus =
   | "closed";
 ```
 
-Defined in: [packages/codeboltjs/src/types/reviewMergeRequest.ts:6](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/reviewMergeRequest.ts#L6)
+Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:6
 
 Request status types representing the lifecycle of a review request

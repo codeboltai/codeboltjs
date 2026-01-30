@@ -2,7 +2,7 @@
 title: CapabilityExecutor
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

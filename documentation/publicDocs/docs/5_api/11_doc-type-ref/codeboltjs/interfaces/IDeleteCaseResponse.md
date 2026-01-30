@@ -2,16 +2,16 @@
 title: IDeleteCaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
 # Interface: IDeleteCaseResponse
 
-Defined in: [packages/codeboltjs/src/types/autoTesting.ts:257](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/autoTesting.ts#L257)
+Defined in: packages/codeboltjs/src/types/autoTesting.ts:257
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \| \{ `ok`: `boolean`; \} \| \{ `caseId?`: `string`; \} | [packages/codeboltjs/src/types/autoTesting.ts:258](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/autoTesting.ts#L258) |
+| <a id="payload"></a> `payload` | \| \{ `ok`: `boolean`; \} \| \{ `caseId?`: `string`; \} | [packages/codeboltjs/src/types/autoTesting.ts:258](packages/codeboltjs/src/types/autoTesting.ts#L258) |

@@ -2,7 +2,7 @@
 title: Testimonial
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 
