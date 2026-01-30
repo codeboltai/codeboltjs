@@ -13,7 +13,7 @@ cbparameters:
       typeName: string
       description: The number of pixels to scroll.
   returns:
-    signatureTypeName: "Promise<ScrollResponse>"
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves when the scroll action is complete.
     typeArgs: []
 data:
@@ -24,7 +24,7 @@ data:
 # scroll
 
 ```typescript
-codebolt.browser.scroll(direction: string, pixels: string): Promise<ScrollResponse>
+codebolt.browser.scroll(direction: string, pixels: string): Promise<BrowserActionResponseData>
 ```
 
 Scrolls the current page in a specified direction by a specified number of pixels. 
@@ -35,7 +35,7 @@ Scrolls the current page in a specified direction by a specified number of pixel
 
 ### Returns
 
-- **`Promise<ScrollResponse>`**: A promise that resolves when the scroll action is complete.
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves when the scroll action is complete.
 
 ### Response Structure
 

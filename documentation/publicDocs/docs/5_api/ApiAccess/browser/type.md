@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The text to type.
   returns:
-    signatureTypeName: "Promise<TypeResponse>"
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves when the typing action is complete.
     typeArgs: []
 data:
@@ -22,7 +22,7 @@ data:
 # type
 
 ```typescript
-codebolt.browser.type(elementid: string, text: string): Promise<TypeResponse>
+codebolt.browser.type(elementid: string, text: string): Promise<BrowserActionResponseData>
 ```
 
 Types text into a specified element on the page. 
@@ -33,7 +33,7 @@ Types text into a specified element on the page.
 
 ### Returns
 
-- **`Promise<TypeResponse>`**: A promise that resolves when the typing action is complete.
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves when the typing action is complete.
 
 ### Response Structure
 

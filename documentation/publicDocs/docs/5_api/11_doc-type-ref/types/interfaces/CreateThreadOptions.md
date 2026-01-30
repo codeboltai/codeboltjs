@@ -12,6 +12,10 @@ Defined in: common/types/src/codeboltjstypes/libFunctionTypes/thread.ts:48
 
 Thread creation options
 
+## Extended by
+
+- [`CreateAndStartThreadOptions`](CreateAndStartThreadOptions)
+
 ## Properties
 
 | Property | Type | Defined in |

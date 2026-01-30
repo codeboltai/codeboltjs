@@ -11,7 +11,7 @@ cbparameters:
       typeName: string
       description: The search query.
   returns:
-    signatureTypeName: "Promise<SearchResponse>"
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves with the search results.
     typeArgs: []
 data:
@@ -22,7 +22,7 @@ data:
 # search
 
 ```typescript
-codebolt.browser.search(elementid: string, query: string): Promise<SearchResponse>
+codebolt.browser.search(elementid: string, query: string): Promise<BrowserActionResponseData>
 ```
 
 Performs a search on the current page using a specified query. 
@@ -33,7 +33,7 @@ Performs a search on the current page using a specified query.
 
 ### Returns
 
-- **`Promise<SearchResponse>`**: A promise that resolves with the search results.
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves with the search results.
 
 ### Response Structure
 
