@@ -8,28 +8,41 @@ Multi-step orchestration for complex agent tasks.
 
 ```typescript
 import { Workflow } from '@codebolt/agent/unified';
+import type { WorkflowStepResult, WorkflowContext, WorkflowResult } from '@codebolt/types/agent';
 
-const workflow = new Workflow({
+interface LintStepData {
+  lintPassed: boolean;
+}
+
+interface TestStepData {
+  testsPassed: boolean;
+}
+
+interface ReviewStepData {
+  reviewComplete: boolean;
+}
+
+const workflow: Workflow = new Workflow({
   name: 'Code Review Pipeline',
   description: 'Automated code review process',
   steps: [
     {
       id: 'lint',
-      execute: async (context) => ({
+      execute: async (context: WorkflowContext): Promise<WorkflowStepResult<LintStepData>> => ({
         success: true,
         data: { lintPassed: true }
       })
     },
     {
       id: 'test',
-      execute: async (context) => ({
+      execute: async (context: WorkflowContext): Promise<WorkflowStepResult<TestStepData>> => ({
         success: true,
         data: { testsPassed: true }
       })
     },
     {
       id: 'review',
-      execute: async (context) => ({
+      execute: async (context: WorkflowContext): Promise<WorkflowStepResult<ReviewStepData>> => ({
         success: true,
         data: { reviewComplete: true }
       })
@@ -37,7 +50,7 @@ const workflow = new Workflow({
   ]
 });
 
-const result = await workflow.executeAsync();
+const result: WorkflowResult = await workflow.executeAsync();
 ```
 
 ---
@@ -63,11 +76,16 @@ interface WorkflowConfig {
 
 ```typescript
 import { WorkFlowStep } from '@codebolt/agent/unified';
+import type { WorkflowStepResult, WorkflowContext } from '@codebolt/types/agent';
 
-const step = new WorkFlowStep({
+interface ProcessStepData {
+  processed: boolean;
+}
+
+const step: WorkFlowStep = new WorkFlowStep({
   id: 'process-data',
   description: 'Process input data',
-  execute: async (context) => ({
+  execute: async (context: WorkflowContext): Promise<WorkflowStepResult<ProcessStepData>> => ({
     success: true,
     data: { processed: true }
   })
@@ -215,34 +233,42 @@ const result = await workflow.executeAsync();
 ### CI/CD Pipeline
 
 ```typescript
-const ciPipeline = new Workflow({
+import codebolt from '@codebolt/codeboltjs';
+import type { WorkflowStepResult, WorkflowContext, TerminalResult } from '@codebolt/types/agent';
+
+interface CIStepData {
+  lintOutput?: string;
+  testOutput?: string;
+}
+
+const ciPipeline: Workflow = new Workflow({
   name: 'CI Pipeline',
   steps: [
     {
       id: 'install',
-      execute: async (ctx) => {
-        await codebolt.terminal.executeCommand('npm install');
-        return { success: true };
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<void>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm install');
+        return { success: !result.error };
       }
     },
     {
       id: 'lint',
-      execute: async (ctx) => {
-        const result = await codebolt.terminal.executeCommand('npm run lint');
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<CIStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm run lint');
         return { success: !result.error, data: { lintOutput: result.output } };
       }
     },
     {
       id: 'test',
-      execute: async (ctx) => {
-        const result = await codebolt.terminal.executeCommand('npm test');
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<CIStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm test');
         return { success: !result.error, data: { testOutput: result.output } };
       }
     },
     {
       id: 'build',
-      execute: async (ctx) => {
-        const result = await codebolt.terminal.executeCommand('npm run build');
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<void>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm run build');
         return { success: !result.error };
       }
     }
@@ -253,14 +279,28 @@ const ciPipeline = new Workflow({
 ### Conditional Workflow
 
 ```typescript
-const deployWorkflow = new Workflow({
+interface DeployContext extends WorkflowContext {
+  branch?: string;
+  isMain?: boolean;
+}
+
+interface BranchStepData {
+  branch: string;
+  isMain: boolean;
+}
+
+interface DeployStepData {
+  skipped?: boolean;
+}
+
+const deployWorkflow: Workflow = new Workflow({
   name: 'Deploy',
   steps: [
     {
       id: 'check-branch',
-      execute: async (ctx) => {
-        const result = await codebolt.terminal.executeCommand('git branch --show-current');
-        const branch = result.output.trim();
+      execute: async (ctx: DeployContext): Promise<WorkflowStepResult<BranchStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('git branch --show-current');
+        const branch: string = result.output.trim();
         return {
           success: true,
           data: { branch, isMain: branch === 'main' }
@@ -269,14 +309,14 @@ const deployWorkflow = new Workflow({
     },
     {
       id: 'run-tests',
-      execute: async (ctx) => {
-        const result = await codebolt.terminal.executeCommand('npm test');
+      execute: async (ctx: DeployContext): Promise<WorkflowStepResult<void>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm test');
         return { success: !result.error };
       }
     },
     {
       id: 'deploy-staging',
-      execute: async (ctx) => {
+      execute: async (ctx: DeployContext): Promise<WorkflowStepResult<DeployStepData>> => {
         if (ctx.isMain) {
           return { success: true, data: { skipped: true } };
         }
@@ -286,7 +326,7 @@ const deployWorkflow = new Workflow({
     },
     {
       id: 'deploy-production',
-      execute: async (ctx) => {
+      execute: async (ctx: DeployContext): Promise<WorkflowStepResult<DeployStepData>> => {
         if (!ctx.isMain) {
           return { success: true, data: { skipped: true } };
         }
@@ -323,12 +363,35 @@ const researchWorkflow = new Workflow({
 ### Parallel Processing Workflow
 
 ```typescript
-const dataProcessing = new Workflow({
+interface DataProcessingContext extends WorkflowContext {
+  rawData?: {
+    users: unknown[];
+    orders: unknown[];
+    products: unknown[];
+  };
+  users?: unknown[];
+  orders?: unknown[];
+  products?: unknown[];
+}
+
+interface FetchStepData {
+  rawData: {
+    users: unknown[];
+    orders: unknown[];
+    products: unknown[];
+  };
+}
+
+interface ReportStepData {
+  report: unknown;
+}
+
+const dataProcessing: Workflow = new Workflow({
   name: 'Data Processing',
   steps: [
     {
       id: 'fetch',
-      execute: async (ctx) => {
+      execute: async (ctx: DataProcessingContext): Promise<WorkflowStepResult<FetchStepData>> => {
         const data = await fetchAllData();
         return { success: true, data: { rawData: data } };
       }
@@ -338,22 +401,22 @@ const dataProcessing = new Workflow({
       [
         new WorkFlowStep({
           id: 'process-users',
-          execute: async (ctx) => {
-            const users = await processUsers(ctx.rawData.users);
+          execute: async (ctx: DataProcessingContext): Promise<WorkflowStepResult<{ users: unknown[] }>> => {
+            const users: unknown[] = await processUsers(ctx.rawData!.users);
             return { success: true, data: { users } };
           }
         }),
         new WorkFlowStep({
           id: 'process-orders',
-          execute: async (ctx) => {
-            const orders = await processOrders(ctx.rawData.orders);
+          execute: async (ctx: DataProcessingContext): Promise<WorkflowStepResult<{ orders: unknown[] }>> => {
+            const orders: unknown[] = await processOrders(ctx.rawData!.orders);
             return { success: true, data: { orders } };
           }
         }),
         new WorkFlowStep({
           id: 'process-products',
-          execute: async (ctx) => {
-            const products = await processProducts(ctx.rawData.products);
+          execute: async (ctx: DataProcessingContext): Promise<WorkflowStepResult<{ products: unknown[] }>> => {
+            const products: unknown[] = await processProducts(ctx.rawData!.products);
             return { success: true, data: { products } };
           }
         })
@@ -361,8 +424,8 @@ const dataProcessing = new Workflow({
     ),
     {
       id: 'aggregate',
-      execute: async (ctx) => {
-        const report = generateReport(ctx.users, ctx.orders, ctx.products);
+      execute: async (ctx: DataProcessingContext): Promise<WorkflowStepResult<ReportStepData>> => {
+        const report: unknown = generateReport(ctx.users, ctx.orders, ctx.products);
         return { success: true, data: { report } };
       }
     }
@@ -375,20 +438,26 @@ const dataProcessing = new Workflow({
 ## Error Handling
 
 ```typescript
-const robustWorkflow = new Workflow({
+interface RiskyStepData {
+  result?: unknown;
+  failedAt?: string;
+}
+
+const robustWorkflow: Workflow = new Workflow({
   name: 'Robust Pipeline',
   steps: [
     {
       id: 'risky-operation',
-      execute: async (ctx) => {
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<RiskyStepData>> => {
         try {
-          const result = await riskyOperation();
+          const result: unknown = await riskyOperation();
           return { success: true, data: { result } };
-        } catch (error) {
+        } catch (error: unknown) {
           // Return failure with error info
+          const errorMessage: string = error instanceof Error ? error.message : 'Unknown error';
           return {
             success: false,
-            error: error.message,
+            error: errorMessage,
             data: { failedAt: 'risky-operation' }
           };
         }
@@ -396,7 +465,7 @@ const robustWorkflow = new Workflow({
     },
     {
       id: 'cleanup',
-      execute: async (ctx) => {
+      execute: async (ctx: WorkflowContext): Promise<WorkflowStepResult<void>> => {
         // This runs even after failure in previous step
         // if using ConditionStep with appropriate configuration
         await cleanup();
@@ -406,7 +475,7 @@ const robustWorkflow = new Workflow({
   ]
 });
 
-const result = await robustWorkflow.executeAsync();
+const result: WorkflowResult = await robustWorkflow.executeAsync();
 
 if (!result.success) {
   console.error('Workflow failed:', result.error);

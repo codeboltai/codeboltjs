@@ -138,8 +138,10 @@ interface AgentStepOutput {
 ```typescript
 import { AgentStep } from '@codebolt/agent/unified';
 import { LoopDetectionModifier } from '@codebolt/agent/processor-pieces';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage, AgentStepOutput } from '@codebolt/types/agent';
 
-const step = new AgentStep({
+const step: AgentStep = new AgentStep({
   preInferenceProcessors: [],
   postInferenceProcessors: [
     new LoopDetectionModifier({ enableLoopPrevention: true })
@@ -147,7 +149,7 @@ const step = new AgentStep({
   llmRole: 'default'
 });
 
-const result = await step.executeStep(userMessage, processedMessage);
+const result: AgentStepOutput = await step.executeStep(userMessage, processedMessage);
 
 if (result.rawLLMResponse.choices[0].message.tool_calls) {
   // Handle tool calls
@@ -223,15 +225,17 @@ interface ResponseOutput {
 ```typescript
 import { ResponseExecutor } from '@codebolt/agent/unified';
 import { ShellProcessorModifier } from '@codebolt/agent/processor-pieces';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { AgentStepOutput, ResponseExecutorResult } from '@codebolt/types/agent';
 
-const executor = new ResponseExecutor({
+const executor: ResponseExecutor = new ResponseExecutor({
   preToolCallProcessors: [],
   postToolCallProcessors: [
     new ShellProcessorModifier({ enableShellExecution: true })
   ]
 });
 
-const result = await executor.executeResponse({
+const result: ResponseExecutorResult = await executor.executeResponse({
   nextMessage: stepResult.nextMessage,
   actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
   rawLLMOutput: stepResult.rawLLMResponse,
@@ -318,6 +322,9 @@ class CustomLocalToolProcessor extends BasePreToolCallProcessor {
 ```typescript
 import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
 import { ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
+import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage, AgentStepOutput, ResponseExecutorResult } from '@codebolt/types/agent';
 
 // Define your custom tool schema for the LLM
 const customToolSchema = {
@@ -354,14 +361,14 @@ const responseExecutor = new ResponseExecutor({
 });
 
 // Agent loop
-codebolt.onMessage(async (userMessage: FlatUserMessage) => {
-  let prompt = await promptGenerator.processMessage(userMessage);
-  let completed = false;
+codebolt.onMessage(async (userMessage: FlatUserMessage): Promise<void> => {
+  let prompt: ProcessedMessage = await promptGenerator.processMessage(userMessage);
+  let completed: boolean = false;
 
   while (!completed) {
-    const stepResult = await agentStep.executeStep(userMessage, prompt);
+    const stepResult: AgentStepOutput = await agentStep.executeStep(userMessage, prompt);
 
-    const execResult = await responseExecutor.executeResponse({
+    const execResult: ResponseExecutorResult = await responseExecutor.executeResponse({
       initialUserMessage: userMessage,
       actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
       rawLLMOutput: stepResult.rawLLMResponse,
@@ -397,8 +404,9 @@ import {
 } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage, AgentStepOutput, ResponseExecutorResult } from '@codebolt/types/agent';
 
-const MAX_ITERATIONS = 20;
+const MAX_ITERATIONS: number = 20;
 
 class Level2Agent {
   private promptGen: InitialPromptGenerator;
@@ -425,18 +433,18 @@ class Level2Agent {
   }
 
   async execute(userMessage: FlatUserMessage): Promise<string | undefined> {
-    let prompt = await this.promptGen.processMessage(userMessage);
+    let prompt: ProcessedMessage = await this.promptGen.processMessage(userMessage);
 
-    for (let i = 0; i < MAX_ITERATIONS; i++) {
+    for (let i: number = 0; i < MAX_ITERATIONS; i++) {
       // LLM inference
-      const stepResult = await this.agentStep.executeStep(userMessage, prompt);
+      const stepResult: AgentStepOutput = await this.agentStep.executeStep(userMessage, prompt);
 
       // Custom logic point: inspect LLM response
       console.log('Iteration:', i, 'Tool calls:',
         stepResult.rawLLMResponse.choices[0].message.tool_calls?.length ?? 0);
 
       // Tool execution
-      const execResult = await this.responseExec.executeResponse({
+      const execResult: ResponseExecutorResult = await this.responseExec.executeResponse({
         nextMessage: stepResult.nextMessage,
         rawLLMOutput: stepResult.rawLLMResponse,
         actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
@@ -455,10 +463,12 @@ class Level2Agent {
 }
 
 // Usage
-codebolt.onMessage(async (msg: FlatUserMessage) => {
-  const agent = new Level2Agent('You are a coding assistant.');
-  const result = await agent.execute(msg);
-  codebolt.chat.sendMessage(result);
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
+  const agent: Level2Agent = new Level2Agent('You are a coding assistant.');
+  const result: string | undefined = await agent.execute(msg);
+  if (result) {
+    codebolt.chat.sendMessage(result);
+  }
 });
 ```
 

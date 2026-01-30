@@ -27,7 +27,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
             };
         }
 
-        codebolt.chat.sendMessage(`Breaking down task "${task.name}" into sub-jobs...`, {});
+        codebolt.chat.sendMessage(`Breaking down task "${task.name}" into jobs...`, {});
 
         // Break down the task using LLM
         const subJobs = await breakdownTask(task, plan, existingJobs);
@@ -41,7 +41,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         }
 
         codebolt.chat.sendMessage(
-            `Task "${task.name}" broken into ${subJobs.length} sub-jobs: ${subJobs.map(j => j.name).join(', ')}`,
+            `Task "${task.name}" broken into ${subJobs.length} job${subJobs.length > 1 ? 's' : ''}: ${subJobs.map(j => j.name).join(', ')}`,
             {}
         );
 

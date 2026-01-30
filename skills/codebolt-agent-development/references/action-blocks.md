@@ -19,6 +19,69 @@ An ActionBlock is a self-contained package that:
 
 ---
 
+## ⚠️ CRITICAL: Invoke ActionBlocks, Don't Inline Their Logic
+
+**When writing agent code, NEVER implement action block logic inline.** ActionBlocks are designed to be:
+
+1. **Separate, reusable components** - They live in `/action-blocks/` directory
+2. **Invoked by name** - Use `codebolt.actionBlock.start('name', params)`
+3. **Shared across agents** - Multiple agents can use the same ActionBlock
+
+### ❌ WRONG: Inline Implementation
+
+```typescript
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
+// Don't do this in your agent code!
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
+  // BAD: Implementing planning logic directly in agent
+  const promptGenerator = new InitialPromptGenerator({...});
+  const agentStep = new AgentStep({});
+  // ... 50 lines of planning code ...
+  const plan = await generatePlan(msg);
+
+  // BAD: Implementing job creation logic inline
+  const jobs = [];
+  for (const task of plan.tasks) {
+    // ... 30 lines of job creation code ...
+  }
+});
+```
+
+### ✅ CORRECT: Invoke Existing ActionBlocks
+
+```typescript
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
+  // GOOD: Invoke the planning ActionBlock
+  const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
+    userMessage: msg
+  });
+
+  if (planResult.success) {
+    // GOOD: Invoke the job creation ActionBlock
+    const jobsResult = await codebolt.actionBlock.start('create-jobs-from-plan', {
+      plan: planResult.result
+    });
+  }
+});
+```
+
+### How to Discover Available ActionBlocks
+
+```typescript
+// List all available ActionBlocks
+const blocks = await codebolt.actionBlock.list();
+
+// Get details about a specific ActionBlock
+const detail = await codebolt.actionBlock.getDetail('create-plan-for-given-task');
+console.log(detail.inputs);  // See required parameters
+console.log(detail.outputs); // See return structure
+```
+
+---
+
 ## ActionBlock API
 
 ### List ActionBlocks
@@ -333,13 +396,28 @@ Combine ActionBlocks with Workflows for orchestration:
 ```typescript
 import { Workflow } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { WorkflowStepResult, WorkflowContext } from '@codebolt/types/agent';
 
-const orchestrationWorkflow = new Workflow({
+interface OrchestrationContext extends WorkflowContext {
+  userMessage: FlatUserMessage;
+  planId?: string;
+  plan?: { planId: string; tasks: Array<{ id: string; name: string }> };
+  jobs?: Array<{ id: string; name: string }>;
+  groupId?: string;
+}
+
+interface SubJob {
+  id: string;
+  name: string;
+}
+
+const orchestrationWorkflow: Workflow = new Workflow({
   name: 'Task Orchestration Pipeline',
   steps: [
     {
       id: 'create-plan',
-      execute: async (ctx) => {
+      execute: async (ctx: OrchestrationContext): Promise<WorkflowStepResult<{ planId: string }>> => {
         const result = await codebolt.actionBlock.start('create-plan-for-given-task', {
           userMessage: ctx.userMessage
         });
@@ -351,9 +429,9 @@ const orchestrationWorkflow = new Workflow({
     },
     {
       id: 'break-into-jobs',
-      execute: async (ctx) => {
+      execute: async (ctx: OrchestrationContext): Promise<WorkflowStepResult<{ jobs: SubJob[] }>> => {
         const planDetails = await getPlanDetails(ctx.planId);
-        const allJobs = [];
+        const allJobs: SubJob[] = [];
 
         for (const task of planDetails.tasks) {
           const result = await codebolt.actionBlock.start('break-task-into-jobs', {
@@ -370,8 +448,8 @@ const orchestrationWorkflow = new Workflow({
     },
     {
       id: 'create-job-records',
-      execute: async (ctx) => {
-        for (const job of ctx.jobs) {
+      execute: async (ctx: OrchestrationContext): Promise<WorkflowStepResult<void>> => {
+        for (const job of ctx.jobs || []) {
           await codebolt.actionBlock.start('create-jobs-from-plan', {
             plan: ctx.plan,
             task: job,
@@ -394,8 +472,9 @@ Use ActionBlocks within agent logic:
 ```typescript
 import { CodeboltAgent } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
 
-codebolt.onMessage(async (msg) => {
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
   // Phase 1: Use ActionBlock to create plan
   const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
     userMessage: msg
@@ -406,7 +485,7 @@ codebolt.onMessage(async (msg) => {
     await processJobs(planResult.result.planId);
   } else {
     // Fallback: Use agent directly
-    const agent = new CodeboltAgent({
+    const agent: CodeboltAgent = new CodeboltAgent({
       instructions: 'You are a helpful assistant.'
     });
     await agent.processMessage(msg);
