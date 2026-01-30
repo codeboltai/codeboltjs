@@ -30,7 +30,7 @@ Starts execution of an ActionBlock by name with optional parameters.
 ### Parameters
 
 - **`actionBlockName`** (string): The name of the ActionBlock to start.
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the ActionBlock.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the ActionBlock.
 
 ### Returns
 

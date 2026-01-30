@@ -35,7 +35,7 @@ Starts a side execution process using inline JavaScript code.
 ### Parameters
 
 - **`inlineCode`** (string): JavaScript code to execute in the side process.
-- **`params`** (Record<string, any>, optional): Optional parameters available in the execution context.
+- **`params`** (`Record<string, any>`, optional): Optional parameters available in the execution context.
 - **`timeout`** (number, optional): Execution timeout in milliseconds (default: 5 minutes).
 
 ### Returns

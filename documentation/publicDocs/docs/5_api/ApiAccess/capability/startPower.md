@@ -34,7 +34,7 @@ Starts execution of a power with optional parameters and timeout settings. Power
 ### Parameters
 
 - **`powerName`** (string): The name of the power to execute.
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the power execution.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the power execution.
 - **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the power's default timeout.
 
 ### Returns

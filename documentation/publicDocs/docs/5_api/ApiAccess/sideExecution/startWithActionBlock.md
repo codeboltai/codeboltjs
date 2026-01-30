@@ -35,7 +35,7 @@ Starts a side execution process using an ActionBlock directory path.
 ### Parameters
 
 - **`actionBlockPath`** (string): The file system path to the ActionBlock directory.
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the ActionBlock execution context.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the ActionBlock execution context.
 - **`timeout`** (number, optional): Execution timeout in milliseconds (default: 5 minutes).
 
 ### Returns

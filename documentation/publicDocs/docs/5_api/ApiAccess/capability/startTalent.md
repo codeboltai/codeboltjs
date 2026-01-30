@@ -34,7 +34,7 @@ Starts execution of a talent with optional parameters and timeout settings. Tale
 ### Parameters
 
 - **`talentName`** (string): The name of the talent to execute.
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the talent execution.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the talent execution.
 - **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the talent's default timeout.
 
 ### Returns

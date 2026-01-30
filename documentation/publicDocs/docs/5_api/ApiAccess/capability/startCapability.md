@@ -38,7 +38,7 @@ Starts execution of a capability with optional parameters and custom timeout set
 
 - **`capabilityName`** (string): The name of the capability to execute.
 - **`capabilityType`** ([CapabilityType](/docs/api/11_doc-type-ref/codeboltjs/type-aliases/CapabilityType)): The type of capability (skill, power, talent, etc.).
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the capability execution.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the capability execution.
 - **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the capability's default timeout.
 
 ### Returns

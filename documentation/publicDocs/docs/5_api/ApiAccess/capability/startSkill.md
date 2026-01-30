@@ -34,7 +34,7 @@ Starts execution of a skill with optional parameters and timeout settings. This 
 ### Parameters
 
 - **`skillName`** (string): The name of the skill to execute.
-- **`params`** (Record<string, any>, optional): Optional parameters to pass to the skill execution.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the skill execution.
 - **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the skill's default timeout.
 
 ### Returns

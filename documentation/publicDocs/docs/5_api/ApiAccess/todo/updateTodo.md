@@ -46,7 +46,7 @@ codebolt.todo.updateTodo(params: { id: string; title?: string; status?: 'pending
 Updates an existing todo item's status, title, priority, or tags.
 ### Parameters
 
-- **`params`** ({ id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }): Parameters for updating the todo item.
+- **`params`** (`{ id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }`): Parameters for updating the todo item.
 - **`params.id`** (string): The unique identifier of the todo to update.
 - **`params.title`** (string, optional): The new title for the todo item.
 - **`params.status`** ('pending' | 'processing' | 'completed' | 'cancelled', optional): The new status for the todo item.

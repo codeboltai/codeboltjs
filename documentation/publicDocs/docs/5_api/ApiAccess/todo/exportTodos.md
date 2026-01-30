@@ -38,7 +38,7 @@ codebolt.todo.exportTodos(params: { format?: 'json' | 'markdown'; listId?: strin
 Exports todos in JSON or Markdown format with optional filtering.
 ### Parameters
 
-- **`params`** ({ format?: 'json' | 'markdown'; listId?: string; status?: string[] }, optional): Optional parameters for customizing the export.
+- **`params`** (`{ format?: 'json' | 'markdown'; listId?: string; status?: string[] }`, optional): Optional parameters for customizing the export.
 - **`params.format`** ('json' | 'markdown', optional): The export format (defaults to 'json').
 - **`params.listId`** (string, optional): Optional list ID to filter todos for export.
 - **`params.status`** (string[], optional): Optional array of status values to filter (e.g., ['pending', 'processing']).

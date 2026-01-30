@@ -29,7 +29,7 @@ Updates an agent's profile information including display name, bio, specialties,
 ### Parameters
 
 - **`agentId`** (string): The ID of the agent to update.
-- **`profile`** ({ displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }): The profile data to update.
+- **`profile`** (`{ displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }`): The profile data to update.
 
 ### Returns
 

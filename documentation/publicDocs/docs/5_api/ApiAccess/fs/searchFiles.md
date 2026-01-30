@@ -31,7 +31,7 @@ codebolt.fs.searchFiles(path: string, regex: string, filePattern: string): Promi
 ### Parameters
 
 - **`path`** (string): The directory path to search within (e.g., '.', './src', '/home/user/documents').
-- **`regex`** (string): The regex pattern to search for within file contents (e.g., 'function', 'class\s+\w+', '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}').
+- **`regex`** (string): The regex pattern to search for within file contents (e.g., `'function'`, `'class\s+\w+'`, `'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'`).
 - **`filePattern`** (string): The file pattern to filter which files to search (e.g., '*.js', '*.json', '*.*', '*.ts').
 
 ### Returns

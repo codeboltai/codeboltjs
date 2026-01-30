@@ -38,7 +38,7 @@ codebolt.todo.addTodo(params: { title: string; priority?: 'high' | 'medium' | 'l
 Adds a new todo item with optional priority and tags.
 ### Parameters
 
-- **`params`** ({ title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }): Parameters for creating the todo item.
+- **`params`** (`{ title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }`): Parameters for creating the todo item.
 - **`params.title`** (string): The title or description of the todo item.
 - **`params.priority`** ('high' | 'medium' | 'low', optional): The priority level of the todo (defaults to medium).
 - **`params.tags`** (string[], optional): Array of tags to categorize the todo item.

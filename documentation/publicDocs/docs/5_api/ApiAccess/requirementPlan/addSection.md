@@ -31,7 +31,7 @@ Adds a new section to a requirement plan document. Sections can contain various 
 ### Parameters
 
 - **`filePath`** (string): Path to the plan file
-- **`section`** (Omit<[RequirementPlanSection](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanSection), 'id' | 'order'>): Section data to add (id and order are auto-generated)
+- **`section`** (`Omit<RequirementPlanSection, 'id' | 'order'>`): Section data to add (id and order are auto-generated). See [RequirementPlanSection](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanSection)
 - **`afterIndex`** (number): Optional index to insert section after (-1 for beginning)
 
 ### Returns
