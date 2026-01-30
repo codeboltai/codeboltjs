@@ -17,7 +17,7 @@ import {
     appendWorkerAgentId,
     appendActionPlanContext
 } from './prompts';
-import { runWhileLoop, AgentLoopResult } from './agentLoop';
+import { runWhileLoop } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
 import { processActionPlanTasks } from './taskProcessor';
 
@@ -26,75 +26,122 @@ const eventQueue = codebolt.agentEventQueue;
 // Use backgroundChildThreads for tracking running agent count
 const agentTracker = codebolt.backgroundChildThreads;
 
+/**
+ * Orchestrator Agent
+ *
+ * Flow:
+ * 1. Requirement Analysis & Planning
+ *    - Uses 'create-plan-for-given-task' action block to analyze requirements
+ *    - Generates a specification from user requirements
+ *    - Creates an action plan with tasks
+ *
+ * 2. Task & Job Execution
+ *    - Retrieves task items from the action plan
+ *    - Breaks each task into multiple jobs using LLM
+ *    - Creates jobs with proper dependencies
+ *    - Assigns jobs to sub-agents
+ *    - Listens for job completion events
+ *    - Executes next independent job when dependencies are met
+ */
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     let sessionSystemPrompt = ORCHESTRATOR_SYSTEM_PROMPT;
+    let defaultWorkerAgentId: string | undefined;
 
-    // Phase 0: Configure system prompt with worker agent
+    // ================================
+    // PHASE 0: Configure orchestrator
+    // ================================
     try {
         const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
         const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-        const defaultWorkerAgentId = orchestratorConfig.data.orchestrator.defaultWorkerAgentId;
+        const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
+        defaultWorkerAgentId = configData?.orchestrator?.defaultWorkerAgentId;
 
         if (defaultWorkerAgentId) {
             sessionSystemPrompt = appendWorkerAgentId(sessionSystemPrompt, defaultWorkerAgentId);
         }
     } catch (error) {
-        // Keep default system prompt on error
+        console.log('[Orchestrator] Using default configuration');
     }
+  
 
-    // Phase 1: Create plan using action block
-    codebolt.chat.sendMessage("Creating implementation plan...", {});
+    // ================================
+    // PHASE 1: Requirement Analysis & Planning
+    // ================================
+    codebolt.chat.sendMessage("Starting requirement analysis and planning...");
+
     try {
+        // 1.1 - 1.3: Create detailed plan using action block
+        // This action block:
+        // - Analyzes user requirements
+        // - Generates a specification
+        // - Creates an action plan with tasks
         const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
             userMessage: reqMessage
         });
-        // let planResult= {"type":"startActionBlockResponse","success":true,"sideExecutionId":"side_1769598460408_a5d3c30f","result":{"success":true,"planId":"plan-85570fd4-874d-4cef-ae00-369b4d3277e0","requirementPlanPath":"/Users/ravirawat/Documents/cbtest/testing-orchestrator/plans/whatsapp-clone-implementation.plan"},"requestId":"28f30a11-c94d-4ae7-8985-ed066f4ff138"}
-
-
-        codebolt.chat.sendMessage(JSON.stringify(planResult))
 
         if (planResult.success && planResult.result) {
             const { planId, requirementPlanPath } = planResult.result;
-            codebolt.chat.sendMessage(`Plan created successfully. Plan ID: ${planId}`, {});
+            codebolt.chat.sendMessage(`Plan created successfully. Plan ID: ${planId}`);
 
             if (planId) {
+                // Update system prompt with plan context
                 sessionSystemPrompt = appendActionPlanContext(
                     sessionSystemPrompt,
                     planId,
                     requirementPlanPath
                 );
 
-                // Phase 2: Create jobs from the plan tasks
-                codebolt.chat.sendMessage("Creating jobs from plan tasks...", {});
-                const defaultWorkerAgentId = additionalVariable?.orchestratorId
-                    ? (await codebolt.orchestrator.getOrchestrator(additionalVariable.orchestratorId))?.data?.orchestrator?.defaultWorkerAgentId
-                    : undefined;
+                // ================================
+                // PHASE 2: Task & Job Execution
+                // ================================
 
+                // Validate worker agent configuration
+                if (!defaultWorkerAgentId) {
+                    codebolt.chat.sendMessage("Warning: No defaultWorkerAgentId configured in orchestrator. Jobs cannot be executed.");
+                    codebolt.chat.sendMessage("Please configure defaultWorkerAgentId in your orchestrator settings.");
+                    return;
+                }
+
+                codebolt.chat.sendMessage(`Starting task and job execution with worker agent: ${defaultWorkerAgentId}`);
+
+                // 2.1 - 2.6: Process action plan tasks
+                // This will:
+                // - Retrieve task items from the action plan
+                // - Break each task into jobs using LLM
+                // - Create jobs with dependencies
+                // - Execute jobs via sub-agents
+                // - Listen for completion events
+                // - Execute next jobs when dependencies are met
                 const jobsResult = await processActionPlanTasks(planId, defaultWorkerAgentId);
 
                 if (jobsResult.success) {
                     codebolt.chat.sendMessage(
-                        `Jobs created successfully. Group: ${jobsResult.groupId}, Total jobs: ${jobsResult.jobs.length}`,
-                        {}
+                        `Execution complete! Group: ${jobsResult.groupId}, Tasks: ${jobsResult.tasksSucceeded}/${jobsResult.tasksProcessed}, Total jobs: ${jobsResult.totalJobs}`
                     );
                 } else {
                     codebolt.chat.sendMessage(
-                        `Some jobs failed to create: ${jobsResult.error || 'Unknown error'}`,
-                        {}
+                        `Execution completed with issues: ${jobsResult.tasksFailed} tasks failed. ${jobsResult.error || ''}`
                     );
                 }
 
                 return;
             }
         } else {
-            codebolt.chat.sendMessage("Plan creation skipped or failed, proceeding with direct orchestration...", {});
+            codebolt.chat.sendMessage("Plan creation skipped or failed, proceeding with direct orchestration...");
         }
     } catch (planError) {
-        console.error('Plan creation failed:', planError);
-        codebolt.chat.sendMessage("Plan creation failed, proceeding with direct orchestration...", {});
+        console.error('[Orchestrator] Plan creation failed:', planError);
+        codebolt.chat.sendMessage("Plan creation failed, proceeding with direct orchestration...");
     }
 
-    // Phase 2: Run agent loop
+    // ================================
+    // FALLBACK: Direct orchestration mode
+    // ================================
+    // This mode is used when:
+    // - Plan creation fails
+    // - User wants direct conversation with orchestrator
+    // - Simple tasks that don't need full planning
+
     const promptGenerator = new InitialPromptGenerator({
         processors: [
             new ChatHistoryMessageModifier({ enableChatHistory: true }),
@@ -120,55 +167,34 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     do {
         continueLoop = false;
 
-        let result: any = await runWhileLoop(reqMessage, prompt);
+        // Run the agent loop until completion or need to wait for events
+        const result = await runWhileLoop(reqMessage, prompt);
+
+        if (result instanceof Error) {
+            codebolt.chat.sendMessage(`Error in agent loop: ${result.message}`);
+            break;
+        }
+
         executionResult = result.executionResult;
         prompt = result.prompt;
 
-        if (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
+        // Check for async events from child agents
+        const runningCount = agentTracker.getRunningAgentCount();
+        const pendingEventCount = eventQueue.getPendingExternalEventCount();
+
+        if (runningCount > 0 || pendingEventCount > 0) {
             continueLoop = true;
+
+            // Get all pending events
             const events = await eventQueue.getPendingQueueEvents();
-            events.forEach((event:any) => {
 
-            if (event.type === 'backgroundAgentCompletion' || event.type === 'backgroundGroupedAgentCompletion') {
-                // Handle background agent completion
-                const completionData = event.data;
-                const agentMessage = {
-                    role: "assistant" as const,
-                    content: `Background agent completed:\n${JSON.stringify(completionData, null, 2)}`
-                };
-                if (prompt && prompt.message.messages) {
-                    prompt.message.messages.push(agentMessage);
-                }
-            } else if (event.type === 'agentQueueEvent') {
-                // Handle agent message from child agents
-                const agentEvent = event.data;
-                const messageContent = `<child_agent_message>
-<source_agent>${agentEvent.sourceAgentId || 'unknown'}</source_agent>
-<source_thread>${agentEvent.sourceThreadId || 'unknown'}</source_thread>
-<event_type>${agentEvent.eventType || 'agentMessage'}</event_type>
-<content>
-${agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
-</content>
-<context>This message is from a child worker agent. Review the content and take appropriate action - you may need to delegate further tasks, provide feedback, or synthesize results.</context>
-<reply_instructions>To reply to this agent, use the eventqueue_send_message tool with targetAgentId set to "${agentEvent.sourceAgentId}" and your response in the content parameter.</reply_instructions>
-</child_agent_message>`;
-
-                const agentMessage = {
-                    role: "user" as const,
-                    content: messageContent
-                };
-                if (prompt && prompt.message.messages) {
-                    prompt.message.messages.push(agentMessage);
-                }
+            // Process each event
+            for (const event of events) {
+                processExternalEvent(event, prompt);
             }
-            });
-        }
-        else {
-            continueLoop = false;
         }
 
     } while (continueLoop);
 
     return executionResult?.finalMessage || "No response generated";
-})
-
+});

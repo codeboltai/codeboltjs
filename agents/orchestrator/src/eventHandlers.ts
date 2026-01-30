@@ -24,6 +24,22 @@ export interface AgentQueueEventData {
 }
 
 /**
+ * Job completion event data
+ */
+export interface JobCompletionEventData {
+    jobId: string;
+    threadId?: string;
+    success: boolean;
+    result?: any;
+    error?: string;
+    metadata?: {
+        jobId?: string;
+        taskName?: string;
+        [key: string]: any;
+    };
+}
+
+/**
  * Handles background agent completion events
  * Adds completion data to the prompt messages
  */
@@ -72,22 +88,64 @@ ${agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
 
 /**
  * Process an external event and update the prompt accordingly
+ * Accepts any event object and handles it based on its structure
  */
 export function processExternalEvent(
-    event: ExternalEvent,
+    event: any,
     prompt: ProcessedMessage
 ): void {
-    switch (event.type) {
-        case 'backgroundAgentCompletion':
-        case 'backgroundGroupedAgentCompletion':
-            handleBackgroundAgentCompletion(prompt, event.data);
-            break;
+    // Handle events with explicit type field
+    if (event && typeof event === 'object') {
+        const eventType = event.type || event.eventType;
+        const eventData = event.data || event;
 
-        case 'agentQueueEvent':
-            handleAgentQueueEvent(prompt, event.data);
-            break;
+        switch (eventType) {
+            case 'backgroundAgentCompletion':
+            case 'backgroundGroupedAgentCompletion':
+                handleBackgroundAgentCompletion(prompt, eventData);
+                break;
 
-        default:
-            console.warn(`Unknown event type: ${event.type}`);
+            case 'agentQueueEvent':
+                handleAgentQueueEvent(prompt, eventData);
+                break;
+
+            default:
+                // Try to handle as a generic agent event
+                if (event.sourceAgentId || event.payload) {
+                    handleAgentQueueEvent(prompt, event as AgentQueueEventData);
+                } else {
+                    console.warn(`Unknown event type: ${eventType}`, event);
+                }
+        }
     }
+}
+
+/**
+ * Extracts job completion info from an event
+ */
+export function extractJobCompletionInfo(event: any): JobCompletionEventData | null {
+    if (!event) return null;
+
+    const eventType = event.type || event.eventType;
+    const eventData = event.data || event;
+
+    if (eventType === 'backgroundAgentCompletion' ||
+        eventType === 'backgroundGroupedAgentCompletion') {
+
+        const metadata = eventData?.metadata || {};
+        const jobId = metadata.jobId || eventData.jobId;
+
+        if (jobId) {
+            return {
+                jobId,
+                threadId: eventData.threadId,
+                success: eventData.success !== false,
+                result: eventData.result,
+                error: eventData.error,
+                metadata
+            };
+        }
+    }
+
+    return null;
 }

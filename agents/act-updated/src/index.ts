@@ -437,7 +437,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
   let sessionSystemPrompt;
   try {
     let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-    let orhestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
+    let orhestratorConfig:any = await codebolt.orchestrator.getOrchestrator(orchestratorId);
     let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
     sessionSystemPrompt = systemPrompt;
     if (defaultWorkerAgentId) {
