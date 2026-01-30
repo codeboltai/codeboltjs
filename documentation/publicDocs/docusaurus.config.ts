@@ -21,7 +21,7 @@ const config: Config = {
     },
   },
 
-  onBrokenAnchors: 'warn',
+  // onBrokenAnchors: 'warn',
   customFields: {
     onDuplicatePresets: 'warn',
     onExtraPlugins: 'warn',
