@@ -24,4 +24,4 @@ type OrchestratorEventType =
 Defined in: common/types/src/codeboltjstypes/libFunctionTypes/orchestrator.ts:31
 
 Orchestrator event types - custom event strings for orchestrator operations.
-The server parses 'orchestrator.<action>' type strings.
+The server parses `orchestrator.\<action\>` type strings.

@@ -35,7 +35,7 @@ export type {
 };
 
 // We use a custom event type string for orchestrator events since we can't add to the enum
-// The server parses 'orchestrator.<action>' type strings
+// The server parses 'orchestrator.\<action\>' type strings
 const ORCHESTRATOR_EVENT_PREFIX = 'orchestrator.';
 
 const orchestrator = {
