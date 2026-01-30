@@ -4,6 +4,328 @@ Comprehensive examples for each abstraction level.
 
 ---
 
+## ⚠️ ActionBlock Invocation Pattern (READ FIRST)
+
+**When writing agents, ALWAYS invoke existing ActionBlocks instead of implementing their logic inline.**
+
+### ❌ WRONG: Inline Action Block Logic
+
+```typescript
+// DON'T DO THIS - implementing action block logic directly in the agent
+import codebolt from '@codebolt/codeboltjs';
+import { InitialPromptGenerator, AgentStep } from '@codebolt/agent/unified';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
+  // BAD: Implementing planning logic inline
+  const promptGenerator = new InitialPromptGenerator({...});
+  const agentStep = new AgentStep({});
+
+  // ... 50+ lines of planning implementation ...
+  const planPrompt = await promptGenerator.processMessage(msg);
+  const planResult = await agentStep.executeStep(msg, planPrompt);
+  const plan = parsePlanFromResponse(planResult);
+
+  // BAD: Implementing job creation inline
+  const jobs = [];
+  for (const task of plan.tasks) {
+    // ... 30+ lines of job creation logic ...
+    const jobPrompt = await createJobPrompt(task);
+    const jobResult = await agentStep.executeStep(msg, jobPrompt);
+    jobs.push(parseJobFromResponse(jobResult));
+  }
+});
+```
+
+### ✅ CORRECT: Invoke Existing ActionBlocks
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+
+codebolt.onMessage(async (msg: FlatUserMessage) => {
+  // GOOD: Invoke the planning ActionBlock
+  const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
+    userMessage: msg
+  });
+
+  if (!planResult.success) {
+    codebolt.chat.sendMessage(`Planning failed: ${planResult.error}`);
+    return;
+  }
+
+  // GOOD: Invoke the job creation ActionBlock
+  const jobsResult = await codebolt.actionBlock.start('break-task-into-jobs', {
+    plan: planResult.result,
+    task: planResult.result.tasks[0]
+  });
+
+  if (jobsResult.success) {
+    codebolt.chat.sendMessage(`Created ${jobsResult.result.subJobCount} jobs`);
+  }
+});
+```
+
+### Discovering Available ActionBlocks
+
+```typescript
+// List all ActionBlocks to find what's available
+const available = await codebolt.actionBlock.list();
+console.log('Available ActionBlocks:', available.data.map((b: { name: string }) => b.name));
+
+// Get details about a specific ActionBlock before using it
+const detail = await codebolt.actionBlock.getDetail('create-plan-for-given-task');
+console.log('Inputs:', detail.metadata.inputs);
+console.log('Outputs:', detail.metadata.outputs);
+```
+
+---
+
+## Complete Agent Example with Loop (Level 2)
+
+This is a **reference implementation** showing a complete agent with the proper loop pattern. When you need complex logic (planning, job creation, etc.), **invoke ActionBlocks instead of implementing inline**.
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import {
+  InitialPromptGenerator,
+  ResponseExecutor,
+  AgentStep
+} from '@codebolt/agent/unified';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+import { AgentStepOutput, ProcessedMessage, ResponseExecutorResult } from '@codebolt/types/agent';
+import {
+  EnvironmentContextModifier,
+  CoreSystemPromptModifier,
+  DirectoryContextModifier,
+  IdeContextModifier,
+  AtFileProcessorModifier,
+  ToolInjectionModifier,
+  ChatHistoryMessageModifier
+} from '@codebolt/agent/processor-pieces';
+
+// Define your system prompt
+const systemPrompt: string = `
+You are a helpful coding assistant. Help users with:
+- Writing and debugging code
+- Explaining concepts
+- Refactoring suggestions
+
+Always explain your reasoning before making changes.
+`.trim();
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<void> => {
+  try {
+    codebolt.chat.sendMessage('Agent started processing your request...');
+
+    // Initialize the prompt generator with all modifiers
+    const promptGenerator: InitialPromptGenerator = new InitialPromptGenerator({
+      processors: [
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        new EnvironmentContextModifier({ enableFullContext: true }),
+        new DirectoryContextModifier(),
+        new IdeContextModifier({
+          includeActiveFile: true,
+          includeOpenFiles: true,
+          includeCursorPosition: true,
+          includeSelectedText: true
+        }),
+        new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
+        new ToolInjectionModifier({ includeToolDescriptions: true }),
+        new AtFileProcessorModifier({ enableRecursiveSearch: true })
+      ],
+      baseSystemPrompt: systemPrompt
+    });
+
+    // Process the initial message
+    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+
+    // Agent loop
+    let completed: boolean = false;
+    do {
+      // Execute a single agent step (LLM inference)
+      const agent: AgentStep = new AgentStep({
+        preInferenceProcessors: [],
+        postInferenceProcessors: []
+      });
+      const result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+      prompt = result.nextMessage;
+
+      // Execute the response (tool calls, completion check)
+      const responseExecutor: ResponseExecutor = new ResponseExecutor({
+        preToolCallProcessors: [],
+        postToolCallProcessors: []
+      });
+      const executionResult: ResponseExecutorResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage
+      });
+
+      completed = executionResult.completed;
+      prompt = executionResult.nextMessage;
+
+      if (completed) {
+        break;
+      }
+    } while (!completed);
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    codebolt.chat.sendMessage(`Error: ${errorMessage}`);
+  }
+});
+```
+
+---
+
+## Complete Agent with ActionBlock Invocation (Recommended Pattern)
+
+This example shows **the recommended pattern**: use the agent loop for orchestration, but **invoke ActionBlocks** for complex logic instead of implementing it inline.
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import {
+  InitialPromptGenerator,
+  ResponseExecutor,
+  AgentStep
+} from '@codebolt/agent/unified';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+import { AgentStepOutput, ProcessedMessage, ResponseExecutorResult } from '@codebolt/types/agent';
+import {
+  CoreSystemPromptModifier,
+  ToolInjectionModifier,
+  ChatHistoryMessageModifier
+} from '@codebolt/agent/processor-pieces';
+
+// Type definitions for ActionBlock responses
+interface PlanResult {
+  planId: string;
+  tasks: Array<{
+    id: string;
+    name: string;
+    description: string;
+  }>;
+}
+
+interface JobResult {
+  success: boolean;
+  jobId: string;
+  subJobs: Array<{
+    id: string;
+    name: string;
+  }>;
+  subJobCount: number;
+}
+
+interface ActionBlockResponse<T> {
+  success: boolean;
+  result?: T;
+  error?: string;
+  sideExecutionId?: string;
+}
+
+const systemPrompt: string = `
+You are a task orchestration agent. You help users plan and execute complex tasks.
+When the user provides a task, you will:
+1. Create a plan using the planning ActionBlock
+2. Break the plan into jobs using the job creation ActionBlock
+3. Report the results to the user
+`.trim();
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<void> => {
+  try {
+    codebolt.chat.sendMessage('Starting task orchestration...');
+
+    // ✅ CORRECT: Invoke ActionBlocks for complex logic
+    // Step 1: Create a plan using the ActionBlock (NOT inline implementation)
+    const planResponse: ActionBlockResponse<PlanResult> = await codebolt.actionBlock.start(
+      'create-plan-for-given-task',
+      { userMessage: reqMessage }
+    );
+
+    if (!planResponse.success || !planResponse.result) {
+      codebolt.chat.sendMessage(`Planning failed: ${planResponse.error || 'Unknown error'}`);
+      return;
+    }
+
+    const plan: PlanResult = planResponse.result;
+    codebolt.chat.sendMessage(`Plan created with ${plan.tasks.length} tasks`);
+
+    // Step 2: Break tasks into jobs using ActionBlock (NOT inline implementation)
+    for (const task of plan.tasks) {
+      const jobResponse: ActionBlockResponse<JobResult> = await codebolt.actionBlock.start(
+        'break-task-into-jobs',
+        {
+          plan: plan,
+          task: task,
+          existingJobs: []
+        }
+      );
+
+      if (jobResponse.success && jobResponse.result) {
+        codebolt.chat.sendMessage(
+          `Task "${task.name}": Created ${jobResponse.result.subJobCount} sub-jobs`
+        );
+      }
+    }
+
+    // Step 3: Now use the agent loop for any remaining interaction
+    const promptGenerator: InitialPromptGenerator = new InitialPromptGenerator({
+      processors: [
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
+        new ToolInjectionModifier({ includeToolDescriptions: true })
+      ],
+      baseSystemPrompt: systemPrompt
+    });
+
+    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    let completed: boolean = false;
+
+    do {
+      const agent: AgentStep = new AgentStep({
+        preInferenceProcessors: [],
+        postInferenceProcessors: []
+      });
+      const result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+      prompt = result.nextMessage;
+
+      const responseExecutor: ResponseExecutor = new ResponseExecutor({
+        preToolCallProcessors: [],
+        postToolCallProcessors: []
+      });
+      const executionResult: ResponseExecutorResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage
+      });
+
+      completed = executionResult.completed;
+      prompt = executionResult.nextMessage;
+
+    } while (!completed);
+
+    codebolt.chat.sendMessage('Task orchestration complete!');
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    codebolt.chat.sendMessage(`Error: ${errorMessage}`);
+  }
+});
+```
+
+**Key Points:**
+- All variables have explicit TypeScript types
+- ActionBlock responses are typed with interfaces
+- Complex logic (planning, job creation) uses `codebolt.actionBlock.start()`
+- The agent loop is used for orchestration and user interaction
+- Error handling uses proper type guards
+
+---
+
 ## Remix Agent Examples (No-Code)
 
 ### Simple Code Assistant
@@ -133,37 +455,43 @@ codebolt.onMessage(async (userMessage: FlatUserMessage) => {
 
 ```typescript
 import codebolt from '@codebolt/codeboltjs';
-import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { FlatUserMessage, ChatMessage, ToolCall } from '@codebolt/types/sdk';
 
-const MAX_ITERATIONS = 15;
+const MAX_ITERATIONS: number = 15;
 
-codebolt.onMessage(async (userMessage: FlatUserMessage) => {
-  const messages = [
+interface LLMMessage extends ChatMessage {
+  tool_calls?: ToolCall[];
+}
+
+codebolt.onMessage(async (userMessage: FlatUserMessage): Promise<void> => {
+  const messages: ChatMessage[] = [
     { role: 'system', content: 'You are a file assistant. Help with file operations.' },
     { role: 'user', content: userMessage.userMessage }
   ];
 
-  const tools = (await codebolt.mcp.listMcpFromServers(['codebolt']))?.data?.tools || [];
+  const toolsResponse = await codebolt.mcp.listMcpFromServers(['codebolt']);
+  const tools = toolsResponse?.data?.tools || [];
 
-  for (let i = 0; i < MAX_ITERATIONS; i++) {
+  for (let i: number = 0; i < MAX_ITERATIONS; i++) {
     const response = await codebolt.llm.inference({ messages, tools, tool_choice: 'auto' });
-    const msg = response.completion.choices[0].message;
+    const msg: LLMMessage = response.completion.choices[0].message;
     messages.push(msg);
 
     if (!msg.tool_calls?.length) {
-      codebolt.chat.sendMessage(msg.content);
+      codebolt.chat.sendMessage(msg.content || '');
       return;
     }
 
     for (const call of msg.tool_calls) {
-      const [toolbox, toolName] = call.function.name.split('--');
-      const args = JSON.parse(call.function.arguments);
+      const [toolbox, toolName]: string[] = call.function.name.split('--');
+      const args: Record<string, unknown> = JSON.parse(call.function.arguments);
 
       try {
         const result = await codebolt.mcp.executeTool(toolbox, toolName, args);
         messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result.data) });
-      } catch (e) {
-        messages.push({ role: 'tool', tool_call_id: call.id, content: `Error: ${e.message}` });
+      } catch (error: unknown) {
+        const errorMessage: string = error instanceof Error ? error.message : 'Unknown error';
+        messages.push({ role: 'tool', tool_call_id: call.id, content: `Error: ${errorMessage}` });
       }
     }
   }
@@ -181,6 +509,7 @@ import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/a
 import { ChatHistoryMessageModifier, CoreSystemPromptModifier, ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage, AgentStepOutput, ResponseExecutorResult } from '@codebolt/types/agent';
 
 class InspectableAgent {
   private promptGen: InitialPromptGenerator;
@@ -201,12 +530,12 @@ class InspectableAgent {
     this.responseExec = new ResponseExecutor({ preToolCallProcessors: [], postToolCallProcessors: [] });
   }
 
-  async execute(userMessage: FlatUserMessage) {
-    let prompt = await this.promptGen.processMessage(userMessage);
+  async execute(userMessage: FlatUserMessage): Promise<{ result: string | undefined; logs: string[] }> {
+    let prompt: ProcessedMessage = await this.promptGen.processMessage(userMessage);
     this.log(`Processed message with ${prompt.message.messages.length} messages`);
 
-    for (let i = 0; i < 20; i++) {
-      const stepResult = await this.agentStep.executeStep(userMessage, prompt);
+    for (let i: number = 0; i < 20; i++) {
+      const stepResult: AgentStepOutput = await this.agentStep.executeStep(userMessage, prompt);
 
       const toolCalls = stepResult.rawLLMResponse.choices[0].message.tool_calls;
       this.log(`Iteration ${i}: ${toolCalls?.length || 0} tool calls`);
@@ -217,7 +546,7 @@ class InspectableAgent {
         }
       }
 
-      const execResult = await this.responseExec.executeResponse({
+      const execResult: ResponseExecutorResult = await this.responseExec.executeResponse({
         nextMessage: stepResult.nextMessage,
         rawLLMOutput: stepResult.rawLLMResponse,
         actualMessageSentToLLM: stepResult.actualMessageSentToLLM
@@ -238,120 +567,6 @@ class InspectableAgent {
     this.logs.push(`[${new Date().toISOString()}] ${msg}`);
   }
 }
-```
-
-### Orchestrator with Child Agents
-
-```typescript
-import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/agent/unified';
-import { ChatHistoryMessageModifier, CoreSystemPromptModifier, ToolInjectionModifier } from '@codebolt/agent/processor-pieces';
-import codebolt from '@codebolt/codeboltjs';
-import type { FlatUserMessage } from '@codebolt/types/sdk';
-
-const eventQueue = codebolt.agentEventQueue;
-const agentTracker = codebolt.backgroundChildThreads;
-
-codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-  const promptGenerator = new InitialPromptGenerator({
-    processors: [
-      new ChatHistoryMessageModifier({ enableChatHistory: true }),
-      new CoreSystemPromptModifier({ customSystemPrompt: ORCHESTRATOR_PROMPT }),
-      new ToolInjectionModifier({ includeToolDescriptions: true })
-    ]
-  });
-
-  let prompt = await promptGenerator.processMessage(reqMessage);
-  let continueLoop = true;
-
-  do {
-    // Run inner agent loop until no tool calls
-    let completed = false;
-    while (!completed) {
-      const agent = new AgentStep({});
-      const result = await agent.executeStep(reqMessage, prompt);
-      prompt = result.nextMessage;
-
-      const executor = new ResponseExecutor({});
-      const execResult = await executor.executeResponse({
-        initialUserMessage: reqMessage,
-        actualMessageSentToLLM: result.actualMessageSentToLLM,
-        rawLLMOutput: result.rawLLMResponse,
-        nextMessage: result.nextMessage
-      });
-
-      completed = execResult.completed;
-      prompt = execResult.nextMessage;
-    }
-
-    // Check for async events from child agents
-    if (agentTracker.getRunningAgentCount() > 0 ||
-        eventQueue.getPendingExternalEventCount() > 0) {
-
-      const events = await eventQueue.getPendingQueueEvents();
-
-      for (const event of events) {
-        if (event.type === 'backgroundAgentCompletion') {
-          prompt.message.messages.push({
-            role: 'assistant',
-            content: `Background agent completed:\n${JSON.stringify(event.data, null, 2)}`
-          });
-        } else if (event.type === 'agentQueueEvent') {
-          prompt.message.messages.push({
-            role: 'user',
-            content: `<child_agent_message>
-              <source_agent>${event.data.sourceAgentId}</source_agent>
-              <content>${event.data.payload?.content || JSON.stringify(event.data.payload)}</content>
-            </child_agent_message>`
-          });
-        }
-      }
-      continueLoop = true;
-    } else {
-      continueLoop = false;
-    }
-
-  } while (continueLoop);
-});
-```
-
-### Long-Running Orchestrator (Waits for Events)
-
-```typescript
-import codebolt from '@codebolt/codeboltjs';
-import type { FlatUserMessage } from '@codebolt/types/sdk';
-
-const eventQueue = codebolt.agentEventQueue;
-
-codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-  // Initial setup and task distribution...
-  await distributeTasksToWorkers(reqMessage);
-
-  // Keep orchestrator alive, waiting for child agent events
-  while (true) {
-    const event = await eventQueue.waitForAnyExternalEvent();
-
-    switch (event.type) {
-      case 'agentQueueEvent':
-        // Message from child agent
-        await handleChildMessage(event.data);
-        break;
-
-      case 'backgroundAgentCompletion':
-        // Child agent finished
-        const allComplete = await checkAllTasksComplete();
-        if (allComplete) {
-          codebolt.chat.sendMessage('All tasks completed!');
-          return;
-        }
-        break;
-
-      case 'backgroundGroupedAgentCompletion':
-        // Group of agents finished
-        await handleGroupCompletion(event.data);
-        break;
-    }
-  }
-});
 ```
 
 ### Rate-Limited Agent
@@ -390,7 +605,7 @@ import { InitialPromptGenerator, AgentStep, ResponseExecutor } from '@codebolt/a
 import { BasePreToolCallProcessor, ToolInjectionModifier, CoreSystemPromptModifier } from '@codebolt/agent/processor-pieces';
 import codebolt from '@codebolt/codeboltjs';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
-import type { PreToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+import type { PreToolCallProcessorInput, ProcessedMessage, AgentStepOutput, ResponseExecutorResult } from '@codebolt/types/agent';
 
 // 1. Define your custom tool processor
 class DataTransformToolProcessor extends BasePreToolCallProcessor {
@@ -481,15 +696,15 @@ const responseExecutor = new ResponseExecutor({
 });
 
 // 4. Agent loop
-codebolt.onMessage(async (userMessage: FlatUserMessage) => {
-  let prompt = await promptGenerator.processMessage(userMessage);
-  let completed = false;
+codebolt.onMessage(async (userMessage: FlatUserMessage): Promise<void> => {
+  let prompt: ProcessedMessage = await promptGenerator.processMessage(userMessage);
+  let completed: boolean = false;
 
   while (!completed) {
-    const stepResult = await agentStep.executeStep(userMessage, prompt);
+    const stepResult: AgentStepOutput = await agentStep.executeStep(userMessage, prompt);
 
     // ResponseExecutor handles both custom tools (via processor) and MCP tools
-    const execResult = await responseExecutor.executeResponse({
+    const execResult: ResponseExecutorResult = await responseExecutor.executeResponse({
       initialUserMessage: userMessage,
       actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
       rawLLMOutput: stepResult.rawLLMResponse,
@@ -519,13 +734,15 @@ import { CodeboltAgent } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 
-const agent = new CodeboltAgent({
+import type { AgentResult } from '@codebolt/types/agent';
+
+const agent: CodeboltAgent = new CodeboltAgent({
   instructions: 'You are a coding assistant. Help with code, debugging, and explanations.',
   enableLogging: true
 });
 
-codebolt.onMessage(async (msg: FlatUserMessage) => {
-  const result = await agent.processMessage(msg);
+codebolt.onMessage(async (msg: FlatUserMessage): Promise<void> => {
+  const result: AgentResult = await agent.processMessage(msg);
   if (!result.success) {
     codebolt.chat.sendMessage(`Error: ${result.error}`);
   }
@@ -603,15 +820,23 @@ const projectAgent = new CodeboltAgent({
 
 ```typescript
 import { BaseMessageModifier } from '@codebolt/agent/processor-pieces';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
 
 class ApiKeyModifier extends BaseMessageModifier {
-  constructor(private apiKeys: Record<string, string>) {
+  private apiKeys: Record<string, string>;
+
+  constructor(apiKeys: Record<string, string>) {
     super();
+    this.apiKeys = apiKeys;
   }
 
-  async modify(originalRequest, createdMessage) {
-    const keysInfo = Object.keys(this.apiKeys)
-      .map(k => `- ${k}: Available`)
+  async modify(
+    originalRequest: FlatUserMessage,
+    createdMessage: ProcessedMessage
+  ): Promise<ProcessedMessage> {
+    const keysInfo: string = Object.keys(this.apiKeys)
+      .map((k: string) => `- ${k}: Available`)
       .join('\n');
 
     createdMessage.message.messages.push({
@@ -627,12 +852,20 @@ class ApiKeyModifier extends BaseMessageModifier {
 ### User Preferences Loader
 
 ```typescript
+import { BaseMessageModifier } from '@codebolt/agent/processor-pieces';
+import codebolt from '@codebolt/codeboltjs';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { ProcessedMessage } from '@codebolt/types/agent';
+
 class UserPreferencesModifier extends BaseMessageModifier {
-  async modify(originalRequest, createdMessage) {
+  async modify(
+    originalRequest: FlatUserMessage,
+    createdMessage: ProcessedMessage
+  ): Promise<ProcessedMessage> {
     const prefs = await codebolt.memory.json.list({ type: 'user_preferences' });
 
     if (prefs.data?.length) {
-      const prefsText = JSON.stringify(prefs.data[0], null, 2);
+      const prefsText: string = JSON.stringify(prefs.data[0], null, 2);
       createdMessage.message.messages.push({
         role: 'system',
         content: `User preferences:\n${prefsText}`
@@ -652,10 +885,20 @@ class UserPreferencesModifier extends BaseMessageModifier {
 
 ```typescript
 import { BasePostToolCallProcessor } from '@codebolt/agent/processor-pieces';
+import codebolt from '@codebolt/codeboltjs';
+import type { PostToolCallProcessorInput, ProcessedMessage } from '@codebolt/types/agent';
+
+interface ToolResult {
+  tool_call_id: string;
+  content: string;
+}
 
 class AuditLogProcessor extends BasePostToolCallProcessor {
-  async modify(input) {
-    const { toolResults } = input;
+  async modify(input: PostToolCallProcessorInput): Promise<{
+    nextPrompt: ProcessedMessage;
+    shouldExit: boolean;
+  }> {
+    const toolResults: ToolResult[] = input.toolResults || [];
 
     for (const result of toolResults) {
       await codebolt.memory.json.save({
@@ -675,18 +918,29 @@ class AuditLogProcessor extends BasePostToolCallProcessor {
 
 ```typescript
 import { BasePostInferenceProcessor } from '@codebolt/agent/processor-pieces';
+import type { ProcessedMessage, LLMResponse } from '@codebolt/types/agent';
+
+interface TokenUsage {
+  total_tokens: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+}
 
 class CostTrackerProcessor extends BasePostInferenceProcessor {
-  private totalTokens = 0;
+  private totalTokens: number = 0;
   private maxTokens: number;
 
-  constructor(maxTokens = 100000) {
+  constructor(maxTokens: number = 100000) {
     super();
     this.maxTokens = maxTokens;
   }
 
-  async modify(llmMessageSent, llmResponseMessage, nextPrompt) {
-    const usage = llmResponseMessage.usage;
+  async modify(
+    llmMessageSent: ProcessedMessage,
+    llmResponseMessage: LLMResponse,
+    nextPrompt: ProcessedMessage
+  ): Promise<ProcessedMessage> {
+    const usage: TokenUsage | undefined = llmResponseMessage.usage;
     if (usage) {
       this.totalTokens += usage.total_tokens;
 
@@ -718,51 +972,65 @@ class CostTrackerProcessor extends BasePostInferenceProcessor {
 ```typescript
 import { Workflow } from '@codebolt/agent/unified';
 import codebolt from '@codebolt/codeboltjs';
+import type { WorkflowStepResult, TerminalResult } from '@codebolt/types/agent';
 
-const qualityPipeline = new Workflow({
+interface PipelineStepData {
+  output?: string;
+  coverage?: string;
+}
+
+const qualityPipeline: Workflow = new Workflow({
   name: 'Code Quality',
   steps: [
     {
       id: 'lint',
-      execute: async () => {
-        const result = await codebolt.terminal.executeCommand('npm run lint');
+      execute: async (): Promise<WorkflowStepResult<PipelineStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm run lint');
         return { success: !result.error, data: { output: result.output } };
       }
     },
     {
       id: 'typecheck',
-      execute: async () => {
-        const result = await codebolt.terminal.executeCommand('npm run typecheck');
+      execute: async (): Promise<WorkflowStepResult<PipelineStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm run typecheck');
         return { success: !result.error, data: { output: result.output } };
       }
     },
     {
       id: 'test',
-      execute: async () => {
-        const result = await codebolt.terminal.executeCommand('npm test -- --coverage');
+      execute: async (): Promise<WorkflowStepResult<PipelineStepData>> => {
+        const result: TerminalResult = await codebolt.terminal.executeCommand('npm test -- --coverage');
         return { success: !result.error, data: { coverage: result.output } };
       }
     }
   ]
 });
 
-const result = await qualityPipeline.executeAsync();
-console.log(`Pipeline ${result.success ? 'passed' : 'failed'} in ${result.executionTime}ms`);
+const pipelineResult = await qualityPipeline.executeAsync();
+console.log(`Pipeline ${pipelineResult.success ? 'passed' : 'failed'} in ${pipelineResult.executionTime}ms`);
 ```
 
 ### Document Generation Workflow
 
 ```typescript
 import { Workflow, AgentStep, CodeboltAgent } from '@codebolt/agent/unified';
+import codebolt from '@codebolt/codeboltjs';
+import type { WorkflowStepResult, WorkflowContext } from '@codebolt/types/agent';
 
-const docWorkflow = new Workflow({
+interface DocWorkflowContext extends WorkflowContext {
+  directory: string;
+  files?: string[];
+  documentation?: string;
+}
+
+const docWorkflow: Workflow = new Workflow({
   name: 'Documentation Generator',
   steps: [
     {
       id: 'scan-files',
-      execute: async (ctx) => {
+      execute: async (ctx: DocWorkflowContext): Promise<WorkflowStepResult<{ files: string[] }>> => {
         const files = await codebolt.fs.listFile(ctx.directory, true);
-        const codeFiles = files.data.filter(f => f.endsWith('.ts'));
+        const codeFiles: string[] = files.data.filter((f: string) => f.endsWith('.ts'));
         return { success: true, data: { files: codeFiles } };
       }
     },
@@ -780,8 +1048,8 @@ const docWorkflow = new Workflow({
     ),
     {
       id: 'save-docs',
-      execute: async (ctx) => {
-        await codebolt.fs.createFile('API.md', ctx.documentation, './docs');
+      execute: async (ctx: DocWorkflowContext): Promise<WorkflowStepResult<void>> => {
+        await codebolt.fs.createFile('API.md', ctx.documentation || '', './docs');
         return { success: true };
       }
     }
@@ -794,127 +1062,43 @@ await docWorkflow.executeAsync();
 
 ---
 
-## Multi-Agent Patterns
-
-### Orchestrator Pattern
-
-```typescript
-import { CodeboltAgent } from '@codebolt/agent/unified';
-
-class AgentOrchestrator {
-  private agents = new Map<string, CodeboltAgent>();
-
-  constructor() {
-    this.agents.set('planner', new CodeboltAgent({
-      instructions: 'Break tasks into subtasks.'
-    }));
-
-    this.agents.set('coder', new CodeboltAgent({
-      instructions: 'Write clean, tested code.'
-    }));
-
-    this.agents.set('reviewer', new CodeboltAgent({
-      instructions: 'Review code for issues.'
-    }));
-  }
-
-  async execute(task: string, context: { threadId: string; messageId: string }) {
-    // 1. Plan
-    const plan = await this.agents.get('planner')!.processMessage({
-      userMessage: `Plan: ${task}`,
-      ...context
-    });
-
-    // 2. Code
-    const code = await this.agents.get('coder')!.processMessage({
-      userMessage: `Implement: ${plan.result}`,
-      ...context
-    });
-
-    // 3. Review
-    const review = await this.agents.get('reviewer')!.processMessage({
-      userMessage: `Review: ${code.result}`,
-      ...context
-    });
-
-    return { plan, code, review };
-  }
-}
-```
-
-### Specialist Delegation
-
-```typescript
-import { CodeboltAgent } from '@codebolt/agent/unified';
-
-class SpecialistRouter {
-  private specialists = new Map<string, CodeboltAgent>();
-
-  constructor() {
-    this.specialists.set('frontend', new CodeboltAgent({
-      instructions: 'Expert in React, CSS, HTML.'
-    }));
-
-    this.specialists.set('backend', new CodeboltAgent({
-      instructions: 'Expert in Node.js, databases, APIs.'
-    }));
-
-    this.specialists.set('devops', new CodeboltAgent({
-      instructions: 'Expert in CI/CD, Docker, Kubernetes.'
-    }));
-  }
-
-  async route(task: string, context: { threadId: string; messageId: string }) {
-    // Determine specialist
-    const keywords = task.toLowerCase();
-    let specialist = 'backend'; // default
-
-    if (keywords.includes('react') || keywords.includes('css') || keywords.includes('ui')) {
-      specialist = 'frontend';
-    } else if (keywords.includes('deploy') || keywords.includes('docker') || keywords.includes('ci')) {
-      specialist = 'devops';
-    }
-
-    return this.specialists.get(specialist)!.processMessage({
-      userMessage: task,
-      ...context
-    });
-  }
-}
-```
-
----
-
 ## Error Handling Patterns
 
 ### Resilient Agent
 
 ```typescript
 import { CodeboltAgent } from '@codebolt/agent/unified';
-import type { FlatUserMessage, CodeboltAgentConfig } from '@codebolt/types/agent';
+import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { CodeboltAgentConfig, AgentResult } from '@codebolt/types/agent';
+
+interface ResilientAgentResult {
+  success: boolean;
+  result?: string;
+  error?: string;
+}
 
 class ResilientAgent {
   private agent: CodeboltAgent;
-  private maxRetries = 3;
+  private maxRetries: number = 3;
 
   constructor(config: CodeboltAgentConfig) {
     this.agent = new CodeboltAgent(config);
   }
 
-  async execute(message: FlatUserMessage) {
+  async execute(message: FlatUserMessage): Promise<ResilientAgentResult> {
     let lastError: Error | null = null;
 
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+    for (let attempt: number = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        const result = await this.agent.processMessage(message);
+        const result: AgentResult = await this.agent.processMessage(message);
         if (result.success) return result;
-        lastError = new Error(result.error);
-      } catch (e) {
-        lastError = e as Error;
+        lastError = new Error(result.error || 'Unknown error');
+      } catch (error: unknown) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
       }
 
       // Exponential backoff
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
     }
 
     return { success: false, error: lastError?.message };
@@ -927,6 +1111,7 @@ class ResilientAgent {
 ```typescript
 import { CodeboltAgent } from '@codebolt/agent/unified';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
+import type { AgentResult } from '@codebolt/types/agent';
 
 class GracefulAgent {
   private primaryAgent: CodeboltAgent;
@@ -943,12 +1128,13 @@ class GracefulAgent {
     });
   }
 
-  async execute(message: FlatUserMessage) {
+  async execute(message: FlatUserMessage): Promise<AgentResult> {
     try {
-      const result = await this.primaryAgent.processMessage(message);
+      const result: AgentResult = await this.primaryAgent.processMessage(message);
       if (result.success) return result;
-    } catch (e) {
-      console.warn('Primary agent failed, using fallback');
+    } catch (error: unknown) {
+      const errorMessage: string = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`Primary agent failed: ${errorMessage}, using fallback`);
     }
 
     return this.fallbackAgent.processMessage(message);
