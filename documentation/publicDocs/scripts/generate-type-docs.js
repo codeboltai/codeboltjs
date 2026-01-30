@@ -4,15 +4,14 @@
  * Unified TypeDoc Markdown Generator for Docusaurus
  *
  * This script generates markdown documentation from TypeScript source files
- * for multiple packages (@codebolt/codeboltjs and @codebolt/agent) using
- * typedoc-plugin-markdown, formatted for seamless Docusaurus integration.
+ * for multiple packages using typedoc-plugin-markdown, formatted for seamless
+ * Docusaurus integration.
  *
  * Usage:
  *   node scripts/generate-type-docs.js [options]
  *
  * Options:
  *   --clean         Clean output directory before generating
- *   --watch         Watch for changes and regenerate (not recommended for multi-package)
  *   --help          Show help message
  */
 
@@ -34,6 +33,10 @@ const CONFIG = {
     packages: [
         {
             name: '@codebolt/codeboltjs',
+            slug: 'codeboltjs',
+            label: 'CodeboltJS',
+            position: 1,
+            description: 'Core SDK for building Codebolt applications',
             entryPoints: [
                 path.resolve(MONOREPO_ROOT, 'packages/codeboltjs/src/index.ts'),
             ],
@@ -42,6 +45,10 @@ const CONFIG = {
         },
         {
             name: '@codebolt/agent',
+            slug: 'agent',
+            label: 'Agent',
+            position: 2,
+            description: 'Agent utilities for building and managing AI agents',
             entryPoints: [
                 path.resolve(MONOREPO_ROOT, 'packages/agent/src/unified/index.ts'),
                 path.resolve(MONOREPO_ROOT, 'packages/agent/src/processor-pieces/index.ts'),
@@ -51,6 +58,10 @@ const CONFIG = {
         },
         {
             name: '@codebolt/provider',
+            slug: 'provider',
+            label: 'Provider',
+            position: 3,
+            description: 'Base provider utilities for CodeBOLT environment providers',
             entryPoints: [
                 path.resolve(MONOREPO_ROOT, 'packages/provider/src/index.ts'),
             ],
@@ -59,6 +70,10 @@ const CONFIG = {
         },
         {
             name: '@codebolt/mcp',
+            slug: 'mcp',
+            label: 'MCP',
+            position: 4,
+            description: 'Model Context Protocol (MCP) server implementation',
             entryPoints: [
                 path.resolve(MONOREPO_ROOT, 'packages/mcp/src/index.ts'),
             ],
@@ -92,7 +107,6 @@ const CONFIG = {
         ],
         hideBreadcrumbs: true,
         hidePageHeader: false,
-        entryFileName: 'index',
         useCodeBlocks: true,
         expandObjects: true,
         expandParameters: true,
@@ -109,16 +123,12 @@ function parseArgs() {
     const args = process.argv.slice(2);
     const options = {
         clean: false,
-        watch: false,
     };
 
     for (let i = 0; i < args.length; i++) {
         switch (args[i]) {
             case '--clean':
                 options.clean = true;
-                break;
-            case '--watch':
-                options.watch = true;
                 break;
             case '--help':
                 printHelp();
@@ -133,14 +143,13 @@ function printHelp() {
     console.log(`
 Unified TypeDoc Markdown Generator for Docusaurus
 
-Generates API documentation from @codebolt/codeboltjs and @codebolt/agent packages.
+Generates API documentation from all Codebolt packages.
 
 Usage:
   node scripts/generate-type-docs.js [options]
 
 Options:
   --clean         Clean output directory before generating
-  --watch         Watch for changes (runs on first package only)
   --help          Show this help message
 
 Examples:
@@ -149,6 +158,10 @@ Examples:
 
 Output:
   docs/5_api/11_doc-type-ref/
+    ├── codeboltjs/    - @codebolt/codeboltjs types
+    ├── agent/         - @codebolt/agent types
+    ├── provider/      - @codebolt/provider types
+    └── mcp/           - @codebolt/mcp types
 `);
 }
 
@@ -160,22 +173,37 @@ function cleanOutputDir(outDir) {
     }
 }
 
-// Create Docusaurus category file
-function createCategoryFile(outDir) {
+// Create root Docusaurus category file
+function createRootCategoryFile(outDir) {
     const categoryContent = {
         label: 'Type Reference',
         position: 11,
         link: {
             type: 'generated-index',
             title: 'Type Reference',
-            description: 'Auto-generated TypeScript type definitions and API reference for @codebolt/codeboltjs, @codebolt/agent, @codebolt/provider, and @codebolt/mcp packages.',
+            description: 'Auto-generated TypeScript type definitions and API reference for Codebolt packages.',
             slug: '/api/type-reference',
         },
     };
 
     const categoryPath = path.join(outDir, '_category_.json');
     fs.writeFileSync(categoryPath, JSON.stringify(categoryContent, null, 2));
-    console.log(`Created category file: ${categoryPath}`);
+    console.log(`Created root category file: ${categoryPath}`);
+}
+
+// Create package-specific category file
+function createPackageCategoryFile(pkgOutDir, pkg) {
+    const categoryContent = {
+        label: pkg.label,
+        position: pkg.position,
+        link: {
+            type: 'doc',
+            id: `5_api/11_doc-type-ref/${pkg.slug}/index`,
+        },
+    };
+
+    const categoryPath = path.join(pkgOutDir, '_category_.json');
+    fs.writeFileSync(categoryPath, JSON.stringify(categoryContent, null, 2));
 }
 
 // Post-process generated markdown files for Docusaurus compatibility
@@ -235,6 +263,8 @@ function buildTypedocCommand(pkg, outDir) {
 
     args.push('--tsconfig', pkg.tsconfig);
     args.push('--out', outDir);
+    args.push('--entryPointStrategy', 'resolve');
+    args.push('--readme', 'none');
 
     // Add plugins
     if (opts.plugin) {
@@ -263,7 +293,6 @@ function buildTypedocCommand(pkg, outDir) {
 
     // String options
     const stringOptions = [
-        'entryFileName',
         'outputFileStrategy',
         'parametersFormat',
         'propertiesFormat',
@@ -290,24 +319,53 @@ function buildTypedocCommand(pkg, outDir) {
 }
 
 // Generate docs for a single package
-function generatePackageDocs(pkg, outDir) {
+function generatePackageDocs(pkg, baseOutDir) {
+    const pkgOutDir = path.join(baseOutDir, pkg.slug);
+
     console.log(`\nGenerating docs for ${pkg.name}...`);
     console.log(`  Entry points:`);
     pkg.entryPoints.forEach(entry => console.log(`    - ${path.relative(MONOREPO_ROOT, entry)}`));
+    console.log(`  Output: ${pkg.slug}/`);
 
-    const cmd = buildTypedocCommand(pkg, outDir);
+    // Ensure package output directory exists
+    fs.mkdirSync(pkgOutDir, { recursive: true });
+
+    const cmd = buildTypedocCommand(pkg, pkgOutDir);
 
     try {
         execSync(cmd, {
             stdio: 'inherit',
             cwd: pkg.cwd,
         });
+
+        // Create package-specific category file
+        createPackageCategoryFile(pkgOutDir, pkg);
+
         console.log(`  Done: ${pkg.name}`);
         return true;
     } catch (error) {
         console.error(`  Error generating docs for ${pkg.name}:`, error.message);
         return false;
     }
+}
+
+// Create a summary index.md for the root
+function createRootIndex(outDir) {
+    const content = `---
+title: Type Reference
+---
+
+# Type Reference
+
+Auto-generated TypeScript type definitions and API reference for Codebolt packages.
+
+## Packages
+
+${CONFIG.packages.map(pkg => `- **[${pkg.label}](./${pkg.slug}/)** - ${pkg.description}`).join('\n')}
+`;
+
+    fs.writeFileSync(path.join(outDir, 'index.md'), content);
+    console.log('Created root index.md');
 }
 
 // Main execution
@@ -329,31 +387,44 @@ async function main() {
     // Ensure output directory exists
     fs.mkdirSync(CONFIG.outDir, { recursive: true });
 
-    // Generate docs for all packages into the same output directory
-    // TypeDoc will merge the outputs when using the same output directory
-    let success = true;
+    // Generate docs for each package in its own subdirectory
+    let successCount = 0;
+    let failCount = 0;
 
     for (const pkg of CONFIG.packages) {
         const result = generatePackageDocs(pkg, CONFIG.outDir);
-        if (!result) {
-            success = false;
+        if (result) {
+            successCount++;
+        } else {
+            failCount++;
         }
     }
 
-    if (success) {
-        // Create category file for Docusaurus sidebar
-        createCategoryFile(CONFIG.outDir);
+    // Create root category file and index
+    createRootCategoryFile(CONFIG.outDir);
+    createRootIndex(CONFIG.outDir);
 
-        // Post-process markdown files
-        postProcessMarkdown(CONFIG.outDir);
+    // Post-process markdown files
+    postProcessMarkdown(CONFIG.outDir);
 
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log('\n' + '='.repeat(60));
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log('\n' + '='.repeat(60));
+
+    if (failCount === 0) {
         console.log(`Documentation generated successfully in ${elapsed}s`);
-        console.log(`Output: ${CONFIG.outDir}`);
-        console.log('='.repeat(60));
+        console.log(`  Packages: ${successCount}/${CONFIG.packages.length}`);
+        console.log(`  Output: ${CONFIG.outDir}`);
     } else {
-        console.error('\nDocumentation generation completed with errors.');
+        console.log(`Documentation generated with errors in ${elapsed}s`);
+        console.log(`  Success: ${successCount}/${CONFIG.packages.length}`);
+        console.log(`  Failed: ${failCount}/${CONFIG.packages.length}`);
+        console.log(`  Output: ${CONFIG.outDir}`);
+    }
+
+    console.log('='.repeat(60));
+
+    // Exit with error if any package failed
+    if (failCount > 0) {
         process.exit(1);
     }
 }

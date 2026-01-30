@@ -1,0 +1,21 @@
+---
+title: KGView
+---
+
+[**@codebolt/codeboltjs**](../README)
+
+***
+
+# Interface: KGView
+
+Defined in: [packages/codeboltjs/src/types/knowledgeGraph.ts:101](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L101)
+
+## Properties
+
+| Property | Type | Defined in |
+| ------ | ------ | ------ |
+| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:106](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L106) |
+| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:102](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L102) |
+| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:104](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L104) |
+| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:103](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L103) |
+| <a id="templateid"></a> `templateId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:105](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/codeboltjs/src/types/knowledgeGraph.ts#L105) |

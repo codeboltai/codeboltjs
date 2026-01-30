@@ -1,0 +1,22 @@
+---
+title: UnifiedStepOutput
+---
+
+[**@codebolt/agent**](../../README)
+
+***
+
+# Interface: UnifiedStepOutput
+
+Defined in: [packages/agent/src/unified/types/types.ts:92](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L92)
+
+Output from unified agent step processing
+
+## Properties
+
+| Property | Type | Description | Defined in |
+| ------ | ------ | ------ | ------ |
+| <a id="context"></a> `context` | `Record`\<`string`, `any`\> | Updated context | [packages/agent/src/unified/types/types.ts:100](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L100) |
+| <a id="finished"></a> `finished` | `boolean` | Whether processing is complete | [packages/agent/src/unified/types/types.ts:96](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L96) |
+| <a id="llmresponse"></a> `llmResponse` | `any` | LLM response | [packages/agent/src/unified/types/types.ts:94](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L94) |
+| <a id="toolcalls"></a> `toolCalls?` | \{ `parameters`: `any`; `tool`: `string`; \}[] | Tool calls detected | [packages/agent/src/unified/types/types.ts:98](https://github.com/codeboltai/codeboltjs/blob/5bb856e41fe1f2472321cbac2497f5041bf947fb/packages/agent/src/unified/types/types.ts#L98) |
