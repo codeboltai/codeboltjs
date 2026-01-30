@@ -26,7 +26,7 @@ Lists all available powers. This is a convenience method that filters capabiliti
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with an array of power capabilities.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with an array of power capabilities.
 
 ### Examples
 

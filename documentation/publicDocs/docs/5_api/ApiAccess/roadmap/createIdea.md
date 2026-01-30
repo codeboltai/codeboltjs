@@ -36,7 +36,7 @@ Creates a new idea as a pre-roadmap suggestion. Ideas can be reviewed and potent
 
 ### Parameter Details
 
-The `CreateIdeaData` interface includes:
+The [`CreateIdeaData`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateIdeaData) interface includes:
 - **`title`** (string, required): Idea title
 - **`description`** (string, optional): Detailed idea description
 - **`category`** (string, optional): Idea category

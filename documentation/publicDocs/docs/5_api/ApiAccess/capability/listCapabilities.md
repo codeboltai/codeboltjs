@@ -34,7 +34,7 @@ Lists all available capabilities with optional filtering by type, tags, or autho
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `ListCapabilitiesResponse` object with the following properties:
+The method returns a Promise that resolves to a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) object with the following properties:
 
 **Response Properties:**
 - `type` (string): Always "listCapabilitiesResponse"

@@ -43,7 +43,7 @@ Retrieves a value from the KV store by key within a namespace.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVGetResponse` object:
+The method returns a Promise that resolves to a [`KVGetResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVGetResponse) object:
 
 ```typescript
 {

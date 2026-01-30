@@ -33,7 +33,7 @@ Lists all namespaces within a KV store instance.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVNamespacesResponse` object:
+The method returns a Promise that resolves to a [`KVNamespacesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVNamespacesResponse) object:
 
 ```typescript
 {

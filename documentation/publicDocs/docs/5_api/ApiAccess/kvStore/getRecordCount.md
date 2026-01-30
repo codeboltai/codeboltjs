@@ -38,7 +38,7 @@ Gets the total number of records in an instance or namespace.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVRecordCountResponse` object:
+The method returns a Promise that resolves to a [`KVRecordCountResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVRecordCountResponse) object:
 
 ```typescript
 {

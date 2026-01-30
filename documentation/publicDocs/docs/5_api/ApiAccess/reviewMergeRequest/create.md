@@ -32,7 +32,7 @@ Creates a new review or merge request with the specified details, including task
 
 ### Parameter Details
 
-The `CreateReviewMergeRequest` interface includes:
+The [`CreateReviewMergeRequest`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateReviewMergeRequest) interface includes:
 
 **Required Parameters:**
 - **`type`** (ReviewRequestType): 'review' or 'review_merge'

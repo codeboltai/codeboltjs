@@ -38,7 +38,7 @@ Retrieves detailed information about a specific capability including its metadat
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetCapabilityDetailResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetCapabilityDetailResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetCapabilityDetailResponse) object with the following properties:
 
 **Response Properties:**
 - `type` (string): Always "getCapabilityDetailResponse"

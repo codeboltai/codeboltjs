@@ -38,7 +38,7 @@ Creates a new KV store instance for storing key-value data.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVInstanceResponse` object:
+The method returns a Promise that resolves to a [`KVInstanceResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse) object:
 
 ```typescript
 {

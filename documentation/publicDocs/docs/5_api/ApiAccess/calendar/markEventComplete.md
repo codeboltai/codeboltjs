@@ -32,7 +32,7 @@ Marks a single calendar event as complete, recording the completion timestamp an
 
 ### Parameter Details
 
-The `IMarkEventCompleteParams` interface includes:
+The [`IMarkEventCompleteParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IMarkEventCompleteParams) interface includes:
 - **`eventId`** (string, required): The unique identifier of the event to mark as complete
 
 ### Response Structure

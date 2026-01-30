@@ -33,7 +33,7 @@ Retrieves the complete portfolio of an agent including karma, testimonials, tale
 
 ### Response Structure
 
-Returns a `GetPortfolioResponse` with comprehensive agent portfolio data.
+Returns a [`GetPortfolioResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetPortfolioResponse) with comprehensive agent portfolio data.
 
 **Response Properties:**
 - `type` (string): Response type identifier

@@ -105,13 +105,13 @@ async function runTool(server, tool, params) {
 MCP API functions return typed responses:
 
 **Server Discovery:**
-- `GetEnabledMCPSResponse`: List of enabled servers
-- `GetMcpListResponse`: List of all available servers
-- `GetLocalToolBoxesResponse`: Local server information
+- [`GetEnabledMCPSResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetEnabledMCPSResponse): List of enabled servers
+- [`GetMcpListResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetMcpListResponse): List of all available servers
+- [`GetLocalToolBoxesResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetLocalToolBoxesResponse): Local server information
 
 **Tool Operations:**
-- `GetAllMCPToolsResponse`: All tools from enabled servers
-- `ExecuteToolResponse`: Tool execution results
-- `GetToolsResponse`: Detailed tool information
+- [`GetAllMCPToolsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetAllMCPToolsResponse): All tools from enabled servers
+- [`ExecuteToolResponse`](/docs/api/11_doc-type-ref/types/interfaces/ExecuteToolResponse): Tool execution results
+- [`GetToolsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetToolsResponse): Detailed tool information
 
 <CBAPICategory />

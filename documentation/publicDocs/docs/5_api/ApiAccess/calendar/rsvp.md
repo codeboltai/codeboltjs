@@ -32,7 +32,7 @@ Records a participant's RSVP response (accept or decline) for a calendar event, 
 
 ### Parameter Details
 
-The `IRSVPParams` interface includes:
+The [`IRSVPParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRSVPParams) interface includes:
 - **`eventId`** (string, required): The unique identifier of the event
 - **`participantId`** (string, required): The unique identifier of the participant
 - **`status`** ('accepted' | 'declined', required): The RSVP response

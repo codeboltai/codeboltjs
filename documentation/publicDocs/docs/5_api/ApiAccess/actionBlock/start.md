@@ -38,7 +38,7 @@ Starts execution of an ActionBlock by name with optional parameters.
 
 ### Response Structure
 
-Returns `StartActionBlockResponse` with execution result.
+Returns [`StartActionBlockResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartActionBlockResponse) with execution result.
 
 **Response Properties:**
 - `type` (string): Always "startActionBlockResponse"

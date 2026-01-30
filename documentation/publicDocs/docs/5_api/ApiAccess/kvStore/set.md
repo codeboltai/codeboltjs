@@ -53,7 +53,7 @@ Stores a value in the KV store with a specified key within a namespace.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVSetResponse` object:
+The method returns a Promise that resolves to a [`KVSetResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVSetResponse) object:
 
 ```typescript
 {

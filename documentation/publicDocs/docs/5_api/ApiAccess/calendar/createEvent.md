@@ -32,7 +32,7 @@ Creates a new calendar event with support for various event types, recurrence, p
 
 ### Parameter Details
 
-The `ICreateEventParams` interface includes:
+The [`ICreateEventParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateEventParams) interface includes:
 
 **Required Parameters:**
 - **`title`** (string): The event title

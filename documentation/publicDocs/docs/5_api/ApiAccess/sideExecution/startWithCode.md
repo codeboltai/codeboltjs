@@ -44,7 +44,7 @@ Starts a side execution process using inline JavaScript code.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StartSideExecutionResponse` object with the following properties:
+The method returns a Promise that resolves to a [`StartSideExecutionResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartSideExecutionResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "startSideExecutionResponse"

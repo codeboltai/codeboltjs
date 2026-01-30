@@ -43,7 +43,7 @@ Starts execution of a power with optional parameters and timeout settings. Power
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StartCapabilityResponse` object.
+The method returns a Promise that resolves to a [`StartCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "startCapabilityResponse"

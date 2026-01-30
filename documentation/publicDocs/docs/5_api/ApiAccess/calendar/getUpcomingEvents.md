@@ -32,7 +32,7 @@ Retrieves events that are scheduled to start within a specified time window from
 
 ### Parameter Details
 
-The `IGetUpcomingEventsParams` interface includes:
+The [`IGetUpcomingEventsParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetUpcomingEventsParams) interface includes:
 - **`withinMinutes`** (number, optional): Time window in minutes from now (default: 60)
 
 ### Response Structure

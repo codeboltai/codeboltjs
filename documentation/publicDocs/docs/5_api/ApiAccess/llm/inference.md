@@ -60,7 +60,7 @@ Sends an inference request to the LLM using OpenAI message format with tools sup
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `LLMResponse` object with the following properties:
+The method returns a Promise that resolves to a [`LLMResponse`](/docs/api/11_doc-type-ref/types/interfaces/LLMResponse) object with the following properties:
 
 - **`type`** (string): Always "llmResponse".
 - **`content`** (string): The actual response content from the LLM.

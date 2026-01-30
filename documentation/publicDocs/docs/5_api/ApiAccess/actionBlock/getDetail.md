@@ -33,7 +33,7 @@ Retrieves detailed information about a specific ActionBlock including metadata, 
 
 ### Response Structure
 
-Returns `GetActionBlockDetailResponse` with detailed ActionBlock information.
+Returns [`GetActionBlockDetailResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetActionBlockDetailResponse) with detailed ActionBlock information.
 
 **Response Properties:**
 - `type` (string): Always "getActionBlockDetailResponse"

@@ -27,8 +27,17 @@ const yaml = require('js-yaml');
 // Configuration
 const CONFIG = {
   apiAccessPath: path.resolve(__dirname, '../../docs/5_api/ApiAccess'),
-  typeRefPath: path.resolve(__dirname, '../../docs/5_api/11_doc-type-ref/codeboltjs'),
-  typeRefUrlBase: '/docs/api/11_doc-type-ref/codeboltjs',
+  // Multiple type reference paths (codeboltjs + types packages)
+  typeRefPaths: [
+    {
+      path: path.resolve(__dirname, '../../docs/5_api/11_doc-type-ref/codeboltjs'),
+      urlBase: '/docs/api/11_doc-type-ref/codeboltjs'
+    },
+    {
+      path: path.resolve(__dirname, '../../docs/5_api/11_doc-type-ref/types'),
+      urlBase: '/docs/api/11_doc-type-ref/types'
+    }
+  ],
   missingRefPath: path.resolve(__dirname, '../data/missing-ref.json')
 };
 
@@ -60,29 +69,38 @@ function parseArgs() {
 }
 
 /**
- * Build a map of all available types from the type reference folder
+ * Build a map of all available types from all type reference folders
+ * Only includes actual types (interfaces, classes, enums, type-aliases)
+ * NOT functions or variables which are SDK module names
  */
 function buildTypeMap() {
   const typeMap = new Map();
+  // Only include actual type categories - NOT functions/variables which are SDK module names
   const categories = ['interfaces', 'classes', 'enumerations', 'type-aliases'];
 
-  for (const category of categories) {
-    const categoryPath = path.join(CONFIG.typeRefPath, category);
-    if (!fs.existsSync(categoryPath)) continue;
+  // Iterate over all type reference paths (codeboltjs, types, etc.)
+  for (const typeRefConfig of CONFIG.typeRefPaths) {
+    for (const category of categories) {
+      const categoryPath = path.join(typeRefConfig.path, category);
+      if (!fs.existsSync(categoryPath)) continue;
 
-    const files = fs.readdirSync(categoryPath);
-    for (const file of files) {
-      if (!file.endsWith('.md')) continue;
+      const files = fs.readdirSync(categoryPath);
+      for (const file of files) {
+        if (!file.endsWith('.md')) continue;
 
-      // Extract type name from filename (remove .md extension)
-      const typeName = file.replace('.md', '');
+        // Extract type name from filename (remove .md extension)
+        const typeName = file.replace('.md', '');
 
-      // Store with category for building the correct URL
-      typeMap.set(typeName, {
-        name: typeName,
-        category,
-        url: `${CONFIG.typeRefUrlBase}/${category}/${typeName}`
-      });
+        // Only add if not already present (first source wins)
+        if (!typeMap.has(typeName)) {
+          // Store with category for building the correct URL
+          typeMap.set(typeName, {
+            name: typeName,
+            category,
+            url: `${typeRefConfig.urlBase}/${category}/${typeName}`
+          });
+        }
+      }
     }
   }
 
@@ -219,12 +237,34 @@ function extractTypesFromBody(body) {
 }
 
 /**
+ * Find all code block ranges in content
+ * Returns array of {start, end} positions
+ */
+function findCodeBlockRanges(content) {
+  const ranges = [];
+  const codeBlockPattern = /```[\s\S]*?```/g;
+  let match;
+
+  while ((match = codeBlockPattern.exec(content)) !== null) {
+    ranges.push({
+      start: match.index,
+      end: match.index + match[0].length
+    });
+  }
+
+  return ranges;
+}
+
+/**
  * Check if a position is inside a code block
  */
-function isInsideCodeBlock(content, position) {
-  const before = content.substring(0, position);
-  const codeBlockStarts = (before.match(/```/g) || []).length;
-  return codeBlockStarts % 2 === 1; // Odd number means we're inside a code block
+function isInsideCodeBlock(codeBlockRanges, position) {
+  for (const range of codeBlockRanges) {
+    if (position >= range.start && position < range.end) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -300,21 +340,53 @@ function linkTypesInContent(content, typeMap, fileInfo, missingTypes) {
   let linksAdded = 0;
   const linkedTypes = new Set();
 
+  // Find all code block ranges once (more efficient)
+  const codeBlockRanges = findCodeBlockRanges(afterFrontmatter);
+
   // Sort types by length (longest first) to avoid partial matches
   const sortedTypes = Array.from(typeMap.keys()).sort((a, b) => b.length - a.length);
+
+  // Comprehensive skip list for common words that shouldn't be linked
+  const skipTypes = new Set([
+    // Generic/primitive types
+    'Type', 'Data', 'Info', 'List', 'Item', 'Node', 'Event', 'Error', 'Result',
+    'True', 'False', 'Null', 'Void', 'Name', 'Value', 'Key', 'Index',
+    // Common programming terms
+    'Object', 'Array', 'String', 'Number', 'Boolean', 'Function', 'Class',
+    'Promise', 'Record', 'Partial', 'Required', 'Readonly', 'Omit', 'Pick',
+    // Common short words that might match types
+    'HEAD', 'FIFO', 'JSON', 'UUID', 'HTML', 'Text', 'Code', 'File', 'Path',
+    'User', 'Role', 'Team', 'Task', 'Step', 'Hook', 'Tool', 'Test',
+    // SDK module names (these are in variables/functions category)
+    'Agent', 'Browser', 'Chat', 'Debug', 'Terminal', 'Thread', 'Memory',
+    'Project', 'State', 'Codebolt', 'Feature', 'Message', 'Optional',
+    // Other common terms
+    'Default', 'Common', 'Interim', 'Updated', 'Completed', 'Process',
+    'Question', 'Strategy', 'Automated', 'OVERDUE', 'SIGINT', 'Tools'
+  ]);
 
   for (const typeName of sortedTypes) {
     const typeInfo = typeMap.get(typeName);
 
-    // Skip very short type names
-    if (typeName.length < 4) continue;
+    // Skip very short type names (less than 6 chars) unless they end with Response/Request/Options/Config
+    if (typeName.length < 6 && !/(Response|Request|Options|Config|Params|Result)$/.test(typeName)) {
+      continue;
+    }
 
     // Skip common words
-    const skipTypes = ['Type', 'Data', 'Info', 'List', 'Item', 'Node', 'Event', 'Error', 'Result', 'True', 'False', 'Null', 'Void'];
-    if (skipTypes.includes(typeName)) continue;
+    if (skipTypes.has(typeName)) continue;
 
-    // Pattern to match type in backticks
-    const backtickPattern = new RegExp(`\`([^<>\`]*?)\\b(${typeName})\\b([^<>\`]*?)\``, 'g');
+    // Only link types that look like actual API types (contain Response, Request, Options, Config, Params, etc.)
+    // Or are clearly PascalCase compound names
+    const isLikelyAPIType = /(Response|Request|Options|Config|Params|Result|Data|Info|State|Event|Handler|Callback|Manager|Service|Client|Provider|Factory|Builder|Wrapper|Helper|Util|Utils|Interface|Abstract|Base|Default|Custom|Extended)$/.test(typeName) ||
+                           typeName.length >= 12 ||
+                           /^(I[A-Z]|Get|Set|Add|Update|Delete|Create|Remove|List|Find|Search|Execute|Start|Stop|Send|Receive)/.test(typeName);
+
+    if (!isLikelyAPIType) continue;
+
+    // Pattern to match ONLY standalone types in backticks (not partial matches)
+    // This matches `TypeName` or `Promise<TypeName>` but not `someTypeNameHere`
+    const backtickPattern = new RegExp(`\`(${typeName}(?:<[^>]+>)?(?:\\[\\])?)\``, 'g');
 
     let match;
     let tempContent = afterFrontmatter;
@@ -325,20 +397,20 @@ function linkTypesInContent(content, typeMap, fileInfo, missingTypes) {
 
     while ((match = backtickPattern.exec(afterFrontmatter)) !== null) {
       const fullMatch = match[0];
-      const beforeType = match[1];
-      const afterType = match[3];
+      const typeContent = match[1];
 
-      // Check if already linked or in code block
+      // Check if inside code block
+      if (isInsideCodeBlock(codeBlockRanges, match.index)) {
+        continue;
+      }
+
+      // Check if already linked
       if (isAlreadyLinked(afterFrontmatter, typeName, match.index)) {
         continue;
       }
 
-      if (isInsideCodeBlock(afterFrontmatter, match.index)) {
-        continue;
-      }
-
       // Create the linked version
-      const linkedType = `[\`${beforeType}${typeName}${afterType}\`](${typeInfo.url})`;
+      const linkedType = `[\`${typeContent}\`](${typeInfo.url})`;
 
       // Replace in temp content
       const startPos = match.index + offset;

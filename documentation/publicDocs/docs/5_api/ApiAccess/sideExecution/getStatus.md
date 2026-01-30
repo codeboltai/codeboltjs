@@ -34,7 +34,7 @@ Gets the current status and details of a side execution process.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetSideExecutionStatusResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetSideExecutionStatusResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetSideExecutionStatusResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "getSideExecutionStatusResponse"

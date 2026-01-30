@@ -34,7 +34,7 @@ Lists all available ActionBlocks in the project or at a specified path.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `ListActionBlocksResponse` object with the following properties:
+The method returns a Promise that resolves to a [`ListActionBlocksResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListActionBlocksResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "listActionBlocksResponse"

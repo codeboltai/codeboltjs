@@ -26,7 +26,7 @@ Lists all available talents. This is a convenience method that filters capabilit
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with an array of talent capabilities.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with an array of talent capabilities.
 
 ### Examples
 

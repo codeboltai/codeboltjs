@@ -32,7 +32,7 @@ Deletes a calendar event by its ID. This operation is irreversible and will perm
 
 ### Parameter Details
 
-The `IDeleteEventParams` interface includes:
+The [`IDeleteEventParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IDeleteEventParams) interface includes:
 - **`eventId`** (string, required): The unique identifier of the event to delete
 
 ### Response Structure

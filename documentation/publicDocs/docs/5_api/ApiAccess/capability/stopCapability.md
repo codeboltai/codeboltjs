@@ -33,7 +33,7 @@ Stops a currently running capability execution by execution ID. This cancels the
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StopCapabilityResponse` object.
+The method returns a Promise that resolves to a [`StopCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StopCapabilityResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "stopCapabilityResponse"

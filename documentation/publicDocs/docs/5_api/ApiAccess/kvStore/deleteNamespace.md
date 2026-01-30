@@ -38,7 +38,7 @@ Deletes all key-value pairs in a namespace, effectively clearing the entire name
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVDeleteNamespaceResponse` object:
+The method returns a Promise that resolves to a [`KVDeleteNamespaceResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteNamespaceResponse) object:
 
 ```typescript
 {

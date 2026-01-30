@@ -32,7 +32,7 @@ Lists calendar events with comprehensive filtering options including date ranges
 
 ### Parameter Details
 
-The `IListEventsParams` interface includes all optional fields:
+The [`IListEventsParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListEventsParams) interface includes all optional fields:
 
 **Date Filters:**
 - **`startDate`** (string, optional): ISO 8601 start timestamp for filtering

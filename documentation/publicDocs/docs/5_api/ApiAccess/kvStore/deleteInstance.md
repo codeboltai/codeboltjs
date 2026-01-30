@@ -33,7 +33,7 @@ Deletes a KV store instance and all its data, including all namespaces and recor
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVDeleteResponse` object:
+The method returns a Promise that resolves to a [`KVDeleteResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteResponse) object:
 
 ```typescript
 {

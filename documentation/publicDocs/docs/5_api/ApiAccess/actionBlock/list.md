@@ -34,7 +34,7 @@ Lists all available ActionBlocks with optional filtering by type.
 
 ### Response Structure
 
-Returns `ListActionBlocksResponse` with array of ActionBlocks.
+Returns [`ListActionBlocksResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListActionBlocksResponse) with array of ActionBlocks.
 
 **Response Properties:**
 - `type` (string): Always "listActionBlocksResponse"

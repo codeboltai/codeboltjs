@@ -15,7 +15,7 @@ const instance = await codebolt.openNewBrowserInstance(options);
 
 ## Parameters
 
-- **options** (`BrowserInstanceOptions`, optional): Configuration options for the new instance
+- **options** ([`BrowserInstanceOptions`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/BrowserInstanceOptions), optional): Configuration options for the new instance
 
 ### BrowserInstanceOptions
 

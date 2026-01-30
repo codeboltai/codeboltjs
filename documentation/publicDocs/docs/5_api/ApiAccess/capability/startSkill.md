@@ -43,7 +43,7 @@ Starts execution of a skill with optional parameters and timeout settings. This 
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StartCapabilityResponse` object with the following properties:
+The method returns a Promise that resolves to a [`StartCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse) object with the following properties:
 
 **Response Properties:**
 - `type` (string): Always "startCapabilityResponse"

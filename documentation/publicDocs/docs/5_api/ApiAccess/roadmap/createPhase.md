@@ -36,7 +36,7 @@ Creates a new phase in the project roadmap. Phases represent major milestones or
 
 ### Parameter Details
 
-The `CreatePhaseData` interface includes:
+The [`CreatePhaseData`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreatePhaseData) interface includes:
 - **`name`** (string, required): Phase name
 - **`description`** (string, optional): Phase description
 - **`order`** (number, optional): Phase order in the roadmap (default: appended to end)

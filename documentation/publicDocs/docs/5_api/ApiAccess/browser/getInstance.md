@@ -19,7 +19,7 @@ const instance = await codebolt.getBrowserInstance(instanceId);
 
 ## Return Value
 
-Returns a promise that resolves to a `BrowserInstanceInfo` object if found, or `null` if the instance doesn't exist:
+Returns a promise that resolves to a [`BrowserInstanceInfo`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/BrowserInstanceInfo) object if found, or `null` if the instance doesn't exist:
 
 ```js
 {

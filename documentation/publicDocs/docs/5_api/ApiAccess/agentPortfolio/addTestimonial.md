@@ -42,7 +42,7 @@ Adds a testimonial for an agent. Testimonials provide detailed feedback and can 
 
 ### Response Structure
 
-Returns an `AddTestimonialResponse` with the created testimonial.
+Returns an [`AddTestimonialResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddTestimonialResponse) with the created testimonial.
 
 **Response Properties:**
 - `type` (string): Response type identifier

@@ -33,7 +33,7 @@ Lists capabilities created by a specific author. Useful for finding all capabili
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with capabilities from the specified author.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with capabilities from the specified author.
 
 ### Examples
 

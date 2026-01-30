@@ -32,7 +32,7 @@ Updates an existing calendar event. Only the fields specified in the parameters 
 
 ### Parameter Details
 
-The `IUpdateEventParams` interface includes:
+The [`IUpdateEventParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateEventParams) interface includes:
 
 **Required Parameter:**
 - **`eventId`** (string): The unique identifier of the event to update

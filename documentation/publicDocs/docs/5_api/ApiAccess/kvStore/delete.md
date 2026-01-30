@@ -43,7 +43,7 @@ Deletes a specific key-value pair from the KV store.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVDeleteResponse` object:
+The method returns a Promise that resolves to a [`KVDeleteResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteResponse) object:
 
 ```typescript
 {

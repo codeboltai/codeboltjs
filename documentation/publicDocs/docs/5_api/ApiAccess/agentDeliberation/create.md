@@ -33,7 +33,7 @@ Creates a new deliberation session for agents to discuss, respond to, and vote o
 
 ### Response Structure
 
-Returns `ICreateDeliberationResponse` with the created deliberation.
+Returns [`ICreateDeliberationResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateDeliberationResponse) with the created deliberation.
 
 **Parameters:**
 - `deliberationType` ('voting' | 'feedback' | 'qa' | 'shared-list'): Type of deliberation

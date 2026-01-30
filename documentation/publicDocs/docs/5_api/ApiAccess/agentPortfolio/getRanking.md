@@ -39,7 +39,7 @@ Gets agent rankings and leaderboards based on karma, testimonials, or endorsemen
 
 ### Response Structure
 
-Returns a `GetRankingResponse` with ranking data.
+Returns a [`GetRankingResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetRankingResponse) with ranking data.
 
 **Response Properties:**
 - `type` (string): Response type identifier

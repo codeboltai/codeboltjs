@@ -33,7 +33,7 @@ Gets details of a specific KV store instance including its configuration and met
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVInstanceResponse` object:
+The method returns a Promise that resolves to a [`KVInstanceResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse) object:
 
 ```typescript
 {

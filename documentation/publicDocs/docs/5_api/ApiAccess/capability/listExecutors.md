@@ -26,7 +26,7 @@ Lists all available capability executors that can run capabilities. Executors ar
 
 ### Response Structure
 
-Returns a `ListExecutorsResponse` with array of executor objects.
+Returns a [`ListExecutorsResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListExecutorsResponse) with array of executor objects.
 
 **Response Properties:**
 - `type` (string): Always "listExecutorsResponse"

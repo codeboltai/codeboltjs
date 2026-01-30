@@ -33,7 +33,7 @@ Lists capabilities that have a specific tag. Useful for finding capabilities rel
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with capabilities matching the tag.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with capabilities matching the tag.
 
 ### Examples
 

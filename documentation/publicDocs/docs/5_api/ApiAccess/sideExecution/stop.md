@@ -34,7 +34,7 @@ Stops a running side execution process.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StopSideExecutionResponse` object with the following properties:
+The method returns a Promise that resolves to a [`StopSideExecutionResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StopSideExecutionResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "stopSideExecutionResponse"

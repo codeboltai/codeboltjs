@@ -32,7 +32,7 @@ Retrieves a single calendar event by its ID, including all event details, partic
 
 ### Parameter Details
 
-The `IGetEventParams` interface includes:
+The [`IGetEventParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetEventParams) interface includes:
 - **`eventId`** (string, required): The unique identifier of the event to retrieve
 
 ### Response Structure

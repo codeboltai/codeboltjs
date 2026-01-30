@@ -81,14 +81,14 @@ async function updateProjectStatus(status, metadata) {
 State API functions return typed responses:
 
 **Application State:**
-- `ApplicationState`: Global application state object
+- [`ApplicationState`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ApplicationState): Global application state object
 
 **Agent State:**
-- `AddToAgentStateResponse`: Result of adding to agent state
-- `GetAgentStateResponse`: Current agent state data
+- [`AddToAgentStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/AddToAgentStateResponse): Result of adding to agent state
+- [`GetAgentStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetAgentStateResponse): Current agent state data
 
 **Project State:**
-- `GetProjectStateResponse`: Current project state
-- `UpdateProjectStateResponse`: Result of updating project state
+- [`GetProjectStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetProjectStateResponse): Current project state
+- [`UpdateProjectStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/UpdateProjectStateResponse): Result of updating project state
 
 <CBAPICategory />
