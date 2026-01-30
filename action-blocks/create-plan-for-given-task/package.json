@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/create-plan-for-given-task",
   "private": true,
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Finds and assigns the next available job to a swarm agent",
   "main": "index.js",
   "scripts": {

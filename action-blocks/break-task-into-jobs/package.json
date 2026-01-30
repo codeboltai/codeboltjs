@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/break-task-into-jobs",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Breaks a task into multiple executable sub-jobs using LLM analysis",
   "main": "index.js",
   "scripts": {

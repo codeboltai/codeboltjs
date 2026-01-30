@@ -1,5 +1,13 @@
 # @codebolt/codeboltjs
 
+## 5.0.7
+
+### Patch Changes
+
+- updated teh Codeboltjs
+- Updated dependencies
+  - @codebolt/types@5.0.7
+
 ## 5.0.6
 
 ### Patch Changes
