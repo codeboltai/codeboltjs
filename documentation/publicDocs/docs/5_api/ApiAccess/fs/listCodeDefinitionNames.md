@@ -12,7 +12,7 @@ cbparameters:
     description: A promise that resolves with the list of code definition names.
     typeArgs:
       - type: reference
-        name: ListCodeDefinitionNamesResponse
+        name: ListCodeDefinitionsResponse
 data:
   name: listCodeDefinitionNames
   category: fs
@@ -21,7 +21,7 @@ data:
 # listCodeDefinitionNames
 
 ```typescript
-codebolt.fs.listCodeDefinitionNames(path: string): Promise<ListCodeDefinitionNamesResponse>
+codebolt.fs.listCodeDefinitionNames(path: string): Promise<ListCodeDefinitionsResponse>
 ```
 
 'Lists all code definition names in a given path. Extracts function names, class names, method names, and other code definitions from source files.' 
@@ -31,7 +31,7 @@ codebolt.fs.listCodeDefinitionNames(path: string): Promise<ListCodeDefinitionNam
 
 ### Returns
 
-- **`Promise<ListCodeDefinitionNamesResponse>`**: A promise that resolves with the list of code definition names.
+- **`Promise<ListCodeDefinitionsResponse>`**: A promise that resolves with the list of code definition names.
 
 ## Examples
 

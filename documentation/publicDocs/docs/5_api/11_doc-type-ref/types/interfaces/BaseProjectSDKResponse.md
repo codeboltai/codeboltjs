@@ -18,6 +18,7 @@ Types for the cbproject module functions
 - [`GetProjectPathResponse`](GetProjectPathResponse)
 - [`GetProjectSettingsResponse`](GetProjectSettingsResponse)
 - [`GetRepoMapResponse`](GetRepoMapResponse)
+- [`GetEditorFileStatusResponse`](GetEditorFileStatusResponse)
 
 ## Properties
 

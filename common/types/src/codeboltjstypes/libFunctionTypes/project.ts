@@ -24,3 +24,18 @@ export interface GetProjectSettingsResponse extends BaseProjectSDKResponse {
 export interface GetRepoMapResponse extends BaseProjectSDKResponse {
   repoMap?: any;
 }
+
+/**
+ * Response for getting editor file status
+ */
+export interface GetEditorFileStatusResponse extends BaseProjectSDKResponse {
+  fileStatus?: {
+    path?: string;
+    isOpen?: boolean;
+    isDirty?: boolean;
+    isActive?: boolean;
+    viewColumn?: number;
+    languageId?: string;
+  };
+  status?: string;
+}
