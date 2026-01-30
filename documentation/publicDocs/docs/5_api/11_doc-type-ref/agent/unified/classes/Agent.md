@@ -1,14 +1,10 @@
----
-title: Agent
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: Agent
 
-Defined in: packages/agent/src/unified/agent/agent.ts:9
+Defined in: [packages/agent/src/unified/agent/agent.ts:9](packages/agent/src/unified/agent/agent.ts#L9)
 
 ## Implements
 
@@ -22,7 +18,7 @@ Defined in: packages/agent/src/unified/agent/agent.ts:9
 new Agent(config: AgentConfig): Agent;
 ```
 
-Defined in: packages/agent/src/unified/agent/agent.ts:18
+Defined in: [packages/agent/src/unified/agent/agent.ts:18](packages/agent/src/unified/agent/agent.ts#L18)
 
 #### Parameters
 
@@ -46,7 +42,7 @@ execute(reqMessage: FlatUserMessage): Promise<{
 }>;
 ```
 
-Defined in: packages/agent/src/unified/agent/agent.ts:28
+Defined in: [packages/agent/src/unified/agent/agent.ts:28](packages/agent/src/unified/agent/agent.ts#L28)
 
 #### Parameters
 

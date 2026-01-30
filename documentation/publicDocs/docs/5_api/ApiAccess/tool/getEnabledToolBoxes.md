@@ -12,8 +12,16 @@ data:
   category: tool
   link: getEnabledToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getEnabledToolBoxes
+
+```typescript
+codebolt.tool.getEnabledToolBoxes(): Promise<GetEnabledToolBoxesResponse>
+```
+
+Retrieves the list of currently enabled toolboxes that are available for use.
+### Returns
+
+- **`Promise<GetEnabledToolBoxesResponse>`**: A promise that resolves with a `GetEnabledToolBoxesResponse` object containing the enabled toolbox configurations.
 
 ### Response Structure
 

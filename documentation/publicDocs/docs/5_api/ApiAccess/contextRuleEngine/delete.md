@@ -16,8 +16,20 @@ data:
   category: contextRuleEngine
   link: delete.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# delete
+
+```typescript
+codebolt.contextRuleEngine.delete(id: undefined): Promise<ContextRuleEngineDeleteResponse>
+```
+
+Deletes a rule engine.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the rule engine.
+
+### Returns
+
+- **`Promise<[ContextRuleEngineDeleteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextRuleEngineDeleteResponse)>`**: A promise that resolves with deletion status.
 
 ### Examples
 

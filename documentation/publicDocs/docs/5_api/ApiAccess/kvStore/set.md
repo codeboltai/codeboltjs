@@ -32,8 +32,24 @@ data:
   category: kvStore
   link: set.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# set
+
+```typescript
+codebolt.kvStore.set(instanceId: undefined, namespace: undefined, key: undefined, value: undefined, autoCreateInstance: undefined): Promise<KVSetResponse>
+```
+
+Stores a value in the KV store with a specified key within a namespace.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance.
+- **`namespace`** (unknown): The namespace to store the key-value pair in.
+- **`key`** (unknown): The key under which to store the value.
+- **`value`** (unknown): Any JSON-serializable value to store.
+- **`autoCreateInstance`** (unknown): If true, automatically creates the instance if it doesn't exist. Default is false.
+
+### Returns
+
+- **`Promise<[KVSetResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVSetResponse)>`**: A promise that resolves with the stored record details including timestamps.
 
 ### Response Structure
 

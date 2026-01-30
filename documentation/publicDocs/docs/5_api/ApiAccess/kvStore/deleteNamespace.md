@@ -20,8 +20,21 @@ data:
   category: kvStore
   link: deleteNamespace.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# deleteNamespace
+
+```typescript
+codebolt.kvStore.deleteNamespace(instanceId: undefined, namespace: undefined): Promise<KVDeleteNamespaceResponse>
+```
+
+Deletes all key-value pairs in a namespace, effectively clearing the entire namespace.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance.
+- **`namespace`** (unknown): The namespace to delete (clears all keys within it).
+
+### Returns
+
+- **`Promise<[KVDeleteNamespaceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteNamespaceResponse)>`**: A promise that resolves with the number of deleted records.
 
 ### Response Structure
 

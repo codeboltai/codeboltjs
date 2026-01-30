@@ -12,8 +12,16 @@ data:
   category: kvStore
   link: listInstances.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listInstances
+
+```typescript
+codebolt.kvStore.listInstances(): Promise<KVInstanceListResponse>
+```
+
+Lists all available KV store instances with their basic information.
+### Returns
+
+- **`Promise<[KVInstanceListResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceListResponse)>`**: A promise that resolves with an array of all KV store instances and their metadata.
 
 ### Response Structure
 

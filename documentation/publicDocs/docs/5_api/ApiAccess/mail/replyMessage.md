@@ -15,8 +15,20 @@ data:
   category: mail
   link: replyMessage.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# replyMessage
+
+```typescript
+codebolt.mail.replyMessage(params: IReplyMessageParams): Promise<IReplyMessageResponse>
+```
+
+Replies to an existing message in a thread.
+### Parameters
+
+- **`params`** (IReplyMessageParams): Reply parameters including messageId, content, and senderId.
+
+### Returns
+
+- **`Promise<IReplyMessageResponse>`**: A promise that resolves with the reply details.
 
 ### Response Structure
 

@@ -12,8 +12,16 @@ data:
   category: project
   link: getEditorFileStatus.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getEditorFileStatus
+
+```typescript
+codebolt.project.getEditorFileStatus(): Promise<GetEditorFileStatusResponse>
+```
+
+Retrieves the current status of files in the editor, including information about visible files, open tabs, and editor state. 
+### Returns
+
+- **`Promise<GetEditorFileStatusResponse>`**: A promise that resolves with the editor file status response containing information about the current editor state.
 
 ### Response Structure
 
@@ -206,4 +214,4 @@ const integrateEditorStatus = async () => {
 - When editor integration is not available, default placeholder text is returned
 - The method is useful for building editor-aware development tools and workflows
 - Consider caching the status if called frequently, as editor state changes often
-- The response format may evolve as editor integration features are enhanced 
+- The response format may evolve as editor integration features are enhanced

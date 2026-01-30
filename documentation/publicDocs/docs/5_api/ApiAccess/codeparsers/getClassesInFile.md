@@ -16,8 +16,20 @@ data:
   category: codeparsers
   link: getClassesInFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getClassesInFile
+
+```typescript
+codebolt.codeparsers.getClassesInFile(file: string): Array<ClassInfo>
+```
+
+Retrieves all classes found in a given file. Supports JavaScript, TypeScript, and Python files. 
+### Parameters
+
+- **`file`** (string): The file path to parse for classes.
+
+### Returns
+
+- **`Array<ClassInfo>`**: 'An array of objects containing class information with name and location properties.'
 
 ### Response Structure
 

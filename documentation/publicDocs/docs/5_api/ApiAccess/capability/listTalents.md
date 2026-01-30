@@ -13,8 +13,16 @@ data:
   category: capability
   link: listTalents.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listTalents
+
+```typescript
+codebolt.capability.listTalents(): Promise<ListCapabilitiesResponse>
+```
+
+Lists all available talents. This is a convenience method that filters capabilities by type 'talent'.
+### Returns
+
+- **`Promise<[ListCapabilitiesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse)>`**: A promise that resolves to a list of all talents.
 
 ### Response Structure
 

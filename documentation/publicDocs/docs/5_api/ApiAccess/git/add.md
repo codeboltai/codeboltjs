@@ -12,8 +12,16 @@ data:
   category: git
   link: add.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# add
+
+```typescript
+codebolt.git.add(): Promise<AddResponse>
+```
+
+Adds changes in the local repository to the staging area. This command stages all changes (modified, deleted, and new files) for the next commit. 
+### Returns
+
+- **`Promise<AddResponse>`**: A promise that resolves with an `AddResponse` object containing the response from the add operation.
 
 ### Response Structure
 

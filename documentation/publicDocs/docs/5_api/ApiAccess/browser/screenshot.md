@@ -13,8 +13,16 @@ data:
   category: browser
   link: screenshot.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# screenshot
+
+```typescript
+codebolt.browser.screenshot(): Promise<BrowserScreenshotResponse>
+```
+
+Captures a screenshot of the current browser page as base64 encoded image data. Returns the screenshot in PNG format with the current viewport dimensions. Useful for visual verification, debugging, automated testing, and generating documentation.
+### Returns
+
+- **`Promise<BrowserScreenshotResponse>`**: A promise that resolves with screenshot data including base64 encoded image, viewport information, and capture metadata.
 
 ### Response Structure
 

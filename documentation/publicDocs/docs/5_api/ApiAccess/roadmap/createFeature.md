@@ -21,8 +21,22 @@ data:
   category: roadmap
   link: createFeature.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createFeature
+
+```typescript
+codebolt.roadmap.createFeature(phaseId: string, data: CreateFeatureData, projectPath: string): Promise<RoadmapFeatureResponse>
+```
+
+Creates a new feature within a specific phase. Features represent specific functionality items or deliverables.
+### Parameters
+
+- **`phaseId`** (string): The ID of the phase to add the feature to
+- **`data`** ([CreateFeatureData](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateFeatureData)): Feature data including title, description, and optional metadata
+- **`projectPath`** (string): Optional project path (uses active project if not provided)
+
+### Returns
+
+- **`Promise<[RoadmapFeatureResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RoadmapFeatureResponse)>`**: A promise that resolves to the created feature
 
 ### Parameter Details
 

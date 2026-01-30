@@ -16,8 +16,20 @@ data:
   category: agentPortfolio
   link: getPortfolio.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getPortfolio
+
+```typescript
+codebolt.agentPortfolio.getPortfolio(agentId: string): Promise<GetPortfolioResponse>
+```
+
+Retrieves the complete portfolio of an agent including karma, testimonials, talents, appreciations, and profile information.
+### Parameters
+
+- **`agentId`** (string): The ID of the agent to retrieve the portfolio for.
+
+### Returns
+
+- **`Promise<[GetPortfolioResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetPortfolioResponse)>`**: A promise that resolves to the agent's complete portfolio data.
 
 ### Response Structure
 

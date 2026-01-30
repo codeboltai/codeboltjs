@@ -1,14 +1,10 @@
----
-title: MemoryImportModifier
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: MemoryImportModifier
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:15
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:15](packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts#L15)
 
 ## Extends
 
@@ -22,13 +18,13 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/memoryImportMod
 new MemoryImportModifier(options: MemoryImportOptions): MemoryImportModifier;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:18
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:18](packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts#L18)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`MemoryImportOptions`](../interfaces/MemoryImportOptions) |
+| `options` | [`MemoryImportOptions`](../interfaces/MemoryImportOptions.md) |
 
 #### Returns
 
@@ -44,7 +40,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +50,7 @@ BaseMessageModifier.constructor
 modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:29
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:29](packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts#L29)
 
 #### Parameters
 

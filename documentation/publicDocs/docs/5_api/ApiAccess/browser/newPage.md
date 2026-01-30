@@ -12,8 +12,16 @@ data:
   category: browser
   link: newPage.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# newPage
+
+```typescript
+codebolt.browser.newPage(): Promise<BrowserActionResponseData>
+```
+
+Creates a new browser page or tab for web automation. 
+### Returns
+
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves with a `BrowserActionResponseData` object when the new page is created.
 
 ### Response Structure
 

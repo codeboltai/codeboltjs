@@ -32,8 +32,21 @@ data:
   category: knowledgeGraph
   link: addMemoryRecord.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addMemoryRecord
+
+```typescript
+codebolt.knowledgeGraph.addMemoryRecord(instanceId: string, record: CreateKGMemoryRecordParams): Promise<KGMemoryRecordResponse>
+```
+
+Adds a memory record (node) to a knowledge graph instance with typed attributes and validity period.
+### Parameters
+
+- **`instanceId`** (string): The ID of the instance to add the record to.
+- **`record`** ([CreateKGMemoryRecordParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateKGMemoryRecordParams)): Record data object.
+
+### Returns
+
+- **`Promise<[KGMemoryRecordResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KGMemoryRecordResponse)>`**: A promise that resolves to the created record details.
 
 ### Examples
 

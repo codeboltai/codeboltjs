@@ -1,14 +1,10 @@
----
-title: ConversationCompactorOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ConversationCompactorOptions
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:13
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:13](packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts#L13)
 
 ## Properties
 

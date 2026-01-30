@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: updateCase.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# updateCase
+
+```typescript
+codebolt.autoTesting.updateCase(params: IUpdateCaseParams): Promise<IUpdateCaseResponse>
+```
+
+Updates an existing test case's properties or steps.
+### Parameters
+
+- **`params`** ([IUpdateCaseParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateCaseParams)): Parameters including case ID and fields to update.
+
+### Returns
+
+- **`Promise<[IUpdateCaseResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateCaseResponse)>`**: A promise that resolves to the updated test case.
 
 ### Examples
 

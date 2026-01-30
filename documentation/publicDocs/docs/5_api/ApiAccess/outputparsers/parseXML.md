@@ -16,8 +16,20 @@ data:
   category: outputparsers
   link: parseXML.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# parseXML
+
+```typescript
+codebolt.outputparsers.parseXML(xmlString: string): Object
+```
+
+Parses XML string and returns a result object with success flag and parsed data. 
+### Parameters
+
+- **`xmlString`** (string): The XML string to parse.
+
+### Returns
+
+- **`Object`**: An object with success flag and parsed XML data.
 
 ## Response Structure
 
@@ -62,4 +74,4 @@ const invalidXml = 'not valid xml';
 const result = await codebolt.outputparsers.parseXML(invalidXml);
 console.log(result);
 // Output: { success: false, parsed: undefined }
-``` 
+```

@@ -17,8 +17,20 @@ data:
   category: sideExecution
   link: listActionBlocks.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listActionBlocks
+
+```typescript
+codebolt.sideExecution.listActionBlocks(projectPath: string): Promise<ListActionBlocksResponse>
+```
+
+Lists all available ActionBlocks in the project or at a specified path.
+### Parameters
+
+- **`projectPath`** (string, optional): Optional project path to search for ActionBlocks.
+
+### Returns
+
+- **`Promise<[ListActionBlocksResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListActionBlocksResponse)>`**: A promise that resolves with a list of available ActionBlocks.
 
 ### Response Structure
 

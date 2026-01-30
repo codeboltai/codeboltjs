@@ -19,8 +19,21 @@ data:
   category: codeparsers
   link: getFunctionsinClass.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getFunctionsinClass
+
+```typescript
+codebolt.codeparsers.getFunctionsinClass(file: string, className: string): Array<FunctionInfo>
+```
+
+Retrieves all functions/methods within a specified class in a given file. Supports JavaScript, TypeScript, and Python files. 
+### Parameters
+
+- **`file`** (string): The file path containing the class to parse.
+- **`className`** (string): The name of the class to parse for functions/methods.
+
+### Returns
+
+- **`Array<FunctionInfo>`**: 'An array of objects containing function information with name, class, and location properties.'
 
 ### Response Structure
 

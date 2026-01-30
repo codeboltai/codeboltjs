@@ -9,7 +9,7 @@ import type {
     UpdateRequestFilters,
     UpdateRequestResponse,
     UpdateRequestListResponse
-} from '../types/projectStructureUpdateRequest';
+} from '@codebolt/types/lib';
 
 /**
  * Project Structure Update Request Module for codeboltjs

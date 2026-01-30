@@ -1,14 +1,10 @@
----
-title: Workflow
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: Workflow
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:4
+Defined in: [packages/agent/src/unified/agent/workflow.ts:4](packages/agent/src/unified/agent/workflow.ts#L4)
 
 ## Implements
 
@@ -22,7 +18,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:4
 new Workflow(config: workflowConfig): Workflow;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:12
+Defined in: [packages/agent/src/unified/agent/workflow.ts:12](packages/agent/src/unified/agent/workflow.ts#L12)
 
 #### Parameters
 
@@ -42,7 +38,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:12
 execute(): WorkflowResult;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:16
+Defined in: [packages/agent/src/unified/agent/workflow.ts:16](packages/agent/src/unified/agent/workflow.ts#L16)
 
 #### Returns
 
@@ -62,7 +58,7 @@ BaseWorkflow.execute
 executeAsync(): Promise<WorkflowResult>;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:188
+Defined in: [packages/agent/src/unified/agent/workflow.ts:188](packages/agent/src/unified/agent/workflow.ts#L188)
 
 #### Returns
 
@@ -76,7 +72,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:188
 executeStep(): workflowStepOutput;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:65
+Defined in: [packages/agent/src/unified/agent/workflow.ts:65](packages/agent/src/unified/agent/workflow.ts#L65)
 
 #### Returns
 
@@ -96,7 +92,7 @@ BaseWorkflow.executeStep
 executeStepAsync(): Promise<workflowStepOutput>;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:236
+Defined in: [packages/agent/src/unified/agent/workflow.ts:236](packages/agent/src/unified/agent/workflow.ts#L236)
 
 #### Returns
 
@@ -110,7 +106,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:236
 executeSteps(): workflowStepOutput[];
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:104
+Defined in: [packages/agent/src/unified/agent/workflow.ts:104](packages/agent/src/unified/agent/workflow.ts#L104)
 
 #### Returns
 
@@ -130,7 +126,7 @@ BaseWorkflow.executeSteps
 executeStepsAsync(): Promise<workflowStepOutput[]>;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:278
+Defined in: [packages/agent/src/unified/agent/workflow.ts:278](packages/agent/src/unified/agent/workflow.ts#L278)
 
 #### Returns
 
@@ -144,7 +140,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:278
 getContext(): any;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:149
+Defined in: [packages/agent/src/unified/agent/workflow.ts:149](packages/agent/src/unified/agent/workflow.ts#L149)
 
 #### Returns
 
@@ -164,7 +160,7 @@ BaseWorkflow.getContext
 getCurrentStepIndex(): number;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:166
+Defined in: [packages/agent/src/unified/agent/workflow.ts:166](packages/agent/src/unified/agent/workflow.ts#L166)
 
 #### Returns
 
@@ -178,7 +174,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:166
 getExecutionId(): string;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:174
+Defined in: [packages/agent/src/unified/agent/workflow.ts:174](packages/agent/src/unified/agent/workflow.ts#L174)
 
 #### Returns
 
@@ -192,7 +188,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:174
 getStepResults(): workflowStepOutput[];
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:182
+Defined in: [packages/agent/src/unified/agent/workflow.ts:182](packages/agent/src/unified/agent/workflow.ts#L182)
 
 #### Returns
 
@@ -206,7 +202,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:182
 getTotalSteps(): number;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:170
+Defined in: [packages/agent/src/unified/agent/workflow.ts:170](packages/agent/src/unified/agent/workflow.ts#L170)
 
 #### Returns
 
@@ -220,7 +216,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:170
 reset(): void;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:158
+Defined in: [packages/agent/src/unified/agent/workflow.ts:158](packages/agent/src/unified/agent/workflow.ts#L158)
 
 #### Returns
 
@@ -234,7 +230,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:158
 setInitialContext(context: any): void;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:178
+Defined in: [packages/agent/src/unified/agent/workflow.ts:178](packages/agent/src/unified/agent/workflow.ts#L178)
 
 #### Parameters
 
@@ -254,7 +250,7 @@ Defined in: packages/agent/src/unified/agent/workflow.ts:178
 updateContext(newContext: any): void;
 ```
 
-Defined in: packages/agent/src/unified/agent/workflow.ts:153
+Defined in: [packages/agent/src/unified/agent/workflow.ts:153](packages/agent/src/unified/agent/workflow.ts#L153)
 
 #### Parameters
 

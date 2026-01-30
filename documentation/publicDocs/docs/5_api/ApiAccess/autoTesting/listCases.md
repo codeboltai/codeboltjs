@@ -17,8 +17,20 @@ data:
   category: autoTesting
   link: listCases.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listCases
+
+```typescript
+codebolt.autoTesting.listCases(params: IListCasesParams): Promise<IListCasesResponse>
+```
+
+Lists all available test cases.
+### Parameters
+
+- **`params`** ([IListCasesParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListCasesParams), optional): Optional parameters for filtering.
+
+### Returns
+
+- **`Promise<[IListCasesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListCasesResponse)>`**: A promise that resolves to the list of test cases.
 
 ### Examples
 

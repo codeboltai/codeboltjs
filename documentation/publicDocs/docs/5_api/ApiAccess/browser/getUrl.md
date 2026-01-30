@@ -12,8 +12,16 @@ data:
   category: browser
   link: getUrl.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getUrl
+
+```typescript
+codebolt.browser.getUrl(): Promise<UrlResponse>
+```
+
+Gets the current URL of the active browser page. 
+### Returns
+
+- **`Promise<UrlResponse>`**: A promise that resolves with a `UrlResponse` object containing the current URL.
 
 ### Response Structure
 

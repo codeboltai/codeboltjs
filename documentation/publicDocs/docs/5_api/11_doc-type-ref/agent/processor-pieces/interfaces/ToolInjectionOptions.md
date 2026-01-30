@@ -1,14 +1,10 @@
----
-title: ToolInjectionOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ToolInjectionOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:6
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts:6](packages/agent/src/processor-pieces/messageModifiers/toolInjectionModifier.ts#L6)
 
 ## Properties
 

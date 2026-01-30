@@ -24,8 +24,22 @@ data:
   category: fs
   link: listFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# listFile
+
+```typescript
+codebolt.fs.listFile(folderPath: string, isRecursive: boolean, listFiles: boolean): Promise<FileListResponse>
+```
+
+'Lists all files in a specified directory.' 
+### Parameters
+
+- **`folderPath`** (string): The path of the directory to list files from.
+- **`isRecursive`** (boolean): Whether to list files recursively.
+- **`listFiles`** (boolean): Optional parameter to use listFiles mode for enhanced listing.
+
+### Returns
+
+- **`Promise<FileListResponse>`**: A promise that resolves with the list of files.
 
 ## Examples
 

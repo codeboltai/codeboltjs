@@ -1,14 +1,10 @@
----
-title: ChatHistoryMessageModifier
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: ChatHistoryMessageModifier
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:15
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:15](packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L15)
 
 ## Extends
 
@@ -22,13 +18,13 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMess
 new ChatHistoryMessageModifier(options: ChatHistoryMessageModifierOptions): ChatHistoryMessageModifier;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:20
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:20](packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L20)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ChatHistoryMessageModifierOptions`](../interfaces/ChatHistoryMessageModifierOptions) |
+| `options` | [`ChatHistoryMessageModifierOptions`](../interfaces/ChatHistoryMessageModifierOptions.md) |
 
 #### Returns
 
@@ -44,7 +40,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +50,7 @@ BaseMessageModifier.constructor
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:27
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:27](packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L27)
 
 #### Parameters
 
@@ -81,7 +77,7 @@ BaseMessageModifier.modify
 setMaxHistoryMessages(max: number): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:126
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:126](packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L126)
 
 #### Parameters
 

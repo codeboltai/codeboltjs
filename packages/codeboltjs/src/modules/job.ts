@@ -47,7 +47,7 @@ import type {
     JobBlockerAddResponse,
     JobBlockerRemoveResponse,
     JobBlockerResolveResponse
-} from '../types/job';
+} from '@codebolt/types/lib';
 
 /**
  * Job service client for codeboltjs.

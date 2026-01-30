@@ -13,8 +13,16 @@ data:
   category: todo
   link: getAllIncompleteTodos.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getAllIncompleteTodos
+
+```typescript
+codebolt.todo.getAllIncompleteTodos(): Promise<GetAllIncompleteTodosResponse>
+```
+
+Retrieves all todo items that are not yet completed.
+### Returns
+
+- **`Promise<GetAllIncompleteTodosResponse>`**: A promise that resolves with all incomplete (pending, processing, or cancelled) todos.
 
 ### Response Structure
 

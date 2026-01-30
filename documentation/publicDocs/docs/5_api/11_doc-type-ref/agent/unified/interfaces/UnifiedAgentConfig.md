@@ -1,14 +1,10 @@
----
-title: UnifiedAgentConfig
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: UnifiedAgentConfig
 
-Defined in: packages/agent/src/unified/types/types.ts:17
+Defined in: [packages/agent/src/unified/types/types.ts:17](packages/agent/src/unified/types/types.ts#L17)
 
 Configuration for the unified agent
 
@@ -16,7 +12,7 @@ Configuration for the unified agent
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="codebolt"></a> `codebolt?` | [`CodeboltAPI`](CodeboltAPI) | Codebolt API instance | [packages/agent/src/unified/types/types.ts:25](packages/agent/src/unified/types/types.ts#L25) |
+| <a id="codebolt"></a> `codebolt?` | [`CodeboltAPI`](CodeboltAPI.md) | Codebolt API instance | [packages/agent/src/unified/types/types.ts:25](packages/agent/src/unified/types/types.ts#L25) |
 | <a id="enablelogging"></a> `enableLogging?` | `boolean` | Enable logging | [packages/agent/src/unified/types/types.ts:27](packages/agent/src/unified/types/types.ts#L27) |
 | <a id="llmconfig"></a> `llmConfig?` | `LLMConfig` | LLM configuration | [packages/agent/src/unified/types/types.ts:23](packages/agent/src/unified/types/types.ts#L23) |
 | <a id="maxconversationlength"></a> `maxConversationLength?` | `number` | Maximum conversation length before summarization | [packages/agent/src/unified/types/types.ts:21](packages/agent/src/unified/types/types.ts#L21) |

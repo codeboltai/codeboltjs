@@ -15,8 +15,20 @@ data:
   category: git
   link: branch.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# branch
+
+```typescript
+codebolt.git.branch(branch: string): Promise<GitBranchResponse>
+```
+
+Creates a new branch in the Git repository. Creates a new branch pointer at the current commit, allowing parallel development without affecting the main branch. 
+### Parameters
+
+- **`branch`** (string): The name of the new branch to create (e.g., "feature-login", "bugfix-auth", "release-v1.0").
+
+### Returns
+
+- **`Promise<GitBranchResponse>`**: A promise that resolves with a `GitBranchResponse` object containing the branch creation results.
 
 ### Response Structure
 

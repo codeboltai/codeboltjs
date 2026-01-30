@@ -19,8 +19,21 @@ data:
   category: rag
   link: add_file.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# add_file
+
+```typescript
+codebolt.rag.add_file(filename: string, file_path: string): Promise<void>
+```
+
+Adds a file to the CodeBolt File System for indexing and retrieval in RAG operations.
+### Parameters
+
+- **`filename`** (string): The name of the file to add to the knowledge base.
+- **`file_path`** (string): The absolute path where the file is located on the system.
+
+### Returns
+
+- **`Promise<void>`**: A promise that resolves when the file has been successfully added to the RAG system.
 
 ### Response Structure
 

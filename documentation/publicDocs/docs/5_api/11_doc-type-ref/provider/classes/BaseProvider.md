@@ -1,14 +1,10 @@
----
-title: BaseProvider
----
-
-[**@codebolt/provider**](../index)
+[**@codebolt/provider**](../README.md)
 
 ***
 
 # Abstract Class: BaseProvider
 
-Defined in: BaseProvider.ts:26
+Defined in: [BaseProvider.ts:26](packages/provider/src/lib/BaseProvider.ts#L26)
 
 BaseProvider encapsulates shared functionality for environment providers.
 Concrete providers can extend this class and override protected methods
@@ -16,8 +12,8 @@ to customize setup logic or communication transport.
 
 ## Implements
 
-- [`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers)
-- [`ProviderTransport`](../interfaces/ProviderTransport)
+- [`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md)
+- [`ProviderTransport`](../interfaces/ProviderTransport.md)
 
 ## Constructors
 
@@ -27,13 +23,13 @@ to customize setup logic or communication transport.
 new BaseProvider(config?: Partial<BaseProviderConfig>): BaseProvider;
 ```
 
-Defined in: BaseProvider.ts:41
+Defined in: [BaseProvider.ts:41](packages/provider/src/lib/BaseProvider.ts#L41)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `config?` | `Partial`\<[`BaseProviderConfig`](../interfaces/BaseProviderConfig)\> |
+| `config?` | `Partial`\<[`BaseProviderConfig`](../interfaces/BaseProviderConfig.md)\> |
 
 #### Returns
 
@@ -43,9 +39,9 @@ Defined in: BaseProvider.ts:41
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="agentserver"></a> `agentServer` | `protected` | [`AgentServerConnection`](../interfaces/AgentServerConnection) | [BaseProvider.ts:35](packages/provider/src/lib/BaseProvider.ts#L35) |
-| <a id="config"></a> `config` | `readonly` | [`BaseProviderConfig`](../interfaces/BaseProviderConfig) | [BaseProvider.ts:28](packages/provider/src/lib/BaseProvider.ts#L28) |
-| <a id="state"></a> `state` | `protected` | [`ProviderState`](../interfaces/ProviderState) & \{ `connectedEnvironments?`: `string`[]; `environmentId?`: `string`; `providerId?`: `string`; `startTime?`: `number`; \} | [BaseProvider.ts:29](packages/provider/src/lib/BaseProvider.ts#L29) |
+| <a id="agentserver"></a> `agentServer` | `protected` | [`AgentServerConnection`](../interfaces/AgentServerConnection.md) | [BaseProvider.ts:35](packages/provider/src/lib/BaseProvider.ts#L35) |
+| <a id="config"></a> `config` | `readonly` | [`BaseProviderConfig`](../interfaces/BaseProviderConfig.md) | [BaseProvider.ts:28](packages/provider/src/lib/BaseProvider.ts#L28) |
+| <a id="state"></a> `state` | `protected` | [`ProviderState`](../interfaces/ProviderState.md) & \{ `connectedEnvironments?`: `string`[]; `environmentId?`: `string`; `providerId?`: `string`; `startTime?`: `number`; \} | [BaseProvider.ts:29](packages/provider/src/lib/BaseProvider.ts#L29) |
 
 ## Methods
 
@@ -55,7 +51,7 @@ Defined in: BaseProvider.ts:41
 protected afterConnected(_startResult: ProviderStartResult): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:388
+Defined in: [BaseProvider.ts:388](packages/provider/src/lib/BaseProvider.ts#L388)
 
 Optional hook: execute logic after connection is established.
 
@@ -63,7 +59,7 @@ Optional hook: execute logic after connection is established.
 
 | Parameter | Type |
 | ------ | ------ |
-| `_startResult` | [`ProviderStartResult`](../interfaces/ProviderStartResult) |
+| `_startResult` | [`ProviderStartResult`](../interfaces/ProviderStartResult.md) |
 
 #### Returns
 
@@ -77,7 +73,7 @@ Optional hook: execute logic after connection is established.
 protected beforeClose(): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:235
+Defined in: [BaseProvider.ts:235](packages/provider/src/lib/BaseProvider.ts#L235)
 
 Optional hook: execute custom logic before closing.
 
@@ -93,7 +89,7 @@ Optional hook: execute custom logic before closing.
 protected buildAgentServerUrl(): string;
 ```
 
-Defined in: BaseProvider.ts:428
+Defined in: [BaseProvider.ts:428](packages/provider/src/lib/BaseProvider.ts#L428)
 
 Construct agent server URL from config.
 
@@ -109,7 +105,7 @@ Construct agent server URL from config.
 protected buildWebSocketUrl(initVars: ProviderInitVars): string;
 ```
 
-Defined in: BaseProvider.ts:509
+Defined in: [BaseProvider.ts:509](packages/provider/src/lib/BaseProvider.ts#L509)
 
 Build the WebSocket URL used to connect to the agent server. Subclasses can
 override to adjust query params.
@@ -132,7 +128,7 @@ override to adjust query params.
 protected disconnectTransport(): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:196
+Defined in: [BaseProvider.ts:196](packages/provider/src/lib/BaseProvider.ts#L196)
 
 Transport: disconnect from agent server.
 
@@ -148,7 +144,7 @@ Transport: disconnect from agent server.
 protected ensureAgentServer(): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:406
+Defined in: [BaseProvider.ts:406](packages/provider/src/lib/BaseProvider.ts#L406)
 
 Ensure agent server availability (start or reuse). Subclasses can override.
 
@@ -164,7 +160,7 @@ Ensure agent server availability (start or reuse). Subclasses can override.
 ensureTransportConnection(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:187
+Defined in: [BaseProvider.ts:187](packages/provider/src/lib/BaseProvider.ts#L187)
 
 Transport: establish connection to agent server.
 
@@ -180,7 +176,7 @@ Transport: establish connection to agent server.
 
 #### Implementation of
 
-[`ProviderTransport`](../interfaces/ProviderTransport).[`ensureTransportConnection`](../interfaces/ProviderTransport.md#ensuretransportconnection)
+[`ProviderTransport`](../interfaces/ProviderTransport.md).[`ensureTransportConnection`](../interfaces/ProviderTransport.md#ensuretransportconnection)
 
 ***
 
@@ -190,14 +186,14 @@ Transport: establish connection to agent server.
 getEventHandlers(): ProviderEventHandlers;
 ```
 
-Defined in: BaseProvider.ts:173
+Defined in: [BaseProvider.ts:173](packages/provider/src/lib/BaseProvider.ts#L173)
 
 Returns provider lifecycle event handlers that can be used by the host
 application to register callbacks in a consistent way.
 
 #### Returns
 
-[`ProviderEventHandlers`](../interfaces/ProviderEventHandlers)
+[`ProviderEventHandlers`](../interfaces/ProviderEventHandlers.md)
 
 ***
 
@@ -207,7 +203,7 @@ application to register callbacks in a consistent way.
 protected getProviderHealthStatus(): "healthy" | "degraded" | "error";
 ```
 
-Defined in: BaseProvider.ts:349
+Defined in: [BaseProvider.ts:349](packages/provider/src/lib/BaseProvider.ts#L349)
 
 Get the current health status of the provider.
 Subclasses can override for custom health determination.
@@ -224,7 +220,7 @@ Subclasses can override for custom health determination.
 protected handleTransportMessage(message: RawMessageForAgent): void;
 ```
 
-Defined in: BaseProvider.ts:528
+Defined in: [BaseProvider.ts:528](packages/provider/src/lib/BaseProvider.ts#L528)
 
 Handle incoming transport messages and forward to Codebolt runtime by
 default. Subclasses can override for custom routing.
@@ -247,7 +243,7 @@ default. Subclasses can override for custom routing.
 onCloseSignal(): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:144
+Defined in: [BaseProvider.ts:144](packages/provider/src/lib/BaseProvider.ts#L144)
 
 Graceful shutdown and cleanup entry point.
 
@@ -257,7 +253,7 @@ Graceful shutdown and cleanup entry point.
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onCloseSignal`](../interfaces/ProviderLifecycleHandlers.md#onclosesignal)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onCloseSignal`](../interfaces/ProviderLifecycleHandlers.md#onclosesignal)
 
 ***
 
@@ -267,7 +263,7 @@ Graceful shutdown and cleanup entry point.
 abstract onGetDiffFiles(): Promise<any>;
 ```
 
-Defined in: BaseProvider.ts:139
+Defined in: [BaseProvider.ts:139](packages/provider/src/lib/BaseProvider.ts#L139)
 
 Get diff files handler - returns diff information for changed files
 Must be implemented by subclasses.
@@ -278,7 +274,7 @@ Must be implemented by subclasses.
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onGetDiffFiles`](../interfaces/ProviderLifecycleHandlers.md#ongetdifffiles)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onGetDiffFiles`](../interfaces/ProviderLifecycleHandlers.md#ongetdifffiles)
 
 ***
 
@@ -288,7 +284,7 @@ Must be implemented by subclasses.
 onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:108
+Defined in: [BaseProvider.ts:108](packages/provider/src/lib/BaseProvider.ts#L108)
 
 Called after [onProviderStart](#onproviderstart) completes to begin the agent loop.
 Default implementation forwards the message to the agent server through
@@ -306,7 +302,7 @@ Default implementation forwards the message to the agent server through
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onProviderAgentStart`](../interfaces/ProviderLifecycleHandlers.md#onprovideragentstart)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onProviderAgentStart`](../interfaces/ProviderLifecycleHandlers.md#onprovideragentstart)
 
 ***
 
@@ -316,7 +312,7 @@ Default implementation forwards the message to the agent server through
 onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
 ```
 
-Defined in: BaseProvider.ts:77
+Defined in: [BaseProvider.ts:77](packages/provider/src/lib/BaseProvider.ts#L77)
 
 Entry point called by the platform when a provider is started.
 Subclasses should override [setupEnvironment](#setupenvironment) and
@@ -330,11 +326,11 @@ Subclasses should override [setupEnvironment](#setupenvironment) and
 
 #### Returns
 
-`Promise`\<[`ProviderStartResult`](../interfaces/ProviderStartResult)\>
+`Promise`\<[`ProviderStartResult`](../interfaces/ProviderStartResult.md)\>
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onProviderStart`](../interfaces/ProviderLifecycleHandlers.md#onproviderstart)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onProviderStart`](../interfaces/ProviderLifecycleHandlers.md#onproviderstart)
 
 ***
 
@@ -344,7 +340,7 @@ Subclasses should override [setupEnvironment](#setupenvironment) and
 onProviderStop(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:122
+Defined in: [BaseProvider.ts:122](packages/provider/src/lib/BaseProvider.ts#L122)
 
 Provider stop handler - stops the provider and cleans up resources
 
@@ -360,7 +356,7 @@ Provider stop handler - stops the provider and cleans up resources
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onProviderStop`](../interfaces/ProviderLifecycleHandlers.md#onproviderstop)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onProviderStop`](../interfaces/ProviderLifecycleHandlers.md#onproviderstop)
 
 ***
 
@@ -370,7 +366,7 @@ Provider stop handler - stops the provider and cleans up resources
 onRawMessage(message: RawMessageForAgent): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:158
+Defined in: [BaseProvider.ts:158](packages/provider/src/lib/BaseProvider.ts#L158)
 
 Handle raw incoming messages from the platform. Default behavior is to
 forward the payload to the agent server transport.
@@ -387,7 +383,7 @@ forward the payload to the agent server transport.
 
 #### Implementation of
 
-[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers).[`onRawMessage`](../interfaces/ProviderLifecycleHandlers.md#onrawmessage)
+[`ProviderLifecycleHandlers`](../interfaces/ProviderLifecycleHandlers.md).[`onRawMessage`](../interfaces/ProviderLifecycleHandlers.md#onrawmessage)
 
 ***
 
@@ -397,7 +393,7 @@ forward the payload to the agent server transport.
 protected registerConnectedEnvironment(environmentId: string): void;
 ```
 
-Defined in: BaseProvider.ts:362
+Defined in: [BaseProvider.ts:362](packages/provider/src/lib/BaseProvider.ts#L362)
 
 Register an environment as connected to this provider.
 
@@ -419,7 +415,7 @@ Register an environment as connected to this provider.
 protected resetState(): void;
 ```
 
-Defined in: BaseProvider.ts:435
+Defined in: [BaseProvider.ts:435](packages/provider/src/lib/BaseProvider.ts#L435)
 
 Reset mutable state prior to start.
 
@@ -435,7 +431,7 @@ Reset mutable state prior to start.
 abstract protected resolveProjectContext(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:423
+Defined in: [BaseProvider.ts:423](packages/provider/src/lib/BaseProvider.ts#L423)
 
 Resolve project context (project path, metadata, etc.). Must be implemented
 by subclasses because repository layout may vary per provider.
@@ -458,7 +454,7 @@ by subclasses because repository layout may vary per provider.
 protected resolveWorkspacePath(initVars: ProviderInitVars): Promise<string>;
 ```
 
-Defined in: BaseProvider.ts:411
+Defined in: [BaseProvider.ts:411](packages/provider/src/lib/BaseProvider.ts#L411)
 
 Resolve workspace path based on provider requirements.
 
@@ -480,7 +476,7 @@ Resolve workspace path based on provider requirements.
 protected sendEnvironmentHeartbeat(environmentId: string): void;
 ```
 
-Defined in: BaseProvider.ts:328
+Defined in: [BaseProvider.ts:328](packages/provider/src/lib/BaseProvider.ts#L328)
 
 Send an environment heartbeat to the main application.
 
@@ -502,7 +498,7 @@ Send an environment heartbeat to the main application.
 protected sendProviderHeartbeat(): void;
 ```
 
-Defined in: BaseProvider.ts:280
+Defined in: [BaseProvider.ts:280](packages/provider/src/lib/BaseProvider.ts#L280)
 
 Send a provider heartbeat to the main application.
 
@@ -518,7 +514,7 @@ Send a provider heartbeat to the main application.
 sendToAgentServer(message: AgentStartMessage | RawMessageForAgent): Promise<boolean>;
 ```
 
-Defined in: BaseProvider.ts:212
+Defined in: [BaseProvider.ts:212](packages/provider/src/lib/BaseProvider.ts#L212)
 
 Helper to send messages to the agent server.
 
@@ -534,7 +530,7 @@ Helper to send messages to the agent server.
 
 #### Implementation of
 
-[`ProviderTransport`](../interfaces/ProviderTransport).[`sendToAgentServer`](../interfaces/ProviderTransport.md#sendtoagentserver)
+[`ProviderTransport`](../interfaces/ProviderTransport.md).[`sendToAgentServer`](../interfaces/ProviderTransport.md#sendtoagentserver)
 
 ***
 
@@ -544,7 +540,7 @@ Helper to send messages to the agent server.
 abstract protected setupEnvironment(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:394
+Defined in: [BaseProvider.ts:394](packages/provider/src/lib/BaseProvider.ts#L394)
 
 Set up provider-specific environment (e.g., create worktree).
 Must be implemented by subclasses.
@@ -567,7 +563,7 @@ Must be implemented by subclasses.
 protected startEnvironmentHeartbeat(environmentId: string): void;
 ```
 
-Defined in: BaseProvider.ts:311
+Defined in: [BaseProvider.ts:311](packages/provider/src/lib/BaseProvider.ts#L311)
 
 Start environment-specific heartbeat monitoring.
 Subclasses can override to implement custom environment health checks.
@@ -590,7 +586,7 @@ Subclasses can override to implement custom environment health checks.
 protected startHeartbeat(): void;
 ```
 
-Defined in: BaseProvider.ts:243
+Defined in: [BaseProvider.ts:243](packages/provider/src/lib/BaseProvider.ts#L243)
 
 Start sending provider heartbeats at regular intervals.
 Called automatically after connection is established.
@@ -607,7 +603,7 @@ Called automatically after connection is established.
 protected stopHeartbeat(): void;
 ```
 
-Defined in: BaseProvider.ts:264
+Defined in: [BaseProvider.ts:264](packages/provider/src/lib/BaseProvider.ts#L264)
 
 Stop sending provider heartbeats.
 
@@ -623,7 +619,7 @@ Stop sending provider heartbeats.
 protected teardownEnvironment(): Promise<void>;
 ```
 
-Defined in: BaseProvider.ts:400
+Defined in: [BaseProvider.ts:400](packages/provider/src/lib/BaseProvider.ts#L400)
 
 Tear down provider-specific environment. Default implementation is a no-op.
 
@@ -639,7 +635,7 @@ Tear down provider-specific environment. Default implementation is a no-op.
 protected unregisterConnectedEnvironment(environmentId: string): void;
 ```
 
-Defined in: BaseProvider.ts:374
+Defined in: [BaseProvider.ts:374](packages/provider/src/lib/BaseProvider.ts#L374)
 
 Unregister an environment from this provider.
 

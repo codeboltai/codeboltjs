@@ -15,8 +15,20 @@ data:
   category: mail
   link: markRead.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# markRead
+
+```typescript
+codebolt.mail.markRead(params: IMarkReadParams): Promise<IMarkReadResponse>
+```
+
+Marks a message or thread as read.
+### Parameters
+
+- **`params`** (IMarkReadParams): Parameters including messageId or threadId to mark as read.
+
+### Returns
+
+- **`Promise<IMarkReadResponse>`**: A promise that resolves when the message/thread is marked read.
 
 ### Response Structure
 

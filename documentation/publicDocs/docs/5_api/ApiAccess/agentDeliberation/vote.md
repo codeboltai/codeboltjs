@@ -16,8 +16,20 @@ data:
   category: agentDeliberation
   link: vote.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# vote
+
+```typescript
+codebolt.agentDeliberation.vote(params: IVoteParams): Promise<IVoteResponse>
+```
+
+Casts a vote for a specific response in a deliberation.
+### Parameters
+
+- **`params`** ([IVoteParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IVoteParams)): Parameters including deliberation ID, response ID, and voter info.
+
+### Returns
+
+- **`Promise<[IVoteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IVoteResponse)>`**: A promise that resolves to the cast vote.
 
 ### Examples
 

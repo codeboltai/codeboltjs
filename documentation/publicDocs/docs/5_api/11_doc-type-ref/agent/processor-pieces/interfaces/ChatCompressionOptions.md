@@ -1,14 +1,10 @@
----
-title: ChatCompressionOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ChatCompressionOptions
 
-Defined in: packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:37
+Defined in: [packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts:37](packages/agent/src/processor-pieces/preInferenceProcessors/chatCompressionModifier.ts#L37)
 
 ## Properties
 

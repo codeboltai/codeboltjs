@@ -20,8 +20,20 @@ data:
   category: episodicMemory
   link: createMemory.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createMemory
+
+```typescript
+codebolt.episodicMemory.createMemory(params: ICreateMemoryParams): Promise<ICreateMemoryResponse>
+```
+
+Creates a new episodic memory container for storing time-ordered events.
+### Parameters
+
+- **`params`** ([ICreateMemoryParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateMemoryParams)): Memory creation parameters.
+
+### Returns
+
+- **`Promise<[ICreateMemoryResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateMemoryResponse)>`**: A promise that resolves to the created memory details.
 
 ### Examples
 

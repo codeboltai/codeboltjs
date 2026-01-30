@@ -18,8 +18,21 @@ data:
   category: terminal
   link: executeCommand.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# executeCommand
+
+```typescript
+codebolt.terminal.executeCommand(command: string, returnEmptyStringOnSuccess: boolean): Promise<CommandFinish | CommandError>
+```
+
+Executes a given command in the terminal environment and returns the result. This method listens for WebSocket messages that indicate the output, error, or finish state of the executed command and resolves the promise accordingly. 
+### Parameters
+
+- **`command`** (string): The command to be executed in the terminal (e.g., "node --version", "npm install", "ls -la").
+- **`returnEmptyStringOnSuccess`** (boolean): Optional parameter to return empty string on success instead of command output. Defaults to false.
+
+### Returns
+
+- **`Promise<CommandFinish | CommandError>`**: A promise that resolves with either a CommandFinish object (on success) or CommandError object (on failure) containing the command's output or error information.
 
 ### Response Structure
 

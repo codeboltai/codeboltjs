@@ -1,14 +1,10 @@
----
-title: StreamChunk
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: StreamChunk
 
-Defined in: packages/agent/src/unified/types/libTypes.ts:385
+Defined in: [packages/agent/src/unified/types/libTypes.ts:385](packages/agent/src/unified/types/libTypes.ts#L385)
 
 Stream chunk for real-time responses
 
@@ -20,5 +16,5 @@ Stream chunk for real-time responses
 | <a id="error"></a> `error?` | `string` | Error information if applicable | [packages/agent/src/unified/types/libTypes.ts:395](packages/agent/src/unified/types/libTypes.ts#L395) |
 | <a id="metadata"></a> `metadata?` | `Record`\<`string`, `unknown`\> | Additional metadata | [packages/agent/src/unified/types/libTypes.ts:397](packages/agent/src/unified/types/libTypes.ts#L397) |
 | <a id="toolcall"></a> `toolCall?` | `ToolCall` | Tool call information if applicable | [packages/agent/src/unified/types/libTypes.ts:391](packages/agent/src/unified/types/libTypes.ts#L391) |
-| <a id="toolresult"></a> `toolResult?` | [`ToolResult`](ToolResult) | Tool result if applicable | [packages/agent/src/unified/types/libTypes.ts:393](packages/agent/src/unified/types/libTypes.ts#L393) |
+| <a id="toolresult"></a> `toolResult?` | [`ToolResult`](ToolResult.md) | Tool result if applicable | [packages/agent/src/unified/types/libTypes.ts:393](packages/agent/src/unified/types/libTypes.ts#L393) |
 | <a id="type"></a> `type` | `"text"` \| `"error"` \| `"tool_call"` \| `"tool_result"` \| `"done"` | Type of chunk | [packages/agent/src/unified/types/libTypes.ts:387](packages/agent/src/unified/types/libTypes.ts#L387) |

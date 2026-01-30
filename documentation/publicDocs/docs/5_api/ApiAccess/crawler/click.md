@@ -16,8 +16,20 @@ data:
   category: crawler
   link: click.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# click
+
+```typescript
+codebolt.crawler.click(id: string): Promise<any>
+```
+
+Simulates a click event on an element with the specified ID.
+### Parameters
+
+- **`id`** (string): The ID of the element to click.
+
+### Returns
+
+- **`Promise<any>`**: A promise that resolves when the click action is complete.
 
 ### Example 1: Basic Click
 

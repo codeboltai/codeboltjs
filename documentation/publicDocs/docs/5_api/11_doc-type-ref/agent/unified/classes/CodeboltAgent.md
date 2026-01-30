@@ -1,14 +1,10 @@
----
-title: CodeboltAgent
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: CodeboltAgent
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:86
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:86](packages/agent/src/unified/agent/codeboltAgent.ts#L86)
 
 CodeboltAgent is a high-level agent class that:
 - Uses InitialPromptGenerator with configurable processors/modifiers
@@ -68,13 +64,13 @@ const result = await agent.processMessage(userMessage);
 new CodeboltAgent(config: CodeboltAgentConfig): CodeboltAgent;
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:96
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:96](packages/agent/src/unified/agent/codeboltAgent.ts#L96)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `config` | [`CodeboltAgentConfig`](../interfaces/CodeboltAgentConfig) |
+| `config` | [`CodeboltAgentConfig`](../interfaces/CodeboltAgentConfig.md) |
 
 #### Returns
 
@@ -88,13 +84,13 @@ Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:96
 getConfig(): CodeboltAgentConfig;
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:210
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:210](packages/agent/src/unified/agent/codeboltAgent.ts#L210)
 
 Get the current configuration
 
 #### Returns
 
-[`CodeboltAgentConfig`](../interfaces/CodeboltAgentConfig)
+[`CodeboltAgentConfig`](../interfaces/CodeboltAgentConfig.md)
 
 ***
 
@@ -104,7 +100,7 @@ Get the current configuration
 getMessageModifiers(): MessageModifier[];
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:217
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:217](packages/agent/src/unified/agent/codeboltAgent.ts#L217)
 
 Get all message modifiers
 
@@ -120,7 +116,7 @@ Get all message modifiers
 getPostInferenceProcessors(): PostInferenceProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:231
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:231](packages/agent/src/unified/agent/codeboltAgent.ts#L231)
 
 Get all post-inference processors
 
@@ -136,7 +132,7 @@ Get all post-inference processors
 getPostToolCallProcessors(): PostToolCallProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:245
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:245](packages/agent/src/unified/agent/codeboltAgent.ts#L245)
 
 Get all post-tool-call processors
 
@@ -152,7 +148,7 @@ Get all post-tool-call processors
 getPreInferenceProcessors(): PreInferenceProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:224
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:224](packages/agent/src/unified/agent/codeboltAgent.ts#L224)
 
 Get all pre-inference processors
 
@@ -168,7 +164,7 @@ Get all pre-inference processors
 getPreToolCallProcessors(): PreToolCallProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:238
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:238](packages/agent/src/unified/agent/codeboltAgent.ts#L238)
 
 Get all pre-tool-call processors
 
@@ -188,7 +184,7 @@ processMessage(reqMessage: FlatUserMessage): Promise<{
 }>;
 ```
 
-Defined in: packages/agent/src/unified/agent/codeboltAgent.ts:143
+Defined in: [packages/agent/src/unified/agent/codeboltAgent.ts:143](packages/agent/src/unified/agent/codeboltAgent.ts#L143)
 
 Process a message through the agent pipeline.
 This is the main entry point - triggered from graph nodes.

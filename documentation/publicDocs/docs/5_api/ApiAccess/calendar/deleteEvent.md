@@ -15,8 +15,20 @@ data:
   category: calendar
   link: deleteEvent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# deleteEvent
+
+```typescript
+codebolt.calendar.deleteEvent(params: IDeleteEventParams): Promise<IDeleteEventResponse>
+```
+
+Deletes a calendar event by its ID. This operation is irreversible and will permanently remove the event from the calendar.
+### Parameters
+
+- **`params`** ([IDeleteEventParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IDeleteEventParams)): Parameters containing the eventId to delete
+
+### Returns
+
+- **`Promise<[IDeleteEventResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IDeleteEventResponse)>`**: A promise that resolves when the event is deleted
 
 ### Parameter Details
 

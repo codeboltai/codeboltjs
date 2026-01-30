@@ -15,8 +15,20 @@ data:
   category: tokenizer
   link: getToken.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getToken
+
+```typescript
+codebolt.tokenizer.getToken(key: string): Promise<GetTokenResponse>
+```
+
+Retrieves a token by its key from the system.
+### Parameters
+
+- **`key`** (string): The key associated with the token to be retrieved.
+
+### Returns
+
+- **`Promise<GetTokenResponse>`**: A promise that resolves with a `GetTokenResponse` object containing the token response.
 
 ### Response Structure
 

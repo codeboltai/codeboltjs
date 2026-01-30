@@ -15,8 +15,20 @@ data:
   category: mail
   link: reserveFiles.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# reserveFiles
+
+```typescript
+codebolt.mail.reserveFiles(params: IReserveFilesParams): Promise<IReserveFilesResponse>
+```
+
+Reserves files for exclusive access during collaborative work.
+### Parameters
+
+- **`params`** (IReserveFilesParams): Parameters including agentId, files array, and threadId.
+
+### Returns
+
+- **`Promise<IReserveFilesResponse>`**: A promise that resolves with the reservation details.
 
 ### Examples
 

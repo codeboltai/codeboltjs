@@ -1,14 +1,10 @@
----
-title: MemoryImportOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: MemoryImportOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:7
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts:7](packages/agent/src/processor-pieces/messageModifiers/memoryImportModifier.ts#L7)
 
 ## Properties
 

@@ -15,8 +15,20 @@ data:
   category: thread
   link: getThreadList.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThreadList
+
+```typescript
+codebolt.thread.getThreadList(options: GetThreadListOptions): Promise<ListThreadsResponse>
+```
+
+Retrieves a list of threads with optional filtering and pagination capabilities.
+### Parameters
+
+- **`options`** (GetThreadListOptions): Optional filters including status, agentId, limit, offset, date range, and metadata filters.
+
+### Returns
+
+- **`Promise<ListThreadsResponse>`**: A promise that resolves with an array of threads and pagination metadata.
 
 ### Response Structure
 

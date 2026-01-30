@@ -15,9 +15,16 @@ data:
   category: cbstate
   link: getAgentState.md
 ---
+# getAgentState
 
-<CBBaseInfo/> 
-<CBParameters/>
+```typescript
+codebolt.cbstate.getAgentState(): Promise<GetAgentStateResponse>
+```
+
+Retrieves the current state of the agent from the server via WebSocket. 
+### Returns
+
+- **`Promise<GetAgentStateResponse>`**: A promise that resolves with the agent's state containing all key-value pairs stored via addToAgentState.
 
 ### Response Structure
 

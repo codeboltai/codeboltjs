@@ -17,8 +17,20 @@ data:
   category: sideExecution
   link: getStatus.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getStatus
+
+```typescript
+codebolt.sideExecution.getStatus(sideExecutionId: string): Promise<GetSideExecutionStatusResponse>
+```
+
+Gets the current status and details of a side execution process.
+### Parameters
+
+- **`sideExecutionId`** (string): The unique identifier of the side execution to query.
+
+### Returns
+
+- **`Promise<[GetSideExecutionStatusResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetSideExecutionStatusResponse)>`**: A promise that resolves with the execution status and details.
 
 ### Response Structure
 

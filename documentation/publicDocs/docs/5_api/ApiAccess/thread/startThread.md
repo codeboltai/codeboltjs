@@ -15,8 +15,20 @@ data:
   category: thread
   link: startThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# startThread
+
+```typescript
+codebolt.thread.startThread(threadId: string): Promise<StartThreadResponse>
+```
+
+Starts an existing thread to begin or resume conversation and execution.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to start.
+
+### Returns
+
+- **`Promise<StartThreadResponse>`**: A promise that resolves with the started thread details and status.
 
 ### Response Structure
 

@@ -25,8 +25,22 @@ data:
   category: sideExecution
   link: startWithActionBlock.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# startWithActionBlock
+
+```typescript
+codebolt.sideExecution.startWithActionBlock(actionBlockPath: string, params: Record<string, any>, timeout: number): Promise<StartSideExecutionResponse>
+```
+
+Starts a side execution process using an ActionBlock directory path.
+### Parameters
+
+- **`actionBlockPath`** (string): The file system path to the ActionBlock directory.
+- **`params`** (Record<string, any>, optional): Optional parameters to pass to the ActionBlock execution context.
+- **`timeout`** (number, optional): Execution timeout in milliseconds (default: 5 minutes).
+
+### Returns
+
+- **`Promise<[StartSideExecutionResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartSideExecutionResponse)>`**: A promise that resolves with the side execution ID and initial status.
 
 ### Response Structure
 

@@ -8,15 +8,15 @@ import {
   IGetFeedbackResponse,
   IListFeedbacksParams,
   IListFeedbacksResponse,
-  IRespondParams,
-  IRespondResponse,
+  IFeedbackRespondParams,
+  IFeedbackRespondResponse,
   IReplyParams,
   IReplyResponse,
   IUpdateSummaryParams,
   IUpdateSummaryResponse,
   IUpdateStatusParams,
   IUpdateStatusResponse,
-} from '../types/groupFeedback';
+} from '@codebolt/types/lib';
 
 const cbgroupFeedback = {
   create: async (params: ICreateFeedbackParams): Promise<ICreateFeedbackResponse> => {
@@ -40,7 +40,7 @@ const cbgroupFeedback = {
     );
   },
 
-  respond: async (params: IRespondParams): Promise<IRespondResponse> => {
+  respond: async (params: IFeedbackRespondParams): Promise<IFeedbackRespondResponse> => {
     return cbws.messageManager.sendAndWaitForResponse(
       { type: GroupFeedbackAction.RESPOND, ...params },
       GroupFeedbackResponseType.RESPOND_RESPONSE,

@@ -18,8 +18,21 @@ data:
   category: thread
   link: updateThreadStatus.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateThreadStatus
+
+```typescript
+codebolt.thread.updateThreadStatus(threadId: string, status: string): Promise<UpdateThreadStatusResponse>
+```
+
+Updates the status of a thread to control its lifecycle and workflow state.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to update.
+- **`status`** (string): The new status value (e.g., 'active', 'paused', 'completed', 'archived', 'closed').
+
+### Returns
+
+- **`Promise<UpdateThreadStatusResponse>`**: A promise that resolves with the updated thread status.
 
 ### Response Structure
 

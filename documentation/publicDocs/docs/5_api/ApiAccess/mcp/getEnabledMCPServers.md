@@ -13,8 +13,16 @@ data:
   category: mcp
   link: getEnabledMCPServers.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getEnabledMCPServers
+
+```typescript
+codebolt.mcp.getEnabledMCPServers(): Promise<GetEnabledToolBoxesResponse>
+```
+
+Gets the list of currently enabled MCP servers.
+### Returns
+
+- **`Promise<GetEnabledToolBoxesResponse>`**: A promise that resolves with information about enabled MCP servers.
 
 ### Example 1: Get Enabled Servers
 

@@ -13,8 +13,16 @@ data:
   category: browser
   link: getMarkdown.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getMarkdown
+
+```typescript
+codebolt.browser.getMarkdown(): Promise<GetMarkdownResponse>
+```
+
+Retrieves the Markdown content of the current page. 
+### Returns
+
+- **`Promise<GetMarkdownResponse>`**: A promise that resolves with the Markdown content.
 
 ### Response Structure
 
@@ -59,9 +67,3 @@ if (markdownResult.success && markdownResult.markdown) {
 - The Markdown content is a structured text representation of the page content
 - This is useful for documentation, content analysis, or converting web content to readable format
 - The conversion maintains the logical structure of headings, lists, links, and other elements
-
-
-
-
-
-

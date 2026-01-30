@@ -76,6 +76,10 @@
     "./mail": {
       "types": "./dist/codeboltjstypes/mail.enum.d.ts",
       "default": "./dist/codeboltjstypes/mail.enum.js"
+    },
+    "./lib": {
+      "types": "./dist/codeboltjstypes/libFunctionTypes/index.d.ts",
+      "default": "./dist/codeboltjstypes/libFunctionTypes/index.js"
     }
   },
   "scripts": {

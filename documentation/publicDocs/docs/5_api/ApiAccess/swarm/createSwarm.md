@@ -29,8 +29,20 @@ data:
   category: swarm
   link: createSwarm.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createSwarm
+
+```typescript
+codebolt.swarm.createSwarm(data: CreateSwarmRequest): Promise<CreateSwarmResponse>
+```
+
+Creates a new swarm for multi-agent coordination and task management.
+### Parameters
+
+- **`data`** ([CreateSwarmRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateSwarmRequest)): Configuration object for the new swarm.
+
+### Returns
+
+- **`Promise<[CreateSwarmResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateSwarmResponse)>`**: A promise that resolves to the created swarm details.
 
 ### Examples
 

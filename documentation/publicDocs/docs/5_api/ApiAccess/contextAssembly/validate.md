@@ -16,8 +16,20 @@ data:
   category: contextAssembly
   link: validate.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# validate
+
+```typescript
+codebolt.contextAssembly.validate(request: undefined): Promise<ContextValidateResponse>
+```
+
+Validates a context assembly request without fetching data.
+### Parameters
+
+- **`request`** (unknown): Context assembly request to validate.
+
+### Returns
+
+- **`Promise<[ContextValidateResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextValidateResponse)>`**: A promise that resolves with validation results.
 
 ### Response Structure
 

@@ -13,8 +13,16 @@ data:
   category: browser
   link: getHTML.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getHTML
+
+```typescript
+codebolt.browser.getHTML(): Promise<HtmlReceived>
+```
+
+Retrieves the HTML content of the current page. 
+### Returns
+
+- **`Promise<HtmlReceived>`**: A promise that resolves with the HTML content.
 
 ### Response Structure
 

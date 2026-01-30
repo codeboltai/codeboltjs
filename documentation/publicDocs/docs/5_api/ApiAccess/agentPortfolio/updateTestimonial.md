@@ -19,8 +19,21 @@ data:
   category: agentPortfolio
   link: updateTestimonial.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# updateTestimonial
+
+```typescript
+codebolt.agentPortfolio.updateTestimonial(testimonialId: string, content: string): Promise<UpdateTestimonialResponse>
+```
+
+Updates an existing testimonial with new content.
+### Parameters
+
+- **`testimonialId`** (string): The ID of the testimonial to update.
+- **`content`** (string): The new testimonial content.
+
+### Returns
+
+- **`Promise<[UpdateTestimonialResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/UpdateTestimonialResponse)>`**: A promise that resolves to the updated testimonial.
 
 ### Examples
 

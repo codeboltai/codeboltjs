@@ -29,8 +29,24 @@ data:
   category: utils
   link: editFileAndApplyDiff.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# editFileAndApplyDiff
+
+```typescript
+codebolt.utils.editFileAndApplyDiff(filePath: string, diff: string, diffIdentifier: string, prompt: string, applyModel: string): Promise<FsEditFileAndApplyDiffResponse>
+```
+
+Edits a file and applies a diff with AI assistance.
+### Parameters
+
+- **`filePath`** (string): The path to the file to edit.
+- **`diff`** (string): The diff to apply to the file.
+- **`diffIdentifier`** (string): A unique identifier for the diff operation.
+- **`prompt`** (string): The prompt for the AI model to guide the diff application.
+- **`applyModel`** (string): Optional model to use for applying the diff.
+
+### Returns
+
+- **`Promise<FsEditFileAndApplyDiffResponse>`**: A promise that resolves with the file edit response.
 
 ### Example 1: Basic File Edit with Diff
 

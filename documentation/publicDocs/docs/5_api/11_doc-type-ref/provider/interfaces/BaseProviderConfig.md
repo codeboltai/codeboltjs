@@ -1,14 +1,10 @@
----
-title: BaseProviderConfig
----
-
-[**@codebolt/provider**](../index)
+[**@codebolt/provider**](../README.md)
 
 ***
 
 # Interface: BaseProviderConfig
 
-Defined in: ProviderTypes.ts:34
+Defined in: [ProviderTypes.ts:34](packages/provider/src/lib/ProviderTypes.ts#L34)
 
 ## Indexable
 
@@ -30,5 +26,5 @@ Defined in: ProviderTypes.ts:34
 | `timeouts.agentServerStartup?` | `number` | [ProviderTypes.ts:44](packages/provider/src/lib/ProviderTypes.ts#L44) |
 | `timeouts.cleanup?` | `number` | [ProviderTypes.ts:46](packages/provider/src/lib/ProviderTypes.ts#L46) |
 | `timeouts.connection?` | `number` | [ProviderTypes.ts:45](packages/provider/src/lib/ProviderTypes.ts#L45) |
-| <a id="transport"></a> `transport` | [`ProviderTransportType`](../type-aliases/ProviderTransportType) | [ProviderTypes.ts:40](packages/provider/src/lib/ProviderTypes.ts#L40) |
+| <a id="transport"></a> `transport` | [`ProviderTransportType`](../type-aliases/ProviderTransportType.md) | [ProviderTypes.ts:40](packages/provider/src/lib/ProviderTypes.ts#L40) |
 | <a id="wsregistrationtimeout"></a> `wsRegistrationTimeout` | `number` | [ProviderTypes.ts:39](packages/provider/src/lib/ProviderTypes.ts#L39) |

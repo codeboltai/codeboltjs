@@ -15,8 +15,20 @@ data:
   category: hook
   link: enable.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# enable
+
+```typescript
+codebolt.hook.enable(hookId: string): Promise<HookResponse>
+```
+
+Enables a hook to make it active and allow it to trigger on events.
+### Parameters
+
+- **`hookId`** (string): The unique identifier of the hook to enable.
+
+### Returns
+
+- **`Promise<[HookResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/HookResponse)>`**: A promise that resolves with the enabled hook details.
 
 ### Examples
 

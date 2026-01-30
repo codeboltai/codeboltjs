@@ -12,8 +12,16 @@ data:
   category: contextRuleEngine
   link: getPossibleVariables.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getPossibleVariables
+
+```typescript
+codebolt.contextRuleEngine.getPossibleVariables(): Promise<PossibleVariablesResponse>
+```
+
+Gets all possible variables for rule configuration.
+### Returns
+
+- **`Promise<[PossibleVariablesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/PossibleVariablesResponse)>`**: A promise that resolves with available variables.
 
 ### Examples
 

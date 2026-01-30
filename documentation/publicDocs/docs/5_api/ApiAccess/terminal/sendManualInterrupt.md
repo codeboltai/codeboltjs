@@ -12,8 +12,16 @@ data:
   category: terminal
   link: sendManualInterrupt.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# sendManualInterrupt
+
+```typescript
+codebolt.terminal.sendManualInterrupt(): Promise<TerminalInterruptResponse>
+```
+
+Sends a manual interrupt signal (SIGINT) to the terminal to cancel or stop a currently running command. This method is equivalent to pressing Ctrl+C in a terminal and is useful for stopping long-running processes or commands that need to be terminated. 
+### Returns
+
+- **`Promise<TerminalInterruptResponse>`**: A promise that resolves with a TerminalInterruptResponse object indicating whether the interrupt signal was successfully sent to the terminal.
 
 ### Response Structure
 

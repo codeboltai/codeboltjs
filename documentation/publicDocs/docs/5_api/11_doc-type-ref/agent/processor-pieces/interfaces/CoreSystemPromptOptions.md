@@ -1,14 +1,10 @@
----
-title: CoreSystemPromptOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: CoreSystemPromptOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:5
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts:5](packages/agent/src/processor-pieces/messageModifiers/coreSystemPromptModifier.ts#L5)
 
 ## Properties
 

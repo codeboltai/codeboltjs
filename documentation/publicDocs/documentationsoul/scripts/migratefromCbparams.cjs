@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 /**
- * Migration Script: Convert CBBaseInfo/CBParameters to Static Content
+ * Migration Script: Convert CBBaseInfo/CBParameters to Static Content with Type Linking
  *
  * This script migrates markdown files in ApiAccess folder from using
- * <CBBaseInfo/> and <CBParameters/> components to static rendered content.
+ * <CBBaseInfo/> and <CBParameters/> components to static rendered content,
+ * while also linking types to their reference documentation.
  *
  * Changes:
  * - Keeps frontmatter as is
  * - Replaces <CBBaseInfo/> with function signature and description
  * - Replaces <CBParameters/> with parameters in bullet-point format (like Response Structure)
+ * - Links type names to their reference documentation pages
+ * - Tracks missing type references in missing-ref.json
  *
- * Usage: node migratefromCbparams.js [options]
+ * Usage: node migratefromCbparams.cjs [options]
  *
  * Options:
  *   --dry-run          Show what would be changed without modifying files
@@ -18,12 +21,13 @@
  *   --module=NAME      Process only files in a specific module folder
  *   --backup           Create .bak backup files before modifying
  *   --verbose          Show detailed output for each file
+ *   --no-linking       Skip type linking (migration only)
  *
  * Examples:
- *   node migratefromCbparams.js --dry-run
- *   node migratefromCbparams.js --module=browser --dry-run
- *   node migratefromCbparams.js --backup
- *   node migratefromCbparams.js --file=agent/startAgent.md
+ *   node migratefromCbparams.cjs --dry-run
+ *   node migratefromCbparams.cjs --module=browser --dry-run
+ *   node migratefromCbparams.cjs --backup
+ *   node migratefromCbparams.cjs --file=agent/startAgent.md
  */
 
 const path = require('path');
@@ -33,7 +37,18 @@ const yaml = require('js-yaml');
 // Configuration
 const CONFIG = {
   apiAccessPath: path.resolve(__dirname, '../../docs/5_api/ApiAccess'),
-  typeRefBasePath: '/docs/api/11_doc-type-ref/codeboltjs'
+  // Multiple type reference paths (codeboltjs + types packages)
+  typeRefPaths: [
+    {
+      path: path.resolve(__dirname, '../../docs/5_api/11_doc-type-ref/codeboltjs'),
+      urlBase: '/docs/api/11_doc-type-ref/codeboltjs'
+    },
+    {
+      path: path.resolve(__dirname, '../../docs/5_api/11_doc-type-ref/types'),
+      urlBase: '/docs/api/11_doc-type-ref/types'
+    }
+  ],
+  missingRefPath: path.resolve(__dirname, '../data/missing-ref.json')
 };
 
 /**
@@ -46,7 +61,8 @@ function parseArgs() {
     file: null,
     module: null,
     backup: false,
-    verbose: false
+    verbose: false,
+    noLinking: false
   };
 
   for (const arg of args) {
@@ -60,11 +76,175 @@ function parseArgs() {
       options.backup = true;
     } else if (arg === '--verbose') {
       options.verbose = true;
+    } else if (arg === '--no-linking') {
+      options.noLinking = true;
     }
   }
 
   return options;
 }
+
+// ============================================
+// Type Linking Functions
+// ============================================
+
+/**
+ * Build a map of all available types from all type reference folders
+ */
+function buildTypeMap() {
+  const typeMap = new Map();
+  const categories = ['interfaces', 'classes', 'enumerations', 'type-aliases'];
+
+  // Iterate over all type reference paths (codeboltjs, types, etc.)
+  for (const typeRefConfig of CONFIG.typeRefPaths) {
+    for (const category of categories) {
+      const categoryPath = path.join(typeRefConfig.path, category);
+      if (!fs.existsSync(categoryPath)) continue;
+
+      const files = fs.readdirSync(categoryPath);
+      for (const file of files) {
+        if (!file.endsWith('.md')) continue;
+
+        // Extract type name from filename (remove .md extension)
+        const typeName = file.replace('.md', '');
+
+        // Only add if not already present (first source wins)
+        if (!typeMap.has(typeName)) {
+          // Store with category for building the correct URL
+          typeMap.set(typeName, {
+            name: typeName,
+            category,
+            url: `${typeRefConfig.urlBase}/${category}/${typeName}`
+          });
+        }
+      }
+    }
+  }
+
+  return typeMap;
+}
+
+/**
+ * Extract type names from a type string (handles Promise<Type>, Type[], etc.)
+ */
+function extractTypeNames(typeString) {
+  if (!typeString) return [];
+
+  const types = new Set();
+
+  // Remove Promise wrapper
+  let cleaned = typeString.replace(/Promise\s*<\s*([^>]+)\s*>/g, '$1');
+
+  // Remove array notation
+  cleaned = cleaned.replace(/\[\]/g, '');
+
+  // Split by | for union types
+  const parts = cleaned.split(/\s*\|\s*/);
+
+  for (const part of parts) {
+    // Extract type name (alphanumeric + underscores, starting with uppercase)
+    const matches = part.match(/[A-Z][a-zA-Z0-9_]*/g);
+    if (matches) {
+      for (const match of matches) {
+        // Skip common primitive-like names and wrappers
+        if (!['Promise', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Function', 'Record', 'Partial', 'Required', 'Readonly'].includes(match)) {
+          types.add(match);
+        }
+      }
+    }
+  }
+
+  return Array.from(types);
+}
+
+/**
+ * Link a type name if it exists in typeMap, otherwise track as missing
+ */
+function linkType(typeName, typeMap, missingTypes, fileRelativePath) {
+  if (!typeName || typeName.length < 4) return typeName;
+
+  // Skip common words that aren't really types
+  const skipTypes = ['Type', 'Data', 'Info', 'List', 'Item', 'Node', 'Event', 'Error', 'Result', 'True', 'False', 'Null', 'Void'];
+  if (skipTypes.includes(typeName)) return typeName;
+
+  if (typeMap.has(typeName)) {
+    const typeInfo = typeMap.get(typeName);
+    return `[${typeName}](${typeInfo.url})`;
+  } else {
+    // Track missing type
+    if (!missingTypes[typeName]) {
+      missingTypes[typeName] = {
+        type: typeName,
+        usedIn: [],
+        firstFound: new Date().toISOString()
+      };
+    }
+    if (!missingTypes[typeName].usedIn.includes(fileRelativePath)) {
+      missingTypes[typeName].usedIn.push(fileRelativePath);
+    }
+    return typeName;
+  }
+}
+
+/**
+ * Link types within a type string (handles Promise<Type>, Type[], unions)
+ */
+function linkTypeString(typeString, typeMap, missingTypes, fileRelativePath) {
+  if (!typeString) return typeString;
+
+  let result = typeString;
+  const typeNames = extractTypeNames(typeString);
+
+  // Sort by length (longest first) to avoid partial matches
+  typeNames.sort((a, b) => b.length - a.length);
+
+  for (const typeName of typeNames) {
+    if (typeMap.has(typeName)) {
+      const typeInfo = typeMap.get(typeName);
+      // Replace the type name with linked version (but be careful not to double-link)
+      const regex = new RegExp(`\\b${typeName}\\b(?![^\\[]*\\])`, 'g');
+      result = result.replace(regex, `[${typeName}](${typeInfo.url})`);
+    } else if (typeName.length >= 4) {
+      // Track missing type
+      if (!missingTypes[typeName]) {
+        missingTypes[typeName] = {
+          type: typeName,
+          usedIn: [],
+          firstFound: new Date().toISOString()
+        };
+      }
+      if (!missingTypes[typeName].usedIn.includes(fileRelativePath)) {
+        missingTypes[typeName].usedIn.push(fileRelativePath);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Save missing types to JSON file
+ */
+function saveMissingTypes(missingTypes) {
+  const data = {
+    schemaVersion: '1.0.0',
+    generatedAt: new Date().toISOString(),
+    totalMissing: Object.keys(missingTypes).length,
+    types: Object.values(missingTypes).sort((a, b) => b.usedIn.length - a.usedIn.length)
+  };
+
+  // Ensure data directory exists
+  const dataDir = path.dirname(CONFIG.missingRefPath);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  fs.writeFileSync(CONFIG.missingRefPath, JSON.stringify(data, null, 2));
+}
+
+// ============================================
+// File Discovery Functions
+// ============================================
 
 /**
  * Find all markdown files in ApiAccess folder
@@ -130,7 +310,7 @@ function parseMarkdownFile(filePath) {
 }
 
 /**
- * Generate function signature from frontmatter
+ * Generate function signature from frontmatter (no linking in code blocks)
  */
 function generateFunctionSignature(frontmatter) {
   if (!frontmatter.data || !frontmatter.cbparameters) {
@@ -187,9 +367,9 @@ function generateBaseInfoContent(frontmatter) {
 }
 
 /**
- * Generate CBParameters content in bullet-point format
+ * Generate CBParameters content in bullet-point format with type linking
  */
-function generateParametersContent(frontmatter) {
+function generateParametersContent(frontmatter, typeMap, missingTypes, fileRelativePath, enableLinking = true) {
   if (!frontmatter.cbparameters) {
     return '';
   }
@@ -203,9 +383,14 @@ function generateParametersContent(frontmatter) {
     content += '### Parameters\n\n';
 
     for (const param of params) {
-      const typeName = param.typeName || 'unknown';
+      let typeName = param.typeName || 'unknown';
       const description = param.description || '';
       const isOptional = param.isOptional ? ', optional' : '';
+
+      // Link types if enabled
+      if (enableLinking && typeMap) {
+        typeName = linkTypeString(typeName, typeMap, missingTypes, fileRelativePath);
+      }
 
       content += `- **\`${param.name}\`** (${typeName}${isOptional}): ${description}\n`;
     }
@@ -220,6 +405,11 @@ function generateParametersContent(frontmatter) {
     let returnType = returns.signatureTypeName;
     if (returns.typeArgs && returns.typeArgs.length > 0 && returns.typeArgs[0].name) {
       returnType = `${returnType}<${returns.typeArgs[0].name}>`;
+    }
+
+    // Link return type if enabled
+    if (enableLinking && typeMap) {
+      returnType = linkTypeString(returnType, typeMap, missingTypes, fileRelativePath);
     }
 
     const description = returns.description || '';
@@ -237,9 +427,9 @@ function needsMigration(body) {
 }
 
 /**
- * Migrate file content
+ * Migrate file content with optional type linking
  */
-function migrateContent(frontmatter, body) {
+function migrateContent(frontmatter, body, typeMap, missingTypes, fileRelativePath, enableLinking = true) {
   if (!frontmatter) {
     return body;
   }
@@ -248,7 +438,7 @@ function migrateContent(frontmatter, body) {
 
   // Generate replacement content
   const baseInfoContent = generateBaseInfoContent(frontmatter);
-  const parametersContent = generateParametersContent(frontmatter);
+  const parametersContent = generateParametersContent(frontmatter, typeMap, missingTypes, fileRelativePath, enableLinking);
 
   // Replace <CBBaseInfo/> or <CBBaseInfo /> with actual content
   newBody = newBody.replace(/<CBBaseInfo\s*\/>/gi, baseInfoContent);
@@ -269,8 +459,9 @@ function rebuildFileContent(frontmatterStr, newBody) {
 /**
  * Process a single file
  */
-function processFile(fileInfo, options) {
+function processFile(fileInfo, options, typeMap, missingTypes) {
   const { fullPath, relativePath } = fileInfo;
+  const enableLinking = !options.noLinking && typeMap;
 
   if (options.verbose) {
     console.log(`\nProcessing: ${relativePath}`);
@@ -284,38 +475,72 @@ function processFile(fileInfo, options) {
     if (options.verbose) {
       console.log(`  Skipped: No CBBaseInfo/CBParameters found`);
     }
-    return { status: 'skipped', reason: 'no-components' };
+    return { status: 'skipped', reason: 'no-components', linksAdded: 0 };
   }
 
   if (!frontmatter) {
     if (options.verbose) {
       console.log(`  Skipped: No valid frontmatter`);
     }
-    return { status: 'skipped', reason: 'no-frontmatter' };
+    return { status: 'skipped', reason: 'no-frontmatter', linksAdded: 0 };
   }
 
-  // Migrate content
-  const newBody = migrateContent(frontmatter, body);
+  // Track links before migration (for counting)
+  const missingBefore = Object.keys(missingTypes).length;
+
+  // Migrate content with type linking
+  const newBody = migrateContent(frontmatter, body, typeMap, missingTypes, relativePath, enableLinking);
+
+  // Count types that were successfully linked (not added to missingTypes)
+  const linkedTypes = [];
+  if (enableLinking && frontmatter.cbparameters) {
+    // Collect all types that should have been linked
+    const params = frontmatter.cbparameters.parameters || [];
+    for (const param of params) {
+      if (param.typeName) {
+        const types = extractTypeNames(param.typeName);
+        for (const t of types) {
+          if (typeMap.has(t)) linkedTypes.push(t);
+        }
+      }
+    }
+    const returns = frontmatter.cbparameters.returns;
+    if (returns?.signatureTypeName) {
+      let returnType = returns.signatureTypeName;
+      if (returns.typeArgs?.[0]?.name) {
+        returnType += `<${returns.typeArgs[0].name}>`;
+      }
+      const types = extractTypeNames(returnType);
+      for (const t of types) {
+        if (typeMap.has(t)) linkedTypes.push(t);
+      }
+    }
+  }
 
   // Check if content actually changed
   if (newBody === body) {
     if (options.verbose) {
       console.log(`  Skipped: No changes needed`);
     }
-    return { status: 'skipped', reason: 'no-changes' };
+    return { status: 'skipped', reason: 'no-changes', linksAdded: 0 };
   }
 
   // Rebuild file
   const newContent = rebuildFileContent(frontmatterStr, newBody);
 
   if (options.dryRun) {
-    console.log(`  [DRY RUN] Would migrate: ${relativePath}`);
+    const uniqueLinked = [...new Set(linkedTypes)];
+    let msg = `  [DRY RUN] Would migrate: ${relativePath}`;
+    if (uniqueLinked.length > 0) {
+      msg += ` (${uniqueLinked.length} types linked: ${uniqueLinked.join(', ')})`;
+    }
+    console.log(msg);
     if (options.verbose) {
       console.log('  --- New content preview (first 500 chars) ---');
       console.log(newContent.substring(0, 500));
       console.log('  --- End preview ---');
     }
-    return { status: 'would-migrate', newContent };
+    return { status: 'would-migrate', newContent, linksAdded: uniqueLinked.length };
   }
 
   // Create backup if requested
@@ -329,9 +554,14 @@ function processFile(fileInfo, options) {
 
   // Write new content
   fs.writeFileSync(fullPath, newContent, 'utf8');
-  console.log(`  Migrated: ${relativePath}`);
+  const uniqueLinked = [...new Set(linkedTypes)];
+  let msg = `  Migrated: ${relativePath}`;
+  if (uniqueLinked.length > 0) {
+    msg += ` (${uniqueLinked.length} types linked)`;
+  }
+  console.log(msg);
 
-  return { status: 'migrated', newContent };
+  return { status: 'migrated', newContent, linksAdded: uniqueLinked.length };
 }
 
 /**
@@ -340,14 +570,30 @@ function processFile(fileInfo, options) {
 function main() {
   const options = parseArgs();
 
-  console.log('=== CBParams Migration Script ===\n');
+  console.log('=== CBParams Migration Script with Type Linking ===\n');
   console.log('Options:', {
     dryRun: options.dryRun,
     module: options.module || 'all',
     file: options.file || 'all',
     backup: options.backup,
-    verbose: options.verbose
+    verbose: options.verbose,
+    typeLinking: !options.noLinking
   });
+
+  // Build type map for linking (unless disabled)
+  let typeMap = null;
+  if (!options.noLinking) {
+    console.log('\nBuilding type map...');
+    typeMap = buildTypeMap();
+    console.log(`  Found ${typeMap.size} types in reference documentation`);
+
+    if (options.verbose) {
+      console.log('  Sample types:', Array.from(typeMap.keys()).slice(0, 10).join(', '));
+    }
+  }
+
+  // Track missing types
+  const missingTypes = {};
 
   // Handle single file processing
   if (options.file) {
@@ -365,8 +611,17 @@ function main() {
     };
 
     console.log(`\nProcessing single file: ${options.file}`);
-    const result = processFile(fileInfo, options);
+    const result = processFile(fileInfo, options, typeMap, missingTypes);
     console.log(`\nResult: ${result.status}`);
+    if (result.linksAdded > 0) {
+      console.log(`Types linked: ${result.linksAdded}`);
+    }
+
+    // Save missing types
+    if (Object.keys(missingTypes).length > 0) {
+      saveMissingTypes(missingTypes);
+      console.log(`\nMissing types: ${Object.keys(missingTypes).length} (saved to missing-ref.json)`);
+    }
     return;
   }
 
@@ -381,21 +636,24 @@ function main() {
     migrated: 0,
     skipped: 0,
     wouldMigrate: 0,
-    errors: 0
+    errors: 0,
+    totalLinks: 0
   };
 
   console.log('\n=== Processing Files ===');
 
   for (const fileInfo of files) {
     try {
-      const result = processFile(fileInfo, options);
+      const result = processFile(fileInfo, options, typeMap, missingTypes);
 
       switch (result.status) {
         case 'migrated':
           stats.migrated++;
+          stats.totalLinks += result.linksAdded || 0;
           break;
         case 'would-migrate':
           stats.wouldMigrate++;
+          stats.totalLinks += result.linksAdded || 0;
           break;
         case 'skipped':
           stats.skipped++;
@@ -405,6 +663,11 @@ function main() {
       console.error(`  Error processing ${fileInfo.relativePath}: ${error.message}`);
       stats.errors++;
     }
+  }
+
+  // Save missing types
+  if (Object.keys(missingTypes).length > 0 && !options.dryRun) {
+    saveMissingTypes(missingTypes);
   }
 
   // Summary
@@ -418,6 +681,11 @@ function main() {
   console.log(`Skipped: ${stats.skipped}`);
   console.log(`Errors: ${stats.errors}`);
 
+  if (!options.noLinking) {
+    console.log(`Types linked: ${stats.totalLinks}`);
+    console.log(`Missing types: ${Object.keys(missingTypes).length} (saved to missing-ref.json)`);
+  }
+
   if (options.dryRun) {
     console.log('\n[DRY RUN] No files were modified. Remove --dry-run to apply changes.');
   }
@@ -430,7 +698,11 @@ module.exports = {
   generateBaseInfoContent,
   generateParametersContent,
   migrateContent,
-  needsMigration
+  needsMigration,
+  buildTypeMap,
+  extractTypeNames,
+  linkTypeString,
+  saveMissingTypes
 };
 
 // Run if executed directly

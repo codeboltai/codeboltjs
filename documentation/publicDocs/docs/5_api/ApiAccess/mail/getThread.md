@@ -15,8 +15,20 @@ data:
   category: mail
   link: getThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThread
+
+```typescript
+codebolt.mail.getThread(params: IGetThreadParams): Promise<IGetThreadResponse>
+```
+
+Retrieves detailed information about a specific mail thread.
+### Parameters
+
+- **`params`** (IGetThreadParams): Object containing the threadId to retrieve.
+
+### Returns
+
+- **`Promise<IGetThreadResponse>`**: A promise that resolves with the thread details.
 
 ### Response Structure
 

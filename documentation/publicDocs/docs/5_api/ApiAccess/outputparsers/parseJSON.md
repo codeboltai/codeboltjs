@@ -16,8 +16,20 @@ data:
   category: outputparsers
   link: parseJSON.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# parseJSON
+
+```typescript
+codebolt.outputparsers.parseJSON(jsonString: string): Object
+```
+
+Parses JSON string and returns a result object with success flag and parsed data or error. 
+### Parameters
+
+- **`jsonString`** (string): The JSON string to parse.
+
+### Returns
+
+- **`Object`**: An object with success flag and parsed data or error information.
 
 ## Response Structure
 
@@ -339,4 +351,4 @@ const result = await parseJSONWithRecovery(
 - **Large JSON**: For large JSON payloads (>1MB), consider streaming or chunking
 - **Deep Nesting**: Very deep nesting may impact performance
 - **Validation**: Schema validation adds overhead - use only when necessary
-- **Memory**: Large JSON objects consume significant memory 
+- **Memory**: Large JSON objects consume significant memory

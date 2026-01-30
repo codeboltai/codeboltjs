@@ -1,14 +1,10 @@
----
-title: ShellProcessorModifier
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: ShellProcessorModifier
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:15
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:15](packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts#L15)
 
 ## Extends
 
@@ -22,7 +18,7 @@ Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/shellProc
 new ShellProcessorModifier(options: ShellProcessorOptions): ShellProcessorModifier;
 ```
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:22
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:22](packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts#L22)
 
 #### Parameters
 
@@ -44,7 +40,7 @@ BasePostToolCallProcessor.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BasePostToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:16](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePostToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:16](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L16) |
 
 ## Methods
 
@@ -54,7 +50,7 @@ BasePostToolCallProcessor.constructor
 clearContext(): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:32
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:32](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L32)
 
 #### Returns
 
@@ -74,7 +70,7 @@ BasePostToolCallProcessor.clearContext
 getContext(key: string): unknown;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:28
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:28](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L28)
 
 #### Parameters
 
@@ -100,7 +96,7 @@ BasePostToolCallProcessor.getContext
 modify(input: PostToolCallProcessorInput): Promise<PostToolCallProcessorOutput>;
 ```
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:33
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts:33](packages/agent/src/processor-pieces/postToolCallProcessors/shellProcessorModifier.ts#L33)
 
 #### Parameters
 
@@ -126,7 +122,7 @@ BasePostToolCallProcessor.modify
 setContext(key: string, value: unknown): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:24
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:24](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L24)
 
 #### Parameters
 

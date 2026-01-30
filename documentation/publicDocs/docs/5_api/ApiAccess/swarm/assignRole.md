@@ -22,8 +22,22 @@ data:
   category: swarm
   link: assignRole.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# assignRole
+
+```typescript
+codebolt.swarm.assignRole(swarmId: string, roleId: string, agentId: string): Promise<AssignRoleResponse>
+```
+
+Assigns a role to an agent, granting them the role's permissions and responsibilities.
+### Parameters
+
+- **`swarmId`** (string): The ID of the swarm containing the role.
+- **`roleId`** (string): The ID of the role to assign.
+- **`agentId`** (string): The ID of the agent to assign the role to.
+
+### Returns
+
+- **`Promise<[AssignRoleResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AssignRoleResponse)>`**: A promise that resolves when the role is assigned.
 
 ### Examples
 

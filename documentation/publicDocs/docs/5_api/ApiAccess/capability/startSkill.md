@@ -24,8 +24,22 @@ data:
   category: capability
   link: startSkill.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# startSkill
+
+```typescript
+codebolt.capability.startSkill(skillName: string, params: Record<string, any>, timeout: number): Promise<StartCapabilityResponse>
+```
+
+Starts execution of a skill with optional parameters and timeout settings. This is a convenience method for startCapability with type 'skill'.
+### Parameters
+
+- **`skillName`** (string): The name of the skill to execute.
+- **`params`** (Record<string, any>, optional): Optional parameters to pass to the skill execution.
+- **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the skill's default timeout.
+
+### Returns
+
+- **`Promise<[StartCapabilityResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse)>`**: A promise that resolves to the execution response containing the execution ID and initial status.
 
 ### Response Structure
 

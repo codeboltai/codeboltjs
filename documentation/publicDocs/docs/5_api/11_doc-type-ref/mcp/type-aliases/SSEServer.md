@@ -1,8 +1,4 @@
----
-title: SSEServer
----
-
-[**@codebolt/mcp**](../index)
+[**@codebolt/mcp**](../README.md)
 
 ***
 
@@ -14,7 +10,7 @@ type SSEServer = {
 };
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:39
+Defined in: [packages/mcp/src/mcpServer.ts:39](packages/mcp/src/mcpServer.ts#L39)
 
 Type definition for SSE Server that can be closed.
 

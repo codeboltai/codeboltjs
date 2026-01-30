@@ -18,8 +18,21 @@ data:
   category: job
   link: createJob.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createJob
+
+```typescript
+codebolt.job.createJob(groupId: string, data: CreateJobData): Promise<JobCreateResponse>
+```
+
+Creates a new job in a specified job group. Jobs represent units of work like tasks, bugs, or features that need to be tracked and managed.
+### Parameters
+
+- **`groupId`** (string): The ID of the job group to create the job in.
+- **`data`** ([CreateJobData](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateJobData)): The job data including name, type, priority, and optional fields.
+
+### Returns
+
+- **`Promise<[JobCreateResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/JobCreateResponse)>`**: A promise that resolves with the created job.
 
 ### CreateJobData Properties
 

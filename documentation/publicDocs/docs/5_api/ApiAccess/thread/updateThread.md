@@ -18,8 +18,21 @@ data:
   category: thread
   link: updateThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateThread
+
+```typescript
+codebolt.thread.updateThread(threadId: string, updates: UpdateThreadOptions): Promise<UpdateThreadResponse>
+```
+
+Updates properties of an existing thread including title, description, and metadata.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to update.
+- **`updates`** (UpdateThreadOptions): Object containing the fields to update (title, description, metadata, etc.).
+
+### Returns
+
+- **`Promise<UpdateThreadResponse>`**: A promise that resolves with the updated thread details.
 
 ### Response Structure
 

@@ -16,8 +16,20 @@ data:
   category: browser
   link: click.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# click
+
+```typescript
+codebolt.browser.click(elementid: string): Promise<ClickResponse>
+```
+
+Clicks on a specified element on the page.
+### Parameters
+
+- **`elementid`** (string): The ID of the element to click.
+
+### Returns
+
+- **`Promise<ClickResponse>`**: A promise that resolves when the click action is complete.
 
 ### Response Structure
 
@@ -66,4 +78,3 @@ await codebolt.browser.click("checkbox-id");
 - The `elementid` parameter must correspond to an existing element ID on the current page
 - The element must be visible and clickable for the operation to succeed
 - The response provides confirmation of the click action and any relevant page state changes
-

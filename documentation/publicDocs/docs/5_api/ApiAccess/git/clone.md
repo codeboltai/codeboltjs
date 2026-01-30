@@ -18,8 +18,21 @@ data:
   category: git
   link: clone.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# clone
+
+```typescript
+codebolt.git.clone(url: string, path: string): Promise<GitCloneResponse>
+```
+
+Clones a Git repository from a given URL to a specified local directory. Downloads the complete repository history including all files, branches, and commit history to the specified path.
+### Parameters
+
+- **`url`** (string): The URL of the Git repository to clone (e.g., 'https://github.com/user/repo.git', 'git@github.com:user/repo.git').
+- **`path`** (string): The file system path where the repository should be cloned to (e.g., './my-project', '/home/user/projects/repo', '.').
+
+### Returns
+
+- **`Promise<GitCloneResponse>`**: A promise that resolves with information about the cloned repository including success status and details.
 
 ### Response Structure
 

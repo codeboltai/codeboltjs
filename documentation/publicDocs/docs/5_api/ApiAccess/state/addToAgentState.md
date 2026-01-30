@@ -19,8 +19,21 @@ data:
   category: state
   link: addToAgentState.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addToAgentState
+
+```typescript
+codebolt.state.addToAgentState(key: string, value: string): Promise<AddToAgentStateResponse>
+```
+
+Adds a key-value pair to the agent's state.
+### Parameters
+
+- **`key`** (string): The key to add to the agent's state.
+- **`value`** (string): The value to associate with the key.
+
+### Returns
+
+- **`Promise<AddToAgentStateResponse>`**: A promise that resolves with the response to the addition request.
 
 ### Example 1: Add Simple Value to Agent State
 

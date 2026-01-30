@@ -13,8 +13,16 @@ data:
   category: browser
   link: getBrowserInfo.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getBrowserInfo
+
+```typescript
+codebolt.browser.getBrowserInfo(): Promise<any>
+```
+
+Retrieves browser information like height, width, scroll position of the current page. 
+### Returns
+
+- **`Promise<any>`**: 'A promise that resolves with the browser information.'
 
 ### Response Structure
 

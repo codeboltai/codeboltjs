@@ -15,8 +15,20 @@ data:
   category: hook
   link: initialize.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# initialize
+
+```typescript
+codebolt.hook.initialize(projectPath: string): Promise<HookInitializeResponse>
+```
+
+Initializes the hook manager for a project directory, setting up the infrastructure for managing hooks.
+### Parameters
+
+- **`projectPath`** (string): The absolute path to the project directory where hooks will be managed.
+
+### Returns
+
+- **`Promise<[HookInitializeResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/HookInitializeResponse)>`**: A promise that resolves when the hook manager is initialized.
 
 ### Response Structure
 

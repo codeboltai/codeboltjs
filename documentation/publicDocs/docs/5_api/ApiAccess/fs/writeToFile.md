@@ -21,8 +21,21 @@ data:
   category: fs
   link: writeToFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# writeToFile
+
+```typescript
+codebolt.fs.writeToFile(relPath: string, newContent: string): Promise<WriteToFileResponse>
+```
+
+'Writes content to a file at the specified path. Creates the file if it doesn''t exist or overwrites if it does.' 
+### Parameters
+
+- **`relPath`** (string): The relative path of the file to write to.
+- **`newContent`** (string): The new content to write into the file.
+
+### Returns
+
+- **`Promise<WriteToFileResponse>`**: A promise that resolves with the write operation result.
 
 ## Examples
 

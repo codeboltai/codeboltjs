@@ -17,8 +17,20 @@ data:
   category: search
   link: init.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# init
+
+```typescript
+codebolt.search.init(engine: string): void
+```
+
+Initializes the search module with the specified search engine.
+### Parameters
+
+- **`engine`** (string): The search engine to use (default: "bing"). Supported engines include "bing", "google", etc.
+
+### Returns
+
+- **`void`**: No return value.
 
 ### Example 1: Initialize with Default Engine
 

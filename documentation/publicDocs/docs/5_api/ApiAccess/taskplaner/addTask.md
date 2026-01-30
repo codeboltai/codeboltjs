@@ -15,8 +15,20 @@ data:
   category: taskplaner
   link: addTask.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# addTask
+
+```typescript
+codebolt.taskplaner.addTask(task: string): Promise<AddTaskResponse>
+```
+
+Adds a new task to the task management system via WebSocket communication. This method creates a new task with the provided description and stores it in the system for tracking and management. 
+### Parameters
+
+- **`task`** (string): The task description to be added. This should be a clear, descriptive string that explains what needs to be accomplished.
+
+### Returns
+
+- **`Promise<AddTaskResponse>`**: A promise that resolves with the response containing the newly created task information.
 
 ### Response Structure
 

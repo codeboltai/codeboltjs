@@ -80,6 +80,18 @@ const CONFIG = {
             tsconfig: path.resolve(MONOREPO_ROOT, 'packages/mcp/tsconfig.json'),
             cwd: path.resolve(MONOREPO_ROOT, 'packages/mcp'),
         },
+        {
+            name: '@codebolt/types',
+            slug: 'types',
+            label: 'SDK Types',
+            position: 5,
+            description: 'Shared TypeScript types for Codebolt SDK functions',
+            entryPoints: [
+                path.resolve(MONOREPO_ROOT, 'common/types/src/sdk-types.ts'),
+            ],
+            tsconfig: path.resolve(MONOREPO_ROOT, 'common/types/tsconfig.json'),
+            cwd: path.resolve(MONOREPO_ROOT, 'common/types'),
+        },
     ],
 
     // TypeDoc options for Docusaurus-friendly markdown

@@ -24,8 +24,22 @@ data:
   category: fileUpdateIntent
   link: create.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# create
+
+```typescript
+codebolt.fileUpdateIntent.create(data: undefined, claimedBy: undefined, claimedByName: undefined): Promise<{ intent?: FileUpdateIntent, overlap?: IntentOverlapResult }>
+```
+
+Creates a new file update intent with automatic overlap detection.
+### Parameters
+
+- **`data`** (unknown): Intent data including environmentId, files array, description, and options.
+- **`claimedBy`** (unknown): Agent ID claiming this intent.
+- **`claimedByName`** (unknown): Optional human-readable name of the agent.
+
+### Returns
+
+- **`Promise<{ intent?: [FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent), overlap?: [IntentOverlapResult](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IntentOverlapResult) }>`**: A promise that resolves with the created intent and overlap information.
 
 ### Response Structure
 

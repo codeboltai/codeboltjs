@@ -21,8 +21,22 @@ data:
   category: requirementPlan
   link: addSection.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addSection
+
+```typescript
+codebolt.requirementPlan.addSection(filePath: string, section: Omit<RequirementPlanSection, 'id' | 'order'>, afterIndex: number): Promise<RequirementPlanSectionResponse>
+```
+
+Adds a new section to a requirement plan document. Sections can contain various content types including markdown, links to other files, and code blocks.
+### Parameters
+
+- **`filePath`** (string): Path to the plan file
+- **`section`** (Omit<[RequirementPlanSection](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanSection), 'id' | 'order'>): Section data to add (id and order are auto-generated)
+- **`afterIndex`** (number): Optional index to insert section after (-1 for beginning)
+
+### Returns
+
+- **`Promise<[RequirementPlanSectionResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanSectionResponse)>`**: A promise that resolves to the updated document
 
 ### Parameter Details
 

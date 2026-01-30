@@ -1,14 +1,10 @@
----
-title: MCPServer
----
-
-[**@codebolt/mcp**](../index)
+[**@codebolt/mcp**](../README.md)
 
 ***
 
 # Class: MCPServer\<T\>
 
-Defined in: packages/mcp/src/mcpServer.ts:1221
+Defined in: [packages/mcp/src/mcpServer.ts:1221](packages/mcp/src/mcpServer.ts#L1221)
 
 Class representing a toolbox for FastMCP.
 Manages tools, resources, and prompts for a Model Context Protocol server.
@@ -31,7 +27,7 @@ Manages tools, resources, and prompts for a Model Context Protocol server.
 new MCPServer<T>(options: ServerOptions<T>): MCPServer<T>;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1236
+Defined in: [packages/mcp/src/mcpServer.ts:1236](packages/mcp/src/mcpServer.ts#L1236)
 
 Creates a new ToolBox instance.
 
@@ -71,13 +67,13 @@ FastMCPEventEmitter.constructor
 get sessions(): FastMCPSession<T>[];
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1246
+Defined in: [packages/mcp/src/mcpServer.ts:1246](packages/mcp/src/mcpServer.ts#L1246)
 
 Gets all active sessions.
 
 ##### Returns
 
-[`FastMCPSession`](FastMCPSession)\<`T`\>[]
+[`FastMCPSession`](FastMCPSession.md)\<`T`\>[]
 
 ## Methods
 
@@ -97,7 +93,7 @@ activate(options:
 }): Promise<void>;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1346
+Defined in: [packages/mcp/src/mcpServer.ts:1346](packages/mcp/src/mcpServer.ts#L1346)
 
 Activates the server.
 
@@ -105,7 +101,7 @@ Activates the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 
@@ -184,7 +180,7 @@ FastMCPEventEmitter.addListener
 addPrompt<Args>(prompt: InputPrompt<Args>): void;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1284
+Defined in: [packages/mcp/src/mcpServer.ts:1284](packages/mcp/src/mcpServer.ts#L1284)
 
 Adds a prompt to the server.
 
@@ -212,7 +208,7 @@ Adds a prompt to the server.
 addResource(resource: Resource): void;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1264
+Defined in: [packages/mcp/src/mcpServer.ts:1264](packages/mcp/src/mcpServer.ts#L1264)
 
 Adds a resource to the server.
 
@@ -234,7 +230,7 @@ Adds a resource to the server.
 addResourceTemplate<Args>(resource: InputResourceTemplate<Args>): void;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1273
+Defined in: [packages/mcp/src/mcpServer.ts:1273](packages/mcp/src/mcpServer.ts#L1273)
 
 Adds a resource template to the server.
 
@@ -262,7 +258,7 @@ Adds a resource template to the server.
 addTool<Params>(tool: Tool<T, Params>): void;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1255
+Defined in: [packages/mcp/src/mcpServer.ts:1255](packages/mcp/src/mcpServer.ts#L1255)
 
 Adds a tool to the server.
 
@@ -991,7 +987,7 @@ start(options:
 }): Promise<void>;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1295
+Defined in: [packages/mcp/src/mcpServer.ts:1295](packages/mcp/src/mcpServer.ts#L1295)
 
 Starts the server.
 
@@ -999,7 +995,7 @@ Starts the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 
@@ -1013,7 +1009,7 @@ Starts the server.
 stop(): Promise<void>;
 ```
 
-Defined in: packages/mcp/src/mcpServer.ts:1335
+Defined in: [packages/mcp/src/mcpServer.ts:1335](packages/mcp/src/mcpServer.ts#L1335)
 
 Stops the server.
 

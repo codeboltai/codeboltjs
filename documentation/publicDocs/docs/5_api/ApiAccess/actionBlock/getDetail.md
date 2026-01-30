@@ -16,8 +16,20 @@ data:
   category: actionBlock
   link: getDetail.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getDetail
+
+```typescript
+codebolt.actionBlock.getDetail(actionBlockName: string): Promise<GetActionBlockDetailResponse>
+```
+
+Retrieves detailed information about a specific ActionBlock including metadata, input parameters, and output structure.
+### Parameters
+
+- **`actionBlockName`** (string): The name of the ActionBlock to retrieve details for.
+
+### Returns
+
+- **`Promise<[GetActionBlockDetailResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetActionBlockDetailResponse)>`**: A promise that resolves to ActionBlock details.
 
 ### Response Structure
 

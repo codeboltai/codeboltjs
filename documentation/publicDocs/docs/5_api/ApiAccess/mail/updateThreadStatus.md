@@ -15,8 +15,20 @@ data:
   category: mail
   link: updateThreadStatus.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateThreadStatus
+
+```typescript
+codebolt.mail.updateThreadStatus(params: IUpdateThreadStatusParams): Promise<IUpdateThreadStatusResponse>
+```
+
+Updates the status of a mail thread (open, closed, or archived).
+### Parameters
+
+- **`params`** (IUpdateThreadStatusParams): Object containing threadId and the new status value.
+
+### Returns
+
+- **`Promise<IUpdateThreadStatusResponse>`**: A promise that resolves with the updated thread.
 
 ### Response Structure
 

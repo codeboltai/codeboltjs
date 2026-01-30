@@ -17,7 +17,7 @@ import type {
     GetPendingEventsResponseData,
     QueueStatsResponseData,
     QueueEventHandler
-} from '../types/agentEventQueue';
+} from '@codebolt/types/lib';
 
 // Re-export types for convenience
 export type {
@@ -31,13 +31,13 @@ export type {
     GetPendingEventsResponseData,
     QueueStatsResponseData,
     QueueEventHandler
-} from '../types/agentEventQueue';
+} from '@codebolt/types/lib';
 
 export {
     AgentEventType,
     AgentEventStatus,
     AgentEventPriority
-} from '../types/agentEventQueue';
+} from '@codebolt/types/lib';
 
 // ============================================================================
 // Unified External Event Types

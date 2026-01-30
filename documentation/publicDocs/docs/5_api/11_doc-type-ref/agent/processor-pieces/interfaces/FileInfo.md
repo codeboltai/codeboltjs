@@ -1,14 +1,10 @@
----
-title: FileInfo
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: FileInfo
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:13
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts:13](packages/agent/src/processor-pieces/messageModifiers/ideContextModifier.ts#L13)
 
 ## Properties
 

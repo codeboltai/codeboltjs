@@ -18,8 +18,21 @@ data:
   category: debug
   link: debugLog.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# debug
+
+```typescript
+codebolt.debug.debug(log: string, type: logType): Promise<DebugAddLogResponse>
+```
+
+Sends a log message to the debug websocket and waits for a response. The log will be displayed in the debug section of Codebolt. 
+### Parameters
+
+- **`log`** (string): The log message to send to the debug system.
+- **`type`** (logType): 'The type of the log message. Valid values are: "info", "error", "warning".'
+
+### Returns
+
+- **`Promise<DebugAddLogResponse>`**: A promise that resolves with a `DebugAddLogResponse` object containing the response type and log metadata.
 
 ### Response Structure
 

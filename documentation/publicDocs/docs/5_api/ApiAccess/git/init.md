@@ -15,8 +15,20 @@ data:
   category: git
   link: init.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# init
+
+```typescript
+codebolt.git.init(path: string): Promise<GitInitResponse>
+```
+
+Initializes a new Git repository. Can be used in the current directory or at a specified path to create a new Git repository for version control. 
+### Parameters
+
+- **`path`** (string): The file system path where the Git repository should be initialized (e.g., '.', '/path/to/project', './my-project').
+
+### Returns
+
+- **`Promise<GitInitResponse>`**: A promise that resolves with a `GitInitResponse` object containing the response type and initialization metadata.
 
 ### Response Structure
 

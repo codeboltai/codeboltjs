@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: getFilesWithIntents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getFilesWithIntents
+
+```typescript
+codebolt.fileUpdateIntent.getFilesWithIntents(environmentId: undefined): Promise<FileWithIntent[]>
+```
+
+Gets all files with active intents in an environment.
+### Parameters
+
+- **`environmentId`** (unknown): The environment ID to get files for.
+
+### Returns
+
+- **`Promise<FileWithIntent[]>`**: A promise that resolves with an array of files and their intents.
 
 ### Response Structure
 

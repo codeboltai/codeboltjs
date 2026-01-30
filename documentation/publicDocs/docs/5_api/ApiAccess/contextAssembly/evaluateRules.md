@@ -20,8 +20,21 @@ data:
   category: contextAssembly
   link: evaluateRules.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# evaluateRules
+
+```typescript
+codebolt.contextAssembly.evaluateRules(request: undefined, ruleEngineIds: undefined): Promise<RuleEvaluationResponse>
+```
+
+Evaluates context rules without fetching memory content.
+### Parameters
+
+- **`request`** (unknown): Context assembly request with scope variables.
+- **`ruleEngineIds`** (unknown): Optional specific rule engine IDs to evaluate.
+
+### Returns
+
+- **`Promise<[RuleEvaluationResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RuleEvaluationResponse)>`**: A promise that resolves with rule evaluation results.
 
 ### Response Structure
 

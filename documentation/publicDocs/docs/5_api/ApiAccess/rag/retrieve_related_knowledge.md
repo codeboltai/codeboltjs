@@ -19,8 +19,21 @@ data:
   category: rag
   link: retrieve_related_knowledge.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# retrieve_related_knowledge
+
+```typescript
+codebolt.rag.retrieve_related_knowledge(query: string, filename: string): Promise<any>
+```
+
+Retrieves related knowledge for a given query from the indexed files in the RAG system, enabling semantic search and context-aware information retrieval.
+### Parameters
+
+- **`query`** (string): The query or question to retrieve related knowledge for. Can be natural language or specific keywords.
+- **`filename`** (string): The name of the file to search within for related knowledge. Must be a file previously added to the RAG system.
+
+### Returns
+
+- **`Promise<any>`**: A promise that resolves with the retrieved knowledge or relevant information. The structure depends on the RAG implementation.
 
 ### Response Structure
 

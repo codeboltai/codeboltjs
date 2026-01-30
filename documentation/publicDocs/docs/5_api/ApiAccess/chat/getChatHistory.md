@@ -17,8 +17,16 @@ data:
   category: chat
   link: getChatHistory.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# getChatHistory
+
+```typescript
+codebolt.chat.getChatHistory(): Promise<ChatMessage>
+```
+
+Retrieves the chat history from the server. 
+ ### Returns
+
+- **`Promise<ChatMessage>`**: A promise that resolves with an array of ChatMessage objects representing the chat history.
 
 
 ### Response Structure
@@ -66,4 +74,4 @@ console.log(`Found ${agentMessages.length} agent messages and ${userMessages.len
 
 ### Explanation
 
-This function basically helps us get all the previous messages from our Codebolt chats. It returns a comprehensive history including message content, metadata, and timing information for each interaction in the conversation thread. 
+This function basically helps us get all the previous messages from our Codebolt chats. It returns a comprehensive history including message content, metadata, and timing information for each interaction in the conversation thread.

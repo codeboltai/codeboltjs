@@ -15,8 +15,20 @@ data:
   category: mail
   link: getMessage.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getMessage
+
+```typescript
+codebolt.mail.getMessage(params: IGetMessageParams): Promise<IGetMessageResponse>
+```
+
+Retrieves a specific message by its ID.
+### Parameters
+
+- **`params`** (IGetMessageParams): Object containing the messageId to retrieve.
+
+### Returns
+
+- **`Promise<IGetMessageResponse>`**: A promise that resolves with the message details.
 
 ### Response Structure
 

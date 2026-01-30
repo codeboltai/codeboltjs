@@ -20,8 +20,21 @@ data:
   category: fileUpdateIntent
   link: complete.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# complete
+
+```typescript
+codebolt.fileUpdateIntent.complete(id: undefined, closedBy: undefined): Promise<FileUpdateIntent>
+```
+
+Marks a file update intent as completed.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the file update intent.
+- **`closedBy`** (unknown): Agent ID completing the intent.
+
+### Returns
+
+- **`Promise<[FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent)>`**: A promise that resolves with the completed intent.
 
 ### Examples
 

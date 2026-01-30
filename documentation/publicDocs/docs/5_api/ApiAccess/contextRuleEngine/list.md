@@ -12,8 +12,16 @@ data:
   category: contextRuleEngine
   link: list.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# list
+
+```typescript
+codebolt.contextRuleEngine.list(): Promise<ContextRuleEngineListResponse>
+```
+
+Lists all available rule engines.
+### Returns
+
+- **`Promise<[ContextRuleEngineListResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextRuleEngineListResponse)>`**: A promise that resolves with an array of all rule engines.
 
 ### Examples
 

@@ -7,7 +7,7 @@ import type {
     FileUpdateIntent,
     IntentOverlapResult,
     FileWithIntent
-} from '../types/fileUpdateIntent';
+} from '@codebolt/types/lib';
 
 /**
  * File Update Intent service client for codeboltjs.

@@ -16,8 +16,20 @@ data:
   category: outputparsers
   link: parseCSV.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# parseCSV
+
+```typescript
+codebolt.outputparsers.parseCSV(csvString: string): Object
+```
+
+Parses CSV string and returns a result object with success flag and parsed array of objects. 
+### Parameters
+
+- **`csvString`** (string): The CSV string to parse.
+
+### Returns
+
+- **`Object`**: An object with success flag and parsed array of objects or error information.
 
 ## Response Structure
 
@@ -246,4 +258,4 @@ const result = await csvToJson(
 - **Large CSV**: For large CSV files (>10MB), consider streaming or chunking
 - **Memory**: Entire CSV is loaded into memory
 - **Complex Parsing**: Custom delimiters or quoted fields add overhead
-- **Column Count**: Varying column counts may cause issues 
+- **Column Count**: Varying column counts may cause issues

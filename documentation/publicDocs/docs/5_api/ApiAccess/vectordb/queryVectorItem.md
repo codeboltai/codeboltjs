@@ -18,8 +18,20 @@ data:
   category: vectordb
   link: queryVectorItem.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# queryVectorItem
+
+```typescript
+codebolt.vectordb.queryVectorItem(key: string): Promise<QueryVectorItemResponse>
+```
+
+Queries a vector item from the vector database based on the provided key.
+### Parameters
+
+- **`key`** (string): The key of the vector to query the item from.
+
+### Returns
+
+- **`Promise<QueryVectorItemResponse>`**: A promise that resolves with the queried vector item.
 
 ### Response Structure
 ```typescript

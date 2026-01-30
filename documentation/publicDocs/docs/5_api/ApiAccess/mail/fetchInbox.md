@@ -15,8 +15,20 @@ data:
   category: mail
   link: fetchInbox.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# fetchInbox
+
+```typescript
+codebolt.mail.fetchInbox(params: IFetchInboxParams): Promise<IFetchInboxResponse>
+```
+
+Fetches messages from the agent's inbox with optional filtering.
+### Parameters
+
+- **`params`** (IFetchInboxParams): Parameters including agentId, limit, offset, and filters.
+
+### Returns
+
+- **`Promise<IFetchInboxResponse>`**: A promise that resolves with inbox messages.
 
 ### Response Structure
 

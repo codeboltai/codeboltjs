@@ -1,14 +1,10 @@
----
-title: ChatRecordingModifier
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: ChatRecordingModifier
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:24
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:24](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L24)
 
 ## Extends
 
@@ -22,13 +18,13 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingMo
 new ChatRecordingModifier(options: ChatRecordingOptions): ChatRecordingModifier;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:28
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:28](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L28)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ChatRecordingOptions`](../interfaces/ChatRecordingOptions) |
+| `options` | [`ChatRecordingOptions`](../interfaces/ChatRecordingOptions.md) |
 
 #### Returns
 
@@ -44,7 +40,7 @@ BaseMessageModifier.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BaseMessageModifier.context` | [packages/agent/src/processor-pieces/base/baseMessageModifier.ts:16](packages/agent/src/processor-pieces/base/baseMessageModifier.ts#L16) |
 
 ## Methods
 
@@ -54,7 +50,7 @@ BaseMessageModifier.constructor
 getRecordingFile(): string | undefined;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:163
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:163](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L163)
 
 #### Returns
 
@@ -68,7 +64,7 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingMo
 isRecording(): boolean;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:167
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:167](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L167)
 
 #### Returns
 
@@ -82,7 +78,7 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingMo
 modify(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:43
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:43](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L43)
 
 #### Parameters
 
@@ -109,7 +105,7 @@ BaseMessageModifier.modify
 startRecording(customPath?: string): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:147
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:147](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L147)
 
 #### Parameters
 
@@ -129,7 +125,7 @@ Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingMo
 stopRecording(): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:155
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts:155](packages/agent/src/processor-pieces/messageModifiers/chatRecordingModifier.ts#L155)
 
 #### Returns
 

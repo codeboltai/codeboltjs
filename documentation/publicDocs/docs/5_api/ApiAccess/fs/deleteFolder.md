@@ -18,8 +18,21 @@ data:
   category: fs
   link: deleteFolder.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# deleteFolder
+
+```typescript
+codebolt.fs.deleteFolder(foldername: string, folderpath: string): Promise<DeleteFolderResponse>
+```
+
+Deletes a folder at the specified path. This function allows you to remove directories from the filesystem permanently. 
+### Parameters
+
+- **`foldername`** (string): The name of the folder to delete (e.g., 'temp-folder', 'old-build', 'cache').
+- **`folderpath`** (string): The path of the folder to delete (e.g., '.', '/home/user/documents', './temp').
+
+### Returns
+
+- **`Promise<DeleteFolderResponse>`**: A promise that resolves with a `DeleteFolderResponse` object containing the response type and folder deletion metadata.
 
 ### Response Structure
 

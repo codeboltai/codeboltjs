@@ -17,8 +17,20 @@ data:
   category: agentDeliberation
   link: list.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# list
+
+```typescript
+codebolt.agentDeliberation.list(params: IListDeliberationsParams): Promise<IListDeliberationsResponse>
+```
+
+Lists deliberations with optional filtering by type, status, participant, or search terms.
+### Parameters
+
+- **`params`** ([IListDeliberationsParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListDeliberationsParams), optional): Optional filters for the deliberation list.
+
+### Returns
+
+- **`Promise<[IListDeliberationsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListDeliberationsResponse)>`**: A promise that resolves to the list of deliberations.
 
 ### Examples
 

@@ -15,8 +15,20 @@ data:
   category: thread
   link: deleteThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# deleteThread
+
+```typescript
+codebolt.thread.deleteThread(threadId: string): Promise<DeleteThreadResponse>
+```
+
+Permanently deletes a thread and all its associated data including messages and file changes.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to delete.
+
+### Returns
+
+- **`Promise<DeleteThreadResponse>`**: A promise that resolves when the thread is successfully deleted.
 
 ### Response Structure
 

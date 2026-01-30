@@ -15,8 +15,20 @@ data:
   category: mail
   link: getMessages.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getMessages
+
+```typescript
+codebolt.mail.getMessages(params: IGetMessagesParams): Promise<IGetMessagesResponse>
+```
+
+Retrieves all messages from a specific mail thread.
+### Parameters
+
+- **`params`** (IGetMessagesParams): Object containing the threadId to get messages from.
+
+### Returns
+
+- **`Promise<IGetMessagesResponse>`**: A promise that resolves with an array of messages.
 
 ### Response Structure
 

@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: createRun.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# createRun
+
+```typescript
+codebolt.autoTesting.createRun(params: ICreateRunParams): Promise<ICreateRunResponse>
+```
+
+Creates a new test run from a test suite for execution tracking.
+### Parameters
+
+- **`params`** ([ICreateRunParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateRunParams)): Parameters including test suite ID and optional run name.
+
+### Returns
+
+- **`Promise<[ICreateRunResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateRunResponse)>`**: A promise that resolves to the created test run.
 
 ### Examples
 

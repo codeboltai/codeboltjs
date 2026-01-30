@@ -12,8 +12,16 @@ data:
   category: git
   link: pull.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# pull
+
+```typescript
+codebolt.git.pull(): Promise<GitPullResponse>
+```
+
+Pulls the latest changes from the remote repository to the local repository. Fetches and merges changes from the remote branch into the current local branch. 
+### Returns
+
+- **`Promise<GitPullResponse>`**: A promise that resolves with a `GitPullResponse` object containing the pull operation results and change statistics.
 
 ### Response Structure
 

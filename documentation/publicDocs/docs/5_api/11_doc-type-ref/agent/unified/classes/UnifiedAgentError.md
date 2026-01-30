@@ -1,14 +1,10 @@
----
-title: UnifiedAgentError
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: UnifiedAgentError
 
-Defined in: packages/agent/src/unified/types/types.ts:277
+Defined in: [packages/agent/src/unified/types/types.ts:277](packages/agent/src/unified/types/types.ts#L277)
 
 ## Extends
 
@@ -16,10 +12,10 @@ Defined in: packages/agent/src/unified/types/types.ts:277
 
 ## Extended by
 
-- [`UnifiedMessageProcessingError`](UnifiedMessageProcessingError)
-- [`UnifiedStepExecutionError`](UnifiedStepExecutionError)
-- [`UnifiedResponseExecutionError`](UnifiedResponseExecutionError)
-- [`UnifiedToolExecutionError`](UnifiedToolExecutionError)
+- [`UnifiedMessageProcessingError`](UnifiedMessageProcessingError.md)
+- [`UnifiedStepExecutionError`](UnifiedStepExecutionError.md)
+- [`UnifiedResponseExecutionError`](UnifiedResponseExecutionError.md)
+- [`UnifiedToolExecutionError`](UnifiedToolExecutionError.md)
 
 ## Constructors
 
@@ -32,7 +28,7 @@ new UnifiedAgentError(
    context?: Record<string, any>): UnifiedAgentError;
 ```
 
-Defined in: packages/agent/src/unified/types/types.ts:278
+Defined in: [packages/agent/src/unified/types/types.ts:278](packages/agent/src/unified/types/types.ts#L278)
 
 #### Parameters
 

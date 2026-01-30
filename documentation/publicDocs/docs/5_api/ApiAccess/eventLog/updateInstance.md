@@ -20,8 +20,21 @@ data:
   category: eventLog
   link: updateInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateInstance
+
+```typescript
+codebolt.eventLog.updateInstance(instanceId: undefined, updates: undefined): Promise<EventLogInstanceResponse>
+```
+
+Updates the name or description of an event log instance.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the event log instance.
+- **`updates`** (unknown): Object containing name and/or description to update.
+
+### Returns
+
+- **`Promise<[EventLogInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogInstanceResponse)>`**: A promise that resolves with the updated instance details.
 
 ### Examples
 

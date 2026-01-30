@@ -12,7 +12,7 @@ import type {
     RuleEvaluationResponse,
     RequiredVariablesResponse,
     ContextAssemblyRequest
-} from '../types/contextAssembly';
+} from '@codebolt/types/lib';
 
 const contextAssembly = {
     /**

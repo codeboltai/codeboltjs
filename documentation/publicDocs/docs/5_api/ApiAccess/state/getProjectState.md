@@ -13,8 +13,16 @@ data:
   category: state
   link: getProjectState.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getProjectState
+
+```typescript
+codebolt.state.getProjectState(): Promise<GetProjectStateResponse>
+```
+
+Gets the current project state.
+### Returns
+
+- **`Promise<GetProjectStateResponse>`**: A promise that resolves with the project's state data.
 
 ### Example 1: Basic Project State Retrieval
 

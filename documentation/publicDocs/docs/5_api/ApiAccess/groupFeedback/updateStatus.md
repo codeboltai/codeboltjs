@@ -15,8 +15,20 @@ data:
   category: groupFeedback
   link: updateStatus.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateStatus
+
+```typescript
+codebolt.groupFeedback.updateStatus(params: IUpdateStatusParams): Promise<IUpdateStatusResponse>
+```
+
+Updates the status of a feedback session to control its lifecycle.
+### Parameters
+
+- **`params`** ([IUpdateStatusParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateStatusParams)): Parameters including feedbackId and the new status value.
+
+### Returns
+
+- **`Promise<[IUpdateStatusResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateStatusResponse)>`**: A promise that resolves with the updated status.
 
 ### Examples
 

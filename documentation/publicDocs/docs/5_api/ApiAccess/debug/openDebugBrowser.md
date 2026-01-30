@@ -18,8 +18,21 @@ data:
   category: debug
   link: openDebugBrowser.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# openDebugBrowser
+
+```typescript
+codebolt.debug.openDebugBrowser(url: string, port: number): Promise<OpenDebugBrowserResponse>
+```
+
+Requests to open a debug browser at the specified URL and port. This enables debugging capabilities for web applications. 
+### Parameters
+
+- **`url`** (string): The URL where the debug browser should be opened (e.g., 'http://localhost:3000').
+- **`port`** (number): The port on which the debug browser will listen (e.g., 9222 for Chrome DevTools).
+
+### Returns
+
+- **`Promise<OpenDebugBrowserResponse>`**: A promise that resolves with an `OpenDebugBrowserResponse` object containing the response type and browser configuration.
 
 ### Response Structure
 

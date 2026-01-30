@@ -17,8 +17,20 @@ data:
   category: sideExecution
   link: stop.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# stop
+
+```typescript
+codebolt.sideExecution.stop(sideExecutionId: string): Promise<StopSideExecutionResponse>
+```
+
+Stops a running side execution process.
+### Parameters
+
+- **`sideExecutionId`** (string): The unique identifier of the side execution to stop.
+
+### Returns
+
+- **`Promise<[StopSideExecutionResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StopSideExecutionResponse)>`**: A promise that resolves when the execution is stopped.
 
 ### Response Structure
 

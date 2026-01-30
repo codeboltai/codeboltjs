@@ -12,8 +12,16 @@ data:
   category: git
   link: push.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# push
+
+```typescript
+codebolt.git.push(): Promise<GitPushResponse>
+```
+
+Pushes local repository changes to the remote repository. Uploads committed changes from the local branch to the corresponding remote branch. 
+### Returns
+
+- **`Promise<GitPushResponse>`**: A promise that resolves with a `GitPushResponse` object containing the push operation results.
 
 ### Response Structure
 

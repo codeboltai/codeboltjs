@@ -19,8 +19,21 @@ data:
   category: mcp
   link: configureMCPServer.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# configureMCPServer
+
+```typescript
+codebolt.mcp.configureMCPServer(name: string, config: MCPConfiguration): Promise<ConfigureToolBoxResponse>
+```
+
+Configures a specific MCP server with provided configuration.
+### Parameters
+
+- **`name`** (string): The name of the MCP server to configure.
+- **`config`** (MCPConfiguration): Configuration object for the server.
+
+### Returns
+
+- **`Promise<ConfigureToolBoxResponse>`**: A promise that resolves with the configuration result.
 
 ### Example 1: Basic Server Configuration
 

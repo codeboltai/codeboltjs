@@ -15,8 +15,20 @@ data:
   category: agent
   link: getAgentsList.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# GetAgentsList
+
+```typescript
+codebolt.agent.getAgentsList(type: string): Promise<ListAgentsResponse>
+```
+
+Retrieves a list of agents based on the specified type.
+### Parameters
+
+- **`type`** (string): Optional: The type of agents to list. Defaults to 'downloaded'. Possible values are 'downloaded', 'all', 'local'.
+
+### Returns
+
+- **`Promise<ListAgentsResponse>`**: A promise that resolves with a `ListAgentsResponse` object containing the list of agents.
 
 ### Response Structure
 

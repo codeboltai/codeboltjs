@@ -1,14 +1,10 @@
----
-title: ProviderState
----
-
-[**@codebolt/provider**](../index)
+[**@codebolt/provider**](../README.md)
 
 ***
 
 # Interface: ProviderState
 
-Defined in: ProviderTypes.ts:19
+Defined in: [ProviderTypes.ts:19](packages/provider/src/lib/ProviderTypes.ts#L19)
 
 ## Properties
 

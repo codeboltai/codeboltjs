@@ -13,8 +13,16 @@ data:
   category: browser
   link: getSnapShot.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getSnapShot
+
+```typescript
+codebolt.browser.getSnapShot(): Promise<any>
+```
+
+Retrieves a snapshot of the current page. 
+### Returns
+
+- **`Promise<any>`**: 'A promise that resolves with the snapshot data.'
 
 ### Response Structure
 
@@ -79,5 +87,3 @@ if (snapshotResult.success && snapshotResult.payload?.tree) {
 - This is useful for page analysis, element detection, and automated testing
 - The tree structure includes element hierarchy, attributes, and interactive states
 - The response contains detailed information about clickable elements and input values
-
- 

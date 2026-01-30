@@ -15,7 +15,7 @@ import type {
     UpdateIngestionPipelineParams,
     ListIngestionPipelineParams,
     ExecuteIngestionParams
-} from '../types/memoryIngestion';
+} from '@codebolt/types/lib';
 
 const memoryIngestion = {
     /**

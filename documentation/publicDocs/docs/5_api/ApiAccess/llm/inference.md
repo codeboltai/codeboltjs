@@ -36,8 +36,27 @@ data:
   category: llm
   link: inference.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# inference
+
+```typescript
+codebolt.llm.inference(message: LLMInferenceParams, message.messages: Message[], message.tools: Tool[], message.tool_choice: string | object, message.llmrole: string, message.max_tokens: number, message.temperature: number, message.stream: boolean): Promise<LLMResponse>
+```
+
+Sends an inference request to the LLM using OpenAI message format with tools support. The model is selected based on the provided llmrole parameter. If the specific model for the role is not found, it falls back to the default model for the current agent, and ultimately to the default application-wide LLM if necessary.
+### Parameters
+
+- **`message`** ([LLMInferenceParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/LLMInferenceParams)): The inference parameters object containing messages, tools, and configuration options.
+- **`message.messages`** ([Message](/docs/api/11_doc-type-ref/codeboltjs/interfaces/Message)[]): Array of conversation messages with roles ('user', 'assistant', 'tool', 'system') and content.
+- **`message.tools`** ([Tool](/docs/api/11_doc-type-ref/codeboltjs/interfaces/Tool)[]): Optional: Available tools for the model to use. Each tool has a type and function definition.
+- **`message.tool_choice`** (string | object): Optional: How the model should use tools. Can be 'auto', 'none', 'required', or an object specifying a specific function.
+- **`message.llmrole`** (string): The LLM role to determine which model to use for processing the request.
+- **`message.max_tokens`** (number): Optional: Maximum number of tokens to generate in the response.
+- **`message.temperature`** (number): Optional: Temperature for response generation (0.0 to 2.0). Higher values make output more random.
+- **`message.stream`** (boolean): Optional: Whether to stream the response. Defaults to false.
+
+### Returns
+
+- **`Promise<LLMResponse>`**: A promise that resolves with the LLM's response containing content, token usage, and completion details.
 
 ### Response Structure
 

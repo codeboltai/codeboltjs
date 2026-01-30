@@ -1,14 +1,10 @@
----
-title: ResponseExecutor
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: ResponseExecutor
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:6
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:6](packages/agent/src/unified/base/responseExecutor.ts#L6)
 
 ## Implements
 
@@ -25,7 +21,7 @@ new ResponseExecutor(options: {
 }): ResponseExecutor;
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:13
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:13](packages/agent/src/unified/base/responseExecutor.ts#L13)
 
 #### Parameters
 
@@ -47,7 +43,7 @@ Defined in: packages/agent/src/unified/base/responseExecutor.ts:13
 executeResponse(input: ResponseInput): Promise<ResponseOutput>;
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:23
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:23](packages/agent/src/unified/base/responseExecutor.ts#L23)
 
 Execute response processing including tool execution
 
@@ -75,7 +71,7 @@ AgentResponseExecutor.executeResponse
 getPostToolCallProcessors(): PostToolCallProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:386
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:386](packages/agent/src/unified/base/responseExecutor.ts#L386)
 
 #### Returns
 
@@ -95,7 +91,7 @@ AgentResponseExecutor.getPostToolCallProcessors
 getPreToolCallProcessors(): PreToolCallProcessor[];
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:383
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:383](packages/agent/src/unified/base/responseExecutor.ts#L383)
 
 #### Returns
 
@@ -115,7 +111,7 @@ AgentResponseExecutor.getPreToolCallProcessors
 setPostToolCallProcessors(processors: PostToolCallProcessor[]): void;
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:379
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:379](packages/agent/src/unified/base/responseExecutor.ts#L379)
 
 #### Parameters
 
@@ -141,7 +137,7 @@ AgentResponseExecutor.setPostToolCallProcessors
 setPreToolCallProcessors(processors: PreToolCallProcessor[]): void;
 ```
 
-Defined in: packages/agent/src/unified/base/responseExecutor.ts:376
+Defined in: [packages/agent/src/unified/base/responseExecutor.ts:376](packages/agent/src/unified/base/responseExecutor.ts#L376)
 
 #### Parameters
 

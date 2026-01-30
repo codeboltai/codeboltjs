@@ -15,8 +15,20 @@ data:
   category: mail
   link: registerAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# registerAgent
+
+```typescript
+codebolt.mail.registerAgent(params: IRegisterAgentParams): Promise<IRegisterAgentResponse>
+```
+
+Registers an agent with the mail system to enable sending and receiving messages.
+### Parameters
+
+- **`params`** (IRegisterAgentParams): Agent registration parameters including agentId, name, capabilities, and metadata.
+
+### Returns
+
+- **`Promise<IRegisterAgentResponse>`**: A promise that resolves with the registration result and agent details.
 
 ### Response Structure
 

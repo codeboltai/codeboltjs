@@ -16,8 +16,20 @@ data:
   category: kvStore
   link: getInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getInstance
+
+```typescript
+codebolt.kvStore.getInstance(instanceId: undefined): Promise<KVInstanceResponse>
+```
+
+Gets details of a specific KV store instance including its configuration and metadata.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance.
+
+### Returns
+
+- **`Promise<[KVInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse)>`**: A promise that resolves with the instance details including ID, name, description, and timestamps.
 
 ### Response Structure
 

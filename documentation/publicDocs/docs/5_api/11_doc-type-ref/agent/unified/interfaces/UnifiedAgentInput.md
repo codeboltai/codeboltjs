@@ -1,14 +1,10 @@
----
-title: UnifiedAgentInput
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: UnifiedAgentInput
 
-Defined in: packages/agent/src/unified/types/types.ts:136
+Defined in: [packages/agent/src/unified/types/types.ts:136](packages/agent/src/unified/types/types.ts#L136)
 
 Complete agent execution input
 
@@ -17,7 +13,7 @@ Complete agent execution input
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
 | <a id="context"></a> `context?` | `Record`\<`string`, `any`\> | Processing context | [packages/agent/src/unified/types/types.ts:142](packages/agent/src/unified/types/types.ts#L142) |
-| <a id="conversationhistory"></a> `conversationHistory?` | [`OpenAIMessage`](OpenAIMessage)[] | Previous conversation history | [packages/agent/src/unified/types/types.ts:144](packages/agent/src/unified/types/types.ts#L144) |
+| <a id="conversationhistory"></a> `conversationHistory?` | [`OpenAIMessage`](OpenAIMessage.md)[] | Previous conversation history | [packages/agent/src/unified/types/types.ts:144](packages/agent/src/unified/types/types.ts#L144) |
 | <a id="maxiterations"></a> `maxIterations?` | `number` | Maximum iterations for this execution | [packages/agent/src/unified/types/types.ts:146](packages/agent/src/unified/types/types.ts#L146) |
-| <a id="tools"></a> `tools?` | [`OpenAITool`](OpenAITool)[] | Available tools | [packages/agent/src/unified/types/types.ts:140](packages/agent/src/unified/types/types.ts#L140) |
+| <a id="tools"></a> `tools?` | [`OpenAITool`](OpenAITool.md)[] | Available tools | [packages/agent/src/unified/types/types.ts:140](packages/agent/src/unified/types/types.ts#L140) |
 | <a id="usermessage"></a> `userMessage` | `any` | User message or request | [packages/agent/src/unified/types/types.ts:138](packages/agent/src/unified/types/types.ts#L138) |

@@ -38,8 +38,21 @@ data:
   category: swarm
   link: registerAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# registerAgent
+
+```typescript
+codebolt.swarm.registerAgent(swarmId: string, data: AgentRegistration): Promise<RegisterAgentResponse>
+```
+
+Registers a new agent to a swarm, making it available for task assignment and coordination.
+### Parameters
+
+- **`swarmId`** (string): The ID of the swarm to register the agent to.
+- **`data`** ([AgentRegistration](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AgentRegistration)): Agent registration configuration.
+
+### Returns
+
+- **`Promise<[RegisterAgentResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RegisterAgentResponse)>`**: A promise that resolves with the agent registration details.
 
 ### Examples
 

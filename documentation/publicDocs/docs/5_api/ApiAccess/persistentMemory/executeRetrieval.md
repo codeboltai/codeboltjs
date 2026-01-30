@@ -32,8 +32,21 @@ data:
   category: persistentMemory
   link: executeRetrieval.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# executeRetrieval
+
+```typescript
+codebolt.persistentMemory.executeRetrieval(memoryId: string, intent: PipelineExecutionIntent): Promise<PersistentMemoryExecuteResponse>
+```
+
+Executes a persistent memory retrieval pipeline with context and returns formatted results.
+### Parameters
+
+- **`memoryId`** (string): The ID of the persistent memory to execute.
+- **`intent`** ([PipelineExecutionIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/PipelineExecutionIntent)): Execution intent with context and query information.
+
+### Returns
+
+- **`Promise<[PersistentMemoryExecuteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/PersistentMemoryExecuteResponse)>`**: A promise that resolves to retrieval results.
 
 ### Examples
 

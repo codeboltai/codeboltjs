@@ -15,8 +15,20 @@ data:
   category: codeutils
   link: getJsTree.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getJsTree
+
+```typescript
+codebolt.codeutils.getJsTree(filePath: string): Promise<JSTreeResponse>
+```
+
+Retrieves a JavaScript tree structure for a given file path. Analyzes JavaScript and TypeScript files to extract their structural representation. 
+### Parameters
+
+- **`filePath`** (string): Optional: The path of the file to retrieve the JS tree for. If not provided, an error will be returned.
+
+### Returns
+
+- **`Promise<JSTreeResponse>`**: A promise that resolves with a `JSTreeResponse` object containing file structure or error information.
 
 ### Response Structure
 

@@ -1,14 +1,10 @@
----
-title: ToolParameterModifierOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ToolParameterModifierOptions
 
-Defined in: packages/agent/src/processor-pieces/pretoolCallProcessors/toolParameterModifier.ts:20
+Defined in: [packages/agent/src/processor-pieces/pretoolCallProcessors/toolParameterModifier.ts:20](packages/agent/src/processor-pieces/pretoolCallProcessors/toolParameterModifier.ts#L20)
 
 ## Properties
 

@@ -15,8 +15,20 @@ data:
   category: groupFeedback
   link: list.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# list
+
+```typescript
+codebolt.groupFeedback.list(params: IListFeedbacksParams): Promise<IListFeedbacksResponse>
+```
+
+Lists all feedback sessions with optional filtering by status and participants.
+### Parameters
+
+- **`params`** ([IListFeedbacksParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListFeedbacksParams)): Optional filters including status, participantId, limit, and offset.
+
+### Returns
+
+- **`Promise<[IListFeedbacksResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListFeedbacksResponse)>`**: A promise that resolves with an array of feedback sessions.
 
 ### Examples
 

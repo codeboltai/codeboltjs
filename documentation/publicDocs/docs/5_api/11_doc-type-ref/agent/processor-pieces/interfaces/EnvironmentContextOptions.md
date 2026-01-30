@@ -1,14 +1,10 @@
----
-title: EnvironmentContextOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: EnvironmentContextOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:8
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts:8](packages/agent/src/processor-pieces/messageModifiers/environmentContextModifier.ts#L8)
 
 ## Properties
 

@@ -16,8 +16,20 @@ data:
   category: agentDeliberation
   link: update.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# update
+
+```typescript
+codebolt.agentDeliberation.update(params: IUpdateDeliberationParams): Promise<IUpdateDeliberationResponse>
+```
+
+Updates an existing deliberation's status or request message.
+### Parameters
+
+- **`params`** ([IUpdateDeliberationParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateDeliberationParams)): Parameters including deliberation ID and fields to update.
+
+### Returns
+
+- **`Promise<[IUpdateDeliberationResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateDeliberationResponse)>`**: A promise that resolves to the updated deliberation.
 
 ### Examples
 

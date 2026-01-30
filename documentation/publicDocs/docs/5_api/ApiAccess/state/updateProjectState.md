@@ -19,8 +19,21 @@ data:
   category: state
   link: updateProjectState.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateProjectState
+
+```typescript
+codebolt.state.updateProjectState(key: string, value: any): Promise<UpdateProjectStateResponse>
+```
+
+Updates the project state with a key-value pair.
+### Parameters
+
+- **`key`** (string): The key to update in the project state.
+- **`value`** (any): The value to set for the key (can be any type).
+
+### Returns
+
+- **`Promise<UpdateProjectStateResponse>`**: A promise that resolves with the response to the update request.
 
 ### Example 1: Update Simple Project Status
 

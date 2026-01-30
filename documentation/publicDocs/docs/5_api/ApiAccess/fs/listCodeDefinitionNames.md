@@ -18,8 +18,20 @@ data:
   category: fs
   link: listCodeDefinitionNames.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# listCodeDefinitionNames
+
+```typescript
+codebolt.fs.listCodeDefinitionNames(path: string): Promise<ListCodeDefinitionNamesResponse>
+```
+
+'Lists all code definition names in a given path. Extracts function names, class names, method names, and other code definitions from source files.' 
+### Parameters
+
+- **`path`** (string): The path to search for code definitions.
+
+### Returns
+
+- **`Promise<ListCodeDefinitionNamesResponse>`**: A promise that resolves with the list of code definition names.
 
 ## Examples
 

@@ -19,8 +19,21 @@ data:
   category: git
   link: checkout.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# checkout
+
+```typescript
+codebolt.git.checkout(branch: string, path: string): Promise<GitCheckoutResponse>
+```
+
+Checks out a branch or commit in the Git repository. Switches the working directory to the specified branch or commit, updating all files to match that state. 
+### Parameters
+
+- **`branch`** (string): The name of the branch or commit hash to check out (e.g., "main", "feature-branch", "develop", "abc123def").
+- **`path`** (string): 'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'
+
+### Returns
+
+- **`Promise<GitCheckoutResponse>`**: A promise that resolves with a `GitCheckoutResponse` object containing the checkout operation results.
 
 ### Response Structure
 

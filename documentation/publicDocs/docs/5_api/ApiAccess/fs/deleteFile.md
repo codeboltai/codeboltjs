@@ -18,8 +18,21 @@ data:
   category: fs
   link: deleteFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# deleteFile
+
+```typescript
+codebolt.fs.deleteFile(filename: string, filePath: string): Promise<DeleteFileResponse>
+```
+
+Deletes a file at the specified path. This function allows you to remove files from the filesystem permanently. 
+### Parameters
+
+- **`filename`** (string): The name of the file to delete (e.g., 'example.txt', 'old-config.json').
+- **`filePath`** (string): The path of the file to delete (e.g., '.', '/home/user/documents', './temp').
+
+### Returns
+
+- **`Promise<DeleteFileResponse>`**: A promise that resolves with a `DeleteFileResponse` object containing the response type and file deletion metadata.
 
 ### Response Structure
 

@@ -15,8 +15,20 @@ data:
   category: mail
   link: listReservations.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listReservations
+
+```typescript
+codebolt.mail.listReservations(params: IListReservationsParams): Promise<IListReservationsResponse>
+```
+
+Lists all active file reservations in the system.
+### Parameters
+
+- **`params`** (IListReservationsParams): Optional filters including agentId, threadId, and file paths.
+
+### Returns
+
+- **`Promise<IListReservationsResponse>`**: A promise that resolves with the list of active reservations.
 
 ### Examples
 

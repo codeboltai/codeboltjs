@@ -38,8 +38,20 @@ data:
   category: memoryIngestion
   link: create.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# create
+
+```typescript
+codebolt.memoryIngestion.create(config: CreateIngestionPipelineParams): Promise<IngestionPipelineResponse>
+```
+
+Creates a new memory ingestion pipeline for processing and routing data into memory stores.
+### Parameters
+
+- **`config`** ([CreateIngestionPipelineParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateIngestionPipelineParams)): Pipeline configuration object.
+
+### Returns
+
+- **`Promise<[IngestionPipelineResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IngestionPipelineResponse)>`**: A promise that resolves to the created pipeline details.
 
 ### Examples
 

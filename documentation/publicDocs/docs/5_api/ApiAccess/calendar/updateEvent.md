@@ -15,8 +15,20 @@ data:
   category: calendar
   link: updateEvent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateEvent
+
+```typescript
+codebolt.calendar.updateEvent(params: IUpdateEventParams): Promise<IUpdateEventResponse>
+```
+
+Updates an existing calendar event. Only the fields specified in the parameters are updated; all other fields remain unchanged.
+### Parameters
+
+- **`params`** ([IUpdateEventParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateEventParams)): Event update parameters including eventId and fields to update
+
+### Returns
+
+- **`Promise<[IUpdateEventResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateEventResponse)>`**: A promise that resolves to the updated event data
 
 ### Parameter Details
 

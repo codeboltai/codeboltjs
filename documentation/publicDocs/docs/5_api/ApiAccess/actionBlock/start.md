@@ -20,8 +20,21 @@ data:
   category: actionBlock
   link: start.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# start
+
+```typescript
+codebolt.actionBlock.start(actionBlockName: string, params: Record<string, any>): Promise<StartActionBlockResponse>
+```
+
+Starts execution of an ActionBlock by name with optional parameters.
+### Parameters
+
+- **`actionBlockName`** (string): The name of the ActionBlock to start.
+- **`params`** (Record<string, any>, optional): Optional parameters to pass to the ActionBlock.
+
+### Returns
+
+- **`Promise<[StartActionBlockResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartActionBlockResponse)>`**: A promise that resolves to the execution result.
 
 ### Response Structure
 

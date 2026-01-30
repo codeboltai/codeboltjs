@@ -15,8 +15,20 @@ data:
   category: tool
   link: listToolsFromToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listToolsFromToolBoxes
+
+```typescript
+codebolt.tool.listToolsFromToolBoxes(toolBoxes: array): Promise<ListToolsFromToolBoxesResponse>
+```
+
+Lists all tools from the specified toolboxes with their capabilities and descriptions.
+### Parameters
+
+- **`toolBoxes`** (array): Array of toolbox names to list tools from.
+
+### Returns
+
+- **`Promise<ListToolsFromToolBoxesResponse>`**: A promise that resolves with a `ListToolsFromToolBoxesResponse` object containing tools from the specified toolboxes.
 
 ### Response Structure
 

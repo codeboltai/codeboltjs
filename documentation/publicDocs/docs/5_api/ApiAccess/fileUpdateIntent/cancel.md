@@ -20,8 +20,21 @@ data:
   category: fileUpdateIntent
   link: cancel.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# cancel
+
+```typescript
+codebolt.fileUpdateIntent.cancel(id: undefined, cancelledBy: undefined): Promise<FileUpdateIntent>
+```
+
+Cancels a file update intent.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the file update intent.
+- **`cancelledBy`** (unknown): Agent ID cancelling the intent.
+
+### Returns
+
+- **`Promise<[FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent)>`**: A promise that resolves with the cancelled intent.
 
 ### Examples
 

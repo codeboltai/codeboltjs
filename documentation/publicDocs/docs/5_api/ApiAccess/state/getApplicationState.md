@@ -13,8 +13,16 @@ data:
   category: state
   link: getApplicationState.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getApplicationState
+
+```typescript
+codebolt.state.getApplicationState(): Promise<ApplicationState>
+```
+
+Gets the current application state from the server.
+### Returns
+
+- **`Promise<ApplicationState>`**: A promise that resolves with the application state object.
 
 ### Example 1: Basic Application State
 

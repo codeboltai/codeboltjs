@@ -12,8 +12,16 @@ data:
   category: mail
   link: listAgents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listAgents
+
+```typescript
+codebolt.mail.listAgents(): Promise<IListAgentsResponse>
+```
+
+Lists all registered agents in the mail system.
+### Returns
+
+- **`Promise<IListAgentsResponse>`**: A promise that resolves with an array of registered agents.
 
 ### Response Structure
 

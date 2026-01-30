@@ -1,14 +1,10 @@
----
-title: ProviderLifecycleHandlers
----
-
-[**@codebolt/provider**](../index)
+[**@codebolt/provider**](../README.md)
 
 ***
 
 # Interface: ProviderLifecycleHandlers
 
-Defined in: ProviderTypes.ts:51
+Defined in: [ProviderTypes.ts:51](packages/provider/src/lib/ProviderTypes.ts#L51)
 
 ## Methods
 
@@ -18,7 +14,7 @@ Defined in: ProviderTypes.ts:51
 onCloseSignal(): Promise<void>;
 ```
 
-Defined in: ProviderTypes.ts:56
+Defined in: [ProviderTypes.ts:56](packages/provider/src/lib/ProviderTypes.ts#L56)
 
 #### Returns
 
@@ -32,7 +28,7 @@ Defined in: ProviderTypes.ts:56
 onGetDiffFiles(): Promise<any>;
 ```
 
-Defined in: ProviderTypes.ts:55
+Defined in: [ProviderTypes.ts:55](packages/provider/src/lib/ProviderTypes.ts#L55)
 
 #### Returns
 
@@ -46,7 +42,7 @@ Defined in: ProviderTypes.ts:55
 onProviderAgentStart(message: AgentStartMessage): Promise<void>;
 ```
 
-Defined in: ProviderTypes.ts:53
+Defined in: [ProviderTypes.ts:53](packages/provider/src/lib/ProviderTypes.ts#L53)
 
 #### Parameters
 
@@ -66,7 +62,7 @@ Defined in: ProviderTypes.ts:53
 onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult>;
 ```
 
-Defined in: ProviderTypes.ts:52
+Defined in: [ProviderTypes.ts:52](packages/provider/src/lib/ProviderTypes.ts#L52)
 
 #### Parameters
 
@@ -76,7 +72,7 @@ Defined in: ProviderTypes.ts:52
 
 #### Returns
 
-`Promise`\<[`ProviderStartResult`](ProviderStartResult)\>
+`Promise`\<[`ProviderStartResult`](ProviderStartResult.md)\>
 
 ***
 
@@ -86,7 +82,7 @@ Defined in: ProviderTypes.ts:52
 onProviderStop(initVars: ProviderInitVars): Promise<void>;
 ```
 
-Defined in: ProviderTypes.ts:54
+Defined in: [ProviderTypes.ts:54](packages/provider/src/lib/ProviderTypes.ts#L54)
 
 #### Parameters
 
@@ -106,7 +102,7 @@ Defined in: ProviderTypes.ts:54
 onRawMessage(message: RawMessageForAgent): Promise<void>;
 ```
 
-Defined in: ProviderTypes.ts:57
+Defined in: [ProviderTypes.ts:57](packages/provider/src/lib/ProviderTypes.ts#L57)
 
 #### Parameters
 

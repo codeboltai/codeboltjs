@@ -13,8 +13,16 @@ data:
   category: browser
   link: getContent.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getContent
+
+```typescript
+codebolt.browser.getContent(): Promise<GetContentResponse>
+```
+
+Retrieves the content of the current page. 
+### Returns
+
+- **`Promise<GetContentResponse>`**: 'A promise that resolves with the content of the page.'
 
 ### Response Structure
 

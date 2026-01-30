@@ -15,8 +15,20 @@ data:
   category: tool
   link: searchAvailableToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# searchAvailableToolBoxes
+
+```typescript
+codebolt.tool.searchAvailableToolBoxes(query: string): Promise<SearchAvailableToolBoxesResponse>
+```
+
+Searches available toolboxes by name or description using a query string.
+### Parameters
+
+- **`query`** (string): Search string to match against toolbox metadata (name, description, tags).
+
+### Returns
+
+- **`Promise<SearchAvailableToolBoxesResponse>`**: A promise that resolves with a `SearchAvailableToolBoxesResponse` object containing matching toolbox configurations.
 
 ### Response Structure
 

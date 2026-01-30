@@ -13,8 +13,16 @@ data:
   category: capability
   link: listPowers.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listPowers
+
+```typescript
+codebolt.capability.listPowers(): Promise<ListCapabilitiesResponse>
+```
+
+Lists all available powers. This is a convenience method that filters capabilities by type 'power'.
+### Returns
+
+- **`Promise<[ListCapabilitiesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse)>`**: A promise that resolves to a list of all powers.
 
 ### Response Structure
 

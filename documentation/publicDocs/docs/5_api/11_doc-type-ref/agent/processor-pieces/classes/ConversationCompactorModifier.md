@@ -1,14 +1,10 @@
----
-title: ConversationCompactorModifier
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: ConversationCompactorModifier
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:21
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:21](packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts#L21)
 
 ## Extends
 
@@ -22,13 +18,13 @@ Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/conversat
 new ConversationCompactorModifier(options: ConversationCompactorOptions): ConversationCompactorModifier;
 ```
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:24
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:24](packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts#L24)
 
 #### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `options` | [`ConversationCompactorOptions`](../interfaces/ConversationCompactorOptions) |
+| `options` | [`ConversationCompactorOptions`](../interfaces/ConversationCompactorOptions.md) |
 
 #### Returns
 
@@ -44,7 +40,7 @@ BasePostToolCallProcessor.constructor
 
 | Property | Modifier | Type | Default value | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `\{\}` | `BasePostToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:16](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L16) |
+| <a id="context"></a> `context` | `protected` | `Record`\<`string`, `unknown`\> | `{}` | `BasePostToolCallProcessor.context` | [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:16](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L16) |
 
 ## Methods
 
@@ -54,7 +50,7 @@ BasePostToolCallProcessor.constructor
 clearContext(): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:32
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:32](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L32)
 
 #### Returns
 
@@ -74,7 +70,7 @@ BasePostToolCallProcessor.clearContext
 getContext(key: string): unknown;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:28
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:28](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L28)
 
 #### Parameters
 
@@ -100,7 +96,7 @@ BasePostToolCallProcessor.getContext
 modify(input: PostToolCallProcessorInput): Promise<PostToolCallProcessorOutput>;
 ```
 
-Defined in: packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:36
+Defined in: [packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts:36](packages/agent/src/processor-pieces/postToolCallProcessors/conversationCompactorModifier.ts#L36)
 
 #### Parameters
 
@@ -126,7 +122,7 @@ BasePostToolCallProcessor.modify
 setContext(key: string, value: unknown): void;
 ```
 
-Defined in: packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:24
+Defined in: [packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts:24](packages/agent/src/processor-pieces/base/basePostToolCallProcessor.ts#L24)
 
 #### Parameters
 

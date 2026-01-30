@@ -24,8 +24,22 @@ data:
   category: agentPortfolio
   link: getConversations.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getConversations
+
+```typescript
+codebolt.agentPortfolio.getConversations(agentId: string, limit: number, offset: number): Promise<GetConversationsResponse>
+```
+
+Gets conversations involving an agent with pagination support for handling large conversation histories.
+### Parameters
+
+- **`agentId`** (string): The ID of the agent.
+- **`limit`** (number, optional): Maximum number of conversations to return.
+- **`offset`** (number, optional): Offset for pagination.
+
+### Returns
+
+- **`Promise<[GetConversationsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetConversationsResponse)>`**: A promise that resolves to the list of conversations.
 
 ### Examples
 

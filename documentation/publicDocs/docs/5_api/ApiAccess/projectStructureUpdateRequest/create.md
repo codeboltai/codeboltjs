@@ -21,8 +21,21 @@ data:
   category: projectStructureUpdateRequest
   link: create.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# create
+
+```typescript
+codebolt.projectStructureUpdateRequest.create(data: CreateUpdateRequestData, workspacePath: string): Promise<UpdateRequestResponse>
+```
+
+Creates a new project structure update request.
+### Parameters
+
+- **`data`** (CreateUpdateRequestData): The update request data including title, author, and changes.
+- **`workspacePath`** (string, optional): Optional workspace path for the project.
+
+### Returns
+
+- **`Promise<UpdateRequestResponse>`**: A promise that resolves with the created update request.
 
 ### Response Structure
 

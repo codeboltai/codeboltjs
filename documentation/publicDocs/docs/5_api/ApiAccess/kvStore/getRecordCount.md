@@ -20,8 +20,21 @@ data:
   category: kvStore
   link: getRecordCount.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getRecordCount
+
+```typescript
+codebolt.kvStore.getRecordCount(instanceId: undefined, namespace: undefined): Promise<KVRecordCountResponse>
+```
+
+Gets the total number of records in an instance or namespace.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance.
+- **`namespace`** (unknown): Optional namespace to count records in. If not provided, counts all records in the instance.
+
+### Returns
+
+- **`Promise<[KVRecordCountResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVRecordCountResponse)>`**: A promise that resolves with the total record count.
 
 ### Response Structure
 

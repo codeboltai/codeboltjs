@@ -16,8 +16,20 @@ data:
   category: search
   link: search.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# search
+
+```typescript
+codebolt.search.search(query: string): Promise<string>
+```
+
+Performs a search operation for the given query string.
+### Parameters
+
+- **`query`** (string): The search query string to search for.
+
+### Returns
+
+- **`Promise<string>`**: A promise that resolves with the search results as a string.
 
 ### Example 1: Basic Search
 

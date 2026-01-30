@@ -15,8 +15,20 @@ data:
   category: calendar
   link: rsvp.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# rsvp
+
+```typescript
+codebolt.calendar.rsvp(params: IRSVPParams): Promise<IRSVPResponse>
+```
+
+Records a participant's RSVP response (accept or decline) for a calendar event, updating their attendance status.
+### Parameters
+
+- **`params`** ([IRSVPParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRSVPParams)): Parameters including eventId, participantId, and RSVP status
+
+### Returns
+
+- **`Promise<[IRSVPResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRSVPResponse)>`**: A promise that resolves to the updated event with RSVP status
 
 ### Parameter Details
 

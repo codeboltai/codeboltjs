@@ -14,8 +14,16 @@ data:
   category: tool
   link: getAvailableToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getAvailableToolBoxes
+
+```typescript
+codebolt.tool.getAvailableToolBoxes(): Promise
+```
+
+Retrieves all available toolboxes from the CodeBolt registry.
+### Returns
+
+- **`Promise`**: A promise resolving to an array of registry toolbox configurations
 
 
 ### Example

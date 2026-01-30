@@ -17,7 +17,7 @@ import type {
     UpdateEventLogInstanceParams,
     AppendEventParams,
     AppendEventsParams
-} from '../types/eventLog';
+} from '@codebolt/types/lib';
 
 const eventLog = {
     /**

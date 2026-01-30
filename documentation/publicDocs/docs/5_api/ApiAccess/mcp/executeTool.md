@@ -22,8 +22,22 @@ data:
   category: mcp
   link: executeTool.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# executeTool
+
+```typescript
+codebolt.mcp.executeTool(toolbox: string, toolName: string, params: ToolParameters): Promise<ExecuteToolResponse>
+```
+
+Executes a specific tool with provided parameters.
+### Parameters
+
+- **`toolbox`** (string): The name of the toolbox/server containing the tool.
+- **`toolName`** (string): The name of the tool to execute.
+- **`params`** (ToolParameters): Parameters to pass to the tool (key-value pairs).
+
+### Returns
+
+- **`Promise<ExecuteToolResponse>`**: A promise that resolves with the tool execution result.
 
 ### Example 1: Basic Tool Execution
 

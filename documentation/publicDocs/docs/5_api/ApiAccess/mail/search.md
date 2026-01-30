@@ -15,8 +15,20 @@ data:
   category: mail
   link: search.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# search
+
+```typescript
+codebolt.mail.search(params: ISearchParams): Promise<ISearchResponse>
+```
+
+Searches for messages matching specific criteria.
+### Parameters
+
+- **`params`** (ISearchParams): Search parameters including query, threadId, and filters.
+
+### Returns
+
+- **`Promise<ISearchResponse>`**: A promise that resolves with matching messages.
 
 ### Examples
 

@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: getBlockedFiles.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getBlockedFiles
+
+```typescript
+codebolt.fileUpdateIntent.getBlockedFiles(environmentId: undefined): Promise<{ blockedFiles: string[] }>
+```
+
+Gets all files with hard locks (level 4 intents).
+### Parameters
+
+- **`environmentId`** (unknown): The environment ID to check for blocked files.
+
+### Returns
+
+- **`Promise<{ blockedFiles: string[] }>`**: A promise that resolves with an array of blocked file paths.
 
 ### Examples
 

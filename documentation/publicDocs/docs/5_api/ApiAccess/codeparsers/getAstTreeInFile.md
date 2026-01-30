@@ -19,8 +19,21 @@ data:
   category: codeparsers
   link: getAstTreeInFile.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# getAstTreeInFile
+
+```typescript
+codebolt.codeparsers.getAstTreeInFile(file: string, className: string): object
+```
+
+Generates an Abstract Syntax Tree (AST) for a given file. 
+ ### Parameters
+
+- **`file`** (string): The file path to generate an AST for.
+- **`className`** (string): (Optional) The name of the class to focus the AST generation on. If not provided, returns the full file AST.
+
+### Returns
+
+- **`object`**: Returns an AST object with type, text, startPosition, endPosition, and children properties.
 
 ### Response Structure
 

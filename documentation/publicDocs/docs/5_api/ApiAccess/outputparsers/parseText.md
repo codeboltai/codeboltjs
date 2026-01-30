@@ -16,8 +16,20 @@ data:
   category: outputparsers
   link: parseText.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# parseText
+
+```typescript
+codebolt.outputparsers.parseText(text: string): Object
+```
+
+Parses text string and returns a result object with success flag and parsed lines array. 
+### Parameters
+
+- **`text`** (string): The text string to parse into lines.
+
+### Returns
+
+- **`Object`**: An object with success flag and parsed array of lines.
 
 ## Response Structure
 
@@ -71,4 +83,4 @@ console.log(result);
 //     'INFO: Retrying connection'
 //   ] 
 // }
-``` 
+```

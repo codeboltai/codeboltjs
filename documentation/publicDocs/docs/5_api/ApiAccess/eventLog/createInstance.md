@@ -20,8 +20,21 @@ data:
   category: eventLog
   link: createInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createInstance
+
+```typescript
+codebolt.eventLog.createInstance(name: undefined, description: undefined): Promise<EventLogInstanceResponse>
+```
+
+Creates a new event log instance for storing event streams.
+### Parameters
+
+- **`name`** (unknown): A unique name for the event log instance.
+- **`description`** (unknown): An optional description of the instance's purpose.
+
+### Returns
+
+- **`Promise<[EventLogInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogInstanceResponse)>`**: A promise that resolves with the created instance details.
 
 ### Response Structure
 

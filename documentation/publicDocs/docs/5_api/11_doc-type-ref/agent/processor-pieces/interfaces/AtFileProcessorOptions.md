@@ -1,14 +1,10 @@
----
-title: AtFileProcessorOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: AtFileProcessorOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/atFileProcessorModifier.ts:8
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/atFileProcessorModifier.ts:8](packages/agent/src/processor-pieces/messageModifiers/atFileProcessorModifier.ts#L8)
 
 ## Properties
 

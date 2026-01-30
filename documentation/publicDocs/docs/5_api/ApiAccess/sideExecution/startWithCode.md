@@ -25,8 +25,22 @@ data:
   category: sideExecution
   link: startWithCode.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# startWithCode
+
+```typescript
+codebolt.sideExecution.startWithCode(inlineCode: string, params: Record<string, any>, timeout: number): Promise<StartSideExecutionResponse>
+```
+
+Starts a side execution process using inline JavaScript code.
+### Parameters
+
+- **`inlineCode`** (string): JavaScript code to execute in the side process.
+- **`params`** (Record<string, any>, optional): Optional parameters available in the execution context.
+- **`timeout`** (number, optional): Execution timeout in milliseconds (default: 5 minutes).
+
+### Returns
+
+- **`Promise<[StartSideExecutionResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartSideExecutionResponse)>`**: A promise that resolves with the side execution ID and initial status.
 
 ### Response Structure
 

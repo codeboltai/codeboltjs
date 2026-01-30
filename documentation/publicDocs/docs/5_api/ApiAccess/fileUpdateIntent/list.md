@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: list.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# list
+
+```typescript
+codebolt.fileUpdateIntent.list(filters: undefined): Promise<FileUpdateIntent[]>
+```
+
+Lists file update intents with optional filtering.
+### Parameters
+
+- **`filters`** (unknown): Optional filters for environmentId, status, claimedBy, etc.
+
+### Returns
+
+- **`Promise<[FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent)[]>`**: A promise that resolves with an array of file update intents.
 
 ### Examples
 

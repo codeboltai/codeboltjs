@@ -24,8 +24,22 @@ data:
   category: fileUpdateIntent
   link: checkOverlap.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# checkOverlap
+
+```typescript
+codebolt.fileUpdateIntent.checkOverlap(environmentId: undefined, filePaths: undefined, priority: undefined): Promise<IntentOverlapResult>
+```
+
+Checks for overlapping intents without creating a new one.
+### Parameters
+
+- **`environmentId`** (unknown): The environment ID to check for overlaps.
+- **`filePaths`** (unknown): Array of file paths to check for overlaps.
+- **`priority`** (unknown): Priority level for conflict resolution. Default is 5.
+
+### Returns
+
+- **`Promise<[IntentOverlapResult](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IntentOverlapResult)>`**: A promise that resolves with overlap information.
 
 ### Examples
 

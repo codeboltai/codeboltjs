@@ -12,8 +12,16 @@ data:
   category: codeutils
   link: getAllFilesAsMarkDown.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getAllFilesAsMarkDown
+
+```typescript
+codebolt.codeutils.getAllFilesAsMarkDown(): Promise<GetAllFilesMarkdownResponse>
+```
+
+Retrieves all files in the current project as formatted Markdown content with syntax highlighting. 
+### Returns
+
+- **`Promise<GetAllFilesMarkdownResponse>`**: A promise that resolves with a `GetAllFilesMarkdownResponse` object containing the Markdown content of all files in the project.
 
 ### Response Structure
 

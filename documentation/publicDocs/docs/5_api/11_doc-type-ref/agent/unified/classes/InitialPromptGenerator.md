@@ -1,14 +1,10 @@
----
-title: InitialPromptGenerator
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Class: InitialPromptGenerator
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:13
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:13](packages/agent/src/unified/base/initialPromptGenerator.ts#L13)
 
 Initial prompt generator that combines message modifiers with unified processing
 
@@ -30,7 +26,7 @@ new InitialPromptGenerator(options: {
 }): InitialPromptGenerator;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:19
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:19](packages/agent/src/unified/base/initialPromptGenerator.ts#L19)
 
 #### Parameters
 
@@ -55,7 +51,7 @@ Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:19
 clearMetaData(): void;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:140
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:140](packages/agent/src/unified/base/initialPromptGenerator.ts#L140)
 
 Clear all context
 
@@ -77,7 +73,7 @@ InitialPromptGeneratorInterface.clearMetaData
 getMetaData(key: string): unknown;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:133
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:133](packages/agent/src/unified/base/initialPromptGenerator.ts#L133)
 
 Get context value
 
@@ -105,7 +101,7 @@ InitialPromptGeneratorInterface.getMetaData
 getProcessors(): MessageModifier[];
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:151
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:151](packages/agent/src/unified/base/initialPromptGenerator.ts#L151)
 
 #### Returns
 
@@ -125,7 +121,7 @@ InitialPromptGeneratorInterface.getProcessors
 processMessage(input: FlatUserMessage): Promise<ProcessedMessage>;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:37
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:37](packages/agent/src/unified/base/initialPromptGenerator.ts#L37)
 
 Process and modify input messages using the message modifier pattern
 
@@ -153,7 +149,7 @@ InitialPromptGeneratorInterface.processMessage
 setMetaData(key: string, value: unknown): void;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:126
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:126](packages/agent/src/unified/base/initialPromptGenerator.ts#L126)
 
 Set context value
 
@@ -182,7 +178,7 @@ InitialPromptGeneratorInterface.setMetaData
 updateProcessors(processors: MessageModifier[]): void;
 ```
 
-Defined in: packages/agent/src/unified/base/initialPromptGenerator.ts:147
+Defined in: [packages/agent/src/unified/base/initialPromptGenerator.ts:147](packages/agent/src/unified/base/initialPromptGenerator.ts#L147)
 
 Get all message modifiers
 

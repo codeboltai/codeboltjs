@@ -17,8 +17,20 @@ data:
   category: tool
   link: getMentionedToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getMentionedToolBoxes
+
+```typescript
+codebolt.tool.getMentionedToolBoxes(userMessage: UserMessage): Promise
+```
+
+Extracts toolbox mentions from a user message object containing MCP references.
+### Parameters
+
+- **`userMessage`** ([UserMessage](/docs/api/11_doc-type-ref/codeboltjs/interfaces/UserMessage)): Message object containing user input with toolbox mentions in mentionedMCPs array
+
+### Returns
+
+- **`Promise`**: A promise resolving to a response object containing toolbox data and configuration
 
 ### UserMessage Structure
 ```js

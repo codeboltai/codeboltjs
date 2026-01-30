@@ -35,8 +35,21 @@ data:
   category: swarm
   link: createTeam.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createTeam
+
+```typescript
+codebolt.swarm.createTeam(swarmId: string, data: CreateTeamRequest): Promise<CreateTeamResponse>
+```
+
+Creates a new team within a swarm to organize agents for specific tasks or projects.
+### Parameters
+
+- **`swarmId`** (string): The ID of the swarm to create the team in.
+- **`data`** ([CreateTeamRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateTeamRequest)): Team creation configuration.
+
+### Returns
+
+- **`Promise<[CreateTeamResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateTeamResponse)>`**: A promise that resolves to the created team details.
 
 ### Examples
 

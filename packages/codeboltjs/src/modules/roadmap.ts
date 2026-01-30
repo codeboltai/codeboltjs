@@ -19,7 +19,7 @@ import type {
     RoadmapIdeasResponse,
     RoadmapIdeaResponse,
     RoadmapMoveToRoadmapResponse
-} from '../types/roadmap';
+} from '@codebolt/types/lib';
 
 /**
  * Roadmap Module for codeboltjs

@@ -21,8 +21,22 @@ data:
   category: fs
   link: createFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# createFile
+
+```typescript
+codebolt.fs.createFile(fileName: string, source: string, filePath: string): Promise<CreateFileResponse>
+```
+
+Creates a new file with the specified content at the given path. This function allows you to create files in any directory with custom content. 
+### Parameters
+
+- **`fileName`** (string): The name of the file to create (e.g., 'example.txt', 'script.js').
+- **`source`** (string): The source content to write into the file. Can be any text content including code, data, or plain text.
+- **`filePath`** (string): The path where the file should be created (e.g., '.', '/home/user/documents', 'src/components').
+
+### Returns
+
+- **`Promise<CreateFileResponse>`**: A promise that resolves with a `CreateFileResponse` object containing the response type and file creation metadata.
 
 ### Response Structure
 

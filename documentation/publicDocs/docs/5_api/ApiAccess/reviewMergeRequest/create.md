@@ -15,8 +15,20 @@ data:
   category: reviewMergeRequest
   link: create.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# create
+
+```typescript
+codebolt.reviewMergeRequest.create(data: CreateReviewMergeRequest): Promise<{ request: ReviewMergeRequest }>
+```
+
+Creates a new review or merge request with the specified details, including task description, changes, and optional merge configuration.
+### Parameters
+
+- **`data`** ([CreateReviewMergeRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateReviewMergeRequest)): Complete request data including type, task info, changes, and merge config
+
+### Returns
+
+- **`Promise<{ request: [ReviewMergeRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ReviewMergeRequest) }>`**: A promise that resolves to the created request
 
 ### Parameter Details
 

@@ -15,8 +15,20 @@ data:
   category: requirementPlan
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.requirementPlan.get(filePath: string): Promise<RequirementPlanGetResponse>
+```
+
+Retrieves a requirement plan document by its file path, including all sections and metadata.
+### Parameters
+
+- **`filePath`** (string): Path to the plan file
+
+### Returns
+
+- **`Promise<[RequirementPlanGetResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanGetResponse)>`**: A promise that resolves to the plan document
 
 ### Parameter Details
 

@@ -1,14 +1,10 @@
----
-title: OpenAITool
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: OpenAITool
 
-Defined in: packages/agent/src/unified/types/libTypes.ts:90
+Defined in: [packages/agent/src/unified/types/libTypes.ts:90](packages/agent/src/unified/types/libTypes.ts#L90)
 
 OpenAI-compatible tool format
 

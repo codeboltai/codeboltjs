@@ -1,8 +1,4 @@
----
-title: StreamCallback
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
@@ -12,7 +8,7 @@ title: StreamCallback
 type StreamCallback = (chunk: StreamChunk) => void | Promise<void>;
 ```
 
-Defined in: packages/agent/src/unified/types/libTypes.ts:403
+Defined in: [packages/agent/src/unified/types/libTypes.ts:403](packages/agent/src/unified/types/libTypes.ts#L403)
 
 Stream callback function
 
@@ -20,7 +16,7 @@ Stream callback function
 
 | Parameter | Type |
 | ------ | ------ |
-| `chunk` | [`StreamChunk`](../interfaces/StreamChunk) |
+| `chunk` | [`StreamChunk`](../interfaces/StreamChunk.md) |
 
 ## Returns
 

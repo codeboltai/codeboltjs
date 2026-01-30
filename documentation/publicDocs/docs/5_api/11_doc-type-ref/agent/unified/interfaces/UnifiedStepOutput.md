@@ -1,14 +1,10 @@
----
-title: UnifiedStepOutput
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: UnifiedStepOutput
 
-Defined in: packages/agent/src/unified/types/types.ts:92
+Defined in: [packages/agent/src/unified/types/types.ts:92](packages/agent/src/unified/types/types.ts#L92)
 
 Output from unified agent step processing
 

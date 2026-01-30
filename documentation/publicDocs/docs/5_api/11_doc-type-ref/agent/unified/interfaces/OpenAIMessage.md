@@ -1,14 +1,10 @@
----
-title: OpenAIMessage
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: OpenAIMessage
 
-Defined in: packages/agent/src/unified/types/libTypes.ts:67
+Defined in: [packages/agent/src/unified/types/libTypes.ts:67](packages/agent/src/unified/types/libTypes.ts#L67)
 
 OpenAI-compatible message format for conversations
 

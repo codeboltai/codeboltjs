@@ -15,8 +15,20 @@ data:
   category: thread
   link: createThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createThread
+
+```typescript
+codebolt.thread.createThread(options: CreateThreadOptions): Promise<CreateThreadResponse>
+```
+
+Creates a new thread with comprehensive options for conversation management.
+### Parameters
+
+- **`options`** (CreateThreadOptions): Configuration options for creating the thread including title, description, agentId, and metadata.
+
+### Returns
+
+- **`Promise<CreateThreadResponse>`**: A promise that resolves with the created thread details including threadId, status, and timestamp.
 
 ### Response Structure
 

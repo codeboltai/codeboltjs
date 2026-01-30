@@ -17,8 +17,20 @@ data:
   category: autoTesting
   link: listRuns.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listRuns
+
+```typescript
+codebolt.autoTesting.listRuns(params: IListRunsParams): Promise<IListRunsResponse>
+```
+
+Lists test runs, optionally filtered by suite.
+### Parameters
+
+- **`params`** ([IListRunsParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListRunsParams), optional): Optional parameters including suite ID for filtering.
+
+### Returns
+
+- **`Promise<[IListRunsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListRunsResponse)>`**: A promise that resolves to the list of test runs.
 
 ### Examples
 

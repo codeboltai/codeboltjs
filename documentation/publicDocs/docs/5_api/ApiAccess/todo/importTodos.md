@@ -33,8 +33,24 @@ data:
   category: todo
   link: importTodos.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# importTodos
+
+```typescript
+codebolt.todo.importTodos(params: { data: string; format?: 'json' | 'markdown'; mergeStrategy?: 'replace' | 'merge'; listId?: string }, params.data: string, params.format: 'json' | 'markdown', params.mergeStrategy: 'replace' | 'merge', params.listId: string): Promise<ImportTodosResponse>
+```
+
+Imports todos from JSON or Markdown format with optional merge strategy.
+### Parameters
+
+- **`params`** ({ data: string; format?: 'json' | 'markdown'; mergeStrategy?: 'replace' | 'merge'; listId?: string }): Parameters for importing todos.
+- **`params.data`** (string): The import data as a string (JSON or Markdown format).
+- **`params.format`** ('json' | 'markdown', optional): The format of the import data (defaults to 'json').
+- **`params.mergeStrategy`** ('replace' | 'merge', optional): How to handle existing todos ('replace' clears existing, 'merge' combines them).
+- **`params.listId`** (string, optional): Optional target list ID for the imported todos.
+
+### Returns
+
+- **`Promise<ImportTodosResponse>`**: A promise that resolves with the import result.
 
 ### Response Structure
 

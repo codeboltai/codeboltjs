@@ -1,14 +1,10 @@
----
-title: ToolResult
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ToolResult
 
-Defined in: packages/agent/src/unified/types/libTypes.ts:107
+Defined in: [packages/agent/src/unified/types/libTypes.ts:107](packages/agent/src/unified/types/libTypes.ts#L107)
 
 Tool result from execution
 

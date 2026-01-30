@@ -18,8 +18,21 @@ data:
   category: agent
   link: startAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# StartAgent
+
+```typescript
+codebolt.agent.startAgent(agentId: string, task: string): Promise<TaskCompletionResponse>
+```
+
+Starts an agent with a specific task.
+### Parameters
+
+- **`agentId`** (string): The unique identifier of the agent to start.
+- **`task`** (string): The task description for the agent to execute.
+
+### Returns
+
+- **`Promise<TaskCompletionResponse>`**: A promise that resolves with a `TaskCompletionResponse` object upon agent completion.
 
 ### Response Structure
 

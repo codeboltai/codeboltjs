@@ -13,8 +13,16 @@ data:
   category: browser
   link: enter.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# enter
+
+```typescript
+codebolt.browser.enter(): Promise<EnterResponse>
+```
+
+Simulates the Enter key press on the current page. 
+### Returns
+
+- **`Promise<EnterResponse>`**: A promise that resolves when the Enter action is complete.
 
 ### Response Structure
 

@@ -16,8 +16,20 @@ data:
   category: agentPortfolio
   link: getPortfoliosByProject.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getPortfoliosByProject
+
+```typescript
+codebolt.agentPortfolio.getPortfoliosByProject(projectId: string): Promise<GetPortfoliosByProjectResponse>
+```
+
+Gets all portfolios associated with a specific project.
+### Parameters
+
+- **`projectId`** (string): The project ID.
+
+### Returns
+
+- **`Promise<[GetPortfoliosByProjectResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetPortfoliosByProjectResponse)>`**: A promise that resolves to the list of portfolios.
 
 ### Examples
 

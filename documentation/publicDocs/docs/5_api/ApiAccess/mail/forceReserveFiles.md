@@ -15,8 +15,20 @@ data:
   category: mail
   link: forceReserveFiles.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# forceReserveFiles
+
+```typescript
+codebolt.mail.forceReserveFiles(params: IForceReserveFilesParams): Promise<IForceReserveFilesResponse>
+```
+
+Forcefully reserves files, overriding existing reservations.
+### Parameters
+
+- **`params`** (IForceReserveFilesParams): Parameters including agentId, files array, and reason.
+
+### Returns
+
+- **`Promise<IForceReserveFilesResponse>`**: A promise that resolves with the forced reservation details.
 
 ### Examples
 

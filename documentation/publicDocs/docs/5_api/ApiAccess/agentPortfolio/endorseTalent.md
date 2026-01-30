@@ -16,8 +16,20 @@ data:
   category: agentPortfolio
   link: endorseTalent.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# endorseTalent
+
+```typescript
+codebolt.agentPortfolio.endorseTalent(talentId: string): Promise<EndorseTalentResponse>
+```
+
+Endorses a talent skill to validate its quality and verify the agent's expertise.
+### Parameters
+
+- **`talentId`** (string): The ID of the talent to endorse.
+
+### Returns
+
+- **`Promise<[EndorseTalentResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EndorseTalentResponse)>`**: A promise that resolves when talent is endorsed.
 
 ### Examples
 

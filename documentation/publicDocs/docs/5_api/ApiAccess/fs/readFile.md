@@ -15,8 +15,20 @@ data:
   category: fs
   link: readFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# readFile
+
+```typescript
+codebolt.fs.readFile(filePath: string): Promise<ReadFileResponse>
+```
+
+Reads the content of a file from the specified path. Returns the file content along with metadata about the read operation. 
+### Parameters
+
+- **`filePath`** (string): The path of the file to read. Can be absolute (e.g., '/home/user/file.txt') or relative (e.g., './file.txt').
+
+### Returns
+
+- **`Promise<ReadFileResponse>`**: A promise that resolves with a `ReadFileResponse` object containing the file content and read operation metadata.
 
 ### Response Structure
 

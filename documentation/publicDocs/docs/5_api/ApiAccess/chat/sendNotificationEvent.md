@@ -19,8 +19,21 @@ data:
   category: chat
   link: sendNotificationEvent.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# sendNotificationEvent
+
+```typescript
+codebolt.chat.sendNotificationEvent(notificationMessage: string, type: 'debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview'): void
+```
+
+Sends a notification event to the server. 
+### Parameters
+
+- **`notificationMessage`** (string): The message to be sent in the notification.
+- **`type`** ('debug' | 'git' | 'planner' | 'browser' | 'editor' | 'terminal' | 'preview'): The type of notification to send.
+
+### Returns
+
+- **`void`**: ' '
 
 ### Response Structure
 
@@ -38,4 +51,4 @@ codebolt.chat.sendNotificationEvent("Command executed successfully", "terminal")
 
 ### Explanation
 
-The `sendNotificationEvent` function sends a notification event to the server with a specified message and type. This allows you to communicate different types of events or status updates to the user through the Codebolt interface. 
+The `sendNotificationEvent` function sends a notification event to the server with a specified message and type. This allows you to communicate different types of events or status updates to the user through the Codebolt interface.

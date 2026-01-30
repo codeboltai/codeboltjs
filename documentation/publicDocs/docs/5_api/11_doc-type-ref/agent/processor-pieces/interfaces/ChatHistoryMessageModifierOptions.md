@@ -1,14 +1,10 @@
----
-title: ChatHistoryMessageModifierOptions
----
-
-[**@codebolt/agent**](../../index)
+[**@codebolt/agent**](../../README.md)
 
 ***
 
 # Interface: ChatHistoryMessageModifierOptions
 
-Defined in: packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:6
+Defined in: [packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts:6](packages/agent/src/processor-pieces/messageModifiers/chatHistoryMessageModifier.ts#L6)
 
 ## Indexable
 

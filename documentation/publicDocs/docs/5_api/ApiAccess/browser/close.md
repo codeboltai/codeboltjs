@@ -13,8 +13,16 @@ data:
   category: browser
   link: close.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# close
+
+```typescript
+codebolt.browser.close(): void
+```
+
+Closes the current page. 
+ ### Returns
+
+- **`void`**: 'Closes the browser page.'
 
 ### Response Structure
 

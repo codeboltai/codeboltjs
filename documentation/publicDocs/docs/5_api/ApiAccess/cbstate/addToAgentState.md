@@ -21,9 +21,21 @@ data:
   category: cbstate
   link: addToAgentState.md
 ---
+# addToAgentState
 
-<CBBaseInfo/> 
-<CBParameters/>
+```typescript
+codebolt.cbstate.addToAgentState(key: string, value: string): Promise<AddToAgentStateResponse>
+```
+
+Adds a key-value pair to the agent's state on the server via WebSocket. 
+### Parameters
+
+- **`key`** (string): The key to add to the agent's state.
+- **`value`** (string): The value associated with the key.
+
+### Returns
+
+- **`Promise<AddToAgentStateResponse>`**: A promise that resolves with the response to the addition request containing success status.
 
 ### Response Structure
 
@@ -728,7 +740,3 @@ async function debuggableStateUpdate(key, value) {
   }
 }
 ```
-
-
-
-

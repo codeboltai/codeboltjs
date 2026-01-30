@@ -15,8 +15,20 @@ data:
   category: mail
   link: createThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createThread
+
+```typescript
+codebolt.mail.createThread(params: ICreateThreadParams): Promise<ICreateThreadResponse>
+```
+
+Creates a new mail thread for conversation between agents or users.
+### Parameters
+
+- **`params`** (ICreateThreadParams): Thread creation parameters including subject, participants, type, and metadata.
+
+### Returns
+
+- **`Promise<ICreateThreadResponse>`**: A promise that resolves with the created thread details.
 
 ### Response Structure
 

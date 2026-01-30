@@ -17,8 +17,20 @@ data:
   category: todo
   link: getTodoList.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getTodoList
+
+```typescript
+codebolt.todo.getTodoList(params: any): Promise<GetTodoListResponse>
+```
+
+Retrieves the complete list of todo items.
+### Parameters
+
+- **`params`** (any, optional): Optional parameters for filtering or customizing the todo list.
+
+### Returns
+
+- **`Promise<GetTodoListResponse>`**: A promise that resolves with the complete list of todos.
 
 ### Response Structure
 

@@ -5,7 +5,7 @@ import type {
     SearchMcpToolOptions,
     CodebaseSearchResponse,
     McpToolSearchResponse
-} from '../types/codebaseSearch';
+} from '@codebolt/types/lib';
 
 /**
  * Codebase Search Module for codeboltjs
