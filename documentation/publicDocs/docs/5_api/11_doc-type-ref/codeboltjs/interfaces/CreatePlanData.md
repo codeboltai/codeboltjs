@@ -2,7 +2,7 @@
 title: CreatePlanData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

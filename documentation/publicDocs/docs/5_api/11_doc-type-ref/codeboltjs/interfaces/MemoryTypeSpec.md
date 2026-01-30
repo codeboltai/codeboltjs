@@ -2,7 +2,7 @@
 title: MemoryTypeSpec
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

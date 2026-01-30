@@ -2,7 +2,7 @@
 title: ProjectInfo
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

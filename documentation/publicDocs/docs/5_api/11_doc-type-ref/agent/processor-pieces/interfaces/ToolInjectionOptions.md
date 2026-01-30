@@ -2,7 +2,7 @@
 title: ToolInjectionOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: AtFileProcessorOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

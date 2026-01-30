@@ -2,7 +2,7 @@
 title: IListSuitesParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

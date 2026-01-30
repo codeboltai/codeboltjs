@@ -2,7 +2,7 @@
 title: AgentListTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

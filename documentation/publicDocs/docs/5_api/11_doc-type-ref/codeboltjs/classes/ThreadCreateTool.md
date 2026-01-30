@@ -2,7 +2,7 @@
 title: ThreadCreateTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

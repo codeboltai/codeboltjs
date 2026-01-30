@@ -2,7 +2,7 @@
 title: DependencyType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

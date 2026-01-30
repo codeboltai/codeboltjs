@@ -2,7 +2,7 @@
 title: IRespondParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

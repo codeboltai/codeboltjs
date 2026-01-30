@@ -2,7 +2,7 @@
 title: AddSplitProposalData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

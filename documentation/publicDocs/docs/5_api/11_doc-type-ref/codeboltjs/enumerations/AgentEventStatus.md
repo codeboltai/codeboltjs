@@ -2,7 +2,7 @@
 title: AgentEventStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

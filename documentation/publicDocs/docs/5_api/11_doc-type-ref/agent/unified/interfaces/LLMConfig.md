@@ -2,7 +2,7 @@
 title: LLMConfig
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

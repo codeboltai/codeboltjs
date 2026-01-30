@@ -2,7 +2,7 @@
 title: IArchiveMemoryParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

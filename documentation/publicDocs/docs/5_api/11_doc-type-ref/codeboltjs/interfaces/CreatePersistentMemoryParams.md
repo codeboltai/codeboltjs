@@ -2,7 +2,7 @@
 title: CreatePersistentMemoryParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

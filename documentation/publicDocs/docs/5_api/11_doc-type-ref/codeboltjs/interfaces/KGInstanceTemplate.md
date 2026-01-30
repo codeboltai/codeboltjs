@@ -2,7 +2,7 @@
 title: KGInstanceTemplate
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

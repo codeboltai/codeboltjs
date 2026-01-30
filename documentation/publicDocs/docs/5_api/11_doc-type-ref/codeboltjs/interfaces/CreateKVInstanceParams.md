@@ -2,7 +2,7 @@
 title: CreateKVInstanceParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

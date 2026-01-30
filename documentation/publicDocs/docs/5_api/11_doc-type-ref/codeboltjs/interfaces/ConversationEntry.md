@@ -2,7 +2,7 @@
 title: ConversationEntry
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

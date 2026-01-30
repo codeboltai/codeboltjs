@@ -2,7 +2,7 @@
 title: ICreateDeliberationParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

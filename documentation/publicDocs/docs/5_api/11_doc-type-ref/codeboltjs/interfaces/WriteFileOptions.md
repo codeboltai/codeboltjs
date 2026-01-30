@@ -2,7 +2,7 @@
 title: WriteFileOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

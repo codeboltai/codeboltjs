@@ -2,7 +2,7 @@
 title: MemorySetOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

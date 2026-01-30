@@ -2,7 +2,7 @@
 title: RuleCondition
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

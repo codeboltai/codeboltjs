@@ -2,7 +2,7 @@
 title: IGetEventTypesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ProviderLifecycleHandlers
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

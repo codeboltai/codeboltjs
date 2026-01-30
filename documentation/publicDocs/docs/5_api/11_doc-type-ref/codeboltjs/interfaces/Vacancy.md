@@ -2,7 +2,7 @@
 title: Vacancy
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

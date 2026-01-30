@@ -2,7 +2,7 @@
 title: TaskUpdatePayload
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

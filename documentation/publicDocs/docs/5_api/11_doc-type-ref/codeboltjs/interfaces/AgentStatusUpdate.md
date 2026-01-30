@@ -2,7 +2,7 @@
 title: AgentStatusUpdate
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

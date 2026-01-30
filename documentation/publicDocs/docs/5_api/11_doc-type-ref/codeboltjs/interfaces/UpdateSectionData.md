@@ -2,7 +2,7 @@
 title: UpdateSectionData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

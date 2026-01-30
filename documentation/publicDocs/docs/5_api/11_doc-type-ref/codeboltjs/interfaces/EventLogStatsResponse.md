@@ -2,7 +2,7 @@
 title: EventLogStatsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

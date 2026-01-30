@@ -2,7 +2,7 @@
 title: EpisodicEventFilter
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

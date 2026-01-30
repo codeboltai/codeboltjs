@@ -2,7 +2,7 @@
 title: GetConversationsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

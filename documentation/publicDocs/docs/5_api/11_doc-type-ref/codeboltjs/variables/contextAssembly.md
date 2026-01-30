@@ -2,7 +2,7 @@
 title: contextAssembly
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

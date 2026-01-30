@@ -2,7 +2,7 @@
 title: GetSwarmAgentsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

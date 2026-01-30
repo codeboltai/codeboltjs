@@ -2,7 +2,7 @@
 title: KGViewExecuteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

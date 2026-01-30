@@ -2,7 +2,7 @@
 title: OpenAITool
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

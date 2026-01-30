@@ -2,7 +2,7 @@
 title: KGMemoryRecord
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

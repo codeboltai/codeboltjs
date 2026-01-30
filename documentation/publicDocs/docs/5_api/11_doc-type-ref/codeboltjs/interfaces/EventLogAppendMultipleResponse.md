@@ -2,7 +2,7 @@
 title: EventLogAppendMultipleResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: RoadmapPhasesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

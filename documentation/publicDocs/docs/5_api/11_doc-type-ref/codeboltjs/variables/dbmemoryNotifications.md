@@ -2,7 +2,7 @@
 title: dbmemoryNotifications
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ListFilesOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

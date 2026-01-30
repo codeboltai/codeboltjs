@@ -2,7 +2,7 @@
 title: dbmemory
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

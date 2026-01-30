@@ -2,7 +2,7 @@
 title: ExecuteCommandTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

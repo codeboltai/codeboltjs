@@ -2,7 +2,7 @@
 title: CodeboltConfig
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

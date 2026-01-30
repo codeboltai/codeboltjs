@@ -2,7 +2,7 @@
 title: GitCommitRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

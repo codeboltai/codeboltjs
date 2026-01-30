@@ -2,7 +2,7 @@
 title: JobReadyBlockedResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

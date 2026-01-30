@@ -2,7 +2,7 @@
 title: GitFileStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

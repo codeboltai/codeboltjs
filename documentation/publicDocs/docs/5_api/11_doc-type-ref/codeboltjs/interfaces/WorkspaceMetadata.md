@@ -2,7 +2,7 @@
 title: WorkspaceMetadata
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

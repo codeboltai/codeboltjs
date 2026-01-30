@@ -2,7 +2,7 @@
 title: MoveIdeaToRoadmapData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

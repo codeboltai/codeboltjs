@@ -2,7 +2,7 @@
 title: IGetCaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

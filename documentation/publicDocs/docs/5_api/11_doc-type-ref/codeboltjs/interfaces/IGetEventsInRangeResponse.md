@@ -2,7 +2,7 @@
 title: IGetEventsInRangeResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

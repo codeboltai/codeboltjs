@@ -2,7 +2,7 @@
 title: editFileAndApplyDiff
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

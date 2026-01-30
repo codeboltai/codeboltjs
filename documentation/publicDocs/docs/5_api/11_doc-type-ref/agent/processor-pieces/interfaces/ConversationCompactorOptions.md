@@ -2,7 +2,7 @@
 title: ConversationCompactorOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

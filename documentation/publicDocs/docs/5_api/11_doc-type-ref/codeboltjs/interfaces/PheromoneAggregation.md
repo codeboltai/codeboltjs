@@ -2,7 +2,7 @@
 title: PheromoneAggregation
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

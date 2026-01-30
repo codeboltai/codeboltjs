@@ -2,7 +2,7 @@
 title: KVStoreBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

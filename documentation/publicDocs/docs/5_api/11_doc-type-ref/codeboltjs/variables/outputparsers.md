@@ -2,7 +2,7 @@
 title: outputparsers
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

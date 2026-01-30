@@ -2,7 +2,7 @@
 title: JobSplitProposeResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

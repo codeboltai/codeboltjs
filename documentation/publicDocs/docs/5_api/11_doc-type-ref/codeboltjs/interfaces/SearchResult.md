@@ -2,7 +2,7 @@
 title: SearchResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

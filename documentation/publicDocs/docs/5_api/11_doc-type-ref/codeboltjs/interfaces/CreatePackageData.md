@@ -2,7 +2,7 @@
 title: CreatePackageData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

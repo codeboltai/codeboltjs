@@ -2,7 +2,7 @@
 title: IListFeedbacksParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

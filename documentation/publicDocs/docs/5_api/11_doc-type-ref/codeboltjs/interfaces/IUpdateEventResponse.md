@@ -2,7 +2,7 @@
 title: IUpdateEventResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

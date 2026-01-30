@@ -2,7 +2,7 @@
 title: BrowserScreenshotOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

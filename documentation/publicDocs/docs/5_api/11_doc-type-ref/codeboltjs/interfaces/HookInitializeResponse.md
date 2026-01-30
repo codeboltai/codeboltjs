@@ -2,7 +2,7 @@
 title: HookInitializeResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

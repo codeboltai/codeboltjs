@@ -2,7 +2,7 @@
 title: AgentCompletionNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

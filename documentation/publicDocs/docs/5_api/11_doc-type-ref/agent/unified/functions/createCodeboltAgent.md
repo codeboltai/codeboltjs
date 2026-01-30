@@ -2,7 +2,7 @@
 title: createCodeboltAgent
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: IGetDeliberationParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: IngestionExecuteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

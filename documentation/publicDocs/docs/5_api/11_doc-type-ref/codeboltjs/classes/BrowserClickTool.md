@@ -2,7 +2,7 @@
 title: BrowserClickTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

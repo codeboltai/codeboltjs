@@ -2,7 +2,7 @@
 title: setUserSessionData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

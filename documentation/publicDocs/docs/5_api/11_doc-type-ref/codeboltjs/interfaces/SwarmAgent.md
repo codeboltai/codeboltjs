@@ -2,7 +2,7 @@
 title: SwarmAgent
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

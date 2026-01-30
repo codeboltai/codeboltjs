@@ -2,7 +2,7 @@
 title: UpdateFileUpdateIntentRequest
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

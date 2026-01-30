@@ -2,7 +2,7 @@
 title: AgentInitNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: AgentPortfolio
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

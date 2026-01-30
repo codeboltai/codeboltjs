@@ -2,7 +2,7 @@
 title: ActionBlockListResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: userMessageUtilities
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

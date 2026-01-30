@@ -2,7 +2,7 @@
 title: IUnarchiveMemoryResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

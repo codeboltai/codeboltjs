@@ -2,7 +2,7 @@
 title: FrameworkInfo
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

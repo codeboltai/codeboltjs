@@ -2,7 +2,7 @@
 title: IGetWinnerParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

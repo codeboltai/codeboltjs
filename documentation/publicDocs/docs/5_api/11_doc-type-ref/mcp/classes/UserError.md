@@ -2,7 +2,7 @@
 title: UserError
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 

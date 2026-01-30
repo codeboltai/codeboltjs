@@ -2,7 +2,7 @@
 title: ICreateCaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

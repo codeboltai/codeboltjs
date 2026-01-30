@@ -2,7 +2,7 @@
 title: QueueStatsResponseData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

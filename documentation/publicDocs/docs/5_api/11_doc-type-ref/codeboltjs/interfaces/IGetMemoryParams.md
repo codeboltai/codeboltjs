@@ -2,7 +2,7 @@
 title: IGetMemoryParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

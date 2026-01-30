@@ -2,7 +2,7 @@
 title: GrepSearchOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

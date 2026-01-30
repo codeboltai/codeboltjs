@@ -2,7 +2,7 @@
 title: CodeboltAPI
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

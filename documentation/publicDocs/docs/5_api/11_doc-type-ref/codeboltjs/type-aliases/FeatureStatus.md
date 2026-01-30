@@ -2,7 +2,7 @@
 title: FeatureStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

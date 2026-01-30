@@ -2,7 +2,7 @@
 title: HookTrigger
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

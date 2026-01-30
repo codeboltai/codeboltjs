@@ -2,7 +2,7 @@
 title: DifficultyLevel
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

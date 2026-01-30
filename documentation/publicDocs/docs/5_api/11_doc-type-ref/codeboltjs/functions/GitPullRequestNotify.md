@@ -2,7 +2,7 @@
 title: GitPullRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

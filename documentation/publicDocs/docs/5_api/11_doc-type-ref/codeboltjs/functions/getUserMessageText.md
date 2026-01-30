@@ -2,7 +2,7 @@
 title: getUserMessageText
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

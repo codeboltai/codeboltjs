@@ -2,7 +2,7 @@
 title: CreateFeatureData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

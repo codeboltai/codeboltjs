@@ -2,7 +2,7 @@
 title: KVNamespacesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

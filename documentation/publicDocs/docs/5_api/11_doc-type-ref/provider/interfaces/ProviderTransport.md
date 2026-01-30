@@ -2,7 +2,7 @@
 title: ProviderTransport
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

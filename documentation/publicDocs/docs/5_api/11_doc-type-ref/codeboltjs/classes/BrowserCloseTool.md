@@ -2,7 +2,7 @@
 title: BrowserCloseTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

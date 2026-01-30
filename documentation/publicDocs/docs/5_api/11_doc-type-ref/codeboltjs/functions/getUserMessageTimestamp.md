@@ -2,7 +2,7 @@
 title: getUserMessageTimestamp
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

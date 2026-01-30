@@ -2,7 +2,7 @@
 title: ActionBlockInput
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

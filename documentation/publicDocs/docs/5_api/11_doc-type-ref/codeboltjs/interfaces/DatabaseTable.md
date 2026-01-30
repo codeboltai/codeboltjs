@@ -2,7 +2,7 @@
 title: DatabaseTable
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

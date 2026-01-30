@@ -2,7 +2,7 @@
 title: LoopDetectionOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

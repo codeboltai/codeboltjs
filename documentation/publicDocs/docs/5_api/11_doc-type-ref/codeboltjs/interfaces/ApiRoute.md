@@ -2,7 +2,7 @@
 title: ApiRoute
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

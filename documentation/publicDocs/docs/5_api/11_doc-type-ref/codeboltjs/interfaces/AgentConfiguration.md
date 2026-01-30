@@ -2,7 +2,7 @@
 title: AgentConfiguration
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

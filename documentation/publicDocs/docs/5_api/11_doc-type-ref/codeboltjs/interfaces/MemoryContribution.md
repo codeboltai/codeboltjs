@@ -2,7 +2,7 @@
 title: MemoryContribution
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

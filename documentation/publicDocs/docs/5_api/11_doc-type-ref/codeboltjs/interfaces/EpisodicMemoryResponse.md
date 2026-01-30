@@ -2,7 +2,7 @@
 title: EpisodicMemoryResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

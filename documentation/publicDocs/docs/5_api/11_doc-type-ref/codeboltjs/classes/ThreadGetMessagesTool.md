@@ -2,7 +2,7 @@
 title: ThreadGetMessagesTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

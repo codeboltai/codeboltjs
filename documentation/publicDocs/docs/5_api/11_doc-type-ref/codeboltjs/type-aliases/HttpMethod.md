@@ -2,7 +2,7 @@
 title: HttpMethod
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

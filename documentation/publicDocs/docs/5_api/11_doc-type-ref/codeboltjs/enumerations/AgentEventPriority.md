@@ -2,7 +2,7 @@
 title: AgentEventPriority
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

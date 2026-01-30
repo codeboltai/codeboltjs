@@ -2,7 +2,7 @@
 title: JobDependency
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

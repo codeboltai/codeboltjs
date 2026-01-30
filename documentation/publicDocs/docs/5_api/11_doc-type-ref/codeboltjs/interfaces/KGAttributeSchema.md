@@ -2,7 +2,7 @@
 title: KGAttributeSchema
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

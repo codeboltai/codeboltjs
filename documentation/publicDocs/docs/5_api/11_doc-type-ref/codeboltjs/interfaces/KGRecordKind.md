@@ -2,7 +2,7 @@
 title: KGRecordKind
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

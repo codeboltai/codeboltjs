@@ -2,7 +2,7 @@
 title: AddEventResponseData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

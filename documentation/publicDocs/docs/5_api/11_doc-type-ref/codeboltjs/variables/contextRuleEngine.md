@@ -2,7 +2,7 @@
 title: contextRuleEngine
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

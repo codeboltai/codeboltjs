@@ -2,7 +2,7 @@
 title: KGInstanceResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

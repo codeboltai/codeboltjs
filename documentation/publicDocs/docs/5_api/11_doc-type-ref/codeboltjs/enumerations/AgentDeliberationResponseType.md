@@ -2,7 +2,7 @@
 title: AgentDeliberationResponseType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

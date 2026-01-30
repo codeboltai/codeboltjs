@@ -194,17 +194,48 @@ function createRootCategoryFile(outDir) {
 
 // Create package-specific category file
 function createPackageCategoryFile(pkgOutDir, pkg) {
+    // Note: Docusaurus strips numeric prefixes from doc IDs
+    // So "5_api/11_doc-type-ref" becomes "api/doc-type-ref"
     const categoryContent = {
         label: pkg.label,
         position: pkg.position,
         link: {
             type: 'doc',
-            id: `5_api/11_doc-type-ref/${pkg.slug}/index`,
+            id: `api/doc-type-ref/${pkg.slug}/index`,
         },
     };
 
     const categoryPath = path.join(pkgOutDir, '_category_.json');
     fs.writeFileSync(categoryPath, JSON.stringify(categoryContent, null, 2));
+}
+
+// Rename README.md files to index.md for Docusaurus compatibility
+function renameReadmeToIndex(outDir) {
+    console.log('Renaming README.md files to index.md...');
+
+    const walkDir = (dir) => {
+        if (!fs.existsSync(dir)) return;
+
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+            if (stat.isDirectory()) {
+                walkDir(filePath);
+            } else if (file === 'README.md') {
+                const newPath = path.join(dir, 'index.md');
+                // Read content and update title if needed
+                let content = fs.readFileSync(filePath, 'utf-8');
+                // Update title from README to the directory name or a better title
+                content = content.replace(/^---\ntitle: README\n---/, '---\ntitle: Overview\n---');
+                fs.writeFileSync(newPath, content);
+                fs.unlinkSync(filePath);
+                console.log(`  Renamed: ${path.relative(outDir, filePath)} -> index.md`);
+            }
+        }
+    };
+
+    walkDir(outDir);
 }
 
 // Post-process generated markdown files for Docusaurus compatibility
@@ -233,6 +264,24 @@ title: ${fileName}
 
         // Fix internal links - convert .md extensions to no extension for Docusaurus
         content = content.replace(/\]\(([^)]+)\.md\)/g, ']($1)');
+
+        // Fix README links to index (since we renamed README.md to index.md)
+        content = content.replace(/\]\(([^)]*?)README\)/g, ']($1index)');
+
+        // Escape curly braces in table rows for MDX compatibility
+        // MDX interprets {foo} as JSX expressions, causing build errors
+        // Process line by line to only affect table rows (lines starting with |)
+        const lines = content.split('\n');
+        const processedLines = lines.map(line => {
+            // Only process table rows (lines starting with |)
+            if (line.startsWith('|')) {
+                // Escape { and } that aren't already escaped
+                // But preserve already escaped \{ and \}
+                line = line.replace(/(?<!\\)\{/g, '\\{').replace(/(?<!\\)\}/g, '\\}');
+            }
+            return line;
+        });
+        content = processedLines.join('\n');
 
         fs.writeFileSync(filePath, content);
     };
@@ -408,6 +457,9 @@ async function main() {
     // Create root category file and index
     createRootCategoryFile(CONFIG.outDir);
     createRootIndex(CONFIG.outDir);
+
+    // Rename README.md files to index.md for Docusaurus
+    renameReadmeToIndex(CONFIG.outDir);
 
     // Post-process markdown files
     postProcessMarkdown(CONFIG.outDir);

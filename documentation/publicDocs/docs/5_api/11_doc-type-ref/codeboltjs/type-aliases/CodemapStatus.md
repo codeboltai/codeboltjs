@@ -2,7 +2,7 @@
 title: CodemapStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

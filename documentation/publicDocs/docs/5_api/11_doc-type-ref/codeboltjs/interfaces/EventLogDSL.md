@@ -2,7 +2,7 @@
 title: EventLogDSL
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

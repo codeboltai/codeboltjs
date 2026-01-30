@@ -2,7 +2,7 @@
 title: RoadmapData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

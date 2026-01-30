@@ -2,7 +2,7 @@
 title: AddReviewFeedback
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

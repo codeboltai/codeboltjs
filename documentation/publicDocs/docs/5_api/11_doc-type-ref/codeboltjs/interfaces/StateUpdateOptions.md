@@ -2,7 +2,7 @@
 title: StateUpdateOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

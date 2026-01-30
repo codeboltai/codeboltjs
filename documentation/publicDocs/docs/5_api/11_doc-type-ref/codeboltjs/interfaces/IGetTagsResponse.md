@@ -2,7 +2,7 @@
 title: IGetTagsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

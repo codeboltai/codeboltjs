@@ -2,7 +2,7 @@
 title: KGEdgeType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

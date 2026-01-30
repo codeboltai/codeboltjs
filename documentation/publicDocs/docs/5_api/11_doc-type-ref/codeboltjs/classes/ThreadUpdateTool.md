@@ -2,7 +2,7 @@
 title: ThreadUpdateTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

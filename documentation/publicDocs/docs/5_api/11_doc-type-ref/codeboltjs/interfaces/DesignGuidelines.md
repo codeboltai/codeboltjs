@@ -2,7 +2,7 @@
 title: DesignGuidelines
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

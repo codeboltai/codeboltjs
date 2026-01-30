@@ -2,7 +2,7 @@
 title: MCPConfigureOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

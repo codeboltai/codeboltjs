@@ -2,7 +2,7 @@
 title: BrowserScreenshotTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

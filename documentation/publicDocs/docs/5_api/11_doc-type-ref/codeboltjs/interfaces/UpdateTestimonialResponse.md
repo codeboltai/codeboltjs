@@ -2,7 +2,7 @@
 title: UpdateTestimonialResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

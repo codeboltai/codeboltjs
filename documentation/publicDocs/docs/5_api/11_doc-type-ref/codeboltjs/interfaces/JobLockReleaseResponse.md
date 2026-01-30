@@ -2,7 +2,7 @@
 title: JobLockReleaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

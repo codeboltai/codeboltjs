@@ -2,7 +2,7 @@
 title: ResponseExecutor
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

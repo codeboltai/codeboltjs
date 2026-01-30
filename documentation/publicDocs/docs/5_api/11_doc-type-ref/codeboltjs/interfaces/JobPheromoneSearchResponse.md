@@ -2,7 +2,7 @@
 title: JobPheromoneSearchResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: MergeResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

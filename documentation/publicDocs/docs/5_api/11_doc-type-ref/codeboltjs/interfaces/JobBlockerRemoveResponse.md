@@ -2,7 +2,7 @@
 title: JobBlockerRemoveResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

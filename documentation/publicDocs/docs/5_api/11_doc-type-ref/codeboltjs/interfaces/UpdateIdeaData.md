@@ -2,7 +2,7 @@
 title: UpdateIdeaData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

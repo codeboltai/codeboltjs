@@ -2,7 +2,7 @@
 title: getMentionedFiles
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

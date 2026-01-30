@@ -2,7 +2,7 @@
 title: SubagentTaskCompletedNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

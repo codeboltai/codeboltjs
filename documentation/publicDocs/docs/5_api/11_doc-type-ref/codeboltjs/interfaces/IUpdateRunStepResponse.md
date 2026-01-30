@@ -2,7 +2,7 @@
 title: IUpdateRunStepResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

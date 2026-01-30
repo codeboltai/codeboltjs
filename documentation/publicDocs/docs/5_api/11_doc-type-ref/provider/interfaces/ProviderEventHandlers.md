@@ -2,7 +2,7 @@
 title: ProviderEventHandlers
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

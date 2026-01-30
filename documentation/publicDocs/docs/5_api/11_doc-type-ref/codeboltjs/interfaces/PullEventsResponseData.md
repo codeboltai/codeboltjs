@@ -2,7 +2,7 @@
 title: PullEventsResponseData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

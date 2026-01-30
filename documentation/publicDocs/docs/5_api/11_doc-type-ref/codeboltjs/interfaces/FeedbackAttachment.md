@@ -2,7 +2,7 @@
 title: FeedbackAttachment
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

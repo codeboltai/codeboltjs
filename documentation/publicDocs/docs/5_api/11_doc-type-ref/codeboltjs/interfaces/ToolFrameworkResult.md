@@ -2,7 +2,7 @@
 title: ToolFrameworkResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

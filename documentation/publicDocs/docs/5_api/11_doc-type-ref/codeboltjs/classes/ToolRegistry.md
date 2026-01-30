@@ -2,7 +2,7 @@
 title: ToolRegistry
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ListDirectoryTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

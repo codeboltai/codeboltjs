@@ -2,7 +2,7 @@
 title: ToolBuilder
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

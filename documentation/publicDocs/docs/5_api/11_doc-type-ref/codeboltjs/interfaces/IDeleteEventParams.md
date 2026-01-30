@@ -2,7 +2,7 @@
 title: IDeleteEventParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

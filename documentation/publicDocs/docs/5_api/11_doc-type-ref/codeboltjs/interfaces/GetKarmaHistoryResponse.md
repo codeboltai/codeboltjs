@@ -2,7 +2,7 @@
 title: GetKarmaHistoryResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

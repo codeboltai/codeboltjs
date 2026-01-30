@@ -2,7 +2,7 @@
 title: EventLogQueryResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

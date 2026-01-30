@@ -2,7 +2,7 @@
 title: IListSuitesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

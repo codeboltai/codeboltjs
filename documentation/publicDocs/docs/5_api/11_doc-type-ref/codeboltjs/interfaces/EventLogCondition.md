@@ -2,7 +2,7 @@
 title: EventLogCondition
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

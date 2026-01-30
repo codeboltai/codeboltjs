@@ -2,7 +2,7 @@
 title: IGetFeedbackResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

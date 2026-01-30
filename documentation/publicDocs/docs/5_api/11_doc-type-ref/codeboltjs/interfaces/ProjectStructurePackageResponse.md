@@ -2,7 +2,7 @@
 title: ProjectStructurePackageResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

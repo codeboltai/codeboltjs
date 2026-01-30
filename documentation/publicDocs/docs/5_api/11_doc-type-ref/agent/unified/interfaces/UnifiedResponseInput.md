@@ -2,7 +2,7 @@
 title: UnifiedResponseInput
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

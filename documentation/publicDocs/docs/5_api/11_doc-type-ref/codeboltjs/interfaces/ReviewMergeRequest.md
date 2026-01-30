@@ -2,7 +2,7 @@
 title: ReviewMergeRequest
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: MoveFeatureData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

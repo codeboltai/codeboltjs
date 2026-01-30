@@ -2,7 +2,7 @@
 title: PersistentMemoryStepSpecsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

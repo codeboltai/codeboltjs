@@ -2,7 +2,7 @@
 title: UpdateProfileResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

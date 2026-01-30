@@ -2,7 +2,7 @@
 title: BaseProviderConfig
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

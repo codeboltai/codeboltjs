@@ -2,7 +2,7 @@
 title: IngestionPipelineListResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

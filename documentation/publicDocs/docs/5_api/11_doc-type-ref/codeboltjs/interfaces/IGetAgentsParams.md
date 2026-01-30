@@ -2,7 +2,7 @@
 title: IGetAgentsParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

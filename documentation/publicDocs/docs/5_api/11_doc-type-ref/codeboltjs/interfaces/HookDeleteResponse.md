@@ -2,7 +2,7 @@
 title: HookDeleteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

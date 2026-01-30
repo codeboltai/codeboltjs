@@ -2,7 +2,7 @@
 title: GetAgentsByRoleResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

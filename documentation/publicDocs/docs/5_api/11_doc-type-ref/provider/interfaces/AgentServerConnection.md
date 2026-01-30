@@ -2,7 +2,7 @@
 title: AgentServerConnection
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

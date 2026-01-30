@@ -2,7 +2,7 @@
 title: queryVectorItem
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

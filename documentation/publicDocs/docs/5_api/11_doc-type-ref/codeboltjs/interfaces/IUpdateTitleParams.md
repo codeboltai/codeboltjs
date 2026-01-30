@@ -2,7 +2,7 @@
 title: IUpdateTitleParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

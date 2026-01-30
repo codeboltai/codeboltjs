@@ -2,7 +2,7 @@
 title: SearchMatch
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

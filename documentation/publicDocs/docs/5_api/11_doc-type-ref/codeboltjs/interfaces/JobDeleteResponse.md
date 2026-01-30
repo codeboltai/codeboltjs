@@ -2,7 +2,7 @@
 title: JobDeleteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

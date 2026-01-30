@@ -2,7 +2,7 @@
 title: orchestrator
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

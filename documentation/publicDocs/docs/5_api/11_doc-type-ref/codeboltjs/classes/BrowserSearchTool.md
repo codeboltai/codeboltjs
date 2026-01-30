@@ -2,7 +2,7 @@
 title: BrowserSearchTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

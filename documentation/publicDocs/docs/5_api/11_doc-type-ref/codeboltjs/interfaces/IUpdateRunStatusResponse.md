@@ -2,7 +2,7 @@
 title: IUpdateRunStatusResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

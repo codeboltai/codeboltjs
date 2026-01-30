@@ -2,7 +2,7 @@
 title: ProviderStartResult
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

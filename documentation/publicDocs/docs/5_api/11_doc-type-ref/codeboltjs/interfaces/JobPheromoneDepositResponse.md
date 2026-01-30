@@ -2,7 +2,7 @@
 title: JobPheromoneDepositResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: CommitSummary
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

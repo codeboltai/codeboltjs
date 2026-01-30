@@ -2,7 +2,7 @@
 title: memoryIngestion
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

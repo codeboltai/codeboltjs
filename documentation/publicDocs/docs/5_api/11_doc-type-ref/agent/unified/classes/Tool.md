@@ -2,7 +2,7 @@
 title: Tool
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

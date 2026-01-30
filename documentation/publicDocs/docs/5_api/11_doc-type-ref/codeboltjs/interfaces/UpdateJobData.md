@@ -2,7 +2,7 @@
 title: UpdateJobData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

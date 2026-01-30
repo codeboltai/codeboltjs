@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/generate-type-docs.js:*)",
+      "Bash(pnpm start:*)",
+      "Bash(pnpm run build:*)"
+    ]
+  }
+}

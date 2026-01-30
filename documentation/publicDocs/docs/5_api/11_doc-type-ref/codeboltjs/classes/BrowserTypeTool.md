@@ -2,7 +2,7 @@
 title: BrowserTypeTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

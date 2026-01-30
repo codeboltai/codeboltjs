@@ -2,7 +2,7 @@
 title: IUpdateTitleResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

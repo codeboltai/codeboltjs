@@ -2,7 +2,7 @@
 title: CloseVacancyResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

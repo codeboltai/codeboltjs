@@ -2,7 +2,7 @@
 title: ActionBlockFilter
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: StopCapabilityResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

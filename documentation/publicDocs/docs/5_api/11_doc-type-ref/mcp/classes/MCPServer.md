@@ -2,7 +2,7 @@
 title: MCPServer
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 
@@ -105,7 +105,7 @@ Activates the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 
@@ -999,7 +999,7 @@ Starts the server.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/${string}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
+| `options` | \| \{ `transportType`: `"stdio"`; \} \| \{ `sse`: \{ `endpoint`: `` `/$\{string\}` ``; `port`: `number`; \}; `transportType`: `"sse"`; \} | Options for the server transport |
 
 #### Returns
 

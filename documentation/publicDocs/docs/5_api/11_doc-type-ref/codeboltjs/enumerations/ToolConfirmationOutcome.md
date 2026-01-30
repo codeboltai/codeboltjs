@@ -2,7 +2,7 @@
 title: ToolConfirmationOutcome
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

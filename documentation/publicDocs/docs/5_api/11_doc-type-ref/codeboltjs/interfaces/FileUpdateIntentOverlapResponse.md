@@ -2,7 +2,7 @@
 title: FileUpdateIntentOverlapResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

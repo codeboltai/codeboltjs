@@ -2,7 +2,7 @@
 title: ICreateEventResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

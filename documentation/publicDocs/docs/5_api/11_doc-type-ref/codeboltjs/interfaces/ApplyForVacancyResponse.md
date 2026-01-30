@@ -2,7 +2,7 @@
 title: ApplyForVacancyResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

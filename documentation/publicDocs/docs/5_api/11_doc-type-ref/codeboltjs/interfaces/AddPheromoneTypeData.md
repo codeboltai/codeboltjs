@@ -2,7 +2,7 @@
 title: AddPheromoneTypeData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

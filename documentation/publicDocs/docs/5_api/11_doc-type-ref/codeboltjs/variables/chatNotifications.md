@@ -2,7 +2,7 @@
 title: chatNotifications
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

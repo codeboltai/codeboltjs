@@ -2,7 +2,7 @@
 title: agentNotifications
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

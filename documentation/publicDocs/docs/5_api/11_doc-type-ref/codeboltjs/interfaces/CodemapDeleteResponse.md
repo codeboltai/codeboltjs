@@ -2,7 +2,7 @@
 title: CodemapDeleteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

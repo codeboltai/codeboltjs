@@ -2,7 +2,7 @@
 title: ICreateFeedbackParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

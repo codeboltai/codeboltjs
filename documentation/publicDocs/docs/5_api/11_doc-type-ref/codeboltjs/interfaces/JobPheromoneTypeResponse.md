@@ -2,7 +2,7 @@
 title: JobPheromoneTypeResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

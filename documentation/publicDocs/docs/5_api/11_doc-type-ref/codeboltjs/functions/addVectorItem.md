@@ -2,7 +2,7 @@
 title: addVectorItem
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

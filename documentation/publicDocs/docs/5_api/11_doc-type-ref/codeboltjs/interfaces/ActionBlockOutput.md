@@ -2,7 +2,7 @@
 title: ActionBlockOutput
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

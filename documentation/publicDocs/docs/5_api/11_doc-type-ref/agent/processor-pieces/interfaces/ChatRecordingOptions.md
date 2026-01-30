@@ -2,7 +2,7 @@
 title: ChatRecordingOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: CapabilityOutput
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ListIngestionPipelineParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

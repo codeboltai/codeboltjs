@@ -2,7 +2,7 @@
 title: AgentEventType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

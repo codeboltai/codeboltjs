@@ -2,7 +2,7 @@
 title: DirectoryContextOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

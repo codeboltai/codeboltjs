@@ -2,7 +2,7 @@
 title: IGetTriggeredEventsResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: CreateKGInstanceTemplateParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

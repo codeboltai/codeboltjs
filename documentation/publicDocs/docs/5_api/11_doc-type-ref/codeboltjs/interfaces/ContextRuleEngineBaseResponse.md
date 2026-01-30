@@ -2,7 +2,7 @@
 title: ContextRuleEngineBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

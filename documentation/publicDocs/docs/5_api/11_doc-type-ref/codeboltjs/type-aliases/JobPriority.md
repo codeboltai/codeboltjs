@@ -2,7 +2,7 @@
 title: JobPriority
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

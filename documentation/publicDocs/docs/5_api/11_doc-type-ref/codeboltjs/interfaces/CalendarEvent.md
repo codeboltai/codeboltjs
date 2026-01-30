@@ -2,7 +2,7 @@
 title: CalendarEvent
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

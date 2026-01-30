@@ -2,7 +2,7 @@
 title: Deliberation
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

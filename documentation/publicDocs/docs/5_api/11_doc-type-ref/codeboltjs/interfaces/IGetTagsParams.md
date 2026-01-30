@@ -2,7 +2,7 @@
 title: IGetTagsParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: IQueryEventsParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

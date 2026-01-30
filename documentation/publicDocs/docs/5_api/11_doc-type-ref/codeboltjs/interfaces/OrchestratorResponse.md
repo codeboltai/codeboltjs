@@ -2,7 +2,7 @@
 title: OrchestratorResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

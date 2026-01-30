@@ -2,7 +2,7 @@
 title: todoNotifications
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

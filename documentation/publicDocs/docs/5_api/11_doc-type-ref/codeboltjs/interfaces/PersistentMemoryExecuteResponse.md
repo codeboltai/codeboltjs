@@ -2,7 +2,7 @@
 title: PersistentMemoryExecuteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

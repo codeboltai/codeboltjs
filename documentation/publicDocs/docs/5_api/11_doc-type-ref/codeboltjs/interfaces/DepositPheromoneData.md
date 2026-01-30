@@ -2,7 +2,7 @@
 title: DepositPheromoneData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: MemoryIngestionBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

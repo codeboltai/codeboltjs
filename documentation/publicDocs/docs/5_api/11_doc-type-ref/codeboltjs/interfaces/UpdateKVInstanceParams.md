@@ -2,7 +2,7 @@
 title: UpdateKVInstanceParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

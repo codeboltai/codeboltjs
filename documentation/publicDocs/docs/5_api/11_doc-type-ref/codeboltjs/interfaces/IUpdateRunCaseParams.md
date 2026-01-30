@@ -2,7 +2,7 @@
 title: IUpdateRunCaseParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

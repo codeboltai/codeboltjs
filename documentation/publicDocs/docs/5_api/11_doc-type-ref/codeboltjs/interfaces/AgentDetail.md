@@ -2,7 +2,7 @@
 title: AgentDetail
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

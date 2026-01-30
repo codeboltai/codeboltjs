@@ -2,7 +2,7 @@
 title: openNewBrowserInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

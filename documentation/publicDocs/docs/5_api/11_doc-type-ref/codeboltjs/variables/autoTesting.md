@@ -2,7 +2,7 @@
 title: autoTesting
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

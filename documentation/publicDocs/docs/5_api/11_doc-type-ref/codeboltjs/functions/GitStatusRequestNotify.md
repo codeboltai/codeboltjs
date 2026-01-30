@@ -2,7 +2,7 @@
 title: GitStatusRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

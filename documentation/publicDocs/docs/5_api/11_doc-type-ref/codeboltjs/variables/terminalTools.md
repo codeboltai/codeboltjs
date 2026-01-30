@@ -2,7 +2,7 @@
 title: terminalTools
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: RoutingDestination
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

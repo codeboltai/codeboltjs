@@ -2,7 +2,7 @@
 title: AgentDetailsTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

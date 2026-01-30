@@ -2,7 +2,7 @@
 title: UpdateEventLogInstanceParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

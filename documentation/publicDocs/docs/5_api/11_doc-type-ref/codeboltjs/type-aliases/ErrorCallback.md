@@ -2,7 +2,7 @@
 title: ErrorCallback
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

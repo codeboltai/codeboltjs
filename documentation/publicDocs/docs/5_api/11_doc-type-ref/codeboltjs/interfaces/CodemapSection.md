@@ -2,7 +2,7 @@
 title: CodemapSection
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

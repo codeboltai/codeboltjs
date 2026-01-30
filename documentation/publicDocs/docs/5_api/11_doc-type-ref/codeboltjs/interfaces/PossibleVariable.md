@@ -2,7 +2,7 @@
 title: PossibleVariable
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

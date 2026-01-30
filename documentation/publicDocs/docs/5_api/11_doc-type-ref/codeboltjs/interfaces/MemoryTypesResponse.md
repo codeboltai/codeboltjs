@@ -2,7 +2,7 @@
 title: MemoryTypesResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

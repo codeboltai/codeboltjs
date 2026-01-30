@@ -2,7 +2,7 @@
 title: knowledgeGraph
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

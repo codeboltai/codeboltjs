@@ -2,7 +2,7 @@
 title: getMessageId
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

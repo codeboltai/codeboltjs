@@ -2,7 +2,7 @@
 title: GitDiffRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

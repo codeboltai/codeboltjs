@@ -2,7 +2,7 @@
 title: IUpdateSummaryParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ReviewRequestStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

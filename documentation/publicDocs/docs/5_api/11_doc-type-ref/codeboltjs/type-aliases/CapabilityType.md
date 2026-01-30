@@ -2,7 +2,7 @@
 title: CapabilityType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

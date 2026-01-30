@@ -2,7 +2,7 @@
 title: IMarkEventsCompleteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

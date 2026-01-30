@@ -2,7 +2,7 @@
 title: llmNotifications
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

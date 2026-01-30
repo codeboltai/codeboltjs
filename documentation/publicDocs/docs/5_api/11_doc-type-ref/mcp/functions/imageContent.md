@@ -2,7 +2,7 @@
 title: imageContent
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 

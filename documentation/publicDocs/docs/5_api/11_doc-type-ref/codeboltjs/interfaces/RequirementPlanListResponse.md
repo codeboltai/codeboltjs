@@ -2,7 +2,7 @@
 title: RequirementPlanListResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

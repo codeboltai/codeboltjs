@@ -2,7 +2,7 @@
 title: JobBidAcceptResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

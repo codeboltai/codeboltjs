@@ -2,7 +2,7 @@
 title: notificationFunctions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

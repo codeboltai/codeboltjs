@@ -2,7 +2,7 @@
 title: UpdateContextRuleEngineParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

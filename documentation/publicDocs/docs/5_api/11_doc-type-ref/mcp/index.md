@@ -1,5 +1,5 @@
 ---
-title: README
+title: index
 ---
 
 **@codebolt/mcp**

@@ -2,7 +2,7 @@
 title: ToolInvocation
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

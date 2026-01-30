@@ -2,7 +2,7 @@
 title: JoinTeamResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

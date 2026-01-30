@@ -2,7 +2,7 @@
 title: UnifiedAgentError
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

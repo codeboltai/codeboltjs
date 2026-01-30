@@ -2,7 +2,7 @@
 title: ChatHistoryMessageModifierOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: StreamCallback
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

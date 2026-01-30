@@ -2,7 +2,7 @@
 title: IUpdateRunCaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

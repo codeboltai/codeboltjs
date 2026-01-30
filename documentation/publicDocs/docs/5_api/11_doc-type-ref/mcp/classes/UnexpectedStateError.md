@@ -2,7 +2,7 @@
 title: UnexpectedStateError
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: HookConfig
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

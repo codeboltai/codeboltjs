@@ -2,7 +2,7 @@
 title: ChatHistoryOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

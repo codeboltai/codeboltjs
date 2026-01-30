@@ -2,7 +2,7 @@
 title: ContextConstraints
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

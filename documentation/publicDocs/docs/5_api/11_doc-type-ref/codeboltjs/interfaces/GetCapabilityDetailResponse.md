@@ -2,7 +2,7 @@
 title: GetCapabilityDetailResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

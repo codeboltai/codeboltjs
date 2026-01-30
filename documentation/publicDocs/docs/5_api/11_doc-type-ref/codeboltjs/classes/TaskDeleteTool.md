@@ -2,7 +2,7 @@
 title: TaskDeleteTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

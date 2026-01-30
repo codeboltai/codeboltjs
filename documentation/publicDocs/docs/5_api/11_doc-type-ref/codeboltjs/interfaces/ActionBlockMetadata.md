@@ -2,7 +2,7 @@
 title: ActionBlockMetadata
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

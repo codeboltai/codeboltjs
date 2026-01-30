@@ -2,7 +2,7 @@
 title: TestSuite
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

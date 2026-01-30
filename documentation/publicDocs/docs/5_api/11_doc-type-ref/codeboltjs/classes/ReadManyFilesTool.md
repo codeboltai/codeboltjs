@@ -2,7 +2,7 @@
 title: ReadManyFilesTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

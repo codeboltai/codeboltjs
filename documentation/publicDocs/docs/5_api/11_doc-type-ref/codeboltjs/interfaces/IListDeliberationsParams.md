@@ -2,7 +2,7 @@
 title: IListDeliberationsParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

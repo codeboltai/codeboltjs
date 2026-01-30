@@ -2,7 +2,7 @@
 title: GitLogsRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

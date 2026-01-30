@@ -2,7 +2,7 @@
 title: KGViewTemplate
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

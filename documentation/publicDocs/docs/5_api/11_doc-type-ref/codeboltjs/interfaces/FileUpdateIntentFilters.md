@@ -2,7 +2,7 @@
 title: FileUpdateIntentFilters
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

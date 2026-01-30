@@ -2,7 +2,7 @@
 title: AgentEventPayload
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

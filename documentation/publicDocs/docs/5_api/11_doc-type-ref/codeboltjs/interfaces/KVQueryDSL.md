@@ -2,7 +2,7 @@
 title: KVQueryDSL
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

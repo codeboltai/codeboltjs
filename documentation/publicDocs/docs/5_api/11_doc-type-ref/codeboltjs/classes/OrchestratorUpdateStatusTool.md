@@ -2,7 +2,7 @@
 title: OrchestratorUpdateStatusTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

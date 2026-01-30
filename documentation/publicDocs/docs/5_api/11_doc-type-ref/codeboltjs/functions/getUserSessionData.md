@@ -2,7 +2,7 @@
 title: getUserSessionData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

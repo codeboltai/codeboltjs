@@ -2,7 +2,7 @@
 title: ICreateMemoryResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

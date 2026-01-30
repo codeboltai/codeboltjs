@@ -2,7 +2,7 @@
 title: KVRecordCountResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

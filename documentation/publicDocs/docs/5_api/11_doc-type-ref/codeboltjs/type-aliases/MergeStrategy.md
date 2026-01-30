@@ -2,7 +2,7 @@
 title: MergeStrategy
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

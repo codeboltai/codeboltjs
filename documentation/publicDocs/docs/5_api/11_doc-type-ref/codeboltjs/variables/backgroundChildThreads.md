@@ -2,7 +2,7 @@
 title: backgroundChildThreads
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

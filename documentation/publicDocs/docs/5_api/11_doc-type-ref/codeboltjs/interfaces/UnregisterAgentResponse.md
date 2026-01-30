@@ -2,7 +2,7 @@
 title: UnregisterAgentResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

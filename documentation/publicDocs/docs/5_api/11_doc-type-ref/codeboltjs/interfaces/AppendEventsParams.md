@@ -2,7 +2,7 @@
 title: AppendEventsParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

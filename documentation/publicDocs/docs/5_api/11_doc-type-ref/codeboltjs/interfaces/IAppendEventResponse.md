@@ -2,7 +2,7 @@
 title: IAppendEventResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

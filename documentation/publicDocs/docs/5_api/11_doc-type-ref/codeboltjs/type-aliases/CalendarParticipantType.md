@@ -2,7 +2,7 @@
 title: CalendarParticipantType
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

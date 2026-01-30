@@ -2,7 +2,7 @@
 title: CodemapCreateResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

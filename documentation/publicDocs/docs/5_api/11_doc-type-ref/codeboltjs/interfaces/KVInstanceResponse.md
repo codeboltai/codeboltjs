@@ -2,7 +2,7 @@
 title: KVInstanceResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

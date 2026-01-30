@@ -2,7 +2,7 @@
 title: StartSubagentTaskResponseNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

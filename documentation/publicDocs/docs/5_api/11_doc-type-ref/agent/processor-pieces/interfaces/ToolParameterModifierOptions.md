@@ -2,7 +2,7 @@
 title: ToolParameterModifierOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

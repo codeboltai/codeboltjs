@@ -2,7 +2,7 @@
 title: CustomEventPayload
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

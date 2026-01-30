@@ -2,7 +2,7 @@
 title: ToolResult
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

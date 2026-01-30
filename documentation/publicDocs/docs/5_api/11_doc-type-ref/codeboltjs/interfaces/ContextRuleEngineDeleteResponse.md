@@ -2,7 +2,7 @@
 title: ContextRuleEngineDeleteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

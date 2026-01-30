@@ -2,7 +2,7 @@
 title: VectorQueryResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

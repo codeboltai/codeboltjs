@@ -2,7 +2,7 @@
 title: RuleEvaluationResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

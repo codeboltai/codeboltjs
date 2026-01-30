@@ -2,7 +2,7 @@
 title: getBrowserInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

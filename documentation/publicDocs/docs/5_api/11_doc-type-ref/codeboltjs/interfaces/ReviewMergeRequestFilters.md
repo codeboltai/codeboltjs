@@ -2,7 +2,7 @@
 title: ReviewMergeRequestFilters
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

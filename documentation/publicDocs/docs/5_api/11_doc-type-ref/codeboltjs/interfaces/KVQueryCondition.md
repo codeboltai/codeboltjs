@@ -2,7 +2,7 @@
 title: KVQueryCondition
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

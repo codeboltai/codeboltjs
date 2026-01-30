@@ -2,7 +2,7 @@
 title: ICreateDeliberationResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

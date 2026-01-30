@@ -2,7 +2,7 @@
 title: McpToolSearchResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

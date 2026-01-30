@@ -2,7 +2,7 @@
 title: LLMInferenceParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

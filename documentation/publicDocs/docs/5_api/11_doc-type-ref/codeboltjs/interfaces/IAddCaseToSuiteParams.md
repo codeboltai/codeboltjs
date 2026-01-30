@@ -2,7 +2,7 @@
 title: IAddCaseToSuiteParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

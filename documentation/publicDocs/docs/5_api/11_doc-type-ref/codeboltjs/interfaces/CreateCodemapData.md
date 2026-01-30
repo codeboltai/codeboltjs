@@ -2,7 +2,7 @@
 title: CreateCodemapData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

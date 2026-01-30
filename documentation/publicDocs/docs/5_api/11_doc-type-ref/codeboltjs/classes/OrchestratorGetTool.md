@@ -2,7 +2,7 @@
 title: OrchestratorGetTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

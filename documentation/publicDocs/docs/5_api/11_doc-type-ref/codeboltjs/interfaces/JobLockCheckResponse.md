@@ -2,7 +2,7 @@
 title: JobLockCheckResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

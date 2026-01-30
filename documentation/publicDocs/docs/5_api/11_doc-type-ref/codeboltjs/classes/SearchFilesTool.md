@@ -2,7 +2,7 @@
 title: SearchFilesTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: CodeMatcher
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

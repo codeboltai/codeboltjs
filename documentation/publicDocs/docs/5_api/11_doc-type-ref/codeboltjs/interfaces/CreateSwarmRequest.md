@@ -2,7 +2,7 @@
 title: CreateSwarmRequest
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

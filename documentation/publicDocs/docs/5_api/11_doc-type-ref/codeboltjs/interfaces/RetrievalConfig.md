@@ -2,7 +2,7 @@
 title: RetrievalConfig
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

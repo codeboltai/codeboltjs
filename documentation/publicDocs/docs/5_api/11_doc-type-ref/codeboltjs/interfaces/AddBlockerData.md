@@ -2,7 +2,7 @@
 title: AddBlockerData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

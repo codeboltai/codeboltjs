@@ -2,7 +2,7 @@
 title: JobUpdateResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

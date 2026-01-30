@@ -2,7 +2,7 @@
 title: ProviderState
 ---
 
-[**@codebolt/provider**](../README)
+[**@codebolt/provider**](../index)
 
 ***
 

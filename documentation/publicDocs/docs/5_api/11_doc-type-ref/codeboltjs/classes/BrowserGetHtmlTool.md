@@ -2,7 +2,7 @@
 title: BrowserGetHtmlTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: SSEServer
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 

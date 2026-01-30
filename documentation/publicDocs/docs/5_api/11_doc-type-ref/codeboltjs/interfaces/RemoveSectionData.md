@@ -2,7 +2,7 @@
 title: RemoveSectionData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

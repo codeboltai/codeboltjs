@@ -2,7 +2,7 @@
 title: BrowserGetContentTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: GitRemoteAddRequestNotify
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

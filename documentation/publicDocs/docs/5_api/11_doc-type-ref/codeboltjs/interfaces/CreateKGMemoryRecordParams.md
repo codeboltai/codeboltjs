@@ -2,7 +2,7 @@
 title: CreateKGMemoryRecordParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

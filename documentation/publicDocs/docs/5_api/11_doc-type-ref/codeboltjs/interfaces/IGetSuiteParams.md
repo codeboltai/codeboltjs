@@ -2,7 +2,7 @@
 title: IGetSuiteParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

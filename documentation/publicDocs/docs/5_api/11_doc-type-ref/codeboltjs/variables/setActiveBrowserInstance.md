@@ -2,7 +2,7 @@
 title: setActiveBrowserInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: RunCommand
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

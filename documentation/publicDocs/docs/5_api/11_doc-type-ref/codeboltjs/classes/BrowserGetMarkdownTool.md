@@ -2,7 +2,7 @@
 title: BrowserGetMarkdownTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

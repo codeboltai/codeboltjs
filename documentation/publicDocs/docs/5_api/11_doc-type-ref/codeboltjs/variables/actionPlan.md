@@ -2,7 +2,7 @@
 title: actionPlan
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

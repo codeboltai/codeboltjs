@@ -2,7 +2,7 @@
 title: IUpdateDeliberationParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

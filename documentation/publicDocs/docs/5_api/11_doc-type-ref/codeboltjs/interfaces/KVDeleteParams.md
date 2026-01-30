@@ -2,7 +2,7 @@
 title: KVDeleteParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: getUploadedImages
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

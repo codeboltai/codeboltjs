@@ -2,7 +2,7 @@
 title: DeleteRoleResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

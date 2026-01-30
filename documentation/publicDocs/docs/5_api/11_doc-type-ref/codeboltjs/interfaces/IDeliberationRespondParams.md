@@ -2,7 +2,7 @@
 title: IDeliberationRespondParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

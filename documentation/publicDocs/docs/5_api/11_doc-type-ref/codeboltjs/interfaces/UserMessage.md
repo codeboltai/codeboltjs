@@ -2,7 +2,7 @@
 title: UserMessage
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

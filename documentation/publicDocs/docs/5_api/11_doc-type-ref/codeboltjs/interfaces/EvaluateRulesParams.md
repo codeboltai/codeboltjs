@@ -2,7 +2,7 @@
 title: EvaluateRulesParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

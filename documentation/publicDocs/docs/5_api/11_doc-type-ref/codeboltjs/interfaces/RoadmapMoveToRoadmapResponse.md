@@ -2,7 +2,7 @@
 title: RoadmapMoveToRoadmapResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

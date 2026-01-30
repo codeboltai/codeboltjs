@@ -2,7 +2,7 @@
 title: GetPendingEventsResponseData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

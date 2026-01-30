@@ -2,7 +2,7 @@
 title: OpenAIFunctionCall
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

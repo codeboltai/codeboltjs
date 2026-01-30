@@ -2,7 +2,7 @@
 title: projectStructure
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: FileEntry
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

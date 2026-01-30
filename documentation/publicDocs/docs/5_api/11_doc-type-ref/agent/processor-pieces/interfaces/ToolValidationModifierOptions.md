@@ -2,7 +2,7 @@
 title: ToolValidationModifierOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

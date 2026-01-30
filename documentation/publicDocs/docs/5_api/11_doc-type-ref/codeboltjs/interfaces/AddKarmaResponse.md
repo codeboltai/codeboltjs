@@ -2,7 +2,7 @@
 title: AddKarmaResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: CreateJobGroupData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

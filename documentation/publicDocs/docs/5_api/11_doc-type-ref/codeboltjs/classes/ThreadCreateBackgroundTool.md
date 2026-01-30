@@ -2,7 +2,7 @@
 title: ThreadCreateBackgroundTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

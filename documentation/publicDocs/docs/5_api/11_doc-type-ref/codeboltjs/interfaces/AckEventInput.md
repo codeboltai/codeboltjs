@@ -2,7 +2,7 @@
 title: AckEventInput
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

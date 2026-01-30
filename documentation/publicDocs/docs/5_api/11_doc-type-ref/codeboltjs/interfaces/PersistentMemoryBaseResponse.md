@@ -2,7 +2,7 @@
 title: PersistentMemoryBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: closeBrowserInstance
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

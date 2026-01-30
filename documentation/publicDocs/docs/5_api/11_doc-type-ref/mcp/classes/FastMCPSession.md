@@ -2,7 +2,7 @@
 title: FastMCPSession
 ---
 
-[**@codebolt/mcp**](../README)
+[**@codebolt/mcp**](../index)
 
 ***
 

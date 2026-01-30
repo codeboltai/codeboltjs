@@ -2,7 +2,7 @@
 title: AgentRegistration
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

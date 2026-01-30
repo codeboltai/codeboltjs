@@ -2,7 +2,7 @@
 title: ToolLocation
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

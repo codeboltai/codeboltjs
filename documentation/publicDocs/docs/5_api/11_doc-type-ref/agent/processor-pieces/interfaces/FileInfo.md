@@ -2,7 +2,7 @@
 title: FileInfo
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

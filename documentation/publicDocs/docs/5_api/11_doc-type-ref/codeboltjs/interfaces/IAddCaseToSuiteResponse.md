@@ -2,7 +2,7 @@
 title: IAddCaseToSuiteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

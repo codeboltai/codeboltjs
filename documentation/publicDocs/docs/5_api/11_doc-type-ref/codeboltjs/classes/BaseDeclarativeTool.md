@@ -2,7 +2,7 @@
 title: BaseDeclarativeTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

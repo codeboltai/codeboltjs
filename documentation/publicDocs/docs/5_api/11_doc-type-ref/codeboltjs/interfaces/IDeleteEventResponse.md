@@ -2,7 +2,7 @@
 title: IDeleteEventResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: PackageMetadata
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

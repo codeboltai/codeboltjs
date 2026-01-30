@@ -2,7 +2,7 @@
 title: RoadmapIdeasResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: UpdatePlanData
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

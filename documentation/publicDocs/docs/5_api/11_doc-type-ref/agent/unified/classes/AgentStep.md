@@ -2,7 +2,7 @@
 title: AgentStep
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

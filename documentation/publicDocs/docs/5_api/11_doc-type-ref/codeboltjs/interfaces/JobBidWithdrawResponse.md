@@ -2,7 +2,7 @@
 title: JobBidWithdrawResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

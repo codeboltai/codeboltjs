@@ -2,7 +2,7 @@
 title: ICreateRunParams
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

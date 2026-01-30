@@ -2,7 +2,7 @@
 title: getCurrentFile
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

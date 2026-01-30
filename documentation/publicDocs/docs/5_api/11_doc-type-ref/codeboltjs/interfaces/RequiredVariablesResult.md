@@ -2,7 +2,7 @@
 title: RequiredVariablesResult
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: IGetStatusResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

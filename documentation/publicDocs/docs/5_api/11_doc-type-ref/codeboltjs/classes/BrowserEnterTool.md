@@ -2,7 +2,7 @@
 title: BrowserEnterTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

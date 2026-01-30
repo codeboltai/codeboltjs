@@ -2,7 +2,7 @@
 title: StatusSummary
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: IngestionRouting
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ContributionConfig
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

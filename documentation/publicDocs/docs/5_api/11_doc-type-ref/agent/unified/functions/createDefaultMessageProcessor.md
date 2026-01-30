@@ -2,7 +2,7 @@
 title: createDefaultMessageProcessor
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

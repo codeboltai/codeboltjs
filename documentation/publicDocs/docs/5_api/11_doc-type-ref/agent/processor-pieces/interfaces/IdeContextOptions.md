@@ -2,7 +2,7 @@
 title: IdeContextOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

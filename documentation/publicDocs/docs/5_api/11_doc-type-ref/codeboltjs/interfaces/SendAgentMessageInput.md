@@ -2,7 +2,7 @@
 title: SendAgentMessageInput
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

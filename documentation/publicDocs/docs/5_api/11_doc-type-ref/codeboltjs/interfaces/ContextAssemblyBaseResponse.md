@@ -2,7 +2,7 @@
 title: ContextAssemblyBaseResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: BrowserGetUrlTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

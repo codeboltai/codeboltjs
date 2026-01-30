@@ -2,7 +2,7 @@
 title: Workflow
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

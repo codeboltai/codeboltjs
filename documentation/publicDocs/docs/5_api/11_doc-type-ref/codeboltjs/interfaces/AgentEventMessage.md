@@ -2,7 +2,7 @@
 title: AgentEventMessage
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

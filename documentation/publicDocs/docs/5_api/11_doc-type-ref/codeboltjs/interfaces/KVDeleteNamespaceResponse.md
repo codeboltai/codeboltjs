@@ -2,7 +2,7 @@
 title: KVDeleteNamespaceResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

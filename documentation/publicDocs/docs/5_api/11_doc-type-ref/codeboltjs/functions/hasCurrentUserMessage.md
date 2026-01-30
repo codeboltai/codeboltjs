@@ -2,7 +2,7 @@
 title: hasCurrentUserMessage
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: ToolCallConfirmationDetails
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

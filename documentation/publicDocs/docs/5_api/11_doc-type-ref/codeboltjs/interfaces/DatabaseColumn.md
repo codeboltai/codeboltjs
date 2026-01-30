@@ -2,7 +2,7 @@
 title: DatabaseColumn
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

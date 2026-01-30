@@ -2,7 +2,7 @@
 title: ListCodeDefinitionNamesTool
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

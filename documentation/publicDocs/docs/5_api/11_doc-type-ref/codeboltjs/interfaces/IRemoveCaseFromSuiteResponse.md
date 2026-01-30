@@ -2,7 +2,7 @@
 title: IRemoveCaseFromSuiteResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

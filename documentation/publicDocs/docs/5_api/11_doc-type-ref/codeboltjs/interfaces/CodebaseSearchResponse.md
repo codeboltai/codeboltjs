@@ -2,7 +2,7 @@
 title: CodebaseSearchResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

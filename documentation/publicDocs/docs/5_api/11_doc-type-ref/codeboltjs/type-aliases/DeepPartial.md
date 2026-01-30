@@ -2,7 +2,7 @@
 title: DeepPartial
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

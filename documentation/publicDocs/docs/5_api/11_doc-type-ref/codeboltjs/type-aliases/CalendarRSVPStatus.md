@@ -2,7 +2,7 @@
 title: CalendarRSVPStatus
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: listBrowserInstances
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

@@ -2,7 +2,7 @@
 title: EnvironmentContextOptions
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 

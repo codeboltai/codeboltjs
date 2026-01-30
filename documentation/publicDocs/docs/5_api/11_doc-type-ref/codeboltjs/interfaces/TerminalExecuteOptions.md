@@ -2,7 +2,7 @@
 title: TerminalExecuteOptions
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

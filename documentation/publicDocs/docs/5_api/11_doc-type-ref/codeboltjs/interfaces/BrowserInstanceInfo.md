@@ -2,7 +2,7 @@
 title: BrowserInstanceInfo
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

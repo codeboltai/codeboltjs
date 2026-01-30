@@ -2,7 +2,7 @@
 title: JobGroup
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

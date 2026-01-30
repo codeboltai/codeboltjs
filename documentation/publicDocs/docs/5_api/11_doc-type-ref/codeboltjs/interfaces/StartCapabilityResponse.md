@@ -2,7 +2,7 @@
 title: StartCapabilityResponse
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

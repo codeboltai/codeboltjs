@@ -2,7 +2,7 @@
 title: BrowserElementSelector
 ---
 
-[**@codebolt/codeboltjs**](../README)
+[**@codebolt/codeboltjs**](../index)
 
 ***
 

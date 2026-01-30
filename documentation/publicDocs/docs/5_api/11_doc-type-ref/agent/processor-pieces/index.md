@@ -1,8 +1,8 @@
 ---
-title: README
+title: index
 ---
 
-[**@codebolt/agent**](../README)
+[**@codebolt/agent**](../index)
 
 ***
 

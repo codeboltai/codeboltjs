@@ -2,7 +2,7 @@
 title: OpenAIMessage
 ---
 
-[**@codebolt/agent**](../../README)
+[**@codebolt/agent**](../../index)
 
 ***
 
