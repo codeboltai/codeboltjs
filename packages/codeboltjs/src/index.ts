@@ -1064,6 +1064,118 @@ export {
 export { default as agentEventQueue } from './modules/agentEventQueue';
 
 // ================================
+// Core Modules - Direct exports for documentation
+// ================================
+
+// File System module
+export { default as fs } from './modules/fs';
+
+// Git module
+export { default as git } from './modules/git';
+
+// LLM module
+export { default as llm } from './modules/llm';
+
+// Mail module
+export { default as mail } from './modules/mail';
+
+// Group Feedback module
+export { default as groupFeedback } from './modules/groupFeedback';
+
+// Agent Deliberation module
+export { default as agentDeliberation } from './modules/agentDeliberation';
+
+// Browser module
+export { default as browser } from './modules/browser';
+
+// Chat module
+export { default as chat } from './modules/chat';
+
+// Terminal module
+export { default as terminal } from './modules/terminal';
+
+// Codeutils module
+export { default as codeutils } from './modules/codeutils';
+
+// Crawler module
+export { default as crawler } from './modules/crawler';
+
+// Search module
+export { default as search } from './modules/search';
+
+// Knowledge module
+export { default as knowledge } from './modules/knowledge';
+
+// RAG module
+export { default as rag } from './modules/rag';
+
+// Output Parsers module
+export { default as outputparsers } from './modules/outputparsers';
+
+// Project module
+export { default as project } from './modules/project';
+
+// DB Memory module
+export { default as dbmemory } from './modules/dbmemory';
+
+// State module
+export { default as state } from './modules/state';
+
+// Task module
+export { default as task } from './modules/task';
+
+// Thread module
+export { default as thread } from './modules/thread';
+
+// VectorDB module
+export { default as vectordb } from './modules/vectordb';
+
+// Debug module
+export { default as debug } from './modules/debug';
+
+// Tokenizer module
+export { default as tokenizer } from './modules/tokenizer';
+
+// History module (chatSummary)
+export { chatSummary } from './modules/history';
+
+// MCP module
+export { default as mcp } from './modules/mcp';
+
+// Agent module
+export { default as agent } from './modules/agent';
+
+// Memory module
+export { default as memory } from './modules/memory';
+
+// Action Plan module
+export { default as actionPlan } from './modules/actionPlan';
+
+// Todo module
+export { default as todo } from './modules/todo';
+
+// Job module
+export { default as job } from './modules/job';
+
+// AutoTesting module
+export { default as autoTesting } from './modules/autoTesting';
+
+// Roadmap module
+export { default as roadmap } from './modules/roadmap';
+
+// Codemap module
+export { default as codemap } from './modules/codemap';
+
+// Project Structure module
+export { default as projectStructure } from './modules/projectStructure';
+
+// Codebase Search module
+export { default as codebaseSearch } from './modules/codebaseSearch';
+
+// Background Child Threads module
+export { default as backgroundChildThreads } from './modules/backgroundChildThreads';
+
+// ================================
 // Tools Module - LLM-ready tool definitions
 // ================================
 
