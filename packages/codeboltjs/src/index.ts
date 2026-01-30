@@ -108,6 +108,9 @@ export type {
 // ================================
 
 export type {
+    // Application State Types
+    ApplicationState,
+
     // Git Types (returned by git operations)
     GitFileStatus,
     StatusResult,
@@ -121,6 +124,8 @@ export type {
 
     // Task Types (for task management)
     Task,
+    SubTask,
+    TaskResponse,
 
     // Vector Database Types (for vector operations)
     VectorItem,
@@ -130,6 +135,7 @@ export type {
     FileEntry,
     SearchMatch,
     SearchResult,
+    FileStateInfo,
 
     // Browser Types (for browser operations)
     BrowserElement,
@@ -148,6 +154,22 @@ export type {
 
     // Notification Types (for notifications)
     Notification,
+
+    // Log Types
+    LogType,
+
+    // Message Types (for WebSocket communication)
+    PendingRequest,
+    MessageRoute,
+
+    // User Message Types
+    InitialUserMessage,
+
+    // Configuration Types
+    Config,
+
+    // Error Types
+    CodeboltError,
 
     // Utility Types for User Functions
     DeepPartial,
