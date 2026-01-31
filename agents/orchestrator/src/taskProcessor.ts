@@ -233,17 +233,25 @@ async function createJobsForTask(
                 // Calculate dependencies (only within this task)
                 const dependencies: string[] = [];
 
-                // Sequential: depend on previous job within same task
-                if (i > 0 && createdJobsForTask.length > 0) {
-                    dependencies.push(createdJobsForTask[i - 1].jobId);
-                }
+                // Only use explicit dependencies from LLM
+                // If dependencies are empty or undefined, the job runs in PARALLEL
+                // If dependencies have values, the job runs SEQUENTIALLY after those jobs
 
-                // Explicit internal dependencies from LLM
-                if (subJob.internalDependencies) {
+                // Internal dependencies (job names within this task)
+                if (subJob.internalDependencies && subJob.internalDependencies.length > 0) {
                     for (const depName of subJob.internalDependencies) {
                         const depJobId = subJobNameToId.get(depName);
                         if (depJobId && !dependencies.includes(depJobId)) {
                             dependencies.push(depJobId);
+                        }
+                    }
+                }
+
+                // External dependencies (job IDs from other tasks)
+                if (subJob.externalDependencies && subJob.externalDependencies.length > 0) {
+                    for (const extDepId of subJob.externalDependencies) {
+                        if (!dependencies.includes(extDepId)) {
+                            dependencies.push(extDepId);
                         }
                     }
                 }

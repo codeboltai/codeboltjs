@@ -1,0 +1,42 @@
+# ActionBlock Configuration File
+
+name: my-action-block
+
+description: A reusable ActionBlock for Codebolt agents
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Developer
+
+  tags:
+    - actionblock
+    - codebolt
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+
+  inputs:
+    - name: task
+      type: object
+      required: true
+      description: |
+        The task object to process:
+        - taskId: string (required)
+        - name: string (required)
+        - description: string (optional)
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the action was successful
+
+    - name: result
+      type: object
+      description: The result of the action
+
+    - name: error
+      type: string
+      description: Error message if the action failed

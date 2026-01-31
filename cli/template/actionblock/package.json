@@ -1,0 +1,44 @@
+{
+  "name": "my-action-block",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A Codebolt ActionBlock",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "npx webpack",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "codebolt",
+    "actionblock",
+    "ai",
+    "agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.26.0",
+    "@codebolt/codeboltjs": "latest",
+    "copy-webpack-plugin": "^12.0.2",
+    "node-loader": "^2.1.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@types/node": "^20.11.25",
+    "babel-loader": "^9.2.1",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}

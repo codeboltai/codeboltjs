@@ -234,10 +234,6 @@ const codeboltMCP = {
 
         return { data: result } as GetToolsResponse;
     },
-
-
-    
-
     /**
      * Executes a specific tool with provided parameters.
      *
