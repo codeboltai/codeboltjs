@@ -35,9 +35,6 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     private nfsServerProcess: ChildProcess | null = null;
     private overlayName: string | null = null;
     private currentNfsPort: number = 11111;
-    private lastStartResult: ProviderStartResult | null = null;
-    private initializationInProgress: boolean = false;
-    private initializationPromise: Promise<ProviderStartResult> | null = null;
 
     constructor(config: ProviderConfig = {}) {
         super({
@@ -99,32 +96,6 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
 
     async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
         this.logger.log('Starting provider with environment:', initVars.environmentName);
-
-        // Guard against re-initialization if already initialized for this environment
-        if (this.projectPath && this.overlayName === initVars.environmentName && this.lastStartResult) {
-            this.logger.log('Provider already initialized for this environment, skipping re-initialization');
-            return this.lastStartResult;
-        }
-
-        // Prevent concurrent initialization attempts
-        if (this.initializationInProgress && this.initializationPromise) {
-            this.logger.log('Initialization already in progress, waiting for existing initialization...');
-            return this.initializationPromise;
-        }
-
-        this.initializationInProgress = true;
-        this.initializationPromise = this.doProviderStart(initVars);
-
-        try {
-            const result = await this.initializationPromise;
-            return result;
-        } finally {
-            this.initializationInProgress = false;
-        }
-    }
-
-    private async doProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
-
         let projectPath = initVars.projectPath as string | undefined;
         if (!projectPath) {
             throw new Error('Project path is not available in initVars');
@@ -133,15 +104,15 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         // Use environment name as overlay name
         this.overlayName = initVars.environmentName;
         // Mount point in user's home directory
-        const mountPoint = path.join(os.homedir(), '.codebolt', 'agentfs_mounts', this.overlayName);
+        const mountPoint = path.join("/Users/ravirawat/desktop", '.codebolt', 'agentfs_mounts', this.overlayName);
 
         try {
             await fs.mkdir(mountPoint, { recursive: true });
 
             this.logger.log(`Initializing agentfs overlay: ${this.overlayName}`);
 
-            // Step 1: Initialize overlay (use --force to handle re-initialization if previous run didn't clean up)
-            await this.runAgentFSCommand(['init', this.overlayName, '--base', projectPath, '--force']);
+            // Step 1: Initialize overlay
+            await this.runAgentFSCommand(['init', this.overlayName, '--base', projectPath]);
             this.logger.log(`Overlay ${this.overlayName} initialized.`);
 
             // Step 2: Check port availability and start NFS server
@@ -175,7 +146,8 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
             await new Promise(r => setTimeout(r, 2000));
 
             // Step 3: Mount via NFS with dynamic port
-            await this.attemptNfsMount(mountPoint, this.currentNfsPort);
+            this.logger.log(`Mounting NFS at ${mountPoint} using port ${this.currentNfsPort}`);
+            await execAsync(`mount -t nfs -o vers=3,tcp,port=${this.currentNfsPort},mountport=${this.currentNfsPort},nolock 127.0.0.1:/ "${mountPoint}"`);
 
             // Wait for mount to stabilize
             await new Promise(r => setTimeout(r, 1000));
@@ -205,12 +177,10 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
             this.startEnvironmentHeartbeat(initVars.environmentName);
         }
 
-        this.lastStartResult = {
+        return {
             ...result,
             worktreePath: this.projectPath!,
         };
-
-        return this.lastStartResult;
     }
 
     async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
@@ -243,7 +213,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
 
             await this.stopAgentServer();
 
-            if (this.projectPath && this.projectPath.includes('agentfs_mounts')) {
+            if (this.projectPath && this.projectPath.includes('.agentfs_mnt')) {
                 this.logger.log(`Unmounting ${this.projectPath}...`);
                 try {
                     try {
@@ -306,50 +276,6 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         }
     }
 
-    /**
-     * Attempt to mount NFS with retry logic
-     */
-    private async attemptNfsMount(mountPoint: string, port: number, maxRetries: number = 3): Promise<void> {
-        let lastError: Error | null = null;
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                this.logger.log(`Mounting NFS at ${mountPoint} using port ${port} (attempt ${attempt}/${maxRetries})`);
-
-                // Try mount without sudo first (works in development/test environments)
-                await execAsync(`mount -t nfs -o vers=3,tcp,port=${port},mountport=${port},nolock 127.0.0.1:/ "${mountPoint}"`);
-                return; // Success!
-            } catch (error: any) {
-                lastError = error;
-
-                // Check if it's a permission error
-                const isPermissionError = error.message?.includes('Operation not permitted') ||
-                    error.message?.includes('Permission denied');
-
-                this.logger.warn(`NFS mount failed due to permissions (attempt ${attempt}). On macOS, NFS mounting may require elevated privileges.`);
-
-                try {
-                    this.logger.log('Attempting NFS mount with sudo...');
-                    await execAsync(`sudo mount -t nfs -o resvport,vers=3,tcp,port=${port},mountport=${port},nolock 127.0.0.1:/ "${mountPoint}"`);
-                    this.logger.log('Sudo mount successful.');
-                    return;
-                } catch (sudoError: any) {
-                    this.logger.error('Sudo mount failed:', sudoError);
-                    throw lastError;
-                }
-
-                // For other errors, wait and retry
-                if (attempt < maxRetries) {
-                    this.logger.warn(`NFS mount failed (attempt ${attempt}), retrying in 500ms...`);
-                    await new Promise(r => setTimeout(r, 500));
-                }
-            }
-        }
-
-        // All attempts failed
-        throw lastError || new Error('NFS mount failed after all retry attempts');
-    }
-
     async onReadFile(filePath: string): Promise<string> {
         this.logger.log('Reading file:', filePath);
         return fs.readFile(path.join(this.projectPath!, filePath), 'utf-8');
@@ -383,11 +309,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     }
 
     async onGetProject(parentId: string = 'root'): Promise<any[]> {
-        if (!this.projectPath) {
-            this.logger.error('onGetProject called but projectPath is null (not initialized?)');
-            return [];
-        }
-        const parentPath = parentId === 'root' ? this.projectPath : path.join(this.projectPath, parentId);
+        const parentPath = parentId === 'root' ? this.projectPath! : path.join(this.projectPath!, parentId);
 
         try {
             const items = await fs.readdir(parentPath, { withFileTypes: true });
