@@ -20,16 +20,16 @@ import type { DeliberationInput, DeliberationOutput } from './types';
 codebolt.onActionBlockInvocation(async (threadContext: any, metadata: any) => {
     try {
         codebolt.chat.sendMessage('Starting Deliberation One-Out-of-N ActionBlock...', {});
-
+        const params = threadContext?.params || {};
         // Extract input parameters
         const input: DeliberationInput = {
-            task: threadContext.task || metadata?.task || '',
-            taskDescription: threadContext.taskDescription || metadata?.taskDescription || '',
+            task: params.task || metadata?.task || '',
+            taskDescription: params.taskDescription || metadata?.taskDescription || '',
             options: {
-                numberOfAgents: threadContext.options?.numberOfAgents ||
+                numberOfAgents: params.options?.numberOfAgents ||
                     metadata?.options?.numberOfAgents ||
                     3,
-                agentId: threadContext.options?.agentId || metadata?.options?.agentId,
+                agentId: params.options?.agentId || metadata?.options?.agentId,
             },
         };
 

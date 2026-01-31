@@ -67,28 +67,22 @@ export async function spawnDeliberationAgents(
     agentId?: string
 ): Promise<Map<string, { agentNumber: number }>> {
     const threadMap = new Map<string, { agentNumber: number }>();
-    const agentPromises: Promise<any>[] = [];
 
     codebolt.chat.sendMessage(`Spawning ${ctx.numberOfAgents} agents for deliberation...`, {});
 
     for (let i = 0; i < ctx.numberOfAgents; i++) {
-        const agentTask = buildAgentTask(ctx, i + 1,agentId);
+        const agentNumber = i + 1;
+        const agentTask = buildAgentTask(ctx, agentNumber, agentId);
 
-        const promise = codebolt.thread.createThreadInBackground({
-            title: `Deliberation Agent ${i + 1}`,
+        codebolt.chat.sendMessage(`Spawning agent ${agentNumber}/${ctx.numberOfAgents}...`, {});
+
+        const result = await codebolt.thread.createThreadInBackground({
+            title: `Deliberation Agent ${agentNumber}`,
             description: `Agent participating in deliberation: ${ctx.deliberationId}`,
             userMessage: agentTask,
-            selectedAgent: agentId ? { id: agentId } : undefined,
-            isGrouped: true,
-            groupId: ctx.groupId,
+            selectedAgent: agentId ? { id: agentId } : undefined
         });
 
-        agentPromises.push(promise.then(result => ({ result, agentNumber: i + 1 })));
-    }
-
-    const results = await Promise.all(agentPromises);
-
-    for (const { result, agentNumber } of results) {
         if (result.threadId) {
             threadMap.set(result.threadId, { agentNumber });
             codebolt.chat.sendMessage(`Agent ${agentNumber} thread started: ${result.threadId}`, {});
