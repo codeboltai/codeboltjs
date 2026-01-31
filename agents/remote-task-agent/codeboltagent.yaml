@@ -1,0 +1,94 @@
+title: Remote Task Agent
+version: 1.0.0
+unique_id: remote-task-agent
+initial_message: Remote Task Agent is a highly skilled software developer running in an isolated filesystem. I'll complete your task and submit a merge request for review.
+description: Remote agent that executes tasks in AgentFS and submits merge requests for review. Uses the same capabilities as act-claude.
+tags:
+  - remote-agent
+  - agentfs
+  - merge-request
+  - code-review
+  - web
+  - code-generation
+longDescription: |
+  A remote task agent designed for the Codebolt platform, running in an isolated
+  AgentFS filesystem. It uses the same code and prompts as act-claude but with
+  automatic merge request submission after task completion.
+
+  Features:
+  - Executes coding tasks in an isolated environment
+  - Makes changes to files in the mounted workspace
+  - Automatically submits merge requests when work is complete
+  - Waits for review feedback via event queue
+avatarSrc: https://placehold.co/200x200
+avatarFallback: RT
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+      - python
+      - web
+    supportedframeworks:
+      - react
+      - node
+      - html
+    supportRemix: true
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - claude-sonnet-4-20250514
+      - gpt-4-turbo
+  sdlc_steps_managed:
+    - name: development
+      example_instructions:
+        - implement feature
+        - fix bug
+        - refactor code
+  llm_role:
+    - name: documentationllm
+      description: >-
+        LLM to be used for advanced Documentation. Please select a model that
+        excels in documentation tasks.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.documentationmodels
+    - name: testingllm
+      description: >-
+        LLM to be used for advanced Testing. Please select a model that excels
+        in testing tasks.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.testingmodels
+    - name: actionllm
+      description: LLM to be used for executing advanced actions.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.actionmodels
+actions:
+  - name: Execute
+    description: Executes the given task and submits for review.
+    detailDescription: Completes the coding task in isolated filesystem and submits merge request
+    actionPrompt: Please complete this task
+supportRemix: true
+author: Codebolt Team

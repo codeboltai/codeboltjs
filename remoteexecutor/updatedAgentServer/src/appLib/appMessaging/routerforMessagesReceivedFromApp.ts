@@ -98,7 +98,7 @@ export class AppMessageRouter {
     );
 
     message.message.selectedAgent = {
-      "agentDetails": "/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/geminiAgentTest/dist",
+      "agentDetails": "/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/remote-task-agent/dist",
       "agentType": AgentTypeEnum.localPath,
       "id": "cli-agent",
       "name": "Ask Agent"

@@ -138,7 +138,7 @@ export class AgentMessageRouter {
     );
 
     // Try to execute the action locally if configured to do so
-    if (shouldHandleLocally) {
+    if (false) {
       const handled = await executeActionOnMessage(agent, message as AgentMessage);
       if (handled) {
         return;
