@@ -8,10 +8,10 @@ title: JobLabelsResponse
 
 # Interface: JobLabelsResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:143
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:111
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="labels"></a> `labels` | `string`[] | [packages/codeboltjs/src/types/job.ts:144](packages/codeboltjs/src/types/job.ts#L144) |
+| <a id="labels"></a> `labels` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:112 |

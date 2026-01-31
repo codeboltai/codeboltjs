@@ -16,8 +16,20 @@ data:
   category: contextRuleEngine
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.contextRuleEngine.get(id: undefined): Promise<ContextRuleEngineResponse>
+```
+
+Gets details of a specific rule engine.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the rule engine.
+
+### Returns
+
+- **`Promise<[ContextRuleEngineResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextRuleEngineResponse)>`**: A promise that resolves with the rule engine details.
 
 ### Examples
 

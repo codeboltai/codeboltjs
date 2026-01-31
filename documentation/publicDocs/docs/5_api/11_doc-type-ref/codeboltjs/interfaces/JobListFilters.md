@@ -8,36 +8,36 @@ title: JobListFilters
 
 # Interface: JobListFilters
 
-Defined in: packages/codeboltjs/src/types/job.ts:52
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:37
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="assignee"></a> `assignee?` | `string`[] | [packages/codeboltjs/src/types/job.ts:57](packages/codeboltjs/src/types/job.ts#L57) |
-| <a id="closedafter"></a> `closedAfter?` | `string` | [packages/codeboltjs/src/types/job.ts:71](packages/codeboltjs/src/types/job.ts#L71) |
-| <a id="closedbefore"></a> `closedBefore?` | `string` | [packages/codeboltjs/src/types/job.ts:72](packages/codeboltjs/src/types/job.ts#L72) |
-| <a id="createdafter"></a> `createdAfter?` | `string` | [packages/codeboltjs/src/types/job.ts:67](packages/codeboltjs/src/types/job.ts#L67) |
-| <a id="createdbefore"></a> `createdBefore?` | `string` | [packages/codeboltjs/src/types/job.ts:68](packages/codeboltjs/src/types/job.ts#L68) |
-| <a id="desccontains"></a> `descContains?` | `string` | [packages/codeboltjs/src/types/job.ts:61](packages/codeboltjs/src/types/job.ts#L61) |
-| <a id="emptydescription"></a> `emptyDescription?` | `boolean` | [packages/codeboltjs/src/types/job.ts:74](packages/codeboltjs/src/types/job.ts#L74) |
-| <a id="filteroutblockers"></a> `filterOutBlockers?` | `boolean` | [packages/codeboltjs/src/types/job.ts:83](packages/codeboltjs/src/types/job.ts#L83) |
-| <a id="groupid"></a> `groupId?` | `string` | [packages/codeboltjs/src/types/job.ts:64](packages/codeboltjs/src/types/job.ts#L64) |
-| <a id="ids"></a> `ids?` | `string`[] | [packages/codeboltjs/src/types/job.ts:63](packages/codeboltjs/src/types/job.ts#L63) |
-| <a id="labels"></a> `labels?` | `string`[] | [packages/codeboltjs/src/types/job.ts:58](packages/codeboltjs/src/types/job.ts#L58) |
-| <a id="labelsany"></a> `labelsAny?` | `string`[] | [packages/codeboltjs/src/types/job.ts:59](packages/codeboltjs/src/types/job.ts#L59) |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/job.ts:78](packages/codeboltjs/src/types/job.ts#L78) |
-| <a id="noassignee"></a> `noAssignee?` | `boolean` | [packages/codeboltjs/src/types/job.ts:75](packages/codeboltjs/src/types/job.ts#L75) |
-| <a id="nolabels"></a> `noLabels?` | `boolean` | [packages/codeboltjs/src/types/job.ts:76](packages/codeboltjs/src/types/job.ts#L76) |
-| <a id="notescontain"></a> `notesContain?` | `string` | [packages/codeboltjs/src/types/job.ts:62](packages/codeboltjs/src/types/job.ts#L62) |
-| <a id="offset"></a> `offset?` | `number` | [packages/codeboltjs/src/types/job.ts:79](packages/codeboltjs/src/types/job.ts#L79) |
-| <a id="priority"></a> `priority?` | [`JobPriority`](../type-aliases/JobPriority)[] | [packages/codeboltjs/src/types/job.ts:54](packages/codeboltjs/src/types/job.ts#L54) |
-| <a id="prioritymax"></a> `priorityMax?` | [`JobPriority`](../type-aliases/JobPriority) | [packages/codeboltjs/src/types/job.ts:56](packages/codeboltjs/src/types/job.ts#L56) |
-| <a id="prioritymin"></a> `priorityMin?` | [`JobPriority`](../type-aliases/JobPriority) | [packages/codeboltjs/src/types/job.ts:55](packages/codeboltjs/src/types/job.ts#L55) |
-| <a id="sortby"></a> `sortBy?` | `"status"` \| `"createdAt"` \| `"updatedAt"` \| `"priority"` \| `"importance"` | [packages/codeboltjs/src/types/job.ts:81](packages/codeboltjs/src/types/job.ts#L81) |
-| <a id="sortorder"></a> `sortOrder?` | `"asc"` \| `"desc"` | [packages/codeboltjs/src/types/job.ts:82](packages/codeboltjs/src/types/job.ts#L82) |
-| <a id="status"></a> `status?` | [`JobStatus`](../type-aliases/JobStatus)[] | [packages/codeboltjs/src/types/job.ts:53](packages/codeboltjs/src/types/job.ts#L53) |
-| <a id="titlecontains"></a> `titleContains?` | `string` | [packages/codeboltjs/src/types/job.ts:60](packages/codeboltjs/src/types/job.ts#L60) |
-| <a id="type"></a> `type?` | [`JobType`](../type-aliases/JobType)[] | [packages/codeboltjs/src/types/job.ts:65](packages/codeboltjs/src/types/job.ts#L65) |
-| <a id="updatedafter"></a> `updatedAfter?` | `string` | [packages/codeboltjs/src/types/job.ts:69](packages/codeboltjs/src/types/job.ts#L69) |
-| <a id="updatedbefore"></a> `updatedBefore?` | `string` | [packages/codeboltjs/src/types/job.ts:70](packages/codeboltjs/src/types/job.ts#L70) |
+| <a id="assignee"></a> `assignee?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:42 |
+| <a id="closedafter"></a> `closedAfter?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:55 |
+| <a id="closedbefore"></a> `closedBefore?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:56 |
+| <a id="createdafter"></a> `createdAfter?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:51 |
+| <a id="createdbefore"></a> `createdBefore?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:52 |
+| <a id="desccontains"></a> `descContains?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:46 |
+| <a id="emptydescription"></a> `emptyDescription?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:57 |
+| <a id="filteroutblockers"></a> `filterOutBlockers?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:64 |
+| <a id="groupid"></a> `groupId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:49 |
+| <a id="ids"></a> `ids?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:48 |
+| <a id="labels"></a> `labels?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:43 |
+| <a id="labelsany"></a> `labelsAny?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:44 |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:60 |
+| <a id="noassignee"></a> `noAssignee?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:58 |
+| <a id="nolabels"></a> `noLabels?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:59 |
+| <a id="notescontain"></a> `notesContain?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:47 |
+| <a id="offset"></a> `offset?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:61 |
+| <a id="priority"></a> `priority?` | [`JobPriority`](../type-aliases/JobPriority)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:39 |
+| <a id="prioritymax"></a> `priorityMax?` | [`JobPriority`](../type-aliases/JobPriority) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:41 |
+| <a id="prioritymin"></a> `priorityMin?` | [`JobPriority`](../type-aliases/JobPriority) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:40 |
+| <a id="sortby"></a> `sortBy?` | `"status"` \| `"priority"` \| `"createdAt"` \| `"updatedAt"` \| `"importance"` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:62 |
+| <a id="sortorder"></a> `sortOrder?` | `"asc"` \| `"desc"` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:63 |
+| <a id="status"></a> `status?` | [`JobStatus`](../type-aliases/JobStatus)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:38 |
+| <a id="titlecontains"></a> `titleContains?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:45 |
+| <a id="type"></a> `type?` | [`JobType`](../type-aliases/JobType)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:50 |
+| <a id="updatedafter"></a> `updatedAfter?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:53 |
+| <a id="updatedbefore"></a> `updatedBefore?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:54 |

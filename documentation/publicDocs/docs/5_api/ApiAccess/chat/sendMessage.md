@@ -19,8 +19,21 @@ data:
   category: chat
   link: sendMessage.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# sendMessage
+
+```typescript
+codebolt.chat.sendMessage(message: string, payload: any): void
+```
+
+Sends a message through the WebSocket connection. 
+### Parameters
+
+- **`message`** (string): The message to be sent.
+- **`payload`** (any): Additional data to send along with the message.
+
+### Returns
+
+- **`void`**: ' '
 
 ### Response Structure
 
@@ -42,4 +55,3 @@ codebolt.chat.sendMessage("File processing complete", {
 ```
 
 ![sendMessage](/img/processStarted.png)
-

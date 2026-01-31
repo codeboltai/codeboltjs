@@ -12,8 +12,16 @@ data:
   category: taskplaner
   link: getTasks.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getTasks
+
+```typescript
+codebolt.taskplaner.getTasks(): Promise<GetTasksResponse>
+```
+
+Retrieves all tasks from the task management system using WebSocket communication. This method returns a comprehensive list of all tasks currently stored in the system. 
+### Returns
+
+- **`Promise<GetTasksResponse>`**: A promise that resolves with the response containing all tasks from the task management system.
 
 ### Response Structure
 

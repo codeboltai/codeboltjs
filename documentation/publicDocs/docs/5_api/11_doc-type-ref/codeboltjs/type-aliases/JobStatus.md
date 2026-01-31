@@ -12,4 +12,4 @@ title: JobStatus
 type JobStatus = "open" | "working" | "hold" | "closed";
 ```
 
-Defined in: packages/codeboltjs/src/types/job.ts:12
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:9

@@ -8,14 +8,14 @@ title: RunCommand
 
 # Interface: RunCommand
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:47
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:38
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="command"></a> `command` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:50](packages/codeboltjs/src/types/projectStructure.ts#L50) |
-| <a id="cwd"></a> `cwd?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:52](packages/codeboltjs/src/types/projectStructure.ts#L52) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:51](packages/codeboltjs/src/types/projectStructure.ts#L51) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:48](packages/codeboltjs/src/types/projectStructure.ts#L48) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:49](packages/codeboltjs/src/types/projectStructure.ts#L49) |
+| <a id="command"></a> `command` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:41 |
+| <a id="cwd"></a> `cwd?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:43 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:42 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:39 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:40 |

@@ -8,11 +8,11 @@ title: RoadmapIdeasResponse
 
 # Interface: RoadmapIdeasResponse
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:175
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:140
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="count"></a> `count` | `number` | [packages/codeboltjs/src/types/roadmap.ts:177](packages/codeboltjs/src/types/roadmap.ts#L177) |
-| <a id="ideas"></a> `ideas` | [`Idea`](Idea)[] | [packages/codeboltjs/src/types/roadmap.ts:176](packages/codeboltjs/src/types/roadmap.ts#L176) |
+| <a id="count"></a> `count` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:142 |
+| <a id="ideas"></a> `ideas` | [`Idea`](Idea)[] | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:141 |

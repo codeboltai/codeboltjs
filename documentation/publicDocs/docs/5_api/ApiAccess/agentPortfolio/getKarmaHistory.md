@@ -20,8 +20,21 @@ data:
   category: agentPortfolio
   link: getKarmaHistory.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getKarmaHistory
+
+```typescript
+codebolt.agentPortfolio.getKarmaHistory(agentId: string, limit: number): Promise<GetKarmaHistoryResponse>
+```
+
+Retrieves the karma history of an agent, showing all karma changes over time.
+### Parameters
+
+- **`agentId`** (string): The ID of the agent.
+- **`limit`** (number, optional): Maximum number of entries to return.
+
+### Returns
+
+- **`Promise<[GetKarmaHistoryResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetKarmaHistoryResponse)>`**: A promise that resolves to the karma history.
 
 ### Examples
 

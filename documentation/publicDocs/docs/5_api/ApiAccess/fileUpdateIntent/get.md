@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.fileUpdateIntent.get(id: undefined): Promise<FileUpdateIntent>
+```
+
+Gets details of a specific file update intent.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the file update intent.
+
+### Returns
+
+- **`Promise<[FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent)>`**: A promise that resolves with the intent details.
 
 ### Examples
 

@@ -8,11 +8,11 @@ title: ICreateRunParams
 
 # Interface: ICreateRunParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:178
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:158
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:180](packages/codeboltjs/src/types/autoTesting.ts#L180) |
-| <a id="testsuiteid"></a> `testSuiteId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:179](packages/codeboltjs/src/types/autoTesting.ts#L179) |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:160 |
+| <a id="testsuiteid"></a> `testSuiteId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:159 |

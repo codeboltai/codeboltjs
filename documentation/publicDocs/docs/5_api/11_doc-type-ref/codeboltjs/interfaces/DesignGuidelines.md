@@ -8,14 +8,14 @@ title: DesignGuidelines
 
 # Interface: DesignGuidelines
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:84
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:67
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="colors"></a> `colors?` | `Record`\<`string`, `string`\> | [packages/codeboltjs/src/types/projectStructure.ts:85](packages/codeboltjs/src/types/projectStructure.ts#L85) |
-| <a id="components"></a> `components?` | `string`[] | [packages/codeboltjs/src/types/projectStructure.ts:88](packages/codeboltjs/src/types/projectStructure.ts#L88) |
-| <a id="customguidelines"></a> `customGuidelines?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:89](packages/codeboltjs/src/types/projectStructure.ts#L89) |
-| <a id="fonts"></a> `fonts?` | `string`[] | [packages/codeboltjs/src/types/projectStructure.ts:86](packages/codeboltjs/src/types/projectStructure.ts#L86) |
-| <a id="spacing"></a> `spacing?` | `Record`\<`string`, `string`\> | [packages/codeboltjs/src/types/projectStructure.ts:87](packages/codeboltjs/src/types/projectStructure.ts#L87) |
+| <a id="colors"></a> `colors?` | `Record`\<`string`, `string`\> | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:68 |
+| <a id="components"></a> `components?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:71 |
+| <a id="customguidelines"></a> `customGuidelines?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:72 |
+| <a id="fonts"></a> `fonts?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:69 |
+| <a id="spacing"></a> `spacing?` | `Record`\<`string`, `string`\> | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:70 |

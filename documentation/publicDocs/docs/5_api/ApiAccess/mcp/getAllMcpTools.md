@@ -13,8 +13,16 @@ data:
   category: mcp
   link: getAllMcpTools.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getAllMcpTools
+
+```typescript
+codebolt.mcp.getAllMcpTools(): Promise<GetAllMCPToolsResponse>
+```
+
+Gets all tools from all enabled MCP servers.
+### Returns
+
+- **`Promise<GetAllMCPToolsResponse>`**: A promise that resolves with all tools from enabled servers.
 
 ### Example 1: Get All Available Tools
 

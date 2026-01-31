@@ -8,10 +8,10 @@ title: JobGroupCreateResponse
 
 # Interface: JobGroupCreateResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:147
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:114
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="group"></a> `group` | [`JobGroup`](JobGroup) | [packages/codeboltjs/src/types/job.ts:148](packages/codeboltjs/src/types/job.ts#L148) |
+| <a id="group"></a> `group` | [`JobGroup`](JobGroup) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:115 |

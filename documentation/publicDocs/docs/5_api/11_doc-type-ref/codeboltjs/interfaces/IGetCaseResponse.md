@@ -8,11 +8,11 @@ title: IGetCaseResponse
 
 # Interface: IGetCaseResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:245
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:229
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `testCase`: [`TestCase`](TestCase); \} | [packages/codeboltjs/src/types/autoTesting.ts:246](packages/codeboltjs/src/types/autoTesting.ts#L246) |
-| `payload.testCase` | [`TestCase`](TestCase) | [packages/codeboltjs/src/types/autoTesting.ts:246](packages/codeboltjs/src/types/autoTesting.ts#L246) |
+| <a id="payload"></a> `payload` | \{ `testCase`: [`TestCase`](TestCase); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:230 |
+| `payload.testCase` | [`TestCase`](TestCase) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:231 |

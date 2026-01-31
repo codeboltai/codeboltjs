@@ -8,17 +8,17 @@ title: IUpdateCaseParams
 
 # Interface: IUpdateCaseParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:163
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:141
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:167](packages/codeboltjs/src/types/autoTesting.ts#L167) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:164](packages/codeboltjs/src/types/autoTesting.ts#L164) |
-| <a id="key"></a> `key?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:165](packages/codeboltjs/src/types/autoTesting.ts#L165) |
-| <a id="labels"></a> `labels?` | `string`[] | [packages/codeboltjs/src/types/autoTesting.ts:169](packages/codeboltjs/src/types/autoTesting.ts#L169) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:166](packages/codeboltjs/src/types/autoTesting.ts#L166) |
-| <a id="priority"></a> `priority?` | `"low"` \| `"medium"` \| `"high"` \| `"automated"` | [packages/codeboltjs/src/types/autoTesting.ts:170](packages/codeboltjs/src/types/autoTesting.ts#L170) |
-| <a id="steps"></a> `steps?` | \{ `content`: `string`; `id?`: `string`; `order?`: `number`; \}[] | [packages/codeboltjs/src/types/autoTesting.ts:168](packages/codeboltjs/src/types/autoTesting.ts#L168) |
-| <a id="type"></a> `type?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:171](packages/codeboltjs/src/types/autoTesting.ts#L171) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:145 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:142 |
+| <a id="key"></a> `key?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:143 |
+| <a id="labels"></a> `labels?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:151 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:144 |
+| <a id="priority"></a> `priority?` | `"low"` \| `"medium"` \| `"high"` \| `"automated"` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:152 |
+| <a id="steps"></a> `steps?` | \{ `content`: `string`; `id?`: `string`; `order?`: `number`; \}[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:146 |
+| <a id="type"></a> `type?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:153 |

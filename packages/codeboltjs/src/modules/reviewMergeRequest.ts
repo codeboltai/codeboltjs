@@ -8,7 +8,7 @@ import type {
     AddReviewFeedback,
     ReviewRequestStatus,
     MergeResult
-} from '../types/reviewMergeRequest';
+} from '@codebolt/types/lib';
 
 /**
  * Review Merge Request service client for codeboltjs.

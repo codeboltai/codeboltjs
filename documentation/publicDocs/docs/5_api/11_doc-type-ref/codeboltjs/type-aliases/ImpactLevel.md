@@ -12,4 +12,4 @@ title: ImpactLevel
 type ImpactLevel = "low" | "medium" | "high" | "critical";
 ```
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:17
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:12

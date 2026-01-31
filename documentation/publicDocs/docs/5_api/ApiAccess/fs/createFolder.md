@@ -18,12 +18,25 @@ data:
   category: fs
   link: createFolder.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# createFolder
+
+```typescript
+codebolt.fs.createFolder(folderName: string, folderPath: string): Promise<CreateFolderResponse>
+```
+
+Creates a new folder at the specified path. This function allows you to create directories for organizing files and project structure. 
+### Parameters
+
+- **`folderName`** (string): The name of the folder to create (e.g., 'my-folder', 'src', 'components').
+- **`folderPath`** (string): The path where the folder should be created (e.g., '.', '/home/user/documents', './src').
+
+### Returns
+
+- **`Promise<CreateFolderResponse>`**: A promise that resolves with a [`CreateFolderResponse`](/docs/api/11_doc-type-ref/types/interfaces/CreateFolderResponse) object containing the response type and folder creation metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `CreateFolderResponse` object with the following properties:
+The method returns a Promise that resolves to a [`CreateFolderResponse`](/docs/api/11_doc-type-ref/types/interfaces/CreateFolderResponse) object with the following properties:
 
 - **`type`** (string): Always "createFolderResponse".
 - **`path`** (string, optional): The full path where the folder was created.

@@ -8,7 +8,7 @@ title: MergeConfig
 
 # Interface: MergeConfig
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:40
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:29
 
 Merge configuration for the request
 
@@ -16,6 +16,6 @@ Merge configuration for the request
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="patchcontent"></a> `patchContent?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:43](packages/codeboltjs/src/types/reviewMergeRequest.ts#L43) |
-| <a id="strategy"></a> `strategy` | [`MergeStrategy`](../type-aliases/MergeStrategy) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:41](packages/codeboltjs/src/types/reviewMergeRequest.ts#L41) |
-| <a id="worktreedetails"></a> `worktreeDetails?` | [`WorktreeDetails`](WorktreeDetails) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:42](packages/codeboltjs/src/types/reviewMergeRequest.ts#L42) |
+| <a id="patchcontent"></a> `patchContent?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:32 |
+| <a id="strategy"></a> `strategy` | [`MergeStrategy`](../type-aliases/MergeStrategy) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:30 |
+| <a id="worktreedetails"></a> `worktreeDetails?` | [`WorktreeDetails`](WorktreeDetails) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:31 |

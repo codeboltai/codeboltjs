@@ -12,4 +12,4 @@ title: FeatureStatus
 type FeatureStatus = "pending" | "in-progress" | "completed" | "cancelled";
 ```
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:11
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:10

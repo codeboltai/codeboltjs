@@ -8,7 +8,7 @@ title: JobLockCheckResponse
 
 # Interface: JobLockCheckResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:363
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:263
 
 ## Extends
 
@@ -18,5 +18,5 @@ Defined in: packages/codeboltjs/src/types/job.ts:363
 
 | Property | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="islocked"></a> `isLocked` | `boolean` | [`JobLockStatus`](JobLockStatus).[`isLocked`](JobLockStatus.md#islocked) | [packages/codeboltjs/src/types/job.ts:213](packages/codeboltjs/src/types/job.ts#L213) |
-| <a id="lock"></a> `lock?` | [`JobLock`](JobLock) | [`JobLockStatus`](JobLockStatus).[`lock`](JobLockStatus.md#lock) | [packages/codeboltjs/src/types/job.ts:214](packages/codeboltjs/src/types/job.ts#L214) |
+| <a id="islocked"></a> `isLocked` | `boolean` | [`JobLockStatus`](JobLockStatus).[`isLocked`](JobLockStatus.md#islocked) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:158 |
+| <a id="lock"></a> `lock?` | [`JobLock`](JobLock) | [`JobLockStatus`](JobLockStatus).[`lock`](JobLockStatus.md#lock) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:159 |

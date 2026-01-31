@@ -12,4 +12,4 @@ title: DifficultyLevel
 type DifficultyLevel = "easy" | "medium" | "hard" | "very-hard";
 ```
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:20
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:13

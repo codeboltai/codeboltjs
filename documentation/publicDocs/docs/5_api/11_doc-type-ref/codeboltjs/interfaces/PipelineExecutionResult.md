@@ -8,13 +8,13 @@ title: PipelineExecutionResult
 
 # Interface: PipelineExecutionResult
 
-Defined in: packages/codeboltjs/src/types/persistentMemory.ts:50
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:44
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | `any` | [packages/codeboltjs/src/types/persistentMemory.ts:52](packages/codeboltjs/src/types/persistentMemory.ts#L52) |
-| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:53](packages/codeboltjs/src/types/persistentMemory.ts#L53) |
-| <a id="executiontime"></a> `executionTime?` | `number` | [packages/codeboltjs/src/types/persistentMemory.ts:54](packages/codeboltjs/src/types/persistentMemory.ts#L54) |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/persistentMemory.ts:51](packages/codeboltjs/src/types/persistentMemory.ts#L51) |
+| <a id="data"></a> `data?` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:46 |
+| <a id="error"></a> `error?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:47 |
+| <a id="executiontime"></a> `executionTime?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:48 |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:45 |

@@ -19,12 +19,25 @@ data:
   category: git
   link: diff.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# diff
+
+```typescript
+codebolt.git.diff(commitHash: string, path: string): Promise<GitDiffResponse>
+```
+
+Retrieves the diff of changes for a specific commit in the Git repository. Shows the differences between the specified commit and its parent, displaying what was added, modified, or deleted. 
+### Parameters
+
+- **`commitHash`** (string): The SHA hash of the commit to retrieve the diff for (e.g., "abc123def456", "1a2b3c4d").
+- **`path`** (string): 'Optional. The file system path of the local Git repository. If not provided, uses the current directory.'
+
+### Returns
+
+- **`Promise<GitDiffResponse>`**: A promise that resolves with a [`GitDiffResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitDiffResponse) object containing the diff data and change statistics.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GitDiffResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GitDiffResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitDiffResponse) object with the following properties:
 
 - **`type`** (string): Always "gitDiffResponse".
 - **`data`** (DiffResult | string, optional): The diff data, which can be either:

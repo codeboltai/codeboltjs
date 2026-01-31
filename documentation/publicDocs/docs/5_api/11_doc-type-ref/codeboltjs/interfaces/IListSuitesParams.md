@@ -8,4 +8,4 @@ title: IListSuitesParams
 
 # Interface: IListSuitesParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:124
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:105

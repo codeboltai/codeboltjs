@@ -12,4 +12,4 @@ title: CodemapStatus
 type CodemapStatus = "creating" | "done" | "error";
 ```
 
-Defined in: packages/codeboltjs/src/types/codemap.ts:4
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:1

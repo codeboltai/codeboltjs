@@ -8,11 +8,11 @@ title: IGetFeedbackParams
 
 # Interface: IGetFeedbackParams
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:73
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:66
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:74](packages/codeboltjs/src/types/groupFeedback.ts#L74) |
-| <a id="view"></a> `view?` | `"request"` \| `"full"` \| `"responses"` \| `"summary"` | [packages/codeboltjs/src/types/groupFeedback.ts:75](packages/codeboltjs/src/types/groupFeedback.ts#L75) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:67 |
+| <a id="view"></a> `view?` | `"request"` \| `"full"` \| `"responses"` \| `"summary"` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:68 |

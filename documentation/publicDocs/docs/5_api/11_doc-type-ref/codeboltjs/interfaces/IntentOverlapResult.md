@@ -8,7 +8,7 @@ title: IntentOverlapResult
 
 # Interface: IntentOverlapResult
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:118
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:89
 
 Response for overlap detection
 
@@ -16,8 +16,8 @@ Response for overlap detection
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="blockedfiles"></a> `blockedFiles` | `string`[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:121](packages/codeboltjs/src/types/fileUpdateIntent.ts#L121) |
-| <a id="canproceed"></a> `canProceed` | `boolean` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:122](packages/codeboltjs/src/types/fileUpdateIntent.ts#L122) |
-| <a id="hasoverlap"></a> `hasOverlap` | `boolean` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:119](packages/codeboltjs/src/types/fileUpdateIntent.ts#L119) |
-| <a id="message"></a> `message?` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:123](packages/codeboltjs/src/types/fileUpdateIntent.ts#L123) |
-| <a id="overlappingintents"></a> `overlappingIntents` | [`OverlappingIntentInfo`](OverlappingIntentInfo)[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:120](packages/codeboltjs/src/types/fileUpdateIntent.ts#L120) |
+| <a id="blockedfiles"></a> `blockedFiles` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:92 |
+| <a id="canproceed"></a> `canProceed` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:93 |
+| <a id="hasoverlap"></a> `hasOverlap` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:90 |
+| <a id="message"></a> `message?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:94 |
+| <a id="overlappingintents"></a> `overlappingIntents` | [`OverlappingIntentInfo`](OverlappingIntentInfo)[] | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:91 |

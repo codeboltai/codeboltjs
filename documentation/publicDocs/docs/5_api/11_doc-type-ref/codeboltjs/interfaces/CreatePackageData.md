@@ -8,13 +8,13 @@ title: CreatePackageData
 
 # Interface: CreatePackageData
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:130
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:104
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:133](packages/codeboltjs/src/types/projectStructure.ts#L133) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:131](packages/codeboltjs/src/types/projectStructure.ts#L131) |
-| <a id="path"></a> `path` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:132](packages/codeboltjs/src/types/projectStructure.ts#L132) |
-| <a id="type"></a> `type?` | `"frontend"` \| `"backend"` \| `"shared"` \| `"library"` \| `"service"` | [packages/codeboltjs/src/types/projectStructure.ts:134](packages/codeboltjs/src/types/projectStructure.ts#L134) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:107 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:105 |
+| <a id="path"></a> `path` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:106 |
+| <a id="type"></a> `type?` | `"frontend"` \| `"backend"` \| `"shared"` \| `"library"` \| `"service"` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:108 |

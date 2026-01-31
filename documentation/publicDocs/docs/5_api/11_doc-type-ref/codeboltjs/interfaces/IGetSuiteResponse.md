@@ -8,12 +8,12 @@ title: IGetSuiteResponse
 
 # Interface: IGetSuiteResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:217
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:191
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); `testCases`: [`TestCase`](TestCase)[]; \} | [packages/codeboltjs/src/types/autoTesting.ts:218](packages/codeboltjs/src/types/autoTesting.ts#L218) |
-| `payload.suite` | [`TestSuite`](TestSuite) | [packages/codeboltjs/src/types/autoTesting.ts:218](packages/codeboltjs/src/types/autoTesting.ts#L218) |
-| `payload.testCases` | [`TestCase`](TestCase)[] | [packages/codeboltjs/src/types/autoTesting.ts:218](packages/codeboltjs/src/types/autoTesting.ts#L218) |
+| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); `testCases`: [`TestCase`](TestCase)[]; \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:192 |
+| `payload.suite` | [`TestSuite`](TestSuite) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:193 |
+| `payload.testCases` | [`TestCase`](TestCase)[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:194 |

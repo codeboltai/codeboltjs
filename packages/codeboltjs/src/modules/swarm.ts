@@ -33,7 +33,7 @@ import type {
     UpdateStatusResponse,
     GetStatusSummaryResponse,
     GetDefaultJobGroupResponse
-} from '../types/swarm';
+} from '@codebolt/types/lib';
 
 // Re-export types for convenience
 export type {
@@ -76,7 +76,7 @@ export type {
     UpdateStatusResponse,
     GetStatusSummaryResponse,
     GetDefaultJobGroupResponse
-} from '../types/swarm';
+} from '@codebolt/types/lib';
 
 /**
  * Swarm Module

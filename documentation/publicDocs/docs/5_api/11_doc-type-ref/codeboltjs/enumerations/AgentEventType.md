@@ -8,7 +8,7 @@ title: AgentEventType
 
 # Enumeration: AgentEventType
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:13
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:8
 
 Types of events that can be sent to agents
 
@@ -16,8 +16,8 @@ Types of events that can be sent to agents
 
 | Enumeration Member | Value | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="agent_message"></a> `AGENT_MESSAGE` | `"agentMessage"` | Inter-agent communication | [packages/codeboltjs/src/types/agentEventQueue.ts:15](packages/codeboltjs/src/types/agentEventQueue.ts#L15) |
-| <a id="calendar_update"></a> `CALENDAR_UPDATE` | `"calendarUpdate"` | Calendar event notifications (reminders, updates) | [packages/codeboltjs/src/types/agentEventQueue.ts:17](packages/codeboltjs/src/types/agentEventQueue.ts#L17) |
-| <a id="custom"></a> `CUSTOM` | `"custom"` | User-defined custom events | [packages/codeboltjs/src/types/agentEventQueue.ts:23](packages/codeboltjs/src/types/agentEventQueue.ts#L23) |
-| <a id="system_notification"></a> `SYSTEM_NOTIFICATION` | `"systemNotification"` | System-level notifications | [packages/codeboltjs/src/types/agentEventQueue.ts:19](packages/codeboltjs/src/types/agentEventQueue.ts#L19) |
-| <a id="task_update"></a> `TASK_UPDATE` | `"taskUpdate"` | Task status change notifications | [packages/codeboltjs/src/types/agentEventQueue.ts:21](packages/codeboltjs/src/types/agentEventQueue.ts#L21) |
+| <a id="agent_message"></a> `AGENT_MESSAGE` | `"agentMessage"` | Inter-agent communication | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:10 |
+| <a id="calendar_update"></a> `CALENDAR_UPDATE` | `"calendarUpdate"` | Calendar event notifications (reminders, updates) | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:12 |
+| <a id="custom"></a> `CUSTOM` | `"custom"` | User-defined custom events | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:18 |
+| <a id="system_notification"></a> `SYSTEM_NOTIFICATION` | `"systemNotification"` | System-level notifications | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:14 |
+| <a id="task_update"></a> `TASK_UPDATE` | `"taskUpdate"` | Task status change notifications | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:16 |

@@ -12,7 +12,7 @@ title: getBrowserInstance
 const getBrowserInstance: (instanceId: string) => Promise<BrowserInstanceInfo | null> = cbbrowser.getBrowserInstance;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:410
+Defined in: packages/codeboltjs/src/index.ts:432
 
 ## Parameters
 

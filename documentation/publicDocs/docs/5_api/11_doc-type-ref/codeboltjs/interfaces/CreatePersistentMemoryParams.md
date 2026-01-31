@@ -8,16 +8,16 @@ title: CreatePersistentMemoryParams
 
 # Interface: CreatePersistentMemoryParams
 
-Defined in: packages/codeboltjs/src/types/persistentMemory.ts:58
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:50
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="additional_variables"></a> `additional_variables?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/persistentMemory.ts:63](packages/codeboltjs/src/types/persistentMemory.ts#L63) |
-| <a id="contribution"></a> `contribution` | [`ContributionConfig`](ContributionConfig) | [packages/codeboltjs/src/types/persistentMemory.ts:65](packages/codeboltjs/src/types/persistentMemory.ts#L65) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:61](packages/codeboltjs/src/types/persistentMemory.ts#L61) |
-| <a id="id"></a> `id?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:59](packages/codeboltjs/src/types/persistentMemory.ts#L59) |
-| <a id="inputs_scope"></a> `inputs_scope?` | `string`[] | [packages/codeboltjs/src/types/persistentMemory.ts:62](packages/codeboltjs/src/types/persistentMemory.ts#L62) |
-| <a id="label"></a> `label` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:60](packages/codeboltjs/src/types/persistentMemory.ts#L60) |
-| <a id="retrieval"></a> `retrieval` | [`RetrievalConfig`](RetrievalConfig) | [packages/codeboltjs/src/types/persistentMemory.ts:64](packages/codeboltjs/src/types/persistentMemory.ts#L64) |
+| <a id="additional_variables"></a> `additional_variables?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:55 |
+| <a id="contribution"></a> `contribution` | [`ContributionConfig`](ContributionConfig) | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:57 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:53 |
+| <a id="id"></a> `id?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:51 |
+| <a id="inputs_scope"></a> `inputs_scope?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:54 |
+| <a id="label"></a> `label` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:52 |
+| <a id="retrieval"></a> `retrieval` | [`RetrievalConfig`](RetrievalConfig) | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:56 |

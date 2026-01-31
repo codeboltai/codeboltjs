@@ -24,8 +24,22 @@ data:
   category: chat
   link: sendConfirmationRequest.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# sendConfirmationRequest
+
+```typescript
+codebolt.chat.sendConfirmationRequest(confirmationMessage: string, buttons: string[], withFeedback: boolean): Promise<string>
+```
+
+Sends a confirmation request to the server with customizable buttons. 
+### Parameters
+
+- **`confirmationMessage`** (string): The message to display in the confirmation.
+- **`buttons`** (string[]): An array of button labels. Defaults to Yes/No if not specified.
+- **`withFeedback`** (boolean): Whether to allow additional feedback input. Default is false.
+
+### Returns
+
+- **`Promise<string>`**: A promise that resolves with the server's response.
 
 ### Response Structure
 
@@ -87,4 +101,4 @@ const deployResponse = await codebolt.chat.sendConfirmationRequest(
 
 ### Explanation
 
-The `sendConfirmationRequest` function sends a confirmation request to the user with customizable buttons and optional feedback input. This is useful for getting user approval before performing operations or collecting simple input from the user. The function returns a comprehensive response object containing the user's selection and additional metadata for tracking and processing. 
+The `sendConfirmationRequest` function sends a confirmation request to the user with customizable buttons and optional feedback input. This is useful for getting user approval before performing operations or collecting simple input from the user. The function returns a comprehensive response object containing the user's selection and additional metadata for tracking and processing.

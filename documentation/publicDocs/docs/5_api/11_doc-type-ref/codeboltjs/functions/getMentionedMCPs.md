@@ -12,7 +12,7 @@ title: getMentionedMCPs
 function getMentionedMCPs(): string[];
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:383
+Defined in: packages/codeboltjs/src/index.ts:405
 
 ## Returns
 

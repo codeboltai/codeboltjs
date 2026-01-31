@@ -19,4 +19,4 @@ type ProcessorType =
   | "embed";
 ```
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:23
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:15

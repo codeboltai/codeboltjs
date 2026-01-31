@@ -17,12 +17,24 @@ data:
   category: actionBlock
   link: list.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# list
+
+```typescript
+codebolt.actionBlock.list(filter: ActionBlockFilter): Promise<ListActionBlocksResponse>
+```
+
+Lists all available ActionBlocks with optional filtering by type.
+### Parameters
+
+- **`filter`** ([ActionBlockFilter](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ActionBlockFilter), optional): Optional filter to narrow results by type (filesystem, runtime, or builtin).
+
+### Returns
+
+- **`Promise<[ListActionBlocksResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListActionBlocksResponse)>`**: A promise that resolves to the list of ActionBlocks.
 
 ### Response Structure
 
-Returns `ListActionBlocksResponse` with array of ActionBlocks.
+Returns [`ListActionBlocksResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListActionBlocksResponse) with array of ActionBlocks.
 
 **Response Properties:**
 - `type` (string): Always "listActionBlocksResponse"

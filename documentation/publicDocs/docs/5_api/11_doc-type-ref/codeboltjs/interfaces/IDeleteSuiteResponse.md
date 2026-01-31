@@ -8,10 +8,10 @@ title: IDeleteSuiteResponse
 
 # Interface: IDeleteSuiteResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:229
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:207
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \| \{ `ok`: `boolean`; \} \| \{ `suiteId?`: `string`; \} | [packages/codeboltjs/src/types/autoTesting.ts:230](packages/codeboltjs/src/types/autoTesting.ts#L230) |
+| <a id="payload"></a> `payload` | \| \{ `ok`: `boolean`; \} \| \{ `suiteId?`: `string`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:208 |

@@ -16,8 +16,20 @@ data:
   category: crawler
   link: scroll.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# scroll
+
+```typescript
+codebolt.crawler.scroll(direction: string): void
+```
+
+Scrolls the crawler page in a specified direction.
+### Parameters
+
+- **`direction`** (string): The direction to scroll ('up', 'down', 'left', 'right').
+
+### Returns
+
+- **`void`**: No return value. Sends a scroll event to the crawler.
 
 ### Example 1: Basic Scroll Down
 

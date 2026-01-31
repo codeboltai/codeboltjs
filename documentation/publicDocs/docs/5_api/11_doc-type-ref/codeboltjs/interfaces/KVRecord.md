@@ -8,16 +8,16 @@ title: KVRecord
 
 # Interface: KVRecord
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:25
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:21
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/kvStore.ts:31](packages/codeboltjs/src/types/kvStore.ts#L31) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/kvStore.ts:26](packages/codeboltjs/src/types/kvStore.ts#L26) |
-| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/kvStore.ts:27](packages/codeboltjs/src/types/kvStore.ts#L27) |
-| <a id="key"></a> `key` | `string` | [packages/codeboltjs/src/types/kvStore.ts:29](packages/codeboltjs/src/types/kvStore.ts#L29) |
-| <a id="namespace"></a> `namespace` | `string` | [packages/codeboltjs/src/types/kvStore.ts:28](packages/codeboltjs/src/types/kvStore.ts#L28) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/kvStore.ts:32](packages/codeboltjs/src/types/kvStore.ts#L32) |
-| <a id="value"></a> `value` | `any` | [packages/codeboltjs/src/types/kvStore.ts:30](packages/codeboltjs/src/types/kvStore.ts#L30) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:27 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:22 |
+| <a id="instanceid"></a> `instanceId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:23 |
+| <a id="key"></a> `key` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:25 |
+| <a id="namespace"></a> `namespace` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:24 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:28 |
+| <a id="value"></a> `value` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:26 |

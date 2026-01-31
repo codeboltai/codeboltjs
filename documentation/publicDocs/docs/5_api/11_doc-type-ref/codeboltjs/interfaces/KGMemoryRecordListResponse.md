@@ -8,7 +8,7 @@ title: KGMemoryRecordListResponse
 
 # Interface: KGMemoryRecordListResponse
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:190
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:158
 
 Knowledge Graph Types
 Type definitions for knowledge graph operations
@@ -21,10 +21,10 @@ Type definitions for knowledge graph operations
 
 | Property | Type | Overrides | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | [`KGMemoryRecord`](KGMemoryRecord)[] | [`KGBaseResponse`](KGBaseResponse).[`data`](KGBaseResponse.md#data) | - | [packages/codeboltjs/src/types/knowledgeGraph.ts:191](packages/codeboltjs/src/types/knowledgeGraph.ts#L191) |
-| <a id="error"></a> `error?` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`error`](KGBaseResponse.md#error) | [packages/codeboltjs/src/types/knowledgeGraph.ts:11](packages/codeboltjs/src/types/knowledgeGraph.ts#L11) |
-| <a id="message"></a> `message?` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`message`](KGBaseResponse.md#message) | [packages/codeboltjs/src/types/knowledgeGraph.ts:10](packages/codeboltjs/src/types/knowledgeGraph.ts#L10) |
-| <a id="requestid"></a> `requestId` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`requestId`](KGBaseResponse.md#requestid) | [packages/codeboltjs/src/types/knowledgeGraph.ts:13](packages/codeboltjs/src/types/knowledgeGraph.ts#L13) |
-| <a id="success"></a> `success` | `boolean` | - | [`KGBaseResponse`](KGBaseResponse).[`success`](KGBaseResponse.md#success) | [packages/codeboltjs/src/types/knowledgeGraph.ts:8](packages/codeboltjs/src/types/knowledgeGraph.ts#L8) |
-| <a id="timestamp"></a> `timestamp` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`timestamp`](KGBaseResponse.md#timestamp) | [packages/codeboltjs/src/types/knowledgeGraph.ts:12](packages/codeboltjs/src/types/knowledgeGraph.ts#L12) |
-| <a id="type"></a> `type` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`type`](KGBaseResponse.md#type) | [packages/codeboltjs/src/types/knowledgeGraph.ts:7](packages/codeboltjs/src/types/knowledgeGraph.ts#L7) |
+| <a id="data"></a> `data?` | [`KGMemoryRecord`](KGMemoryRecord)[] | [`KGBaseResponse`](KGBaseResponse).[`data`](KGBaseResponse.md#data) | - | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:159 |
+| <a id="error"></a> `error?` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`error`](KGBaseResponse.md#error) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:10 |
+| <a id="message"></a> `message?` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`message`](KGBaseResponse.md#message) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:9 |
+| <a id="requestid"></a> `requestId` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`requestId`](KGBaseResponse.md#requestid) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:12 |
+| <a id="success"></a> `success` | `boolean` | - | [`KGBaseResponse`](KGBaseResponse).[`success`](KGBaseResponse.md#success) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:7 |
+| <a id="timestamp"></a> `timestamp` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`timestamp`](KGBaseResponse.md#timestamp) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:11 |
+| <a id="type"></a> `type` | `string` | - | [`KGBaseResponse`](KGBaseResponse).[`type`](KGBaseResponse.md#type) | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:6 |

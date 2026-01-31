@@ -17,6 +17,6 @@ type AgentEventPayload =
   | CustomEventPayload;
 ```
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:142
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:125
 
 Union type for all event payloads

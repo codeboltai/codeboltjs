@@ -12,7 +12,7 @@ title: setActiveBrowserInstance
 const setActiveBrowserInstance: (instanceId: string) => Promise<boolean> = cbbrowser.setActiveBrowserInstance;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:411
+Defined in: packages/codeboltjs/src/index.ts:433
 
 ## Parameters
 

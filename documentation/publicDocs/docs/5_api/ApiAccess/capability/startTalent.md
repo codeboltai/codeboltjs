@@ -24,12 +24,26 @@ data:
   category: capability
   link: startTalent.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# startTalent
+
+```typescript
+codebolt.capability.startTalent(talentName: string, params: Record<string, any>, timeout: number): Promise<StartCapabilityResponse>
+```
+
+Starts execution of a talent with optional parameters and timeout settings. Talents are specialized capabilities for specific domains.
+### Parameters
+
+- **`talentName`** (string): The name of the talent to execute.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the talent execution.
+- **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the talent's default timeout.
+
+### Returns
+
+- **`Promise<[StartCapabilityResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse)>`**: A promise that resolves to the execution response containing the execution ID and initial status.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StartCapabilityResponse` object.
+The method returns a Promise that resolves to a [`StartCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "startCapabilityResponse"

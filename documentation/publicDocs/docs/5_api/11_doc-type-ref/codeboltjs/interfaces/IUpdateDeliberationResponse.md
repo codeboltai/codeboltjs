@@ -8,11 +8,11 @@ title: IUpdateDeliberationResponse
 
 # Interface: IUpdateDeliberationResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:140
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:127
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `deliberation`: [`Deliberation`](Deliberation); \} | [packages/codeboltjs/src/types/agentDeliberation.ts:141](packages/codeboltjs/src/types/agentDeliberation.ts#L141) |
-| `payload.deliberation` | [`Deliberation`](Deliberation) | [packages/codeboltjs/src/types/agentDeliberation.ts:141](packages/codeboltjs/src/types/agentDeliberation.ts#L141) |
+| <a id="payload"></a> `payload` | \{ `deliberation`: [`Deliberation`](Deliberation); \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:128 |
+| `payload.deliberation` | [`Deliberation`](Deliberation) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:129 |

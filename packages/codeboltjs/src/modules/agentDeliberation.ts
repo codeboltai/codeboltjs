@@ -18,7 +18,7 @@ import {
   IGetWinnerResponse,
   ISummaryParams,
   ISummaryResponse,
-} from '../types/agentDeliberation';
+} from '@codebolt/types/lib';
 
 const cbagentDeliberation = {
   create: async (params: ICreateDeliberationParams): Promise<ICreateDeliberationResponse> => {

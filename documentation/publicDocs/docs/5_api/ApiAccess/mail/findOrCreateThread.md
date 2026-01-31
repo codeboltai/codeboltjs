@@ -15,8 +15,20 @@ data:
   category: mail
   link: findOrCreateThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# findOrCreateThread
+
+```typescript
+codebolt.mail.findOrCreateThread(params: IFindOrCreateThreadParams): Promise<IFindOrCreateThreadResponse>
+```
+
+Finds an existing thread or creates a new one based on participants and subject.
+### Parameters
+
+- **`params`** (IFindOrCreateThreadParams): Thread parameters including subject, participants, type, and metadata.
+
+### Returns
+
+- **`Promise<IFindOrCreateThreadResponse>`**: A promise that resolves with the thread and whether it was created or found.
 
 ### Response Structure
 

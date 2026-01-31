@@ -8,17 +8,17 @@ title: IngestionEventData
 
 # Interface: IngestionEventData
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:63
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:39
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/memoryIngestion.ts:72](packages/codeboltjs/src/types/memoryIngestion.ts#L72) |
-| <a id="source"></a> `source` | \{ `agentId?`: `string`; `projectId?`: `string`; `swarmId?`: `string`; `threadId?`: `string`; \} | [packages/codeboltjs/src/types/memoryIngestion.ts:66](packages/codeboltjs/src/types/memoryIngestion.ts#L66) |
-| `source.agentId?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:68](packages/codeboltjs/src/types/memoryIngestion.ts#L68) |
-| `source.projectId?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:70](packages/codeboltjs/src/types/memoryIngestion.ts#L70) |
-| `source.swarmId?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:69](packages/codeboltjs/src/types/memoryIngestion.ts#L69) |
-| `source.threadId?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:67](packages/codeboltjs/src/types/memoryIngestion.ts#L67) |
-| <a id="timestamp"></a> `timestamp` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:65](packages/codeboltjs/src/types/memoryIngestion.ts#L65) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:64](packages/codeboltjs/src/types/memoryIngestion.ts#L64) |
+| <a id="payload"></a> `payload` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:48 |
+| <a id="source"></a> `source` | \{ `agentId?`: `string`; `projectId?`: `string`; `swarmId?`: `string`; `threadId?`: `string`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:42 |
+| `source.agentId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:44 |
+| `source.projectId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:46 |
+| `source.swarmId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:45 |
+| `source.threadId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:43 |
+| <a id="timestamp"></a> `timestamp` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:41 |
+| <a id="type"></a> `type` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:40 |

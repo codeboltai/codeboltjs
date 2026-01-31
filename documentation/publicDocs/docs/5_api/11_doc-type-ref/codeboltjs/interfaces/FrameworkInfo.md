@@ -8,13 +8,13 @@ title: FrameworkInfo
 
 # Interface: FrameworkInfo
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:93
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:74
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="config"></a> `config?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/projectStructure.ts:97](packages/codeboltjs/src/types/projectStructure.ts#L97) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:96](packages/codeboltjs/src/types/projectStructure.ts#L96) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:94](packages/codeboltjs/src/types/projectStructure.ts#L94) |
-| <a id="version"></a> `version?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:95](packages/codeboltjs/src/types/projectStructure.ts#L95) |
+| <a id="config"></a> `config?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:78 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:77 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:75 |
+| <a id="version"></a> `version?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:76 |

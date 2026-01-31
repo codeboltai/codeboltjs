@@ -8,14 +8,14 @@ title: EventLogQueryResult
 
 # Interface: EventLogQueryResult
 
-Defined in: packages/codeboltjs/src/types/eventLog.ts:62
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:55
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="aggregation"></a> `aggregation?` | `any` | [packages/codeboltjs/src/types/eventLog.ts:64](packages/codeboltjs/src/types/eventLog.ts#L64) |
-| <a id="events"></a> `events?` | [`EventLogEntry`](EventLogEntry)[] | [packages/codeboltjs/src/types/eventLog.ts:63](packages/codeboltjs/src/types/eventLog.ts#L63) |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/eventLog.ts:66](packages/codeboltjs/src/types/eventLog.ts#L66) |
-| <a id="offset"></a> `offset?` | `number` | [packages/codeboltjs/src/types/eventLog.ts:67](packages/codeboltjs/src/types/eventLog.ts#L67) |
-| <a id="total"></a> `total` | `number` | [packages/codeboltjs/src/types/eventLog.ts:65](packages/codeboltjs/src/types/eventLog.ts#L65) |
+| <a id="aggregation"></a> `aggregation?` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:57 |
+| <a id="events"></a> `events?` | [`EventLogEntry`](EventLogEntry)[] | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:56 |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:59 |
+| <a id="offset"></a> `offset?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:60 |
+| <a id="total"></a> `total` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:58 |

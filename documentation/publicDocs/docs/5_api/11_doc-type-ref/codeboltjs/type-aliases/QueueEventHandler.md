@@ -12,7 +12,7 @@ title: QueueEventHandler
 type QueueEventHandler = (event: AgentEventMessage) => void;
 ```
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:355
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:309
 
 Event handler function type
 

@@ -8,12 +8,12 @@ title: ReviewIdeaData
 
 # Interface: ReviewIdeaData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:136
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:111
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="reviewedby"></a> `reviewedBy?` | [`RoadmapCreator`](RoadmapCreator) | [packages/codeboltjs/src/types/roadmap.ts:139](packages/codeboltjs/src/types/roadmap.ts#L139) |
-| <a id="reviewnotes"></a> `reviewNotes?` | `string` | [packages/codeboltjs/src/types/roadmap.ts:138](packages/codeboltjs/src/types/roadmap.ts#L138) |
-| <a id="status"></a> `status` | `"rejected"` \| `"accepted"` | [packages/codeboltjs/src/types/roadmap.ts:137](packages/codeboltjs/src/types/roadmap.ts#L137) |
+| <a id="reviewedby"></a> `reviewedBy?` | [`RoadmapCreator`](RoadmapCreator) | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:114 |
+| <a id="reviewnotes"></a> `reviewNotes?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:113 |
+| <a id="status"></a> `status` | `"rejected"` \| `"accepted"` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:112 |

@@ -15,8 +15,20 @@ data:
   category: chat
   link: processStarted.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# processStarted
+
+```typescript
+codebolt.chat.processStarted(onStopClicked: (message: any) => void): { stopProcess: () => void; cleanup?: () => void }
+```
+
+Notifies the server that a process has started and optionally sets up a handler for stop process events.
+### Parameters
+
+- **`onStopClicked`** ((message: any) => void): Optional callback function to handle stop process events when user clicks stop.
+
+### Returns
+
+- **`{ stopProcess: () => void; cleanup?: () => void }`**: An object containing a stopProcess method and optionally a cleanup method.
 
 ### Response Structure
 

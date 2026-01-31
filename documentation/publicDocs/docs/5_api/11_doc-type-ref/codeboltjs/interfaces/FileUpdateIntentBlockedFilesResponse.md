@@ -8,10 +8,10 @@ title: FileUpdateIntentBlockedFilesResponse
 
 # Interface: FileUpdateIntentBlockedFilesResponse
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:154
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:120
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="blockedfiles"></a> `blockedFiles` | `string`[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:155](packages/codeboltjs/src/types/fileUpdateIntent.ts#L155) |
+| <a id="blockedfiles"></a> `blockedFiles` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:121 |

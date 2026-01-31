@@ -13,8 +13,16 @@ data:
   category: browser
   link: pdfToText.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# pdfToText
+
+```typescript
+codebolt.browser.pdfToText(): void
+```
+
+Converts the PDF content of the current page to text. 
+ ### Returns
+
+- **`void`**: ' '
 
 ### Response Structure
 
@@ -40,4 +48,4 @@ console.log('✅ PDF to text conversion initiated');
 - The PDF to text conversion is initiated without waiting for confirmation
 - This function is particularly useful when dealing with PDF documents in web automation or data extraction scenarios
 - Ensure the PDF is fully loaded before calling this method for best results
-- The converted text is typically processed by the underlying system for further use 
+- The converted text is typically processed by the underlying system for further use

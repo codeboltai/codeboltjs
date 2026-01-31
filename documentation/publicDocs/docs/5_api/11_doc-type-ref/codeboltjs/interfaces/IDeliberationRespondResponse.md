@@ -8,11 +8,11 @@ title: IDeliberationRespondResponse
 
 # Interface: IDeliberationRespondResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:144
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:132
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `response`: [`DeliberationResponse`](DeliberationResponse); \} | [packages/codeboltjs/src/types/agentDeliberation.ts:145](packages/codeboltjs/src/types/agentDeliberation.ts#L145) |
-| `payload.response` | [`DeliberationResponse`](DeliberationResponse) | [packages/codeboltjs/src/types/agentDeliberation.ts:145](packages/codeboltjs/src/types/agentDeliberation.ts#L145) |
+| <a id="payload"></a> `payload` | \{ `response`: [`DeliberationResponse`](DeliberationResponse); \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:133 |
+| `payload.response` | [`DeliberationResponse`](DeliberationResponse) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:134 |

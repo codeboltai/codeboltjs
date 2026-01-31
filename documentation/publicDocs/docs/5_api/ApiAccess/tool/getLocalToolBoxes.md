@@ -14,8 +14,16 @@ data:
   category: tool
   link: getLocalToolBoxes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getLocalToolBoxes
+
+```typescript
+codebolt.tool.getLocalToolBoxes(): Promise
+```
+
+Retrieves toolboxes installed in the local development environment.
+### Returns
+
+- **`Promise`**: A promise resolving to an array of locally available toolbox configurations
 
 ### Response Structure
 ```typescript

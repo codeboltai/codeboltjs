@@ -21,12 +21,26 @@ data:
   category: tool
   link: executeTool.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# executeTool
+
+```typescript
+codebolt.tool.executeTool(toolbox: string, toolName: string, params: object): Promise<ExecuteToolResponse>
+```
+
+Executes a specific tool from a configured toolbox with provided parameters.
+### Parameters
+
+- **`toolbox`** (string): The name of the toolbox containing the tool.
+- **`toolName`** (string): The name of the tool to execute.
+- **`params`** (object): Parameters to pass to the tool execution (must match tool's input schema).
+
+### Returns
+
+- **`Promise<ExecuteToolResponse>`**: A promise that resolves with an [`ExecuteToolResponse`](/docs/api/11_doc-type-ref/types/interfaces/ExecuteToolResponse) object containing the tool execution result.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `ExecuteToolResponse` object with the following properties:
+The method returns a Promise that resolves to an [`ExecuteToolResponse`](/docs/api/11_doc-type-ref/types/interfaces/ExecuteToolResponse) object with the following properties:
 
 - **`type`** (string): Always "executeToolResponse".
 - **`toolName`** (string, optional): The name of the executed tool.

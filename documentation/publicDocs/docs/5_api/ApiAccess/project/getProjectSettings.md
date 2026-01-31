@@ -12,12 +12,20 @@ data:
   category: project
   link: getProjectSettings.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getProjectSettings
+
+```typescript
+codebolt.project.getProjectSettings(): Promise<GetProjectSettingsResponse>
+```
+
+Retrieves the current project settings including user information, workspace details, profile settings, and LLM configuration for the active project. 
+### Returns
+
+- **`Promise<GetProjectSettingsResponse>`**: A promise that resolves with the project settings response containing comprehensive project and user configuration.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetProjectSettingsResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetProjectSettingsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetProjectSettingsResponse) object with the following properties:
 
 - **`type`** (string): Always "getProjectSettingsResponse".
 - **`projectSettings`** (object, optional): Comprehensive project configuration containing:

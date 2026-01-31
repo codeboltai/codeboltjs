@@ -8,10 +8,10 @@ title: JobReadyBlockedResponse
 
 # Interface: JobReadyBlockedResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:139
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:108
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | [packages/codeboltjs/src/types/job.ts:140](packages/codeboltjs/src/types/job.ts#L140) |
+| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:109 |

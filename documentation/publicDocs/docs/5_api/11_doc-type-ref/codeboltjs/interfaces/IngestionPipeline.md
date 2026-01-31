@@ -8,19 +8,19 @@ title: IngestionPipeline
 
 # Interface: IngestionPipeline
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:50
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:27
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:59](packages/codeboltjs/src/types/memoryIngestion.ts#L59) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:53](packages/codeboltjs/src/types/memoryIngestion.ts#L53) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:51](packages/codeboltjs/src/types/memoryIngestion.ts#L51) |
-| <a id="label"></a> `label` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:52](packages/codeboltjs/src/types/memoryIngestion.ts#L52) |
-| <a id="processors"></a> `processors` | [`IngestionProcessor`](IngestionProcessor)[] | [packages/codeboltjs/src/types/memoryIngestion.ts:57](packages/codeboltjs/src/types/memoryIngestion.ts#L57) |
-| <a id="routing"></a> `routing` | [`IngestionRouting`](IngestionRouting) | [packages/codeboltjs/src/types/memoryIngestion.ts:58](packages/codeboltjs/src/types/memoryIngestion.ts#L58) |
-| <a id="status"></a> `status` | `"active"` \| `"draft"` \| `"disabled"` | [packages/codeboltjs/src/types/memoryIngestion.ts:54](packages/codeboltjs/src/types/memoryIngestion.ts#L54) |
-| <a id="trigger"></a> `trigger` | [`IngestionTrigger`](../type-aliases/IngestionTrigger) | [packages/codeboltjs/src/types/memoryIngestion.ts:55](packages/codeboltjs/src/types/memoryIngestion.ts#L55) |
-| <a id="trigger_config"></a> `trigger_config?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/memoryIngestion.ts:56](packages/codeboltjs/src/types/memoryIngestion.ts#L56) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:60](packages/codeboltjs/src/types/memoryIngestion.ts#L60) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:36 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:30 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:28 |
+| <a id="label"></a> `label` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:29 |
+| <a id="processors"></a> `processors` | [`IngestionProcessor`](IngestionProcessor)[] | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:34 |
+| <a id="routing"></a> `routing` | [`IngestionRouting`](IngestionRouting) | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:35 |
+| <a id="status"></a> `status` | `"active"` \| `"draft"` \| `"disabled"` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:31 |
+| <a id="trigger"></a> `trigger` | [`IngestionTrigger`](../type-aliases/IngestionTrigger) | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:32 |
+| <a id="trigger_config"></a> `trigger_config?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:33 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:37 |

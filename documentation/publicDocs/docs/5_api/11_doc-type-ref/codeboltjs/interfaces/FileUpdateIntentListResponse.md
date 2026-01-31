@@ -8,10 +8,10 @@ title: FileUpdateIntentListResponse
 
 # Interface: FileUpdateIntentListResponse
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:146
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:114
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="intents"></a> `intents` | [`FileUpdateIntent`](FileUpdateIntent)[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:147](packages/codeboltjs/src/types/fileUpdateIntent.ts#L147) |
+| <a id="intents"></a> `intents` | [`FileUpdateIntent`](FileUpdateIntent)[] | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:115 |

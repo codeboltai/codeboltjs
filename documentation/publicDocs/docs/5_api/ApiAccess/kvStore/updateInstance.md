@@ -20,12 +20,25 @@ data:
   category: kvStore
   link: updateInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateInstance
+
+```typescript
+codebolt.kvStore.updateInstance(instanceId: undefined, updates: undefined): Promise<KVInstanceResponse>
+```
+
+Updates the name or description of a KV store instance.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance to update.
+- **`updates`** (unknown): Object containing the fields to update (name and/or description).
+
+### Returns
+
+- **`Promise<[KVInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse)>`**: A promise that resolves with the updated instance details.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVInstanceResponse` object:
+The method returns a Promise that resolves to a [`KVInstanceResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse) object:
 
 ```typescript
 {

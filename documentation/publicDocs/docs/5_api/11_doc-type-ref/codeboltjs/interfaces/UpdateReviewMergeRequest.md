@@ -8,7 +8,7 @@ title: UpdateReviewMergeRequest
 
 # Interface: UpdateReviewMergeRequest
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:137
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:105
 
 Data for updating an existing request
 
@@ -16,18 +16,18 @@ Data for updating an existing request
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="changesfilepath"></a> `changesFilePath?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:147](packages/codeboltjs/src/types/reviewMergeRequest.ts#L147) |
-| <a id="closedat"></a> `closedAt?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:152](packages/codeboltjs/src/types/reviewMergeRequest.ts#L152) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:141](packages/codeboltjs/src/types/reviewMergeRequest.ts#L141) |
-| <a id="diffpatch"></a> `diffPatch?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:143](packages/codeboltjs/src/types/reviewMergeRequest.ts#L143) |
-| <a id="issuesfaced"></a> `issuesFaced?` | `string`[] | [packages/codeboltjs/src/types/reviewMergeRequest.ts:144](packages/codeboltjs/src/types/reviewMergeRequest.ts#L144) |
-| <a id="majorfileschanged"></a> `majorFilesChanged?` | `string`[] | [packages/codeboltjs/src/types/reviewMergeRequest.ts:142](packages/codeboltjs/src/types/reviewMergeRequest.ts#L142) |
-| <a id="mergeconfig"></a> `mergeConfig?` | [`MergeConfig`](MergeConfig) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:146](packages/codeboltjs/src/types/reviewMergeRequest.ts#L146) |
-| <a id="mergedat"></a> `mergedAt?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:151](packages/codeboltjs/src/types/reviewMergeRequest.ts#L151) |
-| <a id="mergedby"></a> `mergedBy?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:149](packages/codeboltjs/src/types/reviewMergeRequest.ts#L149) |
-| <a id="mergeresult"></a> `mergeResult?` | [`MergeResult`](MergeResult) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:150](packages/codeboltjs/src/types/reviewMergeRequest.ts#L150) |
-| <a id="remainingtasks"></a> `remainingTasks?` | `string`[] | [packages/codeboltjs/src/types/reviewMergeRequest.ts:145](packages/codeboltjs/src/types/reviewMergeRequest.ts#L145) |
-| <a id="status"></a> `status?` | [`ReviewRequestStatus`](../type-aliases/ReviewRequestStatus) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:139](packages/codeboltjs/src/types/reviewMergeRequest.ts#L139) |
-| <a id="taskdescription"></a> `taskDescription?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:148](packages/codeboltjs/src/types/reviewMergeRequest.ts#L148) |
-| <a id="title"></a> `title?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:140](packages/codeboltjs/src/types/reviewMergeRequest.ts#L140) |
-| <a id="type"></a> `type?` | [`ReviewRequestType`](../type-aliases/ReviewRequestType) | [packages/codeboltjs/src/types/reviewMergeRequest.ts:138](packages/codeboltjs/src/types/reviewMergeRequest.ts#L138) |
+| <a id="changesfilepath"></a> `changesFilePath?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:115 |
+| <a id="closedat"></a> `closedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:120 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:109 |
+| <a id="diffpatch"></a> `diffPatch?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:111 |
+| <a id="issuesfaced"></a> `issuesFaced?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:112 |
+| <a id="majorfileschanged"></a> `majorFilesChanged?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:110 |
+| <a id="mergeconfig"></a> `mergeConfig?` | [`MergeConfig`](MergeConfig) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:114 |
+| <a id="mergedat"></a> `mergedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:119 |
+| <a id="mergedby"></a> `mergedBy?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:117 |
+| <a id="mergeresult"></a> `mergeResult?` | [`MergeResult`](MergeResult) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:118 |
+| <a id="remainingtasks"></a> `remainingTasks?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:113 |
+| <a id="status"></a> `status?` | [`ReviewRequestStatus`](../type-aliases/ReviewRequestStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:107 |
+| <a id="taskdescription"></a> `taskDescription?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:116 |
+| <a id="title"></a> `title?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:108 |
+| <a id="type"></a> `type?` | [`ReviewRequestType`](../type-aliases/ReviewRequestType) | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:106 |

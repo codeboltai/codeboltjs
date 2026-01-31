@@ -8,10 +8,10 @@ title: JobLockReleaseResponse
 
 # Interface: JobLockReleaseResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:359
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:260
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:360](packages/codeboltjs/src/types/job.ts#L360) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:261 |

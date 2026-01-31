@@ -12,8 +12,16 @@ data:
   category: contextAssembly
   link: listMemoryTypes.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listMemoryTypes
+
+```typescript
+codebolt.contextAssembly.listMemoryTypes(): Promise<MemoryTypesResponse>
+```
+
+Lists all available memory types for context assembly.
+### Returns
+
+- **`Promise<[MemoryTypesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/MemoryTypesResponse)>`**: A promise that resolves with available memory types.
 
 ### Response Structure
 

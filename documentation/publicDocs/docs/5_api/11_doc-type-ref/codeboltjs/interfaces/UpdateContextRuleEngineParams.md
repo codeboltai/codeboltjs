@@ -8,13 +8,13 @@ title: UpdateContextRuleEngineParams
 
 # Interface: UpdateContextRuleEngineParams
 
-Defined in: packages/codeboltjs/src/types/contextRuleEngine.ts:79
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:58
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/contextRuleEngine.ts:81](packages/codeboltjs/src/types/contextRuleEngine.ts#L81) |
-| <a id="enabled"></a> `enabled?` | `boolean` | [packages/codeboltjs/src/types/contextRuleEngine.ts:83](packages/codeboltjs/src/types/contextRuleEngine.ts#L83) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/contextRuleEngine.ts:80](packages/codeboltjs/src/types/contextRuleEngine.ts#L80) |
-| <a id="rules"></a> `rules?` | [`Rule`](Rule)[] | [packages/codeboltjs/src/types/contextRuleEngine.ts:82](packages/codeboltjs/src/types/contextRuleEngine.ts#L82) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:60 |
+| <a id="enabled"></a> `enabled?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:62 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:59 |
+| <a id="rules"></a> `rules?` | [`Rule`](Rule)[] | common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:61 |

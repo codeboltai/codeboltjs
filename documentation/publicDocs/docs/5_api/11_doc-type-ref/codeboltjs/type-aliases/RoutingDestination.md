@@ -12,4 +12,4 @@ title: RoutingDestination
 type RoutingDestination = "vectordb" | "kv" | "eventlog" | "kg";
 ```
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:32
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:16

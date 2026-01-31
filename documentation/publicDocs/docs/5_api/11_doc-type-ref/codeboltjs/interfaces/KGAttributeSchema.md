@@ -8,12 +8,12 @@ title: KGAttributeSchema
 
 # Interface: KGAttributeSchema
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:24
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:20
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="default"></a> `default?` | `any` | [packages/codeboltjs/src/types/knowledgeGraph.ts:27](packages/codeboltjs/src/types/knowledgeGraph.ts#L27) |
-| <a id="required"></a> `required?` | `boolean` | [packages/codeboltjs/src/types/knowledgeGraph.ts:26](packages/codeboltjs/src/types/knowledgeGraph.ts#L26) |
-| <a id="type"></a> `type` | `"string"` \| `"number"` \| `"boolean"` \| `"json"` \| `"date"` | [packages/codeboltjs/src/types/knowledgeGraph.ts:25](packages/codeboltjs/src/types/knowledgeGraph.ts#L25) |
+| <a id="default"></a> `default?` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:23 |
+| <a id="required"></a> `required?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:22 |
+| <a id="type"></a> `type` | `"string"` \| `"number"` \| `"boolean"` \| `"json"` \| `"date"` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:21 |

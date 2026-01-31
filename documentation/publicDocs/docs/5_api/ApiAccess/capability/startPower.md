@@ -24,12 +24,26 @@ data:
   category: capability
   link: startPower.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# startPower
+
+```typescript
+codebolt.capability.startPower(powerName: string, params: Record<string, any>, timeout: number): Promise<StartCapabilityResponse>
+```
+
+Starts execution of a power with optional parameters and timeout settings. Powers are advanced capabilities with enhanced functionality.
+### Parameters
+
+- **`powerName`** (string): The name of the power to execute.
+- **`params`** (`Record<string, any>`, optional): Optional parameters to pass to the power execution.
+- **`timeout`** (number, optional): Optional execution timeout in milliseconds. If not provided, uses the power's default timeout.
+
+### Returns
+
+- **`Promise<[StartCapabilityResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse)>`**: A promise that resolves to the execution response containing the execution ID and initial status.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StartCapabilityResponse` object.
+The method returns a Promise that resolves to a [`StartCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StartCapabilityResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "startCapabilityResponse"

@@ -8,16 +8,16 @@ title: UiRoute
 
 # Interface: UiRoute
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:56
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:45
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="auth"></a> `auth?` | `boolean` | [packages/codeboltjs/src/types/projectStructure.ts:62](packages/codeboltjs/src/types/projectStructure.ts#L62) |
-| <a id="component"></a> `component?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:59](packages/codeboltjs/src/types/projectStructure.ts#L59) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:61](packages/codeboltjs/src/types/projectStructure.ts#L61) |
-| <a id="file"></a> `file?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:60](packages/codeboltjs/src/types/projectStructure.ts#L60) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:57](packages/codeboltjs/src/types/projectStructure.ts#L57) |
-| <a id="layout"></a> `layout?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:63](packages/codeboltjs/src/types/projectStructure.ts#L63) |
-| <a id="path"></a> `path` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:58](packages/codeboltjs/src/types/projectStructure.ts#L58) |
+| <a id="auth"></a> `auth?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:51 |
+| <a id="component"></a> `component?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:48 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:50 |
+| <a id="file"></a> `file?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:49 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:46 |
+| <a id="layout"></a> `layout?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:52 |
+| <a id="path"></a> `path` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:47 |

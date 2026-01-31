@@ -8,11 +8,11 @@ title: RoadmapPhasesResponse
 
 # Interface: RoadmapPhasesResponse
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:153
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:123
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="count"></a> `count` | `number` | [packages/codeboltjs/src/types/roadmap.ts:155](packages/codeboltjs/src/types/roadmap.ts#L155) |
-| <a id="phases"></a> `phases` | [`Phase`](Phase)[] | [packages/codeboltjs/src/types/roadmap.ts:154](packages/codeboltjs/src/types/roadmap.ts#L154) |
+| <a id="count"></a> `count` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:125 |
+| <a id="phases"></a> `phases` | [`Phase`](Phase)[] | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:124 |

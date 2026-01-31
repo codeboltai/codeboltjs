@@ -21,13 +21,25 @@ data:
   category: cbstate
   link: updateProjectState.md
 ---
+# updateProjectState
 
-<CBBaseInfo/> 
-<CBParameters/>
+```typescript
+codebolt.cbstate.updateProjectState(key: string, value: any): Promise<UpdateProjectStateResponse>
+```
+
+Updates the project state on the server via WebSocket. 
+### Parameters
+
+- **`key`** (string): The key of the project state property to update.
+- **`value`** (any): The new value to set for the specified key.
+
+### Returns
+
+- **`Promise<UpdateProjectStateResponse>`**: A promise that resolves with the update response containing success confirmation.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `UpdateProjectStateResponse` object with the following properties:
+The method returns a Promise that resolves to an [`UpdateProjectStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/UpdateProjectStateResponse) object with the following properties:
 
 - **`type`** (string): Always "updateProjectStateResponse".
 - **`message`** (string): Contains the result of the update operation. When successful, this will be "success".

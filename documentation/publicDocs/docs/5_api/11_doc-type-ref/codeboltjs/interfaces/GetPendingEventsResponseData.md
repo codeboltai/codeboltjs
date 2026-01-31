@@ -8,7 +8,7 @@ title: GetPendingEventsResponseData
 
 # Interface: GetPendingEventsResponseData
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:314
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:272
 
 Response data for getPendingEvents
 
@@ -16,6 +16,6 @@ Response data for getPendingEvents
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="count"></a> `count` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:316](packages/codeboltjs/src/types/agentEventQueue.ts#L316) |
-| <a id="events"></a> `events` | [`AgentEventMessage`](AgentEventMessage)[] | [packages/codeboltjs/src/types/agentEventQueue.ts:315](packages/codeboltjs/src/types/agentEventQueue.ts#L315) |
-| <a id="pendingcount"></a> `pendingCount` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:317](packages/codeboltjs/src/types/agentEventQueue.ts#L317) |
+| <a id="count"></a> `count` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:274 |
+| <a id="events"></a> `events` | [`AgentEventMessage`](AgentEventMessage)[] | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:273 |
+| <a id="pendingcount"></a> `pendingCount` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:275 |

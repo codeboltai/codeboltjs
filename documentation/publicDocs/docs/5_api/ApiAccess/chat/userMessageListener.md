@@ -14,8 +14,14 @@ data:
   category: chat
   link: userMessageListener.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# userMessageListener
+
+```typescript
+codebolt.chat.userMessageListener(): void
+```
+
+Sets up a listener for incoming WebSocket messages and emits a custom event when a message is received. 
+ 
 
 ### Response Structure
 

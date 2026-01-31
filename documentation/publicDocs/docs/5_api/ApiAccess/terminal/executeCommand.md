@@ -18,12 +18,25 @@ data:
   category: terminal
   link: executeCommand.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# executeCommand
+
+```typescript
+codebolt.terminal.executeCommand(command: string, returnEmptyStringOnSuccess: boolean): Promise<CommandFinish | CommandError>
+```
+
+Executes a given command in the terminal environment and returns the result. This method listens for WebSocket messages that indicate the output, error, or finish state of the executed command and resolves the promise accordingly. 
+### Parameters
+
+- **`command`** (string): The command to be executed in the terminal (e.g., "node --version", "npm install", "ls -la").
+- **`returnEmptyStringOnSuccess`** (boolean): Optional parameter to return empty string on success instead of command output. Defaults to false.
+
+### Returns
+
+- **`Promise<CommandFinish | CommandError>`**: A promise that resolves with either a CommandFinish object (on success) or CommandError object (on failure) containing the command's output or error information.
 
 ### Response Structure
 
-The method returns a Promise that resolves to either a `CommandFinish` or `CommandError` object:
+The method returns a Promise that resolves to either a [`CommandFinish`](/docs/api/11_doc-type-ref/types/interfaces/CommandFinish) or [`CommandError`](/docs/api/11_doc-type-ref/types/interfaces/CommandError) object:
 
 #### CommandFinish (Success Response)
 - **`type`** (string): Always "commandFinish".
@@ -331,5 +344,5 @@ const batchResults = await batchExecution(commands);
 - Both `stdout` and `stderr` may contain output depending on the command
 - Commands are executed in the current working directory of the terminal
 - Long-running commands should use `executeCommandWithStream` for real-time output
-- Always handle both success (`CommandFinish`) and error (`CommandError`) response types
+- Always handle both success ([`CommandFinish`](/docs/api/11_doc-type-ref/types/interfaces/CommandFinish)) and error ([`CommandError`](/docs/api/11_doc-type-ref/types/interfaces/CommandError)) response types
 - Consider implementing timeouts for commands that might hang indefinitely

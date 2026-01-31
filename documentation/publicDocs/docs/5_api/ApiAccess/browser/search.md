@@ -19,12 +19,25 @@ data:
   category: browser
   link: search.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# search
+
+```typescript
+codebolt.browser.search(elementid: string, query: string): Promise<SearchResponse>
+```
+
+Performs a search on the current page using a specified query. 
+ ### Parameters
+
+- **`elementid`** (string): The ID of the search input element.
+- **`query`** (string): The search query.
+
+### Returns
+
+- **`Promise<SearchResponse>`**: A promise that resolves with the search results.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `BrowserActionResponseData` object with the following properties:
+The method returns a Promise that resolves to a [`BrowserActionResponseData`](/docs/api/11_doc-type-ref/types/interfaces/BrowserActionResponseData) object with the following properties:
 
 - **`type`** (string): Always "searchResponse".
 - **`payload`** (object, optional): Contains the response data including:

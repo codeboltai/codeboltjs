@@ -18,12 +18,25 @@ data:
   category: dbmemory
   link: addKnowledge.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# addKnowledge
+
+```typescript
+codebolt.dbmemory.addKnowledge(key: string, value: any): Promise<MemorySetResponse>
+```
+
+Adds a key-value pair to the in-memory database. Supports storing various data types including strings, numbers, objects, and arrays. 
+### Parameters
+
+- **`key`** (string): The unique key under which to store the value. Supports namespaced keys (e.g., 'user:123', 'config:theme').
+- **`value`** (any): The value to be stored. Can be string, number, boolean, object, array, null, or undefined.
+
+### Returns
+
+- **`Promise<MemorySetResponse>`**: A promise that resolves with a [`MemorySetResponse`](/docs/api/11_doc-type-ref/types/interfaces/MemorySetResponse) object containing the response type and operation metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `MemorySetResponse` object with the following properties:
+The method returns a Promise that resolves to a [`MemorySetResponse`](/docs/api/11_doc-type-ref/types/interfaces/MemorySetResponse) object with the following properties:
 
 - **`type`** (string): Always "memorySetResponse".
 - **`key`** (string, optional): The key that was used to store the value.

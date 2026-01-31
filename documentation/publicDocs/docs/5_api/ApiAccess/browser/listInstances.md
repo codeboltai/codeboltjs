@@ -19,7 +19,7 @@ None
 
 ## Return Value
 
-Returns a promise that resolves to an array of `BrowserInstanceInfo` objects:
+Returns a promise that resolves to an array of [`BrowserInstanceInfo`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/BrowserInstanceInfo) objects:
 
 ```js
 [

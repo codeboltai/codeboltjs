@@ -17,8 +17,20 @@ data:
   category: autoTesting
   link: listSuites.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listSuites
+
+```typescript
+codebolt.autoTesting.listSuites(params: IListSuitesParams): Promise<IListSuitesResponse>
+```
+
+Lists all available test suites.
+### Parameters
+
+- **`params`** ([IListSuitesParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListSuitesParams), optional): Optional parameters for filtering.
+
+### Returns
+
+- **`Promise<[IListSuitesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListSuitesResponse)>`**: A promise that resolves to the list of test suites.
 
 ### Examples
 

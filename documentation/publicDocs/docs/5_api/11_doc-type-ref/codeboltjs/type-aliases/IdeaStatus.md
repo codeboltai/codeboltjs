@@ -12,4 +12,4 @@ title: IdeaStatus
 type IdeaStatus = "pending" | "accepted" | "rejected";
 ```
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:14
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:11

@@ -8,10 +8,10 @@ title: ProjectStructureDeleteResponse
 
 # Interface: ProjectStructureDeleteResponse
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:158
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:125
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/projectStructure.ts:159](packages/codeboltjs/src/types/projectStructure.ts#L159) |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:126 |

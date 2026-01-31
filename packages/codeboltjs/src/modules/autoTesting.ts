@@ -38,7 +38,7 @@ import {
   IUpdateRunStepResponse,
   IUpdateSuiteParams,
   IUpdateSuiteResponse,
-} from '../types/autoTesting';
+} from '@codebolt/types/lib';
 
 const cbautoTesting = {
   // ---- Test Suites ----

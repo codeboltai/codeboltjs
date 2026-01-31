@@ -13,8 +13,16 @@ data:
   category: crawler
   link: screenshot.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# screenshot
+
+```typescript
+codebolt.crawler.screenshot(): void
+```
+
+Captures a screenshot of the current crawler page.
+### Returns
+
+- **`void`**: No return value. Sends a screenshot event to capture the current page.
 
 ### Example 1: Basic Screenshot
 

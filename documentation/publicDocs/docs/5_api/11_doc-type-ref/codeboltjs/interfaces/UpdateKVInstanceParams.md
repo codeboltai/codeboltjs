@@ -8,11 +8,11 @@ title: UpdateKVInstanceParams
 
 # Interface: UpdateKVInstanceParams
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:70
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:59
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/kvStore.ts:72](packages/codeboltjs/src/types/kvStore.ts#L72) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/kvStore.ts:71](packages/codeboltjs/src/types/kvStore.ts#L71) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:61 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:60 |

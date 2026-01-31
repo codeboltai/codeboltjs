@@ -16,12 +16,24 @@ data:
   category: capability
   link: stopCapability.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# stopCapability
+
+```typescript
+codebolt.capability.stopCapability(executionId: string): Promise<StopCapabilityResponse>
+```
+
+Stops a currently running capability execution by execution ID. This cancels the execution and releases resources.
+### Parameters
+
+- **`executionId`** (string): The ID of the execution to stop.
+
+### Returns
+
+- **`Promise<[StopCapabilityResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StopCapabilityResponse)>`**: A promise that resolves when the execution has been stopped.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `StopCapabilityResponse` object.
+The method returns a Promise that resolves to a [`StopCapabilityResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/StopCapabilityResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "stopCapabilityResponse"

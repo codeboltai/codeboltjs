@@ -15,8 +15,20 @@ data:
   category: groupFeedback
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.groupFeedback.get(params: IGetFeedbackParams): Promise<IGetFeedbackResponse>
+```
+
+Retrieves details of a specific feedback session including all responses.
+### Parameters
+
+- **`params`** ([IGetFeedbackParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetFeedbackParams)): Parameters including the feedbackId to retrieve.
+
+### Returns
+
+- **`Promise<[IGetFeedbackResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetFeedbackResponse)>`**: A promise that resolves with the feedback session details.
 
 ### Examples
 

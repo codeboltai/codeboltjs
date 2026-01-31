@@ -8,7 +8,7 @@ title: ReviewMergeRequestDisplaySettings
 
 # Interface: ReviewMergeRequestDisplaySettings
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:187
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:152
 
 Display settings for UI
 
@@ -16,8 +16,8 @@ Display settings for UI
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="grouping"></a> `grouping` | `"type"` \| `"none"` \| `"status"` \| `"agent"` \| `"swarm"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:188](packages/codeboltjs/src/types/reviewMergeRequest.ts#L188) |
-| <a id="orderdirection"></a> `orderDirection` | `"asc"` \| `"desc"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:190](packages/codeboltjs/src/types/reviewMergeRequest.ts#L190) |
-| <a id="ordering"></a> `ordering` | `"status"` \| `"createdAt"` \| `"updatedAt"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:189](packages/codeboltjs/src/types/reviewMergeRequest.ts#L189) |
-| <a id="showclosedrequests"></a> `showClosedRequests` | `boolean` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:191](packages/codeboltjs/src/types/reviewMergeRequest.ts#L191) |
-| <a id="showmergedrequests"></a> `showMergedRequests` | `boolean` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:192](packages/codeboltjs/src/types/reviewMergeRequest.ts#L192) |
+| <a id="grouping"></a> `grouping` | `"type"` \| `"none"` \| `"status"` \| `"agent"` \| `"swarm"` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:153 |
+| <a id="orderdirection"></a> `orderDirection` | `"asc"` \| `"desc"` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:155 |
+| <a id="ordering"></a> `ordering` | `"status"` \| `"createdAt"` \| `"updatedAt"` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:154 |
+| <a id="showclosedrequests"></a> `showClosedRequests` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:156 |
+| <a id="showmergedrequests"></a> `showMergedRequests` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:157 |

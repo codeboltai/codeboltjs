@@ -8,7 +8,7 @@ title: CreateTeamRequest
 
 # Interface: CreateTeamRequest
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:38
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:31
 
 Request to create a new team
 
@@ -16,8 +16,8 @@ Request to create a new team
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdby"></a> `createdBy` | `string` | [packages/codeboltjs/src/types/swarm.ts:43](packages/codeboltjs/src/types/swarm.ts#L43) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/swarm.ts:40](packages/codeboltjs/src/types/swarm.ts#L40) |
-| <a id="maxmembers"></a> `maxMembers?` | `number` | [packages/codeboltjs/src/types/swarm.ts:41](packages/codeboltjs/src/types/swarm.ts#L41) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:42](packages/codeboltjs/src/types/swarm.ts#L42) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/swarm.ts:39](packages/codeboltjs/src/types/swarm.ts#L39) |
+| <a id="createdby"></a> `createdBy` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:36 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:33 |
+| <a id="maxmembers"></a> `maxMembers?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:34 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:35 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:32 |

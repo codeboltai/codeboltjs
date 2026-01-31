@@ -19,7 +19,7 @@ import type {
     KVQueryDSL,
     CreateKVInstanceParams,
     UpdateKVInstanceParams
-} from '../types/kvStore';
+} from '@codebolt/types/lib';
 
 const kvStore = {
     /**

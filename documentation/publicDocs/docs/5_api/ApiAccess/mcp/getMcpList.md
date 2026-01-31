@@ -13,8 +13,16 @@ data:
   category: mcp
   link: getMcpList.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getMcpList
+
+```typescript
+codebolt.mcp.getMcpList(): Promise<GetMcpListResponse>
+```
+
+Gets the list of available MCP servers.
+### Returns
+
+- **`Promise<GetMcpListResponse>`**: A promise that resolves with the list of available MCP servers.
 
 ### Example 1: Get All Available MCP Servers
 

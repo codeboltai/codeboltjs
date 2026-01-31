@@ -24,12 +24,26 @@ data:
   category: kvStore
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.kvStore.get(instanceId: undefined, namespace: undefined, key: undefined): Promise<KVGetResponse>
+```
+
+Retrieves a value from the KV store by key within a namespace.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance.
+- **`namespace`** (unknown): The namespace containing the key.
+- **`key`** (unknown): The key to retrieve.
+
+### Returns
+
+- **`Promise<[KVGetResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVGetResponse)>`**: A promise that resolves with the value and existence status.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVGetResponse` object:
+The method returns a Promise that resolves to a [`KVGetResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVGetResponse) object:
 
 ```typescript
 {

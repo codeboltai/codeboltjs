@@ -15,12 +15,24 @@ data:
   category: dbmemory
   link: getKnowledge.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getKnowledge
+
+```typescript
+codebolt.dbmemory.getKnowledge(key: string): Promise<MemoryGetResponse>
+```
+
+Retrieves a value from the in-memory database by key. Returns the stored data along with response metadata. 
+### Parameters
+
+- **`key`** (string): The unique key of the value to retrieve. Supports namespaced keys (e.g., 'user:123', 'config:theme').
+
+### Returns
+
+- **`Promise<MemoryGetResponse>`**: A promise that resolves with a [`MemoryGetResponse`](/docs/api/11_doc-type-ref/types/interfaces/MemoryGetResponse) object containing the retrieved data, response type, and metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `MemoryGetResponse` object with the following properties:
+The method returns a Promise that resolves to a [`MemoryGetResponse`](/docs/api/11_doc-type-ref/types/interfaces/MemoryGetResponse) object with the following properties:
 
 - **`type`** (string): Always "memoryGetResponse".
 - **`key`** (string, optional): The key that was used to retrieve the value.

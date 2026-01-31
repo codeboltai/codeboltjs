@@ -8,10 +8,10 @@ title: IGetSuiteParams
 
 # Interface: IGetSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:120
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:102
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:121](packages/codeboltjs/src/types/autoTesting.ts#L121) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:103 |

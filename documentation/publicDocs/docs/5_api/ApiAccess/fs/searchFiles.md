@@ -21,12 +21,26 @@ data:
   category: fs
   link: searchFiles.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# searchFiles
+
+```typescript
+codebolt.fs.searchFiles(path: string, regex: string, filePattern: string): Promise<SearchFilesResponse>
+```
+
+'Searches for files matching a regex pattern within file contents in the specified directory. Supports advanced regex patterns and file type filtering for targeted searches.'
+### Parameters
+
+- **`path`** (string): The directory path to search within (e.g., '.', './src', '/home/user/documents').
+- **`regex`** (string): The regex pattern to search for within file contents (e.g., `'function'`, `'class\s+\w+'`, `'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'`).
+- **`filePattern`** (string): The file pattern to filter which files to search (e.g., '*.js', '*.json', '*.*', '*.ts').
+
+### Returns
+
+- **`Promise<SearchFilesResponse>`**: A promise that resolves with search results containing matching files and their locations.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `SearchFilesResponse` object with the following properties:
+The method returns a Promise that resolves to a [`SearchFilesResponse`](/docs/api/11_doc-type-ref/types/interfaces/SearchFilesResponse) object with the following properties:
 
 - **`type`** (string): Always "searchFilesResponse" or similar response type identifier.
 - **`results`** (array, optional): Array of search results with file paths and match information.

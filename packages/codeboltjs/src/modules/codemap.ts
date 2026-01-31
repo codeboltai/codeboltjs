@@ -11,7 +11,7 @@ import type {
     CodemapSaveResponse,
     CodemapUpdateResponse,
     CodemapDeleteResponse
-} from '../types/codemap';
+} from '@codebolt/types/lib';
 
 /**
  * Codemap Module for codeboltjs

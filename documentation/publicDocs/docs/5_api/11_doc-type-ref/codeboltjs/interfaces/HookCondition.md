@@ -8,12 +8,12 @@ title: HookCondition
 
 # Interface: HookCondition
 
-Defined in: packages/codeboltjs/src/types/hook.ts:58
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:37
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="field"></a> `field` | `string` | [packages/codeboltjs/src/types/hook.ts:59](packages/codeboltjs/src/types/hook.ts#L59) |
-| <a id="operator"></a> `operator` | `"endsWith"` \| `"startsWith"` \| `"eq"` \| `"neq"` \| `"contains"` \| `"matches"` | [packages/codeboltjs/src/types/hook.ts:60](packages/codeboltjs/src/types/hook.ts#L60) |
-| <a id="value"></a> `value` | `string` | [packages/codeboltjs/src/types/hook.ts:61](packages/codeboltjs/src/types/hook.ts#L61) |
+| <a id="field"></a> `field` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:38 |
+| <a id="operator"></a> `operator` | `"endsWith"` \| `"startsWith"` \| `"eq"` \| `"neq"` \| `"contains"` \| `"matches"` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:39 |
+| <a id="value"></a> `value` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:40 |

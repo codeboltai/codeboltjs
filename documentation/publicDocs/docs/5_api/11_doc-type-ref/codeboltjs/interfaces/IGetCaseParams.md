@@ -8,10 +8,10 @@ title: IGetCaseParams
 
 # Interface: IGetCaseParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:157
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:136
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:158](packages/codeboltjs/src/types/autoTesting.ts#L158) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:137 |

@@ -12,7 +12,7 @@ title: getRemixPrompt
 function getRemixPrompt(): string | undefined;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:386
+Defined in: packages/codeboltjs/src/index.ts:408
 
 ## Returns
 

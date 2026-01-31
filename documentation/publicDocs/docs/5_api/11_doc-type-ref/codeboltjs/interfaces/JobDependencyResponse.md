@@ -8,10 +8,10 @@ title: JobDependencyResponse
 
 # Interface: JobDependencyResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:135
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:105
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:136](packages/codeboltjs/src/types/job.ts#L136) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:106 |

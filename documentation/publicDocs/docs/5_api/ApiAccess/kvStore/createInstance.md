@@ -20,12 +20,25 @@ data:
   category: kvStore
   link: createInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createInstance
+
+```typescript
+codebolt.kvStore.createInstance(name: undefined, description: undefined): Promise<KVInstanceResponse>
+```
+
+Creates a new KV store instance for storing key-value data.
+### Parameters
+
+- **`name`** (unknown): A unique name for the KV store instance.
+- **`description`** (unknown): An optional description of the instance's purpose.
+
+### Returns
+
+- **`Promise<[KVInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse)>`**: A promise that resolves with the created instance details including ID, name, and timestamps.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVInstanceResponse` object:
+The method returns a Promise that resolves to a [`KVInstanceResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVInstanceResponse) object:
 
 ```typescript
 {

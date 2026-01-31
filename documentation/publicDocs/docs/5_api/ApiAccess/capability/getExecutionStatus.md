@@ -16,12 +16,24 @@ data:
   category: capability
   link: getExecutionStatus.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getExecutionStatus
+
+```typescript
+codebolt.capability.getExecutionStatus(executionId: string): Promise<GetExecutionStatusResponse>
+```
+
+Gets the current status of a capability execution, including progress, results, and any errors.
+### Parameters
+
+- **`executionId`** (string): The ID of the execution to check.
+
+### Returns
+
+- **`Promise<[GetExecutionStatusResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetExecutionStatusResponse)>`**: A promise that resolves to the current execution status.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetExecutionStatusResponse` object.
+The method returns a Promise that resolves to a [`GetExecutionStatusResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetExecutionStatusResponse) object.
 
 **Response Properties:**
 - `type` (string): Always "getExecutionStatusResponse"

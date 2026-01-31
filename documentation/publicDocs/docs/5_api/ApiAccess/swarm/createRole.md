@@ -38,8 +38,21 @@ data:
   category: swarm
   link: createRole.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createRole
+
+```typescript
+codebolt.swarm.createRole(swarmId: string, data: CreateRoleRequest): Promise<CreateRoleResponse>
+```
+
+Creates a new role within a swarm to define agent responsibilities and permissions.
+### Parameters
+
+- **`swarmId`** (string): The ID of the swarm to create the role in.
+- **`data`** ([CreateRoleRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateRoleRequest)): Role creation configuration.
+
+### Returns
+
+- **`Promise<[CreateRoleResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateRoleResponse)>`**: A promise that resolves to the created role details.
 
 ### Examples
 

@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: deleteSuite.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# deleteSuite
+
+```typescript
+codebolt.autoTesting.deleteSuite(params: IDeleteSuiteParams): Promise<IDeleteSuiteResponse>
+```
+
+Deletes a test suite and all its associations.
+### Parameters
+
+- **`params`** ([IDeleteSuiteParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IDeleteSuiteParams)): Parameters including the suite ID to delete.
+
+### Returns
+
+- **`Promise<[IDeleteSuiteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IDeleteSuiteResponse)>`**: A promise that resolves when the suite is deleted.
 
 ### Examples
 

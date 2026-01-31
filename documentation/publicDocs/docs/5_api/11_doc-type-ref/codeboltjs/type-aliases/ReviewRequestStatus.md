@@ -21,6 +21,6 @@ type ReviewRequestStatus =
   | "closed";
 ```
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:6
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:8
 
 Request status types representing the lifecycle of a review request

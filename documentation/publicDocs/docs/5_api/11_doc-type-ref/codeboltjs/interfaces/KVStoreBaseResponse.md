@@ -8,7 +8,7 @@ title: KVStoreBaseResponse
 
 # Interface: KVStoreBaseResponse
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:7
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:5
 
 KV Store Types
 Type definitions for Key-Value store operations
@@ -29,10 +29,10 @@ Type definitions for Key-Value store operations
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | `any` | [packages/codeboltjs/src/types/kvStore.ts:10](packages/codeboltjs/src/types/kvStore.ts#L10) |
-| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/kvStore.ts:12](packages/codeboltjs/src/types/kvStore.ts#L12) |
-| <a id="message"></a> `message?` | `string` | [packages/codeboltjs/src/types/kvStore.ts:11](packages/codeboltjs/src/types/kvStore.ts#L11) |
-| <a id="requestid"></a> `requestId` | `string` | [packages/codeboltjs/src/types/kvStore.ts:14](packages/codeboltjs/src/types/kvStore.ts#L14) |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/kvStore.ts:9](packages/codeboltjs/src/types/kvStore.ts#L9) |
-| <a id="timestamp"></a> `timestamp` | `string` | [packages/codeboltjs/src/types/kvStore.ts:13](packages/codeboltjs/src/types/kvStore.ts#L13) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/kvStore.ts:8](packages/codeboltjs/src/types/kvStore.ts#L8) |
+| <a id="data"></a> `data?` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:8 |
+| <a id="error"></a> `error?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:10 |
+| <a id="message"></a> `message?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:9 |
+| <a id="requestid"></a> `requestId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:12 |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:7 |
+| <a id="timestamp"></a> `timestamp` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:11 |
+| <a id="type"></a> `type` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:6 |

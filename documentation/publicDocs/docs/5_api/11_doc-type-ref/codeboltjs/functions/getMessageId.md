@@ -12,7 +12,7 @@ title: getMessageId
 function getMessageId(): string | undefined;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:391
+Defined in: packages/codeboltjs/src/index.ts:413
 
 ## Returns
 

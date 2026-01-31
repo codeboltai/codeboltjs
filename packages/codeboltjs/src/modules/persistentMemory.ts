@@ -15,7 +15,7 @@ import type {
     UpdatePersistentMemoryParams,
     ListPersistentMemoryParams,
     PipelineExecutionIntent
-} from '../types/persistentMemory';
+} from '@codebolt/types/lib';
 
 const persistentMemory = {
     /**

@@ -8,14 +8,14 @@ title: RoadmapData
 
 # Interface: RoadmapData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:68
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:53
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/roadmap.ts:72](packages/codeboltjs/src/types/roadmap.ts#L72) |
-| <a id="ideas"></a> `ideas` | [`Idea`](Idea)[] | [packages/codeboltjs/src/types/roadmap.ts:71](packages/codeboltjs/src/types/roadmap.ts#L71) |
-| <a id="phases"></a> `phases` | [`Phase`](Phase)[] | [packages/codeboltjs/src/types/roadmap.ts:70](packages/codeboltjs/src/types/roadmap.ts#L70) |
-| <a id="projectpath"></a> `projectPath` | `string` | [packages/codeboltjs/src/types/roadmap.ts:69](packages/codeboltjs/src/types/roadmap.ts#L69) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/roadmap.ts:73](packages/codeboltjs/src/types/roadmap.ts#L73) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:57 |
+| <a id="ideas"></a> `ideas` | [`Idea`](Idea)[] | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:56 |
+| <a id="phases"></a> `phases` | [`Phase`](Phase)[] | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:55 |
+| <a id="projectpath"></a> `projectPath` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:54 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:58 |

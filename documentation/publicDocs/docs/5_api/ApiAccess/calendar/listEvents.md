@@ -15,12 +15,24 @@ data:
   category: calendar
   link: listEvents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listEvents
+
+```typescript
+codebolt.calendar.listEvents(params: IListEventsParams): Promise<IListEventsResponse>
+```
+
+Lists calendar events with comprehensive filtering options including date ranges, event types, participants, tags, and search functionality.
+### Parameters
+
+- **`params`** ([IListEventsParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListEventsParams)): Optional filter parameters for querying events
+
+### Returns
+
+- **`Promise<[IListEventsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListEventsResponse)>`**: A promise that resolves to a list of filtered events with count
 
 ### Parameter Details
 
-The `IListEventsParams` interface includes all optional fields:
+The [`IListEventsParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IListEventsParams) interface includes all optional fields:
 
 **Date Filters:**
 - **`startDate`** (string, optional): ISO 8601 start timestamp for filtering

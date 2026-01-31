@@ -12,4 +12,4 @@ title: FeedbackContentType
 type FeedbackContentType = "text" | "image" | "link" | "file-reference";
 ```
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:21
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:19

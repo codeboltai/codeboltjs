@@ -8,13 +8,13 @@ title: AddPheromoneTypeData
 
 # Interface: AddPheromoneTypeData
 
-Defined in: packages/codeboltjs/src/types/job.ts:266
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:191
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="color"></a> `color?` | `string` | [packages/codeboltjs/src/types/job.ts:270](packages/codeboltjs/src/types/job.ts#L270) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/job.ts:269](packages/codeboltjs/src/types/job.ts#L269) |
-| <a id="displayname"></a> `displayName` | `string` | [packages/codeboltjs/src/types/job.ts:268](packages/codeboltjs/src/types/job.ts#L268) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/job.ts:267](packages/codeboltjs/src/types/job.ts#L267) |
+| <a id="color"></a> `color?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:195 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:194 |
+| <a id="displayname"></a> `displayName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:193 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:192 |

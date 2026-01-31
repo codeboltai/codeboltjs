@@ -12,8 +12,16 @@ data:
   category: project
   link: runProject.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# runProject
+
+```typescript
+codebolt.project.runProject(): void
+```
+
+Initiates the execution of the current project by sending a run command to the project management system. This function triggers project execution but does not wait for completion or return execution results. 
+### Returns
+
+- **`void`**: This function does not return a value. It sends a command to run the project and returns immediately.
 
 ### Response Structure
 
@@ -166,4 +174,4 @@ const runProjectWithFeedback = async () => {
 - **Error Handling**: The function itself rarely throws errors, but project execution may fail
 - **Execution Environment**: The project runs in the context of the current workspace and settings
 - **Resource Management**: Be aware that running projects may consume system resources
-- **Multiple Executions**: Calling this method multiple times may start multiple project instances 
+- **Multiple Executions**: Calling this method multiple times may start multiple project instances

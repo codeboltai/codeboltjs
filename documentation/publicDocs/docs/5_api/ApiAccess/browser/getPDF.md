@@ -13,8 +13,16 @@ data:
   category: browser
   link: getPDF.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# getPDF
+
+```typescript
+codebolt.browser.getPDF(): void
+```
+
+Retrieves the PDF content of the current page. 
+ ### Returns
+
+- **`void`**: ' '
 
 ### Response Structure
 

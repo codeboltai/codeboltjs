@@ -8,11 +8,11 @@ title: IGetDeliberationParams
 
 # Interface: IGetDeliberationParams
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:76
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:69
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:77](packages/codeboltjs/src/types/agentDeliberation.ts#L77) |
-| <a id="view"></a> `view?` | `"request"` \| `"full"` \| `"responses"` \| `"votes"` \| `"winner"` | [packages/codeboltjs/src/types/agentDeliberation.ts:78](packages/codeboltjs/src/types/agentDeliberation.ts#L78) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:70 |
+| <a id="view"></a> `view?` | `"request"` \| `"full"` \| `"responses"` \| `"votes"` \| `"winner"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:71 |

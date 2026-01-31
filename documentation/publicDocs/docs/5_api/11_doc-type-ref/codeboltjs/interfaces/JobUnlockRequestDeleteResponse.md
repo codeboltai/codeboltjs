@@ -8,10 +8,10 @@ title: JobUnlockRequestDeleteResponse
 
 # Interface: JobUnlockRequestDeleteResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:378
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:274
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:379](packages/codeboltjs/src/types/job.ts#L379) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:275 |

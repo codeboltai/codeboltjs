@@ -8,7 +8,7 @@ title: FileUpdateIntentResponse
 
 # Interface: FileUpdateIntentResponse
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:141
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:110
 
 Response types for API calls
 
@@ -16,5 +16,5 @@ Response types for API calls
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="intent"></a> `intent?` | [`FileUpdateIntent`](FileUpdateIntent) | [packages/codeboltjs/src/types/fileUpdateIntent.ts:142](packages/codeboltjs/src/types/fileUpdateIntent.ts#L142) |
-| <a id="overlap"></a> `overlap?` | [`IntentOverlapResult`](IntentOverlapResult) | [packages/codeboltjs/src/types/fileUpdateIntent.ts:143](packages/codeboltjs/src/types/fileUpdateIntent.ts#L143) |
+| <a id="intent"></a> `intent?` | [`FileUpdateIntent`](FileUpdateIntent) | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:111 |
+| <a id="overlap"></a> `overlap?` | [`IntentOverlapResult`](IntentOverlapResult) | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:112 |

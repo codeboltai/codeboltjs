@@ -8,11 +8,11 @@ title: ICreateFeedbackResponse
 
 # Interface: ICreateFeedbackResponse
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:113
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:100
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `feedback`: [`GroupFeedback`](GroupFeedback); \} | [packages/codeboltjs/src/types/groupFeedback.ts:114](packages/codeboltjs/src/types/groupFeedback.ts#L114) |
-| `payload.feedback` | [`GroupFeedback`](GroupFeedback) | [packages/codeboltjs/src/types/groupFeedback.ts:114](packages/codeboltjs/src/types/groupFeedback.ts#L114) |
+| <a id="payload"></a> `payload` | \{ `feedback`: [`GroupFeedback`](GroupFeedback); \} | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:101 |
+| `payload.feedback` | [`GroupFeedback`](GroupFeedback) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:102 |

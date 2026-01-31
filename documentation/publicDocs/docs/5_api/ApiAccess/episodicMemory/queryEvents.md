@@ -44,8 +44,20 @@ data:
   category: episodicMemory
   link: queryEvents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# queryEvents
+
+```typescript
+codebolt.episodicMemory.queryEvents(params: IQueryEventsParams): Promise<IQueryEventsResponse>
+```
+
+Queries events from an episodic memory with optional filters for time range, type, agent, tags, and more.
+### Parameters
+
+- **`params`** ([IQueryEventsParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IQueryEventsParams)): Query parameters with optional filters.
+
+### Returns
+
+- **`Promise<[IQueryEventsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IQueryEventsResponse)>`**: A promise that resolves to filtered events.
 
 ### Examples
 

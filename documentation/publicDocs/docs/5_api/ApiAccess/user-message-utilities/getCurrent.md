@@ -13,12 +13,20 @@ data:
   category: user-message-utilities
   link: getCurrent.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getCurrent
+
+```typescript
+codebolt.user-message-utilities.getCurrent(): FlatUserMessage | undefined
+```
+
+Gets the current user message object containing all message data.
+### Returns
+
+- **`FlatUserMessage | undefined`**: The current user message object or undefined if no message is set.
 
 ### Response Structure
 
-Returns a `FlatUserMessage` object or `undefined`:
+Returns a [`FlatUserMessage`](/docs/api/11_doc-type-ref/types/interfaces/FlatUserMessage) object or `undefined`:
 
 **FlatUserMessage Properties:**
 - `userMessage`: The text content of the user's message

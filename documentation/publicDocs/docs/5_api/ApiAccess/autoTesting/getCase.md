@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: getCase.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getCase
+
+```typescript
+codebolt.autoTesting.getCase(params: IGetCaseParams): Promise<IGetCaseResponse>
+```
+
+Retrieves details of a specific test case.
+### Parameters
+
+- **`params`** ([IGetCaseParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetCaseParams)): Parameters including the case ID.
+
+### Returns
+
+- **`Promise<[IGetCaseResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetCaseResponse)>`**: A promise that resolves to the test case details.
 
 ### Examples
 

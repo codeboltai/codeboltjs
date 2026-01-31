@@ -8,13 +8,13 @@ title: IUpdateSuiteParams
 
 # Interface: IUpdateSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:126
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:107
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:129](packages/codeboltjs/src/types/autoTesting.ts#L129) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:127](packages/codeboltjs/src/types/autoTesting.ts#L127) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:128](packages/codeboltjs/src/types/autoTesting.ts#L128) |
-| <a id="testcaseids"></a> `testCaseIds?` | `string`[] | [packages/codeboltjs/src/types/autoTesting.ts:130](packages/codeboltjs/src/types/autoTesting.ts#L130) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:110 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:108 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:109 |
+| <a id="testcaseids"></a> `testCaseIds?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:111 |

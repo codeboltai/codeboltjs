@@ -12,3 +12,4 @@ Auto-generated TypeScript type definitions and API reference for Codebolt packag
 - **[Agent](./agent/)** - Agent utilities for building and managing AI agents
 - **[Provider](./provider/)** - Base provider utilities for CodeBOLT environment providers
 - **[MCP](./mcp/)** - Model Context Protocol (MCP) server implementation
+- **[SDK Types](./types/)** - Shared TypeScript types for Codebolt SDK functions

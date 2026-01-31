@@ -18,8 +18,20 @@ data:
   category: vectordb
   link: getVector.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getVector
+
+```typescript
+codebolt.vectordb.getVector(key: string): Promise<GetVectorResponse>
+```
+
+Retrieves a vector from the vector database based on the provided key.
+### Parameters
+
+- **`key`** (string): The key of the vector to retrieve.
+
+### Returns
+
+- **`Promise<GetVectorResponse>`**: A promise that resolves with the retrieved vector.
 
 ### Response Structure
 ```typescript

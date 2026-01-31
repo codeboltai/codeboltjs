@@ -15,8 +15,20 @@ data:
   category: mail
   link: summarizeThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# summarizeThread
+
+```typescript
+codebolt.mail.summarizeThread(params: ISummarizeThreadParams): Promise<ISummarizeThreadResponse>
+```
+
+Generates a summary of a mail thread's conversation.
+### Parameters
+
+- **`params`** (ISummarizeThreadParams): Parameters including the threadId to summarize.
+
+### Returns
+
+- **`Promise<ISummarizeThreadResponse>`**: A promise that resolves with the thread summary.
 
 ### Examples
 

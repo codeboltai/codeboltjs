@@ -16,8 +16,20 @@ data:
   category: chat
   link: setRequestHandler.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# setRequestHandler
+
+```typescript
+codebolt.chat.setRequestHandler(handler: RequestHandler): void
+```
+
+Sets a global request handler for all incoming messages. 
+### Parameters
+
+- **`handler`** (RequestHandler): The async handler function that processes incoming messages.
+
+### Returns
+
+- **`void`**: ' '
 
 ### Response Structure
 
@@ -38,4 +50,4 @@ codebolt.chat.setRequestHandler(async (request, response) => {
 
 ### Explanation
 
-This function sets up a global handler for processing all incoming WebSocket messages. The handler receives the parsed request object and a response callback function that can be used to send data back to the server. 
+This function sets up a global handler for processing all incoming WebSocket messages. The handler receives the parsed request object and a response callback function that can be used to send data back to the server.

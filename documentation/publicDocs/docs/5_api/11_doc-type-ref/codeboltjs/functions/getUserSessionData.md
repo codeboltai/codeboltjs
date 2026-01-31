@@ -12,7 +12,7 @@ title: getUserSessionData
 function getUserSessionData(key: string): any;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:389
+Defined in: packages/codeboltjs/src/index.ts:411
 
 ## Parameters
 

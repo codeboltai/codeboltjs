@@ -18,8 +18,20 @@ data:
   category: vectordb
   link: addVectorItem.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addVectorItem
+
+```typescript
+codebolt.vectordb.addVectorItem(item: any): Promise<AddVectorItemResponse>
+```
+
+Adds a new vector item to the vector database.
+### Parameters
+
+- **`item`** (any): The item to add to the vector.
+
+### Returns
+
+- **`Promise<AddVectorItemResponse>`**: A promise that resolves when the item is successfully added.
 
 ### Response Structure
 ```typescript

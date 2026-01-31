@@ -12,7 +12,7 @@ title: getSelection
 function getSelection(): string | undefined;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:385
+Defined in: packages/codeboltjs/src/index.ts:407
 
 ## Returns
 

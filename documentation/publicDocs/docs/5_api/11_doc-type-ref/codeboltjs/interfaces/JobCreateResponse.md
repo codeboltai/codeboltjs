@@ -8,10 +8,10 @@ title: JobCreateResponse
 
 # Interface: JobCreateResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:123
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:96
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job` | [`Job`](Job) | [packages/codeboltjs/src/types/job.ts:124](packages/codeboltjs/src/types/job.ts#L124) |
+| <a id="job"></a> `job` | [`Job`](Job) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:97 |

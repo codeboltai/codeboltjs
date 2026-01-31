@@ -8,11 +8,11 @@ title: IRemoveCaseFromSuiteResponse
 
 # Interface: IRemoveCaseFromSuiteResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:237
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:219
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | [packages/codeboltjs/src/types/autoTesting.ts:238](packages/codeboltjs/src/types/autoTesting.ts#L238) |
-| `payload.suite` | [`TestSuite`](TestSuite) | [packages/codeboltjs/src/types/autoTesting.ts:238](packages/codeboltjs/src/types/autoTesting.ts#L238) |
+| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:220 |
+| `payload.suite` | [`TestSuite`](TestSuite) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:221 |

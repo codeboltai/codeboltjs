@@ -37,12 +37,29 @@ data:
   category: todo
   link: updateTodo.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# updateTodo
+
+```typescript
+codebolt.todo.updateTodo(params: { id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }, params.id: string, params.title: string, params.status: 'pending' | 'processing' | 'completed' | 'cancelled', params.priority: 'high' | 'medium' | 'low', params.tags: string[]): Promise<UpdateTodoResponse>
+```
+
+Updates an existing todo item's status, title, priority, or tags.
+### Parameters
+
+- **`params`** (`{ id: string; title?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled'; priority?: 'high' | 'medium' | 'low'; tags?: string[] }`): Parameters for updating the todo item.
+- **`params.id`** (string): The unique identifier of the todo to update.
+- **`params.title`** (string, optional): The new title for the todo item.
+- **`params.status`** ('pending' | 'processing' | 'completed' | 'cancelled', optional): The new status for the todo item.
+- **`params.priority`** ('high' | 'medium' | 'low', optional): The new priority level for the todo item.
+- **`params.tags`** (string[], optional): The new array of tags for the todo item (replaces existing tags).
+
+### Returns
+
+- **`Promise<UpdateTodoResponse>`**: A promise that resolves with the updated todo item.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `UpdateTodoResponse` object with the following properties:
+The method returns a Promise that resolves to an [`UpdateTodoResponse`](/docs/api/11_doc-type-ref/types/interfaces/UpdateTodoResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "updateTodoResponse"

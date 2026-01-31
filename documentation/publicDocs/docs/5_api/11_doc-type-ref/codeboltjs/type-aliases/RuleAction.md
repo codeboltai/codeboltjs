@@ -12,4 +12,4 @@ title: RuleAction
 type RuleAction = "include" | "exclude" | "force_include" | "set_priority";
 ```
 
-Defined in: packages/codeboltjs/src/types/contextRuleEngine.ts:25
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:15

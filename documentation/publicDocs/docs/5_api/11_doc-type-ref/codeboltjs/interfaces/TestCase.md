@@ -8,20 +8,20 @@ title: TestCase
 
 # Interface: TestCase
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:62
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:51
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="archivedat"></a> `archivedAt?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:73](packages/codeboltjs/src/types/autoTesting.ts#L73) |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:71](packages/codeboltjs/src/types/autoTesting.ts#L71) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:66](packages/codeboltjs/src/types/autoTesting.ts#L66) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:63](packages/codeboltjs/src/types/autoTesting.ts#L63) |
-| <a id="key"></a> `key` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:64](packages/codeboltjs/src/types/autoTesting.ts#L64) |
-| <a id="labels"></a> `labels?` | `string`[] | [packages/codeboltjs/src/types/autoTesting.ts:68](packages/codeboltjs/src/types/autoTesting.ts#L68) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:65](packages/codeboltjs/src/types/autoTesting.ts#L65) |
-| <a id="priority"></a> `priority?` | `"low"` \| `"medium"` \| `"high"` \| `"automated"` | [packages/codeboltjs/src/types/autoTesting.ts:69](packages/codeboltjs/src/types/autoTesting.ts#L69) |
-| <a id="steps"></a> `steps` | [`TestStep`](TestStep)[] | [packages/codeboltjs/src/types/autoTesting.ts:67](packages/codeboltjs/src/types/autoTesting.ts#L67) |
-| <a id="type"></a> `type?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:70](packages/codeboltjs/src/types/autoTesting.ts#L70) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:72](packages/codeboltjs/src/types/autoTesting.ts#L72) |
+| <a id="archivedat"></a> `archivedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:62 |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:60 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:55 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:52 |
+| <a id="key"></a> `key` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:53 |
+| <a id="labels"></a> `labels?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:57 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:54 |
+| <a id="priority"></a> `priority?` | `"low"` \| `"medium"` \| `"high"` \| `"automated"` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:58 |
+| <a id="steps"></a> `steps` | [`TestStep`](TestStep)[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:56 |
+| <a id="type"></a> `type?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:59 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:61 |

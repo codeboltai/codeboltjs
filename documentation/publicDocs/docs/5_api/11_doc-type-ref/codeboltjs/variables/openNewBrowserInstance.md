@@ -14,7 +14,7 @@ const openNewBrowserInstance: (options?: BrowserInstanceOptions) => Promise<{
 }> = cbbrowser.openNewBrowserInstance;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:412
+Defined in: packages/codeboltjs/src/index.ts:434
 
 ## Parameters
 

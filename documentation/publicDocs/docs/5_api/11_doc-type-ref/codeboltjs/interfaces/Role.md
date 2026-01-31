@@ -8,7 +8,7 @@ title: Role
 
 # Interface: Role
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:125
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:107
 
 Role within a swarm
 
@@ -16,12 +16,12 @@ Role within a swarm
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="assigneecount"></a> `assigneeCount` | `number` | [packages/codeboltjs/src/types/swarm.ts:132](packages/codeboltjs/src/types/swarm.ts#L132) |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/swarm.ts:133](packages/codeboltjs/src/types/swarm.ts#L133) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/swarm.ts:129](packages/codeboltjs/src/types/swarm.ts#L129) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/swarm.ts:126](packages/codeboltjs/src/types/swarm.ts#L126) |
-| <a id="maxassignees"></a> `maxAssignees?` | `number` | [packages/codeboltjs/src/types/swarm.ts:131](packages/codeboltjs/src/types/swarm.ts#L131) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:134](packages/codeboltjs/src/types/swarm.ts#L134) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/swarm.ts:128](packages/codeboltjs/src/types/swarm.ts#L128) |
-| <a id="permissions"></a> `permissions?` | `string`[] | [packages/codeboltjs/src/types/swarm.ts:130](packages/codeboltjs/src/types/swarm.ts#L130) |
-| <a id="swarmid"></a> `swarmId` | `string` | [packages/codeboltjs/src/types/swarm.ts:127](packages/codeboltjs/src/types/swarm.ts#L127) |
+| <a id="assigneecount"></a> `assigneeCount` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:114 |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:115 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:111 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:108 |
+| <a id="maxassignees"></a> `maxAssignees?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:113 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:116 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:110 |
+| <a id="permissions"></a> `permissions?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:112 |
+| <a id="swarmid"></a> `swarmId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:109 |

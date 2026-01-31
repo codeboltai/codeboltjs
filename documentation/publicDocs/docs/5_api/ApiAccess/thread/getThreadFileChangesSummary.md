@@ -15,8 +15,20 @@ data:
   category: thread
   link: getThreadFileChangesSummary.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThreadFileChangesSummary
+
+```typescript
+codebolt.thread.getThreadFileChangesSummary(threadId: string): Promise<any>
+```
+
+Gets a formatted summary of file changes for display in the ChangesSummaryPanel component.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to get file changes summary for.
+
+### Returns
+
+- **`Promise<any>`**: A promise that resolves with a formatted summary including title, changes array, and files object.
 
 ### Response Structure
 

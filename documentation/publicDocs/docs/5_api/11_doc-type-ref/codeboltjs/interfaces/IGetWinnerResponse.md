@@ -8,12 +8,12 @@ title: IGetWinnerResponse
 
 # Interface: IGetWinnerResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:152
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:142
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `votes`: [`DeliberationVote`](DeliberationVote)[]; `winner?`: [`DeliberationResponse`](DeliberationResponse); \} | [packages/codeboltjs/src/types/agentDeliberation.ts:153](packages/codeboltjs/src/types/agentDeliberation.ts#L153) |
-| `payload.votes` | [`DeliberationVote`](DeliberationVote)[] | [packages/codeboltjs/src/types/agentDeliberation.ts:153](packages/codeboltjs/src/types/agentDeliberation.ts#L153) |
-| `payload.winner?` | [`DeliberationResponse`](DeliberationResponse) | [packages/codeboltjs/src/types/agentDeliberation.ts:153](packages/codeboltjs/src/types/agentDeliberation.ts#L153) |
+| <a id="payload"></a> `payload` | \{ `votes`: [`DeliberationVote`](DeliberationVote)[]; `winner?`: [`DeliberationResponse`](DeliberationResponse); \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:143 |
+| `payload.votes` | [`DeliberationVote`](DeliberationVote)[] | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:145 |
+| `payload.winner?` | [`DeliberationResponse`](DeliberationResponse) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:144 |

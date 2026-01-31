@@ -8,12 +8,12 @@ title: CreatePhaseData
 
 # Interface: CreatePhaseData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:78
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:60
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/roadmap.ts:80](packages/codeboltjs/src/types/roadmap.ts#L80) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/roadmap.ts:79](packages/codeboltjs/src/types/roadmap.ts#L79) |
-| <a id="order"></a> `order?` | `number` | [packages/codeboltjs/src/types/roadmap.ts:81](packages/codeboltjs/src/types/roadmap.ts#L81) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:62 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:61 |
+| <a id="order"></a> `order?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:63 |

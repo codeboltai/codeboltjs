@@ -8,11 +8,11 @@ title: IAddCaseToSuiteParams
 
 # Interface: IAddCaseToSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:137
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:116
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="caseid"></a> `caseId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:139](packages/codeboltjs/src/types/autoTesting.ts#L139) |
-| <a id="suiteid"></a> `suiteId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:138](packages/codeboltjs/src/types/autoTesting.ts#L138) |
+| <a id="caseid"></a> `caseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:118 |
+| <a id="suiteid"></a> `suiteId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:117 |

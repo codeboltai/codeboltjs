@@ -16,12 +16,24 @@ data:
   category: capability
   link: getCapabilitiesByAuthor.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getCapabilitiesByAuthor
+
+```typescript
+codebolt.capability.getCapabilitiesByAuthor(author: string): Promise<ListCapabilitiesResponse>
+```
+
+Lists capabilities created by a specific author. Useful for finding all capabilities from a particular developer or organization.
+### Parameters
+
+- **`author`** (string): The author name to filter by.
+
+### Returns
+
+- **`Promise<[ListCapabilitiesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse)>`**: A promise that resolves to a list of capabilities by the specified author.
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with capabilities from the specified author.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with capabilities from the specified author.
 
 ### Examples
 

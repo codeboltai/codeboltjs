@@ -12,4 +12,4 @@ title: DeliberationStatus
 type DeliberationStatus = "draft" | "collecting-responses" | "voting" | "completed" | "closed";
 ```
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:23
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:21

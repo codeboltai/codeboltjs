@@ -8,11 +8,11 @@ title: IGetRunResponse
 
 # Interface: IGetRunResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:265
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:256
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | [packages/codeboltjs/src/types/autoTesting.ts:266](packages/codeboltjs/src/types/autoTesting.ts#L266) |
-| `payload.run` | [`TestRun`](TestRun) | [packages/codeboltjs/src/types/autoTesting.ts:266](packages/codeboltjs/src/types/autoTesting.ts#L266) |
+| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:257 |
+| `payload.run` | [`TestRun`](TestRun) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:258 |

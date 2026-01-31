@@ -12,8 +12,16 @@ data:
   category: chat
   link: stopProcess.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# stopProcess
+
+```typescript
+codebolt.chat.stopProcess(): void
+```
+
+Stops the ongoing process by sending a stop signal to the server.
+### Returns
+
+- **`void`**: This method does not return a value.
 
 ### Examples
 

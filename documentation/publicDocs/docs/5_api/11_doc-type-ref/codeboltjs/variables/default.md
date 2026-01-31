@@ -12,4 +12,4 @@ title: default
 const default: Codebolt;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:349
+Defined in: packages/codeboltjs/src/index.ts:371

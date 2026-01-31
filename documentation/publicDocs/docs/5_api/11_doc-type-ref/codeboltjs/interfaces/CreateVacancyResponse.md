@@ -8,7 +8,7 @@ title: CreateVacancyResponse
 
 # Interface: CreateVacancyResponse
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:319
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:315
 
 Response for createVacancy
 
@@ -20,11 +20,11 @@ Response for createVacancy
 
 | Property | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | \{ `vacancy`: [`Vacancy`](Vacancy); \} | - | [packages/codeboltjs/src/types/swarm.ts:320](packages/codeboltjs/src/types/swarm.ts#L320) |
-| `data.vacancy` | [`Vacancy`](Vacancy) | - | [packages/codeboltjs/src/types/swarm.ts:320](packages/codeboltjs/src/types/swarm.ts#L320) |
-| <a id="error"></a> `error?` | \{ `code`: `string`; `details?`: `any`; `message`: `string`; \} | [`SwarmResponse`](SwarmResponse).[`error`](SwarmResponse.md#error) | [packages/codeboltjs/src/types/swarm.ts:176](packages/codeboltjs/src/types/swarm.ts#L176) |
-| `error.code` | `string` | - | [packages/codeboltjs/src/types/swarm.ts:177](packages/codeboltjs/src/types/swarm.ts#L177) |
-| `error.details?` | `any` | - | [packages/codeboltjs/src/types/swarm.ts:179](packages/codeboltjs/src/types/swarm.ts#L179) |
-| `error.message` | `string` | - | [packages/codeboltjs/src/types/swarm.ts:178](packages/codeboltjs/src/types/swarm.ts#L178) |
-| <a id="requestid"></a> `requestId?` | `string` | [`SwarmResponse`](SwarmResponse).[`requestId`](SwarmResponse.md#requestid) | [packages/codeboltjs/src/types/swarm.ts:175](packages/codeboltjs/src/types/swarm.ts#L175) |
-| <a id="success"></a> `success` | `boolean` | [`SwarmResponse`](SwarmResponse).[`success`](SwarmResponse.md#success) | [packages/codeboltjs/src/types/swarm.ts:174](packages/codeboltjs/src/types/swarm.ts#L174) |
+| <a id="data"></a> `data?` | \{ `vacancy`: [`Vacancy`](Vacancy); \} | - | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:316 |
+| `data.vacancy` | [`Vacancy`](Vacancy) | - | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:317 |
+| <a id="error"></a> `error?` | \{ `code`: `string`; `details?`: `any`; `message`: `string`; \} | [`SwarmResponse`](SwarmResponse).[`error`](SwarmResponse.md#error) | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:151 |
+| `error.code` | `string` | - | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:152 |
+| `error.details?` | `any` | - | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:154 |
+| `error.message` | `string` | - | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:153 |
+| <a id="requestid"></a> `requestId?` | `string` | [`SwarmResponse`](SwarmResponse).[`requestId`](SwarmResponse.md#requestid) | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:150 |
+| <a id="success"></a> `success` | `boolean` | [`SwarmResponse`](SwarmResponse).[`success`](SwarmResponse.md#success) | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:149 |

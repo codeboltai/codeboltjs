@@ -8,11 +8,11 @@ title: IRemoveCaseFromSuiteParams
 
 # Interface: IRemoveCaseFromSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:142
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:120
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="caseid"></a> `caseId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:144](packages/codeboltjs/src/types/autoTesting.ts#L144) |
-| <a id="suiteid"></a> `suiteId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:143](packages/codeboltjs/src/types/autoTesting.ts#L143) |
+| <a id="caseid"></a> `caseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:122 |
+| <a id="suiteid"></a> `suiteId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:121 |

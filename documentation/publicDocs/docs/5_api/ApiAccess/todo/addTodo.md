@@ -29,12 +29,27 @@ data:
   category: todo
   link: addTodo.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# addTodo
+
+```typescript
+codebolt.todo.addTodo(params: { title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }, params.title: string, params.priority: 'high' | 'medium' | 'low', params.tags: string[]): Promise<AddTodoResponse>
+```
+
+Adds a new todo item with optional priority and tags.
+### Parameters
+
+- **`params`** (`{ title: string; priority?: 'high' | 'medium' | 'low'; tags?: string[] }`): Parameters for creating the todo item.
+- **`params.title`** (string): The title or description of the todo item.
+- **`params.priority`** ('high' | 'medium' | 'low', optional): The priority level of the todo (defaults to medium).
+- **`params.tags`** (string[], optional): Array of tags to categorize the todo item.
+
+### Returns
+
+- **`Promise<AddTodoResponse>`**: A promise that resolves with the created todo item.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `AddTodoResponse` object with the following properties:
+The method returns a Promise that resolves to an [`AddTodoResponse`](/docs/api/11_doc-type-ref/types/interfaces/AddTodoResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "addTodoResponse"

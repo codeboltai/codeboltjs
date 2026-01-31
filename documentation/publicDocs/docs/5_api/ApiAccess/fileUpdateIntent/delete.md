@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: delete.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# delete
+
+```typescript
+codebolt.fileUpdateIntent.delete(id: undefined): Promise<{ success: boolean }>
+```
+
+Deletes a file update intent permanently.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the file update intent.
+
+### Returns
+
+- **`Promise<{ success: boolean }>`**: A promise that resolves with deletion status.
 
 ### Examples
 

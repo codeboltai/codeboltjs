@@ -16,12 +16,24 @@ data:
   category: capability
   link: getCapabilitiesByTag.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getCapabilitiesByTag
+
+```typescript
+codebolt.capability.getCapabilitiesByTag(tag: string): Promise<ListCapabilitiesResponse>
+```
+
+Lists capabilities that have a specific tag. Useful for finding capabilities related to a particular topic or domain.
+### Parameters
+
+- **`tag`** (string): The tag to filter capabilities by.
+
+### Returns
+
+- **`Promise<[ListCapabilitiesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse)>`**: A promise that resolves to a list of capabilities with the specified tag.
 
 ### Response Structure
 
-Returns a `ListCapabilitiesResponse` with capabilities matching the tag.
+Returns a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) with capabilities matching the tag.
 
 ### Examples
 

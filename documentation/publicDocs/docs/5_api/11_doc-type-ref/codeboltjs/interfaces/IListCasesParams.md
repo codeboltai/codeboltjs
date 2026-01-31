@@ -8,4 +8,4 @@ title: IListCasesParams
 
 # Interface: IListCasesParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:161
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:139

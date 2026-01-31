@@ -16,8 +16,20 @@ data:
   category: search
   link: get_first_link.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get_first_link
+
+```typescript
+codebolt.search.get_first_link(query: string): Promise<string>
+```
+
+Retrieves the first link from search results for a given query.
+### Parameters
+
+- **`query`** (string): The search query to find the first link for.
+
+### Returns
+
+- **`Promise<string>`**: A promise that resolves with the first search result link as a string.
 
 ### Example 1: Basic First Link Retrieval
 

@@ -8,11 +8,11 @@ title: JobListResponse
 
 # Interface: JobListResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:114
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:89
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | [packages/codeboltjs/src/types/job.ts:115](packages/codeboltjs/src/types/job.ts#L115) |
-| <a id="totalcount"></a> `totalCount?` | `number` | [packages/codeboltjs/src/types/job.ts:116](packages/codeboltjs/src/types/job.ts#L116) |
+| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:90 |
+| <a id="totalcount"></a> `totalCount?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:91 |

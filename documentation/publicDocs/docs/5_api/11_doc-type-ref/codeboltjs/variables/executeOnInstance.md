@@ -12,7 +12,7 @@ title: executeOnInstance
 const executeOnInstance: (instanceId: string, operation: BrowserOperationType, params: BrowserOperationParams) => Promise<BrowserOperationResponse> = cbbrowser.executeOnInstance;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:414
+Defined in: packages/codeboltjs/src/index.ts:436
 
 ## Parameters
 

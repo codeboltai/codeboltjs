@@ -8,13 +8,13 @@ title: IDeliberationRespondParams
 
 # Interface: IDeliberationRespondParams
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:98
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:87
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="body"></a> `body` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:102](packages/codeboltjs/src/types/agentDeliberation.ts#L102) |
-| <a id="deliberationid"></a> `deliberationId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:99](packages/codeboltjs/src/types/agentDeliberation.ts#L99) |
-| <a id="responderid"></a> `responderId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:100](packages/codeboltjs/src/types/agentDeliberation.ts#L100) |
-| <a id="respondername"></a> `responderName` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:101](packages/codeboltjs/src/types/agentDeliberation.ts#L101) |
+| <a id="body"></a> `body` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:91 |
+| <a id="deliberationid"></a> `deliberationId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:88 |
+| <a id="responderid"></a> `responderId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:89 |
+| <a id="respondername"></a> `responderName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:90 |

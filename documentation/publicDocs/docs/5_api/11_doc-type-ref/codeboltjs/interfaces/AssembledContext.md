@@ -8,14 +8,14 @@ title: AssembledContext
 
 # Interface: AssembledContext
 
-Defined in: packages/codeboltjs/src/types/contextAssembly.ts:40
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:35
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="applied_rules"></a> `applied_rules?` | `string`[] | [packages/codeboltjs/src/types/contextAssembly.ts:44](packages/codeboltjs/src/types/contextAssembly.ts#L44) |
-| <a id="assembly_time_ms"></a> `assembly_time_ms` | `number` | [packages/codeboltjs/src/types/contextAssembly.ts:43](packages/codeboltjs/src/types/contextAssembly.ts#L43) |
-| <a id="contributions"></a> `contributions` | [`MemoryContribution`](MemoryContribution)[] | [packages/codeboltjs/src/types/contextAssembly.ts:41](packages/codeboltjs/src/types/contextAssembly.ts#L41) |
-| <a id="total_tokens"></a> `total_tokens` | `number` | [packages/codeboltjs/src/types/contextAssembly.ts:42](packages/codeboltjs/src/types/contextAssembly.ts#L42) |
-| <a id="warnings"></a> `warnings?` | `string`[] | [packages/codeboltjs/src/types/contextAssembly.ts:45](packages/codeboltjs/src/types/contextAssembly.ts#L45) |
+| <a id="applied_rules"></a> `applied_rules?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:39 |
+| <a id="assembly_time_ms"></a> `assembly_time_ms` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:38 |
+| <a id="contributions"></a> `contributions` | [`MemoryContribution`](MemoryContribution)[] | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:36 |
+| <a id="total_tokens"></a> `total_tokens` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:37 |
+| <a id="warnings"></a> `warnings?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:40 |

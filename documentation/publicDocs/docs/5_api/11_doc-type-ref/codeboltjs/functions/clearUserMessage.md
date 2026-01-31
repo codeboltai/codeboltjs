@@ -12,7 +12,7 @@ title: clearUserMessage
 function clearUserMessage(): void;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:381
+Defined in: packages/codeboltjs/src/index.ts:403
 
 ## Returns
 

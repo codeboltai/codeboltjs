@@ -16,12 +16,24 @@ data:
   category: kvStore
   link: deleteInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# deleteInstance
+
+```typescript
+codebolt.kvStore.deleteInstance(instanceId: undefined): Promise<KVDeleteResponse>
+```
+
+Deletes a KV store instance and all its data, including all namespaces and records.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the KV store instance to delete.
+
+### Returns
+
+- **`Promise<[KVDeleteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteResponse)>`**: A promise that resolves with the deletion status.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVDeleteResponse` object:
+The method returns a Promise that resolves to a [`KVDeleteResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVDeleteResponse) object:
 
 ```typescript
 {

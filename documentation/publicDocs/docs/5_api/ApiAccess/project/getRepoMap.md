@@ -15,12 +15,24 @@ data:
   category: project
   link: getRepoMap.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getRepoMap
+
+```typescript
+codebolt.project.getRepoMap(message: any): Promise<GetRepoMapResponse>
+```
+
+Retrieves the repository map for the current project, providing a structural overview of the project's files, directories, and organization. 
+### Parameters
+
+- **`message`** (any): The message object containing parameters for retrieving the repository map. Can include filters, depth settings, or other configuration options.
+
+### Returns
+
+- **`Promise<GetRepoMapResponse>`**: A promise that resolves with the repository map response containing the project structure information.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetRepoMapResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetRepoMapResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetRepoMapResponse) object with the following properties:
 
 - **`type`** (string): Always "getRepoMapResponse".
 - **`repoMap`** (any, optional): The repository map data containing project structure information. The exact structure depends on the project type and configuration.

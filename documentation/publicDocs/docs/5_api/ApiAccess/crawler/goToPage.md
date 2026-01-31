@@ -16,8 +16,20 @@ data:
   category: crawler
   link: goToPage.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# goToPage
+
+```typescript
+codebolt.crawler.goToPage(url: string): void
+```
+
+Navigates the crawler to a specified URL.
+### Parameters
+
+- **`url`** (string): The URL to navigate to (must include protocol like https://).
+
+### Returns
+
+- **`void`**: No return value. Sends a navigation event to the crawler.
 
 ### Example 1: Basic Navigation
 

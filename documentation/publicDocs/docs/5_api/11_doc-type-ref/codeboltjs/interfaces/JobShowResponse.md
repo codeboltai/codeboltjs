@@ -8,10 +8,10 @@ title: JobShowResponse
 
 # Interface: JobShowResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:110
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:86
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:111](packages/codeboltjs/src/types/job.ts#L111) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:87 |

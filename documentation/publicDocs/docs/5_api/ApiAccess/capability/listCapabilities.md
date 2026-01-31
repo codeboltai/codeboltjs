@@ -17,12 +17,24 @@ data:
   category: capability
   link: listCapabilities.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# listCapabilities
+
+```typescript
+codebolt.capability.listCapabilities(filter: CapabilityFilter): Promise<ListCapabilitiesResponse>
+```
+
+Lists all available capabilities with optional filtering by type, tags, or author.
+### Parameters
+
+- **`filter`** ([CapabilityFilter](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CapabilityFilter), optional): Optional filter criteria to narrow down the list of capabilities.
+
+### Returns
+
+- **`Promise<[ListCapabilitiesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse)>`**: A promise that resolves to a list of capabilities matching the filter criteria.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `ListCapabilitiesResponse` object with the following properties:
+The method returns a Promise that resolves to a [`ListCapabilitiesResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ListCapabilitiesResponse) object with the following properties:
 
 **Response Properties:**
 - `type` (string): Always "listCapabilitiesResponse"

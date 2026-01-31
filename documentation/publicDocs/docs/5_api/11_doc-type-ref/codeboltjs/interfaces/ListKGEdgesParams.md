@@ -8,12 +8,12 @@ title: ListKGEdgesParams
 
 # Interface: ListKGEdgesParams
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:163
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:138
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="from_node_id"></a> `from_node_id?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:165](packages/codeboltjs/src/types/knowledgeGraph.ts#L165) |
-| <a id="kind"></a> `kind?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:164](packages/codeboltjs/src/types/knowledgeGraph.ts#L164) |
-| <a id="to_node_id"></a> `to_node_id?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:166](packages/codeboltjs/src/types/knowledgeGraph.ts#L166) |
+| <a id="from_node_id"></a> `from_node_id?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:140 |
+| <a id="kind"></a> `kind?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:139 |
+| <a id="to_node_id"></a> `to_node_id?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:141 |

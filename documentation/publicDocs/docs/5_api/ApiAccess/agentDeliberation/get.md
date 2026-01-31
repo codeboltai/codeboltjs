@@ -16,8 +16,20 @@ data:
   category: agentDeliberation
   link: get.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# get
+
+```typescript
+codebolt.agentDeliberation.get(params: IGetDeliberationParams): Promise<IGetDeliberationResponse>
+```
+
+Retrieves details of a specific deliberation including responses and votes.
+### Parameters
+
+- **`params`** ([IGetDeliberationParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetDeliberationParams)): Parameters including deliberation ID and optional view type.
+
+### Returns
+
+- **`Promise<[IGetDeliberationResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetDeliberationResponse)>`**: A promise that resolves to deliberation details.
 
 ### Examples
 

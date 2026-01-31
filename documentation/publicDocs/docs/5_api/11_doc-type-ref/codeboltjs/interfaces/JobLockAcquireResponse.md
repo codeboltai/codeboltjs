@@ -8,10 +8,10 @@ title: JobLockAcquireResponse
 
 # Interface: JobLockAcquireResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:355
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:257
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:356](packages/codeboltjs/src/types/job.ts#L356) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:258 |

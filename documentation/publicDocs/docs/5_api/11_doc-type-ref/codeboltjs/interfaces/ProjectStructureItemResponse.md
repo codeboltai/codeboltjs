@@ -8,10 +8,10 @@ title: ProjectStructureItemResponse
 
 # Interface: ProjectStructureItemResponse
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:162
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:128
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="item"></a> `item` | `any` | [packages/codeboltjs/src/types/projectStructure.ts:163](packages/codeboltjs/src/types/projectStructure.ts#L163) |
+| <a id="item"></a> `item` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:129 |

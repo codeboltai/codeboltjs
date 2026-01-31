@@ -8,18 +8,18 @@ title: ICreateFeedbackParams
 
 # Interface: ICreateFeedbackParams
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:61
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:55
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="attachments"></a> `attachments?` | [`FeedbackAttachment`](FeedbackAttachment)[] | [packages/codeboltjs/src/types/groupFeedback.ts:65](packages/codeboltjs/src/types/groupFeedback.ts#L65) |
-| <a id="content"></a> `content` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:63](packages/codeboltjs/src/types/groupFeedback.ts#L63) |
-| <a id="contenttype"></a> `contentType` | [`FeedbackContentType`](../type-aliases/FeedbackContentType) | [packages/codeboltjs/src/types/groupFeedback.ts:64](packages/codeboltjs/src/types/groupFeedback.ts#L64) |
-| <a id="creatorid"></a> `creatorId` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:66](packages/codeboltjs/src/types/groupFeedback.ts#L66) |
-| <a id="creatorname"></a> `creatorName` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:67](packages/codeboltjs/src/types/groupFeedback.ts#L67) |
-| <a id="participants"></a> `participants?` | `string`[] | [packages/codeboltjs/src/types/groupFeedback.ts:68](packages/codeboltjs/src/types/groupFeedback.ts#L68) |
-| <a id="status"></a> `status?` | [`FeedbackStatus`](../type-aliases/FeedbackStatus) | [packages/codeboltjs/src/types/groupFeedback.ts:69](packages/codeboltjs/src/types/groupFeedback.ts#L69) |
-| <a id="summary"></a> `summary?` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:70](packages/codeboltjs/src/types/groupFeedback.ts#L70) |
-| <a id="title"></a> `title` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:62](packages/codeboltjs/src/types/groupFeedback.ts#L62) |
+| <a id="attachments"></a> `attachments?` | [`FeedbackAttachment`](FeedbackAttachment)[] | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:59 |
+| <a id="content"></a> `content` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:57 |
+| <a id="contenttype"></a> `contentType` | [`FeedbackContentType`](../type-aliases/FeedbackContentType) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:58 |
+| <a id="creatorid"></a> `creatorId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:60 |
+| <a id="creatorname"></a> `creatorName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:61 |
+| <a id="participants"></a> `participants?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:62 |
+| <a id="status"></a> `status?` | [`FeedbackStatus`](../type-aliases/FeedbackStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:63 |
+| <a id="summary"></a> `summary?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:64 |
+| <a id="title"></a> `title` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:56 |

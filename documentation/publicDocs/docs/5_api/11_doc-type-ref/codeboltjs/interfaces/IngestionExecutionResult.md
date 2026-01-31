@@ -8,15 +8,15 @@ title: IngestionExecutionResult
 
 # Interface: IngestionExecutionResult
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:75
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:50
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:80](packages/codeboltjs/src/types/memoryIngestion.ts#L80) |
-| <a id="executiontime"></a> `executionTime?` | `number` | [packages/codeboltjs/src/types/memoryIngestion.ts:81](packages/codeboltjs/src/types/memoryIngestion.ts#L81) |
-| <a id="pipelineid"></a> `pipelineId` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:77](packages/codeboltjs/src/types/memoryIngestion.ts#L77) |
-| <a id="processedcount"></a> `processedCount?` | `number` | [packages/codeboltjs/src/types/memoryIngestion.ts:78](packages/codeboltjs/src/types/memoryIngestion.ts#L78) |
-| <a id="routedcount"></a> `routedCount?` | `number` | [packages/codeboltjs/src/types/memoryIngestion.ts:79](packages/codeboltjs/src/types/memoryIngestion.ts#L79) |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/memoryIngestion.ts:76](packages/codeboltjs/src/types/memoryIngestion.ts#L76) |
+| <a id="error"></a> `error?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:55 |
+| <a id="executiontime"></a> `executionTime?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:56 |
+| <a id="pipelineid"></a> `pipelineId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:52 |
+| <a id="processedcount"></a> `processedCount?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:53 |
+| <a id="routedcount"></a> `routedCount?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:54 |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:51 |

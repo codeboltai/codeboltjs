@@ -8,11 +8,11 @@ title: IListSuitesResponse
 
 # Interface: IListSuitesResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:221
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:197
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `suites`: [`TestSuite`](TestSuite)[]; \} | [packages/codeboltjs/src/types/autoTesting.ts:222](packages/codeboltjs/src/types/autoTesting.ts#L222) |
-| `payload.suites` | [`TestSuite`](TestSuite)[] | [packages/codeboltjs/src/types/autoTesting.ts:222](packages/codeboltjs/src/types/autoTesting.ts#L222) |
+| <a id="payload"></a> `payload` | \{ `suites`: [`TestSuite`](TestSuite)[]; \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:198 |
+| `payload.suites` | [`TestSuite`](TestSuite)[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:199 |

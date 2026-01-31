@@ -27,4 +27,4 @@ type RuleOperator =
   | "matches";
 ```
 
-Defined in: packages/codeboltjs/src/types/contextRuleEngine.ts:16
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/contextRuleEngine.d.ts:14

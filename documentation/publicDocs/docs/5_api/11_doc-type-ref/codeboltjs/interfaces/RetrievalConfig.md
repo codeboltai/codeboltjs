@@ -8,14 +8,14 @@ title: RetrievalConfig
 
 # Interface: RetrievalConfig
 
-Defined in: packages/codeboltjs/src/types/persistentMemory.ts:29
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:26
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="filters"></a> `filters?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/persistentMemory.ts:34](packages/codeboltjs/src/types/persistentMemory.ts#L34) |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/persistentMemory.ts:33](packages/codeboltjs/src/types/persistentMemory.ts#L33) |
-| <a id="query_template"></a> `query_template?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:32](packages/codeboltjs/src/types/persistentMemory.ts#L32) |
-| <a id="source_id"></a> `source_id` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:31](packages/codeboltjs/src/types/persistentMemory.ts#L31) |
-| <a id="source_type"></a> `source_type` | `"vectordb"` \| `"kv"` \| `"eventlog"` \| `"kg"` | [packages/codeboltjs/src/types/persistentMemory.ts:30](packages/codeboltjs/src/types/persistentMemory.ts#L30) |
+| <a id="filters"></a> `filters?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:31 |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:30 |
+| <a id="query_template"></a> `query_template?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:29 |
+| <a id="source_id"></a> `source_id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:28 |
+| <a id="source_type"></a> `source_type` | `"vectordb"` \| `"kv"` \| `"eventlog"` \| `"kg"` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:27 |

@@ -16,8 +16,20 @@ data:
   category: agentPortfolio
   link: deleteTestimonial.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# deleteTestimonial
+
+```typescript
+codebolt.agentPortfolio.deleteTestimonial(testimonialId: string): Promise<DeleteTestimonialResponse>
+```
+
+Deletes a testimonial by its ID.
+### Parameters
+
+- **`testimonialId`** (string): The ID of the testimonial to delete.
+
+### Returns
+
+- **`Promise<[DeleteTestimonialResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/DeleteTestimonialResponse)>`**: A promise that resolves when testimonial is deleted.
 
 ### Examples
 

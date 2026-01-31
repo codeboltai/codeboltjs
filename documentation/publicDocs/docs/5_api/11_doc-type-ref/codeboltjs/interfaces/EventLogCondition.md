@@ -8,12 +8,12 @@ title: EventLogCondition
 
 # Interface: EventLogCondition
 
-Defined in: packages/codeboltjs/src/types/eventLog.ts:56
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:50
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="field"></a> `field` | `string` | [packages/codeboltjs/src/types/eventLog.ts:57](packages/codeboltjs/src/types/eventLog.ts#L57) |
-| <a id="operator"></a> `operator` | `"eq"` \| `"neq"` \| `"gt"` \| `"gte"` \| `"lt"` \| `"lte"` \| `"contains"` \| `"in"` \| `"between"` | [packages/codeboltjs/src/types/eventLog.ts:58](packages/codeboltjs/src/types/eventLog.ts#L58) |
-| <a id="value"></a> `value` | `any` | [packages/codeboltjs/src/types/eventLog.ts:59](packages/codeboltjs/src/types/eventLog.ts#L59) |
+| <a id="field"></a> `field` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:51 |
+| <a id="operator"></a> `operator` | `"eq"` \| `"neq"` \| `"contains"` \| `"gt"` \| `"gte"` \| `"lt"` \| `"lte"` \| `"in"` \| `"between"` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:52 |
+| <a id="value"></a> `value` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:53 |

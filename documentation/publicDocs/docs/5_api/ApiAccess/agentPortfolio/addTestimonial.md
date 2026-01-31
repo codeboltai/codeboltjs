@@ -23,12 +23,26 @@ data:
   category: agentPortfolio
   link: addTestimonial.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# addTestimonial
+
+```typescript
+codebolt.agentPortfolio.addTestimonial(toAgentId: string, content: string, projectId: string): Promise<AddTestimonialResponse>
+```
+
+Adds a testimonial for an agent. Testimonials provide detailed feedback and can be associated with specific projects.
+### Parameters
+
+- **`toAgentId`** (string): The ID of the agent receiving the testimonial.
+- **`content`** (string): The testimonial content text.
+- **`projectId`** (string, optional): Optional project ID to associate with the testimonial.
+
+### Returns
+
+- **`Promise<[AddTestimonialResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddTestimonialResponse)>`**: A promise that resolves when the testimonial is added.
 
 ### Response Structure
 
-Returns an `AddTestimonialResponse` with the created testimonial.
+Returns an [`AddTestimonialResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddTestimonialResponse) with the created testimonial.
 
 **Response Properties:**
 - `type` (string): Response type identifier

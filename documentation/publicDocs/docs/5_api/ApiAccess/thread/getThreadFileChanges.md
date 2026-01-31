@@ -15,8 +15,20 @@ data:
   category: thread
   link: getThreadFileChanges.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThreadFileChanges
+
+```typescript
+codebolt.thread.getThreadFileChanges(threadId: string): Promise<any>
+```
+
+Retrieves file changes associated with a specific thread, including modifications, additions, and deletions.
+### Parameters
+
+- **`threadId`** (string): The unique identifier of the thread to get file changes for.
+
+### Returns
+
+- **`Promise<any>`**: A promise that resolves with detailed file change information.
 
 ### Response Structure
 

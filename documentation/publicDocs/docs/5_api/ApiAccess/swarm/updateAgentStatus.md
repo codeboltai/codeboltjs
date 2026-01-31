@@ -32,8 +32,22 @@ data:
   category: swarm
   link: updateAgentStatus.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateAgentStatus
+
+```typescript
+codebolt.swarm.updateAgentStatus(swarmId: string, agentId: string, data: AgentStatusUpdate): Promise<UpdateStatusResponse>
+```
+
+Updates an agent's status within a swarm to indicate their current activity and availability.
+### Parameters
+
+- **`swarmId`** (string): The ID of the swarm containing the agent.
+- **`agentId`** (string): The ID of the agent to update.
+- **`data`** ([AgentStatusUpdate](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AgentStatusUpdate)): Status update information.
+
+### Returns
+
+- **`Promise<[UpdateStatusResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/UpdateStatusResponse)>`**: A promise that resolves when the status is updated.
 
 ### Examples
 

@@ -8,13 +8,13 @@ title: AddBlockerData
 
 # Interface: AddBlockerData
 
-Defined in: packages/codeboltjs/src/types/job.ts:300
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:220
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="addedby"></a> `addedBy` | `string` | [packages/codeboltjs/src/types/job.ts:302](packages/codeboltjs/src/types/job.ts#L302) |
-| <a id="addedbyname"></a> `addedByName?` | `string` | [packages/codeboltjs/src/types/job.ts:303](packages/codeboltjs/src/types/job.ts#L303) |
-| <a id="blockerjobids"></a> `blockerJobIds?` | `string`[] | [packages/codeboltjs/src/types/job.ts:304](packages/codeboltjs/src/types/job.ts#L304) |
-| <a id="text"></a> `text` | `string` | [packages/codeboltjs/src/types/job.ts:301](packages/codeboltjs/src/types/job.ts#L301) |
+| <a id="addedby"></a> `addedBy` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:222 |
+| <a id="addedbyname"></a> `addedByName?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:223 |
+| <a id="blockerjobids"></a> `blockerJobIds?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:224 |
+| <a id="text"></a> `text` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:221 |

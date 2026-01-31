@@ -8,11 +8,11 @@ title: CreateEventLogInstanceParams
 
 # Interface: CreateEventLogInstanceParams
 
-Defined in: packages/codeboltjs/src/types/eventLog.ts:71
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:62
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/eventLog.ts:73](packages/codeboltjs/src/types/eventLog.ts#L73) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/eventLog.ts:72](packages/codeboltjs/src/types/eventLog.ts#L72) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:64 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/eventLog.d.ts:63 |

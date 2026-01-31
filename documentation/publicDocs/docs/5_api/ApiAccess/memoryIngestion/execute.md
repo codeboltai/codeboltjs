@@ -41,8 +41,20 @@ data:
   category: memoryIngestion
   link: execute.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# execute
+
+```typescript
+codebolt.memoryIngestion.execute(params: ExecuteIngestionParams): Promise<IngestionExecuteResponse>
+```
+
+Executes a memory ingestion pipeline to process and route data.
+### Parameters
+
+- **`params`** ([ExecuteIngestionParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ExecuteIngestionParams)): Execution parameters containing pipeline ID and data.
+
+### Returns
+
+- **`Promise<[IngestionExecuteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IngestionExecuteResponse)>`**: A promise that resolves to execution results.
 
 ### Examples
 

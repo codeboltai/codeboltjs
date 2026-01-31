@@ -23,12 +23,26 @@ data:
   category: agentPortfolio
   link: addKarma.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# addKarma
+
+```typescript
+codebolt.agentPortfolio.addKarma(toAgentId: string, amount: number, reason: string): Promise<AddKarmaResponse>
+```
+
+Adds karma points to an agent. Karma can be positive or negative and should be accompanied by a reason explaining the change.
+### Parameters
+
+- **`toAgentId`** (string): The ID of the agent receiving karma.
+- **`amount`** (number): The amount of karma to add (can be negative to reduce karma).
+- **`reason`** (string, optional): Optional reason for the karma change.
+
+### Returns
+
+- **`Promise<[AddKarmaResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddKarmaResponse)>`**: A promise that resolves when karma has been added.
 
 ### Response Structure
 
-Returns an `AddKarmaResponse` with the result of the karma operation.
+Returns an [`AddKarmaResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddKarmaResponse) with the result of the karma operation.
 
 **Response Properties:**
 - `type` (string): Response type identifier

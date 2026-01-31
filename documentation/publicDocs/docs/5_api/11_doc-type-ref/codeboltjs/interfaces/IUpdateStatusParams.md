@@ -8,11 +8,11 @@ title: IUpdateStatusParams
 
 # Interface: IUpdateStatusParams
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:108
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:96
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="feedbackid"></a> `feedbackId` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:109](packages/codeboltjs/src/types/groupFeedback.ts#L109) |
-| <a id="status"></a> `status` | [`FeedbackStatus`](../type-aliases/FeedbackStatus) | [packages/codeboltjs/src/types/groupFeedback.ts:110](packages/codeboltjs/src/types/groupFeedback.ts#L110) |
+| <a id="feedbackid"></a> `feedbackId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:97 |
+| <a id="status"></a> `status` | [`FeedbackStatus`](../type-aliases/FeedbackStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:98 |

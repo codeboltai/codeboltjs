@@ -8,17 +8,17 @@ title: AgentDeliberationAction
 
 # Enumeration: AgentDeliberationAction
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:1
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:1
 
 ## Enumeration Members
 
 | Enumeration Member | Value | Defined in |
 | ------ | ------ | ------ |
-| <a id="create"></a> `CREATE` | `"agentdeliberation.create"` | [packages/codeboltjs/src/types/agentDeliberation.ts:2](packages/codeboltjs/src/types/agentDeliberation.ts#L2) |
-| <a id="get"></a> `GET` | `"agentdeliberation.get"` | [packages/codeboltjs/src/types/agentDeliberation.ts:3](packages/codeboltjs/src/types/agentDeliberation.ts#L3) |
-| <a id="list"></a> `LIST` | `"agentdeliberation.list"` | [packages/codeboltjs/src/types/agentDeliberation.ts:4](packages/codeboltjs/src/types/agentDeliberation.ts#L4) |
-| <a id="respond"></a> `RESPOND` | `"agentdeliberation.respond"` | [packages/codeboltjs/src/types/agentDeliberation.ts:6](packages/codeboltjs/src/types/agentDeliberation.ts#L6) |
-| <a id="summary"></a> `SUMMARY` | `"agentdeliberation.summary"` | [packages/codeboltjs/src/types/agentDeliberation.ts:9](packages/codeboltjs/src/types/agentDeliberation.ts#L9) |
-| <a id="update"></a> `UPDATE` | `"agentdeliberation.update"` | [packages/codeboltjs/src/types/agentDeliberation.ts:5](packages/codeboltjs/src/types/agentDeliberation.ts#L5) |
-| <a id="vote"></a> `VOTE` | `"agentdeliberation.vote"` | [packages/codeboltjs/src/types/agentDeliberation.ts:7](packages/codeboltjs/src/types/agentDeliberation.ts#L7) |
-| <a id="winner"></a> `WINNER` | `"agentdeliberation.winner"` | [packages/codeboltjs/src/types/agentDeliberation.ts:8](packages/codeboltjs/src/types/agentDeliberation.ts#L8) |
+| <a id="create"></a> `CREATE` | `"agentdeliberation.create"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:2 |
+| <a id="get"></a> `GET` | `"agentdeliberation.get"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:3 |
+| <a id="list"></a> `LIST` | `"agentdeliberation.list"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:4 |
+| <a id="respond"></a> `RESPOND` | `"agentdeliberation.respond"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:6 |
+| <a id="summary"></a> `SUMMARY` | `"agentdeliberation.summary"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:9 |
+| <a id="update"></a> `UPDATE` | `"agentdeliberation.update"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:5 |
+| <a id="vote"></a> `VOTE` | `"agentdeliberation.vote"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:7 |
+| <a id="winner"></a> `WINNER` | `"agentdeliberation.winner"` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:8 |

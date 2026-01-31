@@ -8,7 +8,7 @@ title: CodemapSaveResponse
 
 # Interface: CodemapSaveResponse
 
-Defined in: packages/codeboltjs/src/types/codemap.ts:94
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:72
 
 ## Extends
 
@@ -18,12 +18,12 @@ Defined in: packages/codeboltjs/src/types/codemap.ts:94
 
 | Property | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="code"></a> `code?` | `string` | `CodemapBaseResponse.code` | [packages/codeboltjs/src/types/codemap.ts:66](packages/codeboltjs/src/types/codemap.ts#L66) |
-| <a id="data"></a> `data?` | \{ `codemap`: [`CodemapInfo`](CodemapInfo); \} | - | [packages/codeboltjs/src/types/codemap.ts:95](packages/codeboltjs/src/types/codemap.ts#L95) |
-| `data.codemap` | [`CodemapInfo`](CodemapInfo) | - | [packages/codeboltjs/src/types/codemap.ts:96](packages/codeboltjs/src/types/codemap.ts#L96) |
-| <a id="error"></a> `error?` | \{ `code`: `string`; `details?`: `any`; `message`: `string`; \} | `CodemapBaseResponse.error` | [packages/codeboltjs/src/types/codemap.ts:68](packages/codeboltjs/src/types/codemap.ts#L68) |
-| `error.code` | `string` | - | [packages/codeboltjs/src/types/codemap.ts:69](packages/codeboltjs/src/types/codemap.ts#L69) |
-| `error.details?` | `any` | - | [packages/codeboltjs/src/types/codemap.ts:71](packages/codeboltjs/src/types/codemap.ts#L71) |
-| `error.message` | `string` | - | [packages/codeboltjs/src/types/codemap.ts:70](packages/codeboltjs/src/types/codemap.ts#L70) |
-| <a id="message"></a> `message?` | `string` | `CodemapBaseResponse.message` | [packages/codeboltjs/src/types/codemap.ts:67](packages/codeboltjs/src/types/codemap.ts#L67) |
-| <a id="success"></a> `success` | `boolean` | `CodemapBaseResponse.success` | [packages/codeboltjs/src/types/codemap.ts:65](packages/codeboltjs/src/types/codemap.ts#L65) |
+| <a id="code"></a> `code?` | `string` | `CodemapBaseResponse.code` | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:48 |
+| <a id="data"></a> `data?` | \{ `codemap`: [`CodemapInfo`](CodemapInfo); \} | - | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:73 |
+| `data.codemap` | [`CodemapInfo`](CodemapInfo) | - | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:74 |
+| <a id="error"></a> `error?` | \{ `code`: `string`; `details?`: `any`; `message`: `string`; \} | `CodemapBaseResponse.error` | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:50 |
+| `error.code` | `string` | - | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:51 |
+| `error.details?` | `any` | - | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:53 |
+| `error.message` | `string` | - | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:52 |
+| <a id="message"></a> `message?` | `string` | `CodemapBaseResponse.message` | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:49 |
+| <a id="success"></a> `success` | `boolean` | `CodemapBaseResponse.success` | common/types/dist/codeboltjstypes/libFunctionTypes/codemap.d.ts:47 |

@@ -18,7 +18,7 @@ import type {
     ProjectStructurePackageResponse,
     ProjectStructureDeleteResponse,
     ProjectStructureUpdateResponse
-} from '../types/projectStructure';
+} from '@codebolt/types/lib';
 
 /**
  * Project Structure Module for codeboltjs

@@ -16,13 +16,20 @@ data:
   
   link: getApplicationState.md
 ---
+# getApplicationState
 
-<CBBaseInfo/> 
- <CBParameters/>
+```typescript
+codebolt.cbstate.getApplicationState(): Promise<ApplicationState>
+```
+
+Retrieves the current application state from the server via WebSocket. 
+ ### Returns
+
+- **`Promise<ApplicationState>`**: A promise that resolves with the application state containing project information, token usage, chats, and project-specific state data.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetAppStateResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetAppStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetAppStateResponse) object with the following properties:
 
 - **`type`** (string): Always "getAppStateResponse".
 - **`state`** (object, optional): Contains the complete application state as a `Record<string, any>` object with:

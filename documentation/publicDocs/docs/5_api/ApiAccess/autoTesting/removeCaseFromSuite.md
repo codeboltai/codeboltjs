@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: removeCaseFromSuite.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# removeCaseFromSuite
+
+```typescript
+codebolt.autoTesting.removeCaseFromSuite(params: IRemoveCaseFromSuiteParams): Promise<IRemoveCaseFromSuiteResponse>
+```
+
+Removes a test case from a test suite.
+### Parameters
+
+- **`params`** ([IRemoveCaseFromSuiteParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRemoveCaseFromSuiteParams)): Parameters including suite ID and case ID.
+
+### Returns
+
+- **`Promise<[IRemoveCaseFromSuiteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRemoveCaseFromSuiteResponse)>`**: A promise that resolves to the updated suite.
 
 ### Examples
 

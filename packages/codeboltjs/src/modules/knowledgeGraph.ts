@@ -28,7 +28,7 @@ import type {
     CreateKGViewParams,
     ListKGMemoryRecordsParams,
     ListKGEdgesParams
-} from '../types/knowledgeGraph';
+} from '@codebolt/types/lib';
 
 const knowledgeGraph = {
     // ============================================================

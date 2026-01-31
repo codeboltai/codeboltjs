@@ -15,8 +15,20 @@ data:
   category: mail
   link: releaseFiles.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# releaseFiles
+
+```typescript
+codebolt.mail.releaseFiles(params: IReleaseFilesParams): Promise<IReleaseFilesResponse>
+```
+
+Releases file reservations after collaborative work is complete.
+### Parameters
+
+- **`params`** (IReleaseFilesParams): Parameters including agentId and files array to release.
+
+### Returns
+
+- **`Promise<IReleaseFilesResponse>`**: A promise that resolves when files are released.
 
 ### Examples
 

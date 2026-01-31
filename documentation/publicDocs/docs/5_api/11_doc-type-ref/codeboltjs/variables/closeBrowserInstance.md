@@ -12,7 +12,7 @@ title: closeBrowserInstance
 const closeBrowserInstance: (instanceId: string) => Promise<boolean> = cbbrowser.closeBrowserInstance;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:413
+Defined in: packages/codeboltjs/src/index.ts:435
 
 ## Parameters
 

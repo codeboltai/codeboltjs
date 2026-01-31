@@ -18,8 +18,21 @@ data:
   category: reviewMergeRequest
   link: addReview.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addReview
+
+```typescript
+codebolt.reviewMergeRequest.addReview(id: string, feedback: AddReviewFeedback): Promise<{ request: ReviewMergeRequest }>
+```
+
+Adds review feedback to a merge request, including approvals, change requests, or general comments.
+### Parameters
+
+- **`id`** (string): The unique identifier of the review request
+- **`feedback`** ([AddReviewFeedback](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddReviewFeedback)): Review feedback including agent info, type, and comment
+
+### Returns
+
+- **`Promise<{ request: [ReviewMergeRequest](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ReviewMergeRequest) }>`**: A promise that resolves to the updated request with new review
 
 ### Parameter Details
 

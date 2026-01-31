@@ -12,4 +12,4 @@ title: JobType
 type JobType = "bug" | "feature" | "task" | "epic" | "chore";
 ```
 
-Defined in: packages/codeboltjs/src/types/job.ts:15
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:10

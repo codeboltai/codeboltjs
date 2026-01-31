@@ -16,8 +16,20 @@ data:
   category: agentDeliberation
   link: respond.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# respond
+
+```typescript
+codebolt.agentDeliberation.respond(params: IRespondParams): Promise<IRespondResponse>
+```
+
+Submits a response to a deliberation from an agent or user.
+### Parameters
+
+- **`params`** ([IRespondParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRespondParams)): Parameters including deliberation ID, responder info, and response body.
+
+### Returns
+
+- **`Promise<[IRespondResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRespondResponse)>`**: A promise that resolves to the submitted response.
 
 ### Examples
 

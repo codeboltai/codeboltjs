@@ -11,7 +11,7 @@ import type {
     HookInitializeResponse,
     HookDeleteResponse,
     HookConfig
-} from '../types/hook';
+} from '@codebolt/types/lib';
 
 const hook = {
     /**

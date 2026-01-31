@@ -15,8 +15,20 @@ data:
   category: mail
   link: listThreads.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# listThreads
+
+```typescript
+codebolt.mail.listThreads(params: IListThreadsParams): Promise<IListThreadsResponse>
+```
+
+Lists all mail threads with optional filtering and pagination.
+### Parameters
+
+- **`params`** (IListThreadsParams): Optional filters including type, status, participant, search, limit, and offset.
+
+### Returns
+
+- **`Promise<IListThreadsResponse>`**: A promise that resolves with an array of threads and total count.
 
 ### Response Structure
 

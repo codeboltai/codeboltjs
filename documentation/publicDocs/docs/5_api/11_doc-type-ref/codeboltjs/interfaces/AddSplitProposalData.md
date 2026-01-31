@@ -8,13 +8,13 @@ title: AddSplitProposalData
 
 # Interface: AddSplitProposalData
 
-Defined in: packages/codeboltjs/src/types/job.ts:280
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:203
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description` | `string` | [packages/codeboltjs/src/types/job.ts:281](packages/codeboltjs/src/types/job.ts#L281) |
-| <a id="proposedby"></a> `proposedBy?` | `string` | [packages/codeboltjs/src/types/job.ts:283](packages/codeboltjs/src/types/job.ts#L283) |
-| <a id="proposedbyname"></a> `proposedByName?` | `string` | [packages/codeboltjs/src/types/job.ts:284](packages/codeboltjs/src/types/job.ts#L284) |
-| <a id="proposedjobs"></a> `proposedJobs` | [`ProposedJob`](ProposedJob)[] | [packages/codeboltjs/src/types/job.ts:282](packages/codeboltjs/src/types/job.ts#L282) |
+| <a id="description"></a> `description` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:204 |
+| <a id="proposedby"></a> `proposedBy?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:206 |
+| <a id="proposedbyname"></a> `proposedByName?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:207 |
+| <a id="proposedjobs"></a> `proposedJobs` | [`ProposedJob`](ProposedJob)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:205 |

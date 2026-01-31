@@ -15,8 +15,20 @@ data:
   category: groupFeedback
   link: respond.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# respond
+
+```typescript
+codebolt.groupFeedback.respond(params: IRespondParams): Promise<IRespondResponse>
+```
+
+Adds a response to a feedback session from a participant.
+### Parameters
+
+- **`params`** ([IRespondParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRespondParams)): Parameters including feedbackId, participantId, and array of responses.
+
+### Returns
+
+- **`Promise<[IRespondResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IRespondResponse)>`**: A promise that resolves with the added response details.
 
 ### Examples
 

@@ -8,13 +8,13 @@ title: KVQueryResult
 
 # Interface: KVQueryResult
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:57
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:49
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/kvStore.ts:60](packages/codeboltjs/src/types/kvStore.ts#L60) |
-| <a id="offset"></a> `offset?` | `number` | [packages/codeboltjs/src/types/kvStore.ts:61](packages/codeboltjs/src/types/kvStore.ts#L61) |
-| <a id="records"></a> `records` | [`KVRecord`](KVRecord)[] | [packages/codeboltjs/src/types/kvStore.ts:58](packages/codeboltjs/src/types/kvStore.ts#L58) |
-| <a id="total"></a> `total` | `number` | [packages/codeboltjs/src/types/kvStore.ts:59](packages/codeboltjs/src/types/kvStore.ts#L59) |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:52 |
+| <a id="offset"></a> `offset?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:53 |
+| <a id="records"></a> `records` | [`KVRecord`](KVRecord)[] | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:50 |
+| <a id="total"></a> `total` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:51 |

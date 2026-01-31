@@ -8,7 +8,7 @@ title: Team
 
 # Interface: Team
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:111
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:94
 
 Team within a swarm
 
@@ -16,11 +16,11 @@ Team within a swarm
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/swarm.ts:118](packages/codeboltjs/src/types/swarm.ts#L118) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/swarm.ts:115](packages/codeboltjs/src/types/swarm.ts#L115) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/swarm.ts:112](packages/codeboltjs/src/types/swarm.ts#L112) |
-| <a id="maxmembers"></a> `maxMembers?` | `number` | [packages/codeboltjs/src/types/swarm.ts:116](packages/codeboltjs/src/types/swarm.ts#L116) |
-| <a id="membercount"></a> `memberCount` | `number` | [packages/codeboltjs/src/types/swarm.ts:117](packages/codeboltjs/src/types/swarm.ts#L117) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:119](packages/codeboltjs/src/types/swarm.ts#L119) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/swarm.ts:114](packages/codeboltjs/src/types/swarm.ts#L114) |
-| <a id="swarmid"></a> `swarmId` | `string` | [packages/codeboltjs/src/types/swarm.ts:113](packages/codeboltjs/src/types/swarm.ts#L113) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:101 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:98 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:95 |
+| <a id="maxmembers"></a> `maxMembers?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:99 |
+| <a id="membercount"></a> `memberCount` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:100 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:102 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:97 |
+| <a id="swarmid"></a> `swarmId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:96 |

@@ -8,7 +8,7 @@ title: AddEventResponseData
 
 # Interface: AddEventResponseData
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:331
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:287
 
 Response data for addEvent
 
@@ -16,4 +16,4 @@ Response data for addEvent
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="event"></a> `event` | [`AgentEventMessage`](AgentEventMessage) | [packages/codeboltjs/src/types/agentEventQueue.ts:332](packages/codeboltjs/src/types/agentEventQueue.ts#L332) |
+| <a id="event"></a> `event` | [`AgentEventMessage`](AgentEventMessage) | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:288 |

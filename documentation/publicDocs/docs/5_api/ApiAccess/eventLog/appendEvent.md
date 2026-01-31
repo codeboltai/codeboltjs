@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: appendEvent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# appendEvent
+
+```typescript
+codebolt.eventLog.appendEvent(params: undefined): Promise<EventLogAppendResponse>
+```
+
+Appends a single event to an event log stream.
+### Parameters
+
+- **`params`** (unknown): Event parameters including instanceId, streamId, eventType, payload, and metadata.
+
+### Returns
+
+- **`Promise<[EventLogAppendResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogAppendResponse)>`**: A promise that resolves with the appended event details.
 
 ### Response Structure
 

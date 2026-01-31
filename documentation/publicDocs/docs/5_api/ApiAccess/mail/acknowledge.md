@@ -15,8 +15,20 @@ data:
   category: mail
   link: acknowledge.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# acknowledge
+
+```typescript
+codebolt.mail.acknowledge(params: IAcknowledgeParams): Promise<IAcknowledgeResponse>
+```
+
+Acknowledges receipt of a message to confirm delivery.
+### Parameters
+
+- **`params`** (IAcknowledgeParams): Parameters including the messageId to acknowledge.
+
+### Returns
+
+- **`Promise<IAcknowledgeResponse>`**: A promise that resolves when the message is acknowledged.
 
 ### Examples
 

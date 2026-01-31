@@ -8,12 +8,12 @@ title: IUpdateDeliberationParams
 
 # Interface: IUpdateDeliberationParams
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:92
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:82
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="deliberationid"></a> `deliberationId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:93](packages/codeboltjs/src/types/agentDeliberation.ts#L93) |
-| <a id="requestmessage"></a> `requestMessage?` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:95](packages/codeboltjs/src/types/agentDeliberation.ts#L95) |
-| <a id="status"></a> `status?` | [`DeliberationStatus`](../type-aliases/DeliberationStatus) | [packages/codeboltjs/src/types/agentDeliberation.ts:94](packages/codeboltjs/src/types/agentDeliberation.ts#L94) |
+| <a id="deliberationid"></a> `deliberationId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:83 |
+| <a id="requestmessage"></a> `requestMessage?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:85 |
+| <a id="status"></a> `status?` | [`DeliberationStatus`](../type-aliases/DeliberationStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:84 |

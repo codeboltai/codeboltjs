@@ -15,8 +15,20 @@ data:
   category: thread
   link: getThreadDetail.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThreadDetail
+
+```typescript
+codebolt.thread.getThreadDetail(options: GetThreadDetailOptions): Promise<GetThreadResponse>
+```
+
+Retrieves detailed information about a specific thread including all properties and metadata.
+### Parameters
+
+- **`options`** (GetThreadDetailOptions): Options containing the threadId of the thread to retrieve.
+
+### Returns
+
+- **`Promise<GetThreadResponse>`**: A promise that resolves with comprehensive thread details including status, participants, messages, and metadata.
 
 ### Response Structure
 

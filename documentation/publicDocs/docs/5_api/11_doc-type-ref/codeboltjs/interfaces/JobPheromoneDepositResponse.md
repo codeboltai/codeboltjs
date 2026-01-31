@@ -8,10 +8,10 @@ title: JobPheromoneDepositResponse
 
 # Interface: JobPheromoneDepositResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:320
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:232
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:321](packages/codeboltjs/src/types/job.ts#L321) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:233 |

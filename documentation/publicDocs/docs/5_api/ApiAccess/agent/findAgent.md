@@ -27,12 +27,28 @@ data:
   category: agent
   link: findAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# FindAgent
+
+```typescript
+codebolt.agent.findAgent(task: string, maxResult: number, agents: array, agentLocation: string, getFrom: string): Promise<FindAgentByTaskResponse>
+```
+
+Finds an agent suitable for the specified task using AI and/or vector database filtering.
+### Parameters
+
+- **`task`** (string): The task description for which an agent is needed (e.g., "Write a function to sum of Two number", "create node js app").
+- **`maxResult`** (number): Optional: Maximum number of agents to return. Defaults to 1.
+- **`agents`** (array): Optional: List of specific agent names or IDs to filter from the vector database. Defaults to an empty array (no filtering).
+- **`agentLocation`** (string): Optional: Location preference for agents. Defaults to 'all'. Possible values are 'all', 'local_only', 'remote_only'.
+- **`getFrom`** (string): Optional: The filtering method to use. Defaults to 'use_vector_db'. Possible values are 'use_ai', 'use_vector_db', 'use_both'.
+
+### Returns
+
+- **`Promise<FindAgentByTaskResponse>`**: A promise that resolves with a [`FindAgentByTaskResponse`](/docs/api/11_doc-type-ref/types/interfaces/FindAgentByTaskResponse) object containing an array of found agents.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `FindAgentByTaskResponse` object with the following properties:
+The method returns a Promise that resolves to a [`FindAgentByTaskResponse`](/docs/api/11_doc-type-ref/types/interfaces/FindAgentByTaskResponse) object with the following properties:
 
 - **`type`** (string): Always "findAgentByTaskResponse".
 - **`agents`** (array, optional): An array of agent objects that match the task.

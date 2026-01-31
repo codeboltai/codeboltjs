@@ -8,11 +8,11 @@ title: ICreateRunResponse
 
 # Interface: ICreateRunResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:261
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:251
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | [packages/codeboltjs/src/types/autoTesting.ts:262](packages/codeboltjs/src/types/autoTesting.ts#L262) |
-| `payload.run` | [`TestRun`](TestRun) | [packages/codeboltjs/src/types/autoTesting.ts:262](packages/codeboltjs/src/types/autoTesting.ts#L262) |
+| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:252 |
+| `payload.run` | [`TestRun`](TestRun) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:253 |

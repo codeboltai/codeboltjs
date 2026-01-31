@@ -12,4 +12,4 @@ title: DependencyType
 type DependencyType = "blocks" | "related" | "parent-child" | "discovered-from";
 ```
 
-Defined in: packages/codeboltjs/src/types/job.ts:21
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:12

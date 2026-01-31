@@ -17,8 +17,20 @@ data:
   category: mcp
   link: getMcpTools.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getMcpTools
+
+```typescript
+codebolt.mcp.getMcpTools(mcpNames: string[]): Promise<GetMcpToolsResponse>
+```
+
+Gets MCP tools from the specified servers.
+### Parameters
+
+- **`mcpNames`** (string[]): Array of MCP server names to get tools from. If empty, gets tools from all servers.
+
+### Returns
+
+- **`Promise<GetMcpToolsResponse>`**: A promise that resolves with MCP tools from specified servers.
 
 ### Example 1: Get Tools from Specific Servers
 

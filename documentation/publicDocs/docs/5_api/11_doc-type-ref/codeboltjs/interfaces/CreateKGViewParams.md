@@ -8,12 +8,12 @@ title: CreateKGViewParams
 
 # Interface: CreateKGViewParams
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:151
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:128
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:153](packages/codeboltjs/src/types/knowledgeGraph.ts#L153) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:152](packages/codeboltjs/src/types/knowledgeGraph.ts#L152) |
-| <a id="templateid"></a> `templateId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:154](packages/codeboltjs/src/types/knowledgeGraph.ts#L154) |
+| <a id="instanceid"></a> `instanceId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:130 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:129 |
+| <a id="templateid"></a> `templateId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:131 |

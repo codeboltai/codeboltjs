@@ -12,7 +12,7 @@ title: IntentLevel
 type IntentLevel = 1 | 2 | 3 | 4;
 ```
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:13
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:12
 
 Intent Level - determines behavior on overlap
 1 = Advisory/Notification - Just informs others; no enforcement. Overlapping agents proceed but log warning.

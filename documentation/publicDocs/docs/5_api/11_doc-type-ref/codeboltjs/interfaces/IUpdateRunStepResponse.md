@@ -8,11 +8,11 @@ title: IUpdateRunStepResponse
 
 # Interface: IUpdateRunStepResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:281
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:276
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | [packages/codeboltjs/src/types/autoTesting.ts:282](packages/codeboltjs/src/types/autoTesting.ts#L282) |
-| `payload.run` | [`TestRun`](TestRun) | [packages/codeboltjs/src/types/autoTesting.ts:282](packages/codeboltjs/src/types/autoTesting.ts#L282) |
+| <a id="payload"></a> `payload` | \{ `run`: [`TestRun`](TestRun); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:277 |
+| `payload.run` | [`TestRun`](TestRun) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:278 |

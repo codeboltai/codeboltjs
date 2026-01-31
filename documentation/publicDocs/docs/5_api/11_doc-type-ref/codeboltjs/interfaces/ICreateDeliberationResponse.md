@@ -8,11 +8,11 @@ title: ICreateDeliberationResponse
 
 # Interface: ICreateDeliberationResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:123
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:108
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `deliberation`: [`Deliberation`](Deliberation); \} | [packages/codeboltjs/src/types/agentDeliberation.ts:124](packages/codeboltjs/src/types/agentDeliberation.ts#L124) |
-| `payload.deliberation` | [`Deliberation`](Deliberation) | [packages/codeboltjs/src/types/agentDeliberation.ts:124](packages/codeboltjs/src/types/agentDeliberation.ts#L124) |
+| <a id="payload"></a> `payload` | \{ `deliberation`: [`Deliberation`](Deliberation); \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:109 |
+| `payload.deliberation` | [`Deliberation`](Deliberation) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:110 |

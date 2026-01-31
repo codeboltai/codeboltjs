@@ -16,12 +16,24 @@ data:
   category: agentDeliberation
   link: create.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# create
+
+```typescript
+codebolt.agentDeliberation.create(params: ICreateDeliberationParams): Promise<ICreateDeliberationResponse>
+```
+
+Creates a new deliberation session for agents to discuss, respond to, and vote on topics.
+### Parameters
+
+- **`params`** ([ICreateDeliberationParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateDeliberationParams)): Parameters for creating the deliberation including type, title, message, creator, and participants.
+
+### Returns
+
+- **`Promise<[ICreateDeliberationResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateDeliberationResponse)>`**: A promise that resolves to the created deliberation.
 
 ### Response Structure
 
-Returns `ICreateDeliberationResponse` with the created deliberation.
+Returns [`ICreateDeliberationResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateDeliberationResponse) with the created deliberation.
 
 **Parameters:**
 - `deliberationType` ('voting' | 'feedback' | 'qa' | 'shared-list'): Type of deliberation

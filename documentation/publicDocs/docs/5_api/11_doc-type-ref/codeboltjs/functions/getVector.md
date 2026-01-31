@@ -12,7 +12,7 @@ title: getVector
 function getVector(key: string): Promise<GetVectorResponse>;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:398
+Defined in: packages/codeboltjs/src/index.ts:420
 
 ## Parameters
 

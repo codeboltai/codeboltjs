@@ -8,12 +8,12 @@ title: JobLock
 
 # Interface: JobLock
 
-Defined in: packages/codeboltjs/src/types/job.ts:206
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:152
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="lockedat"></a> `lockedAt` | `string` | [packages/codeboltjs/src/types/job.ts:209](packages/codeboltjs/src/types/job.ts#L209) |
-| <a id="lockedby"></a> `lockedBy` | `string` | [packages/codeboltjs/src/types/job.ts:207](packages/codeboltjs/src/types/job.ts#L207) |
-| <a id="lockedbyname"></a> `lockedByName?` | `string` | [packages/codeboltjs/src/types/job.ts:208](packages/codeboltjs/src/types/job.ts#L208) |
+| <a id="lockedat"></a> `lockedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:155 |
+| <a id="lockedby"></a> `lockedBy` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:153 |
+| <a id="lockedbyname"></a> `lockedByName?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:154 |

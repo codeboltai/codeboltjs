@@ -8,10 +8,10 @@ title: JobPheromoneAggregatedResponse
 
 # Interface: JobPheromoneAggregatedResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:332
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:241
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="aggregations"></a> `aggregations` | [`PheromoneAggregation`](PheromoneAggregation)[] | [packages/codeboltjs/src/types/job.ts:333](packages/codeboltjs/src/types/job.ts#L333) |
+| <a id="aggregations"></a> `aggregations` | [`PheromoneAggregation`](PheromoneAggregation)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:242 |

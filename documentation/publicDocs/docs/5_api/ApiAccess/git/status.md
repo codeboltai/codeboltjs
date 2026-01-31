@@ -12,12 +12,20 @@ data:
   category: git
   link: status.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# status
+
+```typescript
+codebolt.git.status(): Promise<GitStatusResponse>
+```
+
+Retrieves the status of the Git repository. Shows working tree status including staged, unstaged, and untracked files along with branch information. 
+### Returns
+
+- **`Promise<GitStatusResponse>`**: A promise that resolves with a [`GitStatusResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitStatusResponse) object containing the git status information and repository state.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GitStatusResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GitStatusResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitStatusResponse) object with the following properties:
 
 - **`type`** (string): Always "gitStatusResponse".
 - **`data`** (StatusResult, optional): Object containing detailed status information with the following properties:

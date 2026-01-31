@@ -15,8 +15,20 @@ data:
   category: thread
   link: getThreadMessages.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getThreadMessages
+
+```typescript
+codebolt.thread.getThreadMessages(options: GetThreadMessagesOptions): Promise<GetThreadMessagesResponse>
+```
+
+Retrieves messages from a specific thread with optional pagination and filtering.
+### Parameters
+
+- **`options`** (GetThreadMessagesOptions): Options including threadId, limit, offset, and filters for message retrieval.
+
+### Returns
+
+- **`Promise<GetThreadMessagesResponse>`**: A promise that resolves with an array of messages and pagination metadata.
 
 ### Response Structure
 

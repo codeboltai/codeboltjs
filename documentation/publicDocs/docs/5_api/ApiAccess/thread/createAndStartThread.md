@@ -15,8 +15,20 @@ data:
   category: thread
   link: createAndStartThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createAndStartThread
+
+```typescript
+codebolt.thread.createAndStartThread(options: CreateAndStartThreadOptions): Promise<StartThreadResponse>
+```
+
+Creates and immediately starts a new thread in one operation, combining thread creation and initialization.
+### Parameters
+
+- **`options`** (CreateAndStartThreadOptions): Thread configuration including title, description, agentId, initial messages, and metadata.
+
+### Returns
+
+- **`Promise<StartThreadResponse>`**: A promise that resolves with the started thread details including threadId, status, and initial state.
 
 ### Response Structure
 

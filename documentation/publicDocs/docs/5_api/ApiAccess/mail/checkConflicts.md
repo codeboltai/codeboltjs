@@ -15,8 +15,20 @@ data:
   category: mail
   link: checkConflicts.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# checkConflicts
+
+```typescript
+codebolt.mail.checkConflicts(params: ICheckConflictsParams): Promise<ICheckConflictsResponse>
+```
+
+Checks for potential conflicts in file reservations before reserving.
+### Parameters
+
+- **`params`** (ICheckConflictsParams): Parameters including files to check for conflicts.
+
+### Returns
+
+- **`Promise<ICheckConflictsResponse>`**: A promise that resolves with conflict information.
 
 ### Examples
 

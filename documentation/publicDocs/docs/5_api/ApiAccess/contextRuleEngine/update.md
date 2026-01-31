@@ -20,8 +20,21 @@ data:
   category: contextRuleEngine
   link: update.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# update
+
+```typescript
+codebolt.contextRuleEngine.update(id: undefined, updates: undefined): Promise<ContextRuleEngineResponse>
+```
+
+Updates an existing rule engine.
+### Parameters
+
+- **`id`** (unknown): The unique identifier of the rule engine.
+- **`updates`** (unknown): Updated engine configuration (name, description, rules, enabled).
+
+### Returns
+
+- **`Promise<[ContextRuleEngineResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextRuleEngineResponse)>`**: A promise that resolves with the updated rule engine.
 
 ### Examples
 

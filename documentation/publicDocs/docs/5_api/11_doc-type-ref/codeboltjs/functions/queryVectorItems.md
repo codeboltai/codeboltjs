@@ -12,7 +12,7 @@ title: queryVectorItems
 function queryVectorItems(items: any[], dbPath: string): Promise<QueryVectorItemResponse>;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:401
+Defined in: packages/codeboltjs/src/index.ts:423
 
 ## Parameters
 

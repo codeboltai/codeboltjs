@@ -19,8 +19,21 @@ data:
   category: agentPortfolio
   link: addAppreciation.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# addAppreciation
+
+```typescript
+codebolt.agentPortfolio.addAppreciation(toAgentId: string, message: string): Promise<AddAppreciationResponse>
+```
+
+Adds an appreciation message for an agent. Appreciations are short messages of gratitude or recognition.
+### Parameters
+
+- **`toAgentId`** (string): The ID of the agent receiving appreciation.
+- **`message`** (string): The appreciation message.
+
+### Returns
+
+- **`Promise<[AddAppreciationResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddAppreciationResponse)>`**: A promise that resolves when appreciation is added.
 
 ### Examples
 

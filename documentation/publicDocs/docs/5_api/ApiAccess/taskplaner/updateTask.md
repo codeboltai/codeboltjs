@@ -15,8 +15,20 @@ data:
   category: taskplaner
   link: updateTask.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# updateTask
+
+```typescript
+codebolt.taskplaner.updateTask(task: string): Promise<UpdateTasksResponse>
+```
+
+Updates an existing task in the task management system via WebSocket communication. This method allows modification of task properties including title, description, and completion status. 
+### Parameters
+
+- **`task`** (string): The updated task information. This can include the task ID, title, description, and completion status in string format.
+
+### Returns
+
+- **`Promise<UpdateTasksResponse>`**: A promise that resolves with the response containing the updated task information.
 
 ### Response Structure
 

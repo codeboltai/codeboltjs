@@ -8,14 +8,14 @@ title: DeploymentConfig
 
 # Interface: DeploymentConfig
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:67
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:54
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="config"></a> `config?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/projectStructure.ts:72](packages/codeboltjs/src/types/projectStructure.ts#L72) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:71](packages/codeboltjs/src/types/projectStructure.ts#L71) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:68](packages/codeboltjs/src/types/projectStructure.ts#L68) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:69](packages/codeboltjs/src/types/projectStructure.ts#L69) |
-| <a id="type"></a> `type` | `"custom"` \| `"docker"` \| `"kubernetes"` \| `"serverless"` \| `"static"` | [packages/codeboltjs/src/types/projectStructure.ts:70](packages/codeboltjs/src/types/projectStructure.ts#L70) |
+| <a id="config"></a> `config?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:59 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:58 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:55 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:56 |
+| <a id="type"></a> `type` | `"custom"` \| `"docker"` \| `"kubernetes"` \| `"serverless"` \| `"static"` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:57 |

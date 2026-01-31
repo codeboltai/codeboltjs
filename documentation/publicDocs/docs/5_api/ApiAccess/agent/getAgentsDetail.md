@@ -15,12 +15,24 @@ data:
   category: agent
   link: getAgentsDetail.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# GetAgentsDetail
+
+```typescript
+codebolt.agent.getAgentsDetail(agentList: array): Promise<AgentsDetailResponse>
+```
+
+Retrieves detailed information for a list of specified agents.
+### Parameters
+
+- **`agentList`** (array): Optional: An array of agent IDs to get details for. If the array is empty, it retrieves details for all agents. Defaults to an empty array.
+
+### Returns
+
+- **`Promise<AgentsDetailResponse>`**: A promise that resolves with an [`AgentsDetailResponse`](/docs/api/11_doc-type-ref/types/interfaces/AgentsDetailResponse) object containing the detailed information of the specified agents.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `AgentsDetailResponse` object with the following properties:
+The method returns a Promise that resolves to an [`AgentsDetailResponse`](/docs/api/11_doc-type-ref/types/interfaces/AgentsDetailResponse) object with the following properties:
 
 - **`type`** (string): Always "agentsDetailResponse".
 - **`payload`** (object, optional): An object containing the agent details.

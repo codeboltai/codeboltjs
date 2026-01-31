@@ -8,14 +8,14 @@ title: TestRunStep
 
 # Interface: TestRunStep
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:85
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:72
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="executedat"></a> `executedAt?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:90](packages/codeboltjs/src/types/autoTesting.ts#L90) |
-| <a id="logs"></a> `logs?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:88](packages/codeboltjs/src/types/autoTesting.ts#L88) |
-| <a id="status"></a> `status` | [`TestStatus`](../type-aliases/TestStatus) | [packages/codeboltjs/src/types/autoTesting.ts:87](packages/codeboltjs/src/types/autoTesting.ts#L87) |
-| <a id="stepid"></a> `stepId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:86](packages/codeboltjs/src/types/autoTesting.ts#L86) |
-| <a id="useroverride"></a> `userOverride?` | `boolean` | [packages/codeboltjs/src/types/autoTesting.ts:89](packages/codeboltjs/src/types/autoTesting.ts#L89) |
+| <a id="executedat"></a> `executedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:77 |
+| <a id="logs"></a> `logs?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:75 |
+| <a id="status"></a> `status` | [`TestStatus`](../type-aliases/TestStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:74 |
+| <a id="stepid"></a> `stepId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:73 |
+| <a id="useroverride"></a> `userOverride?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:76 |

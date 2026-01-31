@@ -19,12 +19,25 @@ data:
   category: browser
   link: type.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# type
+
+```typescript
+codebolt.browser.type(elementid: string, text: string): Promise<TypeResponse>
+```
+
+Types text into a specified element on the page. 
+ ### Parameters
+
+- **`elementid`** (string): The ID of the element to type into.
+- **`text`** (string): The text to type.
+
+### Returns
+
+- **`Promise<TypeResponse>`**: A promise that resolves when the typing action is complete.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `BrowserActionResponseData` object with the following properties:
+The method returns a Promise that resolves to a [`BrowserActionResponseData`](/docs/api/11_doc-type-ref/types/interfaces/BrowserActionResponseData) object with the following properties:
 
 - **`type`** (string): Always "typeResponse".
 - **`payload`** (object, optional): Contains the response data including:

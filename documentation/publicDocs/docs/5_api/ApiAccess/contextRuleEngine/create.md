@@ -16,8 +16,20 @@ data:
   category: contextRuleEngine
   link: create.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# create
+
+```typescript
+codebolt.contextRuleEngine.create(config: undefined): Promise<ContextRuleEngineResponse>
+```
+
+Creates a new context rule engine with rules for memory inclusion/exclusion.
+### Parameters
+
+- **`config`** (unknown): Rule engine configuration including name, description, rules, and enabled status.
+
+### Returns
+
+- **`Promise<[ContextRuleEngineResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextRuleEngineResponse)>`**: A promise that resolves with the created rule engine details.
 
 ### Examples
 

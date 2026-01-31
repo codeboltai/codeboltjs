@@ -15,8 +15,20 @@ data:
   category: groupFeedback
   link: updateSummary.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# updateSummary
+
+```typescript
+codebolt.groupFeedback.updateSummary(params: IUpdateSummaryParams): Promise<IUpdateSummaryResponse>
+```
+
+Updates the summary of a feedback session, consolidating key points and action items.
+### Parameters
+
+- **`params`** ([IUpdateSummaryParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateSummaryParams)): Parameters including feedbackId and the new summary content.
+
+### Returns
+
+- **`Promise<[IUpdateSummaryResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IUpdateSummaryResponse)>`**: A promise that resolves with the updated summary.
 
 ### Examples
 

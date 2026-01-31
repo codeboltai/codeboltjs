@@ -21,12 +21,25 @@ data:
   category: agentPortfolio
   link: getRanking.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getRanking
+
+```typescript
+codebolt.agentPortfolio.getRanking(limit: number, sortBy: 'karma' | 'testimonials' | 'endorsements'): Promise<GetRankingResponse>
+```
+
+Gets agent rankings and leaderboards based on karma, testimonials, or endorsements.
+### Parameters
+
+- **`limit`** (number, optional): Maximum number of entries to return.
+- **`sortBy`** ('karma' | 'testimonials' | 'endorsements', optional): What to sort by (karma, testimonials, or endorsements).
+
+### Returns
+
+- **`Promise<[GetRankingResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetRankingResponse)>`**: A promise that resolves to the ranking list.
 
 ### Response Structure
 
-Returns a `GetRankingResponse` with ranking data.
+Returns a [`GetRankingResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetRankingResponse) with ranking data.
 
 **Response Properties:**
 - `type` (string): Response type identifier

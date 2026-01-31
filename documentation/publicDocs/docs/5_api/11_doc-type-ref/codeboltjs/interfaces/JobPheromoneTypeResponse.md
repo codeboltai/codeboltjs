@@ -8,10 +8,10 @@ title: JobPheromoneTypeResponse
 
 # Interface: JobPheromoneTypeResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:316
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:229
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="types"></a> `types` | [`PheromoneType`](PheromoneType)[] | [packages/codeboltjs/src/types/job.ts:317](packages/codeboltjs/src/types/job.ts#L317) |
+| <a id="types"></a> `types` | [`PheromoneType`](PheromoneType)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:230 |

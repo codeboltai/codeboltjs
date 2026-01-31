@@ -8,7 +8,7 @@ title: HookInitializeResponse
 
 # Interface: HookInitializeResponse
 
-Defined in: packages/codeboltjs/src/types/hook.ts:82
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:56
 
 Hook Types
 Type definitions for hook operations
@@ -21,8 +21,8 @@ Type definitions for hook operations
 
 | Property | Type | Overrides | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | `any` | - | [`HookBaseResponse`](HookBaseResponse).[`data`](HookBaseResponse.md#data) | [packages/codeboltjs/src/types/hook.ts:9](packages/codeboltjs/src/types/hook.ts#L9) |
-| <a id="error"></a> `error?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`error`](HookBaseResponse.md#error) | [packages/codeboltjs/src/types/hook.ts:11](packages/codeboltjs/src/types/hook.ts#L11) |
-| <a id="message"></a> `message?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`message`](HookBaseResponse.md#message) | [packages/codeboltjs/src/types/hook.ts:10](packages/codeboltjs/src/types/hook.ts#L10) |
-| <a id="success"></a> `success` | `boolean` | - | [`HookBaseResponse`](HookBaseResponse).[`success`](HookBaseResponse.md#success) | [packages/codeboltjs/src/types/hook.ts:8](packages/codeboltjs/src/types/hook.ts#L8) |
-| <a id="type"></a> `type` | `"hookInitializeResponse"` | [`HookBaseResponse`](HookBaseResponse).[`type`](HookBaseResponse.md#type) | - | [packages/codeboltjs/src/types/hook.ts:83](packages/codeboltjs/src/types/hook.ts#L83) |
+| <a id="data"></a> `data?` | `any` | - | [`HookBaseResponse`](HookBaseResponse).[`data`](HookBaseResponse.md#data) | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:8 |
+| <a id="error"></a> `error?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`error`](HookBaseResponse.md#error) | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:10 |
+| <a id="message"></a> `message?` | `string` | - | [`HookBaseResponse`](HookBaseResponse).[`message`](HookBaseResponse.md#message) | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:9 |
+| <a id="success"></a> `success` | `boolean` | - | [`HookBaseResponse`](HookBaseResponse).[`success`](HookBaseResponse.md#success) | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:7 |
+| <a id="type"></a> `type` | `"hookInitializeResponse"` | [`HookBaseResponse`](HookBaseResponse).[`type`](HookBaseResponse.md#type) | - | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:57 |

@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: queryEvents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# queryEvents
+
+```typescript
+codebolt.eventLog.queryEvents(query: undefined): Promise<EventLogQueryResponse>
+```
+
+Queries events using a flexible DSL with filtering, sorting, and aggregation capabilities.
+### Parameters
+
+- **`query`** (unknown): Query DSL object with from, where, orderBy, limit, offset, and reduce clauses.
+
+### Returns
+
+- **`Promise<[EventLogQueryResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogQueryResponse)>`**: A promise that resolves with matching events or aggregations.
 
 ### Response Structure
 

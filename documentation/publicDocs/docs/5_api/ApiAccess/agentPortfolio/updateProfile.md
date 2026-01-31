@@ -19,8 +19,21 @@ data:
   category: agentPortfolio
   link: updateProfile.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# updateProfile
+
+```typescript
+codebolt.agentPortfolio.updateProfile(agentId: string, profile: { displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }): Promise<UpdateProfileResponse>
+```
+
+Updates an agent's profile information including display name, bio, specialties, avatar, and more.
+### Parameters
+
+- **`agentId`** (string): The ID of the agent to update.
+- **`profile`** (`{ displayName?: string; bio?: string; specialties?: string[]; avatarUrl?: string; location?: string; website?: string; }`): The profile data to update.
+
+### Returns
+
+- **`Promise<[UpdateProfileResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/UpdateProfileResponse)>`**: A promise that resolves to the updated profile.
 
 ### Examples
 

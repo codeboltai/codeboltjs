@@ -8,10 +8,10 @@ title: JobBidAcceptResponse
 
 # Interface: JobBidAcceptResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:391
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:283
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:392](packages/codeboltjs/src/types/job.ts#L392) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:284 |

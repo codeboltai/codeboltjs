@@ -20,12 +20,25 @@ data:
   category: capability
   link: getCapabilityDetail.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getCapabilityDetail
+
+```typescript
+codebolt.capability.getCapabilityDetail(capabilityName: string, capabilityType: CapabilityType): Promise<GetCapabilityDetailResponse>
+```
+
+Retrieves detailed information about a specific capability including its metadata, input parameters, output structure, and execution requirements.
+### Parameters
+
+- **`capabilityName`** (string): The name of the capability to retrieve details for.
+- **`capabilityType`** ([CapabilityType](/docs/api/11_doc-type-ref/codeboltjs/type-aliases/CapabilityType), optional): Optional type to narrow the search and ensure correct capability retrieval.
+
+### Returns
+
+- **`Promise<[GetCapabilityDetailResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetCapabilityDetailResponse)>`**: A promise that resolves to detailed information about the specified capability.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetCapabilityDetailResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetCapabilityDetailResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetCapabilityDetailResponse) object with the following properties:
 
 **Response Properties:**
 - `type` (string): Always "getCapabilityDetailResponse"

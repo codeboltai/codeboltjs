@@ -8,12 +8,12 @@ title: IListDeliberationsResponse
 
 # Interface: IListDeliberationsResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:136
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:121
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `deliberations`: [`Deliberation`](Deliberation)[]; `total`: `number`; \} | [packages/codeboltjs/src/types/agentDeliberation.ts:137](packages/codeboltjs/src/types/agentDeliberation.ts#L137) |
-| `payload.deliberations` | [`Deliberation`](Deliberation)[] | [packages/codeboltjs/src/types/agentDeliberation.ts:137](packages/codeboltjs/src/types/agentDeliberation.ts#L137) |
-| `payload.total` | `number` | [packages/codeboltjs/src/types/agentDeliberation.ts:137](packages/codeboltjs/src/types/agentDeliberation.ts#L137) |
+| <a id="payload"></a> `payload` | \{ `deliberations`: [`Deliberation`](Deliberation)[]; `total`: `number`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:122 |
+| `payload.deliberations` | [`Deliberation`](Deliberation)[] | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:123 |
+| `payload.total` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:124 |

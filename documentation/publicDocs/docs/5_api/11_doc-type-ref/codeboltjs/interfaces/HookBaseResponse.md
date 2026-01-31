@@ -8,7 +8,7 @@ title: HookBaseResponse
 
 # Interface: HookBaseResponse
 
-Defined in: packages/codeboltjs/src/types/hook.ts:6
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:5
 
 Hook Types
 Type definitions for hook operations
@@ -24,8 +24,8 @@ Type definitions for hook operations
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | `any` | [packages/codeboltjs/src/types/hook.ts:9](packages/codeboltjs/src/types/hook.ts#L9) |
-| <a id="error"></a> `error?` | `string` | [packages/codeboltjs/src/types/hook.ts:11](packages/codeboltjs/src/types/hook.ts#L11) |
-| <a id="message"></a> `message?` | `string` | [packages/codeboltjs/src/types/hook.ts:10](packages/codeboltjs/src/types/hook.ts#L10) |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/hook.ts:8](packages/codeboltjs/src/types/hook.ts#L8) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/hook.ts:7](packages/codeboltjs/src/types/hook.ts#L7) |
+| <a id="data"></a> `data?` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:8 |
+| <a id="error"></a> `error?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:10 |
+| <a id="message"></a> `message?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:9 |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:7 |
+| <a id="type"></a> `type` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:6 |

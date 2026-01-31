@@ -8,11 +8,11 @@ title: ListIngestionPipelineParams
 
 # Interface: ListIngestionPipelineParams
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:105
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:76
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="activeonly"></a> `activeOnly?` | `boolean` | [packages/codeboltjs/src/types/memoryIngestion.ts:107](packages/codeboltjs/src/types/memoryIngestion.ts#L107) |
-| <a id="trigger"></a> `trigger?` | [`IngestionTrigger`](../type-aliases/IngestionTrigger) | [packages/codeboltjs/src/types/memoryIngestion.ts:106](packages/codeboltjs/src/types/memoryIngestion.ts#L106) |
+| <a id="activeonly"></a> `activeOnly?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:78 |
+| <a id="trigger"></a> `trigger?` | [`IngestionTrigger`](../type-aliases/IngestionTrigger) | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:77 |

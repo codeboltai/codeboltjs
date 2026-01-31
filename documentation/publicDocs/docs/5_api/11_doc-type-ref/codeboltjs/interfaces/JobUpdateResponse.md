@@ -8,10 +8,10 @@ title: JobUpdateResponse
 
 # Interface: JobUpdateResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:119
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:93
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:120](packages/codeboltjs/src/types/job.ts#L120) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:94 |

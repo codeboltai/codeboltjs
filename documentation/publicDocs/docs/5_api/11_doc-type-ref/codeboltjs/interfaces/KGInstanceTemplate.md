@@ -8,16 +8,16 @@ title: KGInstanceTemplate
 
 # Interface: KGInstanceTemplate
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:39
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:33
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:45](packages/codeboltjs/src/types/knowledgeGraph.ts#L45) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:42](packages/codeboltjs/src/types/knowledgeGraph.ts#L42) |
-| <a id="edge_types"></a> `edge_types` | [`KGEdgeType`](KGEdgeType)[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:44](packages/codeboltjs/src/types/knowledgeGraph.ts#L44) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:40](packages/codeboltjs/src/types/knowledgeGraph.ts#L40) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:41](packages/codeboltjs/src/types/knowledgeGraph.ts#L41) |
-| <a id="record_kinds"></a> `record_kinds` | [`KGRecordKind`](KGRecordKind)[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:43](packages/codeboltjs/src/types/knowledgeGraph.ts#L43) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:46](packages/codeboltjs/src/types/knowledgeGraph.ts#L46) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:39 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:36 |
+| <a id="edge_types"></a> `edge_types` | [`KGEdgeType`](KGEdgeType)[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:38 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:34 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:35 |
+| <a id="record_kinds"></a> `record_kinds` | [`KGRecordKind`](KGRecordKind)[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:37 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:40 |

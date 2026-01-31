@@ -15,8 +15,20 @@ data:
   category: requirementPlan
   link: create.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# create
+
+```typescript
+codebolt.requirementPlan.create(fileName: string): Promise<RequirementPlanCreateResponse>
+```
+
+Creates a new requirement plan file with the specified filename. The file is initialized with an empty document structure.
+### Parameters
+
+- **`fileName`** (string): Name for the new plan file (without .plan extension)
+
+### Returns
+
+- **`Promise<[RequirementPlanCreateResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequirementPlanCreateResponse)>`**: A promise that resolves to creation result with file path
 
 ### Parameter Details
 

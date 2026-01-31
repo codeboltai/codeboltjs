@@ -8,11 +8,11 @@ title: CodebaseSearchOptions
 
 # Interface: CodebaseSearchOptions
 
-Defined in: packages/codeboltjs/src/types/codebaseSearch.ts:14
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/codebaseSearch.d.ts:9
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="query"></a> `query` | `string` | [packages/codeboltjs/src/types/codebaseSearch.ts:15](packages/codeboltjs/src/types/codebaseSearch.ts#L15) |
-| <a id="target_directories"></a> `target_directories?` | `string`[] | [packages/codeboltjs/src/types/codebaseSearch.ts:16](packages/codeboltjs/src/types/codebaseSearch.ts#L16) |
+| <a id="query"></a> `query` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/codebaseSearch.d.ts:10 |
+| <a id="target_directories"></a> `target_directories?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/codebaseSearch.d.ts:11 |

@@ -8,11 +8,11 @@ title: IVoteResponse
 
 # Interface: IVoteResponse
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:148
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:137
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `vote`: [`DeliberationVote`](DeliberationVote); \} | [packages/codeboltjs/src/types/agentDeliberation.ts:149](packages/codeboltjs/src/types/agentDeliberation.ts#L149) |
-| `payload.vote` | [`DeliberationVote`](DeliberationVote) | [packages/codeboltjs/src/types/agentDeliberation.ts:149](packages/codeboltjs/src/types/agentDeliberation.ts#L149) |
+| <a id="payload"></a> `payload` | \{ `vote`: [`DeliberationVote`](DeliberationVote); \} | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:138 |
+| `payload.vote` | [`DeliberationVote`](DeliberationVote) | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:139 |

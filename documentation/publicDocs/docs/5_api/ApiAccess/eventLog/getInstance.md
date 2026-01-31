@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: getInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getInstance
+
+```typescript
+codebolt.eventLog.getInstance(instanceId: undefined): Promise<EventLogInstanceResponse>
+```
+
+Gets details of a specific event log instance.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the event log instance.
+
+### Returns
+
+- **`Promise<[EventLogInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogInstanceResponse)>`**: A promise that resolves with the instance details.
 
 ### Response Structure
 

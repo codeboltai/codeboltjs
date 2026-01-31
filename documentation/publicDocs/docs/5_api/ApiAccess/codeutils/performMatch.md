@@ -21,12 +21,26 @@ data:
   category: codeutils
   link: performMatch.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# performMatch
+
+```typescript
+codebolt.codeutils.performMatch(matcherDefinition: object, problemPatterns: array, problems: array): Promise<MatchProblemResponse>
+```
+
+Performs pattern matching on a list of problems using a specified matcher definition to extract structured error/warning information. 
+### Parameters
+
+- **`matcherDefinition`** (object): The matcher configuration object containing owner and pattern definitions.
+- **`problemPatterns`** (array): Array of pattern objects defining how to match and extract information from problem text.
+- **`problems`** (array): Optional: Array of problem objects containing line text and source information to be matched. Defaults to an empty array.
+
+### Returns
+
+- **`Promise<MatchProblemResponse>`**: A promise that resolves with a [`MatchProblemResponse`](/docs/api/11_doc-type-ref/types/interfaces/MatchProblemResponse) object containing structured problem information extracted from the input.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `MatchProblemResponse` object with the following properties:
+The method returns a Promise that resolves to a [`MatchProblemResponse`](/docs/api/11_doc-type-ref/types/interfaces/MatchProblemResponse) object with the following properties:
 
 - **`type`** (string): Always "matchProblemResponse".
 - **`matches`** (array, optional): An array of matched problem objects with the following structure:

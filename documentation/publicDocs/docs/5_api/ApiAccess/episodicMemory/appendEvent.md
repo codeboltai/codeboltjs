@@ -38,8 +38,20 @@ data:
   category: episodicMemory
   link: appendEvent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# appendEvent
+
+```typescript
+codebolt.episodicMemory.appendEvent(params: IAppendEventParams): Promise<IAppendEventResponse>
+```
+
+Appends a new event to an episodic memory with timestamp, type, and optional metadata.
+### Parameters
+
+- **`params`** ([IAppendEventParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IAppendEventParams)): Event data object.
+
+### Returns
+
+- **`Promise<[IAppendEventResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IAppendEventResponse)>`**: A promise that resolves to the created event details.
 
 ### Examples
 

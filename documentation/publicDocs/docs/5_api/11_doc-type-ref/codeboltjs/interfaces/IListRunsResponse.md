@@ -8,11 +8,11 @@ title: IListRunsResponse
 
 # Interface: IListRunsResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:269
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:261
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `runs`: [`TestRun`](TestRun)[]; \} | [packages/codeboltjs/src/types/autoTesting.ts:270](packages/codeboltjs/src/types/autoTesting.ts#L270) |
-| `payload.runs` | [`TestRun`](TestRun)[] | [packages/codeboltjs/src/types/autoTesting.ts:270](packages/codeboltjs/src/types/autoTesting.ts#L270) |
+| <a id="payload"></a> `payload` | \{ `runs`: [`TestRun`](TestRun)[]; \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:262 |
+| `payload.runs` | [`TestRun`](TestRun)[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:263 |

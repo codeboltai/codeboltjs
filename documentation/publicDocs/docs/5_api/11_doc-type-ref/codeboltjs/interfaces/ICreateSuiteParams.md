@@ -8,12 +8,12 @@ title: ICreateSuiteParams
 
 # Interface: ICreateSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:114
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:97
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:116](packages/codeboltjs/src/types/autoTesting.ts#L116) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:115](packages/codeboltjs/src/types/autoTesting.ts#L115) |
-| <a id="testcaseids"></a> `testCaseIds?` | `string`[] | [packages/codeboltjs/src/types/autoTesting.ts:117](packages/codeboltjs/src/types/autoTesting.ts#L117) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:99 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:98 |
+| <a id="testcaseids"></a> `testCaseIds?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:100 |

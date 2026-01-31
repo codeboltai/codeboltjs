@@ -20,8 +20,21 @@ data:
   category: agentPortfolio
   link: addTalent.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# addTalent
+
+```typescript
+codebolt.agentPortfolio.addTalent(name: string, description: string): Promise<AddTalentResponse>
+```
+
+Adds a new talent skill to the system. Talents represent specialized skills that can be endorsed.
+### Parameters
+
+- **`name`** (string): The name of the talent.
+- **`description`** (string, optional): Optional description of the talent.
+
+### Returns
+
+- **`Promise<[AddTalentResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/AddTalentResponse)>`**: A promise that resolves when talent is added.
 
 ### Examples
 

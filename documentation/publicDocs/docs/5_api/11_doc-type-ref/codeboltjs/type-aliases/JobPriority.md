@@ -12,4 +12,4 @@ title: JobPriority
 type JobPriority = 1 | 2 | 3 | 4;
 ```
 
-Defined in: packages/codeboltjs/src/types/job.ts:18
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:11

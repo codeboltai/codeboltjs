@@ -12,4 +12,4 @@ title: HookAction
 type HookAction = "notify" | "execute" | "log" | "webhook" | "agent";
 ```
 
-Defined in: packages/codeboltjs/src/types/hook.ts:27
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:13

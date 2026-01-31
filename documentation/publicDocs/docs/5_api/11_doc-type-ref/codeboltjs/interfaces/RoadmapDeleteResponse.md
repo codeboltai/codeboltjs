@@ -8,10 +8,10 @@ title: RoadmapDeleteResponse
 
 # Interface: RoadmapDeleteResponse
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:162
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:130
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="success"></a> `success` | `boolean` | [packages/codeboltjs/src/types/roadmap.ts:163](packages/codeboltjs/src/types/roadmap.ts#L163) |
+| <a id="success"></a> `success` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:131 |

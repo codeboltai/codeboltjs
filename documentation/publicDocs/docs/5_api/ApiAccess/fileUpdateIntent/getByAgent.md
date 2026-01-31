@@ -16,8 +16,20 @@ data:
   category: fileUpdateIntent
   link: getByAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getByAgent
+
+```typescript
+codebolt.fileUpdateIntent.getByAgent(agentId: undefined): Promise<FileUpdateIntent[]>
+```
+
+Gets all intents claimed by a specific agent.
+### Parameters
+
+- **`agentId`** (unknown): The agent ID to get intents for.
+
+### Returns
+
+- **`Promise<[FileUpdateIntent](/docs/api/11_doc-type-ref/codeboltjs/interfaces/FileUpdateIntent)[]>`**: A promise that resolves with an array of the agent's intents.
 
 ### Examples
 

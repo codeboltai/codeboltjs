@@ -8,15 +8,15 @@ title: DeliberationVote
 
 # Interface: DeliberationVote
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:57
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:52
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:63](packages/codeboltjs/src/types/agentDeliberation.ts#L63) |
-| <a id="deliberationid"></a> `deliberationId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:59](packages/codeboltjs/src/types/agentDeliberation.ts#L59) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:58](packages/codeboltjs/src/types/agentDeliberation.ts#L58) |
-| <a id="responseid"></a> `responseId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:60](packages/codeboltjs/src/types/agentDeliberation.ts#L60) |
-| <a id="voterid"></a> `voterId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:61](packages/codeboltjs/src/types/agentDeliberation.ts#L61) |
-| <a id="votername"></a> `voterName` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:62](packages/codeboltjs/src/types/agentDeliberation.ts#L62) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:58 |
+| <a id="deliberationid"></a> `deliberationId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:54 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:53 |
+| <a id="responseid"></a> `responseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:55 |
+| <a id="voterid"></a> `voterId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:56 |
+| <a id="votername"></a> `voterName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:57 |

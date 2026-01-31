@@ -8,11 +8,11 @@ title: IUpdateStatusResponse
 
 # Interface: IUpdateStatusResponse
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:141
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:133
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `feedback`: [`GroupFeedback`](GroupFeedback); \} | [packages/codeboltjs/src/types/groupFeedback.ts:142](packages/codeboltjs/src/types/groupFeedback.ts#L142) |
-| `payload.feedback` | [`GroupFeedback`](GroupFeedback) | [packages/codeboltjs/src/types/groupFeedback.ts:142](packages/codeboltjs/src/types/groupFeedback.ts#L142) |
+| <a id="payload"></a> `payload` | \{ `feedback`: [`GroupFeedback`](GroupFeedback); \} | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:134 |
+| `payload.feedback` | [`GroupFeedback`](GroupFeedback) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:135 |

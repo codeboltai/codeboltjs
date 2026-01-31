@@ -16,12 +16,24 @@ data:
   category: kvStore
   link: query.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# query
+
+```typescript
+codebolt.kvStore.query(query: undefined): Promise<KVQueryResponse>
+```
+
+Queries the KV store using a flexible DSL to filter, sort, and paginate records.
+### Parameters
+
+- **`query`** (unknown): A query DSL object defining the query parameters including from, where, select, orderBy, limit, and offset.
+
+### Returns
+
+- **`Promise<[KVQueryResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVQueryResponse)>`**: A promise that resolves with matching records and pagination metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `KVQueryResponse` object:
+The method returns a Promise that resolves to a [`KVQueryResponse`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KVQueryResponse) object:
 
 ```typescript
 {

@@ -15,12 +15,24 @@ data:
   category: tool
   link: getTools.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getTools
+
+```typescript
+codebolt.tool.getTools(tools: array): Promise<GetToolsResponse>
+```
+
+Gets detailed information about specific tools from configured toolboxes.
+### Parameters
+
+- **`tools`** (array): Array of objects containing toolbox and tool name pairs. Each object should have `toolbox` and `toolName` properties.
+
+### Returns
+
+- **`Promise<GetToolsResponse>`**: A promise that resolves with a [`GetToolsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetToolsResponse) object containing detailed information about the requested tools.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetToolsResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetToolsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetToolsResponse) object with the following properties:
 
 - **`type`** (string): Always "getToolsResponse".
 - **`tools`** (array, optional): Array of tool objects with detailed information including name, description, and parameters.

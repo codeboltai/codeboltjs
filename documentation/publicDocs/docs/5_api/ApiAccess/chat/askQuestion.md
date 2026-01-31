@@ -24,8 +24,22 @@ data:
   category: chat
   link: askQuestion.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# askQuestion
+
+```typescript
+codebolt.chat.askQuestion(question: string, buttons: string[], withFeedback: boolean): Promise<askQuestion>
+```
+
+Asks a question to the user.
+### Parameters
+
+- **`question`** (string): The question text to present to the user.
+- **`buttons`** (string[]): An array of button labels. Defaults to an empty array if not specified.
+- **`withFeedback`** (boolean): Whether to allow additional feedback input. Default is false.
+
+### Returns
+
+- **`Promise<askQuestion>`**: A promise that resolves with the user's response.
 
 ### Response Structure
 

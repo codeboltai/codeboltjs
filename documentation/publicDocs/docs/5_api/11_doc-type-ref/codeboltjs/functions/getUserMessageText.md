@@ -12,7 +12,7 @@ title: getUserMessageText
 function getUserMessageText(): string;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:379
+Defined in: packages/codeboltjs/src/index.ts:401
 
 ## Returns
 

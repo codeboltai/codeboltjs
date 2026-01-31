@@ -8,10 +8,10 @@ title: IListRunsParams
 
 # Interface: IListRunsParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:187
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:165
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="suiteid"></a> `suiteId?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:188](packages/codeboltjs/src/types/autoTesting.ts#L188) |
+| <a id="suiteid"></a> `suiteId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:166 |

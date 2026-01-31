@@ -16,8 +16,20 @@ data:
   category: contextAssembly
   link: getContext.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getContext
+
+```typescript
+codebolt.contextAssembly.getContext(request: undefined): Promise<ContextAssemblyResponse>
+```
+
+Assembles context from various memory sources based on rules and variables.
+### Parameters
+
+- **`request`** (unknown): Context assembly request with scope variables, memory types, and constraints.
+
+### Returns
+
+- **`Promise<[ContextAssemblyResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ContextAssemblyResponse)>`**: A promise that resolves with assembled context from all memory sources.
 
 ### Response Structure
 

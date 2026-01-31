@@ -8,12 +8,12 @@ title: UpdatePhaseData
 
 # Interface: UpdatePhaseData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:84
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:65
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/roadmap.ts:86](packages/codeboltjs/src/types/roadmap.ts#L86) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/roadmap.ts:85](packages/codeboltjs/src/types/roadmap.ts#L85) |
-| <a id="order"></a> `order?` | `number` | [packages/codeboltjs/src/types/roadmap.ts:87](packages/codeboltjs/src/types/roadmap.ts#L87) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:67 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:66 |
+| <a id="order"></a> `order?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:68 |

@@ -16,8 +16,20 @@ data:
   category: browser
   link: goToPage.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# goToPage
+
+```typescript
+codebolt.browser.goToPage(url: string): Promise<GoToPageResponse>
+```
+
+Navigates the browser to a specific URL. 
+### Parameters
+
+- **`url`** (string): The URL to navigate to (must include protocol like https://).
+
+### Returns
+
+- **`Promise<GoToPageResponse>`**: A promise that resolves when navigation is initiated with page information.
 
 ### Example
 
@@ -44,7 +56,7 @@ await codebolt.browser.goToPage('https://github.com');
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GoToPageResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GoToPageResponse`](/docs/api/11_doc-type-ref/types/interfaces/GoToPageResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "goToPageResponse"
@@ -58,6 +70,3 @@ The method returns a Promise that resolves to a `GoToPageResponse` object with t
 ### Explanation
 
 The `codebolt.browser.goToPage(url)` function navigates the browser to a specified URL. This is one of the most fundamental browser automation functions, allowing you to load different web pages programmatically.
-
-
-

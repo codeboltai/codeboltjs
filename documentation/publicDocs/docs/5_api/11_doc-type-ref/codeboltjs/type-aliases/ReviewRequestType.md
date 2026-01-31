@@ -12,6 +12,6 @@ title: ReviewRequestType
 type ReviewRequestType = "review" | "review_merge";
 ```
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:20
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:12
 
 Request type - review only or review with merge

@@ -13,8 +13,16 @@ data:
   category: crawler
   link: start.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# start
+
+```typescript
+codebolt.crawler.start(): void
+```
+
+Starts the web crawler for automation tasks.
+### Returns
+
+- **`void`**: No return value. Sends a start event to initialize the crawler.
 
 ### Example 1: Basic Crawler Start
 

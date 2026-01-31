@@ -16,8 +16,20 @@ data:
   category: autoTesting
   link: createCase.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# createCase
+
+```typescript
+codebolt.autoTesting.createCase(params: ICreateCaseParams): Promise<ICreateCaseResponse>
+```
+
+Creates a new test case with steps, labels, and priority.
+### Parameters
+
+- **`params`** ([ICreateCaseParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateCaseParams)): Parameters for creating the test case including key, name, steps, and labels.
+
+### Returns
+
+- **`Promise<[ICreateCaseResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/ICreateCaseResponse)>`**: A promise that resolves to the created test case.
 
 ### Examples
 

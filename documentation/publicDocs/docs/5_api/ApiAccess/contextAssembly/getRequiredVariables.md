@@ -16,8 +16,20 @@ data:
   category: contextAssembly
   link: getRequiredVariables.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getRequiredVariables
+
+```typescript
+codebolt.contextAssembly.getRequiredVariables(memoryNames: undefined): Promise<RequiredVariablesResponse>
+```
+
+Gets required variables for specific memory types.
+### Parameters
+
+- **`memoryNames`** (unknown): Array of memory type names to get variables for.
+
+### Returns
+
+- **`Promise<[RequiredVariablesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/RequiredVariablesResponse)>`**: A promise that resolves with required variable information.
 
 ### Response Structure
 

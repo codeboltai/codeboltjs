@@ -8,11 +8,11 @@ title: IReplyResponse
 
 # Interface: IReplyResponse
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:133
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:123
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `response`: [`FeedbackResponse`](FeedbackResponse); \} | [packages/codeboltjs/src/types/groupFeedback.ts:134](packages/codeboltjs/src/types/groupFeedback.ts#L134) |
-| `payload.response` | [`FeedbackResponse`](FeedbackResponse) | [packages/codeboltjs/src/types/groupFeedback.ts:134](packages/codeboltjs/src/types/groupFeedback.ts#L134) |
+| <a id="payload"></a> `payload` | \{ `response`: [`FeedbackResponse`](FeedbackResponse); \} | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:124 |
+| `payload.response` | [`FeedbackResponse`](FeedbackResponse) | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:125 |

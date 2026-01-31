@@ -12,4 +12,7 @@ title: HttpMethod
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS";
 ```
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:4
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:5
+
+Project Structure Types
+Type definitions for project structure management

@@ -8,11 +8,11 @@ title: IUpdateSuiteResponse
 
 # Interface: IUpdateSuiteResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:225
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:202
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | [packages/codeboltjs/src/types/autoTesting.ts:226](packages/codeboltjs/src/types/autoTesting.ts#L226) |
-| `payload.suite` | [`TestSuite`](TestSuite) | [packages/codeboltjs/src/types/autoTesting.ts:226](packages/codeboltjs/src/types/autoTesting.ts#L226) |
+| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:203 |
+| `payload.suite` | [`TestSuite`](TestSuite) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:204 |

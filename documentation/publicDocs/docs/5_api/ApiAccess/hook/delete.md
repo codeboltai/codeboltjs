@@ -15,8 +15,20 @@ data:
   category: hook
   link: delete.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# delete
+
+```typescript
+codebolt.hook.delete(hookId: string): Promise<HookDeleteResponse>
+```
+
+Deletes a hook by its ID, permanently removing it from the system.
+### Parameters
+
+- **`hookId`** (string): The unique identifier of the hook to delete.
+
+### Returns
+
+- **`Promise<[HookDeleteResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/HookDeleteResponse)>`**: A promise that resolves when the hook is deleted.
 
 ### Response Structure
 

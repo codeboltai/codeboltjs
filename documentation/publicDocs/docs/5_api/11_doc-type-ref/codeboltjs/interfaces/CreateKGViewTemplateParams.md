@@ -8,20 +8,20 @@ title: CreateKGViewTemplateParams
 
 # Interface: CreateKGViewTemplateParams
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:137
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:115
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="applicable_template_ids"></a> `applicable_template_ids` | `string`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:140](packages/codeboltjs/src/types/knowledgeGraph.ts#L140) |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:139](packages/codeboltjs/src/types/knowledgeGraph.ts#L139) |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/knowledgeGraph.ts:147](packages/codeboltjs/src/types/knowledgeGraph.ts#L147) |
-| <a id="match"></a> `match?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/knowledgeGraph.ts:141](packages/codeboltjs/src/types/knowledgeGraph.ts#L141) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:138](packages/codeboltjs/src/types/knowledgeGraph.ts#L138) |
-| <a id="orderby"></a> `orderBy?` | `any`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:145](packages/codeboltjs/src/types/knowledgeGraph.ts#L145) |
-| <a id="patterns"></a> `patterns?` | `any`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:142](packages/codeboltjs/src/types/knowledgeGraph.ts#L142) |
-| <a id="return"></a> `return?` | `string`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:148](packages/codeboltjs/src/types/knowledgeGraph.ts#L148) |
-| <a id="skip"></a> `skip?` | `number` | [packages/codeboltjs/src/types/knowledgeGraph.ts:146](packages/codeboltjs/src/types/knowledgeGraph.ts#L146) |
-| <a id="where"></a> `where?` | `any`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:143](packages/codeboltjs/src/types/knowledgeGraph.ts#L143) |
-| <a id="with"></a> `with?` | `any`[] | [packages/codeboltjs/src/types/knowledgeGraph.ts:144](packages/codeboltjs/src/types/knowledgeGraph.ts#L144) |
+| <a id="applicable_template_ids"></a> `applicable_template_ids` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:118 |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:117 |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:125 |
+| <a id="match"></a> `match?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:119 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:116 |
+| <a id="orderby"></a> `orderBy?` | `any`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:123 |
+| <a id="patterns"></a> `patterns?` | `any`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:120 |
+| <a id="return"></a> `return?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:126 |
+| <a id="skip"></a> `skip?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:124 |
+| <a id="where"></a> `where?` | `any`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:121 |
+| <a id="with"></a> `with?` | `any`[] | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:122 |

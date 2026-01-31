@@ -8,11 +8,11 @@ title: ICreateSuiteResponse
 
 # Interface: ICreateSuiteResponse
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:213
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:186
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | [packages/codeboltjs/src/types/autoTesting.ts:214](packages/codeboltjs/src/types/autoTesting.ts#L214) |
-| `payload.suite` | [`TestSuite`](TestSuite) | [packages/codeboltjs/src/types/autoTesting.ts:214](packages/codeboltjs/src/types/autoTesting.ts#L214) |
+| <a id="payload"></a> `payload` | \{ `suite`: [`TestSuite`](TestSuite); \} | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:187 |
+| `payload.suite` | [`TestSuite`](TestSuite) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:188 |

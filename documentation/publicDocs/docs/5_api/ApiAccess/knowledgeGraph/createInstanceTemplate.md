@@ -29,8 +29,20 @@ data:
   category: knowledgeGraph
   link: createInstanceTemplate.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createInstanceTemplate
+
+```typescript
+codebolt.knowledgeGraph.createInstanceTemplate(config: CreateKGInstanceTemplateParams): Promise<KGInstanceTemplateResponse>
+```
+
+Creates a new instance template that defines the schema for knowledge graph structures including record kinds and edge types.
+### Parameters
+
+- **`config`** ([CreateKGInstanceTemplateParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateKGInstanceTemplateParams)): Template configuration object.
+
+### Returns
+
+- **`Promise<[KGInstanceTemplateResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KGInstanceTemplateResponse)>`**: A promise that resolves to the created template details.
 
 ### Examples
 

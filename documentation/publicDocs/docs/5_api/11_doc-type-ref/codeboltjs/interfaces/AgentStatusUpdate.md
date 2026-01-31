@@ -8,7 +8,7 @@ title: AgentStatusUpdate
 
 # Interface: AgentStatusUpdate
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:73
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:63
 
 Agent status update data
 
@@ -16,6 +16,6 @@ Agent status update data
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="currenttask"></a> `currentTask?` | `string` | [packages/codeboltjs/src/types/swarm.ts:75](packages/codeboltjs/src/types/swarm.ts#L75) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:76](packages/codeboltjs/src/types/swarm.ts#L76) |
-| <a id="status"></a> `status` | `"active"` \| `"idle"` \| `"busy"` \| `"offline"` | [packages/codeboltjs/src/types/swarm.ts:74](packages/codeboltjs/src/types/swarm.ts#L74) |
+| <a id="currenttask"></a> `currentTask?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:65 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:66 |
+| <a id="status"></a> `status` | `"active"` \| `"idle"` \| `"busy"` \| `"offline"` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:64 |

@@ -15,12 +15,24 @@ data:
   category: tokenizer
   link: addToken.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# addToken
+
+```typescript
+codebolt.tokenizer.addToken(key: string): Promise<AddTokenResponse>
+```
+
+Adds a token to the system and returns tokenized array.
+### Parameters
+
+- **`key`** (string): The key/string to be tokenized.
+
+### Returns
+
+- **`Promise<AddTokenResponse>`**: A promise that resolves with an [`AddTokenResponse`](/docs/api/11_doc-type-ref/types/interfaces/AddTokenResponse) object containing the tokenization response.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `AddTokenResponse` object with the following properties:
+The method returns a Promise that resolves to an [`AddTokenResponse`](/docs/api/11_doc-type-ref/types/interfaces/AddTokenResponse) object with the following properties:
 
 - **`type`** (string): Always "addTokenResponse".
 - **`token`** (string, optional): The token that was added to the system.

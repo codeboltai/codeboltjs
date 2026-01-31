@@ -15,8 +15,20 @@ data:
   category: mail
   link: getAgent.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getAgent
+
+```typescript
+codebolt.mail.getAgent(params: IGetAgentParams): Promise<IGetAgentResponse>
+```
+
+Retrieves details about a specific registered agent.
+### Parameters
+
+- **`params`** (IGetAgentParams): Object containing the agentId to retrieve.
+
+### Returns
+
+- **`Promise<IGetAgentResponse>`**: A promise that resolves with the agent details.
 
 ### Response Structure
 

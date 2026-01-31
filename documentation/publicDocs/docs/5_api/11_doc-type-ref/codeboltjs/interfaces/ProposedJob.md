@@ -8,13 +8,13 @@ title: ProposedJob
 
 # Interface: ProposedJob
 
-Defined in: packages/codeboltjs/src/types/job.ts:185
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:137
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/job.ts:187](packages/codeboltjs/src/types/job.ts#L187) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/job.ts:186](packages/codeboltjs/src/types/job.ts#L186) |
-| <a id="priority"></a> `priority?` | [`JobPriority`](../type-aliases/JobPriority) | [packages/codeboltjs/src/types/job.ts:189](packages/codeboltjs/src/types/job.ts#L189) |
-| <a id="type"></a> `type?` | [`JobType`](../type-aliases/JobType) | [packages/codeboltjs/src/types/job.ts:188](packages/codeboltjs/src/types/job.ts#L188) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:139 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:138 |
+| <a id="priority"></a> `priority?` | [`JobPriority`](../type-aliases/JobPriority) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:141 |
+| <a id="type"></a> `type?` | [`JobType`](../type-aliases/JobType) | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:140 |

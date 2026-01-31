@@ -8,13 +8,13 @@ title: PipelineExecutionIntent
 
 # Interface: PipelineExecutionIntent
 
-Defined in: packages/codeboltjs/src/types/persistentMemory.ts:43
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:38
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="action"></a> `action?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:45](packages/codeboltjs/src/types/persistentMemory.ts#L45) |
-| <a id="context"></a> `context?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/persistentMemory.ts:46](packages/codeboltjs/src/types/persistentMemory.ts#L46) |
-| <a id="keywords"></a> `keywords?` | `string`[] | [packages/codeboltjs/src/types/persistentMemory.ts:44](packages/codeboltjs/src/types/persistentMemory.ts#L44) |
-| <a id="query"></a> `query?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:47](packages/codeboltjs/src/types/persistentMemory.ts#L47) |
+| <a id="action"></a> `action?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:40 |
+| <a id="context"></a> `context?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:41 |
+| <a id="keywords"></a> `keywords?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:39 |
+| <a id="query"></a> `query?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:42 |

@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: getInstanceStats.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getInstanceStats
+
+```typescript
+codebolt.eventLog.getInstanceStats(instanceId: undefined): Promise<EventLogStatsResponse>
+```
+
+Gets statistics and metadata for an event log instance.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the event log instance.
+
+### Returns
+
+- **`Promise<[EventLogStatsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogStatsResponse)>`**: A promise that resolves with instance statistics.
 
 ### Response Structure
 

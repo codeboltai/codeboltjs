@@ -8,10 +8,10 @@ title: RoadmapMoveToRoadmapResponse
 
 # Interface: RoadmapMoveToRoadmapResponse
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:184
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:147
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="feature"></a> `feature` | [`Feature`](Feature) | [packages/codeboltjs/src/types/roadmap.ts:185](packages/codeboltjs/src/types/roadmap.ts#L185) |
+| <a id="feature"></a> `feature` | [`Feature`](Feature) | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:148 |

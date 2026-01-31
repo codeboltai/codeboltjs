@@ -8,14 +8,14 @@ title: KVSetParams
 
 # Interface: KVSetParams
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:75
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:63
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="autocreateinstance"></a> `autoCreateInstance?` | `boolean` | [packages/codeboltjs/src/types/kvStore.ts:80](packages/codeboltjs/src/types/kvStore.ts#L80) |
-| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/kvStore.ts:76](packages/codeboltjs/src/types/kvStore.ts#L76) |
-| <a id="key"></a> `key` | `string` | [packages/codeboltjs/src/types/kvStore.ts:78](packages/codeboltjs/src/types/kvStore.ts#L78) |
-| <a id="namespace"></a> `namespace` | `string` | [packages/codeboltjs/src/types/kvStore.ts:77](packages/codeboltjs/src/types/kvStore.ts#L77) |
-| <a id="value"></a> `value` | `any` | [packages/codeboltjs/src/types/kvStore.ts:79](packages/codeboltjs/src/types/kvStore.ts#L79) |
+| <a id="autocreateinstance"></a> `autoCreateInstance?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:68 |
+| <a id="instanceid"></a> `instanceId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:64 |
+| <a id="key"></a> `key` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:66 |
+| <a id="namespace"></a> `namespace` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:65 |
+| <a id="value"></a> `value` | `any` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:67 |

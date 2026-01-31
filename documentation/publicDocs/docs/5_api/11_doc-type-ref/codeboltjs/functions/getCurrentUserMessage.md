@@ -12,7 +12,7 @@ title: getCurrentUserMessage
 function getCurrentUserMessage(): FlatUserMessage | undefined;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:378
+Defined in: packages/codeboltjs/src/index.ts:400
 
 ## Returns
 

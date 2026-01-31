@@ -8,10 +8,10 @@ title: IGetWinnerParams
 
 # Interface: IGetWinnerParams
 
-Defined in: packages/codeboltjs/src/types/agentDeliberation.ts:112
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:99
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="deliberationid"></a> `deliberationId` | `string` | [packages/codeboltjs/src/types/agentDeliberation.ts:113](packages/codeboltjs/src/types/agentDeliberation.ts#L113) |
+| <a id="deliberationid"></a> `deliberationId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/deliberation.d.ts:100 |

@@ -8,7 +8,7 @@ title: KVInstanceListResponse
 
 # Interface: KVInstanceListResponse
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:105
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:89
 
 KV Store Types
 Type definitions for Key-Value store operations
@@ -21,11 +21,11 @@ Type definitions for Key-Value store operations
 
 | Property | Type | Overrides | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="data"></a> `data?` | \{ `instances`: [`KVStoreInstance`](KVStoreInstance)[]; \} | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`data`](KVStoreBaseResponse.md#data) | - | [packages/codeboltjs/src/types/kvStore.ts:106](packages/codeboltjs/src/types/kvStore.ts#L106) |
-| `data.instances` | [`KVStoreInstance`](KVStoreInstance)[] | - | - | [packages/codeboltjs/src/types/kvStore.ts:106](packages/codeboltjs/src/types/kvStore.ts#L106) |
-| <a id="error"></a> `error?` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`error`](KVStoreBaseResponse.md#error) | [packages/codeboltjs/src/types/kvStore.ts:12](packages/codeboltjs/src/types/kvStore.ts#L12) |
-| <a id="message"></a> `message?` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`message`](KVStoreBaseResponse.md#message) | [packages/codeboltjs/src/types/kvStore.ts:11](packages/codeboltjs/src/types/kvStore.ts#L11) |
-| <a id="requestid"></a> `requestId` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`requestId`](KVStoreBaseResponse.md#requestid) | [packages/codeboltjs/src/types/kvStore.ts:14](packages/codeboltjs/src/types/kvStore.ts#L14) |
-| <a id="success"></a> `success` | `boolean` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`success`](KVStoreBaseResponse.md#success) | [packages/codeboltjs/src/types/kvStore.ts:9](packages/codeboltjs/src/types/kvStore.ts#L9) |
-| <a id="timestamp"></a> `timestamp` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`timestamp`](KVStoreBaseResponse.md#timestamp) | [packages/codeboltjs/src/types/kvStore.ts:13](packages/codeboltjs/src/types/kvStore.ts#L13) |
-| <a id="type"></a> `type` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`type`](KVStoreBaseResponse.md#type) | [packages/codeboltjs/src/types/kvStore.ts:8](packages/codeboltjs/src/types/kvStore.ts#L8) |
+| <a id="data"></a> `data?` | \{ `instances`: [`KVStoreInstance`](KVStoreInstance)[]; \} | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`data`](KVStoreBaseResponse.md#data) | - | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:90 |
+| `data.instances` | [`KVStoreInstance`](KVStoreInstance)[] | - | - | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:91 |
+| <a id="error"></a> `error?` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`error`](KVStoreBaseResponse.md#error) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:10 |
+| <a id="message"></a> `message?` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`message`](KVStoreBaseResponse.md#message) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:9 |
+| <a id="requestid"></a> `requestId` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`requestId`](KVStoreBaseResponse.md#requestid) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:12 |
+| <a id="success"></a> `success` | `boolean` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`success`](KVStoreBaseResponse.md#success) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:7 |
+| <a id="timestamp"></a> `timestamp` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`timestamp`](KVStoreBaseResponse.md#timestamp) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:11 |
+| <a id="type"></a> `type` | `string` | - | [`KVStoreBaseResponse`](KVStoreBaseResponse).[`type`](KVStoreBaseResponse.md#type) | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:6 |

@@ -12,12 +12,20 @@ data:
   category: project
   link: getProjectPath.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# getProjectPath
+
+```typescript
+codebolt.project.getProjectPath(): Promise<GetProjectPathResponse>
+```
+
+Retrieves the path of the current project including the project name and full path information. 
+### Returns
+
+- **`Promise<GetProjectPathResponse>`**: A promise that resolves with the project path response containing path and project name information.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetProjectPathResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetProjectPathResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetProjectPathResponse) object with the following properties:
 
 - **`type`** (string): Always "getProjectPathResponse".
 - **`path`** (string, optional): The full path to the current project directory.

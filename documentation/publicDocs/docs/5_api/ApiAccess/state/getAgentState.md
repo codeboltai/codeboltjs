@@ -13,8 +13,16 @@ data:
   category: state
   link: getAgentState.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getAgentState
+
+```typescript
+codebolt.state.getAgentState(): Promise<GetAgentStateResponse>
+```
+
+Gets the current state of the agent.
+### Returns
+
+- **`Promise<GetAgentStateResponse>`**: A promise that resolves with the agent's state data.
 
 ### Example 1: Basic Agent State Retrieval
 

@@ -8,7 +8,7 @@ title: AgentRegistration
 
 # Interface: AgentRegistration
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:23
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:17
 
 Agent registration data
 
@@ -16,11 +16,11 @@ Agent registration data
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="agentid"></a> `agentId?` | `string` | [packages/codeboltjs/src/types/swarm.ts:24](packages/codeboltjs/src/types/swarm.ts#L24) |
-| <a id="agenttype"></a> `agentType?` | `"internal"` \| `"external"` | [packages/codeboltjs/src/types/swarm.ts:27](packages/codeboltjs/src/types/swarm.ts#L27) |
-| <a id="capabilities"></a> `capabilities?` | `string`[] | [packages/codeboltjs/src/types/swarm.ts:26](packages/codeboltjs/src/types/swarm.ts#L26) |
-| <a id="connectioninfo"></a> `connectionInfo?` | \{ `endpoint`: `string`; `protocol`: `"websocket"` \| `"http"`; \} | [packages/codeboltjs/src/types/swarm.ts:28](packages/codeboltjs/src/types/swarm.ts#L28) |
-| `connectionInfo.endpoint` | `string` | [packages/codeboltjs/src/types/swarm.ts:29](packages/codeboltjs/src/types/swarm.ts#L29) |
-| `connectionInfo.protocol` | `"websocket"` \| `"http"` | [packages/codeboltjs/src/types/swarm.ts:30](packages/codeboltjs/src/types/swarm.ts#L30) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:32](packages/codeboltjs/src/types/swarm.ts#L32) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/swarm.ts:25](packages/codeboltjs/src/types/swarm.ts#L25) |
+| <a id="agentid"></a> `agentId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:18 |
+| <a id="agenttype"></a> `agentType?` | `"internal"` \| `"external"` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:21 |
+| <a id="capabilities"></a> `capabilities?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:20 |
+| <a id="connectioninfo"></a> `connectionInfo?` | \{ `endpoint`: `string`; `protocol`: `"websocket"` \| `"http"`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:22 |
+| `connectionInfo.endpoint` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:23 |
+| `connectionInfo.protocol` | `"websocket"` \| `"http"` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:24 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:26 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:19 |

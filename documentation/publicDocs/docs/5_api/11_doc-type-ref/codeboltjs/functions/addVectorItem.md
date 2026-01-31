@@ -12,7 +12,7 @@ title: addVectorItem
 function addVectorItem(item: any): Promise<AddVectorItemResponse>;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:399
+Defined in: packages/codeboltjs/src/index.ts:421
 
 ## Parameters
 

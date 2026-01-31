@@ -8,13 +8,13 @@ title: CreateKGMemoryRecordParams
 
 # Interface: CreateKGMemoryRecordParams
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:123
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:103
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="attributes"></a> `attributes` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/knowledgeGraph.ts:125](packages/codeboltjs/src/types/knowledgeGraph.ts#L125) |
-| <a id="kind"></a> `kind` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:124](packages/codeboltjs/src/types/knowledgeGraph.ts#L124) |
-| <a id="valid_from"></a> `valid_from?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:126](packages/codeboltjs/src/types/knowledgeGraph.ts#L126) |
-| <a id="valid_to"></a> `valid_to?` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:127](packages/codeboltjs/src/types/knowledgeGraph.ts#L127) |
+| <a id="attributes"></a> `attributes` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:105 |
+| <a id="kind"></a> `kind` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:104 |
+| <a id="valid_from"></a> `valid_from?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:106 |
+| <a id="valid_to"></a> `valid_to?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:107 |

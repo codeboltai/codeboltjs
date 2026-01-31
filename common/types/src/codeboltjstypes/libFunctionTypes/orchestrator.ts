@@ -26,7 +26,7 @@ export type OrchestratorStatus = 'idle' | 'running' | 'paused';
 
 /**
  * Orchestrator event types - custom event strings for orchestrator operations.
- * The server parses 'orchestrator.<action>' type strings.
+ * The server parses `orchestrator.\<action\>` type strings.
  */
 export type OrchestratorEventType =
   | 'orchestrator.list'

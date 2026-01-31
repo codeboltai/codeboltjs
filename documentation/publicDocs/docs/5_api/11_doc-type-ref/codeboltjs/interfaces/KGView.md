@@ -8,14 +8,14 @@ title: KGView
 
 # Interface: KGView
 
-Defined in: packages/codeboltjs/src/types/knowledgeGraph.ts:101
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:85
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:106](packages/codeboltjs/src/types/knowledgeGraph.ts#L106) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:102](packages/codeboltjs/src/types/knowledgeGraph.ts#L102) |
-| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:104](packages/codeboltjs/src/types/knowledgeGraph.ts#L104) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:103](packages/codeboltjs/src/types/knowledgeGraph.ts#L103) |
-| <a id="templateid"></a> `templateId` | `string` | [packages/codeboltjs/src/types/knowledgeGraph.ts:105](packages/codeboltjs/src/types/knowledgeGraph.ts#L105) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:90 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:86 |
+| <a id="instanceid"></a> `instanceId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:88 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:87 |
+| <a id="templateid"></a> `templateId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/knowledgeGraph.d.ts:89 |

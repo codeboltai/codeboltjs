@@ -8,10 +8,10 @@ title: MoveFeatureData
 
 # Interface: MoveFeatureData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:113
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:91
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="targetphaseid"></a> `targetPhaseId` | `string` | [packages/codeboltjs/src/types/roadmap.ts:114](packages/codeboltjs/src/types/roadmap.ts#L114) |
+| <a id="targetphaseid"></a> `targetPhaseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:92 |

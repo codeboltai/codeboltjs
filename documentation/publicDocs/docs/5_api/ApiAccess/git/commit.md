@@ -15,12 +15,24 @@ data:
   category: git
   link: commit.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# commit
+
+```typescript
+codebolt.git.commit(message: string): Promise<GitCommitResponse>
+```
+
+Commits the staged changes in the local repository with the given commit message. Creates a new commit with all files currently in the staging area. 
+### Parameters
+
+- **`message`** (string): The commit message to use for the commit (e.g., "Initial commit", "Fix bug in authentication", "Add new feature").
+
+### Returns
+
+- **`Promise<GitCommitResponse>`**: A promise that resolves with a [`GitCommitResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitCommitResponse) object containing the commit information and metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GitCommitResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GitCommitResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitCommitResponse) object with the following properties:
 
 - **`type`** (string): Always "gitCommitResponse".
 - **`content`** (string, optional): Content or message about the commit operation.

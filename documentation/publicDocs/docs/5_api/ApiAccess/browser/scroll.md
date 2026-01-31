@@ -21,12 +21,25 @@ data:
   category: browser
   link: scroll.md
 ---
-<CBBaseInfo/> 
- <CBParameters/>
+# scroll
+
+```typescript
+codebolt.browser.scroll(direction: string, pixels: string): Promise<ScrollResponse>
+```
+
+Scrolls the current page in a specified direction by a specified number of pixels. 
+ ### Parameters
+
+- **`direction`** (string): The direction to scroll (e.g., 'down', 'up', 'left', 'right').
+- **`pixels`** (string): The number of pixels to scroll.
+
+### Returns
+
+- **`Promise<ScrollResponse>`**: A promise that resolves when the scroll action is complete.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `BrowserActionResponseData` object with the following properties:
+The method returns a Promise that resolves to a [`BrowserActionResponseData`](/docs/api/11_doc-type-ref/types/interfaces/BrowserActionResponseData) object with the following properties:
 
 - **`type`** (string): Always "scrollResponse".
 - **`payload`** (object, optional): Contains the response data including:
@@ -72,4 +85,3 @@ await codebolt.browser.scroll("right", "100");
 - The `direction` parameter accepts values: "up", "down", "left", "right"
 - The `pixels` parameter should be a string representing the number of pixels to scroll
 - The viewport information in the response reflects the new scroll position
-

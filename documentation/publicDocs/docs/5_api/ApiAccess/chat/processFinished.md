@@ -12,8 +12,16 @@ data:
   category: chat
   link: processFinished.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# processFinished
+
+```typescript
+codebolt.chat.processFinished(): void
+```
+
+Notifies the server that a process has finished execution successfully.
+### Returns
+
+- **`void`**: This method does not return a value.
 
 ### Examples
 

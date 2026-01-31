@@ -8,10 +8,10 @@ title: JobBidListResponse
 
 # Interface: JobBidListResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:395
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:286
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="bids"></a> `bids` | [`JobBid`](JobBid)[] | [packages/codeboltjs/src/types/job.ts:396](packages/codeboltjs/src/types/job.ts#L396) |
+| <a id="bids"></a> `bids` | [`JobBid`](JobBid)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:287 |

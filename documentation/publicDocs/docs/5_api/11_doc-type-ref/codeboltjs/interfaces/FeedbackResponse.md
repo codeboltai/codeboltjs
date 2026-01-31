@@ -8,18 +8,18 @@ title: FeedbackResponse
 
 # Interface: FeedbackResponse
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:49
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:44
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="attachments"></a> `attachments?` | [`FeedbackAttachment`](FeedbackAttachment)[] | [packages/codeboltjs/src/types/groupFeedback.ts:56](packages/codeboltjs/src/types/groupFeedback.ts#L56) |
-| <a id="body"></a> `body` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:55](packages/codeboltjs/src/types/groupFeedback.ts#L55) |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:57](packages/codeboltjs/src/types/groupFeedback.ts#L57) |
-| <a id="groupfeedbackid"></a> `groupFeedbackId` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:51](packages/codeboltjs/src/types/groupFeedback.ts#L51) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:50](packages/codeboltjs/src/types/groupFeedback.ts#L50) |
-| <a id="parentid"></a> `parentId?` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:52](packages/codeboltjs/src/types/groupFeedback.ts#L52) |
-| <a id="senderid"></a> `senderId` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:53](packages/codeboltjs/src/types/groupFeedback.ts#L53) |
-| <a id="sendername"></a> `senderName` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:54](packages/codeboltjs/src/types/groupFeedback.ts#L54) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:58](packages/codeboltjs/src/types/groupFeedback.ts#L58) |
+| <a id="attachments"></a> `attachments?` | [`FeedbackAttachment`](FeedbackAttachment)[] | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:51 |
+| <a id="body"></a> `body` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:50 |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:52 |
+| <a id="groupfeedbackid"></a> `groupFeedbackId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:46 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:45 |
+| <a id="parentid"></a> `parentId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:47 |
+| <a id="senderid"></a> `senderId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:48 |
+| <a id="sendername"></a> `senderName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:49 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:53 |

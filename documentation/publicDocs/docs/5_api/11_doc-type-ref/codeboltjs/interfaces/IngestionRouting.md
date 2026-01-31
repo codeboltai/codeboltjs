@@ -8,12 +8,12 @@ title: IngestionRouting
 
 # Interface: IngestionRouting
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:44
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:22
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="destination"></a> `destination` | [`RoutingDestination`](../type-aliases/RoutingDestination) | [packages/codeboltjs/src/types/memoryIngestion.ts:45](packages/codeboltjs/src/types/memoryIngestion.ts#L45) |
-| <a id="destination_id"></a> `destination_id` | `string` | [packages/codeboltjs/src/types/memoryIngestion.ts:46](packages/codeboltjs/src/types/memoryIngestion.ts#L46) |
-| <a id="field_mapping"></a> `field_mapping?` | `Record`\<`string`, `string`\> | [packages/codeboltjs/src/types/memoryIngestion.ts:47](packages/codeboltjs/src/types/memoryIngestion.ts#L47) |
+| <a id="destination"></a> `destination` | [`RoutingDestination`](../type-aliases/RoutingDestination) | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:23 |
+| <a id="destination_id"></a> `destination_id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:24 |
+| <a id="field_mapping"></a> `field_mapping?` | `Record`\<`string`, `string`\> | common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:25 |

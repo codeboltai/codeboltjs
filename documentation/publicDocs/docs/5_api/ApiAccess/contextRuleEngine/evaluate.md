@@ -16,8 +16,20 @@ data:
   category: contextRuleEngine
   link: evaluate.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# evaluate
+
+```typescript
+codebolt.contextRuleEngine.evaluate(params: undefined): Promise<EvaluateRulesResponse>
+```
+
+Evaluates rules against provided variables.
+### Parameters
+
+- **`params`** (unknown): Evaluation parameters with scope variables and optional rule engine IDs.
+
+### Returns
+
+- **`Promise<[EvaluateRulesResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EvaluateRulesResponse)>`**: A promise that resolves with evaluation results.
 
 ### Examples
 

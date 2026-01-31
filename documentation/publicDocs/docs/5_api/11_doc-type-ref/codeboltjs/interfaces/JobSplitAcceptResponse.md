@@ -8,10 +8,10 @@ title: JobSplitAcceptResponse
 
 # Interface: JobSplitAcceptResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:350
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:254
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:351](packages/codeboltjs/src/types/job.ts#L351) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:255 |

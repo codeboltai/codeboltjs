@@ -13,12 +13,20 @@ data:
   category: browser
   link: extractText.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# extractText
+
+```typescript
+codebolt.browser.extractText(): Promise<ExtractTextResponse>
+```
+
+Extracts text from the current page. 
+### Returns
+
+- **`Promise<ExtractTextResponse>`**: 'A promise that resolves with the extracted text from the page.'
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `ExtractTextResponse` object with the following properties:
+The method returns a Promise that resolves to an [`ExtractTextResponse`](/docs/api/11_doc-type-ref/types/interfaces/ExtractTextResponse) object with the following properties:
 
 - **`type`** (string): Always "extractTextResponse".
 - **`text`** (string, optional): The extracted text content from the current page
@@ -57,4 +65,3 @@ if (textResult.success && textResult.text) {
 ### Explanation 
 
 The `codebolt.browser.extractText()` function extracts all readable text content from the current webpage. This function returns a promise that resolves with an object containing a `success` boolean and the extracted `text`. The function removes HTML markup and returns only the human-readable text that would be visible to a user browsing the page. This is particularly useful for content analysis, text mining, data extraction, generating summaries of webpage content, or when you need clean text without HTML formatting for further processing or analysis.
-

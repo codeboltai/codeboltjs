@@ -8,10 +8,10 @@ title: JobBlockerAddResponse
 
 # Interface: JobBlockerAddResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:400
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:289
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | [packages/codeboltjs/src/types/job.ts:401](packages/codeboltjs/src/types/job.ts#L401) |
+| <a id="job"></a> `job?` | [`Job`](Job) \| `null` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:290 |

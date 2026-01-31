@@ -12,7 +12,7 @@ title: getMentionedFiles
 function getMentionedFiles(): string[];
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:382
+Defined in: packages/codeboltjs/src/index.ts:404
 
 ## Returns
 

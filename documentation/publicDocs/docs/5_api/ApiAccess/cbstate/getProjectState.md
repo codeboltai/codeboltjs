@@ -15,13 +15,20 @@ data:
   category: cbstate
   link: getProjectState.md
 ---
+# getProjectState
 
-<CBBaseInfo/> 
-<CBParameters/>
+```typescript
+codebolt.cbstate.getProjectState(): Promise<GetProjectStateResponse>
+```
+
+Retrieves the current project state from the server via WebSocket. 
+### Returns
+
+- **`Promise<GetProjectStateResponse>`**: A promise that resolves with the project state containing project information, token usage, chats, and all custom project state data.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GetProjectStateResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GetProjectStateResponse`](/docs/api/11_doc-type-ref/types/interfaces/GetProjectStateResponse) object with the following properties:
 
 - **`type`** (string): Always "getProjectStateResponse".
 - **`projectState`** (object, optional): Contains the complete project state as a `Record<string, any>` object with:

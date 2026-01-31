@@ -23,4 +23,4 @@ type HookTrigger =
   | "custom";
 ```
 
-Defined in: packages/codeboltjs/src/types/hook.ts:14
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/hook.d.ts:12

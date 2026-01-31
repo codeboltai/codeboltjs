@@ -15,12 +15,24 @@ data:
   category: calendar
   link: getUpcomingEvents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# getUpcomingEvents
+
+```typescript
+codebolt.calendar.getUpcomingEvents(params: IGetUpcomingEventsParams): Promise<IGetUpcomingEventsResponse>
+```
+
+Retrieves events that are scheduled to start within a specified time window from the current time.
+### Parameters
+
+- **`params`** ([IGetUpcomingEventsParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetUpcomingEventsParams)): Optional parameters including withinMinutes (default: 60)
+
+### Returns
+
+- **`Promise<[IGetUpcomingEventsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetUpcomingEventsResponse)>`**: A promise that resolves to upcoming events within the time window
 
 ### Parameter Details
 
-The `IGetUpcomingEventsParams` interface includes:
+The [`IGetUpcomingEventsParams`](/docs/api/11_doc-type-ref/codeboltjs/interfaces/IGetUpcomingEventsParams) interface includes:
 - **`withinMinutes`** (number, optional): Time window in minutes from now (default: 60)
 
 ### Response Structure

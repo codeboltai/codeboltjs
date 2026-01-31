@@ -15,12 +15,24 @@ data:
   category: git
   link: logs.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# logs
+
+```typescript
+codebolt.git.logs(path: string): Promise<GitLogsResponse>
+```
+
+Retrieves the commit logs for the Git repository. Shows the commit history with details like hash, message, author, date, and other metadata for tracking project evolution. 
+### Parameters
+
+- **`path`** (string): The file system path of the local Git repository (e.g., '.', '/path/to/repo', './my-project').
+
+### Returns
+
+- **`Promise<GitLogsResponse>`**: A promise that resolves with a [`GitLogsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitLogsResponse) object containing the commit history and log data.
 
 ### Response Structure
 
-The method returns a Promise that resolves to a `GitLogsResponse` object with the following properties:
+The method returns a Promise that resolves to a [`GitLogsResponse`](/docs/api/11_doc-type-ref/types/interfaces/GitLogsResponse) object with the following properties:
 
 - **`type`** (string): Always "gitLogsResponse".
 - **`data`** (CommitSummary[], optional): Array of commit objects with the following properties:

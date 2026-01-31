@@ -17,4 +17,4 @@ type IngestionTrigger =
   | "manual";
 ```
 
-Defined in: packages/codeboltjs/src/types/memoryIngestion.ts:16
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/memoryIngestion.d.ts:14

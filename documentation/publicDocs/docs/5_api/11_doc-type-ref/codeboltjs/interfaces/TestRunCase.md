@@ -8,15 +8,15 @@ title: TestRunCase
 
 # Interface: TestRunCase
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:93
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:79
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="completedat"></a> `completedAt?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:99](packages/codeboltjs/src/types/autoTesting.ts#L99) |
-| <a id="startedat"></a> `startedAt?` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:98](packages/codeboltjs/src/types/autoTesting.ts#L98) |
-| <a id="status"></a> `status` | [`TestStatus`](../type-aliases/TestStatus) | [packages/codeboltjs/src/types/autoTesting.ts:95](packages/codeboltjs/src/types/autoTesting.ts#L95) |
-| <a id="steps"></a> `steps` | [`TestRunStep`](TestRunStep)[] | [packages/codeboltjs/src/types/autoTesting.ts:96](packages/codeboltjs/src/types/autoTesting.ts#L96) |
-| <a id="testcaseid"></a> `testCaseId` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:94](packages/codeboltjs/src/types/autoTesting.ts#L94) |
-| <a id="useroverride"></a> `userOverride?` | `boolean` | [packages/codeboltjs/src/types/autoTesting.ts:97](packages/codeboltjs/src/types/autoTesting.ts#L97) |
+| <a id="completedat"></a> `completedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:85 |
+| <a id="startedat"></a> `startedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:84 |
+| <a id="status"></a> `status` | [`TestStatus`](../type-aliases/TestStatus) | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:81 |
+| <a id="steps"></a> `steps` | [`TestRunStep`](TestRunStep)[] | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:82 |
+| <a id="testcaseid"></a> `testCaseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:80 |
+| <a id="useroverride"></a> `userOverride?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:83 |

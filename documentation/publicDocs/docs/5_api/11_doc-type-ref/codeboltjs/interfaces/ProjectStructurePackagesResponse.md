@@ -8,11 +8,11 @@ title: ProjectStructurePackagesResponse
 
 # Interface: ProjectStructurePackagesResponse
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:149
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:118
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="count"></a> `count` | `number` | [packages/codeboltjs/src/types/projectStructure.ts:151](packages/codeboltjs/src/types/projectStructure.ts#L151) |
-| <a id="packages"></a> `packages` | [`PackageMetadata`](PackageMetadata)[] | [packages/codeboltjs/src/types/projectStructure.ts:150](packages/codeboltjs/src/types/projectStructure.ts#L150) |
+| <a id="count"></a> `count` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:120 |
+| <a id="packages"></a> `packages` | [`PackageMetadata`](PackageMetadata)[] | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:119 |

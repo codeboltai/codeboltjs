@@ -8,11 +8,11 @@ title: KVDeleteNamespaceParams
 
 # Interface: KVDeleteNamespaceParams
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:95
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:80
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="instanceid"></a> `instanceId` | `string` | [packages/codeboltjs/src/types/kvStore.ts:96](packages/codeboltjs/src/types/kvStore.ts#L96) |
-| <a id="namespace"></a> `namespace` | `string` | [packages/codeboltjs/src/types/kvStore.ts:97](packages/codeboltjs/src/types/kvStore.ts#L97) |
+| <a id="instanceid"></a> `instanceId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:81 |
+| <a id="namespace"></a> `namespace` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:82 |

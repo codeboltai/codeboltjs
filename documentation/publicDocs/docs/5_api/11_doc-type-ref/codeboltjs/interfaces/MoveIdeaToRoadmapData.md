@@ -8,11 +8,11 @@ title: MoveIdeaToRoadmapData
 
 # Interface: MoveIdeaToRoadmapData
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:142
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:116
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="featureoverrides"></a> `featureOverrides?` | `Partial`\<[`CreateFeatureData`](CreateFeatureData)\> | [packages/codeboltjs/src/types/roadmap.ts:144](packages/codeboltjs/src/types/roadmap.ts#L144) |
-| <a id="phaseid"></a> `phaseId` | `string` | [packages/codeboltjs/src/types/roadmap.ts:143](packages/codeboltjs/src/types/roadmap.ts#L143) |
+| <a id="featureoverrides"></a> `featureOverrides?` | `Partial`\<[`CreateFeatureData`](CreateFeatureData)\> | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:118 |
+| <a id="phaseid"></a> `phaseId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:117 |

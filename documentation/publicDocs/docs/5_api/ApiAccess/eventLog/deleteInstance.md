@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: deleteInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# deleteInstance
+
+```typescript
+codebolt.eventLog.deleteInstance(instanceId: undefined): Promise<EventLogInstanceResponse>
+```
+
+Deletes an event log instance and all its events.
+### Parameters
+
+- **`instanceId`** (unknown): The unique identifier of the event log instance to delete.
+
+### Returns
+
+- **`Promise<[EventLogInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogInstanceResponse)>`**: A promise that resolves when the instance is deleted.
 
 ### Examples
 

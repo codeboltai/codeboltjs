@@ -8,10 +8,10 @@ title: JobDeleteResponse
 
 # Interface: JobDeleteResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:127
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:99
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="deleted"></a> `deleted` | `boolean` | [packages/codeboltjs/src/types/job.ts:128](packages/codeboltjs/src/types/job.ts#L128) |
+| <a id="deleted"></a> `deleted` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:100 |

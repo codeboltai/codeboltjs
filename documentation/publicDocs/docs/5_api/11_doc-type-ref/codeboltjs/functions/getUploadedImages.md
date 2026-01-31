@@ -12,7 +12,7 @@ title: getUploadedImages
 function getUploadedImages(): any[];
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:387
+Defined in: packages/codeboltjs/src/index.ts:409
 
 ## Returns
 

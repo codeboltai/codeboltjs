@@ -8,7 +8,7 @@ title: CreateFileUpdateIntentRequest
 
 # Interface: CreateFileUpdateIntentRequest
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:81
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:55
 
 Request to create a file update intent
 
@@ -16,10 +16,10 @@ Request to create a file update intent
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="autoexpire"></a> `autoExpire?` | `boolean` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:87](packages/codeboltjs/src/types/fileUpdateIntent.ts#L87) |
-| <a id="description"></a> `description` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:84](packages/codeboltjs/src/types/fileUpdateIntent.ts#L84) |
-| <a id="environmentid"></a> `environmentId` | `string` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:82](packages/codeboltjs/src/types/fileUpdateIntent.ts#L82) |
-| <a id="estimatedduration"></a> `estimatedDuration?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:85](packages/codeboltjs/src/types/fileUpdateIntent.ts#L85) |
-| <a id="files"></a> `files` | [`FileIntent`](FileIntent)[] | [packages/codeboltjs/src/types/fileUpdateIntent.ts:83](packages/codeboltjs/src/types/fileUpdateIntent.ts#L83) |
-| <a id="maxautoexpireminutes"></a> `maxAutoExpireMinutes?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:88](packages/codeboltjs/src/types/fileUpdateIntent.ts#L88) |
-| <a id="priority"></a> `priority?` | `number` | [packages/codeboltjs/src/types/fileUpdateIntent.ts:86](packages/codeboltjs/src/types/fileUpdateIntent.ts#L86) |
+| <a id="autoexpire"></a> `autoExpire?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:61 |
+| <a id="description"></a> `description` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:58 |
+| <a id="environmentid"></a> `environmentId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:56 |
+| <a id="estimatedduration"></a> `estimatedDuration?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:59 |
+| <a id="files"></a> `files` | [`FileIntent`](FileIntent)[] | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:57 |
+| <a id="maxautoexpireminutes"></a> `maxAutoExpireMinutes?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:62 |
+| <a id="priority"></a> `priority?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:60 |

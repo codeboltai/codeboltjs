@@ -8,15 +8,15 @@ title: PheromoneDeposit
 
 # Interface: PheromoneDeposit
 
-Defined in: packages/codeboltjs/src/types/job.ts:164
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:123
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="depositedat"></a> `depositedAt?` | `string` | [packages/codeboltjs/src/types/job.ts:170](packages/codeboltjs/src/types/job.ts#L170) |
-| <a id="depositedby"></a> `depositedBy?` | `string` | [packages/codeboltjs/src/types/job.ts:168](packages/codeboltjs/src/types/job.ts#L168) |
-| <a id="depositedbyname"></a> `depositedByName?` | `string` | [packages/codeboltjs/src/types/job.ts:169](packages/codeboltjs/src/types/job.ts#L169) |
-| <a id="id"></a> `id?` | `string` | [packages/codeboltjs/src/types/job.ts:165](packages/codeboltjs/src/types/job.ts#L165) |
-| <a id="intensity"></a> `intensity?` | `number` | [packages/codeboltjs/src/types/job.ts:167](packages/codeboltjs/src/types/job.ts#L167) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/job.ts:166](packages/codeboltjs/src/types/job.ts#L166) |
+| <a id="depositedat"></a> `depositedAt?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:129 |
+| <a id="depositedby"></a> `depositedBy?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:127 |
+| <a id="depositedbyname"></a> `depositedByName?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:128 |
+| <a id="id"></a> `id?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:124 |
+| <a id="intensity"></a> `intensity?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:126 |
+| <a id="type"></a> `type` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:125 |

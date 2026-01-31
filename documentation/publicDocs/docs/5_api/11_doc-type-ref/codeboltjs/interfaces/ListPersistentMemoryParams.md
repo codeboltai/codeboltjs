@@ -8,11 +8,11 @@ title: ListPersistentMemoryParams
 
 # Interface: ListPersistentMemoryParams
 
-Defined in: packages/codeboltjs/src/types/persistentMemory.ts:78
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:68
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="activeonly"></a> `activeOnly?` | `boolean` | [packages/codeboltjs/src/types/persistentMemory.ts:80](packages/codeboltjs/src/types/persistentMemory.ts#L80) |
-| <a id="inputscope"></a> `inputScope?` | `string` | [packages/codeboltjs/src/types/persistentMemory.ts:79](packages/codeboltjs/src/types/persistentMemory.ts#L79) |
+| <a id="activeonly"></a> `activeOnly?` | `boolean` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:70 |
+| <a id="inputscope"></a> `inputScope?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/persistentMemory.d.ts:69 |

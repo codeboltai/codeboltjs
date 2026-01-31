@@ -8,12 +8,15 @@ title: RoadmapCreator
 
 # Interface: RoadmapCreator
 
-Defined in: packages/codeboltjs/src/types/roadmap.ts:4
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:5
+
+Roadmap Types
+Type definitions for roadmap management functionality
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/roadmap.ts:5](packages/codeboltjs/src/types/roadmap.ts#L5) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/roadmap.ts:6](packages/codeboltjs/src/types/roadmap.ts#L6) |
-| <a id="type"></a> `type?` | `"user"` \| `"agent"` | [packages/codeboltjs/src/types/roadmap.ts:7](packages/codeboltjs/src/types/roadmap.ts#L7) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:6 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:7 |
+| <a id="type"></a> `type?` | `"user"` \| `"agent"` | common/types/dist/codeboltjstypes/libFunctionTypes/roadmap.d.ts:8 |

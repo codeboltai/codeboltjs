@@ -12,4 +12,4 @@ title: TestStatus
 type TestStatus = "pending" | "running" | "passed" | "failed" | "skipped";
 ```
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:50
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:41

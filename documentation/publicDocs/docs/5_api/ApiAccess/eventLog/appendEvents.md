@@ -16,8 +16,20 @@ data:
   category: eventLog
   link: appendEvents.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# appendEvents
+
+```typescript
+codebolt.eventLog.appendEvents(params: undefined): Promise<EventLogAppendMultipleResponse>
+```
+
+Appends multiple events to an event log stream in a batch.
+### Parameters
+
+- **`params`** (unknown): Parameters including instanceId, events array, and autoCreateInstance option.
+
+### Returns
+
+- **`Promise<[EventLogAppendMultipleResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/EventLogAppendMultipleResponse)>`**: A promise that resolves with all appended events and count.
 
 ### Response Structure
 

@@ -8,14 +8,14 @@ title: Dependency
 
 # Interface: Dependency
 
-Defined in: packages/codeboltjs/src/types/projectStructure.ts:38
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:31
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="description"></a> `description?` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:43](packages/codeboltjs/src/types/projectStructure.ts#L43) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:39](packages/codeboltjs/src/types/projectStructure.ts#L39) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:40](packages/codeboltjs/src/types/projectStructure.ts#L40) |
-| <a id="type"></a> `type` | `"runtime"` \| `"dev"` \| `"peer"` \| `"optional"` | [packages/codeboltjs/src/types/projectStructure.ts:42](packages/codeboltjs/src/types/projectStructure.ts#L42) |
-| <a id="version"></a> `version` | `string` | [packages/codeboltjs/src/types/projectStructure.ts:41](packages/codeboltjs/src/types/projectStructure.ts#L41) |
+| <a id="description"></a> `description?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:36 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:32 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:33 |
+| <a id="type"></a> `type` | `"runtime"` \| `"dev"` \| `"peer"` \| `"optional"` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:35 |
+| <a id="version"></a> `version` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/projectStructure.d.ts:34 |

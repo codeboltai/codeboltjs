@@ -14,7 +14,7 @@ import type {
     CreateContextRuleEngineParams,
     UpdateContextRuleEngineParams,
     EvaluateRulesParams
-} from '../types/contextRuleEngine';
+} from '@codebolt/types/lib';
 
 const contextRuleEngine = {
     /**

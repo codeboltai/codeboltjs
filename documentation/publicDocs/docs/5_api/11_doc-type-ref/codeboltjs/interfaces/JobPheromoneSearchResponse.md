@@ -8,11 +8,11 @@ title: JobPheromoneSearchResponse
 
 # Interface: JobPheromoneSearchResponse
 
-Defined in: packages/codeboltjs/src/types/job.ts:336
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:244
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | [packages/codeboltjs/src/types/job.ts:337](packages/codeboltjs/src/types/job.ts#L337) |
-| <a id="totalcount"></a> `totalCount` | `number` | [packages/codeboltjs/src/types/job.ts:338](packages/codeboltjs/src/types/job.ts#L338) |
+| <a id="jobs"></a> `jobs` | [`Job`](Job)[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:245 |
+| <a id="totalcount"></a> `totalCount` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:246 |

@@ -8,15 +8,15 @@ title: JobGroup
 
 # Interface: JobGroup
 
-Defined in: packages/codeboltjs/src/types/job.ts:2
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:1
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="createdat"></a> `createdAt` | `string` | [packages/codeboltjs/src/types/job.ts:7](packages/codeboltjs/src/types/job.ts#L7) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/job.ts:3](packages/codeboltjs/src/types/job.ts#L3) |
-| <a id="name"></a> `name?` | `string` | [packages/codeboltjs/src/types/job.ts:5](packages/codeboltjs/src/types/job.ts#L5) |
-| <a id="parentid"></a> `parentId?` | `string` | [packages/codeboltjs/src/types/job.ts:6](packages/codeboltjs/src/types/job.ts#L6) |
-| <a id="shortname"></a> `shortName` | `string` | [packages/codeboltjs/src/types/job.ts:4](packages/codeboltjs/src/types/job.ts#L4) |
-| <a id="updatedat"></a> `updatedAt` | `string` | [packages/codeboltjs/src/types/job.ts:8](packages/codeboltjs/src/types/job.ts#L8) |
+| <a id="createdat"></a> `createdAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:6 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:2 |
+| <a id="name"></a> `name?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:4 |
+| <a id="parentid"></a> `parentId?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:5 |
+| <a id="shortname"></a> `shortName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:3 |
+| <a id="updatedat"></a> `updatedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:7 |

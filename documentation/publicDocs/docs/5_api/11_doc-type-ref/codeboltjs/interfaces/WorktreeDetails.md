@@ -8,7 +8,7 @@ title: WorktreeDetails
 
 # Interface: WorktreeDetails
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:30
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:20
 
 Worktree details for git worktree merge strategy
 
@@ -16,7 +16,7 @@ Worktree details for git worktree merge strategy
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="basebranch"></a> `baseBranch?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:33](packages/codeboltjs/src/types/reviewMergeRequest.ts#L33) |
-| <a id="branchname"></a> `branchName` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:32](packages/codeboltjs/src/types/reviewMergeRequest.ts#L32) |
-| <a id="commithash"></a> `commitHash?` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:34](packages/codeboltjs/src/types/reviewMergeRequest.ts#L34) |
-| <a id="worktreepath"></a> `worktreePath` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:31](packages/codeboltjs/src/types/reviewMergeRequest.ts#L31) |
+| <a id="basebranch"></a> `baseBranch?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:23 |
+| <a id="branchname"></a> `branchName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:22 |
+| <a id="commithash"></a> `commitHash?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:24 |
+| <a id="worktreepath"></a> `worktreePath` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:21 |

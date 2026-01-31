@@ -15,8 +15,20 @@ data:
   category: mail
   link: archiveThread.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# archiveThread
+
+```typescript
+codebolt.mail.archiveThread(params: IArchiveThreadParams): Promise<IArchiveThreadResponse>
+```
+
+Archives a mail thread to remove it from active view while preserving history.
+### Parameters
+
+- **`params`** (IArchiveThreadParams): Object containing the threadId to archive.
+
+### Returns
+
+- **`Promise<IArchiveThreadResponse>`**: A promise that resolves when the thread is archived.
 
 ### Response Structure
 

@@ -17,8 +17,20 @@ data:
   category: agentPortfolio
   link: getTalents.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# getTalents
+
+```typescript
+codebolt.agentPortfolio.getTalents(agentId: string): Promise<GetTalentsResponse>
+```
+
+Retrieves talents, optionally filtered by agent. Returns list of available talents or agent-specific talents.
+### Parameters
+
+- **`agentId`** (string, optional): Optional agent ID to get talents for.
+
+### Returns
+
+- **`Promise<[GetTalentsResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/GetTalentsResponse)>`**: A promise that resolves to the list of talents.
 
 ### Examples
 

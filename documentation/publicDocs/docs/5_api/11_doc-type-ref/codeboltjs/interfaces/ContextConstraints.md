@@ -8,12 +8,12 @@ title: ContextConstraints
 
 # Interface: ContextConstraints
 
-Defined in: packages/codeboltjs/src/types/contextAssembly.ts:25
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:22
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="max_sources"></a> `max_sources?` | `number` | [packages/codeboltjs/src/types/contextAssembly.ts:27](packages/codeboltjs/src/types/contextAssembly.ts#L27) |
-| <a id="max_tokens"></a> `max_tokens?` | `number` | [packages/codeboltjs/src/types/contextAssembly.ts:26](packages/codeboltjs/src/types/contextAssembly.ts#L26) |
-| <a id="timeout_ms"></a> `timeout_ms?` | `number` | [packages/codeboltjs/src/types/contextAssembly.ts:28](packages/codeboltjs/src/types/contextAssembly.ts#L28) |
+| <a id="max_sources"></a> `max_sources?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:24 |
+| <a id="max_tokens"></a> `max_tokens?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:23 |
+| <a id="timeout_ms"></a> `timeout_ms?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/contextAssembly.d.ts:25 |

@@ -15,8 +15,20 @@ data:
   category: hook
   link: get.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# get
+
+```typescript
+codebolt.hook.get(hookId: string): Promise<HookResponse>
+```
+
+Retrieves details of a specific hook by its ID.
+### Parameters
+
+- **`hookId`** (string): The unique identifier of the hook to retrieve.
+
+### Returns
+
+- **`Promise<[HookResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/HookResponse)>`**: A promise that resolves with the hook details.
 
 ### Examples
 

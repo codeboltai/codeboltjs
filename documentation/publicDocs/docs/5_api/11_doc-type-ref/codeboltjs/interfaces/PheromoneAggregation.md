@@ -8,13 +8,13 @@ title: PheromoneAggregation
 
 # Interface: PheromoneAggregation
 
-Defined in: packages/codeboltjs/src/types/job.ts:174
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:131
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="count"></a> `count` | `number` | [packages/codeboltjs/src/types/job.ts:177](packages/codeboltjs/src/types/job.ts#L177) |
-| <a id="depositors"></a> `depositors` | `string`[] | [packages/codeboltjs/src/types/job.ts:178](packages/codeboltjs/src/types/job.ts#L178) |
-| <a id="totalintensity"></a> `totalIntensity` | `number` | [packages/codeboltjs/src/types/job.ts:176](packages/codeboltjs/src/types/job.ts#L176) |
-| <a id="type"></a> `type` | `string` | [packages/codeboltjs/src/types/job.ts:175](packages/codeboltjs/src/types/job.ts#L175) |
+| <a id="count"></a> `count` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:134 |
+| <a id="depositors"></a> `depositors` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:135 |
+| <a id="totalintensity"></a> `totalIntensity` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:133 |
+| <a id="type"></a> `type` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/job.d.ts:132 |

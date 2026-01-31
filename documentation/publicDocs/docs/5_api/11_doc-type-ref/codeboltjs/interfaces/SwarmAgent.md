@@ -8,7 +8,7 @@ title: SwarmAgent
 
 # Interface: SwarmAgent
 
-Defined in: packages/codeboltjs/src/types/swarm.ts:97
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:81
 
 Agent within a swarm
 
@@ -16,11 +16,11 @@ Agent within a swarm
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="capabilities"></a> `capabilities?` | `string`[] | [packages/codeboltjs/src/types/swarm.ts:102](packages/codeboltjs/src/types/swarm.ts#L102) |
-| <a id="currenttask"></a> `currentTask?` | `string` | [packages/codeboltjs/src/types/swarm.ts:103](packages/codeboltjs/src/types/swarm.ts#L103) |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/swarm.ts:98](packages/codeboltjs/src/types/swarm.ts#L98) |
-| <a id="joinedat"></a> `joinedAt` | `string` | [packages/codeboltjs/src/types/swarm.ts:104](packages/codeboltjs/src/types/swarm.ts#L104) |
-| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | [packages/codeboltjs/src/types/swarm.ts:105](packages/codeboltjs/src/types/swarm.ts#L105) |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/swarm.ts:99](packages/codeboltjs/src/types/swarm.ts#L99) |
-| <a id="status"></a> `status` | `"active"` \| `"idle"` \| `"busy"` \| `"offline"` | [packages/codeboltjs/src/types/swarm.ts:101](packages/codeboltjs/src/types/swarm.ts#L101) |
-| <a id="swarmid"></a> `swarmId` | `string` | [packages/codeboltjs/src/types/swarm.ts:100](packages/codeboltjs/src/types/swarm.ts#L100) |
+| <a id="capabilities"></a> `capabilities?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:86 |
+| <a id="currenttask"></a> `currentTask?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:87 |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:82 |
+| <a id="joinedat"></a> `joinedAt` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:88 |
+| <a id="metadata"></a> `metadata?` | `Record`\<`string`, `any`\> | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:89 |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:83 |
+| <a id="status"></a> `status` | `"active"` \| `"idle"` \| `"busy"` \| `"offline"` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:85 |
+| <a id="swarmid"></a> `swarmId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/swarm.d.ts:84 |

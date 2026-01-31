@@ -16,8 +16,20 @@ data:
   category: agentDeliberation
   link: summary.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# summary
+
+```typescript
+codebolt.agentDeliberation.summary(params: ISummaryParams): Promise<ISummaryResponse>
+```
+
+Adds a summary to a deliberation, typically after completion.
+### Parameters
+
+- **`params`** (ISummaryParams): Parameters including deliberation ID, summary text, and author info.
+
+### Returns
+
+- **`Promise<ISummaryResponse>`**: A promise that resolves to the updated deliberation with summary.
 
 ### Examples
 

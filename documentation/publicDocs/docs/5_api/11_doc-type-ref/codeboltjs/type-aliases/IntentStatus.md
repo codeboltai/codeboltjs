@@ -12,6 +12,6 @@ title: IntentStatus
 type IntentStatus = "active" | "completed" | "expired" | "cancelled";
 ```
 
-Defined in: packages/codeboltjs/src/types/fileUpdateIntent.ts:54
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/fileUpdateIntent.d.ts:30
 
 Intent status

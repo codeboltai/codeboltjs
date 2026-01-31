@@ -8,10 +8,10 @@ title: IDeleteSuiteParams
 
 # Interface: IDeleteSuiteParams
 
-Defined in: packages/codeboltjs/src/types/autoTesting.ts:133
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:113
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="id"></a> `id` | `string` | [packages/codeboltjs/src/types/autoTesting.ts:134](packages/codeboltjs/src/types/autoTesting.ts#L134) |
+| <a id="id"></a> `id` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/autoTesting.d.ts:114 |

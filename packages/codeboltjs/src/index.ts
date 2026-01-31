@@ -108,6 +108,9 @@ export type {
 // ================================
 
 export type {
+    // Application State Types
+    ApplicationState,
+
     // Git Types (returned by git operations)
     GitFileStatus,
     StatusResult,
@@ -121,6 +124,8 @@ export type {
 
     // Task Types (for task management)
     Task,
+    SubTask,
+    TaskResponse,
 
     // Vector Database Types (for vector operations)
     VectorItem,
@@ -130,6 +135,7 @@ export type {
     FileEntry,
     SearchMatch,
     SearchResult,
+    FileStateInfo,
 
     // Browser Types (for browser operations)
     BrowserElement,
@@ -148,6 +154,22 @@ export type {
 
     // Notification Types (for notifications)
     Notification,
+
+    // Log Types
+    LogType,
+
+    // Message Types (for WebSocket communication)
+    PendingRequest,
+    MessageRoute,
+
+    // User Message Types
+    InitialUserMessage,
+
+    // Configuration Types
+    Config,
+
+    // Error Types
+    CodeboltError,
 
     // Utility Types for User Functions
     DeepPartial,
@@ -227,7 +249,7 @@ export type {
     JobBlockerAddResponse,
     JobBlockerRemoveResponse,
     JobBlockerResolveResponse
-} from './types/job';
+} from '@codebolt/types/lib';
 
 
 // ================================
@@ -244,18 +266,18 @@ export type {
     ICreateFeedbackParams,
     IGetFeedbackParams,
     IListFeedbacksParams,
-    IRespondParams,
+    IFeedbackRespondParams,
     IReplyParams,
     IUpdateSummaryParams,
     IUpdateStatusParams,
     ICreateFeedbackResponse,
     IGetFeedbackResponse,
     IListFeedbacksResponse,
-    IRespondResponse,
+    IFeedbackRespondResponse,
     IReplyResponse,
     IUpdateSummaryResponse,
     IUpdateStatusResponse
-} from './types/groupFeedback';
+} from '@codebolt/types/lib';
 
 // ================================
 // Agent Deliberation Types
@@ -281,7 +303,7 @@ export type {
     IRespondResponse as IDeliberationRespondResponse,
     IVoteResponse,
     IGetWinnerResponse
-} from './types/agentDeliberation';
+} from '@codebolt/types/lib';
 
 // ================================
 // AutoTesting Types
@@ -333,7 +355,7 @@ export type {
     IUpdateRunStatusResponse,
     IUpdateRunCaseResponse,
     IUpdateRunStepResponse
-} from './types/autoTesting';
+} from '@codebolt/types/lib';
 
 // ================================
 // Main Library Instance (process-wide singleton)
@@ -668,7 +690,7 @@ export type {
     RoadmapIdeasResponse,
     RoadmapIdeaResponse,
     RoadmapMoveToRoadmapResponse
-} from './types/roadmap';
+} from '@codebolt/types/lib';
 
 // ================================
 // Codemap Types
@@ -686,7 +708,7 @@ export type {
     CodemapSaveResponse,
     CodemapUpdateResponse,
     CodemapDeleteResponse
-} from './types/codemap';
+} from '@codebolt/types/lib';
 
 // ================================
 // Project Structure Types
@@ -713,7 +735,7 @@ export type {
     ProjectStructureDeleteResponse,
     ProjectStructureItemResponse,
     ProjectStructureUpdateResponse
-} from './types/projectStructure';
+} from '@codebolt/types/lib';
 
 // ================================
 // Codebase Search Types
@@ -724,7 +746,7 @@ export type {
     SearchMcpToolOptions,
     CodebaseSearchResponse,
     McpToolSearchResponse
-} from './types/codebaseSearch';
+} from '@codebolt/types/lib';
 
 // ================================
 // File Update Intent Types
@@ -743,7 +765,7 @@ export type {
     FileUpdateIntentListResponse,
     FileUpdateIntentOverlapResponse,
     FileUpdateIntentBlockedFilesResponse
-} from './types/fileUpdateIntent';
+} from '@codebolt/types/lib';
 
 // Export fileUpdateIntent module
 export { default as fileUpdateIntent } from './modules/fileUpdateIntent';
@@ -768,7 +790,7 @@ export type {
     AddReviewFeedback,
     ReviewMergeRequestFilters,
     ReviewMergeRequestDisplaySettings
-} from './types/reviewMergeRequest';
+} from '@codebolt/types/lib';
 
 // Export reviewMergeRequest module
 export { default as reviewMergeRequest } from './modules/reviewMergeRequest';
@@ -798,7 +820,7 @@ export type {
     KVQueryResponse,
     KVNamespacesResponse,
     KVRecordCountResponse
-} from './types/kvStore';
+} from '@codebolt/types/lib';
 
 // Export kvStore module
 export { default as kvStore } from './modules/kvStore';
@@ -821,7 +843,7 @@ export type {
     PersistentMemoryExecuteResponse,
     PersistentMemoryValidateResponse,
     PersistentMemoryStepSpecsResponse
-} from './types/persistentMemory';
+} from '@codebolt/types/lib';
 
 // Export persistentMemory module
 export { default as persistentMemory } from './modules/persistentMemory';
@@ -860,7 +882,7 @@ export type {
     EventLogAppendMultipleResponse,
     EventLogQueryResponse,
     EventLogStatsResponse
-} from './types/eventLog';
+} from '@codebolt/types/lib';
 
 // Export eventLog module
 export { default as eventLog } from './modules/eventLog';
@@ -901,7 +923,7 @@ export type {
     KGViewListResponse,
     KGViewExecuteResponse,
     KGDeleteResponse
-} from './types/knowledgeGraph';
+} from '@codebolt/types/lib';
 
 // Export knowledgeGraph module
 export { default as knowledgeGraph } from './modules/knowledgeGraph';
@@ -920,7 +942,7 @@ export type {
     HookListResponse,
     HookInitializeResponse,
     HookDeleteResponse
-} from './types/hook';
+} from '@codebolt/types/lib';
 
 // Export hook module
 export { default as hook } from './modules/hook';
@@ -947,7 +969,7 @@ export type {
     IngestionExecuteResponse,
     IngestionValidateResponse,
     IngestionProcessorSpecsResponse
-} from './types/memoryIngestion';
+} from '@codebolt/types/lib';
 
 // Export memoryIngestion module
 export { default as memoryIngestion } from './modules/memoryIngestion';
@@ -970,7 +992,7 @@ export type {
     MemoryTypesResponse,
     RuleEvaluationResponse,
     RequiredVariablesResponse
-} from './types/contextAssembly';
+} from '@codebolt/types/lib';
 
 // Export contextAssembly module
 export { default as contextAssembly } from './modules/contextAssembly';
@@ -994,7 +1016,7 @@ export type {
     ContextRuleEngineDeleteResponse,
     EvaluateRulesResponse,
     PossibleVariablesResponse
-} from './types/contextRuleEngine';
+} from '@codebolt/types/lib';
 
 // Export contextRuleEngine module
 export { default as contextRuleEngine } from './modules/contextRuleEngine';
@@ -1025,7 +1047,7 @@ export type {
     GetRankingResponse,
     GetPortfoliosByProjectResponse,
     UpdateProfileResponse
-} from './types/agentPortfolio';
+} from '@codebolt/types/lib';
 
 // Export agentPortfolio module
 export { default as agentPortfolio } from './modules/agentPortfolio';
@@ -1052,13 +1074,13 @@ export type {
     AgentEventPayload,
     PullEventsInput,
     PullEventsResponseData
-} from './types/agentEventQueue';
+} from '@codebolt/types/lib';
 
 export {
     AgentEventType,
     AgentEventStatus,
     AgentEventPriority
-} from './types/agentEventQueue';
+} from '@codebolt/types/lib';
 
 // Export agentEventQueue module
 export { default as agentEventQueue } from './modules/agentEventQueue';

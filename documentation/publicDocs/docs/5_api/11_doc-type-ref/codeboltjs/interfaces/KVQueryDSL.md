@@ -8,19 +8,19 @@ title: KVQueryDSL
 
 # Interface: KVQueryDSL
 
-Defined in: packages/codeboltjs/src/types/kvStore.ts:36
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:30
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="from"></a> `from` | \{ `instance`: `string`; `namespace?`: `string`; \} | [packages/codeboltjs/src/types/kvStore.ts:37](packages/codeboltjs/src/types/kvStore.ts#L37) |
-| `from.instance` | `string` | [packages/codeboltjs/src/types/kvStore.ts:38](packages/codeboltjs/src/types/kvStore.ts#L38) |
-| `from.namespace?` | `string` | [packages/codeboltjs/src/types/kvStore.ts:39](packages/codeboltjs/src/types/kvStore.ts#L39) |
-| <a id="limit"></a> `limit?` | `number` | [packages/codeboltjs/src/types/kvStore.ts:47](packages/codeboltjs/src/types/kvStore.ts#L47) |
-| <a id="offset"></a> `offset?` | `number` | [packages/codeboltjs/src/types/kvStore.ts:48](packages/codeboltjs/src/types/kvStore.ts#L48) |
-| <a id="orderby"></a> `orderBy?` | \{ `direction`: `"asc"` \| `"desc"`; `field`: `string`; \} | [packages/codeboltjs/src/types/kvStore.ts:43](packages/codeboltjs/src/types/kvStore.ts#L43) |
-| `orderBy.direction` | `"asc"` \| `"desc"` | [packages/codeboltjs/src/types/kvStore.ts:45](packages/codeboltjs/src/types/kvStore.ts#L45) |
-| `orderBy.field` | `string` | [packages/codeboltjs/src/types/kvStore.ts:44](packages/codeboltjs/src/types/kvStore.ts#L44) |
-| <a id="select"></a> `select?` | `string`[] | [packages/codeboltjs/src/types/kvStore.ts:42](packages/codeboltjs/src/types/kvStore.ts#L42) |
-| <a id="where"></a> `where?` | [`KVQueryCondition`](KVQueryCondition)[] | [packages/codeboltjs/src/types/kvStore.ts:41](packages/codeboltjs/src/types/kvStore.ts#L41) |
+| <a id="from"></a> `from` | \{ `instance`: `string`; `namespace?`: `string`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:31 |
+| `from.instance` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:32 |
+| `from.namespace?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:33 |
+| <a id="limit"></a> `limit?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:41 |
+| <a id="offset"></a> `offset?` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:42 |
+| <a id="orderby"></a> `orderBy?` | \{ `direction`: `"asc"` \| `"desc"`; `field`: `string`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:37 |
+| `orderBy.direction` | `"asc"` \| `"desc"` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:39 |
+| `orderBy.field` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:38 |
+| <a id="select"></a> `select?` | `string`[] | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:36 |
+| <a id="where"></a> `where?` | [`KVQueryCondition`](KVQueryCondition)[] | common/types/dist/codeboltjstypes/libFunctionTypes/kvStore.d.ts:35 |

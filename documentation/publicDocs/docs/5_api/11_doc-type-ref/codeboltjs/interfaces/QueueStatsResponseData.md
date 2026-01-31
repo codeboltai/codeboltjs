@@ -8,7 +8,7 @@ title: QueueStatsResponseData
 
 # Interface: QueueStatsResponseData
 
-Defined in: packages/codeboltjs/src/types/agentEventQueue.ts:338
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:293
 
 Response data for getQueueStats
 
@@ -16,10 +16,10 @@ Response data for getQueueStats
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="agentstats"></a> `agentStats` | `Record`\<`string`, \{ `delivered`: `number`; `pending`: `number`; \}\> | [packages/codeboltjs/src/types/agentEventQueue.ts:342](packages/codeboltjs/src/types/agentEventQueue.ts#L342) |
-| <a id="storage"></a> `storage?` | \{ `indexSize`: `number`; `totalEvents`: `number`; \} | [packages/codeboltjs/src/types/agentEventQueue.ts:346](packages/codeboltjs/src/types/agentEventQueue.ts#L346) |
-| `storage.indexSize` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:348](packages/codeboltjs/src/types/agentEventQueue.ts#L348) |
-| `storage.totalEvents` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:347](packages/codeboltjs/src/types/agentEventQueue.ts#L347) |
-| <a id="totalagents"></a> `totalAgents` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:339](packages/codeboltjs/src/types/agentEventQueue.ts#L339) |
-| <a id="totaldelivered"></a> `totalDelivered` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:341](packages/codeboltjs/src/types/agentEventQueue.ts#L341) |
-| <a id="totalpending"></a> `totalPending` | `number` | [packages/codeboltjs/src/types/agentEventQueue.ts:340](packages/codeboltjs/src/types/agentEventQueue.ts#L340) |
+| <a id="agentstats"></a> `agentStats` | `Record`\<`string`, \{ `delivered`: `number`; `pending`: `number`; \}\> | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:297 |
+| <a id="storage"></a> `storage?` | \{ `indexSize`: `number`; `totalEvents`: `number`; \} | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:301 |
+| `storage.indexSize` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:303 |
+| `storage.totalEvents` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:302 |
+| <a id="totalagents"></a> `totalAgents` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:294 |
+| <a id="totaldelivered"></a> `totalDelivered` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:296 |
+| <a id="totalpending"></a> `totalPending` | `number` | common/types/dist/codeboltjstypes/libFunctionTypes/eventQueue.d.ts:295 |

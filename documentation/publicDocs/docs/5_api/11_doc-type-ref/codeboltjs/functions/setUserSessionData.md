@@ -12,7 +12,7 @@ title: setUserSessionData
 function setUserSessionData(key: string, value: any): void;
 ```
 
-Defined in: packages/codeboltjs/src/index.ts:388
+Defined in: packages/codeboltjs/src/index.ts:410
 
 ## Parameters
 

@@ -12,6 +12,6 @@ title: MergeStrategy
 type MergeStrategy = "patch" | "git_worktree";
 ```
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:25
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:16
 
 Merge strategy types

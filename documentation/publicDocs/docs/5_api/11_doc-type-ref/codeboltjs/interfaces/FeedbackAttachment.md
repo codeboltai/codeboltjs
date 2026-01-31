@@ -8,14 +8,14 @@ title: FeedbackAttachment
 
 # Interface: FeedbackAttachment
 
-Defined in: packages/codeboltjs/src/types/groupFeedback.ts:24
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:21
 
 ## Properties
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="name"></a> `name` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:28](packages/codeboltjs/src/types/groupFeedback.ts#L28) |
-| <a id="path"></a> `path?` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:26](packages/codeboltjs/src/types/groupFeedback.ts#L26) |
-| <a id="preview"></a> `preview?` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:29](packages/codeboltjs/src/types/groupFeedback.ts#L29) |
-| <a id="type"></a> `type` | `"file"` \| `"link"` \| `"image"` | [packages/codeboltjs/src/types/groupFeedback.ts:25](packages/codeboltjs/src/types/groupFeedback.ts#L25) |
-| <a id="url"></a> `url?` | `string` | [packages/codeboltjs/src/types/groupFeedback.ts:27](packages/codeboltjs/src/types/groupFeedback.ts#L27) |
+| <a id="name"></a> `name` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:25 |
+| <a id="path"></a> `path?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:23 |
+| <a id="preview"></a> `preview?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:26 |
+| <a id="type"></a> `type` | `"file"` \| `"link"` \| `"image"` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:22 |
+| <a id="url"></a> `url?` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/groupFeedback.d.ts:24 |

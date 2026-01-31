@@ -26,8 +26,20 @@ data:
   category: knowledgeGraph
   link: createInstance.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# createInstance
+
+```typescript
+codebolt.knowledgeGraph.createInstance(config: CreateKGInstanceParams): Promise<KGInstanceResponse>
+```
+
+Creates a new knowledge graph instance from a template, providing a working graph for storing and querying data.
+### Parameters
+
+- **`config`** ([CreateKGInstanceParams](/docs/api/11_doc-type-ref/codeboltjs/interfaces/CreateKGInstanceParams)): Instance configuration object.
+
+### Returns
+
+- **`Promise<[KGInstanceResponse](/docs/api/11_doc-type-ref/codeboltjs/interfaces/KGInstanceResponse)>`**: A promise that resolves to the created instance details.
 
 ### Examples
 

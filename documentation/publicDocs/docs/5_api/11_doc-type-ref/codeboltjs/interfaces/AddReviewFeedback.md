@@ -8,7 +8,7 @@ title: AddReviewFeedback
 
 # Interface: AddReviewFeedback
 
-Defined in: packages/codeboltjs/src/types/reviewMergeRequest.ts:158
+Defined in: common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:125
 
 Data for adding a review feedback
 
@@ -16,7 +16,7 @@ Data for adding a review feedback
 
 | Property | Type | Defined in |
 | ------ | ------ | ------ |
-| <a id="agentid"></a> `agentId` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:159](packages/codeboltjs/src/types/reviewMergeRequest.ts#L159) |
-| <a id="agentname"></a> `agentName` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:160](packages/codeboltjs/src/types/reviewMergeRequest.ts#L160) |
-| <a id="comment"></a> `comment` | `string` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:162](packages/codeboltjs/src/types/reviewMergeRequest.ts#L162) |
-| <a id="type"></a> `type` | `"approve"` \| `"request_changes"` \| `"comment"` | [packages/codeboltjs/src/types/reviewMergeRequest.ts:161](packages/codeboltjs/src/types/reviewMergeRequest.ts#L161) |
+| <a id="agentid"></a> `agentId` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:126 |
+| <a id="agentname"></a> `agentName` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:127 |
+| <a id="comment"></a> `comment` | `string` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:129 |
+| <a id="type"></a> `type` | `"approve"` \| `"request_changes"` \| `"comment"` | common/types/dist/codeboltjstypes/libFunctionTypes/reviewMergeRequest.d.ts:128 |

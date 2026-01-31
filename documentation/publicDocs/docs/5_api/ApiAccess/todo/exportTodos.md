@@ -29,12 +29,27 @@ data:
   category: todo
   link: exportTodos.md
 ---
-<CBBaseInfo />
-<CBParameters />
+# exportTodos
+
+```typescript
+codebolt.todo.exportTodos(params: { format?: 'json' | 'markdown'; listId?: string; status?: string[] }, params.format: 'json' | 'markdown', params.listId: string, params.status: string[]): Promise<ExportTodosResponse>
+```
+
+Exports todos in JSON or Markdown format with optional filtering.
+### Parameters
+
+- **`params`** (`{ format?: 'json' | 'markdown'; listId?: string; status?: string[] }`, optional): Optional parameters for customizing the export.
+- **`params.format`** ('json' | 'markdown', optional): The export format (defaults to 'json').
+- **`params.listId`** (string, optional): Optional list ID to filter todos for export.
+- **`params.status`** (string[], optional): Optional array of status values to filter (e.g., ['pending', 'processing']).
+
+### Returns
+
+- **`Promise<ExportTodosResponse>`**: A promise that resolves with the exported todo data.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `ExportTodosResponse` object with the following properties:
+The method returns a Promise that resolves to an [`ExportTodosResponse`](/docs/api/11_doc-type-ref/types/interfaces/ExportTodosResponse) object with the following properties:
 
 **Response Properties:**
 - `type`: Always "exportTodosResponse"

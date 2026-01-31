@@ -21,12 +21,26 @@ data:
   category: fs
   link: updateFile.md
 ---
-<CBBaseInfo/> 
-<CBParameters/>
+# updateFile
+
+```typescript
+codebolt.fs.updateFile(filename: string, filePath: string, newContent: string): Promise<UpdateFileResponse>
+```
+
+Updates the content of a file at the specified path. This function allows you to modify existing files with new content. 
+### Parameters
+
+- **`filename`** (string): The name of the file to update (e.g., 'example.txt', 'config.json').
+- **`filePath`** (string): The path of the file to update (e.g., '.', '/home/user/documents', './src').
+- **`newContent`** (string): The new content to write into the file, replacing the existing content.
+
+### Returns
+
+- **`Promise<UpdateFileResponse>`**: A promise that resolves with an [`UpdateFileResponse`](/docs/api/11_doc-type-ref/types/interfaces/UpdateFileResponse) object containing the response type and file update metadata.
 
 ### Response Structure
 
-The method returns a Promise that resolves to an `UpdateFileResponse` object with the following properties:
+The method returns a Promise that resolves to an [`UpdateFileResponse`](/docs/api/11_doc-type-ref/types/interfaces/UpdateFileResponse) object with the following properties:
 
 - **`type`** (string): Always "updateFileResponse".
 - **`path`** (string, optional): The full path of the file that was updated.

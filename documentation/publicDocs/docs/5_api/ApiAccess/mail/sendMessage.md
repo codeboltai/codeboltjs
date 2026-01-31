@@ -15,8 +15,20 @@ data:
   category: mail
   link: sendMessage.md
 ---
-<CBBaseInfo/>
-<CBParameters/>
+# sendMessage
+
+```typescript
+codebolt.mail.sendMessage(params: ISendMessageParams): Promise<ISendMessageResponse>
+```
+
+Sends a message to a specific mail thread.
+### Parameters
+
+- **`params`** (ISendMessageParams): Message parameters including threadId, content, and senderId.
+
+### Returns
+
+- **`Promise<ISendMessageResponse>`**: A promise that resolves with the sent message details.
 
 ### Response Structure
 
