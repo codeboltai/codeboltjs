@@ -17,6 +17,14 @@ Types for the threadService module functions
 
 - [`ThreadFileChangesResponse`](ThreadFileChangesResponse)
 - [`ThreadFileChangesSummaryResponse`](ThreadFileChangesSummaryResponse)
+- [`CreateThreadResponse`](CreateThreadResponse)
+- [`StartThreadResponse`](StartThreadResponse)
+- [`GetThreadResponse`](GetThreadResponse)
+- [`ListThreadsResponse`](ListThreadsResponse)
+- [`GetThreadMessagesResponse`](GetThreadMessagesResponse)
+- [`UpdateThreadResponse`](UpdateThreadResponse)
+- [`DeleteThreadResponse`](DeleteThreadResponse)
+- [`UpdateThreadStatusResponse`](UpdateThreadStatusResponse)
 
 ## Properties
 

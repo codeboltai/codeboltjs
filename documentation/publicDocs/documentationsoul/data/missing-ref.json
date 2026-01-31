@@ -1,337 +1,175 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-01-30T21:02:24.444Z",
-  "totalMissing": 47,
+  "generatedAt": "2026-01-30T21:25:40.550Z",
+  "totalMissing": 24,
   "types": [
-    {
-      "type": "StartThreadResponse",
-      "usedIn": [
-        "thread/createAndStartThread.md",
-        "thread/startThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.263Z"
-    },
     {
       "type": "Name",
       "usedIn": [
         "agentPortfolio/updateProfile.md"
       ],
-      "firstFound": "2026-01-30T21:02:22.970Z"
-    },
-    {
-      "type": "ClickResponse",
-      "usedIn": [
-        "browser/click.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.000Z"
-    },
-    {
-      "type": "EnterResponse",
-      "usedIn": [
-        "browser/enter.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.008Z"
-    },
-    {
-      "type": "ScrollResponse",
-      "usedIn": [
-        "browser/scroll.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.069Z"
-    },
-    {
-      "type": "SearchResponse",
-      "usedIn": [
-        "browser/search.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.072Z"
-    },
-    {
-      "type": "TypeResponse",
-      "usedIn": [
-        "browser/type.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.078Z"
+      "firstFound": "2026-01-30T21:25:39.220Z"
     },
     {
       "type": "Automated",
       "usedIn": [
         "calendar/index.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.101Z"
+      "firstFound": "2026-01-30T21:25:39.360Z"
     },
     {
       "type": "OVERDUE",
       "usedIn": [
         "calendar/listEvents.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.106Z"
+      "firstFound": "2026-01-30T21:25:39.366Z"
     },
     {
       "type": "FIFO",
       "usedIn": [
         "cbstate/addToAgentState.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.174Z"
+      "firstFound": "2026-01-30T21:25:39.434Z"
     },
     {
       "type": "Question",
       "usedIn": [
         "chat/askQuestion.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.210Z"
+      "firstFound": "2026-01-30T21:25:39.472Z"
     },
     {
       "type": "Process",
       "usedIn": [
         "chat/processStarted.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.220Z"
+      "firstFound": "2026-01-30T21:25:39.482Z"
     },
     {
       "type": "RequestHandler",
       "usedIn": [
         "chat/setRequestHandler.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.227Z"
+      "firstFound": "2026-01-30T21:25:39.489Z"
     },
     {
       "type": "ClassInfo",
       "usedIn": [
         "codeparsers/getClassesInFile.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.264Z"
+      "firstFound": "2026-01-30T21:25:39.526Z"
     },
     {
       "type": "FunctionInfo",
       "usedIn": [
         "codeparsers/getFunctionsinClass.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.266Z"
+      "firstFound": "2026-01-30T21:25:39.528Z"
     },
     {
       "type": "MatchDetail",
       "usedIn": [
         "codeutils/matchDetail.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.300Z"
+      "firstFound": "2026-01-30T21:25:39.562Z"
     },
     {
       "type": "Type",
       "usedIn": [
         "debug/debugLog.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.395Z"
+      "firstFound": "2026-01-30T21:25:39.659Z"
     },
     {
       "type": "Files",
       "usedIn": [
         "fileUpdateIntent/getBlockedFiles.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.482Z"
+      "firstFound": "2026-01-30T21:25:39.721Z"
     },
     {
       "type": "Default",
       "usedIn": [
         "fileUpdateIntent/index.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.489Z"
-    },
-    {
-      "type": "ListCodeDefinitionNamesResponse",
-      "usedIn": [
-        "fs/listCodeDefinitionNames.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.527Z"
+      "firstFound": "2026-01-30T21:25:39.726Z"
     },
     {
       "type": "HEAD",
       "usedIn": [
         "git/branch.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.562Z"
+      "firstFound": "2026-01-30T21:25:39.777Z"
     },
     {
       "type": "Interim",
       "usedIn": [
         "knowledge/index.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.691Z"
+      "firstFound": "2026-01-30T21:25:39.878Z"
     },
     {
       "type": "Updated",
       "usedIn": [
         "memory/index.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.856Z"
-    },
-    {
-      "type": "GetEditorFileStatusResponse",
-      "usedIn": [
-        "project/getEditorFileStatus.md"
-      ],
-      "firstFound": "2026-01-30T21:02:23.908Z"
+      "firstFound": "2026-01-30T21:25:40.030Z"
     },
     {
       "type": "Omit",
       "usedIn": [
         "requirementPlan/addSection.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.972Z"
+      "firstFound": "2026-01-30T21:25:40.146Z"
     },
     {
       "type": "UUID",
       "usedIn": [
         "requirementPlan/addSection.md"
       ],
-      "firstFound": "2026-01-30T21:02:23.972Z"
+      "firstFound": "2026-01-30T21:25:40.146Z"
     },
     {
       "type": "JSON",
       "usedIn": [
         "state/addToAgentState.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.075Z"
+      "firstFound": "2026-01-30T21:25:40.260Z"
     },
     {
       "type": "Common",
       "usedIn": [
         "state/getApplicationState.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.085Z"
-    },
-    {
-      "type": "AddTaskResponse",
-      "usedIn": [
-        "taskplaner/addTask.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.189Z"
-    },
-    {
-      "type": "GetTasksResponse",
-      "usedIn": [
-        "taskplaner/getTasks.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.198Z"
-    },
-    {
-      "type": "UpdateTasksResponse",
-      "usedIn": [
-        "taskplaner/updateTask.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.210Z"
+      "firstFound": "2026-01-30T21:25:40.269Z"
     },
     {
       "type": "EventEmitter",
       "usedIn": [
         "terminal/executeCommandWithStream.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.236Z"
+      "firstFound": "2026-01-30T21:25:40.346Z"
     },
     {
       "type": "SIGINT",
       "usedIn": [
         "terminal/sendManualInterrupt.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.256Z"
-    },
-    {
-      "type": "CreateAndStartThreadOptions",
-      "usedIn": [
-        "thread/createAndStartThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.263Z"
-    },
-    {
-      "type": "CreateThreadResponse",
-      "usedIn": [
-        "thread/createThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.267Z"
-    },
-    {
-      "type": "DeleteThreadResponse",
-      "usedIn": [
-        "thread/deleteThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.270Z"
-    },
-    {
-      "type": "GetThreadResponse",
-      "usedIn": [
-        "thread/getThreadDetail.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.275Z"
-    },
-    {
-      "type": "GetThreadDetailOptions",
-      "usedIn": [
-        "thread/getThreadDetail.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.275Z"
+      "firstFound": "2026-01-30T21:25:40.367Z"
     },
     {
       "type": "Completed",
       "usedIn": [
         "thread/getThreadDetail.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.275Z"
-    },
-    {
-      "type": "ListThreadsResponse",
-      "usedIn": [
-        "thread/getThreadList.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.288Z"
-    },
-    {
-      "type": "GetThreadListOptions",
-      "usedIn": [
-        "thread/getThreadList.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.288Z"
-    },
-    {
-      "type": "GetThreadMessagesResponse",
-      "usedIn": [
-        "thread/getThreadMessages.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.292Z"
-    },
-    {
-      "type": "GetThreadMessagesOptions",
-      "usedIn": [
-        "thread/getThreadMessages.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.292Z"
-    },
-    {
-      "type": "UpdateThreadResponse",
-      "usedIn": [
-        "thread/updateThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.302Z"
-    },
-    {
-      "type": "UpdateThreadOptions",
-      "usedIn": [
-        "thread/updateThread.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.302Z"
-    },
-    {
-      "type": "UpdateThreadStatusResponse",
-      "usedIn": [
-        "thread/updateThreadStatus.md"
-      ],
-      "firstFound": "2026-01-30T21:02:24.306Z"
+      "firstFound": "2026-01-30T21:25:40.386Z"
     },
     {
       "type": "Strategy",
       "usedIn": [
         "todo/importTodos.md"
       ],
-      "firstFound": "2026-01-30T21:02:24.333Z"
+      "firstFound": "2026-01-30T21:25:40.443Z"
     }
   ]
 }

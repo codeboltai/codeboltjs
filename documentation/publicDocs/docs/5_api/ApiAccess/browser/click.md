@@ -8,7 +8,7 @@ cbparameters:
       typeName: string
       description: The ID of the element to click.
   returns:
-    signatureTypeName: "Promise<ClickResponse>"
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves when the click action is complete.
     typeArgs: []
 data:
@@ -19,7 +19,7 @@ data:
 # click
 
 ```typescript
-codebolt.browser.click(elementid: string): Promise<ClickResponse>
+codebolt.browser.click(elementid: string): Promise<BrowserActionResponseData>
 ```
 
 Clicks on a specified element on the page.
@@ -29,7 +29,7 @@ Clicks on a specified element on the page.
 
 ### Returns
 
-- **`Promise<ClickResponse>`**: A promise that resolves when the click action is complete.
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves when the click action is complete.
 
 ### Response Structure
 

@@ -5,7 +5,7 @@ cbbaseinfo:
 cbparameters:
   parameters: []
   returns:
-    signatureTypeName: "Promise<EnterResponse>"
+    signatureTypeName: "Promise<BrowserActionResponseData>"
     description: A promise that resolves when the Enter action is complete.
     typeArgs: []
 data:
@@ -16,13 +16,13 @@ data:
 # enter
 
 ```typescript
-codebolt.browser.enter(): Promise<EnterResponse>
+codebolt.browser.enter(): Promise<BrowserActionResponseData>
 ```
 
 Simulates the Enter key press on the current page. 
 ### Returns
 
-- **`Promise<EnterResponse>`**: A promise that resolves when the Enter action is complete.
+- **`Promise<BrowserActionResponseData>`**: A promise that resolves when the Enter action is complete.
 
 ### Response Structure
 
