@@ -309,13 +309,15 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     }
 
     async onGetProject(parentId: string = 'root'): Promise<any[]> {
+        this.logger.log(`Getting project: ${parentId}`);
         const parentPath = parentId === 'root' ? this.projectPath! : path.join(this.projectPath!, parentId);
+        this.logger.log('Getting project:', parentPath);
 
         try {
             const items = await fs.readdir(parentPath, { withFileTypes: true });
 
             const children = await Promise.all(items.map(async (item) => {
-                if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
+                // if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
 
                 const itemPath = path.join(parentPath, item.name);
                 const relativePath = parentId === 'root' ? item.name : path.join(parentId, item.name);

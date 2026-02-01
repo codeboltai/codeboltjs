@@ -145,7 +145,7 @@ export const profiles = {
     defaultNON_TUIProfile: {
         // File system operations - proxy for non-TUI (remote environment)
         "fsEvent": {
-            'proxyType': 'proxy'
+            'proxyType': 'local'
         },
         // LLM inference - proxy to app for non-TUI
         "inference": {

@@ -12,5 +12,6 @@ codebolt.onRawMessage(handlers.onRawMessage);
 
 codebolt.onReadFile(providerService.onReadFile.bind(providerService));
 codebolt.onWriteFile(providerService.onWriteFile.bind(providerService));
+codebolt.onGetFullProject(providerService.onGetProject.bind(providerService));
 codebolt.onGetTreeChildren(providerService.onGetProject.bind(providerService));
 // Implement other handlers as needed
