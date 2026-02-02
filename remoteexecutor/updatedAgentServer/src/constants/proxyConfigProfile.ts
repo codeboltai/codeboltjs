@@ -143,6 +143,10 @@ export const profiles = {
         // ActionBlock operations - local execution
         "actionBlock": {
             'proxyType': 'local'
+        },
+        // ActionBlock completion - always local
+        "actionBlockComplete": {
+            'proxyType': 'local'
         }
     } as ProxyConfig,
 
@@ -294,6 +298,10 @@ export const profiles = {
         },
         // ActionBlock operations - local execution
         "actionBlock": {
+            'proxyType': 'local'
+        },
+        // ActionBlock completion - always local
+        "actionBlockComplete": {
             'proxyType': 'local'
         }
     } as ProxyConfig

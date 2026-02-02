@@ -21,7 +21,9 @@ import { ProjectRequestHandler } from "./projectRequestHandler";
 import { ChatMessageHandler } from "./chatMessageHandler";
 import { GitHandler } from "./git";
 import { ActionBlockHandler } from "./actionBlockHandler";
+import { sideExecutionManager } from "./managers/SideExecutionManager";
 import type { ActionBlockRequest } from "../types/sideExecution";
+import { logger } from "../main/utils/logger";
 
 // Re-export handlers and permission manager
 export { ReadFileHandler } from "./file/readFileHandler";
@@ -58,6 +60,14 @@ interface WriteToFileEvent {
   };
 }
 
+// ActionBlockComplete message type
+interface ActionBlockCompleteMessage {
+  type: "actionBlockComplete";
+  sideExecutionId: string;
+  result?: any;
+  error?: string;
+}
+
 // Message type union for executeActionOnMessage
 export type AgentMessage = Message |
   SchemaReadFileEvent |
@@ -70,7 +80,8 @@ export type AgentMessage = Message |
   ProjectEvent |
   SendMessageEvent |
   GitEvent |
-  ActionBlockRequest;
+  ActionBlockRequest |
+  ActionBlockCompleteMessage;
 
 // Handlers container to avoid recreating instances
 class LocalExecutionHandlers {
@@ -182,6 +193,18 @@ export const executeActionOnMessage = async (
 
   if (message.type === 'actionBlock') {
     await handlers.actionBlockHandler.handleActionBlockEvent(agent, message as ActionBlockRequest);
+    return true;
+  }
+
+  // Handle actionBlockComplete messages from side executions
+  if (message.type === 'actionBlockComplete') {
+    const completeMessage = message as ActionBlockCompleteMessage;
+    logger.info(`[executeActionOnMessage] Routing actionBlockComplete for: ${completeMessage.sideExecutionId}`);
+    sideExecutionManager.handleActionBlockComplete({
+      sideExecutionId: completeMessage.sideExecutionId,
+      result: completeMessage.result,
+      error: completeMessage.error
+    });
     return true;
   }
 

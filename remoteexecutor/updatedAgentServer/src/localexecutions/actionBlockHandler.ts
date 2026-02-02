@@ -239,6 +239,19 @@ export class ActionBlockHandler {
                 `[ActionBlockHandler] Started ActionBlock: ${actionBlockName}, sideExecutionId: ${sideExecutionId}`
             );
 
+            // Send actionBlockInvocation message to trigger the action block handler
+            const invocationMessage = {
+                type: 'actionBlockInvocation',
+                sideExecutionId,
+                actionBlockName,
+                params: params || {},
+                threadContext,
+                timestamp: new Date().toISOString()
+            };
+
+            logger.info(`[ActionBlockHandler] Sending actionBlockInvocation to: ${sideExecutionId}`);
+            this.connectionManager.sendToConnection(sideExecutionId, invocationMessage);
+
             // Wait for completion
             const completionResult = await sideExecutionManager.waitForCompletion(sideExecutionId);
 

@@ -1,384 +1,4 @@
-// /**
-//  * Remote Task Agent
-//  *
-//  * This agent runs in an isolated AgentFS filesystem and:
-//  * 1. Executes coding tasks using available tools (same as act-claude)
-//  * 2. Submits merge requests when work is complete
-//  * 3. Waits for review feedback via event queue
-//  */
 
-// import codebolt from '@codebolt/codeboltjs';
-// import {
-//     InitialPromptGenerator,
-//     AgentStep,
-//     ResponseExecutor
-// } from '@codebolt/agent/unified';
-// import {
-//     ChatHistoryMessageModifier,
-//     CoreSystemPromptModifier,
-//     ToolInjectionModifier,
-//     EnvironmentContextModifier,
-//     DirectoryContextModifier,
-//     IdeContextModifier,
-//     AtFileProcessorModifier
-// } from '@codebolt/agent/processor-pieces';
-// import { FlatUserMessage } from '@codebolt/types/sdk';
-// import { ProcessedMessage, AgentStepOutput } from '@codebolt/types/agent';
-// import { json } from 'stream/consumers';
-
-// // Agent configuration from environment or defaults
-// interface AgentConfig {
-//     agentId: string;
-//     agentName: string;
-//     projectPath: string;
-//     overlayName?: string;
-//     swarmId?: string;
-// }
-
-// function getAgentConfig(): AgentConfig {
-//     return {
-//         agentId: process.env.AGENT_ID || `remote-agent-${Date.now()}`,
-//         agentName: process.env.AGENT_NAME || 'Remote Task Agent',
-//         projectPath: process.env.PROJECT_PATH || process.cwd(),
-//         overlayName: process.env.OVERLAY_NAME,
-//         swarmId: process.env.SWARM_ID
-//     };
-// }
-
-// // System prompt - same as act-claude
-// const systemPrompt = `
-// You are an interactive CLI tool that helps users with software engineering tasks. Use the instructions below and the tools available to you to assist the user.
-
-// IMPORTANT: Assist with authorized security testing, defensive security, CTF challenges, and educational contexts. Refuse requests for destructive techniques, DoS attacks, mass targeting, supply chain compromise, or detection evasion for malicious purposes. Dual-use security tools (C2 frameworks, credential testing, exploit development) require clear authorization context: pentesting engagements, CTF competitions, security research, or defensive use cases.
-// IMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the user with programming. You may use URLs provided by the user in their messages or local files.
-
-// If the user asks for help or wants to give feedback inform them of the following:
-// - /help: Get help with using Claude Code
-// - To give feedback, users should report the issue at https://github.com/anthropics/claude-code/issues
-
-// When the user directly asks about Claude Code (eg. "can Claude Code do...", "does Claude Code have..."), or asks in second person (eg. "are you able...", "can you do..."), or asks how to use a specific Claude Code feature (eg. implement a hook, write a slash command, or install an MCP server), use the WebFetch tool to gather information to answer the question from Claude Code docs. The list of available docs is available at https://docs.claude.com/en/docs/claude-code/claude_code_docs_map.md.
-
-// # Tone and style
-// - Only use emojis if the user explicitly requests it. Avoid using emojis in all communication unless asked.
-// - Your output will be displayed on a command line interface. Your responses should be short and concise. You can use Github-flavored markdown for formatting, and will be rendered in a monospace font using the CommonMark specification.
-// - Output text to communicate with the user; all text you output outside of tool use is displayed to the user. Only use tools to complete tasks. Never use tools like Bash or code comments as means to communicate with the user during the session.
-// - NEVER create files unless they're absolutely necessary for achieving your goal. ALWAYS prefer editing an existing file to creating a new one. This includes markdown files.
-
-// # Professional objectivity
-// Prioritize technical accuracy and truthfulness over validating the user's beliefs. Focus on facts and problem-solving, providing direct, objective technical info without any unnecessary superlatives, praise, or emotional validation. It is best for the user if Claude honestly applies the same rigorous standards to all ideas and disagrees when necessary, even if it may not be what the user wants to hear. Objective guidance and respectful correction are more valuable than false agreement. Whenever there is uncertainty, it's best to investigate to find the truth first rather than instinctively confirming the user's beliefs. Avoid using over-the-top validation or excessive praise when responding to users such as "You're absolutely right" or similar phrases.
-
-// # Task Management
-// You have access to the todo_write tools to help you manage and plan tasks. Use these tools VERY frequently to ensure that you are tracking your tasks and giving the user visibility into your progress.
-// These tools are also EXTREMELY helpful for planning tasks, and for breaking down larger complex tasks into smaller steps. If you do not use this tool when planning, you may forget to do important tasks - and that is unacceptable.
-
-// It is critical that you mark todos as completed as soon as you are done with a task. Do not batch up multiple tasks before marking them as completed.
-
-// Examples:
-
-// <example>
-// user: Run the build and fix any type errors
-// assistant: I'm going to use the todo_write tool to write the following items to the todo list:
-// - Run the build
-// - Fix any type errors
-
-// I'm now going to run the build using Bash.
-
-// Looks like I found 10 type errors. I'm going to use the todo_write tool to write 10 items to the todo list.
-
-// marking the first todo as in_progress
-
-// Let me start working on the first item...
-
-// The first item has been fixed, let me mark the first todo as completed, and move on to the second item...
-// ..
-// ..
-// </example>
-// In the above example, the assistant completes all the tasks, including the 10 error fixes and running the build and fixing all errors.
-
-// <example>
-// user: Help me write a new feature that allows users to track their usage metrics and export them to various formats
-// assistant: I'll help you implement a usage metrics tracking and export feature. Let me first use the todo_write tool to plan this task.
-// Adding the following todos to the todo list:
-// 1. Research existing metrics tracking in the codebase
-// 2. Design the metrics collection system
-// 3. Implement core metrics tracking functionality
-// 4. Create export functionality for different formats
-
-// Let me start by researching the existing codebase to understand what metrics we might already be tracking and how we can build on that.
-
-// I'm going to search for any existing metrics or telemetry code in the project.
-
-// I've found some existing telemetry code. Let me mark the first todo as in_progress and start designing our metrics tracking system based on what I've learned...
-
-// [Assistant continues implementing the feature step by step, marking todos as in_progress and completed as they go]
-// </example>
-
-
-// Users may configure 'hooks', shell commands that execute in response to events like tool calls, in settings. Treat feedback from hooks, including <user-prompt-submit-hook>, as coming from the user. If you get blocked by a hook, determine if you can adjust your actions in response to the blocked message. If not, ask the user to check their hooks configuration.
-
-// # Doing tasks
-// The user will primarily request you perform software engineering tasks. This includes solving bugs, adding new functionality, refactoring code, explaining code, and more. For these tasks the following steps are recommended:
-// -
-// - Use the todo_write tool to plan the task if required
-// - Be careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it.
-
-// - Tool results and user messages may include <system-reminder> tags. <system-reminder> tags contain useful information and reminders. They are automatically added by the system, and bear no direct relation to the specific tool results or user messages in which they appear.
-
-
-// # Tool usage policy
-// - When doing file search, prefer to use the Task tool in order to reduce context usage.
-// - You should proactively use the Task tool with specialized agents when the task at hand matches the agent's description.
-
-// - When WebFetch returns a message about a redirect to a different host, you should immediately make a new WebFetch request with the redirect URL provided in the response.
-// - You can call multiple tools in a single response. If you intend to call multiple tools and there are no dependencies between them, make all independent tool calls in parallel. Maximize use of parallel tool calls where possible to increase efficiency. However, if some tool calls depend on previous calls to inform dependent values, do NOT call these tools in parallel and instead call them sequentially. For instance, if one operation must complete before another starts, run these operations sequentially instead. Never use placeholders or guess missing parameters in tool calls.
-// - If the user specifies that they want you to run tools "in parallel", you MUST send a single message with multiple tool use content blocks. For example, if you need to launch multiple agents in parallel, send a single message with multiple Task tool calls.
-// - Use specialized tools instead of bash commands when possible, as this provides a better user experience. For file operations, use dedicated tools: Read for reading files instead of cat/head/tail, Edit for editing instead of sed/awk, and Write for creating files instead of cat with heredoc or echo redirection. Reserve bash tools exclusively for actual system commands and terminal operations that require shell execution. NEVER use bash echo or other command-line tools to communicate thoughts, explanations, or instructions to the user. Output all communication directly in your response text instead.
-// - VERY IMPORTANT: When exploring the codebase to gather context or to answer a question that is not a needle query for a specific file/class/function, it is CRITICAL that you use the Task tool with subagent_type=Explore instead of running search commands directly.
-// <example>
-// user: Where are errors from the client handled?
-// assistant: [Uses the Task tool with subagent_type=Explore to find the files that handle client errors instead of using Glob or Grep directly]
-// </example>
-// <example>
-// user: What is the codebase structure?
-// assistant: [Uses the Task tool with subagent_type=Explore]
-// </example>
-
-// <claude_background_info>
-// The most recent frontier Claude model is Claude Sonnet 4.5 (model ID: 'claude-sonnet-4-5-20250929').
-// </claude_background_info>
-
-
-// IMPORTANT: Assist with authorized security testing, defensive security, CTF challenges, and educational contexts. Refuse requests for destructive techniques, DoS attacks, mass targeting, supply chain compromise, or detection evasion for malicious purposes. Dual-use security tools (C2 frameworks, credential testing, exploit development) require clear authorization context: pentesting engagements, CTF competitions, security research, or defensive use cases.
-
-
-// IMPORTANT: Always use the todo_write tool to plan and track tasks throughout the conversation.
-
-// # Code References
-
-// When referencing specific functions or pieces of code include the pattern file_path:line_number to allow the user to easily navigate to the source code location.
-
-// <example>
-// user: Where are errors from the client handled?
-// assistant: Clients are marked as failed in the connectToServer function in src/services/process.ts:712.
-// </example>
-// `.trim();
-
-// /**
-//  * Submit merge request using the action block
-//  */
-// async function submitMergeRequest(
-//     config: AgentConfig,
-//     initialTask: string
-// ): Promise<{
-//     success: boolean;
-//     mergeRequestId?: string;
-//     error?: string;
-// }> {
-//     codebolt.chat.sendMessage('Submitting merge request for review...', {});
-
-//     try {
-//         const result = await codebolt.actionBlock.start('submit-merge-request', {
-//             projectPath: config.projectPath,
-//             overlayName: config.overlayName,
-//             agentId: config.agentId,
-//             agentName: config.agentName,
-//             initialTask: initialTask,
-//             swarmId: config.swarmId,
-//             startReviewAgent: true,
-//             waitForReview: false // We'll wait via eventQueue
-//         });
-
-//         if (result.success && result.result) {
-//             return {
-//                 success: true,
-//                 mergeRequestId: result.result.mergeRequestId
-//             };
-//         }
-
-//         return {
-//             success: false,
-//             error: result.result?.error || 'Failed to submit merge request'
-//         };
-//     } catch (error) {
-//         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-//         return {
-//             success: false,
-//             error: errorMessage
-//         };
-//     }
-// }
-
-// /**
-//  * Wait for review completion via event queue
-//  */
-// async function waitForReviewCompletion(
-//     mergeRequestId: string,
-//     timeout: number = 300000
-// ): Promise<{
-//     completed: boolean;
-//     approved?: boolean;
-//     status?: string;
-// }> {
-//     codebolt.chat.sendMessage('Waiting for review completion...', {});
-
-//     const startTime = Date.now();
-
-//     while (Date.now() - startTime < timeout) {
-//         try {
-//             // Check for pending events
-//             const pendingEvent = codebolt.agentEventQueue.checkForPendingExternalEvent();
-
-//             if (pendingEvent) {
-//                 if (pendingEvent.type === 'backgroundAgentCompletion') {
-//                     // Review agent completed
-//                     const mr = await codebolt.reviewMergeRequest.get(mergeRequestId);
-//                     const reviews = mr?.request?.reviews || [];
-//                     const latestReview = reviews[reviews.length - 1];
-
-//                     return {
-//                         completed: true,
-//                         approved: latestReview?.type === 'approve',
-//                         status: mr?.request?.status
-//                     };
-//                 }
-//             }
-
-//             // Wait for event with timeout
-//             const waitTimeout = Math.min(30000, timeout - (Date.now() - startTime));
-//             if (waitTimeout <= 0) break;
-
-//             const eventPromise = codebolt.agentEventQueue.waitForAnyExternalEvent();
-//             const timeoutPromise = new Promise<null>((resolve) =>
-//                 setTimeout(() => resolve(null), waitTimeout)
-//             );
-
-//             const event = await Promise.race([eventPromise, timeoutPromise]);
-
-//             if (event && event.type === 'backgroundAgentCompletion') {
-//                 const mr = await codebolt.reviewMergeRequest.get(mergeRequestId);
-//                 const reviews = mr?.request?.reviews || [];
-//                 const latestReview = reviews[reviews.length - 1];
-
-//                 return {
-//                     completed: true,
-//                     approved: latestReview?.type === 'approve',
-//                     status: mr?.request?.status
-//                 };
-//             }
-//         } catch (error) {
-//             console.error('[RemoteTaskAgent] Error waiting for review:', error);
-//         }
-//     }
-
-//     return {
-//         completed: false,
-//         status: 'timeout'
-//     };
-// }
-
-// // Main message handler - same structure as act-claude
-// codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-//     const config = getAgentConfig();
-//     const initialTask = reqMessage.userMessage || '';
-
-//     try {
-//         codebolt.chat.sendMessage('Remote update Task Agent started', {});
-
-//         // Initialize prompt generator with same modifiers as act-claude
-//         const promptGenerator = new InitialPromptGenerator({
-//             processors: [
-//                 // 1. Chat History
-//                 new ChatHistoryMessageModifier({ enableChatHistory: true }),
-//                 // 2. Environment Context (date, OS)
-//                 new EnvironmentContextModifier({ enableFullContext: true }),
-//                 // 3. Directory Context (folder structure)
-//                 new DirectoryContextModifier(),
-//                 // 4. IDE Context (active file, opened files)
-//                 new IdeContextModifier({
-//                     includeActiveFile: true,
-//                     includeOpenFiles: true,
-//                     includeCursorPosition: true,
-//                     includeSelectedText: true
-//                 }),
-//                 // 5. Core System Prompt (instructions)
-//                 new CoreSystemPromptModifier({
-//                     customSystemPrompt: systemPrompt
-//                 }),
-//                 // 6. Tools (function declarations)
-//                 new ToolInjectionModifier({
-//                     includeToolDescriptions: true
-//                 }),
-//                 // 7. At-file processing (@file mentions)
-//                 new AtFileProcessorModifier({
-//                     enableRecursiveSearch: true
-//                 })
-//             ],
-//             baseSystemPrompt: systemPrompt
-//         });
-
-//         let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-//         codebolt.chat.sendMessage(JSON.stringify(prompt));
-//         // Agent loop - same as act-claude
-//         let completed = false;
-//         do {
-//             const agent = new AgentStep({
-//                 preInferenceProcessors: [],
-//                 postInferenceProcessors: []
-//             });
-
-//             const result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
-//             prompt = result.nextMessage;
-
-//             const responseExecutor = new ResponseExecutor({
-//                 preToolCallProcessors: [],
-//                 postToolCallProcessors: []
-//             });
-
-//             const executionResult = await responseExecutor.executeResponse({
-//                 initialUserMessage: reqMessage,
-//                 actualMessageSentToLLM: result.actualMessageSentToLLM,
-//                 rawLLMOutput: result.rawLLMResponse,
-//                 nextMessage: result.nextMessage
-//             });
-
-//             completed = executionResult.completed;
-//             prompt = executionResult.nextMessage;
-
-//             if (completed) {
-//                 break;
-//             }
-//         } while (!completed);
-
-//         // After task completion, submit merge request
-//         codebolt.chat.sendMessage('Task completed. Submitting changes for review...', {});
-
-//         // const mrResult = await submitMergeRequest(config, initialTask);
-
-//         // if (!mrResult.success) {
-//         //     codebolt.chat.sendMessage(`Failed to submit merge request: ${mrResult.error}`, {});
-//         //     return;
-//         // }
-
-//         // codebolt.chat.sendMessage(`Merge request submitted: ${mrResult.mergeRequestId}`, {});
-
-//         // // Wait for review
-//         // const reviewResult = await waitForReviewCompletion(mrResult.mergeRequestId!);
-
-//         // if (reviewResult.completed) {
-//         //     if (reviewResult.approved) {
-//         //         codebolt.chat.sendMessage('Changes approved! Ready to merge.', {});
-//         //     } else {
-//         //         codebolt.chat.sendMessage(`Review completed with status: ${reviewResult.status}`, {});
-//         //     }
-//         // } else {
-//         //     codebolt.chat.sendMessage('Review timed out. Check merge request status manually.', {});
-//         // }
-
-//     } catch (error) {
-//         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-//         codebolt.chat.sendMessage(`Error: ${errorMessage}`, {});
-//     }
-// });
 
 import codebolt from '@codebolt/codeboltjs';
 import fs from 'fs'
@@ -530,88 +150,75 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
         codebolt.chat.sendMessage("Remote Task Agent started - Testing submit-merge-request action block", {});
 
-        // Call the submit-merge-request action block
-        const result = await codebolt.actionBlock.start('submit-merge-request', {
-            projectPath: "/Users/ravirawat/Documents/cbtest/provider-test",
-            agentId: process.env.AGENT_ID || `remote-agent-${Date.now()}`,
-            agentName: process.env.AGENT_NAME || 'Remote Task Agent',
-            title: 'Test Merge Request from Remote Agent',
-            description: 'Testing the submit-merge-request action block with static response',
-            initialTask: reqMessage.userMessage || 'Test task',
-            startReviewAgent: false,
-            waitForReview: false
-        });
-
-        codebolt.chat.sendMessage(`Action block result: ${JSON.stringify(result, null, 2)}`, {});
 
         // Original agent logic commented out below:
-        // codebolt.chat.sendMessage("Gemini agent started", {})
-        // // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
-        // let promptGenerator = new InitialPromptGenerator({
+        codebolt.chat.sendMessage("Gemini agent started", {})
+        // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
+        let promptGenerator = new InitialPromptGenerator({
 
-        //     processors: [
-        //         // 1. Chat History
-        //         new ChatHistoryMessageModifier({ enableChatHistory: true }),
-        //         // 2. Environment Context (date, OS)
-        //         new EnvironmentContextModifier({ enableFullContext: true }),
-        //         // 3. Directory Context (folder structure)  
-        //         new DirectoryContextModifier(),
+            processors: [
+                // 1. Chat History
+                new ChatHistoryMessageModifier({ enableChatHistory: true }),
+                // 2. Environment Context (date, OS)
+                new EnvironmentContextModifier({ enableFullContext: true }),
+                // 3. Directory Context (folder structure)  
+                new DirectoryContextModifier(),
 
-        //         // 4. IDE Context (active file, opened files)
-        //         new IdeContextModifier({
-        //             includeActiveFile: true,
-        //             includeOpenFiles: true,
-        //             includeCursorPosition: true,
-        //             includeSelectedText: true
-        //         }),
-        //         // 5. Core System Prompt (instructions)
-        //         new CoreSystemPromptModifier(
-        //             { customSystemPrompt: systemPrompt }
-        //         ),
-        //         // 6. Tools (function declarations)
-        //         new ToolInjectionModifier({
-        //             includeToolDescriptions: true
-        //         }),
+                // 4. IDE Context (active file, opened files)
+                new IdeContextModifier({
+                    includeActiveFile: true,
+                    includeOpenFiles: true,
+                    includeCursorPosition: true,
+                    includeSelectedText: true
+                }),
+                // 5. Core System Prompt (instructions)
+                new CoreSystemPromptModifier(
+                    { customSystemPrompt: systemPrompt }
+                ),
+                // 6. Tools (function declarations)
+                new ToolInjectionModifier({
+                    includeToolDescriptions: true
+                }),
 
-        //         // 7. At-file processing (@file mentions)
-        //         new AtFileProcessorModifier({
-        //             enableRecursiveSearch: true
-        //         })
-        //     ],
-        //     baseSystemPrompt: systemPrompt
-        // });
+                // 7. At-file processing (@file mentions)
+                new AtFileProcessorModifier({
+                    enableRecursiveSearch: true
+                })
+            ],
+            baseSystemPrompt: systemPrompt
+        });
 
-        // let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        // // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+        // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
 
-        // // return;
-        // let completed = false;
-        // do {
-        //     let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-        //     let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-        //     prompt = result.nextMessage;
+        // return;
+        let completed = false;
+        do {
+            let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+            prompt = result.nextMessage;
 
-        //     let responseExecutor = new ResponseExecutor({
-        //         preToolCallProcessors: [],
-        //         postToolCallProcessors: []
+            let responseExecutor = new ResponseExecutor({
+                preToolCallProcessors: [],
+                postToolCallProcessors: []
 
-        //     })
-        //     let executionResult = await responseExecutor.executeResponse({
-        //         initialUserMessage: reqMessage,
-        //         actualMessageSentToLLM: result.actualMessageSentToLLM,
-        //         rawLLMOutput: result.rawLLMResponse,
-        //         nextMessage: result.nextMessage,
-        //     });
+            })
+            let executionResult = await responseExecutor.executeResponse({
+                initialUserMessage: reqMessage,
+                actualMessageSentToLLM: result.actualMessageSentToLLM,
+                rawLLMOutput: result.rawLLMResponse,
+                nextMessage: result.nextMessage,
+            });
 
-        //     completed = executionResult.completed;
-        //     prompt = executionResult.nextMessage;
+            completed = executionResult.completed;
+            prompt = executionResult.nextMessage;
 
 
-        //     if (completed) {
-        //         break;
-        //     }
+            if (completed) {
+                break;
+            }
 
-        // } while (!completed);
+        } while (!completed);
 
 
 

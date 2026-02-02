@@ -270,7 +270,7 @@ export class SideExecutionManager extends EventEmitter {
         if (!childProcess) return;
 
         childProcess.stdout?.on('data', (data: Buffer) => {
-            logger.debug(`[SideExecution ${sideExecutionId}] stdout: ${data.toString().trim()}`);
+            logger.info(`[SideExecution ${sideExecutionId}] stdout: ${data.toString().trim()}`);
         });
 
         childProcess.stderr?.on('data', (data: Buffer) => {
@@ -293,7 +293,7 @@ export class SideExecutionManager extends EventEmitter {
         });
 
         childProcess.on('message', (message: any) => {
-            logger.debug(`[SideExecution ${sideExecutionId}] IPC message: ${JSON.stringify(message)}`);
+            logger.info(`[SideExecution ${sideExecutionId}] IPC message: ${JSON.stringify(message)}`);
 
             if (message.type === 'sideExecutionComplete') {
                 this.handleCompletion(sideExecutionId, message.result);
