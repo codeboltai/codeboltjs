@@ -7,7 +7,7 @@ import FunctionForm from '@/components/form/FunctionForm';
 import SearchCommand from '@/components/navigation/SearchCommand';
 import CyberCard from '@/components/ui/CyberCard';
 import { CodeboltAPI } from '@/lib/modules';
-import { Zap, Terminal, Database, Bot, Layers } from 'lucide-react';
+import { Zap, Terminal, Database, Bot, Layers, FolderOpen, Globe, MessageSquare, GitBranch, Brain, ListTodo, FolderKanban, TestTube, Calendar, Search, Settings, Network, GitPullRequest, Wrench } from 'lucide-react';
 
 export default function Home() {
   const [selectedModule, setSelectedModule] = useState<string>('');
@@ -88,6 +88,23 @@ interface WelcomeScreenProps {
   onSearchClick: () => void;
 }
 
+function CategoryPreview({ name, Icon, count, color }: { name: string; Icon: React.ComponentType<{ className?: string }>; count: number; color: string }) {
+  return (
+    <div
+      className="flex items-center gap-2 px-3 py-2 border transition-colors hover:opacity-80"
+      style={{
+        borderColor: `${color}50`,
+        backgroundColor: `${color}10`,
+        color: color
+      }}
+    >
+      <Icon className="w-4 h-4 flex-shrink-0" />
+      <span className="text-xs font-mono truncate">{name}</span>
+      <span className="text-[10px] font-mono opacity-70 ml-auto">{count}</span>
+    </div>
+  );
+}
+
 function WelcomeScreen({
   moduleCount,
   functionCount,
@@ -149,20 +166,20 @@ function WelcomeScreen({
         <CyberCard title="GETTING STARTED" variant="muted">
           <ul className="space-y-3 text-sm font-mono">
             <li className="flex items-start gap-2">
-              <span className="text-cyber-cyan">01.</span>
-              <span className="text-cyber-text-secondary">Select a category from the sidebar</span>
+              <span style={{ color: '#00d4ff' }} className="font-bold">01.</span>
+              <span style={{ color: '#e6edf3' }}>Select a <span style={{ color: '#a855f7' }}>category</span> from the sidebar</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-cyber-cyan">02.</span>
-              <span className="text-cyber-text-secondary">Expand a module to see its functions</span>
+              <span style={{ color: '#10b981' }} className="font-bold">02.</span>
+              <span style={{ color: '#e6edf3' }}>Expand a <span style={{ color: '#f59e0b' }}>module</span> to see its functions</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-cyber-cyan">03.</span>
-              <span className="text-cyber-text-secondary">Click a function to open the test form</span>
+              <span style={{ color: '#f59e0b' }} className="font-bold">03.</span>
+              <span style={{ color: '#e6edf3' }}>Click a <span style={{ color: '#00d4ff' }}>function</span> to open the test form</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-cyber-cyan">04.</span>
-              <span className="text-cyber-text-secondary">Fill in parameters and execute</span>
+              <span style={{ color: '#a855f7' }} className="font-bold">04.</span>
+              <span style={{ color: '#e6edf3' }}>Fill in <span style={{ color: '#10b981' }}>parameters</span> and execute</span>
             </li>
           </ul>
         </CyberCard>
@@ -170,20 +187,20 @@ function WelcomeScreen({
         <CyberCard title="KEYBOARD SHORTCUTS" variant="muted">
           <ul className="space-y-3 text-sm font-mono">
             <li className="flex items-center justify-between">
-              <span className="text-cyber-text-secondary">Open search</span>
-              <kbd className="px-2 py-1 text-xs bg-cyber-bg-tertiary border border-cyber-border rounded">Cmd+K</kbd>
+              <span style={{ color: '#e6edf3' }}>Open search</span>
+              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#00d4ff20', borderColor: '#00d4ff50', color: '#00d4ff', borderWidth: '1px' }}>Cmd+K</kbd>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-cyber-text-secondary">Navigate results</span>
-              <kbd className="px-2 py-1 text-xs bg-cyber-bg-tertiary border border-cyber-border rounded">↑ ↓</kbd>
+              <span style={{ color: '#e6edf3' }}>Navigate results</span>
+              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#a855f720', borderColor: '#a855f750', color: '#a855f7', borderWidth: '1px' }}>↑ ↓</kbd>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-cyber-text-secondary">Select function</span>
-              <kbd className="px-2 py-1 text-xs bg-cyber-bg-tertiary border border-cyber-border rounded">Enter</kbd>
+              <span style={{ color: '#e6edf3' }}>Select function</span>
+              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#10b98120', borderColor: '#10b98150', color: '#10b981', borderWidth: '1px' }}>Enter</kbd>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-cyber-text-secondary">Close modal</span>
-              <kbd className="px-2 py-1 text-xs bg-cyber-bg-tertiary border border-cyber-border rounded">Esc</kbd>
+              <span style={{ color: '#e6edf3' }}>Close modal</span>
+              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#f59e0b20', borderColor: '#f59e0b50', color: '#f59e0b', borderWidth: '1px' }}>Esc</kbd>
             </li>
           </ul>
         </CyberCard>
@@ -192,33 +209,22 @@ function WelcomeScreen({
       {/* Module categories preview */}
       <CyberCard title="MODULE CATEGORIES" variant="muted" subtitle="Available in this build">
         <div className="grid grid-cols-4 gap-3">
-          {[
-            { name: 'File System', icon: '📁', count: 3 },
-            { name: 'Browser', icon: '🌐', count: 2 },
-            { name: 'Communication', icon: '💬', count: 3 },
-            { name: 'Git', icon: '📦', count: 1 },
-            { name: 'AI & LLM', icon: '🧠', count: 2 },
-            { name: 'Agents', icon: '🤖', count: 5 },
-            { name: 'Jobs & Tasks', icon: '📋', count: 6 },
-            { name: 'Memory', icon: '💾', count: 6 },
-            { name: 'Project', icon: '📊', count: 5 },
-            { name: 'Testing', icon: '🧪', count: 1 },
-            { name: 'Calendar', icon: '📅', count: 3 },
-            { name: 'Search', icon: '🔍', count: 3 },
-            { name: 'Config', icon: '⚙️', count: 4 },
-            { name: 'Orchestration', icon: '🔗', count: 3 },
-            { name: 'Review', icon: '✅', count: 4 },
-            { name: 'Utilities', icon: '🔧', count: 5 },
-          ].map((cat) => (
-            <div
-              key={cat.name}
-              className="flex items-center gap-2 px-3 py-2 border border-cyber-border bg-cyber-bg-tertiary/50 hover:border-cyber-cyan/50 transition-colors"
-            >
-              <span>{cat.icon}</span>
-              <span className="text-xs font-mono text-cyber-text-secondary truncate">{cat.name}</span>
-              <span className="text-[10px] font-mono text-cyber-text-muted ml-auto">{cat.count}</span>
-            </div>
-          ))}
+          <CategoryPreview name="File System" Icon={FolderOpen} count={3} color="#00d4ff" />
+          <CategoryPreview name="Browser" Icon={Globe} count={2} color="#a855f7" />
+          <CategoryPreview name="Communication" Icon={MessageSquare} count={3} color="#10b981" />
+          <CategoryPreview name="Git" Icon={GitBranch} count={1} color="#f59e0b" />
+          <CategoryPreview name="AI & LLM" Icon={Brain} count={2} color="#a855f7" />
+          <CategoryPreview name="Agents" Icon={Bot} count={5} color="#3b82f6" />
+          <CategoryPreview name="Jobs & Tasks" Icon={ListTodo} count={6} color="#f59e0b" />
+          <CategoryPreview name="Memory" Icon={Database} count={6} color="#10b981" />
+          <CategoryPreview name="Project" Icon={FolderKanban} count={5} color="#00d4ff" />
+          <CategoryPreview name="Testing" Icon={TestTube} count={1} color="#ef4444" />
+          <CategoryPreview name="Calendar" Icon={Calendar} count={3} color="#a855f7" />
+          <CategoryPreview name="Search" Icon={Search} count={3} color="#f59e0b" />
+          <CategoryPreview name="Config" Icon={Settings} count={4} color="#3b82f6" />
+          <CategoryPreview name="Orchestration" Icon={Network} count={3} color="#00d4ff" />
+          <CategoryPreview name="Review" Icon={GitPullRequest} count={4} color="#10b981" />
+          <CategoryPreview name="Utilities" Icon={Wrench} count={5} color="#f59e0b" />
         </div>
       </CyberCard>
     </div>

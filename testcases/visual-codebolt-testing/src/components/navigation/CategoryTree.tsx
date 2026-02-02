@@ -31,6 +31,26 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Wrench,
 };
 
+// Category-specific colors for visual distinction (using hex values for reliability)
+const categoryColors: Record<string, { color: string; badge: 'cyan' | 'purple' | 'success' | 'error' | 'warning' | 'info' | 'muted' }> = {
+  'file-system': { color: '#00d4ff', badge: 'cyan' },
+  'browser': { color: '#a855f7', badge: 'purple' },
+  'communication': { color: '#10b981', badge: 'success' },
+  'git': { color: '#f59e0b', badge: 'warning' },
+  'ai-llm': { color: '#a855f7', badge: 'purple' },
+  'agents': { color: '#3b82f6', badge: 'info' },
+  'jobs-tasks': { color: '#f59e0b', badge: 'warning' },
+  'memory': { color: '#10b981', badge: 'success' },
+  'project': { color: '#00d4ff', badge: 'cyan' },
+  'testing': { color: '#ef4444', badge: 'error' },
+  'calendar': { color: '#a855f7', badge: 'purple' },
+  'search': { color: '#f59e0b', badge: 'warning' },
+  'config': { color: '#3b82f6', badge: 'info' },
+  'orchestration': { color: '#00d4ff', badge: 'cyan' },
+  'review': { color: '#10b981', badge: 'success' },
+  'utilities': { color: '#f59e0b', badge: 'warning' },
+};
+
 const CategoryTree: React.FC<CategoryTreeProps> = ({
   onFunctionSelect,
   selectedModule,
@@ -65,7 +85,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
     onFunctionSelect(moduleName, functionName);
   };
 
-  const renderFunction = (module: CodeboltModule, fn: CodeboltFunction) => {
+  const renderFunction = (module: CodeboltModule, fn: CodeboltFunction, categoryColor: string) => {
     const isSelected = selectedModule === module.name && selectedFunction === fn.name;
 
     return (
@@ -74,18 +94,20 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
         onClick={() => handleFunctionClick(module.name, fn.name)}
         className={cn(
           'w-full text-left px-3 py-1.5 text-xs font-mono transition-all duration-150',
-          'border-l-2 ml-4',
-          isSelected
-            ? 'border-cyber-cyan bg-cyber-cyan/10 text-cyber-cyan'
-            : 'border-transparent hover:border-cyber-cyan/50 hover:bg-cyber-bg-tertiary text-cyber-text-secondary hover:text-cyber-text-primary'
+          'border-l-2 ml-4 hover:bg-cyber-bg-tertiary'
         )}
+        style={{
+          borderColor: isSelected ? categoryColor : 'transparent',
+          backgroundColor: isSelected ? `${categoryColor}15` : undefined,
+          color: isSelected ? categoryColor : '#8b949e',
+        }}
       >
         <div className="truncate">{fn.name}</div>
       </button>
     );
   };
 
-  const renderModule = (module: CodeboltModule) => {
+  const renderModule = (module: CodeboltModule, categoryColor: string) => {
     const isExpanded = expandedModules.has(module.name);
     const hasSelectedFunction = selectedModule === module.name;
 
@@ -93,28 +115,25 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
       <div key={module.name} className="ml-2">
         <button
           onClick={() => toggleModule(module.name)}
-          className={cn(
-            'w-full flex items-center gap-2 px-2 py-1.5 text-xs font-mono',
-            'transition-colors duration-150',
-            hasSelectedFunction
-              ? 'text-cyber-cyan'
-              : 'text-cyber-text-secondary hover:text-cyber-text-primary'
-          )}
+          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-mono transition-colors duration-150"
+          style={{ color: hasSelectedFunction ? categoryColor : (isExpanded ? '#e6edf3' : '#8b949e') }}
         >
-          {isExpanded ? (
-            <ChevronDown className="w-3 h-3 flex-shrink-0" />
-          ) : (
-            <ChevronRight className="w-3 h-3 flex-shrink-0" />
-          )}
+          <span style={{ color: isExpanded ? categoryColor : '#484f58' }}>
+            {isExpanded ? (
+              <ChevronDown className="w-3 h-3 flex-shrink-0" />
+            ) : (
+              <ChevronRight className="w-3 h-3 flex-shrink-0" />
+            )}
+          </span>
           <span className="truncate flex-1 text-left">{module.displayName}</span>
-          <CyberBadge variant="muted" size="sm">
+          <CyberBadge variant={isExpanded ? 'cyan' : 'muted'} size="sm">
             {module.functions.length}
           </CyberBadge>
         </button>
 
         {isExpanded && (
           <div className="mt-1 space-y-0.5">
-            {module.functions.map(fn => renderFunction(module, fn))}
+            {module.functions.map(fn => renderFunction(module, fn, categoryColor))}
           </div>
         )}
       </div>
@@ -126,6 +145,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
     const modules = CodeboltAPI.getModulesByCategory(category.id);
     const totalFunctions = modules.reduce((acc, m) => acc + m.functions.length, 0);
     const Icon = iconMap[category.icon] || FolderOpen;
+    const colors = categoryColors[category.id] || { color: '#00d4ff', badge: 'cyan' as const };
 
     return (
       <div key={category.id} className="mb-1">
@@ -135,27 +155,35 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
             'w-full flex items-center gap-2 px-3 py-2 text-sm font-mono',
             'border border-transparent transition-all duration-150',
             isExpanded
-              ? 'bg-cyber-bg-tertiary border-cyber-cyan/30 text-cyber-cyan'
-              : 'hover:bg-cyber-bg-tertiary text-cyber-text-secondary hover:text-cyber-text-primary'
+              ? 'bg-cyber-bg-tertiary border-cyber-border'
+              : 'hover:bg-cyber-bg-tertiary'
           )}
+          style={{ color: isExpanded ? colors.color : '#8b949e' }}
         >
-          {isExpanded ? (
-            <ChevronDown className="w-4 h-4 flex-shrink-0 text-cyber-cyan" />
-          ) : (
-            <ChevronRight className="w-4 h-4 flex-shrink-0" />
-          )}
-          <Icon className="w-4 h-4 flex-shrink-0" />
+          <span style={{ color: isExpanded ? colors.color : '#484f58' }}>
+            {isExpanded ? (
+              <ChevronDown className="w-4 h-4 flex-shrink-0" />
+            ) : (
+              <ChevronRight className="w-4 h-4 flex-shrink-0" />
+            )}
+          </span>
+          <span style={{ color: colors.color }}>
+            <Icon className="w-4 h-4 flex-shrink-0" />
+          </span>
           <span className="truncate flex-1 text-left uppercase tracking-wide">
             {category.name}
           </span>
-          <CyberBadge variant={isExpanded ? 'cyan' : 'muted'} size="sm">
+          <CyberBadge variant={isExpanded ? colors.badge : 'muted'} size="sm">
             {totalFunctions}
           </CyberBadge>
         </button>
 
         {isExpanded && (
-          <div className="mt-1 pb-2 space-y-1 border-l border-cyber-border ml-4">
-            {modules.map(module => renderModule(module))}
+          <div
+            className="mt-1 pb-2 space-y-1 border-l ml-4"
+            style={{ borderColor: `${colors.color}40` }}
+          >
+            {modules.map(module => renderModule(module, colors.color))}
           </div>
         )}
       </div>

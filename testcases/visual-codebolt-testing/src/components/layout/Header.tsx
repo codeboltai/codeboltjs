@@ -93,24 +93,30 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
   };
 
   return (
-    <header className="border-b border-cyber-cyan/30 bg-cyber-bg-primary/95 backdrop-blur-sm sticky top-0 z-50">
+    <header
+      className="border-b bg-cyber-bg-primary/95 backdrop-blur-sm sticky top-0 z-50"
+      style={{ borderColor: '#00d4ff40' }}
+    >
       <div className="px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and title */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-cyber-cyan" />
-              <h1 className="text-lg font-mono font-bold text-cyber-cyan tracking-wider">
-                CODEBOLT_JS_TESTER
+              <Zap className="w-6 h-6" style={{ color: '#00d4ff' }} />
+              <h1 className="text-lg font-mono font-bold tracking-wider" style={{ color: '#00d4ff' }}>
+                CODEBOLT<span style={{ color: '#a855f7' }}>_JS_</span>TESTER
               </h1>
             </div>
-            <span className="text-xs font-mono text-cyber-text-muted">v2.0</span>
-            <div className="hidden md:flex items-center gap-1 px-2 py-1 border border-cyber-border bg-cyber-bg-secondary">
-              <span className="text-xs font-mono text-cyber-text-secondary">
+            <span className="text-xs font-mono" style={{ color: '#10b981' }}>v2.0</span>
+            <div
+              className="hidden md:flex items-center gap-1 px-2 py-1 border bg-cyber-bg-secondary"
+              style={{ borderColor: '#a855f740' }}
+            >
+              <span className="text-xs font-mono" style={{ color: '#a855f7' }}>
                 {moduleCount} MODULES
               </span>
-              <span className="text-cyber-text-muted">|</span>
-              <span className="text-xs font-mono text-cyber-cyan">
+              <span style={{ color: '#484f58' }}>|</span>
+              <span className="text-xs font-mono" style={{ color: '#10b981' }}>
                 {functionCount} FUNCTIONS
               </span>
             </div>
@@ -119,15 +125,15 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
           {/* Center - Search shortcut */}
           <button
             onClick={onSearchClick}
-            className={cn(
-              'hidden md:flex items-center gap-2 px-4 py-1.5 border border-cyber-border',
-              'bg-cyber-bg-secondary hover:border-cyber-cyan/50 transition-colors',
-              'text-cyber-text-muted hover:text-cyber-text-secondary'
-            )}
+            className="hidden md:flex items-center gap-2 px-4 py-1.5 border bg-cyber-bg-secondary hover:opacity-80 transition-colors"
+            style={{ borderColor: '#3b82f640' }}
           >
-            <Search className="w-4 h-4" />
-            <span className="text-xs font-mono">Search functions...</span>
-            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-cyber-bg-tertiary border border-cyber-border rounded">
+            <Search className="w-4 h-4" style={{ color: '#3b82f6' }} />
+            <span className="text-xs font-mono" style={{ color: '#8b949e' }}>Search functions...</span>
+            <kbd
+              className="px-1.5 py-0.5 text-[10px] font-mono rounded"
+              style={{ backgroundColor: '#00d4ff20', borderColor: '#00d4ff40', color: '#00d4ff', border: '1px solid' }}
+            >
               Cmd+K
             </kbd>
           </button>
@@ -144,9 +150,10 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
               <button
                 onClick={checkConnection}
                 className={cn(
-                  'p-1 text-cyber-text-muted hover:text-cyber-cyan transition-colors',
+                  'p-1 transition-colors',
                   connectionStatus === 'checking' && 'animate-spin'
                 )}
+                style={{ color: connectionStatus === 'checking' ? '#f59e0b' : '#00d4ff' }}
                 title="Refresh connection status"
               >
                 <RefreshCw className="w-3 h-3" />
@@ -154,18 +161,18 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
             </div>
 
             {/* Port info */}
-            <div className="hidden sm:flex items-center gap-1 text-cyber-text-secondary">
-              <span className="text-cyber-text-muted">PORT:</span>
-              <span className={connectionStatus === 'connected' ? 'text-cyber-success' : 'text-cyber-text-muted'}>
+            <div className="hidden sm:flex items-center gap-1">
+              <span style={{ color: '#8b949e' }}>PORT:</span>
+              <span style={{ color: connectionStatus === 'connected' ? '#10b981' : '#8b949e' }}>
                 {socketPort}
               </span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 text-cyber-text-secondary">
-              <span className="text-cyber-text-muted">CYCLE:</span>
-              <span className="text-cyber-cyan">{cycleCount}</span>
+            <div className="hidden sm:flex items-center gap-1">
+              <span style={{ color: '#8b949e' }}>CYCLE:</span>
+              <span style={{ color: '#a855f7' }}>{cycleCount}</span>
             </div>
-            <div className="hidden sm:block text-cyber-warning">
+            <div className="hidden sm:block" style={{ color: '#f59e0b' }}>
               {currentTime}
             </div>
           </div>

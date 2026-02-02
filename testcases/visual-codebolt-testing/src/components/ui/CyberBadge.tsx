@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 interface CyberBadgeProps {
   children: React.ReactNode;
-  variant?: 'cyan' | 'success' | 'error' | 'warning' | 'muted';
+  variant?: 'cyan' | 'success' | 'error' | 'warning' | 'muted' | 'purple' | 'info';
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -21,6 +21,8 @@ const CyberBadge: React.FC<CyberBadgeProps> = ({
     success: 'bg-cyber-success/20 text-cyber-success border-cyber-success/40',
     error: 'bg-cyber-error/20 text-cyber-error border-cyber-error/40',
     warning: 'bg-cyber-warning/20 text-cyber-warning border-cyber-warning/40',
+    purple: 'bg-cyber-purple/20 text-cyber-purple border-cyber-purple/40',
+    info: 'bg-cyber-info/20 text-cyber-info border-cyber-info/40',
     muted: 'bg-cyber-bg-tertiary text-cyber-text-secondary border-cyber-border',
   };
 

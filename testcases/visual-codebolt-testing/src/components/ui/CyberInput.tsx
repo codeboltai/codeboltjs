@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface CyberInputProps {
   value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
-  variant?: 'cyan' | 'success' | 'error' | 'muted';
+  variant?: 'cyan' | 'success' | 'error' | 'warning' | 'purple' | 'muted';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   className?: string;
@@ -18,6 +18,16 @@ interface CyberInputProps {
   required?: boolean;
   error?: string;
 }
+
+// Color map for inline styles
+const variantColors = {
+  cyan: { border: '#00d4ff', focusBorder: '#00d4ff', focusGlow: '#00d4ff' },
+  success: { border: '#10b981', focusBorder: '#10b981', focusGlow: '#10b981' },
+  error: { border: '#ef4444', focusBorder: '#ef4444', focusGlow: '#ef4444' },
+  warning: { border: '#f59e0b', focusBorder: '#f59e0b', focusGlow: '#f59e0b' },
+  purple: { border: '#a855f7', focusBorder: '#a855f7', focusGlow: '#a855f7' },
+  muted: { border: '#30363d', focusBorder: '#00d4ff', focusGlow: '#00d4ff' },
+};
 
 const CyberInput: React.FC<CyberInputProps> = ({
   value,
@@ -34,28 +44,9 @@ const CyberInput: React.FC<CyberInputProps> = ({
   required = false,
   error,
 }) => {
-  const variantStyles = {
-    cyan: cn(
-      'border-cyber-cyan/40 text-cyber-text-primary',
-      'focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan/30',
-      'placeholder:text-cyber-text-muted'
-    ),
-    success: cn(
-      'border-cyber-success/40 text-cyber-text-primary',
-      'focus:border-cyber-success focus:ring-1 focus:ring-cyber-success/30',
-      'placeholder:text-cyber-text-muted'
-    ),
-    error: cn(
-      'border-cyber-error/40 text-cyber-text-primary',
-      'focus:border-cyber-error focus:ring-1 focus:ring-cyber-error/30',
-      'placeholder:text-cyber-text-muted'
-    ),
-    muted: cn(
-      'border-cyber-border text-cyber-text-primary',
-      'focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan/30',
-      'placeholder:text-cyber-text-muted'
-    ),
-  };
+  const [isFocused, setIsFocused] = useState(false);
+
+  const colors = error ? variantColors.error : variantColors[variant];
 
   const sizeStyles = {
     sm: 'px-2 py-1 text-xs',
@@ -64,21 +55,26 @@ const CyberInput: React.FC<CyberInputProps> = ({
   };
 
   const baseStyles = cn(
-    'w-full font-mono border bg-cyber-bg-primary/50 backdrop-blur-sm',
-    'transition-all duration-200',
+    'w-full font-mono border transition-all duration-200',
     'focus:outline-none',
     'disabled:opacity-50 disabled:cursor-not-allowed',
-    error ? variantStyles.error : variantStyles[variant],
     sizeStyles[size],
     className
   );
 
+  const inputStyle = {
+    borderColor: isFocused ? colors.focusBorder : `${colors.border}60`,
+    backgroundColor: 'rgba(10, 10, 15, 0.5)',
+    color: '#e6edf3',
+    boxShadow: isFocused ? `0 0 8px ${colors.focusGlow}30` : 'none',
+  };
+
   return (
     <div className="space-y-1">
       {label && (
-        <label className="flex items-center gap-1 text-sm font-mono text-cyber-cyan">
+        <label className="flex items-center gap-1 text-sm font-mono" style={{ color: '#00d4ff' }}>
           {label}
-          {required && <span className="text-cyber-error">*</span>}
+          {required && <span style={{ color: '#ef4444' }}>*</span>}
         </label>
       )}
       {multiline ? (
@@ -89,6 +85,9 @@ const CyberInput: React.FC<CyberInputProps> = ({
           disabled={disabled}
           rows={rows}
           className={cn(baseStyles, 'resize-none')}
+          style={inputStyle}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       ) : (
         <input
@@ -98,10 +97,13 @@ const CyberInput: React.FC<CyberInputProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           className={baseStyles}
+          style={inputStyle}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       )}
       {error && (
-        <p className="text-xs font-mono text-cyber-error">{error}</p>
+        <p className="text-xs font-mono" style={{ color: '#ef4444' }}>{error}</p>
       )}
     </div>
   );

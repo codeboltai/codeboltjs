@@ -18,13 +18,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <aside className="w-80 border-r border-cyber-border bg-cyber-bg-secondary/50 flex flex-col h-full">
-      <div className="p-3 border-b border-cyber-border">
+      <div className="p-3 border-b border-cyber-cyan/30 bg-cyber-bg-tertiary/30">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-mono font-bold text-cyber-cyan uppercase tracking-wider">
+          <h2 className="text-xs font-mono font-bold uppercase tracking-wider" style={{ color: '#00d4ff' }}>
             CATEGORIES
           </h2>
-          <span className="text-[10px] font-mono text-cyber-text-muted">
-            NAVIGATION
+          <span className="text-[10px] font-mono" style={{ color: '#a855f7' }}>
+            NAV_PANEL
           </span>
         </div>
       </div>

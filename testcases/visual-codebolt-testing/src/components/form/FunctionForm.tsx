@@ -163,17 +163,41 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
     navigator.clipboard.writeText(json);
   };
 
+  const getTypeColor = (type: string): 'cyan' | 'success' | 'warning' | 'purple' | 'info' | 'muted' => {
+    switch (type) {
+      case 'string': return 'success';
+      case 'number': return 'cyan';
+      case 'boolean': return 'purple';
+      case 'object': return 'warning';
+      case 'array': return 'info';
+      default: return 'muted';
+    }
+  };
+
+  const getTypeHexColor = (type: string): string => {
+    switch (type) {
+      case 'string': return '#10b981';
+      case 'number': return '#00d4ff';
+      case 'boolean': return '#a855f7';
+      case 'object': return '#f59e0b';
+      case 'array': return '#3b82f6';
+      default: return '#8b949e';
+    }
+  };
+
   const renderParameterInput = (param: CodeboltParameter) => {
     const isComplexType = param.type === 'object' || param.type === 'array';
+    const typeColor = getTypeColor(param.type);
+    const typeHexColor = getTypeHexColor(param.type);
 
     return (
       <div key={param.name} className="space-y-1">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-mono text-cyber-cyan">
-            {param.name}
-            {param.required && <span className="text-cyber-error ml-1">*</span>}
+          <label className="text-sm font-mono" style={{ color: '#e6edf3' }}>
+            <span style={{ color: typeHexColor }}>{param.name}</span>
+            {param.required && <span style={{ color: '#ef4444' }} className="ml-1">*</span>}
           </label>
-          <CyberBadge variant="muted" size="sm">
+          <CyberBadge variant={typeColor} size="sm">
             {param.type}
           </CyberBadge>
         </div>
@@ -184,13 +208,12 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
             onChange={(e) => handleParameterChange(param.name, e.target.value)}
             placeholder={`Enter ${param.type} as JSON...`}
             rows={4}
-            className={cn(
-              'w-full px-3 py-2 font-mono text-sm',
-              'border border-cyber-cyan/40 bg-cyber-bg-primary/50',
-              'text-cyber-text-primary placeholder:text-cyber-text-muted',
-              'focus:border-cyber-cyan focus:outline-none focus:ring-1 focus:ring-cyber-cyan/30',
-              'resize-none'
-            )}
+            className="w-full px-3 py-2 font-mono text-sm resize-none"
+            style={{
+              border: `1px solid ${typeHexColor}40`,
+              backgroundColor: 'rgba(10, 10, 15, 0.5)',
+              color: '#e6edf3',
+            }}
           />
         ) : (
           <CyberInput
@@ -202,7 +225,7 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
         )}
 
         {param.description && (
-          <p className="text-xs text-cyber-text-muted">{param.description}</p>
+          <p className="text-xs" style={{ color: '#8b949e' }}>{param.description}</p>
         )}
       </div>
     );
@@ -225,20 +248,22 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
           {/* Parameters */}
           {func.parameters.length > 0 ? (
             <div className="space-y-4">
-              <div className="text-xs font-mono text-cyber-text-muted uppercase tracking-wider">
-                PARAMETERS
+              <div className="text-xs font-mono uppercase tracking-wider flex items-center gap-2">
+                <span style={{ color: '#a855f7' }}>▸</span>
+                <span style={{ color: '#a855f7' }}>PARAMETERS</span>
+                <span style={{ color: '#484f58' }}>({func.parameters.length})</span>
               </div>
               {func.parameters.map(param => renderParameterInput(param))}
             </div>
           ) : (
-            <div className="py-4 text-center text-cyber-text-muted font-mono text-sm">
-              This function takes no parameters
+            <div className="py-4 text-center font-mono text-sm" style={{ color: '#8b949e' }}>
+              <span style={{ color: '#10b981' }}>✓</span> This function takes no parameters
             </div>
           )}
 
           {/* Return type */}
-          <div className="flex items-center gap-2 pt-2 border-t border-cyber-border">
-            <span className="text-xs font-mono text-cyber-text-muted">Returns:</span>
+          <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: '#30363d' }}>
+            <span className="text-xs font-mono" style={{ color: '#3b82f6' }}>Returns:</span>
             <CyberBadge variant="success">{func.returnType}</CyberBadge>
           </div>
 
@@ -284,32 +309,30 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
 
       {/* History */}
       {history.length > 0 && (
-        <CyberCard title="HISTORY" variant="muted" subtitle="Recent executions">
+        <CyberCard title="HISTORY" variant="purple" subtitle="Recent executions">
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {history.map((item) => (
               <div
                 key={item.id}
-                className={cn(
-                  'flex items-center justify-between px-3 py-2 text-xs font-mono',
-                  'border-l-2',
-                  item.error
-                    ? 'border-cyber-error bg-cyber-error/5'
-                    : 'border-cyber-success bg-cyber-success/5'
-                )}
+                className="flex items-center justify-between px-3 py-2 text-xs font-mono border-l-2"
+                style={{
+                  borderColor: item.error ? '#ef4444' : '#10b981',
+                  backgroundColor: item.error ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)'
+                }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-cyber-text-muted">
+                  <span style={{ color: '#00d4ff' }}>
                     {item.timestamp.toLocaleTimeString()}
                   </span>
-                  <span className={item.error ? 'text-cyber-error' : 'text-cyber-success'}>
-                    {item.module}.{item.function}
+                  <span style={{ color: item.error ? '#ef4444' : '#10b981' }}>
+                    {item.module}.<span style={{ color: '#a855f7' }}>{item.function}</span>
                   </span>
-                  <span className={item.error ? 'text-cyber-error' : 'text-cyber-success'}>
+                  <span style={{ color: item.error ? '#ef4444' : '#10b981' }}>
                     {item.error ? '✗' : '✓'}
                   </span>
                 </div>
                 {item.duration && (
-                  <span className="text-cyber-text-muted">
+                  <span style={{ color: '#f59e0b' }}>
                     {item.duration}ms
                   </span>
                 )}

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface CyberButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'cyan' | 'success' | 'error' | 'warning' | 'ghost';
+  variant?: 'cyan' | 'success' | 'error' | 'warning' | 'ghost' | 'purple';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -14,6 +14,16 @@ interface CyberButtonProps {
   type?: 'button' | 'submit' | 'reset';
   fullWidth?: boolean;
 }
+
+// Color map for inline styles
+const variantColors = {
+  cyan: { border: '#00d4ff', text: '#00d4ff', hoverBg: '#00d4ff' },
+  success: { border: '#10b981', text: '#10b981', hoverBg: '#10b981' },
+  error: { border: '#ef4444', text: '#ef4444', hoverBg: '#ef4444' },
+  warning: { border: '#f59e0b', text: '#f59e0b', hoverBg: '#f59e0b' },
+  purple: { border: '#a855f7', text: '#a855f7', hoverBg: '#a855f7' },
+  ghost: { border: '#30363d', text: '#8b949e', hoverBg: 'transparent' },
+};
 
 const CyberButton: React.FC<CyberButtonProps> = ({
   children,
@@ -26,6 +36,9 @@ const CyberButton: React.FC<CyberButtonProps> = ({
   type = 'button',
   fullWidth = false,
 }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+  const colors = variantColors[variant];
+
   const variantStyles = {
     cyan: cn(
       'border-cyber-cyan text-cyber-cyan',
@@ -47,6 +60,11 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       'hover:bg-cyber-warning hover:text-cyber-bg-primary',
       'focus:ring-cyber-warning/50'
     ),
+    purple: cn(
+      'border-cyber-purple text-cyber-purple',
+      'hover:bg-cyber-purple hover:text-cyber-bg-primary',
+      'focus:ring-cyber-purple/50'
+    ),
     ghost: cn(
       'border-cyber-border text-cyber-text-secondary',
       'hover:border-cyber-cyan hover:text-cyber-cyan',
@@ -65,17 +83,23 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'relative font-mono font-semibold border-2 transition-all duration-200',
-        'bg-transparent',
         'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-cyber-bg-primary',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-current',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
         'active:scale-95',
-        variantStyles[variant],
         sizeStyles[size],
         fullWidth && 'w-full',
         className
       )}
+      style={{
+        borderColor: colors.border,
+        color: isHovered && !disabled ? '#0a0a0f' : colors.text,
+        backgroundColor: isHovered && !disabled ? colors.hoverBg : 'transparent',
+        boxShadow: isHovered && !disabled ? `0 0 15px ${colors.border}50` : 'none',
+      }}
     >
       <span className={cn('relative z-10 flex items-center justify-center gap-2', loading && 'opacity-0')}>
         {children}
