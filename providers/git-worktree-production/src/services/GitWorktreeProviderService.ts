@@ -1,6 +1,7 @@
 import type { ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as net from 'net';
 import WebSocket from 'ws';
 import codebolt from '@codebolt/codeboltjs';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
@@ -181,13 +182,45 @@ export class GitWorktreeProviderService
     }
   }
 
+  /**
+   * Normalize a file path to be relative to the worktree.
+   * Strips the worktree path prefix if accidentally included.
+   */
+  private normalizeRelativePath(inputPath: string): string {
+    if (!this.worktreeInfo.path) {
+      return inputPath;
+    }
+
+    // If the path starts with the worktree path, strip it
+    if (inputPath.startsWith(this.worktreeInfo.path)) {
+      const relativePath = inputPath.slice(this.worktreeInfo.path.length);
+      // Remove leading slash if present
+      return relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
+    }
+
+    // If the path looks like an absolute path without leading slash (e.g., "Users/...")
+    // and contains the worktree path pattern, try to extract relative part
+    const worktreePathWithoutLeadingSlash = this.worktreeInfo.path.startsWith('/')
+      ? this.worktreeInfo.path.slice(1)
+      : this.worktreeInfo.path;
+
+    if (inputPath.startsWith(worktreePathWithoutLeadingSlash)) {
+      const relativePath = inputPath.slice(worktreePathWithoutLeadingSlash.length);
+      return relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
+    }
+
+    // If it's already a relative path, return as-is
+    return inputPath;
+  }
+
   async onReadFile(filePath: string): Promise<string> {
     this.logger.log('Reading file:', filePath);
     try {
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      const normalizedPath = this.normalizeRelativePath(filePath);
+      const fullPath = path.join(this.worktreeInfo.path, normalizedPath);
       return await fs.readFile(fullPath, 'utf-8');
     } catch (error: any) {
       this.logger.error('Error reading file:', error);
@@ -201,7 +234,8 @@ export class GitWorktreeProviderService
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      const normalizedPath = this.normalizeRelativePath(filePath);
+      const fullPath = path.join(this.worktreeInfo.path, normalizedPath);
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
       await fs.writeFile(fullPath, content, 'utf-8');
     } catch (error: any) {
@@ -216,7 +250,8 @@ export class GitWorktreeProviderService
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullPath = path.join(this.worktreeInfo.path, filePath);
+      const normalizedPath = this.normalizeRelativePath(filePath);
+      const fullPath = path.join(this.worktreeInfo.path, normalizedPath);
       await fs.unlink(fullPath);
     } catch (error: any) {
       this.logger.error('Error deleting file:', error);
@@ -230,7 +265,8 @@ export class GitWorktreeProviderService
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullPath = path.join(this.worktreeInfo.path, folderPath);
+      const normalizedPath = this.normalizeRelativePath(folderPath);
+      const fullPath = path.join(this.worktreeInfo.path, normalizedPath);
       await fs.rm(fullPath, { recursive: true, force: true });
     } catch (error: any) {
       this.logger.error('Error deleting folder:', error);
@@ -244,8 +280,10 @@ export class GitWorktreeProviderService
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullOldPath = path.join(this.worktreeInfo.path, oldPath);
-      const fullNewPath = path.join(this.worktreeInfo.path, newPath);
+      const normalizedOldPath = this.normalizeRelativePath(oldPath);
+      const normalizedNewPath = this.normalizeRelativePath(newPath);
+      const fullOldPath = path.join(this.worktreeInfo.path, normalizedOldPath);
+      const fullNewPath = path.join(this.worktreeInfo.path, normalizedNewPath);
       await fs.rename(fullOldPath, fullNewPath);
     } catch (error: any) {
       this.logger.error('Error renaming item:', error);
@@ -259,7 +297,8 @@ export class GitWorktreeProviderService
       if (!this.worktreeInfo.path) {
         throw new Error('No worktree available');
       }
-      const fullPath = path.join(this.worktreeInfo.path, folderPath);
+      const normalizedPath = this.normalizeRelativePath(folderPath);
+      const fullPath = path.join(this.worktreeInfo.path, normalizedPath);
       await fs.mkdir(fullPath, { recursive: true });
     } catch (error: any) {
       this.logger.error('Error creating folder:', error);
@@ -397,9 +436,18 @@ export class GitWorktreeProviderService
         return;
       }
 
+      // Find an available port starting from the configured port
+      const preferredPort = this.providerConfig.agentServerPort!;
+      const availablePort = await this.findAvailablePort(preferredPort);
+
+      if (availablePort !== preferredPort) {
+        this.logger.log(`Using port ${availablePort} instead of configured port ${preferredPort}`);
+        this.providerConfig.agentServerPort = availablePort;
+      }
+
       this.agentServer.process = await startAgentServerUtil({
         logger: this.logger,
-        port: this.providerConfig.agentServerPort,
+        port: availablePort,
         projectPath: this.state.projectPath ?? undefined
       });
 
@@ -656,6 +704,36 @@ export class GitWorktreeProviderService
 
   private async isPortInUse(port: number, host: string = 'localhost'): Promise<boolean> {
     return isPortInUse({ port, host });
+  }
+
+  /**
+   * Check if a port is available (not in use)
+   */
+  private async isPortAvailable(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      const server = net.createServer();
+      server.once('error', () => resolve(false));
+      server.once('listening', () => {
+        server.close();
+        resolve(true);
+      });
+      server.listen(port, '127.0.0.1');
+    });
+  }
+
+  /**
+   * Find an available port, starting from the preferred port
+   */
+  private async findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
+    let port = preferredPort;
+    for (let i = 0; i < maxAttempts; i++) {
+      if (await this.isPortAvailable(port)) {
+        return port;
+      }
+      this.logger.warn(`Port ${port} is in use, trying next port...`);
+      port++;
+    }
+    throw new Error(`Could not find an available port after ${maxAttempts} attempts starting from ${preferredPort}`);
   }
 
   private async isAgentServerRunning(): Promise<boolean> {

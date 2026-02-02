@@ -20,20 +20,23 @@ import type { SubmitMergeRequestInput, SubmitMergeRequestOutput } from './types'
 // ActionBlock invocation handler
 codebolt.onActionBlockInvocation(async (threadContext: Record<string, unknown>, metadata: Record<string, unknown>) => {
     try {
-        codebolt.chat.sendMessage('Starting Submit Merge Request ActionBlock...', {});
+        codebolt.chat.sendMessage('Starting Submit Merge Request ActionBlock (STATIC RESPONSE MODE)...', {});
 
         const params = (threadContext?.params || {}) as Record<string, unknown>;
 
         // Get projectPath - required
         const projectPath = (params.projectPath as string) || (metadata?.projectPath as string);
+        const agentId = (params.agentId as string) || (metadata?.agentId as string);
 
+        codebolt.chat.sendMessage(`[STATIC MODE] Would submit merge request from: ${projectPath}`, {});
+
+        // COMMENTED OUT ACTUAL LOGIC - Return static response instead
+        /*
         if (!projectPath) {
             throw new Error('Missing required input: projectPath');
         }
 
         // Get agentId - required
-        const agentId = (params.agentId as string) || (metadata?.agentId as string);
-
         if (!agentId) {
             throw new Error('Missing required input: agentId');
         }
@@ -91,6 +94,30 @@ codebolt.onActionBlockInvocation(async (threadContext: Record<string, unknown>, 
         } else {
             codebolt.chat.sendMessage(`Merge request submission failed: ${result.error}`, {});
         }
+
+        return output;
+        */
+
+        // STATIC RESPONSE
+        const staticMergeRequestId = `static-mr-${Date.now()}`;
+        const output: SubmitMergeRequestOutput = {
+            success: true,
+            mergeRequestId: staticMergeRequestId,
+            mergeRequest: {
+                id: staticMergeRequestId,
+                title: (params.title as string) || 'Static Merge Request',
+                status: 'pending',
+                diffPatch: '--- Static diff patch for testing ---',
+                majorFilesChanged: ['static/file1.ts', 'static/file2.ts']
+            },
+            reviewResult: {
+                completed: false,
+                approved: false,
+                reviewThreadId: `static-review-${Date.now()}`
+            }
+        };
+
+        codebolt.chat.sendMessage(`[STATIC MODE] Merge request created with ID: ${staticMergeRequestId}`, {});
 
         return output;
 

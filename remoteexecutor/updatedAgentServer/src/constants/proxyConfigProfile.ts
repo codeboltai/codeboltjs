@@ -31,7 +31,7 @@ export const profiles = {
         },
         // Project/Settings operations - local for TUI
         "projectEvent": {
-            'proxyType': 'proxy'
+            'proxyType': 'local'
         },
         // Memory operations - proxy for TUI
         "memoryEvent": {
@@ -139,6 +139,10 @@ export const profiles = {
         "chatSummaryEvent": {
             'proxyType': 'proxy',
             'primaryProxy': 'cloud'
+        },
+        // ActionBlock operations - local execution
+        "actionBlock": {
+            'proxyType': 'local'
         }
     } as ProxyConfig,
 
@@ -287,6 +291,10 @@ export const profiles = {
         "chatSummaryEvent": {
             'proxyType': 'proxy',
             'primaryProxy': 'app'
+        },
+        // ActionBlock operations - local execution
+        "actionBlock": {
+            'proxyType': 'local'
         }
     } as ProxyConfig
 };

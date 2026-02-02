@@ -119,7 +119,7 @@ metadata:
       type: number
       required: false
       default: 300000
-      description: Timeout in milliseconds for waiting for review (default: 5 minutes)
+      description: Timeout in milliseconds for waiting for review 
 
   outputs:
     - name: success

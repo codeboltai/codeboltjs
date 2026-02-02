@@ -20,6 +20,8 @@ import { ChatHistoryHandler } from "./chatHistoryHandler";
 import { ProjectRequestHandler } from "./projectRequestHandler";
 import { ChatMessageHandler } from "./chatMessageHandler";
 import { GitHandler } from "./git";
+import { ActionBlockHandler } from "./actionBlockHandler";
+import type { ActionBlockRequest } from "../types/sideExecution";
 
 // Re-export handlers and permission manager
 export { ReadFileHandler } from "./file/readFileHandler";
@@ -67,7 +69,8 @@ export type AgentMessage = Message |
   GetChatHistoryEvent |
   ProjectEvent |
   SendMessageEvent |
-  GitEvent;
+  GitEvent |
+  ActionBlockRequest;
 
 // Handlers container to avoid recreating instances
 class LocalExecutionHandlers {
@@ -81,6 +84,7 @@ class LocalExecutionHandlers {
   public projectRequestHandler: ProjectRequestHandler;
   public chatMessageRequestHandler: ChatMessageHandler;
   public gitHandler: GitHandler;
+  public actionBlockHandler: ActionBlockHandler;
 
   private constructor() {
     this.readFileHandler = new ReadFileHandler();
@@ -91,6 +95,7 @@ class LocalExecutionHandlers {
     this.projectRequestHandler = new ProjectRequestHandler();
     this.chatMessageRequestHandler = new ChatMessageHandler();
     this.gitHandler = new GitHandler();
+    this.actionBlockHandler = new ActionBlockHandler();
   }
 
   public static getInstance(): LocalExecutionHandlers {
@@ -172,6 +177,11 @@ export const executeActionOnMessage = async (
 
   if (message.type === 'gitEvent') {
     await handlers.gitHandler.handleGitEvent(agent, message as GitEvent);
+    return true;
+  }
+
+  if (message.type === 'actionBlock') {
+    await handlers.actionBlockHandler.handleActionBlockEvent(agent, message as ActionBlockRequest);
     return true;
   }
 

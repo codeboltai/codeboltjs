@@ -528,73 +528,90 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     try {
 
-        codebolt.chat.sendMessage("Gemini agent started", {})
-        // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
-        let promptGenerator = new InitialPromptGenerator({
+        codebolt.chat.sendMessage("Remote Task Agent started - Testing submit-merge-request action block", {});
 
-            processors: [
-                // 1. Chat History
-                new ChatHistoryMessageModifier({ enableChatHistory: true }),
-                // 2. Environment Context (date, OS)
-                new EnvironmentContextModifier({ enableFullContext: true }),
-                // 3. Directory Context (folder structure)  
-                new DirectoryContextModifier(),
-
-                // 4. IDE Context (active file, opened files)
-                new IdeContextModifier({
-                    includeActiveFile: true,
-                    includeOpenFiles: true,
-                    includeCursorPosition: true,
-                    includeSelectedText: true
-                }),
-                // 5. Core System Prompt (instructions)
-                new CoreSystemPromptModifier(
-                    { customSystemPrompt: systemPrompt }
-                ),
-                // 6. Tools (function declarations)
-                new ToolInjectionModifier({
-                    includeToolDescriptions: true
-                }),
-
-                // 7. At-file processing (@file mentions)
-                new AtFileProcessorModifier({
-                    enableRecursiveSearch: true
-                })
-            ],
-            baseSystemPrompt: systemPrompt
+        // Call the submit-merge-request action block
+        const result = await codebolt.actionBlock.start('submit-merge-request', {
+            projectPath: "/Users/ravirawat/Documents/cbtest/provider-test",
+            agentId: process.env.AGENT_ID || `remote-agent-${Date.now()}`,
+            agentName: process.env.AGENT_NAME || 'Remote Task Agent',
+            title: 'Test Merge Request from Remote Agent',
+            description: 'Testing the submit-merge-request action block with static response',
+            initialTask: reqMessage.userMessage || 'Test task',
+            startReviewAgent: false,
+            waitForReview: false
         });
 
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+        codebolt.chat.sendMessage(`Action block result: ${JSON.stringify(result, null, 2)}`, {});
 
-        // return;
-        let completed = false;
-        do {
-            let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-            prompt = result.nextMessage;
+        // Original agent logic commented out below:
+        // codebolt.chat.sendMessage("Gemini agent started", {})
+        // // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
+        // let promptGenerator = new InitialPromptGenerator({
 
-            let responseExecutor = new ResponseExecutor({
-                preToolCallProcessors: [],
-                postToolCallProcessors: []
+        //     processors: [
+        //         // 1. Chat History
+        //         new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        //         // 2. Environment Context (date, OS)
+        //         new EnvironmentContextModifier({ enableFullContext: true }),
+        //         // 3. Directory Context (folder structure)  
+        //         new DirectoryContextModifier(),
 
-            })
-            let executionResult = await responseExecutor.executeResponse({
-                initialUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage,
-            });
+        //         // 4. IDE Context (active file, opened files)
+        //         new IdeContextModifier({
+        //             includeActiveFile: true,
+        //             includeOpenFiles: true,
+        //             includeCursorPosition: true,
+        //             includeSelectedText: true
+        //         }),
+        //         // 5. Core System Prompt (instructions)
+        //         new CoreSystemPromptModifier(
+        //             { customSystemPrompt: systemPrompt }
+        //         ),
+        //         // 6. Tools (function declarations)
+        //         new ToolInjectionModifier({
+        //             includeToolDescriptions: true
+        //         }),
 
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
+        //         // 7. At-file processing (@file mentions)
+        //         new AtFileProcessorModifier({
+        //             enableRecursiveSearch: true
+        //         })
+        //     ],
+        //     baseSystemPrompt: systemPrompt
+        // });
+
+        // let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+        // // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+
+        // // return;
+        // let completed = false;
+        // do {
+        //     let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+        //     let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+        //     prompt = result.nextMessage;
+
+        //     let responseExecutor = new ResponseExecutor({
+        //         preToolCallProcessors: [],
+        //         postToolCallProcessors: []
+
+        //     })
+        //     let executionResult = await responseExecutor.executeResponse({
+        //         initialUserMessage: reqMessage,
+        //         actualMessageSentToLLM: result.actualMessageSentToLLM,
+        //         rawLLMOutput: result.rawLLMResponse,
+        //         nextMessage: result.nextMessage,
+        //     });
+
+        //     completed = executionResult.completed;
+        //     prompt = executionResult.nextMessage;
 
 
-            if (completed) {
-                break;
-            }
+        //     if (completed) {
+        //         break;
+        //     }
 
-        } while (!completed);
+        // } while (!completed);
 
 
 
