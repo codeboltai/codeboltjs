@@ -1,0 +1,188 @@
+# ActionBlock Configuration File
+# Submit Merge Request - For remote agents to submit changes for review
+
+name: submit-merge-request
+
+description: |
+  Submits a merge request for code review.
+
+  Designed for remote agents (AgentFS Provider) running in separate filesystems.
+  The diff is calculated from git changes in the projectPath.
+
+  Flow:
+  1. Remote agent completes work in projectPath (mounted agentfs path)
+  2. Calls this action block with projectPath and agent info
+  3. This action block gets diff from git and creates merge request
+  4. Starts background review agent (optional)
+  5. Remote agent waits for review event via eventQueue
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - merge-request
+    - review
+    - code-review
+    - remote-agent
+    - agentfs
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+
+  inputs:
+    - name: projectPath
+      type: string
+      required: true
+      description: |
+        Path where the agent made changes.
+        For AgentFS Provider, this is the mounted agentfs path.
+
+    - name: overlayName
+      type: string
+      required: false
+      description: |
+        Overlay/environment name (for reference in MR)
+
+    - name: mergeConfig
+      type: object
+      required: false
+      description: |
+        Merge configuration
+      properties:
+        strategy:
+          type: string
+          description: "Merge strategy: 'patch' or 'git_worktree'"
+          default: patch
+        baseBranch:
+          type: string
+          description: Base branch to compare against
+          default: main
+
+    - name: agentId
+      type: string
+      required: true
+      description: ID of the agent creating the merge request
+
+    - name: agentName
+      type: string
+      required: true
+      description: Name of the agent creating the merge request
+
+    - name: title
+      type: string
+      required: false
+      description: |
+        Title for the merge request.
+        If not provided, derived from commit message or branch name.
+
+    - name: description
+      type: string
+      required: false
+      description: |
+        Description of changes.
+        If not provided, derived from commit message.
+
+    - name: initialTask
+      type: string
+      required: false
+      description: The original task that led to these changes
+
+    - name: swarmId
+      type: string
+      required: false
+      description: Optional swarm ID if the agent is part of a swarm
+
+    - name: startReviewAgent
+      type: boolean
+      required: false
+      default: true
+      description: Whether to start a background agent to review the changes
+
+    - name: reviewAgentId
+      type: string
+      required: false
+      description: Specific agent ID to use for the review agent
+
+    - name: waitForReview
+      type: boolean
+      required: false
+      default: false
+      description: |
+        Whether to wait for review completion before returning.
+        If false, use eventQueue to wait for the review event.
+
+    - name: reviewTimeout
+      type: number
+      required: false
+      default: 300000
+      description: Timeout in milliseconds for waiting for review (default: 5 minutes)
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the merge request was submitted successfully
+
+    - name: mergeRequestId
+      type: string
+      description: ID of the created merge request
+
+    - name: mergeRequest
+      type: object
+      description: The created merge request details
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        diffPatch:
+          type: string
+        majorFilesChanged:
+          type: array
+
+    - name: reviewResult
+      type: object
+      description: Review result (if review completed or waitForReview was true)
+      properties:
+        completed:
+          type: boolean
+          description: Whether the review process completed
+        approved:
+          type: boolean
+          description: Whether the changes were approved
+        status:
+          type: string
+          description: Current status of the merge request
+        reviewThreadId:
+          type: string
+          description: Thread ID of the review agent
+
+    - name: error
+      type: string
+      description: Error message if the submission failed
+
+# Usage Example (from AgentFS Provider):
+#
+#   // After agent completes work
+#   const worktreeInfo = this.getWorktreeInfo();
+#
+#   const result = await codebolt.actionBlock.invoke('submit-merge-request', {
+#     projectPath: worktreeInfo.path,  // mounted agentfs path
+#     overlayName: this.overlayName,
+#     agentId: 'agent-123',
+#     agentName: 'Feature Agent',
+#     startReviewAgent: true,
+#     waitForReview: false  // Return immediately
+#   });
+#
+#   // Wait for review event using eventQueue
+#   const reviewEvent = await codebolt.agentEventQueue.waitForAnyExternalEvent();
+#   if (reviewEvent.type === 'backgroundAgentCompletion') {
+#     const mr = await codebolt.reviewMergeRequest.get(result.mergeRequestId);
+#     // Check mr.status for 'approved', 'changes_requested', etc.
+#   }

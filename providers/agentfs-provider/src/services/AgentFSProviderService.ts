@@ -104,7 +104,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         // Use environment name as overlay name
         this.overlayName = initVars.environmentName;
         // Mount point in user's home directory
-        const mountPoint = path.join(os.homedir(), '.codebolt', 'agentfs_mounts', this.overlayName);
+        const mountPoint = path.join("/Users/ravirawat/desktop", '.codebolt', 'agentfs_mounts', this.overlayName);
 
         try {
             await fs.mkdir(mountPoint, { recursive: true });
@@ -309,13 +309,15 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     }
 
     async onGetProject(parentId: string = 'root'): Promise<any[]> {
+        this.logger.log(`Getting project: ${parentId}`);
         const parentPath = parentId === 'root' ? this.projectPath! : path.join(this.projectPath!, parentId);
+        this.logger.log('Getting project:', parentPath);
 
         try {
             const items = await fs.readdir(parentPath, { withFileTypes: true });
 
             const children = await Promise.all(items.map(async (item) => {
-                if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
+                // if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
 
                 const itemPath = path.join(parentPath, item.name);
                 const relativePath = parentId === 'root' ? item.name : path.join(parentId, item.name);

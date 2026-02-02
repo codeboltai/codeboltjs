@@ -75,12 +75,12 @@ export class TuiMessageRouter {
       )
     );
     message.message.selectedAgent = {
-      "agentDetails": "./../../agents/geminiAgentTest/dist",
+      "agentDetails": "./../../agents/remote-task-agent/dist",
       "agentType": AgentTypeEnum.localPath,
       "id": "cli-agent",
       "name": "Ask Agent"
     };
-    
-    this.sendMessageToAgent.sendInitialMessage(message,tui.id);
+
+    this.sendMessageToAgent.sendInitialMessage(message, tui.id);
   }
 }

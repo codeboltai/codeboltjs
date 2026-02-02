@@ -58,22 +58,22 @@ export class SendMessageToAgent {
         }
       });
     }
-    else {
-      logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - ignoring`));
+    // else {
+    //   logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - ignoring`));
 
-    }
-    //  else {
-    //   logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - using fallback`));
-    //   // Fallback to any available agent
-    //   const success = agentManager.sendToAgent(message);
-    //   if (!success) {
-    //     logger.warn(formatLogMessage('warn', 'MessageRouter', `No agents available for app response`));
-    //     logger.info(
-    //       formatLogMessage('info', 'MessageRouter', 'No local agents available, forwarding app response via remote proxy')
-    //     );
-    //     this.sendMessageToRemote.forwardAppMessage(app.id, message, { requireRemote: true });
-    //   }
     // }
+    else {
+      logger.warn(formatLogMessage('warn', 'MessageRouter', `App response without valid agent identifier - using fallback`));
+      // Fallback to any available agent
+      const success = agentManager.sendToAgent(message);
+      if (!success) {
+        logger.warn(formatLogMessage('warn', 'MessageRouter', `No agents available for app response`));
+        logger.info(
+          formatLogMessage('info', 'MessageRouter', 'No local agents available, forwarding app response via remote proxy')
+        );
+        this.sendMessageToRemote.forwardAppMessage(app.id, message, { requireRemote: true });
+      }
+    }
   }
 
   /**

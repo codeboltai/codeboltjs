@@ -1,0 +1,101 @@
+# ActionBlock Configuration File
+# This ActionBlock orchestrates a deliberation process with N agents
+
+name: deleberation-one-out-of-n
+
+description: |
+  Creates a deliberation process where N agents independently solve a task,
+  submit their responses, vote on each other's solutions, and the best
+  response is selected as the winner.
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - deliberation
+    - voting
+    - multi-agent
+    - consensus
+    - actionblock
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: |
+        The main task or problem to be solved by the agents
+
+    - name: taskDescription
+      type: string
+      required: true
+      description: |
+        Detailed description of the task with context and requirements
+
+    - name: options
+      type: object
+      required: false
+      description: |
+        Configuration options for the deliberation process
+      properties:
+        numberOfAgents:
+          type: number
+          required: true
+          default: 3
+          description: Number of agents to spawn for the deliberation (minimum 2)
+        agentId:
+          type: string
+          required: false
+          description: Optional agent ID to use for spawned threads
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the deliberation completed successfully
+
+    - name: result
+      type: object
+      description: |
+        The result of the deliberation process
+      properties:
+        selectedResponse:
+          type: string
+          description: The winning response selected from the deliberation
+        agentResponses:
+          type: array
+          description: All responses from participating agents
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              threadId:
+                type: string
+              response:
+                type: string
+              responseId:
+                type: string
+              timestamp:
+                type: string
+        votes:
+          type: object
+          description: Vote count for each response (responseId -> count)
+        winningAgentId:
+          type: string
+          description: ID of the agent whose response was selected
+        winningResponseId:
+          type: string
+          description: ID of the winning response
+        deliberationId:
+          type: string
+          description: ID of the deliberation record
+
+    - name: error
+      type: string
+      description: Error message if the deliberation failed

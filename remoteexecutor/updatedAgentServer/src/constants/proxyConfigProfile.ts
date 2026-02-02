@@ -27,11 +27,11 @@ export const profiles = {
         },
         // Terminal operations - local for TUI
         "terminalEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Project/Settings operations - local for TUI
         "projectEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Memory operations - proxy for TUI
         "memoryEvent": {
@@ -53,14 +53,14 @@ export const profiles = {
         },
         // State operations - local for TUI
         "agentStateEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Code utilities - local for TUI
         "codeEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         "codeUtilsEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // TreeSitter parsing - local for TUI
         "treeSitterEvent": {
@@ -110,11 +110,11 @@ export const profiles = {
         },
         // Todo operations - local for TUI
         "todoEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy',
         },
         // Hook operations - local for TUI
         "hookEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Swarm operations - proxy for TUI
         "swarmEvent": {
@@ -123,7 +123,7 @@ export const profiles = {
         },
         // Problem match operations - local for TUI
         "problemMatchEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Action plan operations - proxy for TUI
         "actionPlanEvent": {
@@ -145,7 +145,7 @@ export const profiles = {
     defaultNON_TUIProfile: {
         // File system operations - proxy for non-TUI (remote environment)
         "fsEvent": {
-            'proxyType': 'proxy'
+            'proxyType': 'local'
         },
         // LLM inference - proxy to app for non-TUI
         "inference": {
@@ -154,7 +154,7 @@ export const profiles = {
         },
         // Git operations - local (run in remote environment)
         "gitEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Browser operations - proxy for non-TUI
         "browserEvent": {
@@ -168,7 +168,7 @@ export const profiles = {
         },
         // Terminal operations - local for non-TUI
         "terminalEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Project/Settings operations - proxy for non-TUI
         "projectEvent": {
@@ -182,7 +182,7 @@ export const profiles = {
         },
         // Codebase search - local for non-TUI
         "codebaseSearchEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Execute tool - proxy for non-TUI
         "executeToolEvent": {
@@ -201,18 +201,18 @@ export const profiles = {
         },
         // Code utilities - local for non-TUI
         "codeEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         "codeUtilsEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // TreeSitter parsing - local for non-TUI
         "treeSitterEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Tokenizer - local for non-TUI
         "tokenizerEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Debug operations - proxy for non-TUI
         "debugEvent": {
@@ -271,7 +271,7 @@ export const profiles = {
         },
         // Problem match operations - local for non-TUI
         "problemMatchEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Action plan operations - proxy for non-TUI
         "actionPlanEvent": {

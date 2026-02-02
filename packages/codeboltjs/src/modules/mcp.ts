@@ -148,7 +148,7 @@ const codeboltMCP = {
 
         // Get local codebolt tools in OpenAI format (names prefixed as codebolt--<toolName>)
         if (hasCodebolt) {
-            const localTools = tools.getAllTools().map(tool => convertLocalToolToOpenAIFormat(tool));
+            const localTools = tools.getRegistry().getAllTools().map(tool => convertLocalToolToOpenAIFormat(tool));
             toolsList.push(...localTools);
         }
 
@@ -234,10 +234,6 @@ const codeboltMCP = {
 
         return { data: result } as GetToolsResponse;
     },
-
-
-    
-
     /**
      * Executes a specific tool with provided parameters.
      *
@@ -313,7 +309,7 @@ const codeboltMCP = {
 
         // Include local codebolt tools (names prefixed as codebolt--<toolName>)
         if (includesCodebolt) {
-            const localTools = tools.getAllTools().map(convertLocalToolToOpenAIFormat);
+            const localTools = tools.getRegistry().getAllTools().map(convertLocalToolToOpenAIFormat);
             result = [...result, ...localTools];
         }
 
@@ -357,7 +353,7 @@ const codeboltMCP = {
      */
     getAllMcpTools: async (): Promise<GetAllMCPToolsResponse> => {
         // Get local codebolt tools
-        const localTools = tools.getAllTools().map(convertLocalToolToOpenAIFormat);
+        const localTools = tools.getRegistry().getAllTools().map(convertLocalToolToOpenAIFormat);
 
         // Get remote MCP tools
         const response = await cbws.messageManager.sendAndWaitForResponse(

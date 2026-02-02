@@ -1,0 +1,54 @@
+# Agent Configuration File
+# This agent tests the deleberation-one-out-of-n ActionBlock
+
+title: Test Deliberation Agent
+unique_id: test-deliberation-agent
+version: 1.0.0
+author: Codebolt Team
+
+initial_message: |
+  Hello! I'm the Test Deliberation Agent. I can test the deliberation ActionBlock
+  by spawning multiple agents to solve a task and vote on the best solution.
+
+  Send me a task and I'll run a deliberation process with multiple agents!
+
+description: Test agent for the deleberation-one-out-of-n ActionBlock
+longDescription: |
+  This agent tests the Deliberation One-Out-of-N ActionBlock by:
+  1. Receiving a task from the user
+  2. Invoking the ActionBlock with the task
+  3. Spawning N agents to solve the task independently
+  4. Collecting votes and returning the winning solution
+
+tags:
+  - test
+  - deliberation
+  - multi-agent
+  - actionblock
+
+avatarSrc: ""
+avatarFallback: TD
+
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages: []
+    supportedframeworks: []
+    supportRemix: false
+
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-20250514
+      - gpt-4-turbo
+
+actions:
+  - name: Quick Test
+    description: Run a quick deliberation test
+    detailDescription: Runs a deliberation with 2 agents on a simple task
+    actionPrompt: Run a quick deliberation test with the task "What is 2+2?"
+  - name: Full Test
+    description: Run a full deliberation test
+    detailDescription: Runs a deliberation with 3 agents on a coding task
+    actionPrompt: Run a deliberation to find the best way to implement a factorial function in TypeScript

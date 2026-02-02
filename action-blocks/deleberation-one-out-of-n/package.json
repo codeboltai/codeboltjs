@@ -1,0 +1,46 @@
+{
+  "name": "deleberation-one-out-of-n",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ActionBlock for multi-agent deliberation - spawns N agents to solve a task and vote on the best response",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "npx webpack",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "codebolt",
+    "actionblock",
+    "ai",
+    "agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.26.0",
+    "@codebolt/codeboltjs": "latest",
+    "copy-webpack-plugin": "^12.0.2",
+    "node-loader": "^2.1.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@types/node": "^20.11.25",
+    "@types/uuid": "^9.0.0",
+    "babel-loader": "^9.2.1",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}

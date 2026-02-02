@@ -21,6 +21,7 @@ const { cloneAgent } = require('./actions/cloneAgent');
 const { init } = require('./actions/init');
 const { createprovider } = require('./actions/createprovider');
 const { publishProvider } = require('./actions/publishProvider');
+const { createactionblock } = require('./actions/createactionblock');
 
 program.version('1.0.1');
 
@@ -164,6 +165,14 @@ program
     publishProvider(options);
   });
 
+program
+  .command('createactionblock')
+  .description('Create a new Codebolt ActionBlock')
+  .option('-n, --name <name>', 'name of the ActionBlock')
+  .option('--quick', 'create ActionBlock quickly with default settings')
+  .action((options) => {
+    createactionblock(options);
+  });
 
 program.parse(process.argv);
 
