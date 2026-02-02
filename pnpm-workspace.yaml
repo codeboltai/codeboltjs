@@ -15,6 +15,7 @@ packages:
   - documentation/*
   - testcases
   - cli/*
+  - multillm-node/*
   
 ignoredBuiltDependencies:
   - esbuild
