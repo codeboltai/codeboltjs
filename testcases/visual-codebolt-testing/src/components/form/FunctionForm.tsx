@@ -127,7 +127,13 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
       }, ...prev].slice(0, 10));
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      let errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+
+      // Check if it's a connection error
+      if (errorMessage.includes('Failed to connect') || errorMessage.includes('WebSocket')) {
+        errorMessage = 'Not connected to Codebolt server. Please ensure Codebolt is running on port 12345.';
+      }
+
       setError(errorMessage);
 
       // Add failed call to history

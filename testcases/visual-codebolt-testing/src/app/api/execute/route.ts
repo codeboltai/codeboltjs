@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import codebolt from '@codebolt/codeboltjs';
 
+// Set default environment variables before any codebolt imports trigger initialization
+if (!process.env.SOCKET_PORT) {
+  process.env.SOCKET_PORT = '12345';
+}
+if (!process.env.CODEBOLT_SERVER_URL) {
+  process.env.CODEBOLT_SERVER_URL = 'localhost';
+}
+
+console.log('[API] Environment configured - SOCKET_PORT:', process.env.SOCKET_PORT, 'SERVER_URL:', process.env.CODEBOLT_SERVER_URL);
+
+// The codebolt singleton automatically initializes WebSocket on import
+// We just need to wait for it to be ready before executing functions
+async function ensureInitialized(): Promise<void> {
+  console.log('[API] Waiting for Codebolt WebSocket to be ready...');
+  await codebolt.waitForReady();
+  console.log('[API] Codebolt WebSocket is ready');
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -10,6 +28,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Module and function names are required' },
         { status: 400 }
+      );
+    }
+
+    // Ensure WebSocket is initialized before executing
+    try {
+      await ensureInitialized();
+    } catch (initError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to connect to Codebolt server. Make sure Codebolt is running on port 12345.',
+          details: initError instanceof Error ? initError.message : 'Connection failed',
+        },
+        { status: 503 }
       );
     }
 
@@ -25,12 +57,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle nested function names like "json.save"
-    let targetFunction: unknown = moduleObj;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let targetFunction: any = moduleObj;
     const functionParts = functionName.split('.');
 
     for (const part of functionParts) {
       if (targetFunction && typeof targetFunction === 'object' && part in targetFunction) {
-        targetFunction = (targetFunction as Record<string, unknown>)[part];
+        targetFunction = targetFunction[part];
       } else {
         return NextResponse.json(
           { error: `Function "${functionName}" not found in module "${moduleName}"` },
@@ -47,11 +80,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute the function with parameters
-    // Convert parameters object to array of values if needed
     const paramValues = parameters ? Object.values(parameters) : [];
 
     // Call the function
-    const result = await (targetFunction as (...args: unknown[]) => Promise<unknown>)(...paramValues);
+    const result = await targetFunction(...paramValues);
 
     return NextResponse.json({
       success: true,
@@ -76,9 +108,14 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  // Check connection status using the codebolt singleton
+  const connected = codebolt.ready;
+
   return NextResponse.json({
-    status: 'ok',
+    status: connected ? 'connected' : 'disconnected',
     message: 'CodeboltJS API endpoint. Use POST to execute functions.',
+    socketPort: process.env.SOCKET_PORT || '12345',
+    serverUrl: process.env.CODEBOLT_SERVER_URL || 'localhost',
     usage: {
       method: 'POST',
       body: {
