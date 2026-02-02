@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
 import { AwsClient } from 'aws4fetch';
+import { extractTextContent } from '../../utils/contentTransformer';
 import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, AWSConfig } from '../../types';
 import * as crypto from 'crypto';
 import { json } from 'stream/consumers';
@@ -28,12 +29,15 @@ function transformMessages(messages: ChatMessage[]): BedrockMessage[] {
   if (!messages || messages.length === 0) {
     throw new Error('Messages array cannot be empty');
   }
-  return messages.map(message => ({
-    role: message.role === 'function' || message.role === 'tool' ? 'user' :
-      message.role === 'assistant' ? 'assistant' :
-        message.role === 'system' ? 'system' : 'user',
-    content: message.content ? [{ text: message.content }] : ''
-  }));
+  return messages.map(message => {
+    const textContent = extractTextContent(message.content);
+    return {
+      role: message.role === 'function' || message.role === 'tool' ? 'user' :
+        message.role === 'assistant' ? 'assistant' :
+          message.role === 'system' ? 'system' : 'user',
+      content: textContent ? [{ text: textContent }] : ''
+    };
+  });
 }
 
 function transformTools(tools?: Tool[]): Tool[] | undefined {

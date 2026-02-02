@@ -137,7 +137,7 @@ import { handleError } from '../../utils/errorHandler';
 import { OpenAI as OpenAIApi, AzureOpenAI } from 'openai';
 import type { ChatCompletion, ChatCompletionChunk, ChatCompletionCreateParams, ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam, ChatCompletionFunctionMessageParam } from 'openai/resources/chat';
 import type { Stream } from 'openai/streaming';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, EmbeddingOptions, EmbeddingResponse } from '../../types';
 
 function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[] {
   return messages.map(message => {
@@ -249,13 +249,20 @@ class ZAi implements LLMProvider {
     }
   }
 
-  async createEmbedding(input: string | string[], model: string) {
+  /**
+   * Create embeddings for text input
+   * @param options - Embedding options including input text and model
+   * @returns Embedding response with vectors
+   */
+  async createEmbedding(options: EmbeddingOptions): Promise<EmbeddingResponse> {
     try {
+      const modelName = options.model || 'text-embedding-3-small';
+
       const response = await axios.post(
         `${this.apiEndpoint}/embeddings`,
         {
-          input,
-          model
+          input: options.input,
+          model: modelName
         },
         {
           headers: {
@@ -265,9 +272,9 @@ class ZAi implements LLMProvider {
         }
       );
 
-      return response.data;
+      return response.data as EmbeddingResponse;
     } catch (error) {
-      return handleError(error);
+      throw handleError(error);
     }
   }
 }

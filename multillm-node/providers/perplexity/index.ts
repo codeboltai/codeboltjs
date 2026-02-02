@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { handleError } from '../../utils/errorHandler';
+import { extractTextContent } from '../../utils/contentTransformer';
 import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
 
 interface PerplexityMessage {
@@ -18,17 +19,18 @@ interface PerplexityErrorResponse {
 
 function transformMessages(messages: ChatMessage[]): PerplexityMessage[] {
   return messages.map(message => {
+    const textContent = extractTextContent(message.content);
     const transformed: PerplexityMessage = {
-      role: message.role === 'function' || message.role === 'tool' ? 'assistant' : 
-            message.role === 'assistant' ? 'assistant' : 
+      role: message.role === 'function' || message.role === 'tool' ? 'assistant' :
+            message.role === 'assistant' ? 'assistant' :
             message.role === 'system' ? 'system' : 'user',
-      content: message.content || ''
+      content: textContent
     };
-    
+
     if ((message.role === 'function' || message.role === 'tool') && message.name) {
-      transformed.content = `[${message.name}]: ${message.content}`;
+      transformed.content = `[${message.name}]: ${textContent}`;
     }
-    
+
     return transformed;
   });
 }

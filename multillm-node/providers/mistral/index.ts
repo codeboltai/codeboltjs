@@ -1,12 +1,19 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { 
-  BaseProvider, 
-  LLMProvider, 
-  ChatCompletionOptions, 
-  ChatCompletionResponse, 
-  Provider, 
-  ChatMessage
+import { modelCache } from '../../utils/cacheManager';
+import { parseSSEStream, aggregateStreamChunks } from '../../utils/sseParser';
+import { extractTextContent } from '../../utils/contentTransformer';
+import type {
+  BaseProvider,
+  ChatCompletionOptions,
+  ChatCompletionResponse,
+  ChatMessage,
+  StreamChunk,
+  StreamingOptions,
+  ProviderCapabilities,
+  LLMProviderWithStreaming,
+  EmbeddingOptions,
+  EmbeddingResponse
 } from '../../types';
 
 interface ToolCall {
@@ -72,11 +79,12 @@ interface MistralStreamResponse {
 
 function transformMessages(messages: ExtendedChatMessage[]): MistralMessage[] {
   return messages.map(message => {
+    const textContent = extractTextContent(message.content);
     const baseMessage: MistralMessage = {
-      role: message.role === 'function' || message.role === 'tool' ? 'tool' : 
-            message.role === 'assistant' ? 'assistant' : 
+      role: message.role === 'function' || message.role === 'tool' ? 'tool' :
+            message.role === 'assistant' ? 'assistant' :
             message.role === 'system' ? 'system' : 'user',
-      content: message.content || null
+      content: textContent || null
     };
 
     if (message.function_call || message.tool_calls) {
@@ -98,7 +106,7 @@ function transformMessages(messages: ExtendedChatMessage[]): MistralMessage[] {
   });
 }
 
-class MistralAI implements LLMProvider {
+class MistralAI implements LLMProviderWithStreaming {
   public model: string | null;
   public device_map: string | null;
   public apiKey: string | null;
@@ -120,6 +128,11 @@ class MistralAI implements LLMProvider {
 
   async createCompletion(options: ChatCompletionOptionsWithTools): Promise<ChatCompletionResponse> {
     try {
+      // If streaming with callbacks, use createCompletionStream
+      if (options.stream && (options as StreamingOptions).onChunk) {
+        return this.createCompletionStream(options as StreamingOptions);
+      }
+
       const response = await axios.post(
         `${this.apiEndpoint}/chat/completions`,
         {
@@ -128,7 +141,7 @@ class MistralAI implements LLMProvider {
           temperature: options.temperature,
           max_tokens: options.max_tokens,
           top_p: options.top_p,
-          stream: options.stream,
+          stream: false, // Non-streaming for simple createCompletion
           stop: options.stop,
           tools: options.tools || options.functions,
           tool_choice: options.tool_choice || options.function_call
@@ -137,59 +150,9 @@ class MistralAI implements LLMProvider {
           headers: {
             "Content-Type": "application/json",
             'Authorization': `Bearer ${this.apiKey}`,
-          },
-          responseType: options.stream ? 'stream' : 'json'
+          }
         }
       );
-
-      if (options.stream) {
-        const stream = response.data;
-        return new Promise((resolve, reject) => {
-          const streamResponse: ChatCompletionResponse = {
-            id: '',
-            object: 'chat.completion.chunk',
-            created: Math.floor(Date.now() / 1000),
-            model: options.model || this.model || "mistral-large-latest",
-            choices: [],
-            usage: {
-              prompt_tokens: 0,
-              completion_tokens: 0,
-              total_tokens: 0
-            }
-          };
-
-          stream.on('data', (chunk: Buffer) => {
-            try {
-              const lines = chunk.toString().split('\n').filter(line => line.trim() !== '');
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = JSON.parse(line.slice(6));
-                  if (data.choices && Array.isArray(data.choices)) {
-                    streamResponse.choices = data.choices.map((choice: any) => ({
-                      index: choice.index,
-                      delta: choice.delta,
-                      finish_reason: choice.finish_reason
-                    }));
-                  }
-                  if (data.usage) {
-                    streamResponse.usage = data.usage;
-                  }
-                }
-              }
-            } catch (error) {
-              reject(handleError(error));
-            }
-          });
-
-          stream.on('end', () => {
-            resolve(streamResponse);
-          });
-
-          stream.on('error', (error: unknown) => {
-            reject(handleError(error));
-          });
-        });
-      }
 
       // Transform Mistral response to standard format
       return {
@@ -214,7 +177,186 @@ class MistralAI implements LLMProvider {
     }
   }
 
+  /**
+   * Create completion with streaming support and callbacks
+   */
+  async createCompletionStream(options: StreamingOptions): Promise<ChatCompletionResponse> {
+    const modelName = options.model || this.model || "mistral-large-latest";
+
+    try {
+      const response = await axios.post(
+        `${this.apiEndpoint}/chat/completions`,
+        {
+          model: modelName,
+          messages: transformMessages(options.messages),
+          temperature: options.temperature,
+          max_tokens: options.max_tokens,
+          top_p: options.top_p,
+          stream: true,
+          stop: options.stop,
+          tools: (options as ChatCompletionOptionsWithTools).tools,
+          tool_choice: (options as ChatCompletionOptionsWithTools).tool_choice
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+          responseType: 'stream'
+        }
+      );
+
+      const chunks: StreamChunk[] = [];
+      let buffer = '';
+
+      return new Promise((resolve, reject) => {
+        response.data.on('data', (chunk: any) => {
+          if (options.signal?.aborted) {
+            response.data.destroy();
+            return;
+          }
+
+          buffer += chunk.toString();
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const parsed of parseSSEStream(lines.join('\n'))) {
+            if (parsed.choices?.[0]) {
+              const streamChunk: StreamChunk = {
+                id: parsed.id || `chunk_${Date.now()}`,
+                object: 'chat.completion.chunk',
+                created: parsed.created || Math.floor(Date.now() / 1000),
+                model: parsed.model || modelName,
+                choices: [{
+                  index: 0,
+                  delta: {
+                    role: parsed.choices[0].delta?.role,
+                    content: parsed.choices[0].delta?.content,
+                    tool_calls: parsed.choices[0].delta?.tool_calls
+                  },
+                  finish_reason: parsed.choices[0].finish_reason
+                }],
+                usage: parsed.usage
+              };
+
+              chunks.push(streamChunk);
+              options.onChunk?.(streamChunk);
+            }
+          }
+        });
+
+        response.data.on('end', () => {
+          const aggregated = aggregateStreamChunks(chunks, modelName);
+          const finalResponse: ChatCompletionResponse = {
+            id: aggregated.id,
+            object: 'chat.completion',
+            created: Math.floor(Date.now() / 1000),
+            model: modelName,
+            choices: [{
+              index: 0,
+              message: {
+                role: 'assistant',
+                content: aggregated.content || null,
+                tool_calls: aggregated.toolCalls.length > 0 ? aggregated.toolCalls : undefined
+              },
+              finish_reason: aggregated.finishReason
+            }],
+            usage: aggregated.usage
+          };
+
+          options.onComplete?.(finalResponse);
+          resolve(finalResponse);
+        });
+
+        response.data.on('error', (error: Error) => {
+          options.onError?.(error);
+          reject(handleError(error));
+        });
+      });
+    } catch (error) {
+      options.onError?.(error as Error);
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * AsyncGenerator-based streaming
+   */
+  async *streamCompletion(options: ChatCompletionOptions): AsyncGenerator<StreamChunk, void, unknown> {
+    const modelName = options.model || this.model || "mistral-large-latest";
+
+    const response = await axios.post(
+      `${this.apiEndpoint}/chat/completions`,
+      {
+        model: modelName,
+        messages: transformMessages(options.messages),
+        temperature: options.temperature,
+        max_tokens: options.max_tokens,
+        top_p: options.top_p,
+        stream: true,
+        stop: options.stop,
+        tools: (options as ChatCompletionOptionsWithTools).tools,
+        tool_choice: (options as ChatCompletionOptionsWithTools).tool_choice
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        responseType: 'stream'
+      }
+    );
+
+    let buffer = '';
+
+    for await (const chunk of response.data) {
+      buffer += chunk.toString();
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const parsed of parseSSEStream(lines.join('\n'))) {
+        if (parsed.choices?.[0]) {
+          yield {
+            id: parsed.id || `chunk_${Date.now()}`,
+            object: 'chat.completion.chunk',
+            created: parsed.created || Math.floor(Date.now() / 1000),
+            model: parsed.model || modelName,
+            choices: [{
+              index: 0,
+              delta: {
+                role: parsed.choices[0].delta?.role,
+                content: parsed.choices[0].delta?.content,
+                tool_calls: parsed.choices[0].delta?.tool_calls
+              },
+              finish_reason: parsed.choices[0].finish_reason
+            }],
+            usage: parsed.usage
+          };
+        }
+      }
+    }
+  }
+
+  /**
+   * Get provider capabilities
+   */
+  getCapabilities(): ProviderCapabilities {
+    return {
+      supportsStreaming: true,
+      supportsTools: true,
+      supportsVision: false,
+      supportsEmbeddings: true,
+      supportsCaching: false,
+      cachingType: 'none'
+    };
+  }
+
   async getModels(): Promise<any> {
+    // Check cache first
+    const cacheKey = 'models:mistral';
+    const cached = modelCache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     try {
       const response = await axios.get(
         `${this.apiEndpoint}/models`,
@@ -226,12 +368,51 @@ class MistralAI implements LLMProvider {
         }
       );
 
-      return response.data.data.map((model: { id: string }) => ({
+      const models = response.data.data.map((model: { id: string }) => ({
         id: model.id,
         name: model.id,
         provider: "Mistral",
         type: "chat"
       }));
+
+      modelCache.set(cacheKey, models);
+      return models;
+    } catch (error) {
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * Create embeddings for text input
+   * @param options - Embedding options including input text and model
+   * @returns Embedding response with vectors
+   */
+  async createEmbedding(options: EmbeddingOptions): Promise<EmbeddingResponse> {
+    try {
+      const modelName = options.model || 'mistral-embed';
+
+      const requestBody: any = {
+        input: Array.isArray(options.input) ? options.input : [options.input],
+        model: modelName
+      };
+
+      // Mistral supports encoding_format
+      if (options.encoding_format) {
+        requestBody.encoding_format = options.encoding_format;
+      }
+
+      const response = await axios.post(
+        `${this.apiEndpoint}/embeddings`,
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${this.apiKey}`,
+          }
+        }
+      );
+
+      return response.data as EmbeddingResponse;
     } catch (error) {
       throw handleError(error);
     }

@@ -33,7 +33,8 @@
       "Bash(npx webpack)",
       "Bash(npx webpack:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

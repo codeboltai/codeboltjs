@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { BaseProvider, ChatCompletionOptions, ChatCompletionResponse, LLMProvider } from '../../types';
+import type { BaseProvider, ChatCompletionOptions, ChatCompletionResponse, LLMProvider, EmbeddingOptions, EmbeddingResponse, RerankOptions, RerankResponse, ProviderCapabilities, LLMProviderWithStreaming } from '../../types';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -39,21 +39,7 @@ interface Model {
   type?: string;
 }
 
-interface EmbeddingResponse {
-  object: string;
-  data: Array<{
-    object: string;
-    embedding: number[];
-    index: number;
-  }>;
-  model: string;
-  usage: {
-    prompt_tokens: number;
-    total_tokens: number;
-  };
-}
-
-class CodeBoltAI implements LLMProvider {
+class CodeBoltAI implements LLMProviderWithStreaming {
   private embeddingModels: string[];
   public model: string | null;
   public device_map: string | null;
@@ -128,19 +114,73 @@ class CodeBoltAI implements LLMProvider {
     }
   }
 
-  async createEmbedding(input: string | string[], model: string): Promise<any> {
+  /**
+   * Create embeddings for text input
+   * @param options - Embedding options including input text and model
+   * @returns Embedding response with vectors
+   */
+  async createEmbedding(options: EmbeddingOptions): Promise<EmbeddingResponse> {
     try {
+      const modelName = options.model || 'text-embedding-3-small';
+
       const response = await axios.post(
         `${this.apiEndpoint}/embeddings`,
         {
-          input,
-          model,
+          input: options.input,
+          model: modelName,
         },
         {
           headers: {
             "Content-Type": "application/json",
             'x-codebolt-key': `${this.apiKey}`,
           },
+        }
+      );
+
+      return response.data as EmbeddingResponse;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get provider capabilities
+   */
+  getCapabilities(): ProviderCapabilities {
+    return {
+      supportsStreaming: false,
+      supportsTools: true,
+      supportsVision: true,
+      supportsEmbeddings: true,
+      supportsCaching: false,
+      cachingType: 'none',
+      supportsImageGeneration: false,
+      supportsReranking: true
+    };
+  }
+
+  /**
+   * Rerank documents by relevance to a query
+   * @param options - Reranking options including query and documents
+   * @returns Reranked results sorted by relevance
+   */
+  async rerank(options: RerankOptions): Promise<RerankResponse> {
+    try {
+      const response = await axios.post<RerankResponse>(
+        `${this.apiEndpoint}/rerank`,
+        {
+          model: options.model || 'rerank-english-v3.0',
+          query: options.query,
+          documents: options.documents,
+          top_n: options.top_n,
+          return_documents: options.return_documents,
+          max_chunks_per_doc: options.max_chunks_per_doc
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-codebolt-key': `${this.apiKey}`
+          }
         }
       );
 

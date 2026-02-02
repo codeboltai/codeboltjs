@@ -1,6 +1,6 @@
 import Replicate from 'replicate';
 import { handleError } from '../../utils/errorHandler';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, ProviderCapabilities, LLMProviderWithStreaming, ImageGenerationOptions, ImageGenerationResponse } from '../../types';
 
 const DEFAULT_MODEL = 'meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3' as const;
 
@@ -17,13 +17,20 @@ function transformMessages(messages: ChatMessage[]): string {
   }).join('\n') + '\nAssistant:';
 }
 
-class ReplicateAI implements LLMProvider {
+class ReplicateAI implements LLMProviderWithStreaming {
   private client: Replicate;
   public model: string | null;
   public device_map: string | null;
   public apiKey: string | null;
   public apiEndpoint: string | null;
   public provider: "replicate";
+
+  // Image generation models
+  private imageModels: Record<string, string> = {
+    'sdxl': 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
+    'stable-diffusion': 'stability-ai/stable-diffusion:ac732df83cea7fff18b8472768c88ad041fa750ff7682a21affe81863cbe77e4',
+    'flux': 'black-forest-labs/flux-schnell:bf53bdb93d739c9c915091f7b22369c9dcbdc164fd3ba5370b8f37bd8dac47c2'
+  };
 
   constructor(
     model: string | null = null,
@@ -118,7 +125,8 @@ class ReplicateAI implements LLMProvider {
         object: 'model',
         created: 1677610602,
         owned_by: 'meta',
-        provider: 'Replicate'
+        provider: 'Replicate',
+        type: 'chat'
       },
       {
         id: 'meta/llama-2-13b-chat',
@@ -126,9 +134,82 @@ class ReplicateAI implements LLMProvider {
         object: 'model',
         created: 1677610602,
         owned_by: 'meta',
-        provider: 'Replicate'
+        provider: 'Replicate',
+        type: 'chat'
+      },
+      {
+        id: 'sdxl',
+        name: 'Stable Diffusion XL',
+        object: 'model',
+        created: 1677610602,
+        owned_by: 'stability-ai',
+        provider: 'Replicate',
+        type: 'image'
+      },
+      {
+        id: 'flux',
+        name: 'Flux Schnell',
+        object: 'model',
+        created: 1677610602,
+        owned_by: 'black-forest-labs',
+        provider: 'Replicate',
+        type: 'image'
       }
     ];
+  }
+
+  /**
+   * Get provider capabilities
+   */
+  getCapabilities(): ProviderCapabilities {
+    return {
+      supportsStreaming: false,
+      supportsTools: false,
+      supportsVision: false,
+      supportsEmbeddings: false,
+      supportsCaching: false,
+      cachingType: 'none',
+      supportsImageGeneration: true,
+      supportsReranking: false
+    };
+  }
+
+  /**
+   * Generate images using Stable Diffusion or other image models
+   * @param options - Image generation options
+   * @returns Generated images with URLs
+   */
+  async createImage(options: ImageGenerationOptions): Promise<ImageGenerationResponse> {
+    try {
+      // Get model ID from our mapping or use provided model directly
+      const modelKey = options.model || 'sdxl';
+      const modelId = this.imageModels[modelKey] || options.model || this.imageModels['sdxl'];
+
+      // Parse size
+      const width = parseInt(options.size?.split('x')[0] || '1024');
+      const height = parseInt(options.size?.split('x')[1] || '1024');
+
+      const output = await this.client.run(modelId as `${string}/${string}:${string}`, {
+        input: {
+          prompt: options.prompt,
+          width,
+          height,
+          num_outputs: options.n || 1
+        }
+      });
+
+      // Replicate returns array of URLs for image models
+      const urls = Array.isArray(output) ? output : [output];
+
+      return {
+        created: Math.floor(Date.now() / 1000),
+        data: urls.map((url: any) => ({
+          url: typeof url === 'string' ? url : url.url || url
+        }))
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

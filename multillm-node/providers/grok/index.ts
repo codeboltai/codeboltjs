@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
+import { extractTextContent } from '../../utils/contentTransformer';
 import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
 
 interface GrokMessage {
@@ -9,10 +10,10 @@ interface GrokMessage {
 
 function transformMessages(messages: ChatMessage[]): GrokMessage[] {
   return messages.map(message => ({
-    role: message.role === 'function' || message.role === 'tool' ? 'user' : 
-          message.role === 'assistant' ? 'assistant' : 
+    role: message.role === 'function' || message.role === 'tool' ? 'user' :
+          message.role === 'assistant' ? 'assistant' :
           message.role === 'system' ? 'system' : 'user',
-    content: message.content || ''
+    content: extractTextContent(message.content)
   }));
 }
 

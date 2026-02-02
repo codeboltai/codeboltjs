@@ -1,8 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { handleError } from '../../utils/errorHandler';
+import { modelCache } from '../../utils/cacheManager';
+import { isMultimodalContent, transformContentForAnthropic, extractTextContent } from '../../utils/contentTransformer';
+import { isReasoningModel, getAnthropicThinkingParams } from '../../utils/reasoningModels';
 import type {
   BaseProvider,
-  LLMProvider,
   ChatCompletionOptions,
   ChatCompletionResponse,
   ChatMessage,
@@ -11,13 +13,17 @@ import type {
   AnthropicMessage,
   AnthropicContent,
   AnthropicTool,
-  AnthropicRequest,
   AnthropicResponse,
-  Choice,
-  Usage
+  StreamChunk,
+  StreamingOptions,
+  ProviderCapabilities,
+  LLMProviderWithStreaming,
+  CacheControl,
+  EmbeddingOptions,
+  EmbeddingResponse
 } from '../../types';
 
-class AnthropicProvider implements LLMProvider {
+class AnthropicProvider implements LLMProviderWithStreaming {
   private options: BaseProvider;
   private embeddingModels: string[];
   private chatModels: string[];
@@ -64,16 +70,22 @@ class AnthropicProvider implements LLMProvider {
 
   /**
    * Transform OpenAI messages to Anthropic format
+   * @param messages - Array of chat messages
+   * @param options - Optional caching configuration
    */
-  private transformMessagesToAnthropic(messages: ChatMessage[]): { messages: AnthropicMessage[], system?: string } {
+  private async transformMessagesToAnthropic(
+    messages: ChatMessage[],
+    options?: { enableCaching?: boolean; cacheControl?: CacheControl; systemCacheControl?: CacheControl }
+  ): Promise<{ messages: AnthropicMessage[], system?: string | Array<{ type: 'text'; text: string; cache_control?: CacheControl }> }> {
     const anthropicMessages: AnthropicMessage[] = [];
     const systemMessages: string[] = [];
 
     for (const message of messages) {
       if (message.role === 'system') {
         // Anthropic handles system messages separately - collect all system messages
-        if (message.content) {
-          systemMessages.push(message.content);
+        const textContent = extractTextContent(message.content);
+        if (textContent) {
+          systemMessages.push(textContent);
         }
         continue;
       }
@@ -82,13 +94,13 @@ class AnthropicProvider implements LLMProvider {
         // Convert function/tool messages to tool_result content
         // Use tool_call_id if available, otherwise use name or message name
         const toolUseId = message.tool_call_id || message.name || 'unknown';
-        
+
         anthropicMessages.push({
           role: 'user',
           content: [{
             type: 'tool_result',
             tool_use_id: toolUseId,
-            content: message.content || '',
+            content: extractTextContent(message.content),
             is_error: false // You can modify this based on your error handling logic
           }]
         });
@@ -97,12 +109,13 @@ class AnthropicProvider implements LLMProvider {
 
       if (message.role === 'assistant') {
         const content: AnthropicContent[] = [];
-        
+
         // Add text content if present
-        if (message.content && message.content.trim()) {
+        const textContent = extractTextContent(message.content);
+        if (textContent && textContent.trim()) {
           content.push({
             type: 'text',
-            text: message.content
+            text: textContent
           });
         }
 
@@ -121,7 +134,7 @@ class AnthropicProvider implements LLMProvider {
               console.warn(`Failed to parse tool call arguments for ${toolCall.function.name}:`, toolCall.function.arguments);
               parsedInput = {};
             }
-            
+
             content.push({
               type: 'tool_use',
               id: toolCall.id,
@@ -135,8 +148,8 @@ class AnthropicProvider implements LLMProvider {
         if (content.length > 0) {
           anthropicMessages.push({
             role: 'assistant',
-            content: content.length === 1 && content[0].type === 'text' 
-              ? content[0].text! 
+            content: content.length === 1 && content[0].type === 'text'
+              ? content[0].text!
               : content
           });
         }
@@ -144,10 +157,19 @@ class AnthropicProvider implements LLMProvider {
       }
 
       if (message.role === 'user') {
-        anthropicMessages.push({
-          role: 'user',
-          content: message.content || ''
-        });
+        // Handle multimodal content for user messages
+        if (isMultimodalContent(message.content)) {
+          const transformedContent = await transformContentForAnthropic(message.content);
+          anthropicMessages.push({
+            role: 'user',
+            content: transformedContent as any
+          });
+        } else {
+          anthropicMessages.push({
+            role: 'user',
+            content: extractTextContent(message.content)
+          });
+        }
         continue;
       }
     }
@@ -184,28 +206,84 @@ class AnthropicProvider implements LLMProvider {
     }
 
     // Combine all system messages into one
-    const systemMessage = systemMessages.length > 0 ? systemMessages.join('\n\n') : undefined;
-    
-    return { messages: alternatingMessages, system: systemMessage };
+    // If caching is enabled, return system as array with cache_control
+    if (systemMessages.length > 0) {
+      const systemText = systemMessages.join('\n\n');
+
+      if (options?.enableCaching && options?.systemCacheControl) {
+        // Return system as array format with cache_control for Anthropic's caching
+        return {
+          messages: alternatingMessages,
+          system: [{
+            type: 'text' as const,
+            text: systemText,
+            cache_control: options.systemCacheControl
+          }]
+        };
+      }
+
+      return { messages: alternatingMessages, system: systemText };
+    }
+
+    // Add cache_control to the last user message if caching is enabled
+    if (options?.enableCaching && options?.cacheControl && alternatingMessages.length > 0) {
+      // Find the last user message and add cache_control
+      for (let i = alternatingMessages.length - 1; i >= 0; i--) {
+        if (alternatingMessages[i].role === 'user') {
+          const msg = alternatingMessages[i];
+          if (typeof msg.content === 'string') {
+            alternatingMessages[i] = {
+              ...msg,
+              content: [{
+                type: 'text',
+                text: msg.content,
+                cache_control: options.cacheControl
+              }]
+            };
+          }
+          break;
+        }
+      }
+    }
+
+    return { messages: alternatingMessages, system: undefined };
   }
 
   /**
    * Transform OpenAI tools to Anthropic format
+   * @param tools - Array of tools
+   * @param cacheControl - Optional cache control for tools (applied to last tool for Anthropic caching)
    */
-  private transformToolsToAnthropic(tools?: Tool[]): AnthropicTool[] | undefined {
+  private transformToolsToAnthropic(tools?: Tool[], cacheControl?: CacheControl): AnthropicTool[] | undefined {
     if (!tools || tools.length === 0) return undefined;
 
-    return tools.map(tool => ({
-      name: tool.function.name,
-      description: tool.function.description,
-      input_schema: tool.function.parameters || {}
-    }));
+    return tools.map((tool, index) => {
+      const anthropicTool: AnthropicTool = {
+        name: tool.function.name,
+        description: tool.function.description,
+        input_schema: tool.function.parameters || {}
+      };
+
+      // Add cache_control to the last tool (Anthropic's requirement for tool caching)
+      if (cacheControl && index === tools.length - 1) {
+        (anthropicTool as any).cache_control = cacheControl;
+      }
+
+      return anthropicTool;
+    });
   }
 
   /**
    * Transform Anthropic response to OpenAI format
+   * @param anthropicResponse - The Anthropic API response
+   * @param includeCacheInfo - Whether to include cache usage information
+   * @param includeThinking - Whether to include extended thinking content
    */
-  private transformResponseToOpenAI(anthropicResponse: AnthropicResponse): ChatCompletionResponse {
+  private transformResponseToOpenAI(
+    anthropicResponse: AnthropicResponse,
+    includeCacheInfo?: boolean,
+    includeThinking?: boolean
+  ): ChatCompletionResponse {
     const message: ChatMessage = {
       role: 'assistant',
       content: ''
@@ -213,18 +291,27 @@ class AnthropicProvider implements LLMProvider {
 
     const toolCalls: ToolCall[] = [];
     let textContent = '';
+    let thinkingContent = '';
+    let thinkingSignature: string | undefined;
 
     // Process all content blocks from Anthropic response
     for (const content of anthropicResponse.content) {
-      if (content.type === 'text') {
-        textContent += content.text || '';
-      } else if (content.type === 'tool_use') {
+      const contentBlock = content as any; // Cast to any to handle extended thinking blocks
+      if (contentBlock.type === 'text') {
+        textContent += contentBlock.text || '';
+      } else if (contentBlock.type === 'thinking') {
+        // Extended thinking content block
+        thinkingContent += contentBlock.thinking || '';
+        if (contentBlock.signature) {
+          thinkingSignature = contentBlock.signature;
+        }
+      } else if (contentBlock.type === 'tool_use') {
         toolCalls.push({
-          id: content.id || `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: contentBlock.id || `tool_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
           type: 'function',
           function: {
-            name: content.name || '',
-            arguments: JSON.stringify(content.input || {})
+            name: contentBlock.name || '',
+            arguments: JSON.stringify(contentBlock.input || {})
           }
         });
       }
@@ -232,23 +319,57 @@ class AnthropicProvider implements LLMProvider {
 
     // Set message content - if there's text content, use it; otherwise null for tool-only responses
     message.content = textContent || null;
-    
+
     // Add tool calls if present
     if (toolCalls.length > 0) {
       message.tool_calls = toolCalls;
     }
 
+    // Add reasoning content if thinking was enabled and we have thinking content
+    let reasoning: { thinking: string; signature?: string } | undefined;
+    if (includeThinking && thinkingContent) {
+      reasoning = {
+        thinking: thinkingContent,
+        signature: thinkingSignature
+      };
+    }
+
     const choice = {
       index: 0,
-      message,
+      message: reasoning ? { ...message, reasoning } : message,
       finish_reason: this.mapStopReason(anthropicResponse.stop_reason)
     };
 
-    const usage: Usage = {
-      prompt_tokens: anthropicResponse.usage.input_tokens,
-      completion_tokens: anthropicResponse.usage.output_tokens,
-      total_tokens: anthropicResponse.usage.input_tokens + anthropicResponse.usage.output_tokens
+    // Build usage object with cache information if available
+    const rawUsage = anthropicResponse.usage as any;
+    const usage: ChatCompletionResponse['usage'] = {
+      prompt_tokens: rawUsage.input_tokens,
+      completion_tokens: rawUsage.output_tokens,
+      total_tokens: rawUsage.input_tokens + rawUsage.output_tokens
     };
+
+    // Add cache usage information if caching was enabled
+    if (includeCacheInfo) {
+      // Anthropic returns cache_read_input_tokens and cache_creation_input_tokens
+      if (rawUsage.cache_read_input_tokens !== undefined) {
+        usage.cached_tokens = rawUsage.cache_read_input_tokens;
+      }
+      if (rawUsage.cache_creation_input_tokens !== undefined) {
+        usage.cache_creation_tokens = rawUsage.cache_creation_input_tokens;
+      }
+      // Store raw provider usage for debugging/advanced use
+      usage.provider_usage = {
+        input_tokens: rawUsage.input_tokens,
+        output_tokens: rawUsage.output_tokens,
+        cache_read_input_tokens: rawUsage.cache_read_input_tokens,
+        cache_creation_input_tokens: rawUsage.cache_creation_input_tokens
+      };
+    }
+
+    // Add reasoning tokens if extended thinking was used
+    if (includeThinking && rawUsage.thinking_tokens !== undefined) {
+      usage.reasoning_tokens = rawUsage.thinking_tokens;
+    }
 
     return {
       id: anthropicResponse.id,
@@ -308,8 +429,16 @@ class AnthropicProvider implements LLMProvider {
         throw new Error("Anthropic API key is required. Please set your API key.");
       }
 
-      const { messages, system } = this.transformMessagesToAnthropic(options.messages);
-      const tools = this.transformToolsToAnthropic(options.tools);
+      // Check if caching is enabled
+      const enableCaching = options.enableCaching;
+      const cachingOptions = enableCaching ? {
+        enableCaching: true,
+        cacheControl: options.cacheControl,
+        systemCacheControl: options.systemCacheControl
+      } : undefined;
+
+      const { messages, system } = await this.transformMessagesToAnthropic(options.messages, cachingOptions);
+      const tools = this.transformToolsToAnthropic(options.tools, enableCaching ? options.toolsCacheControl : undefined);
       
       // Validate that we have messages
       if (!messages || messages.length === 0) {
@@ -321,66 +450,63 @@ class AnthropicProvider implements LLMProvider {
         throw new Error("First message must be from user");
       }
       
-      const anthropicRequest: AnthropicRequest = {
-        model: options.model || this.model || "claude-3-5-sonnet-20241022",
+      const modelName = options.model || this.model || "claude-3-5-sonnet-20241022";
+      const isThinkingModel = isReasoningModel(modelName, 'anthropic');
+      const enableThinking = isThinkingModel && options.reasoning?.includeReasoning !== false;
+
+      // Create the request object directly to support array system format for caching
+      const requestPayload: any = {
+        model: modelName,
         max_tokens: options.max_tokens || 4096,
         messages,
-        temperature: options.temperature,
-        top_p: options.top_p,
         stream: options.stream || false
       };
 
+      // System can be string or array (for caching with cache_control)
       if (system) {
-        anthropicRequest.system = system;
+        requestPayload.system = system;
+      }
+
+      if (options.temperature !== undefined) {
+        requestPayload.temperature = options.temperature;
+      }
+
+      if (options.top_p !== undefined) {
+        requestPayload.top_p = options.top_p;
       }
 
       if (tools && tools.length > 0) {
-        anthropicRequest.tools = tools;
+        requestPayload.tools = tools;
         const toolChoice = this.mapToolChoice(options.tool_choice);
         if (toolChoice) {
-          anthropicRequest.tool_choice = toolChoice;
+          requestPayload.tool_choice = toolChoice;
         }
       }
 
       if (options.stop) {
-        anthropicRequest.stop_sequences = Array.isArray(options.stop) ? options.stop : [options.stop];
+        requestPayload.stop_sequences = Array.isArray(options.stop) ? options.stop : [options.stop];
       }
 
-      // Create the request object, filtering out undefined values
-      const requestPayload: any = {
-        model: anthropicRequest.model,
-        max_tokens: anthropicRequest.max_tokens,
-        messages: anthropicRequest.messages,
-        stream: anthropicRequest.stream
-      };
-
-      if (anthropicRequest.system) {
-        requestPayload.system = anthropicRequest.system;
-      }
-      
-      if (anthropicRequest.temperature !== undefined) {
-        requestPayload.temperature = anthropicRequest.temperature;
-      }
-      
-      if (anthropicRequest.top_p !== undefined) {
-        requestPayload.top_p = anthropicRequest.top_p;
-      }
-      
-      if (anthropicRequest.tools && anthropicRequest.tools.length > 0) {
-        requestPayload.tools = anthropicRequest.tools;
-      }
-      
-      if (anthropicRequest.tool_choice) {
-        requestPayload.tool_choice = anthropicRequest.tool_choice;
-      }
-      
-      if (anthropicRequest.stop_sequences && anthropicRequest.stop_sequences.length > 0) {
-        requestPayload.stop_sequences = anthropicRequest.stop_sequences;
+      // Add extended thinking for supported models
+      if (enableThinking) {
+        const thinkingParams = getAnthropicThinkingParams({
+          includeReasoning: options.reasoning?.includeReasoning,
+          thinkingBudget: options.reasoning?.thinkingBudget
+        });
+        if (thinkingParams) {
+          requestPayload.thinking = thinkingParams;
+        }
       }
 
-      const response = await this.client.messages.create(requestPayload);
+      // Add beta header for prompt caching if enabled
+      let response;
+      if (enableCaching) {
+        response = await this.client.beta.promptCaching.messages.create(requestPayload);
+      } else {
+        response = await this.client.messages.create(requestPayload);
+      }
 
-      return this.transformResponseToOpenAI(response as any);
+      return this.transformResponseToOpenAI(response as any, enableCaching, enableThinking);
     } catch (error) {
       // Enhanced error handling with context
       const handledError = handleError(error);
@@ -404,17 +530,250 @@ class AnthropicProvider implements LLMProvider {
     }
   }
 
+  /**
+   * Create completion with streaming support and callbacks
+   */
+  async createCompletionStream(options: StreamingOptions): Promise<ChatCompletionResponse> {
+    const modelName = options.model || this.model || "claude-3-5-sonnet-20241022";
+
+    try {
+      // Validate API key
+      if (!this.apiKey) {
+        throw new Error("Anthropic API key is required. Please set your API key.");
+      }
+
+      const { messages, system } = await this.transformMessagesToAnthropic(options.messages);
+      const tools = this.transformToolsToAnthropic(options.tools);
+
+      // Build request payload
+      const requestPayload: any = {
+        model: modelName,
+        max_tokens: options.max_tokens || 4096,
+        messages,
+        stream: true
+      };
+
+      if (system) requestPayload.system = system;
+      if (options.temperature !== undefined) requestPayload.temperature = options.temperature;
+      if (options.top_p !== undefined) requestPayload.top_p = options.top_p;
+      if (tools && tools.length > 0) {
+        requestPayload.tools = tools;
+        const toolChoice = this.mapToolChoice(options.tool_choice);
+        if (toolChoice) requestPayload.tool_choice = toolChoice;
+      }
+      if (options.stop) {
+        requestPayload.stop_sequences = Array.isArray(options.stop) ? options.stop : [options.stop];
+      }
+
+      const stream = await this.client.messages.create(requestPayload);
+
+      // Accumulate response data
+      let textContent = '';
+      const toolCalls: ToolCall[] = [];
+      let currentToolCall: { id: string; name: string; arguments: string } | null = null;
+      let usage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+      let finishReason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | null = 'stop';
+      let responseId = `msg_${Date.now()}`;
+
+      for await (const event of stream as any) {
+        // Check for abort signal
+        if (options.signal?.aborted) break;
+
+        // Handle different Anthropic event types
+        if (event.type === 'message_start') {
+          responseId = event.message?.id || responseId;
+          if (event.message?.usage) {
+            usage.prompt_tokens = event.message.usage.input_tokens || 0;
+          }
+        } else if (event.type === 'content_block_start') {
+          if (event.content_block?.type === 'tool_use') {
+            currentToolCall = {
+              id: event.content_block.id || `tool_${Date.now()}`,
+              name: event.content_block.name || '',
+              arguments: ''
+            };
+          }
+        } else if (event.type === 'content_block_delta') {
+          if (event.delta?.type === 'text_delta') {
+            const text = event.delta.text || '';
+            textContent += text;
+
+            // Emit chunk
+            const chunk: StreamChunk = {
+              id: responseId,
+              object: 'chat.completion.chunk',
+              created: Math.floor(Date.now() / 1000),
+              model: modelName,
+              choices: [{
+                index: 0,
+                delta: { content: text },
+                finish_reason: null
+              }]
+            };
+            options.onChunk?.(chunk);
+          } else if (event.delta?.type === 'input_json_delta' && currentToolCall) {
+            currentToolCall.arguments += event.delta.partial_json || '';
+          }
+        } else if (event.type === 'content_block_stop') {
+          if (currentToolCall) {
+            toolCalls.push({
+              id: currentToolCall.id,
+              type: 'function',
+              function: {
+                name: currentToolCall.name,
+                arguments: currentToolCall.arguments
+              }
+            });
+            currentToolCall = null;
+          }
+        } else if (event.type === 'message_delta') {
+          if (event.delta?.stop_reason) {
+            finishReason = this.mapStopReason(event.delta.stop_reason);
+          }
+          if (event.usage?.output_tokens) {
+            usage.completion_tokens = event.usage.output_tokens;
+            usage.total_tokens = usage.prompt_tokens + usage.completion_tokens;
+          }
+        }
+      }
+
+      // Build final response
+      const response: ChatCompletionResponse = {
+        id: responseId,
+        object: 'chat.completion',
+        created: Math.floor(Date.now() / 1000),
+        model: modelName,
+        choices: [{
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: textContent || null,
+            tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+          },
+          finish_reason: finishReason
+        }],
+        usage
+      };
+
+      options.onComplete?.(response);
+      return response;
+    } catch (error) {
+      options.onError?.(error as Error);
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * AsyncGenerator-based streaming
+   */
+  async *streamCompletion(options: ChatCompletionOptions): AsyncGenerator<StreamChunk, void, unknown> {
+    const modelName = options.model || this.model || "claude-3-5-sonnet-20241022";
+
+    try {
+      // Validate API key
+      if (!this.apiKey) {
+        throw new Error("Anthropic API key is required. Please set your API key.");
+      }
+
+      const { messages, system } = await this.transformMessagesToAnthropic(options.messages);
+      const tools = this.transformToolsToAnthropic(options.tools);
+
+      // Build request payload
+      const requestPayload: any = {
+        model: modelName,
+        max_tokens: options.max_tokens || 4096,
+        messages,
+        stream: true
+      };
+
+      if (system) requestPayload.system = system;
+      if (options.temperature !== undefined) requestPayload.temperature = options.temperature;
+      if (options.top_p !== undefined) requestPayload.top_p = options.top_p;
+      if (tools && tools.length > 0) {
+        requestPayload.tools = tools;
+        const toolChoice = this.mapToolChoice(options.tool_choice);
+        if (toolChoice) requestPayload.tool_choice = toolChoice;
+      }
+      if (options.stop) {
+        requestPayload.stop_sequences = Array.isArray(options.stop) ? options.stop : [options.stop];
+      }
+
+      const stream = await this.client.messages.create(requestPayload);
+      let responseId = `msg_${Date.now()}`;
+
+      for await (const event of stream as any) {
+        if (event.type === 'message_start') {
+          responseId = event.message?.id || responseId;
+        } else if (event.type === 'content_block_delta') {
+          if (event.delta?.type === 'text_delta') {
+            yield {
+              id: responseId,
+              object: 'chat.completion.chunk',
+              created: Math.floor(Date.now() / 1000),
+              model: modelName,
+              choices: [{
+                index: 0,
+                delta: { content: event.delta.text || '' },
+                finish_reason: null
+              }]
+            };
+          }
+        } else if (event.type === 'message_delta') {
+          if (event.delta?.stop_reason) {
+            yield {
+              id: responseId,
+              object: 'chat.completion.chunk',
+              created: Math.floor(Date.now() / 1000),
+              model: modelName,
+              choices: [{
+                index: 0,
+                delta: {},
+                finish_reason: this.mapStopReason(event.delta.stop_reason)
+              }]
+            };
+          }
+        }
+      }
+    } catch (error) {
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * Get provider capabilities
+   */
+  getCapabilities(): ProviderCapabilities {
+    return {
+      supportsStreaming: true,
+      supportsTools: true,
+      supportsVision: true,
+      supportsEmbeddings: false,
+      supportsCaching: true,
+      cachingType: 'explicit', // Anthropic requires explicit cache_control markers
+      supportsReasoning: true, // Claude 3.7+, Sonnet 4, Opus 4 support extended thinking
+      supportsMultimodal: true // Vision models support images and PDFs
+    };
+  }
+
   async getModels(): Promise<any> {
+    // Check cache first
+    const cacheKey = 'models:anthropic';
+    const cached = modelCache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     // Anthropic doesn't have a models endpoint, so return static list
-    return this.chatModels.map(model => ({
+    const models = this.chatModels.map(model => ({
       id: model,
       name: model,
       provider: "Anthropic",
       type: "chat"
     }));
+
+    modelCache.set(cacheKey, models);
+    return models;
   }
 
-  async createEmbedding(input: string | string[], model: string): Promise<any> {
+  async createEmbedding(options: EmbeddingOptions): Promise<EmbeddingResponse> {
     throw new Error("Anthropic does not support embeddings. Use OpenAI or another provider for embeddings.");
   }
 }
