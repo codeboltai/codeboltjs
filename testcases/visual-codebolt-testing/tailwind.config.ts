@@ -9,31 +9,54 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Elegant cyberpunk color palette
-        'cyber-black': '#0a0a0a',
-        'cyber-dark': '#1a1a1a',
-        'cyber-darker': '#0d0d0d',
-        'cyber-green': '#00d75a',
-        'cyber-blue': '#0e7490',
-        'cyber-orange': '#ea580c',
-        'cyber-purple': '#7c3aed',
-        'cyber-red': '#dc2626',
-        'cyber-cyan': '#0891b2',
-        'cyber-gray': '#374151',
-        'cyber-light-gray': '#6b7280',
-        'neon-green': '#00ff41',
-        'terminal-green': '#22c55e',
-        'matrix-green': '#16a34a',
-        'electric-blue': '#3b82f6',
-        'warning-orange': '#f97316',
-        'danger-red': '#ef4444',
-        'text-primary': '#f3f4f6',
-        'text-secondary': '#d1d5db',
-        'text-muted': '#9ca3af',
+        // Cyberpunk Dark Backgrounds
+        'cyber-bg': {
+          primary: '#0a0a0f',
+          secondary: '#0d1117',
+          tertiary: '#161b22',
+          elevated: '#1c2128',
+        },
+        // Primary Accent - Cyan/Teal
+        'cyber-cyan': {
+          DEFAULT: '#00d4ff',
+          bright: '#00e5ff',
+          muted: '#0891b2',
+          dark: '#164e63',
+        },
+        // Status Colors
+        'cyber-success': '#10b981',
+        'cyber-error': '#ef4444',
+        'cyber-warning': '#f59e0b',
+        'cyber-info': '#3b82f6',
+        // Text Colors
+        'cyber-text': {
+          primary: '#e6edf3',
+          secondary: '#8b949e',
+          muted: '#484f58',
+        },
+        // Border Colors
+        'cyber-border': {
+          DEFAULT: '#30363d',
+          accent: 'rgba(0, 212, 255, 0.2)',
+          strong: '#444d56',
+        },
+        // Legacy color mappings (for backward compatibility)
+        'cyber-black': '#0a0a0f',
+        'cyber-dark': '#0d1117',
+        'cyber-darker': '#161b22',
+        'cyber-green': '#10b981',
+        'cyber-blue': '#00d4ff',
+        'cyber-orange': '#f59e0b',
+        'cyber-purple': '#a855f7',
+        'cyber-red': '#ef4444',
+        'neon-cyan': '#00d4ff',
+        'text-primary': '#e6edf3',
+        'text-secondary': '#8b949e',
+        'text-muted': '#484f58',
       },
       fontFamily: {
-        'mono': ['Courier New', 'monospace'],
-        'terminal': ['Courier New', 'monospace'],
+        'mono': ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
+        'terminal': ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
       animation: {
         'glitch': 'glitch 2s infinite',
@@ -41,31 +64,33 @@ const config: Config = {
         'scan': 'scan 8s linear infinite',
         'flicker': 'flicker 3s infinite',
         'terminal-cursor': 'terminal-cursor 1s infinite',
+        'fade-in': 'fade-in 0.2s ease-out',
+        'slide-in': 'slide-in 0.3s ease-out',
       },
       keyframes: {
         glitch: {
-          '0%, 100%': { 
+          '0%, 100%': {
             textShadow: '2px 2px 0 #ff00ff, -2px -2px 0 #00d4ff',
             transform: 'translate(0)'
           },
-          '25%': { 
+          '25%': {
             textShadow: '-2px 2px 0 #ff00ff, 2px -2px 0 #00d4ff',
             transform: 'translate(-2px, 2px)'
           },
-          '50%': { 
+          '50%': {
             textShadow: '2px -2px 0 #ff00ff, -2px 2px 0 #00d4ff',
             transform: 'translate(2px, -2px)'
           },
-          '75%': { 
+          '75%': {
             textShadow: '-2px -2px 0 #ff00ff, 2px 2px 0 #00d4ff',
             transform: 'translate(-2px, -2px)'
           },
         },
         'pulse-glow': {
-          '0%, 100%': { 
-            boxShadow: '0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor'
+          '0%, 100%': {
+            boxShadow: '0 0 5px currentColor, 0 0 10px currentColor'
           },
-          '50%': { 
+          '50%': {
             boxShadow: '0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor'
           },
         },
@@ -82,20 +107,38 @@ const config: Config = {
           '0%, 50%': { opacity: '1' },
           '51%, 100%': { opacity: '0' },
         },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-in': {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       backgroundImage: {
-        'scanlines': 'repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px)',
-        'grid': 'linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px)',
-        'noise': 'url("data:image/svg+xml,%3Csvg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E")',
+        'scanlines': 'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0, 212, 255, 0.015) 2px, rgba(0, 212, 255, 0.015) 4px)',
+        'grid': 'linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px)',
+        'cyber-gradient': 'linear-gradient(135deg, #0a0a0f 0%, #0d1117 50%, #161b22 100%)',
       },
       boxShadow: {
+        'cyber': '0 0 10px rgba(0, 212, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.1)',
+        'cyber-strong': '0 0 15px rgba(0, 212, 255, 0.5), 0 0 30px rgba(0, 212, 255, 0.2)',
+        'cyber-error': '0 0 10px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.1)',
+        'cyber-success': '0 0 10px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.1)',
         'subtle': '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)',
         'medium': '0 4px 6px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.12)',
         'large': '0 10px 25px rgba(0, 0, 0, 0.19), 0 6px 10px rgba(0, 0, 0, 0.15)',
       },
-      borderStyle: {
-        'cyber': 'solid',
-        'glitch': 'dashed',
+      borderRadius: {
+        'cyber': '2px',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '100': '25rem',
+        '112': '28rem',
+        '128': '32rem',
       },
     },
   },

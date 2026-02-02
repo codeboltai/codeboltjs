@@ -1,14 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #00ff41;
+  /* Backgrounds - Very dark with slight blue tint */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #161b22;
+  --bg-elevated: #1c2128;
+
+  /* Primary Accent - Cyan/Teal */
+  --accent-primary: #00d4ff;
+  --accent-secondary: #0891b2;
+  --accent-muted: #164e63;
+
+  /* Status Colors */
+  --status-success: #10b981;
+  --status-error: #ef4444;
+  --status-warning: #f59e0b;
+  --status-info: #3b82f6;
+
+  /* Text */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+
+  /* Borders */
+  --border-primary: #30363d;
+  --border-accent: #00d4ff33;
+
+  /* Legacy mappings for backwards compatibility */
+  --background: var(--bg-primary);
+  --foreground: var(--accent-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Courier New', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
   overflow-x: hidden;
 }
 
@@ -17,38 +44,41 @@ body {
   box-sizing: border-box;
 }
 
-
-
 /* Ensure content is above effects */
 .main-content {
   position: relative;
   z-index: 10;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Cyan theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00ff41;
-  border-radius: 4px;
+  background: var(--accent-primary);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00d4ff;
+  background: var(--accent-secondary);
 }
 
 /* Terminal cursor animation */
 .terminal-cursor::after {
   content: '█';
   animation: terminal-cursor 1s infinite;
-  color: #00ff41;
+  color: var(--accent-primary);
+}
+
+@keyframes terminal-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 /* Glitch text effect */
@@ -75,7 +105,7 @@ body {
 
 .glitch-text::after {
   animation: glitch-2 0.5s infinite;
-  color: #00d4ff;
+  color: var(--accent-primary);
   z-index: -2;
 }
 
@@ -93,4 +123,114 @@ body {
   40% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
   60% { clip-path: inset(30% 0 40% 0); transform: translate(2px, 2px); }
   80% { clip-path: inset(5% 0 80% 0); transform: translate(-2px, -2px); }
+}
+
+/* Scanline effect */
+.scanlines {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 212, 255, 0.015) 2px,
+    rgba(0, 212, 255, 0.015) 4px
+  );
+  z-index: 1000;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 5px var(--accent-primary),
+              0 0 10px var(--accent-primary),
+              0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.glow-text-cyan {
+  text-shadow: 0 0 5px var(--accent-primary),
+               0 0 10px var(--accent-primary);
+}
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Status dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.status-dot.online {
+  background: var(--status-success);
+  color: var(--status-success);
+}
+
+.status-dot.error {
+  background: var(--status-error);
+  color: var(--status-error);
+}
+
+.status-dot.warning {
+  background: var(--status-warning);
+  color: var(--status-warning);
+}
+
+/* Corner decorations */
+.cyber-corner::before,
+.cyber-corner::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--accent-primary);
+}
+
+.cyber-corner::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.cyber-corner::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* Form focus states */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary),
+              0 0 10px rgba(0, 212, 255, 0.2);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+/* Code blocks */
+pre, code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 }

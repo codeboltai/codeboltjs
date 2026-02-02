@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "^5.0.7",
+    "@codebolt/codeboltjs": "workspace:*",
     "@types/ws": "^8.18.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
