@@ -8,11 +8,14 @@ import CyberButton from '../ui/CyberButton';
 import CyberInput from '../ui/CyberInput';
 import CyberBadge from '../ui/CyberBadge';
 import ResponsePanel from '../output/ResponsePanel';
-import { Play, RotateCcw, Copy, BookOpen } from 'lucide-react';
+import { Play, RotateCcw, Copy, BookOpen, Pin, PinOff } from 'lucide-react';
 
 interface FunctionFormProps {
   moduleName: string;
   functionName: string;
+  isPinned?: boolean;
+  onPin?: (moduleName: string, functionName: string) => void;
+  onUnpin?: (moduleName: string, functionName: string) => void;
 }
 
 interface HistoryItem {
@@ -29,6 +32,9 @@ interface HistoryItem {
 const FunctionForm: React.FC<FunctionFormProps> = ({
   moduleName,
   functionName,
+  isPinned = false,
+  onPin,
+  onUnpin,
 }) => {
   const [parameters, setParameters] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -239,9 +245,34 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
         subtitle={func.description}
         variant="cyan"
         headerRight={
-          <CyberBadge variant="cyan">
-            {func.parameters.length} params
-          </CyberBadge>
+          <div className="flex items-center gap-2">
+            <CyberBadge variant="cyan">
+              {func.parameters.length} params
+            </CyberBadge>
+            {/* Pin/Unpin button */}
+            <button
+              onClick={() => {
+                if (isPinned) {
+                  onUnpin?.(moduleName, functionName);
+                } else {
+                  onPin?.(moduleName, functionName);
+                }
+              }}
+              className="p-1.5 border transition-all hover:opacity-80"
+              style={{
+                borderColor: isPinned ? '#a855f7' : '#30363d',
+                backgroundColor: isPinned ? '#a855f720' : 'transparent',
+                color: isPinned ? '#a855f7' : '#8b949e',
+              }}
+              title={isPinned ? 'Unpin function' : 'Pin function'}
+            >
+              {isPinned ? (
+                <PinOff className="w-4 h-4" />
+              ) : (
+                <Pin className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         }
       >
         <form onSubmit={handleSubmit} className="space-y-4">

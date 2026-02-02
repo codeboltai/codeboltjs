@@ -5,18 +5,61 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import FunctionForm from '@/components/form/FunctionForm';
 import SearchCommand from '@/components/navigation/SearchCommand';
+import PinnedPanel, { PinnedFunction } from '@/components/panels/PinnedPanel';
 import CyberCard from '@/components/ui/CyberCard';
 import { CodeboltAPI } from '@/lib/modules';
 import { Zap, Terminal, Database, Bot, Layers, FolderOpen, Globe, MessageSquare, GitBranch, Brain, ListTodo, FolderKanban, TestTube, Calendar, Search, Settings, Network, GitPullRequest, Wrench } from 'lucide-react';
+
+const PINNED_STORAGE_KEY = 'codebolt-pinned-functions';
 
 export default function Home() {
   const [selectedModule, setSelectedModule] = useState<string>('');
   const [selectedFunction, setSelectedFunction] = useState<string>('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [pinnedFunctions, setPinnedFunctions] = useState<PinnedFunction[]>([]);
+
+  // Load pinned functions from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(PINNED_STORAGE_KEY);
+      if (stored) {
+        setPinnedFunctions(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error('Failed to load pinned functions:', e);
+    }
+  }, []);
+
+  // Save pinned functions to localStorage when changed
+  useEffect(() => {
+    try {
+      localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedFunctions));
+    } catch (e) {
+      console.error('Failed to save pinned functions:', e);
+    }
+  }, [pinnedFunctions]);
 
   const handleFunctionSelect = (moduleName: string, functionName: string) => {
     setSelectedModule(moduleName);
     setSelectedFunction(functionName);
+  };
+
+  const handlePinFunction = (moduleName: string, functionName: string) => {
+    setPinnedFunctions(prev => {
+      const exists = prev.some(p => p.moduleName === moduleName && p.functionName === functionName);
+      if (exists) return prev;
+      return [...prev, { moduleName, functionName }];
+    });
+  };
+
+  const handleUnpinFunction = (moduleName: string, functionName: string) => {
+    setPinnedFunctions(prev =>
+      prev.filter(p => !(p.moduleName === moduleName && p.functionName === functionName))
+    );
+  };
+
+  const isPinned = (moduleName: string, functionName: string) => {
+    return pinnedFunctions.some(p => p.moduleName === moduleName && p.functionName === functionName);
   };
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -55,19 +98,34 @@ export default function Home() {
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-6">
-          {selectedModule && selectedFunction ? (
-            <FunctionForm
-              moduleName={selectedModule}
-              functionName={selectedFunction}
+          <div className="space-y-4">
+            {/* Pinned Functions Panel */}
+            <PinnedPanel
+              pinnedFunctions={pinnedFunctions}
+              onUnpin={handleUnpinFunction}
+              onSelect={handleFunctionSelect}
+              selectedModule={selectedModule}
+              selectedFunction={selectedFunction}
             />
-          ) : (
-            <WelcomeScreen
-              moduleCount={moduleCount}
-              functionCount={functionCount}
-              categoryCount={categories.length}
-              onSearchClick={() => setSearchOpen(true)}
-            />
-          )}
+
+            {/* Main Content */}
+            {selectedModule && selectedFunction ? (
+              <FunctionForm
+                moduleName={selectedModule}
+                functionName={selectedFunction}
+                isPinned={isPinned(selectedModule, selectedFunction)}
+                onPin={handlePinFunction}
+                onUnpin={handleUnpinFunction}
+              />
+            ) : (
+              <WelcomeScreen
+                moduleCount={moduleCount}
+                functionCount={functionCount}
+                categoryCount={categories.length}
+                onSearchClick={() => setSearchOpen(true)}
+              />
+            )}
+          </div>
         </main>
       </div>
 
