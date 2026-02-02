@@ -140,9 +140,10 @@ export class SideExecutionManager extends EventEmitter {
         this.executions.set(sideExecutionId, metadata);
 
         try {
+            const config = getServerConfig();
             const processEnv: SideExecutionEnv & NodeJS.ProcessEnv = {
                 ...process.env,
-                SOCKET_PORT: String(getServerConfig().port || process.env.PORT || 3001),
+                SOCKET_PORT: config.port.toString(),
                 IS_SIDE_EXECUTION: 'true',
                 SIDE_EXECUTION_ID: sideExecutionId,
                 THREAD_ID: threadId,
