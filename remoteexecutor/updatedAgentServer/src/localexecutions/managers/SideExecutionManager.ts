@@ -143,7 +143,13 @@ export class SideExecutionManager extends EventEmitter {
             const config = getServerConfig();
             const processEnv: SideExecutionEnv & NodeJS.ProcessEnv = {
                 ...process.env,
+                // Agent-style env vars (lowercase) for codeboltjs registration
+                parentId: parentAgentId,
+                agentId: sideExecutionId,
+                connectionId: sideExecutionId,
+                threadId: threadId,
                 SOCKET_PORT: config.port.toString(),
+                // Side execution specific env vars
                 IS_SIDE_EXECUTION: 'true',
                 SIDE_EXECUTION_ID: sideExecutionId,
                 THREAD_ID: threadId,

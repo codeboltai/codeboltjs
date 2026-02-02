@@ -25,6 +25,7 @@ import {
 import { WEBSOCKET_CONSTANTS } from '../../constants';
 import { logger } from '../utils/logger';
 import { threadId } from 'worker_threads';
+import { sideExecutionManager } from '../../localexecutions/managers/SideExecutionManager';
 
 /**
  * WebSocket server management
@@ -289,6 +290,16 @@ export class WebSocketServer {
       registrationType,
       { agentInstanceId }
     );
+
+    // Notify SideExecutionManager if this is a side execution connection
+    if (agentId.startsWith('side_')) {
+      logger.info(formatLogMessage('info', 'WebSocketServer', `Notifying SideExecutionManager of side execution connection: ${agentId}`));
+      sideExecutionManager.emit('sideExecutionConnected', {
+        sideExecutionId: agentId,
+        threadId: threadId,
+        connectionId: connectionId || agentId
+      });
+    }
   }
 
   /**
