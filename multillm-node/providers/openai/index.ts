@@ -36,6 +36,16 @@ async function transformMessages(messages: ChatMessage[]): Promise<ChatCompletio
       continue;
     }
 
+    if (message.role === 'tool') {
+      const toolMessage: any = {
+        role: 'tool',
+        tool_call_id: message.tool_call_id,
+        content: extractTextContent(message.content)
+      };
+      transformed.push(toolMessage);
+      continue;
+    }
+
     if (message.role === 'system') {
       const systemMessage: ChatCompletionSystemMessageParam = {
         role: 'system',
