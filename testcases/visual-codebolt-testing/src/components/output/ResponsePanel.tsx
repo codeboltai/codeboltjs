@@ -4,13 +4,20 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import CyberCard from '../ui/CyberCard';
 import CyberButton from '../ui/CyberButton';
-import { Copy, Check, ChevronDown, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, AlertTriangle, CheckCircle, Plus } from 'lucide-react';
 
 interface ResponsePanelProps {
   result?: unknown;
   error?: string;
   moduleName: string;
   functionName: string;
+  parameters?: Record<string, string>;
+  onAddToContext?: (role: 'tool_call' | 'tool_response', content: unknown, metadata?: {
+    toolName?: string;
+    moduleName?: string;
+    functionName?: string;
+    parameters?: Record<string, unknown>;
+  }) => void;
 }
 
 interface JsonNodeProps {
@@ -130,9 +137,27 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
   error,
   moduleName,
   functionName,
+  parameters,
+  onAddToContext,
 }) => {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'tree' | 'raw'>('tree');
+  const [addedToContext, setAddedToContext] = useState(false);
+
+  const handleAddToContext = () => {
+    if (!onAddToContext || result === null || result === undefined) return;
+
+    // Add the tool response to context
+    onAddToContext('tool_response', result, {
+      toolName: `${moduleName}.${functionName}`,
+      moduleName,
+      functionName,
+      parameters: parameters as Record<string, unknown>,
+    });
+
+    setAddedToContext(true);
+    setTimeout(() => setAddedToContext(false), 2000);
+  };
 
   const handleCopy = () => {
     const content = error || JSON.stringify(result, null, 2);
@@ -206,6 +231,17 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({
               Raw
             </button>
           </div>
+          {onAddToContext && (
+            <CyberButton
+              variant="purple"
+              size="sm"
+              onClick={handleAddToContext}
+              disabled={addedToContext}
+            >
+              {addedToContext ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              {addedToContext ? 'Added' : 'Context'}
+            </CyberButton>
+          )}
           <CyberButton
             variant="ghost"
             size="sm"

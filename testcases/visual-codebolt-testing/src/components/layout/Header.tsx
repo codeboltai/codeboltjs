@@ -8,11 +8,12 @@ import { Search, Zap, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   onSearchClick: () => void;
+  rightContent?: React.ReactNode;
 }
 
 type ConnectionStatus = 'checking' | 'connected' | 'disconnected' | 'error';
 
-const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
+const Header: React.FC<HeaderProps> = ({ onSearchClick, rightContent }) => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [cycleCount, setCycleCount] = useState(847);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking');
@@ -104,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
             <div className="flex items-center gap-2">
               <Zap className="w-6 h-6" style={{ color: '#00d4ff' }} />
               <h1 className="text-lg font-mono font-bold tracking-wider" style={{ color: '#00d4ff' }}>
-                CODEBOLT<span style={{ color: '#a855f7' }}>_JS_</span>TESTER
+                AGENT<span style={{ color: '#a855f7' }}>_TURN_</span>SIMULATOR
               </h1>
             </div>
             <span className="text-xs font-mono" style={{ color: '#10b981' }}>v2.0</span>
@@ -140,6 +141,9 @@ const Header: React.FC<HeaderProps> = ({ onSearchClick }) => {
 
           {/* Right side - Status indicators */}
           <div className="flex items-center gap-4 text-xs font-mono">
+            {/* Custom right content */}
+            {rightContent}
+
             {/* Connection status with refresh button */}
             <div className="flex items-center gap-2">
               <StatusDot

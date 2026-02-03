@@ -13,7 +13,7 @@ packages:
   - actionBlocks/*
   - action-blocks/*
   - documentation/*
-  - testcases
+  - testcases/*
   - cli/*
   - multillm-node/*
   

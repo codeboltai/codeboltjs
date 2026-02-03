@@ -6,9 +6,12 @@ import Sidebar from '@/components/layout/Sidebar';
 import FunctionForm from '@/components/form/FunctionForm';
 import SearchCommand from '@/components/navigation/SearchCommand';
 import PinnedPanel, { PinnedFunction } from '@/components/panels/PinnedPanel';
+import ContextWorkspace from '@/components/context/ContextWorkspace';
 import CyberCard from '@/components/ui/CyberCard';
+import CyberButton from '@/components/ui/CyberButton';
 import { CodeboltAPI } from '@/lib/modules';
-import { Zap, Terminal, Database, Bot, Layers, FolderOpen, Globe, MessageSquare, GitBranch, Brain, ListTodo, FolderKanban, TestTube, Calendar, Search, Settings, Network, GitPullRequest, Wrench } from 'lucide-react';
+import { useContextChain } from '@/hooks/useContextChain';
+import { Zap, Terminal, Database, Bot, Layers, FolderOpen, Globe, MessageSquare, GitBranch, Brain, ListTodo, FolderKanban, TestTube, Calendar, Search, Settings, Network, GitPullRequest, Wrench, PanelRightOpen, PanelRightClose } from 'lucide-react';
 
 const PINNED_STORAGE_KEY = 'codebolt-pinned-functions';
 
@@ -17,6 +20,9 @@ export default function Home() {
   const [selectedFunction, setSelectedFunction] = useState<string>('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [pinnedFunctions, setPinnedFunctions] = useState<PinnedFunction[]>([]);
+  const [showContextPane, setShowContextPane] = useState(true);
+
+  const contextChain = useContextChain();
 
   // Load pinned functions from localStorage on mount
   useEffect(() => {
@@ -62,11 +68,28 @@ export default function Home() {
     return pinnedFunctions.some(p => p.moduleName === moduleName && p.functionName === functionName);
   };
 
+  const handleAddToContext = (role: 'tool_call' | 'tool_response', content: unknown, metadata?: {
+    toolName?: string;
+    moduleName?: string;
+    functionName?: string;
+    parameters?: Record<string, unknown>;
+  }) => {
+    contextChain.addBlock(role, content as string | object, 'tool', {
+      ...metadata,
+      timestamp: new Date(),
+    });
+  };
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Cmd+K or Ctrl+K to open search
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
       setSearchOpen(true);
+    }
+    // Cmd+B or Ctrl+B to toggle context pane
+    if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+      e.preventDefault();
+      setShowContextPane(prev => !prev);
     }
   }, []);
 
@@ -85,7 +108,23 @@ export default function Home() {
       <div className="scanlines pointer-events-none" />
 
       {/* Header */}
-      <Header onSearchClick={() => setSearchOpen(true)} />
+      <Header
+        onSearchClick={() => setSearchOpen(true)}
+        rightContent={
+          <CyberButton
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowContextPane(!showContextPane)}
+            title={showContextPane ? 'Hide Context Pane (Cmd+B)' : 'Show Context Pane (Cmd+B)'}
+          >
+            {showContextPane ? (
+              <PanelRightClose className="w-4 h-4" />
+            ) : (
+              <PanelRightOpen className="w-4 h-4" />
+            )}
+          </CyberButton>
+        }
+      />
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-57px)]">
@@ -97,7 +136,7 @@ export default function Home() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className={`flex-1 overflow-y-auto p-6 transition-all duration-300 ${showContextPane ? 'mr-0' : ''}`}>
           <div className="space-y-4">
             {/* Pinned Functions Panel */}
             <PinnedPanel
@@ -116,6 +155,7 @@ export default function Home() {
                 isPinned={isPinned(selectedModule, selectedFunction)}
                 onPin={handlePinFunction}
                 onUnpin={handleUnpinFunction}
+                onAddToContext={handleAddToContext}
               />
             ) : (
               <WelcomeScreen
@@ -123,10 +163,20 @@ export default function Home() {
                 functionCount={functionCount}
                 categoryCount={categories.length}
                 onSearchClick={() => setSearchOpen(true)}
+                contextBlockCount={contextChain.blocks.length}
+                onToggleContext={() => setShowContextPane(!showContextPane)}
+                showContextPane={showContextPane}
               />
             )}
           </div>
         </main>
+
+        {/* Context Workspace Pane */}
+        {showContextPane && (
+          <div className="w-[420px] flex-shrink-0 bg-cyber-bg-secondary">
+            <ContextWorkspace contextChain={contextChain} />
+          </div>
+        )}
       </div>
 
       {/* Search Command Modal */}
@@ -144,6 +194,9 @@ interface WelcomeScreenProps {
   functionCount: number;
   categoryCount: number;
   onSearchClick: () => void;
+  contextBlockCount: number;
+  onToggleContext: () => void;
+  showContextPane: boolean;
 }
 
 function CategoryPreview({ name, Icon, count, color }: { name: string; Icon: React.ComponentType<{ className?: string }>; count: number; color: string }) {
@@ -168,6 +221,9 @@ function WelcomeScreen({
   functionCount,
   categoryCount,
   onSearchClick,
+  contextBlockCount,
+  onToggleContext,
+  showContextPane,
 }: WelcomeScreenProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -180,17 +236,32 @@ function WelcomeScreen({
             </div>
           </div>
           <h1 className="text-2xl font-mono font-bold text-cyber-cyan mb-2">
-            CODEBOLT JS TESTING TERMINAL
+            AGENT TURN SIMULATOR
           </h1>
           <p className="text-cyber-text-secondary font-mono text-sm mb-6">
-            Interactive testing interface for the CodeboltJS SDK
+            Build context chains, execute tools, and simulate LLM agent turns
           </p>
-          <button
-            onClick={onSearchClick}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-cyber-cyan text-cyber-cyan font-mono hover:bg-cyber-cyan hover:text-cyber-bg-primary transition-colors"
-          >
-            Press <kbd className="px-2 py-1 bg-cyber-bg-tertiary border border-cyber-border rounded mx-1">Cmd+K</kbd> to search functions
-          </button>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={onSearchClick}
+              className="inline-flex items-center gap-2 px-6 py-3 border border-cyber-cyan text-cyber-cyan font-mono hover:bg-cyber-cyan hover:text-cyber-bg-primary transition-colors"
+            >
+              Press <kbd className="px-2 py-1 bg-cyber-bg-tertiary border border-cyber-border rounded mx-1">Cmd+K</kbd> to search
+            </button>
+            {!showContextPane && (
+              <button
+                onClick={onToggleContext}
+                className="inline-flex items-center gap-2 px-6 py-3 border font-mono transition-colors hover:opacity-80"
+                style={{
+                  borderColor: '#a855f7',
+                  color: '#a855f7',
+                }}
+              >
+                <Database className="w-4 h-4" />
+                Context ({contextBlockCount})
+              </button>
+            )}
+          </div>
         </div>
       </CyberCard>
 
@@ -249,8 +320,8 @@ function WelcomeScreen({
               <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#00d4ff20', borderColor: '#00d4ff50', color: '#00d4ff', borderWidth: '1px' }}>Cmd+K</kbd>
             </li>
             <li className="flex items-center justify-between">
-              <span style={{ color: '#e6edf3' }}>Navigate results</span>
-              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#a855f720', borderColor: '#a855f750', color: '#a855f7', borderWidth: '1px' }}>↑ ↓</kbd>
+              <span style={{ color: '#e6edf3' }}>Toggle context pane</span>
+              <kbd className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#a855f720', borderColor: '#a855f750', color: '#a855f7', borderWidth: '1px' }}>Cmd+B</kbd>
             </li>
             <li className="flex items-center justify-between">
               <span style={{ color: '#e6edf3' }}>Select function</span>

@@ -8,8 +8,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CodeboltJS Tester | Visual Testing Terminal",
-  description: "Interactive testing interface for the CodeboltJS SDK - Test 55+ modules and 400+ functions",
+  title: "Agent Turn Simulator | Codebolt",
+  description: "Simulate agent turns, build context chains, execute tools, and test LLM workflows with the CodeboltJS SDK",
 };
 
 export default function RootLayout({

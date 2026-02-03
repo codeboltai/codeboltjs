@@ -16,6 +16,12 @@ interface FunctionFormProps {
   isPinned?: boolean;
   onPin?: (moduleName: string, functionName: string) => void;
   onUnpin?: (moduleName: string, functionName: string) => void;
+  onAddToContext?: (role: 'tool_call' | 'tool_response', content: unknown, metadata?: {
+    toolName?: string;
+    moduleName?: string;
+    functionName?: string;
+    parameters?: Record<string, unknown>;
+  }) => void;
 }
 
 interface HistoryItem {
@@ -35,6 +41,7 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
   isPinned = false,
   onPin,
   onUnpin,
+  onAddToContext,
 }) => {
   const [parameters, setParameters] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -335,6 +342,8 @@ const FunctionForm: React.FC<FunctionFormProps> = ({
           error={error}
           moduleName={moduleName}
           functionName={functionName}
+          parameters={parameters}
+          onAddToContext={onAddToContext}
         />
       )}
 

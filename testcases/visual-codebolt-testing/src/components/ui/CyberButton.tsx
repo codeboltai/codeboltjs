@@ -13,6 +13,7 @@ interface CyberButtonProps {
   className?: string;
   type?: 'button' | 'submit' | 'reset';
   fullWidth?: boolean;
+  title?: string;
 }
 
 // Color map for inline styles
@@ -35,6 +36,7 @@ const CyberButton: React.FC<CyberButtonProps> = ({
   className = '',
   type = 'button',
   fullWidth = false,
+  title,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const colors = variantColors[variant];
@@ -83,6 +85,7 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      title={title}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
