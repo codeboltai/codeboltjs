@@ -51,30 +51,38 @@ export async function POST(request: NextRequest) {
       const llmModule = (codebolt as any).llm;
 
       if (llmModule && typeof llmModule.inference === 'function') {
-        // Build inference params - only include model if specified and not "default"
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const inferenceParams: any = { messages };
+        // Send messages with llmrole: 'default' to use the configured default LLM
+        const result = await llmModule.inference({ messages, llmrole: 'default' });
 
-        if (model && model !== 'default') {
-          inferenceParams.model = model;
-        }
+        // The inference returns { completion: LLMCompletion } structure
+        // Extract the completion object which contains choices, usage, etc.
+        const completion = result.completion || result;
 
-        const result = await llmModule.inference(inferenceParams);
+        // Log for debugging
+        console.log('[LLM API] Inference result keys:', Object.keys(result));
+        console.log('[LLM API] Completion structure:', JSON.stringify(completion, null, 2).slice(0, 500));
 
         // Parse the response to determine if it's text or tool calls
         let responseType: 'text' | 'tool_calls' = 'text';
         let responseContent: string | LLMToolCall[] = '';
 
-        if (result.tool_calls && Array.isArray(result.tool_calls) && result.tool_calls.length > 0) {
+        // Handle OpenAI-style response format with choices array
+        const message = completion?.choices?.[0]?.message || completion?.message || completion;
+
+        if (message?.tool_calls && Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
           responseType = 'tool_calls';
-          responseContent = result.tool_calls.map((tc: { id: string; function: { name: string; arguments: string } }) => ({
+          responseContent = message.tool_calls.map((tc: { id: string; function: { name: string; arguments: string } }) => ({
             id: tc.id || crypto.randomUUID(),
             toolName: tc.function?.name || 'unknown',
             arguments: JSON.parse(tc.function?.arguments || '{}'),
           }));
         } else {
-          responseContent = result.content || result.message || JSON.stringify(result);
+          // Extract text content from various response formats
+          responseContent = message?.content || completion?.content || completion?.message || JSON.stringify(completion);
         }
+
+        // Extract usage from various locations
+        const usage = completion?.usage || result?.usage || {};
 
         return NextResponse.json({
           success: true,
@@ -83,15 +91,29 @@ export async function POST(request: NextRequest) {
             content: responseContent,
           },
           usage: {
-            input_tokens: result.usage?.prompt_tokens || result.usage?.input_tokens || 0,
-            output_tokens: result.usage?.completion_tokens || result.usage?.output_tokens || 0,
+            input_tokens: usage?.prompt_tokens || usage?.input_tokens || 0,
+            output_tokens: usage?.completion_tokens || usage?.output_tokens || 0,
           },
-          model: result.model || model || 'default',
+          model: completion?.model || result?.model || model || 'default',
           timestamp: new Date().toISOString(),
         });
       }
     } catch (codeboltError) {
-      console.log('[LLM API] Codebolt LLM not available, using mock response:', codeboltError);
+      // Log the full error for debugging
+      console.error('[LLM API] Codebolt LLM error:', codeboltError);
+      const errorMessage = codeboltError instanceof Error ? codeboltError.message : String(codeboltError);
+
+      // If the error contains "Failed" or seems like a real LLM error, return it
+      if (errorMessage.includes('Faild') || errorMessage.includes('Failed') || errorMessage.includes('Error')) {
+        return NextResponse.json({
+          success: false,
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+        }, { status: 500 });
+      }
+
+      // Otherwise fall through to mock response
+      console.log('[LLM API] Falling back to mock response');
     }
 
     // Fallback: Return a mock response for testing

@@ -54,7 +54,7 @@ export interface UseContextChainReturn {
 export function useContextChain(): UseContextChainReturn {
   const [blocks, setBlocks] = useState<ContextBlock[]>([]);
   const [inferenceHistory, setInferenceHistory] = useState<InferenceCall[]>([]);
-  const [selectedModel, setSelectedModel] = useState<ModelId>('gpt-4');
+  const [selectedModel, setSelectedModel] = useState<ModelId>('default');
   const [isSending, setIsSending] = useState(false);
   const [pendingToolCalls, setPendingToolCalls] = useState<LLMToolCall[]>([]);
 
