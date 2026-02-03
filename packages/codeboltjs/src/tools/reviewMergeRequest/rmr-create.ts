@@ -33,7 +33,9 @@ class CreateReviewMergeRequestInvocation extends BaseToolInvocation<CreateReview
                 swarmId: this.params.swarmId,
             });
 
-            if (!response.request) {
+            const req = response.data?.request || response.request;
+
+            if (!req) {
                 return {
                     llmContent: `Error: Failed to create review merge request - no request returned`,
                     returnDisplay: `Error: Failed to create`,
@@ -41,7 +43,6 @@ class CreateReviewMergeRequestInvocation extends BaseToolInvocation<CreateReview
                 };
             }
 
-            const req = response.request;
             const content = `Review merge request created: ${req.id} - ${req.title} (${req.status})`;
             return { llmContent: content, returnDisplay: content };
         } catch (error) {

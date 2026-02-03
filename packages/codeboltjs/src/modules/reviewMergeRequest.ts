@@ -50,7 +50,7 @@ const reviewMergeRequestService = {
     /**
      * Create a new review merge request
      */
-    create: async (data: CreateReviewMergeRequest): Promise<{ request: ReviewMergeRequest }> => {
+    create: async (data: CreateReviewMergeRequest): Promise<{ request?: ReviewMergeRequest; data?: { request: ReviewMergeRequest }; success?: boolean }> => {
         const requestId = randomUUID();
         return cbws.messageManager.sendAndWaitForResponse(
             {

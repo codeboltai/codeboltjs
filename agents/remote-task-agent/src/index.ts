@@ -1,7 +1,6 @@
 
 
 import codebolt from '@codebolt/codeboltjs';
-import fs from 'fs'
 import {
     InitialPromptGenerator,
     ResponseExecutor
@@ -16,13 +15,293 @@ import {
     ToolInjectionModifier,
     ChatHistoryMessageModifier
 } from '@codebolt/agent/processor-pieces';
-
-
+import type {
+    CreateReviewMergeRequest,
+    MergeConfig
+} from '@codebolt/types/lib';
 
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
+// ============================================
+// Submit Merge Request Types
+// ============================================
 
+interface SubmitMergeRequestInput {
+    /** Path to the project (used for git logs) */
+    projectPath: string;
+    /** Agent ID creating the request */
+    agentId: string;
+    /** Agent name creating the request */
+    agentName: string;
+    /** Title for the merge request (optional - derived from commit if not provided) */
+    title?: string;
+    /** Description of changes (optional) */
+    description?: string;
+    /** The original task that led to these changes */
+    initialTask?: string;
+    /** Optional swarm ID */
+    swarmId?: string;
+    /** Commit hash to get diff for (optional - uses HEAD if not provided) */
+    commitHash?: string;
+    /** Merge strategy: 'patch' or 'git_worktree' */
+    mergeStrategy?: 'patch' | 'git_worktree';
+}
+
+interface SubmitMergeRequestOutput {
+    success: boolean;
+    mergeRequestId?: string;
+    mergeRequest?: {
+        id: string;
+        title: string;
+        status: string;
+        diffPatch: string;
+        majorFilesChanged: string[];
+    };
+    error?: string;
+}
+
+// ============================================
+// Git Helper Functions (using codebolt.git)
+// ============================================
+
+/**
+ * Get diff using codebolt.git.diff()
+ * @param commitHash - The commit hash to get diff for (defaults to 'HEAD')
+ */
+async function getDiff(commitHash: string = 'HEAD'): Promise<string> {
+    try {
+        const diffResponse = await codebolt.git.diff(commitHash);
+        // Extract diff content from response
+        if (diffResponse && typeof diffResponse === 'object') {
+            // Handle different response formats
+            if ('diff' in diffResponse) {
+                return (diffResponse as { diff: string }).diff || '';
+            }
+            if ('data' in diffResponse) {
+                return (diffResponse as { data: string }).data || '';
+            }
+            // If response is the diff string itself
+            return JSON.stringify(diffResponse);
+        }
+        return '';
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get diff:', error);
+        return '';
+    }
+}
+
+/**
+ * Get list of changed files using codebolt.git.status()
+ */
+async function getChangedFiles(): Promise<string[]> {
+    try {
+        const statusResponse = await codebolt.git.status();
+        const files: string[] = [];
+
+        if (statusResponse && typeof statusResponse === 'object') {
+            // Cast to unknown first, then to our expected shape
+            const status = statusResponse as unknown as {
+                modified?: string[];
+                added?: string[];
+                deleted?: string[];
+                untracked?: string[];
+                staged?: string[];
+                files?: Array<{ path?: string; file?: string }>;
+                data?: { files?: Array<{ path?: string; file?: string }> };
+            };
+
+            // Collect files from various status categories
+            if (status.modified) files.push(...status.modified);
+            if (status.added) files.push(...status.added);
+            if (status.deleted) files.push(...status.deleted);
+            if (status.untracked) files.push(...status.untracked);
+            if (status.staged) files.push(...status.staged);
+            if (status.files) {
+                files.push(...status.files.map(f => f.path || f.file || '').filter(Boolean));
+            }
+            if (status.data?.files) {
+                files.push(...status.data.files.map(f => f.path || f.file || '').filter(Boolean));
+            }
+        }
+
+        // Remove duplicates
+        return [...new Set(files)];
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get status:', error);
+        return [];
+    }
+}
+
+/**
+ * Get commit info using codebolt.git.logs()
+ * @param path - The project path
+ */
+async function getCommitInfo(path: string): Promise<{ message: string; hash: string }> {
+    try {
+        const logsResponse = await codebolt.git.logs(path);
+
+        if (logsResponse && typeof logsResponse === 'object') {
+            // Cast to unknown first for safe type handling
+            const logs = logsResponse as unknown as {
+                logs?: Array<{ message?: string; hash?: string }>;
+                data?: Array<{ message?: string; hash?: string }>;
+            };
+
+            // Get the latest commit
+            const latestCommit = logs.logs?.[0] || logs.data?.[0];
+            if (latestCommit) {
+                return {
+                    message: latestCommit.message || '',
+                    hash: latestCommit.hash || ''
+                };
+            }
+        }
+        return { message: '', hash: '' };
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get logs:', error);
+        return { message: '', hash: '' };
+    }
+}
+
+// ============================================
+// Submit Merge Request Function
+// ============================================
+
+/**
+ * Get diff from local files and submit a merge request for review
+ *
+ * @param input - Configuration for the merge request
+ * @returns Result with merge request ID and details
+ *
+ * @example
+ * ```typescript
+ * const result = await submitMergeRequest({
+ *   projectPath: '/path/to/project',
+ *   agentId: 'agent-123',
+ *   agentName: 'My Agent',
+ *   title: 'Add new feature',
+ *   description: 'This PR adds...',
+ *   initialTask: 'Implement feature X'
+ * });
+ *
+ * if (result.success) {
+ *   console.log('MR created:', result.mergeRequestId);
+ * }
+ * ```
+ */
+async function submitMergeRequest(input: SubmitMergeRequestInput): Promise<SubmitMergeRequestOutput> {
+    try {
+        const { projectPath, agentId, agentName, commitHash } = input;
+
+        codebolt.chat.sendMessage(`Getting changes from project...`, {});
+
+        // Step 1: Get diff from git using codebolt.git.diff()
+        const diffPatch = await getDiff(commitHash || 'HEAD');
+
+        if (!diffPatch) {
+            return {
+                success: false,
+                error: 'No changes found'
+            };
+        }
+
+        // Step 2: Get list of changed files using codebolt.git.status()
+        const majorFilesChanged = await getChangedFiles();
+
+        // Step 3: Get info for title/description using codebolt.git.logs()
+        const commitInfo = await getCommitInfo(projectPath);
+
+        // Derive title and description
+        const title = input.title || commitInfo.message.split('\n')[0] || 'Code changes';
+        const description = input.description || commitInfo.message || 'Changes submitted for review';
+        const initialTask = input.initialTask || title;
+
+        codebolt.chat.sendMessage(`Creating merge request: ${title}`, {});
+        codebolt.chat.sendMessage(`Files changed: ${majorFilesChanged.length}`, {});
+
+        // Step 4: Build merge config
+        const mergeConfig: MergeConfig = {
+            strategy: input.mergeStrategy || 'patch'
+        };
+
+        // Step 5: Create the merge request
+        const createData: CreateReviewMergeRequest = {
+            type: 'review_merge',
+            title,
+            description,
+            initialTask,
+            majorFilesChanged,
+            diffPatch,
+            agentId,
+            agentName,
+            swarmId: input.swarmId,
+            mergeConfig
+        };
+
+        const createResponse: any = await codebolt.reviewMergeRequest.create(createData);
+
+        const mergeRequest = createResponse?.data?.request || createResponse?.request;
+
+        if (!mergeRequest) {
+            return {
+                success: false,
+                error: 'Failed to create merge request'
+            };
+        }
+
+        codebolt.chat.sendMessage(`Merge request created successfully! ID: ${mergeRequest.id}`, {});
+
+        return {
+            success: true,
+            mergeRequestId: mergeRequest.id,
+            mergeRequest: {
+                id: mergeRequest.id,
+                title: mergeRequest.title,
+                status: mergeRequest.status,
+                diffPatch: mergeRequest.diffPatch,
+                majorFilesChanged: mergeRequest.majorFilesChanged
+            }
+        };
+
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('[SubmitMR] Error:', error);
+        codebolt.chat.sendMessage(`Submit merge request failed: ${errorMessage}`, {});
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
+
+// Export the function and types for external use
+export { submitMergeRequest, SubmitMergeRequestInput, SubmitMergeRequestOutput };
+
+/*
+ * ============================================
+ * USAGE EXAMPLE
+ * ============================================
+ *
+ * Call this function after the agent completes its work to submit changes for review.
+ * Uses codebolt.git APIs (status, diff, logs) to get change information.
+ *
+ * const result = await submitMergeRequest({
+ *     projectPath: process.cwd(),  // Project path for git logs
+ *     agentId: 'remote-task-agent',
+ *     agentName: 'Remote Task Agent',
+ *     title: 'Implement feature X',           // optional - derived from commit
+ *     description: 'Added new functionality', // optional - derived from commit
+ *     initialTask: 'The original user request',
+ *     commitHash: 'HEAD'  // optional - defaults to HEAD
+ * });
+ *
+ * if (result.success) {
+ *     console.log('Merge request created:', result.mergeRequestId);
+ * } else {
+ *     console.error('Failed:', result.error);
+ * }
+ */
 
 let systemPrompt = `
 
@@ -220,12 +499,70 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
         } while (!completed);
 
+        // ============================================
+        // After agent loop completes: Submit merge request
+        // ============================================
+        codebolt.chat.sendMessage('Agent work completed. Submitting changes for review...', {});
+
+        // Get project path using codebolt.project API
+        const { projectPath } = await codebolt.project.getProjectPath();
 
 
+        const mrResult = await submitMergeRequest({
+            projectPath,
+            agentId: 'remote-task-agent',
+            agentName: 'Remote Task Agent',
+            initialTask: reqMessage.userMessage || 'Task completed',
+            mergeStrategy: 'patch'
+        });
 
+        codebolt.chat.sendMessage(JSON.stringify(mrResult));
+
+        // if (mrResult.success) {
+        //     codebolt.chat.sendMessage(`Merge request submitted: ${mrResult.mergeRequestId}`, {});
+        //     codebolt.chat.sendMessage('Checking for pending review events...', {});
+
+        //     // ============================================
+        //     // Get pending events from agentEventQueue
+        //     // ============================================
+        //     try {
+        //         const pendingEvents = await codebolt.agentEventQueue.getPendingQueueEvents();
+
+        //         if (pendingEvents && pendingEvents.length > 0) {
+        //             codebolt.chat.sendMessage(`Received ${pendingEvents.length} pending event(s)`, {});
+
+        //             for (const event of pendingEvents) {
+        //                 codebolt.chat.sendMessage(`Event: ${JSON.stringify(event)}`, {});
+        //             }
+
+        //             // Check if review was approved
+        //             if (mrResult.mergeRequestId) {
+        //                 const updatedMR = await codebolt.reviewMergeRequest.get(mrResult.mergeRequestId);
+        //                 const status = updatedMR?.request?.status;
+        //                 const reviews = updatedMR?.request?.reviews || [];
+        //                 const latestReview = reviews[reviews.length - 1];
+
+        //                 if (latestReview?.type === 'approve') {
+        //                     codebolt.chat.sendMessage('Review APPROVED! Changes can be merged.', {});
+        //                 } else if (latestReview?.type === 'request_changes') {
+        //                     codebolt.chat.sendMessage(`Changes requested: ${latestReview.comment}`, {});
+        //                 } else {
+        //                     codebolt.chat.sendMessage(`Review status: ${status}`, {});
+        //                 }
+        //             }
+        //         } else {
+        //             codebolt.chat.sendMessage('No pending events in queue. MR submitted for review.', {});
+        //         }
+        //     } catch (eventError) {
+        //         codebolt.chat.sendMessage(`Error getting pending events: ${eventError}`, {});
+        //     }
+        // } else {
+        //     codebolt.chat.sendMessage(`Failed to submit merge request: ${mrResult.error}`, {});
+        // }
 
     } catch (error) {
-
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        codebolt.chat.sendMessage(`Agent error: ${errorMessage}`, {});
     }
 })
 
