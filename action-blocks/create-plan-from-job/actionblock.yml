@@ -1,0 +1,143 @@
+# ActionBlock Configuration File
+# This ActionBlock creates implementation plans from job details using AI-powered analysis
+
+name: create-plan-from-job
+
+description: Creates a detailed implementation specification (.specs file) from job details using agent loop, then identifies affected files and structure changes using LLM analysis, locks files to prevent conflicts, and submits project structure updates when needed
+
+version: 2.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - planner
+    - plan
+    - job-based
+    - file-locking
+    - project-structure
+    - implementation
+    - ai-analysis
+    - llm
+    - agent-loop
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/agent"
+    - "@codebolt/types"
+
+  inputs:
+    - name: jobId
+      type: string
+      required: true
+      description: The ID of the job to create a plan for
+
+    - name: agentId
+      type: string
+      required: false
+      description: The ID of the agent creating the plan (default: job-planner-agent)
+
+    - name: environmentId
+      type: string
+      required: false
+      description: The environment ID for file locking (optional, can also be retrieved from job)
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the specification was successfully created
+
+    - name: specsFilePath
+      type: string
+      description: The path to the created specification file (e.g., specs/feature-name.specs)
+
+    - name: affectedFiles
+      type: array
+      description: List of files identified as affected by the job implementation (analyzed by LLM)
+      items:
+        type: object
+        properties:
+          path:
+            type: string
+            description: File path relative to project root
+          reason:
+            type: string
+            description: Why this file is affected
+          changeType:
+            type: string
+            enum: [modify, create, delete, rename]
+          priority:
+            type: string
+            enum: [low, medium, high]
+          confidence:
+            type: number
+            description: Confidence score 0.0-1.0
+
+    - name: lockedFiles
+      type: array
+      description: List of file paths that were successfully locked
+
+    - name: structureChanges
+      type: array
+      description: List of project structure changes identified as needed (analyzed by LLM)
+      items:
+        type: object
+        properties:
+          type:
+            type: string
+            enum: [create_directory, create_file, move_file, rename_file, delete_file]
+          path:
+            type: string
+          newPath:
+            type: string
+            description: Destination path for move/rename operations
+          reason:
+            type: string
+          priority:
+            type: string
+            enum: [low, medium, high]
+
+    - name: projectStructureUpdateId
+      type: string
+      description: The ID of the project structure update request (if created)
+
+    - name: error
+      type: string
+      description: Error message if plan creation failed
+
+  capabilities:
+    - Job details retrieval from Codebolt job API
+    - LLM-powered affected files analysis
+    - LLM-powered project structure change detection
+    - File locking with overlap detection
+    - Agent loop for comprehensive plan generation
+    - Automatic project structure update requests
+    - Multi-phase execution pipeline
+    - Confidence scoring for file predictions
+
+  workflow:
+    - phase: 1
+      name: Job Retrieval
+      description: Fetch job details from the Codebolt job API
+
+    - phase: 2
+      name: Specification Generation
+      description: Use agent loop to generate comprehensive specification (.specs file) from job description
+
+    - phase: 3
+      name: File Analysis
+      description: Use LLM to analyze job and generated specification to identify affected files with confidence scores
+
+    - phase: 4
+      name: Structure Analysis
+      description: Use LLM to determine if project structure changes are needed based on the plan
+
+    - phase: 5
+      name: File Locking
+      description: Lock identified files to prevent concurrent modification conflicts
+
+    - phase: 6
+      name: Structure Update
+      description: Submit project structure update request if structural changes are needed

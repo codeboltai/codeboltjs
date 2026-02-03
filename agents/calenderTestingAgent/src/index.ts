@@ -29,12 +29,12 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // ================================
         // TEST 1: Get Status
         // ================================
-        try {
-            const statusResult = await codebolt.calendar.getStatus();
-            codebolt.chat.sendMessage('TEST 1: getStatus', statusResult);
-        } catch (error) {
-            logError('TEST 1: getStatus', error);
-        }
+        // try {
+        //     const statusResult = await codebolt.calendar.getStatus();
+        //     codebolt.chat.sendMessage('TEST 1: getStatus', statusResult);
+        // } catch (error) {
+        //     logError('TEST 1: getStatus', error);
+        // }
 
         // ================================
         // TEST 2: Create Event
@@ -65,6 +65,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                 createdByName: 'Calendar Test Agent',
                 createdByType: 'agent'
             });
+            codebolt.chat.sendMessage('TEST 2: createEvent', createResult);
             logResult('TEST 2: createEvent', createResult);
             createdEventId = createResult.data?.event?.id;
             if (createdEventId) createdEventIds.push(createdEventId);

@@ -6,6 +6,11 @@ const TEST_DIR = '/Users/utkarshshukla/Desktop/my/delicious-coffee';
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
     try {
         codebolt.chat.sendMessage("Starting Tool Tests (MCP + Direct API)...\n");
+        // await codebolt.job.createJob({
+        //     name: "test-job",
+        //     description: "test job",
+
+        // })
 
         // // Setup test directory
         // await codebolt.terminal.executeCommand(`mkdir -p ${TEST_DIR}`);
@@ -168,7 +173,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // // ============================================
         // // GIT TOOLS
         // // ============================================
-        codebolt.chat.sendMessage("\n=== GIT TOOLS ===\n");
+        // codebolt.chat.sendMessage("\n=== GIT TOOLS ===\n");
 
         // // Setup git repo
         // const gitDir = `${TEST_DIR}/git-repo`;
@@ -176,9 +181,9 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // await codebolt.fs.writeToFile(`${gitDir}/README.md`, "# Test Repo");
 
         // // 14. git_status (MCP) vs status (Direct API )
-        codebolt.chat.sendMessage("--- git status ---");
-        const mcpGitStatusResult = await codebolt.mcp.executeTool("codebolt", "git_status", {});
-        codebolt.chat.sendMessage(`MCP git_status: ${JSON.stringify(mcpGitStatusResult, null, 2)}`);
+        // codebolt.chat.sendMessage("--- git status ---");
+        // const mcpGitStatusResult = await codebolt.mcp.executeTool("codebolt", "git_status", {});
+        // codebolt.chat.sendMessage(`MCP git_status: ${JSON.stringify(mcpGitStatusResult, null, 2)}`);
 
         // const apiGitStatusResult = await codebolt.git.status();
         // codebolt.chat.sendMessage(`API git.status: ${JSON.stringify(apiGitStatusResult, null, 2)}`);
@@ -383,6 +388,19 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // // CLEANUP
         // // ============================================
         // await codebolt.terminal.executeCommand(`rm -rf ${TEST_DIR}`);
+
+        // ============================================
+        // JOB TOOLS
+        // ============================================
+        codebolt.chat.sendMessage("\n=== JOB TOOLS ===\n");
+
+        const jobResult = await codebolt.job.createJob("a2ee9728-37ff-4067-802a-2854da179340", {
+            title: "Test Job",
+            description: "This is a test job created via testingagent",
+            priority: "high"
+        } as any); // Casting as any because CreateJobData type might mismatch slightly with direct object literal if strict
+
+        codebolt.chat.sendMessage(`API createJob: ${JSON.stringify(jobResult, null, 2)}`);
 
         codebolt.chat.sendMessage("\n=== ALL TESTS COMPLETED (MCP + Direct API) ===");
 
