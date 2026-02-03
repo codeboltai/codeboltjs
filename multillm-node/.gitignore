@@ -1,0 +1,12 @@
+node_modules/
+dist/
+
+# Environment variables (contains API keys)
+.env
+.env.local
+.env.*.local
+
+# Test logs
+*.ndjson
+*.log
+llm-telemetry.ndjson
