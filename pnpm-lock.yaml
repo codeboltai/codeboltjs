@@ -2200,6 +2200,34 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  agents/reviewer-agent:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.19
+      ts-loader:
+        specifier: ^9.4.0
+        version: 9.5.4(typescript@5.9.3)(webpack@5.104.1)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      webpack:
+        specifier: ^5.88.0
+        version: 5.104.1(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.1.0
+        version: 5.1.4(webpack@5.104.1)
+
   agents/swarmAgent:
     dependencies:
       '@codebolt/agent':
@@ -4478,10 +4506,6 @@ packages:
 
   '@babel/runtime-corejs3@7.28.6':
     resolution: {integrity: sha512-kz2fAQ5UzjV7X7D3ySxmj3vRq89dTpqOZWv76Z6pNPztkwb/0Yj1Mtx1xFrYj6mbIHysxtBot8J4o0JLCblcFw==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/runtime@7.28.4':
-    resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.28.6':
@@ -17684,8 +17708,6 @@ snapshots:
     dependencies:
       core-js-pure: 3.47.0
 
-  '@babel/runtime@7.28.4': {}
-
   '@babel/runtime@7.28.6': {}
 
   '@babel/template@7.28.6':
@@ -18286,7 +18308,7 @@ snapshots:
       '@babel/preset-env': 7.28.6(@babel/core@7.28.6)
       '@babel/preset-react': 7.28.5(@babel/core@7.28.6)
       '@babel/preset-typescript': 7.28.5(@babel/core@7.28.6)
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       '@babel/runtime-corejs3': 7.28.6
       '@babel/traverse': 7.28.6
       '@docusaurus/logger': 3.8.1
@@ -29645,7 +29667,7 @@ snapshots:
 
   react-router-dom@5.3.4(react@18.3.1):
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       history: 4.10.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
@@ -29656,7 +29678,7 @@ snapshots:
 
   react-router-dom@5.3.4(react@19.2.0):
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       history: 4.10.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
@@ -29667,7 +29689,7 @@ snapshots:
 
   react-router@5.3.4(react@18.3.1):
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       history: 4.10.1
       hoist-non-react-statics: 3.3.2
       loose-envify: 1.4.0
@@ -29680,7 +29702,7 @@ snapshots:
 
   react-router@5.3.4(react@19.2.0):
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       history: 4.10.1
       hoist-non-react-statics: 3.3.2
       loose-envify: 1.4.0

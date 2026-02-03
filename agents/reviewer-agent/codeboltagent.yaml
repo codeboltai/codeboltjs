@@ -1,0 +1,41 @@
+title: Reviewer Agent
+unique_id: reviewer-agent
+version: 0.0.1
+author: codebolt
+initial_message: Reviewer Agent started. I will automatically review code changes for submitted Merge Requests.
+description: An agent that automatically reviews code changes in merge requests.
+avatarSrc: ''
+avatarFallback: RA
+
+longDescription: >
+  This agent runs in the background and listens for "Review MR <id>" tasks.
+  It fetches the Merge Request details, analyzes the diff, and posts a review comment
+  with either an APPROVAL or REQUEST_CHANGES decision.
+
+tags:
+  - coding
+  - review
+  - git
+
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportedframeworks:
+      - node
+    supportRemix: false
+
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-5-20250929
+      - gpt-4o
+
+actions:
+  - name: Review MR
+    description: Review a Merge Request
+    detailDescription: Review code changes in a merge request and provide feedback with APPROVE or REQUEST_CHANGES decision
+    actionPrompt: Review MR

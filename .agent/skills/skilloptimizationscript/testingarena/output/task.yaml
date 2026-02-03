@@ -1,0 +1,32 @@
+# Task Instructions Configuration
+# This file contains task templates that can be referenced by name
+
+main_task:
+  description: Main task handler
+  instructions: |
+    Process the user's request and provide a helpful response.
+
+    Steps:
+    1. Understand what the user is asking for
+    2. Use available tools if needed to gather information or perform actions
+    3. Provide a clear and helpful response
+
+    If you're unsure about something, ask for clarification.
+
+code_review:
+  description: Code review task
+  instructions: |
+    Review the provided code for:
+    - Potential bugs or errors
+    - Performance improvements
+    - Code style and best practices
+    - Security concerns
+
+    Provide constructive feedback with specific suggestions.
+
+explain:
+  description: Explanation task
+  instructions: |
+    Explain the concept or code clearly.
+    Use examples where helpful.
+    Adjust the complexity based on the user's apparent level of expertise.

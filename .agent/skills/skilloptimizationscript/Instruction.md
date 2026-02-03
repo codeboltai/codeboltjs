@@ -1,0 +1,1 @@
+node optimize-skill.js codebolt-agent-development /Users/utkarshshukla/Codebolt/codeboltjs/skills/skilloptimizationscript/testingarena /Users/utkarshshukla/Codebolt/codeboltjs/skills/skilloptimizationscript/testingassets/prompt.md /Users/utkarshshukla/Codebolt/codeboltjs/skills/skilloptimizationscript/testingassets/expectedoutput --cycles=1
