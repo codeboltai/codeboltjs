@@ -1,6 +1,26 @@
 import axios, { AxiosError } from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, ModelInfo } from '../../types';
+
+/**
+ * Perplexity model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const PERPLEXITY_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean; supportsReasoning?: boolean }> = {
+  // Sonar series (latest)
+  'sonar-deep-research': { tokenLimit: 128000, maxOutput: 8192 },
+  'sonar-reasoning-pro': { tokenLimit: 128000, maxOutput: 8192, supportsReasoning: true },
+  'sonar-reasoning': { tokenLimit: 128000, maxOutput: 8192, supportsReasoning: true },
+  'sonar-pro': { tokenLimit: 200000, maxOutput: 8192, supportsTools: true },
+  'sonar': { tokenLimit: 128000, maxOutput: 8192, supportsTools: true },
+  // R1 (reasoning)
+  'r1-1776': { tokenLimit: 128000, maxOutput: 8192, supportsReasoning: true },
+  // Legacy sonar models
+  'sonar-small-chat': { tokenLimit: 16384, maxOutput: 8192 },
+  'sonar-small-online': { tokenLimit: 12000, maxOutput: 8192 },
+  'sonar-medium-chat': { tokenLimit: 16384, maxOutput: 8192 },
+  'sonar-medium-online': { tokenLimit: 12000, maxOutput: 8192 },
+};
 
 interface PerplexityMessage {
   role: 'user' | 'assistant' | 'system';
@@ -140,6 +160,9 @@ class Perplexity implements LLMProvider {
         };
       }
 
+      const modelId = options.model || this.model || "sonar";
+      const limits = PERPLEXITY_MODEL_TOKEN_LIMITS[modelId];
+
       return {
         ...baseResponse,
         choices: [{
@@ -149,7 +172,9 @@ class Perplexity implements LLMProvider {
             content: response.data.choices?.[0]?.message?.content || ''
           },
           finish_reason: response.data.choices?.[0]?.finish_reason || null
-        }]
+        }],
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput
       };
 
     } catch (error) {
@@ -170,13 +195,20 @@ class Perplexity implements LLMProvider {
     }
   }
 
-  async getModels(): Promise<any> {
-    return this.defaultModels.map(modelId => ({
-      id: modelId,
-      name: modelId,
-      provider: "Perplexity",
-      type: "chat"
-    }));
+  async getModels(): Promise<ModelInfo[]> {
+    return this.defaultModels.map(modelId => {
+      const limits = PERPLEXITY_MODEL_TOKEN_LIMITS[modelId];
+      return {
+        id: modelId,
+        name: modelId,
+        provider: "Perplexity",
+        type: 'chat' as const,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput,
+        supportsTools: limits?.supportsTools,
+        supportsReasoning: limits?.supportsReasoning
+      };
+    });
   }
 }
 

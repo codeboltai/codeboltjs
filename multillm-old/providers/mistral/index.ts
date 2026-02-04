@@ -1,13 +1,68 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { 
-  BaseProvider, 
-  LLMProvider, 
-  ChatCompletionOptions, 
-  ChatCompletionResponse, 
-  Provider, 
-  ChatMessage
+import type {
+  BaseProvider,
+  LLMProvider,
+  ChatCompletionOptions,
+  ChatCompletionResponse,
+  Provider,
+  ChatMessage,
+  ModelInfo
 } from '../../types';
+
+/**
+ * Mistral model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const MISTRAL_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean; supportsVision?: boolean; supportsReasoning?: boolean }> = {
+  // Mistral Large 3 (latest with vision)
+  'mistral-large-3': { tokenLimit: 256000, maxOutput: 8191, supportsVision: true, supportsTools: true },
+  // Large models
+  'mistral-large-latest': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'mistral-large-2411': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'mistral-large-2407': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'mistral-large-2402': { tokenLimit: 32000, maxOutput: 8191, supportsTools: true },
+  // Medium models
+  'mistral-medium-latest': { tokenLimit: 131072, maxOutput: 8191, supportsTools: true },
+  'mistral-medium-2505': { tokenLimit: 131072, maxOutput: 8191, supportsTools: true },
+  'mistral-medium-2312': { tokenLimit: 32000, maxOutput: 8191 },
+  'mistral-medium': { tokenLimit: 32000, maxOutput: 8191 },
+  // Small models
+  'mistral-small-latest': { tokenLimit: 32000, maxOutput: 8191, supportsTools: true },
+  'mistral-small': { tokenLimit: 32000, maxOutput: 8191, supportsTools: true },
+  'mistral-tiny': { tokenLimit: 32000, maxOutput: 8191 },
+  // Codestral (code models)
+  'codestral-latest': { tokenLimit: 32000, maxOutput: 8191 },
+  'codestral-2405': { tokenLimit: 32000, maxOutput: 8191 },
+  'codestral-2508': { tokenLimit: 256000, maxOutput: 256000, supportsTools: true },
+  'codestral-mamba-latest': { tokenLimit: 256000, maxOutput: 256000 },
+  'open-codestral-mamba': { tokenLimit: 256000, maxOutput: 256000 },
+  // Devstral (developer models)
+  'devstral-2512': { tokenLimit: 256000, maxOutput: 256000, supportsTools: true },
+  'devstral-medium-2507': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'devstral-small-2507': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'devstral-small-2505': { tokenLimit: 128000, maxOutput: 128000, supportsTools: true },
+  'labs-devstral-small-2512': { tokenLimit: 256000, maxOutput: 256000, supportsTools: true },
+  // Magistral (reasoning models)
+  'magistral-medium-latest': { tokenLimit: 40000, maxOutput: 40000, supportsTools: true, supportsReasoning: true },
+  'magistral-medium-2509': { tokenLimit: 40000, maxOutput: 40000, supportsTools: true, supportsReasoning: true },
+  'magistral-medium-2506': { tokenLimit: 40000, maxOutput: 40000, supportsTools: true, supportsReasoning: true },
+  'magistral-small-latest': { tokenLimit: 40000, maxOutput: 40000, supportsTools: true, supportsReasoning: true },
+  'magistral-small-2506': { tokenLimit: 40000, maxOutput: 40000, supportsTools: true, supportsReasoning: true },
+  // Pixtral (vision models)
+  'pixtral-large-latest': { tokenLimit: 128000, maxOutput: 128000, supportsVision: true, supportsTools: true },
+  'pixtral-large-2411': { tokenLimit: 128000, maxOutput: 128000, supportsVision: true, supportsTools: true },
+  'pixtral-12b-2409': { tokenLimit: 128000, maxOutput: 128000, supportsVision: true, supportsTools: true },
+  // Open models
+  'open-mistral-7b': { tokenLimit: 32000, maxOutput: 8191 },
+  'open-mistral-nemo': { tokenLimit: 128000, maxOutput: 128000 },
+  'open-mistral-nemo-2407': { tokenLimit: 128000, maxOutput: 128000 },
+  'open-mixtral-8x7b': { tokenLimit: 32000, maxOutput: 8191, supportsTools: true },
+  'open-mixtral-8x22b': { tokenLimit: 65336, maxOutput: 8191, supportsTools: true },
+  // Ministral models
+  'ministral-3b-latest': { tokenLimit: 128000, maxOutput: 8192 },
+  'ministral-8b-latest': { tokenLimit: 128000, maxOutput: 8192, supportsTools: true },
+};
 
 interface ToolCall {
   id: string;
@@ -191,6 +246,9 @@ class MistralAI implements LLMProvider {
         });
       }
 
+      const modelId = options.model || this.model || "mistral-large-latest";
+      const limits = MISTRAL_MODEL_TOKEN_LIMITS[modelId];
+
       // Transform Mistral response to standard format
       return {
         id: response.data.id,
@@ -207,14 +265,16 @@ class MistralAI implements LLMProvider {
           },
           finish_reason: choice.finish_reason
         })),
-        usage: response.data.usage
+        usage: response.data.usage,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput
       };
     } catch (error) {
       throw handleError(error);
     }
   }
 
-  async getModels(): Promise<any> {
+  async getModels(): Promise<ModelInfo[]> {
     try {
       const response = await axios.get(
         `${this.apiEndpoint}/models`,
@@ -226,12 +286,20 @@ class MistralAI implements LLMProvider {
         }
       );
 
-      return response.data.data.map((model: { id: string }) => ({
-        id: model.id,
-        name: model.id,
-        provider: "Mistral",
-        type: "chat"
-      }));
+      return response.data.data.map((model: { id: string }) => {
+        const limits = MISTRAL_MODEL_TOKEN_LIMITS[model.id];
+        return {
+          id: model.id,
+          name: model.id,
+          provider: "Mistral",
+          type: 'chat' as const,
+          tokenLimit: limits?.tokenLimit,
+          maxOutputTokens: limits?.maxOutput,
+          supportsTools: limits?.supportsTools,
+          supportsVision: limits?.supportsVision,
+          supportsReasoning: limits?.supportsReasoning
+        };
+      });
     } catch (error) {
       throw handleError(error);
     }

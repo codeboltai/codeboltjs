@@ -1,6 +1,30 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, ModelInfo } from '../../types';
+
+/**
+ * Grok model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const GROK_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean; supportsVision?: boolean; supportsReasoning?: boolean }> = {
+  // Grok 4 series (latest)
+  'grok-4': { tokenLimit: 256000, maxOutput: 256000, supportsTools: true },
+  // Grok 3 series (reasoning)
+  'grok-3': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true },
+  'grok-3-mini': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true, supportsReasoning: true },
+  'grok-3-fast': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true },
+  'grok-3-mini-fast': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true, supportsReasoning: true },
+  // Grok 2 series
+  'grok-2': { tokenLimit: 32768, maxOutput: 32768, supportsTools: true },
+  'grok-2-mini': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true },
+  'grok-2-vision': { tokenLimit: 32768, maxOutput: 32768, supportsVision: true, supportsTools: true },
+  'grok-2-vision-1212': { tokenLimit: 32768, maxOutput: 32768, supportsVision: true, supportsTools: true },
+  'grok-2-1212': { tokenLimit: 131072, maxOutput: 131072, supportsTools: true },
+  // Grok vision
+  'grok-vision-beta': { tokenLimit: 8192, maxOutput: 8192, supportsVision: true },
+  // Grok beta
+  'grok-beta': { tokenLimit: 131072, maxOutput: 8192, supportsTools: true },
+};
 
 interface GrokMessage {
   role: 'user' | 'assistant' | 'system';
@@ -59,6 +83,9 @@ class Grok implements LLMProvider {
         }
       );
 
+      const modelId = options.model || this.model || "grok-2";
+      const limits = GROK_MODEL_TOKEN_LIMITS[modelId];
+
       return {
         id: response.data.id,
         object: 'chat.completion',
@@ -72,20 +99,30 @@ class Grok implements LLMProvider {
           },
           finish_reason: response.data.choices[0].finish_reason
         }],
-        usage: response.data.usage
+        usage: response.data.usage,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput
       };
     } catch (error) {
       throw handleError(error);
     }
   }
 
-  async getModels(): Promise<any> {
-    return this.defaultModels.map(modelId => ({
-      id: modelId,
-      name: modelId,
-      provider: "Grok",
-      type: "chat"
-    }));
+  async getModels(): Promise<ModelInfo[]> {
+    return this.defaultModels.map(modelId => {
+      const limits = GROK_MODEL_TOKEN_LIMITS[modelId];
+      return {
+        id: modelId,
+        name: modelId,
+        provider: "Grok",
+        type: 'chat' as const,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput,
+        supportsTools: limits?.supportsTools,
+        supportsVision: limits?.supportsVision,
+        supportsReasoning: limits?.supportsReasoning
+      };
+    });
   }
 }
 

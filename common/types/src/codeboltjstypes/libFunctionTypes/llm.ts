@@ -149,6 +149,10 @@ export interface LLMCompletion {
   finish_reason?: string;
   choices?: LLMChoice[];
   tool_calls?: ToolCall[];
+  /** Maximum context window size in tokens for the model used */
+  tokenLimit?: number | undefined;
+  /** Maximum output tokens for the model used */
+  maxOutputTokens?: number | undefined;
 }
 
 /**

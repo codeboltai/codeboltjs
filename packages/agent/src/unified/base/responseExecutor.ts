@@ -70,14 +70,18 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         for (const postToolCallProcessor of this.postToolCallProcessors) {
             try {
+                
 
                 // TODO: Extract required properties from input for PreToolCallProcessorInput
                 let { nextPrompt, shouldExit } = await postToolCallProcessor.modify({
                     llmMessageSent: input.actualMessageSentToLLM,
                     rawLLMResponseMessage: input.rawLLMOutput,
                     nextPrompt: input.nextMessage,
-                    toolResults: []
+                    toolResults: [],
+                    tokenLimit: input.rawLLMOutput?.tokenLimit,
+                    maxOutputTokens: input.rawLLMOutput?.maxOutputTokens
                 });
+
                 if (shouldExit) {
                     this.completed = true
                     Promise.resolve({

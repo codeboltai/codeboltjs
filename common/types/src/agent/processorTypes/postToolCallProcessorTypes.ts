@@ -21,6 +21,10 @@ export interface PostToolCallProcessorInput {
     rawLLMResponseMessage: LLMCompletion;
     nextPrompt: ProcessedMessage;
     toolResults?: ToolResult[];
+    /** Maximum context window size in tokens for the model used */
+    tokenLimit?: number | undefined;
+    /** Maximum output tokens for the model used */
+    maxOutputTokens?: number | undefined;
 }
 
 export interface PostToolCallProcessorOutput {

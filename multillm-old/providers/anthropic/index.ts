@@ -14,8 +14,49 @@ import type {
   AnthropicRequest,
   AnthropicResponse,
   Choice,
-  Usage
+  Usage,
+  ModelInfo
 } from '../../types';
+
+/**
+ * Anthropic model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const ANTHROPIC_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsVision?: boolean; supportsTools?: boolean; supportsReasoning?: boolean }> = {
+  // Claude 4.5 series (latest)
+  'claude-opus-4-5-20251101': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-sonnet-4-5-20250929': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-sonnet-4-5': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-haiku-4-5-20251001': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-haiku-4-5': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Claude 4.1 series
+  'claude-opus-4-1-20250805': { tokenLimit: 200000, maxOutput: 32000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-opus-4-1': { tokenLimit: 200000, maxOutput: 32000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Claude 4 series
+  'claude-4-sonnet-20250514': { tokenLimit: 1000000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-sonnet-4-20250514': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-4-opus-20250514': { tokenLimit: 200000, maxOutput: 32000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-opus-4-20250514': { tokenLimit: 200000, maxOutput: 32000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Claude 3.7 Sonnet (extended thinking)
+  'claude-3-7-sonnet-20250219': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'claude-3-7-sonnet-latest': { tokenLimit: 200000, maxOutput: 64000, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Claude 3.5 series
+  'claude-3-5-sonnet-20241022': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-sonnet-20240620': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-sonnet-latest': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-sonnet-20250114': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-haiku-20241022': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-haiku-latest': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'claude-3-5-haiku-20250107': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  // Claude 3 series
+  'claude-3-opus-20240229': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  'claude-3-opus-latest': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  'claude-3-sonnet-20240229': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  'claude-3-haiku-20240307': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  // Claude 2 series (legacy)
+  'claude-2': { tokenLimit: 100000, maxOutput: 4096 },
+  'claude-2.1': { tokenLimit: 200000, maxOutput: 4096 },
+};
 
 class AnthropicProvider implements LLMProvider {
   private options: BaseProvider;
@@ -380,7 +421,11 @@ class AnthropicProvider implements LLMProvider {
 
       const response = await this.client.messages.create(requestPayload);
 
-      return this.transformResponseToOpenAI(response as any);
+      const openAIResponse = this.transformResponseToOpenAI(response as any);
+      const limits = ANTHROPIC_MODEL_TOKEN_LIMITS[anthropicRequest.model];
+      openAIResponse.tokenLimit = limits?.tokenLimit;
+      openAIResponse.maxOutputTokens = limits?.maxOutput;
+      return openAIResponse;
     } catch (error) {
       // Enhanced error handling with context
       const handledError = handleError(error);
@@ -404,14 +449,22 @@ class AnthropicProvider implements LLMProvider {
     }
   }
 
-  async getModels(): Promise<any> {
-    // Anthropic doesn't have a models endpoint, so return static list
-    return this.chatModels.map(model => ({
-      id: model,
-      name: model,
-      provider: "Anthropic",
-      type: "chat"
-    }));
+  async getModels(): Promise<ModelInfo[]> {
+    // Anthropic doesn't have a models endpoint, so return static list with token limits
+    return this.chatModels.map(model => {
+      const limits = ANTHROPIC_MODEL_TOKEN_LIMITS[model];
+      return {
+        id: model,
+        name: model,
+        provider: "Anthropic",
+        type: 'chat' as const,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput,
+        supportsVision: limits?.supportsVision,
+        supportsTools: limits?.supportsTools,
+        supportsReasoning: limits?.supportsReasoning
+      };
+    });
   }
 
   async createEmbedding(input: string | string[], model: string): Promise<any> {

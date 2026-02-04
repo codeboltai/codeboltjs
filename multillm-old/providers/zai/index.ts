@@ -137,7 +137,21 @@ import { handleError } from '../../utils/errorHandler';
 import { OpenAI as OpenAIApi, AzureOpenAI } from 'openai';
 import type { ChatCompletion, ChatCompletionChunk, ChatCompletionCreateParams, ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam, ChatCompletionFunctionMessageParam } from 'openai/resources/chat';
 import type { Stream } from 'openai/streaming';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, ModelInfo } from '../../types';
+
+/**
+ * Z.AI GLM model token limits
+ * Based on Z.AI documentation: https://docs.z.ai/guides/llm/glm-4.7
+ * Context Length: 200K tokens, Maximum Output: 128K tokens
+ */
+const ZAI_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean }> = {
+  // GLM-4.7 series
+  'glm-4.7': { tokenLimit: 1000, maxOutput: 128000, supportsTools: true },
+  'glm-4.7-flashx': { tokenLimit: 200000, maxOutput: 128000, supportsTools: true },
+  'glm-4.7-flash': { tokenLimit: 200000, maxOutput: 128000, supportsTools: true },
+  // Legacy models
+  'glm-4.6': { tokenLimit: 128000, maxOutput: 4096, supportsTools: true },
+};
 
 function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[] {
   return messages.map(message => {
@@ -218,10 +232,11 @@ class ZAi implements LLMProvider {
 
   async createCompletion(options: ChatCompletionOptions): Promise<ChatCompletionResponse> {
     try {
+      const modelId =  "glm-4.7";
       const completion = await this.client.chat.completions.create({
         // @ts-ignore
         messages: options.messages,
-        model: 'glm-4.6', //||options.model || this.model || "glm-4.6",
+        model: modelId, //||options.model || this.model || "glm-4.6",
         temperature: options.temperature,
         top_p: options.top_p,
         max_tokens: options.max_tokens,
@@ -230,23 +245,27 @@ class ZAi implements LLMProvider {
         stop: options.stop,
       });
 
-      return completion as unknown as ChatCompletionResponse;
+      const limits = ZAI_MODEL_TOKEN_LIMITS[modelId];
+      const response = completion as unknown as ChatCompletionResponse;
+      response.tokenLimit = limits?.tokenLimit;
+      response.maxOutputTokens = limits?.maxOutput;
+      return response;
     } catch (error) {
       throw handleError(error);
     }
   }
 
-  async getModels(): Promise<any> {
-    try {
-      return [{
-        id: 'glm-4.7',
-        name: 'glm-4.7',
-        provider: 'zai',
-        type: 'chat'
-      }];
-    } catch (error) {
-      throw handleError(error);
-    }
+  async getModels(): Promise<ModelInfo[]> {
+    // Return all GLM models with their token limits from the constant
+    return Object.entries(ZAI_MODEL_TOKEN_LIMITS).map(([modelId, limits]) => ({
+      id: modelId,
+      name: modelId.toUpperCase().replace(/-/g, ' '),
+      provider: 'ZAI',
+      type: 'chat' as const,
+      tokenLimit: limits.tokenLimit,
+      maxOutputTokens: limits.maxOutput,
+      supportsTools: limits.supportsTools
+    }));
   }
 
   async createEmbedding(input: string | string[], model: string) {

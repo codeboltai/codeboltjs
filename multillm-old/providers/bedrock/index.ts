@@ -1,8 +1,42 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
 import { AwsClient } from 'aws4fetch';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, AWSConfig } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, AWSConfig, ModelInfo } from '../../types';
 import * as crypto from 'crypto';
+
+/**
+ * Bedrock model token limits
+ * Based on AWS Bedrock documentation (2025)
+ */
+const BEDROCK_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput?: number; supportsTools?: boolean; supportsVision?: boolean }> = {
+  // Amazon Nova
+  'apac.amazon.nova-lite-v1:0': { tokenLimit: 300000, maxOutput: 5000, supportsTools: true },
+  'apac.amazon.nova-pro-v1:0': { tokenLimit: 300000, maxOutput: 5000, supportsTools: true },
+  'amazon.nova-micro-v1:0': { tokenLimit: 128000, maxOutput: 5000 },
+  'amazon.nova-lite-v1:0': { tokenLimit: 300000, maxOutput: 5000, supportsTools: true },
+  'amazon.nova-pro-v1:0': { tokenLimit: 300000, maxOutput: 5000, supportsTools: true },
+  // Claude on Bedrock
+  'anthropic.claude-3-sonnet-20240229-v1:0': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  'anthropic.claude-3-haiku-20240307-v1:0': { tokenLimit: 200000, maxOutput: 4096, supportsVision: true, supportsTools: true },
+  'anthropic.claude-instant-v1': { tokenLimit: 100000, maxOutput: 4096 },
+  'anthropic.claude-3-5-sonnet-20241022-v2:0': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'anthropic.claude-3-5-haiku-20241022-v1:0': { tokenLimit: 200000, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  // Meta Llama
+  'meta.llama2-70b-chat-v1': { tokenLimit: 4096, maxOutput: 2048 },
+  'meta.llama3-70b-instruct-v1:0': { tokenLimit: 8192, maxOutput: 2048 },
+  'meta.llama3-1-70b-instruct-v1:0': { tokenLimit: 128000, maxOutput: 2048, supportsTools: true },
+  'meta.llama3-2-90b-instruct-v1:0': { tokenLimit: 128000, maxOutput: 4096, supportsVision: true },
+  // Amazon Titan
+  'amazon.titan-text-express-v1': { tokenLimit: 8192, maxOutput: 8192 },
+  'amazon.titan-text-premier-v1:0': { tokenLimit: 32000, maxOutput: 8192 },
+  // Cohere
+  'cohere.command-text-v14': { tokenLimit: 4000, maxOutput: 4000 },
+  'cohere.command-r-v1:0': { tokenLimit: 128000, maxOutput: 4096, supportsTools: true },
+  'cohere.command-r-plus-v1:0': { tokenLimit: 128000, maxOutput: 4096, supportsTools: true },
+  // Mistral on Bedrock
+  'mistral.mistral-large-2407-v1:0': { tokenLimit: 128000, maxOutput: 8192, supportsTools: true },
+  'mistral.mistral-small-2402-v1:0': { tokenLimit: 32000, maxOutput: 8192, supportsTools: true },
+};
 import { json } from 'stream/consumers';
 
 // Ensure crypto is available globally for aws4fetch
@@ -178,6 +212,8 @@ class Bedrock implements LLMProvider {
         }
       }
 
+      const limits = BEDROCK_MODEL_TOKEN_LIMITS[modelId];
+
       return {
         id: `bedrock-${Date.now()}`,
         object: 'chat.completion',
@@ -196,7 +232,9 @@ class Bedrock implements LLMProvider {
           prompt_tokens: 0,
           completion_tokens: 0,
           total_tokens: 0
-        }
+        },
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput
       };
     } catch (error) {
       throw handleError(error);
@@ -205,13 +243,20 @@ class Bedrock implements LLMProvider {
 
   
 
-  async getModels() {
-    return this.defaultModels.map(modelId => ({
-      id: modelId,
-      name: modelId,
-      provider: "Bedrock",
-      type: "chat"
-    }));
+  async getModels(): Promise<ModelInfo[]> {
+    return this.defaultModels.map(modelId => {
+      const limits = BEDROCK_MODEL_TOKEN_LIMITS[modelId];
+      return {
+        id: modelId,
+        name: modelId,
+        provider: "Bedrock",
+        type: 'chat' as const,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput,
+        supportsTools: limits?.supportsTools,
+        supportsVision: limits?.supportsVision
+      };
+    });
   }
 }
 

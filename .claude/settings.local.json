@@ -35,7 +35,12 @@
       "Bash(npm run typecheck:*)",
       "Bash(lsof:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:docs.z.ai)",
+      "Bash(curl:*)",
+      "Read(//tmp/**)",
+      "Bash(git stash:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

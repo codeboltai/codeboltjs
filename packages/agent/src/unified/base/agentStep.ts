@@ -86,7 +86,28 @@ export class AgentStep implements AgentStepInterface {
    
    private  async generateResponse(messageForLLM:LLMInferenceParams): Promise<LLMCompletion> {
       const response = await codebolt.llm.inference(messageForLLM)
-      return response.completion
+      codebolt.chat.sendMessage(`llm response ${JSON.stringify(response)}`, {})
+      const completion = response.completion;
+
+      // Add tokenLimit and maxOutputTokens to completion object if available in response
+      if (completion) {
+        // Check if tokenLimit exists at response level or in completion
+        if ((response as any).tokenLimit !== undefined) {
+          completion.tokenLimit = (response as any).tokenLimit;
+        }
+        if ((response as any).maxOutputTokens !== undefined) {
+          completion.maxOutputTokens = (response as any).maxOutputTokens;
+        }
+        // Also check inside completion object itself (from LLM provider response)
+        if ((completion as any).completion?.tokenLimit !== undefined) {
+          completion.tokenLimit = (completion as any).completion.tokenLimit;
+        }
+        if ((completion as any).completion?.maxOutputTokens !== undefined) {
+          completion.maxOutputTokens = (completion as any).completion.maxOutputTokens;
+        }
+      }
+
+      return completion;
     }
 
 

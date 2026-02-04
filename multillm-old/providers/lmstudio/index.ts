@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { BaseProvider, ChatCompletionOptions, ChatCompletionResponse } from '../../types';
+import type { BaseProvider, ChatCompletionOptions, ChatCompletionResponse, LLMProvider, ModelInfo } from '../../types';
 import parseToolToSystemPrompt, { parseAssistantMessage } from './../../utils/toolParser'
 
 interface Message {
@@ -58,12 +58,13 @@ interface Model {
   provider?: string;
 }
 
-class LMStudio implements BaseProvider {
+class LMStudio implements LLMProvider {
   private embeddingModels: string[];
   public model: string | null;
   public device_map: string | null;
   public apiKey: null = null;
   public apiEndpoint: string;
+  public provider: "lmstudio" = "lmstudio" as any;
 
   constructor(
     model: string | null = null,
@@ -91,10 +92,12 @@ class LMStudio implements BaseProvider {
         }
       );
       if (options.supportTools) {
+        // LMStudio models don't have predefined token limits - they are determined at runtime
         return response.data;
       }
 
       response.data.choices = parseAssistantMessage(response.data.choices[0].message.content, options.tools);
+      // LMStudio models don't have predefined token limits - they are determined at runtime
       return response.data;
     } catch (error) {
       console.error("Error generating completion:", error);
@@ -102,7 +105,7 @@ class LMStudio implements BaseProvider {
     }
   }
 
-  async getModels(): Promise<Model[] | Error> {
+  async getModels(): Promise<ModelInfo[]> {
     try {
       const response = await axios.get<{ data: Model[] }>(
         `${this.apiEndpoint}/models`,
@@ -112,14 +115,16 @@ class LMStudio implements BaseProvider {
           },
         }
       );
-      const allModels = response.data.data.map((model) => ({
-        ...model,
-        provider: "Local Provider",
+      const allModels: ModelInfo[] = response.data.data.map((model) => ({
+        id: model.id,
+        name: model.id,
+        provider: "LM Studio",
+        type: 'chat' as const
       }));
       return allModels;
     } catch (error) {
       console.error("Error fetching models:", error);
-      return error as Error;
+      return [];
     }
   }
 }

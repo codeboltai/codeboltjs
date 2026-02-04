@@ -1,6 +1,40 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage } from '../../types';
+import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, ModelInfo } from '../../types';
+
+/**
+ * Gemini model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const GEMINI_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsVision?: boolean; supportsTools?: boolean; supportsReasoning?: boolean }> = {
+  // Gemini 3.0 series (preview)
+  'gemini-3-pro-preview': { tokenLimit: 1048576, maxOutput: 65535, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'gemini-3-flash-preview': { tokenLimit: 1048576, maxOutput: 65535, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Gemini 2.5 series
+  'gemini-2.5-pro': { tokenLimit: 1048576, maxOutput: 65535, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'gemini-2.5-flash': { tokenLimit: 1048576, maxOutput: 65535, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  'gemini-2.5-flash-lite': { tokenLimit: 1048576, maxOutput: 65535, supportsVision: true, supportsTools: true, supportsReasoning: true },
+  // Gemini 2.0 series
+  'gemini-2.0-flash': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-2.0-flash-001': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-2.0-flash-exp': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-2.0-flash-lite': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-2.0-flash-thinking-exp': { tokenLimit: 1048576, maxOutput: 65536, supportsVision: true },
+  'gemini-2.0-flash-thinking-exp-01-21': { tokenLimit: 1048576, maxOutput: 65536, supportsVision: true },
+  // Gemini 1.5 series
+  'gemini-1.5-flash': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-flash-001': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-flash-002': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-flash-8b': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-flash-latest': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-pro': { tokenLimit: 2097152, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-pro-001': { tokenLimit: 2097152, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-pro-002': { tokenLimit: 2097152, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  'gemini-1.5-pro-latest': { tokenLimit: 1048576, maxOutput: 8192, supportsVision: true, supportsTools: true },
+  // Gemini 1.0 series (legacy)
+  'gemini-pro': { tokenLimit: 32768, maxOutput: 8192, supportsTools: true },
+  'gemini-pro-vision': { tokenLimit: 16384, maxOutput: 4096, supportsVision: true },
+};
 
 interface GeminiMessage {
   role: 'user' | 'model';
@@ -125,7 +159,11 @@ export class Gemini implements LLMProvider {
           }
         );
 
-        return this.transformFromGeminiResponse(response, modelName);
+        const geminiResponse = this.transformFromGeminiResponse(response, modelName);
+        const limits = GEMINI_MODEL_TOKEN_LIMITS[modelName];
+        geminiResponse.tokenLimit = limits?.tokenLimit;
+        geminiResponse.maxOutputTokens = limits?.maxOutput;
+        return geminiResponse;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 401 || error.response?.status === 403) {
@@ -143,13 +181,21 @@ export class Gemini implements LLMProvider {
     }
   }
 
-  async getModels(): Promise<any> {
-    return this.chatModels.map(modelId => ({
-      id: modelId,
-      name: modelId,
-      provider: 'gemini',
-      type: 'chat'
-    }));
+  async getModels(): Promise<ModelInfo[]> {
+    return this.chatModels.map(modelId => {
+      const limits = GEMINI_MODEL_TOKEN_LIMITS[modelId];
+      return {
+        id: modelId,
+        name: modelId,
+        provider: 'Gemini',
+        type: 'chat' as const,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput,
+        supportsVision: limits?.supportsVision,
+        supportsTools: limits?.supportsTools,
+        supportsReasoning: limits?.supportsReasoning
+      };
+    });
   }
 }
 

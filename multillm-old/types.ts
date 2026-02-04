@@ -100,12 +100,47 @@ export interface ChatCompletionResponse {
     completion_tokens: number;
     total_tokens: number;
   };
+  /** Maximum context window size in tokens for the model used */
+  tokenLimit?: number;
+  /** Maximum output tokens for the model used */
+  maxOutputTokens?: number;
+}
+
+/**
+ * Model information returned by getModels()
+ * Contains model metadata including token limits for context management
+ */
+export interface ModelInfo {
+  /** Unique model identifier (e.g., 'gpt-4-turbo', 'claude-3-opus-20240229') */
+  id: string;
+  /** Human-readable model name */
+  name: string;
+  /** Provider name (e.g., 'OpenAI', 'Anthropic') */
+  provider: string;
+  /** Model type: chat, embedding, image, etc. */
+  type: 'chat' | 'embedding' | 'image' | 'audio' | 'rerank';
+  /** Maximum context window size in tokens */
+  tokenLimit?: number;
+  /** Maximum output tokens (if different from context window) */
+  maxOutputTokens?: number;
+  /** Whether the model supports vision/images */
+  supportsVision?: boolean;
+  /** Whether the model supports tool/function calling */
+  supportsTools?: boolean;
+  /** Whether the model supports reasoning/thinking (o1, Claude extended thinking) */
+  supportsReasoning?: boolean;
+  /** Input cost per million tokens (USD) */
+  inputCostPerMillion?: number;
+  /** Output cost per million tokens (USD) */
+  outputCostPerMillion?: number;
+  /** Additional model-specific metadata */
+  metadata?: Record<string, unknown>;
 }
 
 export interface LLMProvider extends BaseProvider {
   provider?: SupportedProvider;
   createCompletion(options: ChatCompletionOptions): Promise<ChatCompletionResponse>;
-  getModels(): Promise<any>;
+  getModels(): Promise<ModelInfo[]>;
 } 
 
 export type ToolSchema = {

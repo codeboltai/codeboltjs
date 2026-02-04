@@ -1,13 +1,31 @@
 import axios from 'axios';
 import { handleError } from '../../utils/errorHandler';
-import type { 
-  BaseProvider, 
-  LLMProvider, 
-  ChatCompletionOptions, 
-  ChatCompletionResponse, 
-  Provider, 
-  ChatMessage
+import type {
+  BaseProvider,
+  LLMProvider,
+  ChatCompletionOptions,
+  ChatCompletionResponse,
+  Provider,
+  ChatMessage,
+  ModelInfo
 } from '../../types';
+
+/**
+ * DeepSeek model token limits
+ * Based on LiteLLM model_prices_and_context_window.json (2025)
+ */
+const DEEPSEEK_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean; supportsReasoning?: boolean }> = {
+  // DeepSeek V3 series
+  'deepseek-v3.2': { tokenLimit: 163840, maxOutput: 163840, supportsTools: true, supportsReasoning: true },
+  'deepseek-v3': { tokenLimit: 65536, maxOutput: 8192, supportsTools: true },
+  // DeepSeek R1 (reasoning)
+  'deepseek-r1': { tokenLimit: 65536, maxOutput: 8192, supportsTools: true, supportsReasoning: true },
+  // DeepSeek Chat and Coder
+  'deepseek-chat': { tokenLimit: 128000, maxOutput: 8192, supportsTools: true },
+  'deepseek-coder': { tokenLimit: 128000, maxOutput: 4096, supportsTools: true },
+  // DeepSeek Reasoner
+  'deepseek-reasoner': { tokenLimit: 128000, maxOutput: 8192, supportsTools: true, supportsReasoning: true },
+};
 
 interface DeepseekMessage {
   role: 'user' | 'assistant' | 'system';
@@ -173,6 +191,9 @@ class DeepseekAI implements LLMProvider {
         });
       }
 
+      const modelId = options.model || this.model || "deepseek-chat";
+      const limits = DEEPSEEK_MODEL_TOKEN_LIMITS[modelId];
+
       // Transform Deepseek response to standard format
       return {
         id: response.data.id,
@@ -188,14 +209,16 @@ class DeepseekAI implements LLMProvider {
           },
           finish_reason: choice.finish_reason
         })),
-        usage: response.data.usage
+        usage: response.data.usage,
+        tokenLimit: limits?.tokenLimit,
+        maxOutputTokens: limits?.maxOutput
       };
     } catch (error) {
       throw handleError(error);
     }
   }
 
-  async getModels(): Promise<any> {
+  async getModels(): Promise<ModelInfo[]> {
     try {
       const response = await axios.get(
         `${this.apiEndpoint}/models`,
@@ -207,12 +230,19 @@ class DeepseekAI implements LLMProvider {
         }
       );
 
-      return response.data.data.map((model: { id: string }) => ({
-        id: model.id,
-        name: model.id,
-        provider: "Deepseek",
-        type: "chat"
-      }));
+      return response.data.data.map((model: { id: string }) => {
+        const limits = DEEPSEEK_MODEL_TOKEN_LIMITS[model.id];
+        return {
+          id: model.id,
+          name: model.id,
+          provider: "DeepSeek",
+          type: 'chat' as const,
+          tokenLimit: limits?.tokenLimit,
+          maxOutputTokens: limits?.maxOutput,
+          supportsTools: limits?.supportsTools,
+          supportsReasoning: limits?.supportsReasoning
+        };
+      });
     } catch (error) {
       throw handleError(error);
     }
