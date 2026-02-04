@@ -1,6 +1,8 @@
 import codebolt from '@codebolt/codeboltjs';
+import { CodeboltAgent } from '@codebolt/agent/unified';
+import { ProcessedMessage } from '@codebolt/types/agent';
 import { JobDetails, AffectedFile, StructureChange, LLMAnalysisResult } from './types';
-import { parseJsonFromLLMResponse, getProjectContext } from './helpers';
+import { parseJsonFromLLMResponse } from './helpers';
 import {
     AFFECTED_FILES_ANALYZER_PROMPT,
     STRUCTURE_CHANGE_ANALYZER_PROMPT
@@ -12,12 +14,11 @@ import {
 
 export async function analyzeAffectedFilesWithLLM(
     jobDetails: JobDetails,
-    specsFilePath?: string
-): Promise<LLMAnalysisResult<AffectedFile[]>> {
+    specsFilePath?: string,
+    context?: ProcessedMessage | null
+): Promise<LLMAnalysisResult<AffectedFile[]> & { context?: ProcessedMessage | null }> {
     try {
         codebolt.chat.sendMessage("Analyzing job and specification to identify affected files using AI...", {});
-
-        const projectContext = await getProjectContext();
 
         // Try to get specs content if specsFilePath is provided
         let planContext = '';
@@ -32,37 +33,50 @@ export async function analyzeAffectedFilesWithLLM(
             }
         }
 
-        const prompt = AFFECTED_FILES_ANALYZER_PROMPT
-            .replace('{{JOB_TITLE}}', jobDetails.title)
-            .replace('{{JOB_DESCRIPTION}}', jobDetails.description)
-            .replace('{{JOB_REQUIREMENTS}}', jobDetails.requirements.join('\n'))
-            .replace('{{JOB_TAGS}}', (jobDetails.tags || []).join(', '))
-            .replace('{{PROJECT_CONTEXT}}', projectContext)
-            .replace('{{PLAN_CONTEXT}}', planContext);
+        const userMessage = `Based on the implementation specification you just created, now analyze and identify all files that will be affected.
 
-        const { completion } = await codebolt.llm.inference({
-            messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: `Analyze the job and identify all files that will be affected. Return a JSON array of affected files.` }
-            ],
-            full: true,
-            tools: []
+## Job Details
+- **Title:** ${jobDetails.title}
+- **Description:** ${jobDetails.description}
+- **Requirements:** ${jobDetails.requirements.join('\n')}
+- **Tags:** ${(jobDetails.tags || []).join(', ')}
+${planContext}
+
+Return a JSON array of affected files with the following structure:
+[
+  {
+    "path": "relative/path/to/file",
+    "reason": "why this file needs to be modified",
+    "changeType": "modify" | "create" | "delete" | "rename",
+    "priority": "low" | "medium" | "high",
+    "confidence": 0.0-1.0
+  }
+]`;
+
+        const agent = new CodeboltAgent({
+            instructions: AFFECTED_FILES_ANALYZER_PROMPT,
+            ...(context && { context })
+            // allowedTools: ['readFile', 'listDirectory', 'searchFiles', 'getFileInfo'] // Uncomment after rebuilding @codebolt/agent
         });
 
-        if (!completion || !completion.choices) {
-            return { success: false, error: 'LLM inference failed' };
+        const result = await agent.processMessage(userMessage);
+
+        if (!result.success) {
+            return { success: false, error: result.error || 'Agent execution failed', context: result.context };
         }
 
-        const llmContent = completion.choices[0].message.content;
-        const affectedFiles = parseJsonFromLLMResponse<AffectedFile[]>(llmContent);
+        // Try to extract affected files from agent result
+        const affectedFiles = parseJsonFromLLMResponse<AffectedFile[]>(JSON.stringify(result.result));
 
         if (!affectedFiles || !Array.isArray(affectedFiles)) {
-            return { success: false, error: 'Failed to parse affected files from LLM response' };
+            // If parsing fails, return empty array but continue with context
+            codebolt.chat.sendMessage("Could not parse affected files, continuing with empty list", {});
+            return { success: true, data: [], context: result.context };
         }
 
         codebolt.chat.sendMessage(`Identified ${affectedFiles.length} potentially affected files`, {});
 
-        return { success: true, data: affectedFiles };
+        return { success: true, data: affectedFiles, context: result.context };
     } catch (error) {
         console.error('Error analyzing affected files:', error);
         return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -75,47 +89,64 @@ export async function analyzeAffectedFilesWithLLM(
 
 export async function analyzeStructureChangesWithLLM(
     jobDetails: JobDetails,
-    affectedFiles: AffectedFile[]
-): Promise<LLMAnalysisResult<StructureChange[]>> {
+    affectedFiles: AffectedFile[],
+    context?: ProcessedMessage | null
+): Promise<LLMAnalysisResult<StructureChange[]> & { context?: ProcessedMessage | null }> {
     try {
         codebolt.chat.sendMessage("Analyzing if project structure changes are needed...", {});
 
-        const projectContext = await getProjectContext();
         const affectedFilesList = affectedFiles.map(f => `- ${f.path} (${f.changeType}): ${f.reason}`).join('\n');
 
-        const prompt = STRUCTURE_CHANGE_ANALYZER_PROMPT
-            .replace('{{JOB_TITLE}}', jobDetails.title)
-            .replace('{{JOB_DESCRIPTION}}', jobDetails.description)
-            .replace('{{AFFECTED_FILES}}', affectedFilesList)
-            .replace('{{PROJECT_CONTEXT}}', projectContext);
+        const userMessage = `Based on the implementation specification and affected files analysis, now determine if any project structure changes are needed.
 
-        const { completion } = await codebolt.llm.inference({
-            messages: [
-                { role: 'system', content: prompt },
-                { role: 'user', content: `Analyze if the project needs structural changes to implement this job. Return a JSON object with "needsChanges" boolean and "changes" array.` }
-            ],
-            full: true,
-            tools: []
+## Job Details
+- **Title:** ${jobDetails.title}
+- **Description:** ${jobDetails.description}
+
+## Affected Files
+${affectedFilesList || 'No specific files identified'}
+
+Analyze if the project needs structural changes (new directories, new files, file moves, etc.) to implement this job.
+
+Return a JSON object with the following structure:
+{
+  "needsChanges": boolean,
+  "changes": [
+    {
+      "type": "create_directory" | "create_file" | "move_file" | "rename_file" | "delete_file",
+      "path": "path/to/resource",
+      "newPath": "new/path (if applicable)",
+      "reason": "why this change is needed",
+      "priority": "low" | "medium" | "high"
+    }
+  ]
+}`;
+
+        const agent = new CodeboltAgent({
+            instructions: STRUCTURE_CHANGE_ANALYZER_PROMPT,
+            ...(context && { context })
         });
 
-        if (!completion || !completion.choices) {
-            return { success: false, error: 'LLM inference failed' };
+        const result = await agent.processMessage(userMessage);
+
+        if (!result.success) {
+            return { success: false, error: result.error || 'Agent execution failed', context: result.context };
         }
 
-        const llmContent = completion.choices[0].message.content;
-        const result = parseJsonFromLLMResponse<{ needsChanges: boolean; changes: StructureChange[] }>(llmContent);
+        const parsed = parseJsonFromLLMResponse<{ needsChanges: boolean; changes: StructureChange[] }>(JSON.stringify(result.result));
 
-        if (!result) {
-            return { success: false, error: 'Failed to parse structure changes from LLM response' };
+        if (!parsed) {
+            codebolt.chat.sendMessage("Could not parse structure changes, assuming none needed", {});
+            return { success: true, data: [], context: result.context };
         }
 
-        if (result.needsChanges && result.changes && result.changes.length > 0) {
-            codebolt.chat.sendMessage(`Identified ${result.changes.length} structural changes needed`, {});
-            return { success: true, data: result.changes };
+        if (parsed.needsChanges && parsed.changes && parsed.changes.length > 0) {
+            codebolt.chat.sendMessage(`Identified ${parsed.changes.length} structural changes needed`, {});
+            return { success: true, data: parsed.changes, context: result.context };
         }
 
         codebolt.chat.sendMessage("No structural changes required", {});
-        return { success: true, data: [] };
+        return { success: true, data: [], context: result.context };
     } catch (error) {
         console.error('Error analyzing structure changes:', error);
         return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };

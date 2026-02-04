@@ -9,6 +9,11 @@ export interface ToolInjectionOptions {
     maxToolsInMessage?: number;
     giveToolExamples?: boolean;
     maxToolExamples?: number;
+    /**
+     * List of allowed tool names. If provided, only these tools will be available.
+     * If not provided, all tools will be available.
+     */
+    allowedTools?: string[];
 }
 
 export class ToolInjectionModifier extends BaseMessageModifier {
@@ -34,6 +39,13 @@ export class ToolInjectionModifier extends BaseMessageModifier {
 
             const { data: mentionedTools } = await codebolt.mcp.getTools(mentionedMCPs)
             tools = [...tools, ...(mentionedTools || [])]
+
+            // Filter tools if allowedTools is specified
+            if (this.options.allowedTools && this.options.allowedTools.length > 0) {
+                tools = tools.filter((tool: Tool) =>
+                    this.options.allowedTools!.includes(tool.function.name)
+                );
+            }
 
             if (tools.length === 0) {
                 return createdMessage;

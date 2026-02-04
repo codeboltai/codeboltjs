@@ -48,8 +48,13 @@ codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanR
 
         // ========================================
         // Phase 3: Analyze affected files using LLM (based on job + spec)
+        // Pass context from spec generation so agent continues from where it left off
         // ========================================
-        const affectedFilesResult = await analyzeAffectedFilesWithLLM(jobDetails, specResult.specsFilePath);
+        const affectedFilesResult = await analyzeAffectedFilesWithLLM(
+            jobDetails,
+            specResult.specsFilePath,
+            specResult.context
+        );
         const affectedFiles = affectedFilesResult.success && affectedFilesResult.data
             ? affectedFilesResult.data
             : [];
@@ -60,8 +65,13 @@ codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanR
 
         // ========================================
         // Phase 4: Analyze structure changes using LLM
+        // Pass context from affected files analysis
         // ========================================
-        const structureChangesResult = await analyzeStructureChangesWithLLM(jobDetails, affectedFiles);
+        const structureChangesResult = await analyzeStructureChangesWithLLM(
+            jobDetails,
+            affectedFiles,
+            affectedFilesResult.context
+        );
         const structureChanges = structureChangesResult.success && structureChangesResult.data
             ? structureChangesResult.data
             : [];
@@ -106,7 +116,8 @@ codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanR
             affectedFiles,
             lockedFiles: lockedFiles.length > 0 ? lockedFiles : undefined,
             structureChanges: structureChanges.length > 0 ? structureChanges : undefined,
-            projectStructureUpdateId
+            projectStructureUpdateId,
+            context: structureChangesResult.context
         };
 
     } catch (error) {

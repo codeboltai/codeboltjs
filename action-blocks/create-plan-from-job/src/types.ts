@@ -1,3 +1,5 @@
+import { ProcessedMessage } from '@codebolt/types/agent';
+
 // ================================
 // TYPE DEFINITIONS
 // ================================
@@ -24,6 +26,7 @@ export interface PlanResult {
     affectedFiles?: AffectedFile[];
     projectStructureUpdateId?: string;
     structureChanges?: StructureChange[];
+    context?: ProcessedMessage | null;
     error?: string;
 }
 

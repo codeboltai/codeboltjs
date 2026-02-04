@@ -31,6 +31,20 @@ export interface CodeboltAgentConfig extends AgentConfig {
      * Defaults to true.
      */
     enableLogging?: boolean;
+
+    /**
+     * Agent context to continue from.
+     * When provided, the agent will skip initial prompt generation
+     * and continue from where the previous agent left off.
+     */
+    context?: ProcessedMessage;
+
+    /**
+     * List of allowed tool names. If provided, only these tools will be available to the agent.
+     * If not provided, all tools will be available.
+     * Example: ['readFile', 'writeFile', 'executeCommand']
+     */
+    allowedTools?: string[];
 }
 
 /**
@@ -92,16 +106,20 @@ export class CodeboltAgent {
     private readonly postToolCallProcessors: PostToolCallProcessor[];
     private readonly enableLogging: boolean;
     private readonly baseSystemPrompt: string;
+    private readonly context: ProcessedMessage | undefined;
+    private readonly allowedTools: string[] | undefined;
 
     constructor(config: CodeboltAgentConfig) {
         this.config = { ...config };
         this.enableLogging = config.enableLogging !== false;
         this.baseSystemPrompt = config.instructions || 'Based on User Message send reply';
+        this.context = config.context;
+        this.allowedTools = config.allowedTools;
 
         // Use provided modifiers or default ones
         this.messageModifiers = config.processors?.messageModifiers?.length
             ? config.processors.messageModifiers
-            : this.createDefaultMessageModifiers(this.baseSystemPrompt);
+            : this.createDefaultMessageModifiers(this.baseSystemPrompt, this.allowedTools);
 
         this.preInferenceProcessors = config.processors?.preInferenceProcessors || [];
         this.postInferenceProcessors = config.processors?.postInferenceProcessors || [];
@@ -112,7 +130,7 @@ export class CodeboltAgent {
     /**
      * Creates default message modifiers when none are provided
      */
-    private createDefaultMessageModifiers(systemPrompt: string): MessageModifier[] {
+    private createDefaultMessageModifiers(systemPrompt: string, allowedTools?: string[]): MessageModifier[] {
         return [
             // 1. Chat History
             new ChatHistoryMessageModifier({ enableChatHistory: true }),
@@ -130,29 +148,73 @@ export class CodeboltAgent {
             // 5. Core System Prompt (instructions)
             new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
             // 6. Tools (function declarations)
-            new ToolInjectionModifier({ includeToolDescriptions: true }),
+            new ToolInjectionModifier({
+                includeToolDescriptions: true,
+                ...(allowedTools && { allowedTools })
+            }),
             // 7. At-file processing (@file mentions)
             new AtFileProcessorModifier({ enableRecursiveSearch: true })
         ];
     }
 
     /**
+     * Creates a default FlatUserMessage from a string
+     */
+    private createDefaultUserMessage(message: string): FlatUserMessage {
+        return {
+            userMessage: message,
+            selectedAgent: {
+                id: 'codebolt-agent',
+                name: 'Codebolt Agent'
+            },
+            mentionedFiles: [],
+            mentionedFullPaths: [],
+            mentionedFolders: [],
+            mentionedMCPs: [],
+            uploadedImages: [],
+            mentionedAgents: [],
+            messageId: `msg-${Date.now()}`,
+            threadId: `thread-${Date.now()}`
+        };
+    }
+
+    /**
      * Process a message through the agent pipeline.
      * This is the main entry point - triggered from graph nodes.
+     * @param message - Either a string message or a FlatUserMessage object
+     * @param context - Optional context from a previous agent to continue from
      */
-    public async processMessage(reqMessage: FlatUserMessage): Promise<{ success: boolean; result: any; error?: string }> {
+    public async processMessage(
+        message: string | FlatUserMessage,
+        context?: ProcessedMessage
+    ): Promise<{ success: boolean; result: any; context: ProcessedMessage | null; error?: string }> {
         try {
             if (this.enableLogging) {
                 console.log('[CodeboltAgent] Processing message');
             }
 
-            const promptGenerator = new InitialPromptGenerator({
-                processors: this.messageModifiers,
-                baseSystemPrompt: this.baseSystemPrompt,
-                enableLogging: this.enableLogging
-            });
+            const reqMessage: FlatUserMessage = typeof message === 'string'
+                ? this.createDefaultUserMessage(message)
+                : message;
 
-            let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+            // Use provided context, config context, or generate new one
+            const contextToUse = context || this.context;
+            let prompt: ProcessedMessage;
+
+            if (contextToUse) {
+                if (this.enableLogging) {
+                    console.log('[CodeboltAgent] Continuing from previous context');
+                }
+                prompt = contextToUse;
+            } else {
+                const promptGenerator = new InitialPromptGenerator({
+                    processors: this.messageModifiers,
+                    baseSystemPrompt: this.baseSystemPrompt,
+                    enableLogging: this.enableLogging
+                });
+                prompt = await promptGenerator.processMessage(reqMessage);
+            }
+
             let completed = false;
 
             while (!completed) {
@@ -186,7 +248,8 @@ export class CodeboltAgent {
 
             return {
                 success: true,
-                result: prompt
+                result: prompt,
+                context: prompt
             };
 
         } catch (error) {
@@ -199,6 +262,7 @@ export class CodeboltAgent {
             return {
                 success: false,
                 result: null,
+                context: null,
                 error: errorMessage
             };
         }

@@ -48,19 +48,19 @@ export interface UserMessage {
 export interface FlatUserMessage {
   userMessage: string;
   currentFile?: string;
-  selectedAgent: {
+  selectedAgent?: {
     id: string;
     name: string;
     lastMessage?: Record<string, any>;
     agentType?: AgentTypeEnum;
     agentDetails?:string
   };
-  mentionedFiles: string[];
-  mentionedFullPaths: string[];
-  mentionedFolders: string[];
+  mentionedFiles?: string[];
+  mentionedFullPaths?: string[];
+  mentionedFolders?: string[];
   mentionedMultiFile?: string[];
-  mentionedMCPs: string[];
-  uploadedImages: string[];
+  mentionedMCPs?: string[];
+  uploadedImages?: string[];
   actions?: any[];
   mentionedAgents: any[];
   mentionedDocs?: any[];
