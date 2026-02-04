@@ -260,10 +260,11 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
      * Counts tokens for an array of messages
      */
     private countMessageTokens(messages: MessageObject[]): number {
+        if (!messages || !Array.isArray(messages)) return 0;
         return messages.reduce((total, msg) => {
-            const content = typeof msg.content === 'string'
-                ? msg.content
-                : JSON.stringify(msg.content);
+            if (!msg) return total;
+            const content = !msg.content ? '' :
+                (typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content));
             // Add overhead for role and structure (~4 tokens per message)
             return total + this.estimateTokens(content) + 4;
         }, 0);
@@ -273,6 +274,9 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
      * Gets content length from a message (handles string and array content)
      */
     private getMessageContentLength(message: MessageObject): number {
+        if (!message || message.content === undefined || message.content === null) {
+            return 0;
+        }
         if (typeof message.content === 'string') {
             return message.content.length;
         }
@@ -283,12 +287,18 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
      * Extracts text content from a message
      */
     private getMessageContent(message: MessageObject): string {
+        if (!message || message.content === undefined || message.content === null) {
+            return '';
+        }
         if (typeof message.content === 'string') {
             return message.content;
         }
         // Extract text from content blocks
+        if (!Array.isArray(message.content)) {
+            return JSON.stringify(message.content);
+        }
         return message.content
-            .filter(block => block.text)
+            .filter(block => block && block.text)
             .map(block => block.text)
             .join('\n');
     }
@@ -301,6 +311,7 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
      * Checks if a message is a function/tool response
      */
     private isToolResponseMessage(message: MessageObject): boolean {
+        if (!message) return false;
         if (message.role === 'tool') return true;
         if (message.tool_call_id) return true;
 
@@ -308,8 +319,8 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
         if (typeof message.content === 'object' && message.content !== null) {
             if (Array.isArray(message.content)) {
                 return message.content.some(block =>
-                    block.type === 'tool_result' ||
-                    block.type === 'function_response'
+                    block && (block.type === 'tool_result' ||
+                    block.type === 'function_response')
                 );
             }
         }
@@ -846,6 +857,17 @@ Keep the same XML format.`;
         const { nextPrompt, rawLLMResponseMessage, tokenLimit } = input;
 
         try {
+            // Safety check: ensure messages array exists
+            if (!nextPrompt?.message?.messages || !Array.isArray(nextPrompt.message.messages)) {
+                if (this.options.enableLogging) {
+                    console.warn('[ConversationCompactor] No messages array found, skipping compression');
+                }
+                return {
+                    nextPrompt,
+                    shouldExit: false
+                };
+            }
+
             const messages = nextPrompt.message.messages;
 
             // Get model token limit: prefer tokenLimit from LLM response, then lookup by model name, then fallback to config

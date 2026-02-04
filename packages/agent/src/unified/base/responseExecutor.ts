@@ -70,17 +70,18 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         for (const postToolCallProcessor of this.postToolCallProcessors) {
             try {
-                
-
-                // TODO: Extract required properties from input for PreToolCallProcessorInput
+                // Pass current nextMessage (with tool results) to the processor
                 let { nextPrompt, shouldExit } = await postToolCallProcessor.modify({
                     llmMessageSent: input.actualMessageSentToLLM,
                     rawLLMResponseMessage: input.rawLLMOutput,
-                    nextPrompt: input.nextMessage,
-                    toolResults: [],
+                    nextPrompt: nextMessage,
+                    toolResults: toolResults,
                     tokenLimit: input.rawLLMOutput?.tokenLimit,
                     maxOutputTokens: input.rawLLMOutput?.maxOutputTokens
                 });
+
+                // Update nextMessage with the (potentially compressed) result
+                nextMessage = nextPrompt;
 
                 if (shouldExit) {
                     this.completed = true
@@ -90,8 +91,8 @@ export class ResponseExecutor implements AgentResponseExecutor {
                     })
                 }
             } catch (error) {
-                console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
-                // Continue with other modifiers
+                console.error(`[ResponseExecutor] Error in post tool call processor:`, error);
+                // Continue with other processors
             }
         }
         const output: ResponseOutput = {
@@ -199,14 +200,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     });
                                 }
                                 else if (item.toolName == "codebolt--thread_management") {
-                                    codebolt.chat.sendMessage(JSON.stringify({
-                                        title: item.toolInput.title || item.toolInput.task || 'Background Thread',
-                                        description: item.toolInput.description || item.toolInput.task || '',
-                                        userMessage: item.toolInput.task || item.toolInput.userMessage || '',
-                                        selectedAgent: item.toolInput.selectedAgent,
-                                        isGrouped: item.toolInput.isGrouped,
-                                        groupId: item.toolInput.groupId,
-                                    }))
+                                  
                                     const response = await codebolt.thread.createThreadInBackground({
                                         title: item.toolInput.title || item.toolInput.task || 'Background Thread',
                                         description: item.toolInput.description || item.toolInput.task || '',
