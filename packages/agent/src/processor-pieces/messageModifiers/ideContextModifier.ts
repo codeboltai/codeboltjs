@@ -31,7 +31,7 @@ export class IdeContextModifier extends BaseMessageModifier {
     private lastSentIdeContext?: IdeContext;
     private forceFullContext: boolean = true;
 
-    constructor(options: IdeContextOptions = {}){
+    constructor(options: IdeContextOptions = {}) {
         super()
         this.options = {
             includeOpenFiles: options.includeOpenFiles !== false,
@@ -46,13 +46,13 @@ export class IdeContextModifier extends BaseMessageModifier {
         try {
             // Get IDE context from the original request (activeFile, openedFiles)
             const ideContext = this.getIdeContext(originalRequest, createdMessage.metadata);
-            
+
             if (!ideContext) {
                 return Promise.resolve(createdMessage);
             }
 
             const { contextParts, newIdeContext } = this.getIdeContextParts(this.forceFullContext, ideContext);
-            
+
             if (contextParts.length === 0) {
                 return Promise.resolve(createdMessage);
             }
@@ -65,7 +65,7 @@ export class IdeContextModifier extends BaseMessageModifier {
             // Find existing system message or add new one
             const messages = [...createdMessage.message.messages];
             const systemMessageIndex = messages.findIndex(msg => msg.role === 'system');
-            
+
             if (systemMessageIndex !== -1) {
                 // Append to existing system message
                 const existingMessage = messages[systemMessageIndex];
@@ -211,9 +211,121 @@ export class IdeContextModifier extends BaseMessageModifier {
             return { contextParts, newIdeContext: currentIdeContext };
         }
 
-        // For incremental updates, we would compare with lastSentIdeContext
-        // and only send changes. For now, we'll skip incremental updates.
-        return { contextParts: [], newIdeContext: currentIdeContext };
+        // Calculate and send delta as JSON
+        const delta: Record<string, unknown> = {};
+        const changes: Record<string, unknown> = {};
+
+        const lastFiles = new Map(
+            (this.lastSentIdeContext!.workspaceState?.openFiles || []).map(
+                (f: FileInfo) => [f.path, f],
+            ),
+        );
+        const currentFiles = new Map(
+            (currentIdeContext.workspaceState?.openFiles || []).map((f: FileInfo) => [
+                f.path,
+                f,
+            ]),
+        );
+
+        const openedFiles: string[] = [];
+        for (const [path] of currentFiles.entries()) {
+            if (!lastFiles.has(path)) {
+                openedFiles.push(path);
+            }
+        }
+        if (openedFiles.length > 0) {
+            changes['filesOpened'] = openedFiles;
+        }
+
+        const closedFiles: string[] = [];
+        for (const [path] of lastFiles.entries()) {
+            if (!currentFiles.has(path)) {
+                closedFiles.push(path);
+            }
+        }
+        if (closedFiles.length > 0) {
+            changes['filesClosed'] = closedFiles;
+        }
+
+        const lastActiveFile = (
+            this.lastSentIdeContext!.workspaceState?.openFiles || []
+        ).find((f: FileInfo) => f.isActive);
+        const currentActiveFile = (
+            currentIdeContext.workspaceState?.openFiles || []
+        ).find((f: FileInfo) => f.isActive);
+
+        if (currentActiveFile) {
+            if (!lastActiveFile || lastActiveFile.path !== currentActiveFile.path) {
+                const activeFileChange: Record<string, unknown> = {
+                    path: currentActiveFile.path
+                };
+                if (this.options.includeCursorPosition && currentActiveFile.cursor) {
+                    activeFileChange['cursor'] = {
+                        line: currentActiveFile.cursor.line,
+                        character: currentActiveFile.cursor.character,
+                    };
+                }
+                if (this.options.includeSelectedText && currentActiveFile.selectedText) {
+                    activeFileChange['selectedText'] = currentActiveFile.selectedText;
+                }
+                changes['activeFileChanged'] = activeFileChange;
+
+            } else {
+                const lastCursor = lastActiveFile.cursor;
+                const currentCursor = currentActiveFile.cursor;
+                if (
+                    this.options.includeCursorPosition &&
+                    currentCursor &&
+                    (!lastCursor ||
+                        lastCursor.line !== currentCursor.line ||
+                        lastCursor.character !== currentCursor.character)
+                ) {
+                    changes['cursorMoved'] = {
+                        path: currentActiveFile.path,
+                        cursor: {
+                            line: currentCursor.line,
+                            character: currentCursor.character,
+                        },
+                    };
+                }
+
+                const lastSelectedText = lastActiveFile.selectedText || '';
+                const currentSelectedText = currentActiveFile.selectedText || '';
+                if (
+                    this.options.includeSelectedText &&
+                    lastSelectedText !== currentSelectedText
+                ) {
+                    changes['selectionChanged'] = {
+                        path: currentActiveFile.path,
+                        selectedText: currentSelectedText,
+                    };
+                }
+            }
+        } else if (lastActiveFile) {
+            changes['activeFileChanged'] = {
+                path: null,
+                previousPath: lastActiveFile.path,
+            };
+        }
+
+        if (Object.keys(changes).length === 0) {
+            return { contextParts: [], newIdeContext: currentIdeContext };
+        }
+
+        delta['changes'] = changes;
+        const jsonString = JSON.stringify(delta, null, 2);
+        const contextParts = [
+            "Here is a summary of changes in the user's editor context, in JSON format. This is for your information only.",
+            '```json',
+            jsonString,
+            '```',
+            "Don't acknowledge this context in your response unless specifically asked about it."
+        ];
+
+        return {
+            contextParts,
+            newIdeContext: currentIdeContext,
+        };
     }
 
     public setForceFullContext(force: boolean): void {

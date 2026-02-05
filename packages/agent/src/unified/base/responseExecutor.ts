@@ -2,6 +2,7 @@
 import { AgentResponseExecutor, PostToolCallProcessor, PreToolCallProcessor, ProcessedMessage, ResponseInput, ResponseOutput, ToolResult } from '@codebolt/types/agent';
 import { LLMCompletion, MessageObject, ToolCall } from '@codebolt/types/sdk';
 import codebolt from '@codebolt/codeboltjs';
+import { LoopDetectionService } from '../services/LoopDetectionService';
 
 export class ResponseExecutor implements AgentResponseExecutor {
 
@@ -13,13 +14,18 @@ export class ResponseExecutor implements AgentResponseExecutor {
     constructor(options: {
         preToolCallProcessors: PreToolCallProcessor[]
         postToolCallProcessors: PostToolCallProcessor[],
+        loopDetectionService?: LoopDetectionService
 
     }) {
 
         this.preToolCallProcessors = options.preToolCallProcessors
         this.postToolCallProcessors = options.postToolCallProcessors
+        if (options.loopDetectionService) {
+            this.loopDetectionService = options.loopDetectionService;
+        }
 
     }
+    private loopDetectionService?: LoopDetectionService;
     async executeResponse(input: ResponseInput): Promise<ResponseOutput> {
 
         let nextMessage: ProcessedMessage = input.nextMessage;
@@ -173,6 +179,23 @@ export class ResponseExecutor implements AgentResponseExecutor {
                         }
                     }
 
+                    // Check for loops before execution
+                    if (this.loopDetectionService) {
+                        const toolCallsToCheck = toolsToExecute.map(t => ({ name: t.toolName, args: t.toolInput }));
+                        for (const toolCall of toolCallsToCheck) {
+                            const loopDetected = this.loopDetectionService.checkToolCallLoop(toolCall.name, toolCall.args);
+                            if (loopDetected) {
+                                this.completed = true;
+                                this.finalMessage = `Loop Detected: The agent is stuck in a loop of identical tool calls (${toolCall.name}). Execution stopped to prevent infinite recurrence.`;
+                                return [{
+                                    role: 'tool',
+                                    tool_call_id: 'system-loop-detection', // Virtual ID
+                                    content: JSON.stringify({ error: this.finalMessage })
+                                }];
+                            }
+                        }
+                    }
+
                     // Second pass: Execute tools sequentially (one by one)
                     for (const item of toolsToExecute) {
                         try {
@@ -200,7 +223,7 @@ export class ResponseExecutor implements AgentResponseExecutor {
                                     });
                                 }
                                 else if (item.toolName == "codebolt--thread_management") {
-                                  
+
                                     const response = await codebolt.thread.createThreadInBackground({
                                         title: item.toolInput.title || item.toolInput.task || 'Background Thread',
                                         description: item.toolInput.description || item.toolInput.task || '',

@@ -2,7 +2,8 @@ import codebolt from '@codebolt/codeboltjs';
 import fs from 'fs'
 import {
   InitialPromptGenerator,
-  ResponseExecutor
+  ResponseExecutor,
+  LoopDetectionService
 } from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
@@ -305,12 +306,22 @@ Specific markdown rules:
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
- 
 
-    try {
+
+  try {
 
     codebolt.chat.sendMessage("Gemini agent started", {})
     // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
+    // Instantiate modifiers that need state persistence
+    const ideContextModifier = new IdeContextModifier({
+      includeActiveFile: true,
+      includeOpenFiles: true,
+      includeCursorPosition: true,
+      includeSelectedText: true
+    });
+
+    const loopDetectionService = new LoopDetectionService({ debug: true });
+
     let promptGenerator = new InitialPromptGenerator({
 
       processors: [
@@ -321,13 +332,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         // 3. Directory Context (folder structure)  
         new DirectoryContextModifier(),
 
-        // 4. IDE Context (active file, opened files)
-        new IdeContextModifier({
-          includeActiveFile: true,
-          includeOpenFiles: true,
-          includeCursorPosition: true,
-          includeSelectedText: true
-        }),
+        // 4. IDE Context (active file, opened files) - Shared instance
+        ideContextModifier,
         // 5. Core System Prompt (instructions)
         new CoreSystemPromptModifier(
           { customSystemPrompt: systemPrompt }
@@ -351,7 +357,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     // return;
     let completed = false;
     do {
-      let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
+      let agent = new AgentStep({
+        preInferenceProcessors: [ideContextModifier], // Inject IDE context (incremental) before every step
+        postInferenceProcessors: []
+      })
       let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
       prompt = result.nextMessage;
 
@@ -363,8 +372,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             compressionTokenThreshold: 0.5,
             preserveThreshold: 0.3,
             enableLogging: true
-        })]
-
+          })],
+        loopDetectionService: loopDetectionService // Use shared service
       })
       let executionResult = await responseExecutor.executeResponse({
         initialUserMessage: reqMessage,
@@ -391,7 +400,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
   }
 
- 
+
 })
 
 // async function runwhileLoop(

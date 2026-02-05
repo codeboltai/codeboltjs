@@ -45,6 +45,7 @@ export { InitialPromptGenerator } from './base/initialPromptGenerator';
 export { AgentStep } from './base/agentStep'
 
 export { ResponseExecutor } from './base/responseExecutor'
+export { LoopDetectionService, LoopType } from './services/LoopDetectionService';
 
 // Agent framework components
 export { Agent } from './agent/agent';
