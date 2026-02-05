@@ -40,7 +40,8 @@
       "Bash(curl:*)",
       "Read(//tmp/**)",
       "Bash(git stash:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(unzip:*)"
     ],
     "deny": [],
     "ask": []

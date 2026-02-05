@@ -1,6 +1,6 @@
 ---
 name: codebolt-agent-development
-description: Build AI agents for the Codebolt platform using @codebolt/agent. Use when creating agents, configuring the agent loop, writing custom message modifiers, implementing processors, creating tools, building workflows, ActionBlocks, or choosing between abstraction levels. Covers Remix Agents (no-code), Level 1 (direct APIs), Level 2 (base components), Level 3 (high-level CodeboltAgent), and ActionBlocks for reusable logic.
+description: Build AI agents for the Codebolt platform using @codebolt/agent. When creating an agent, first decide what type you need — (1) CodeboltAgent wrapper for simple prompt-based agents with no custom loop, (2) Base Components for customizing the agentic loop, or (3) Core API for full advanced control. Also covers Remix Agents (no-code), ActionBlocks, tools, workflows, and processors. Permissions are handled by the application, not by the agent.
 ---
 
 # Codebolt Agent Development
@@ -31,6 +31,487 @@ description: Build AI agents for the Codebolt platform using @codebolt/agent. Us
 > npx tsc --noEmit    # Check for type errors
 > npx eslint src/     # Check for code quality issues
 > ```
+
+## First Decision: What Type of Agent Do You Need?
+
+When creating an agent, **the first thing you need to decide is what type of agent you want.** There are three main types, each giving you progressively more control:
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    CHOOSE YOUR AGENT TYPE                            │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  Don't need a full agentic loop? Just want a simple prompt agent?    │
+│  ──► CodeboltAgent Wrapper (Level 3)                                 │
+│      Just provide instructions — the framework handles everything.   │
+│                                                                      │
+│  Need to modify or customize the agentic loop?                       │
+│  ──► Base Components (Level 2)                                       │
+│      Compose InitialPromptGenerator + AgentStep + ResponseExecutor.  │
+│      Add custom modifiers and processors at each stage.              │
+│                                                                      │
+│  Want to go deeper and build advanced behavior from scratch?         │
+│  ──► Core API (Level 1)                                              │
+│      Use codebolt.llm, codebolt.fs, codebolt.mcp directly.          │
+│      Full control over every aspect of the agent.                    │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+| Type | When to Use | What You Control | Code Needed |
+|------|-------------|------------------|-------------|
+| **CodeboltAgent Wrapper** | Simple agents, standard behavior, quick setup | Just the instructions and allowed tools | Minimal (~10 lines) |
+| **Base Components** | Custom processors, specialized message handling, modified loop | The entire pipeline: modifiers, processors, loop logic | Moderate (~50 lines) |
+| **Core API** | Non-standard flows, advanced orchestration, utility scripts | Everything from scratch | Full implementation |
+
+### Important: Permissions Are Handled by the Application
+
+**Agents do NOT need to implement permission logic.** The Codebolt application handles all permissions automatically:
+
+- **Tool execution permissions**: When a tool is executed via `codebolt.mcp.executeTool()`, the application intercepts and can prompt the user for approval. Tools return `[didUserReject, result]` — if rejected, the agent gracefully skips remaining tools.
+- **Tool whitelisting**: Agents declare `allowedTools` in config. The `ToolInjectionModifier` filters the tool list before sending to the LLM — only allowed tools are visible.
+- **File system access**: All file operations go through the application layer which enforces workspace boundaries.
+- **User rejection propagation**: If a user rejects a tool call, the agent automatically stops executing subsequent tools in that batch.
+
+```typescript
+// You do NOT write permission code in your agent:
+// ❌ if (hasPermission('writeFile')) { ... }
+
+// Just call tools normally. The application handles approval:
+// ✅ const result = await codebolt.mcp.executeTool('codebolt', 'writeFile', { path, content });
+// The application prompts the user if needed and returns [didUserReject, result]
+```
+
+**What the application handles for you:**
+- User approval/rejection dialogs for tool execution
+- Workspace boundary enforcement
+- Tool availability filtering based on agent configuration
+- Graceful handling when users deny operations
+- Session-level permission state management
+
+---
+
+## Detailed Examples: All Three Agent Types
+
+### Type 1 — CodeboltAgent Wrapper (Simple Prompt-Based)
+
+If you **don't need a full custom agentic loop** and just want to run an agent using a simple prompt, use the `CodeboltAgent` wrapper. You provide instructions, optionally restrict tools, and call `processMessage()`. The framework handles the entire loop — prompt generation, LLM calls, tool execution, and completion detection.
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import { CodeboltAgent } from '@codebolt/agent/unified';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+
+// 1. Define your instructions
+const systemPrompt = `
+You are a helpful coding assistant. You help users with:
+- Reading and understanding code
+- Writing new code and fixing bugs
+- Running terminal commands
+
+Always explain what you're doing before taking action.
+`;
+
+// 2. Create the agent — that's it!
+const agent = new CodeboltAgent({
+  instructions: systemPrompt,
+  enableLogging: true,
+  // Optional: restrict which tools the agent can use
+  allowedTools: [
+    'codebolt--readFile',
+    'codebolt--writeFile',
+    'codebolt--executeCommand',
+    'codebolt--listFiles',
+    'codebolt--searchFiles'
+  ]
+});
+
+// 3. Listen for messages and process them
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+  try {
+    const result = await agent.processMessage(reqMessage);
+    if (!result.success) {
+      codebolt.chat.sendMessage(`Error: ${result.error}`, {});
+    }
+  } catch (error) {
+    console.error('Agent error:', error);
+  }
+});
+```
+
+**What happens internally:**
+- Default modifiers inject chat history, environment context, directory structure, IDE context, system prompt, tools, and @file mentions
+- The LLM is called in a loop — if it returns tool calls, they're executed and results fed back
+- The loop continues until the LLM calls `attempt_completion` or returns without tool calls
+
+**Continuing from previous context:**
+
+```typescript
+const result1 = await agent.processMessage('Read the package.json file');
+
+// Pass previous context to continue the conversation
+const agent2 = new CodeboltAgent({
+  instructions: systemPrompt,
+  context: result1.context  // Preserves conversation history
+});
+const result2 = await agent2.processMessage('Now update the version to 2.0.0');
+```
+
+---
+
+### Type 2 — Base Components (Custom Agentic Loop)
+
+If you **need to modify or customize the agentic loop**, use the three base components directly. This gives you control over every stage of the pipeline while still using the framework's building blocks.
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import {
+  InitialPromptGenerator,
+  AgentStep,
+  ResponseExecutor
+} from '@codebolt/agent/unified';
+import {
+  ChatHistoryMessageModifier,
+  EnvironmentContextModifier,
+  DirectoryContextModifier,
+  IdeContextModifier,
+  CoreSystemPromptModifier,
+  ToolInjectionModifier,
+  AtFileProcessorModifier
+} from '@codebolt/agent/processor-pieces';
+import { ChatCompressionModifier } from '@codebolt/agent/processor-pieces';
+import { ConversationCompactorModifier } from '@codebolt/agent/processor-pieces';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
+
+const systemPrompt = `You are an advanced coding assistant.`;
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+  try {
+    // --- Stage 1: Build the initial prompt ---
+    // Each modifier adds context to the prompt sent to the LLM.
+    // You can add, remove, or reorder modifiers to customize what context the LLM sees.
+    const promptGenerator = new InitialPromptGenerator({
+      processors: [
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        new EnvironmentContextModifier({ enableFullContext: true }),
+        new DirectoryContextModifier(),
+        new IdeContextModifier({
+          includeActiveFile: true,
+          includeOpenFiles: true,
+          includeCursorPosition: true,
+          includeSelectedText: true
+        }),
+        new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
+        new ToolInjectionModifier({ includeToolDescriptions: true }),
+        new AtFileProcessorModifier({ enableRecursiveSearch: true })
+      ],
+      baseSystemPrompt: systemPrompt
+    });
+
+    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    let completed = false;
+
+    // --- Stage 2: The agentic loop ---
+    do {
+      // AgentStep handles: PreInferenceProcessors → LLM call → PostInferenceProcessors
+      const agentStep = new AgentStep({
+        preInferenceProcessors: [
+          new ChatCompressionModifier({ enableCompression: true })
+        ],
+        postInferenceProcessors: []
+      });
+
+      const stepResult: AgentStepOutput = await agentStep.executeStep(reqMessage, prompt);
+      prompt = stepResult.nextMessage;
+
+      // ResponseExecutor handles: PreToolCallProcessors → Tool execution → PostToolCallProcessors
+      const responseExecutor = new ResponseExecutor({
+        preToolCallProcessors: [],
+        postToolCallProcessors: [
+          new ConversationCompactorModifier({
+            compactStrategy: 'smart',
+            compressionTokenThreshold: 0.5
+          })
+        ]
+      });
+
+      const executionResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: stepResult.actualMessageSentToLLM,
+        rawLLMOutput: stepResult.rawLLMResponse,
+        nextMessage: stepResult.nextMessage
+      });
+
+      completed = executionResult.completed;
+      prompt = executionResult.nextMessage;
+
+    } while (!completed);
+
+  } catch (error) {
+    console.error('Agent error:', error);
+    codebolt.chat.sendMessage(`Error: ${error}`, {});
+  }
+});
+```
+
+**Writing a custom MessageModifier:**
+
+```typescript
+import { BaseMessageModifier } from '@codebolt/agent/processor-pieces/base';
+import { ProcessedMessage } from '@codebolt/types/agent';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+
+class DatabaseSchemaModifier extends BaseMessageModifier {
+  async modify(
+    originalRequest: FlatUserMessage,
+    createdMessage: ProcessedMessage
+  ): Promise<ProcessedMessage> {
+    const schemaInfo = await fetchDatabaseSchema(); // Your custom logic
+    createdMessage.message.messages.push({
+      role: 'system',
+      content: `Database Schema:\n${schemaInfo}`
+    });
+    return createdMessage;
+  }
+}
+
+// Use it alongside built-in modifiers
+const promptGenerator = new InitialPromptGenerator({
+  processors: [
+    new ChatHistoryMessageModifier({ enableChatHistory: true }),
+    new CoreSystemPromptModifier({ customSystemPrompt: 'You are a DB expert.' }),
+    new DatabaseSchemaModifier(),  // Your custom modifier
+    new ToolInjectionModifier({ includeToolDescriptions: true })
+  ],
+  baseSystemPrompt: 'You are a DB expert.'
+});
+```
+
+**Writing a custom PostToolCallProcessor:**
+
+```typescript
+import { BasePostToolCallProcessor } from '@codebolt/agent/processor-pieces/base';
+import {
+  PostToolCallProcessorInput,
+  PostToolCallProcessorOutput
+} from '@codebolt/types/agent';
+
+class ErrorCheckProcessor extends BasePostToolCallProcessor {
+  async modify(input: PostToolCallProcessorInput): Promise<PostToolCallProcessorOutput> {
+    const { nextPrompt, toolResults } = input;
+
+    if (toolResults) {
+      for (const result of toolResults) {
+        if (typeof result.content === 'string' && result.content.includes('CRITICAL_ERROR')) {
+          return { nextPrompt, shouldExit: true };  // Stop the loop
+        }
+      }
+    }
+
+    return { nextPrompt, shouldExit: false };  // Continue
+  }
+}
+```
+
+---
+
+### Type 3 — Core API (Advanced / Full Control)
+
+When you want to **go deeper into agent functionality** and build more advanced behavior, use Codebolt's Core API directly. This gives you full control — you make LLM calls, read files, run commands, and orchestrate everything yourself.
+
+```typescript
+import codebolt from '@codebolt/codeboltjs';
+import { FlatUserMessage } from '@codebolt/types/sdk';
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+  const userMessage = reqMessage.userMessage;
+
+  // Step 1: Classify the task using an LLM call
+  const analysis = await codebolt.llm.inference({
+    messages: [
+      {
+        role: 'system',
+        content: 'Classify the user request as: "code_change", "question", or "debug". Respond with only the classification.'
+      },
+      { role: 'user', content: userMessage }
+    ]
+  });
+
+  const taskType = analysis.completion?.choices?.[0]?.message?.content?.trim() || 'question';
+  codebolt.chat.sendMessage(`Task type: ${taskType}`, {});
+
+  // Step 2: Handle based on classification
+  if (taskType === 'code_change') {
+    await handleCodeChange(userMessage);
+  } else if (taskType === 'debug') {
+    await handleDebug(userMessage);
+  } else {
+    await handleQuestion(userMessage);
+  }
+});
+
+async function handleCodeChange(task: string) {
+  // Read the workspace files
+  const files = await codebolt.fs.listFiles('/');
+  codebolt.chat.sendMessage(`Found ${files.length} files`, {});
+
+  // Ask LLM to plan which files to change
+  const planResponse = await codebolt.llm.inference({
+    messages: [
+      {
+        role: 'system',
+        content: 'Given the file list and task, output a JSON array of files to modify: [{"file": "path", "action": "create|modify|delete"}]'
+      },
+      { role: 'user', content: `Files: ${JSON.stringify(files)}\nTask: ${task}` }
+    ]
+  });
+
+  const plan = JSON.parse(planResponse.completion?.choices?.[0]?.message?.content || '[]');
+
+  // Execute the plan file by file
+  for (const step of plan) {
+    if (step.action === 'modify') {
+      const content = await codebolt.fs.readFile(step.file);
+
+      const editResponse = await codebolt.llm.inference({
+        messages: [
+          { role: 'system', content: 'Apply the requested change. Return the complete updated file.' },
+          { role: 'user', content: `File: ${step.file}\nContent:\n${content}\nTask: ${task}` }
+        ]
+      });
+
+      const newContent = editResponse.completion?.choices?.[0]?.message?.content || '';
+      await codebolt.fs.updateFile(step.file, step.file, newContent);
+      codebolt.chat.sendMessage(`Updated ${step.file}`, {});
+    }
+  }
+}
+
+async function handleDebug(task: string) {
+  // Run tests and capture output
+  const testOutput = await codebolt.terminal.executeCommand('npm test', true);
+
+  // Use LLM to analyze failures
+  const debugResponse = await codebolt.llm.inference({
+    messages: [
+      { role: 'system', content: 'Analyze the test output and suggest fixes.' },
+      { role: 'user', content: `Output:\n${testOutput}\nIssue: ${task}` }
+    ]
+  });
+
+  codebolt.chat.sendMessage(
+    debugResponse.completion?.choices?.[0]?.message?.content || 'Unable to debug.',
+    {}
+  );
+}
+
+async function handleQuestion(question: string) {
+  // Search the codebase for context
+  const searchResults = await codebolt.fs.searchFiles(question, '/');
+
+  // Answer with LLM using codebase context
+  const answer = await codebolt.llm.inference({
+    messages: [
+      { role: 'system', content: 'Answer based on the codebase search results.' },
+      { role: 'user', content: `Question: ${question}\nResults:\n${JSON.stringify(searchResults)}` }
+    ]
+  });
+
+  codebolt.chat.sendMessage(
+    answer.completion?.choices?.[0]?.message?.content || 'No answer found.',
+    {}
+  );
+}
+```
+
+**Using MCP Tools Directly:**
+
+```typescript
+// List available tools from MCP servers
+const { data: tools } = await codebolt.mcp.listMcpFromServers(['codebolt']);
+
+// Execute a specific tool — permissions handled by the application
+const { data } = await codebolt.mcp.executeTool('codebolt', 'readFile', { path: '/src/index.ts' });
+const [didUserReject, fileContent] = data;
+if (!didUserReject) {
+  console.log('File content:', fileContent);
+}
+```
+
+**Core API modules available:**
+
+| Module | Key Methods |
+|--------|-------------|
+| `codebolt.llm` | `inference(params)` |
+| `codebolt.fs` | `readFile`, `createFile`, `updateFile`, `deleteFile`, `listFiles`, `searchFiles` |
+| `codebolt.terminal` | `executeCommand`, `executeCommandRunUntilError` |
+| `codebolt.git` | `init`, `status`, `add`, `commit`, `push`, `pull`, `checkout`, `diff`, `clone` |
+| `codebolt.browser` | `goToPage`, `screenshot`, `click`, `type`, `getMarkdown` |
+| `codebolt.chat` | `sendMessage`, `getHistory` |
+| `codebolt.mcp` | `executeTool`, `listMcpFromServers`, `getTools` |
+| `codebolt.agent` | `findAgent`, `startAgent`, `getAgentsList` |
+| `codebolt.thread` | `createThreadInBackground` |
+| `codebolt.memory` | Memory storage |
+| `codebolt.todo` | `getAllIncompleteTodos` |
+| `codebolt.state` | State persistence |
+
+---
+
+### Side-by-Side: Same Task, Three Types
+
+The same task — "Read a file and summarize it" — using all three approaches:
+
+**Type 1 (CodeboltAgent — simplest):**
+```typescript
+const agent = new CodeboltAgent({
+  instructions: 'You are a file summarizer. Read files and provide concise summaries.'
+});
+codebolt.onMessage(async (msg) => await agent.processMessage(msg));
+```
+
+**Type 2 (Base Components — custom loop):**
+```typescript
+codebolt.onMessage(async (msg) => {
+  const gen = new InitialPromptGenerator({
+    processors: [
+      new CoreSystemPromptModifier({ customSystemPrompt: 'Summarize files.' }),
+      new ToolInjectionModifier({ includeToolDescriptions: true, allowedTools: ['codebolt--readFile'] })
+    ],
+    baseSystemPrompt: 'Summarize files.'
+  });
+  let prompt = await gen.processMessage(msg);
+  let done = false;
+  do {
+    const step = await new AgentStep({}).executeStep(msg, prompt);
+    const exec = await new ResponseExecutor({
+      preToolCallProcessors: [], postToolCallProcessors: []
+    }).executeResponse({
+      initialUserMessage: msg, actualMessageSentToLLM: step.actualMessageSentToLLM,
+      rawLLMOutput: step.rawLLMResponse, nextMessage: step.nextMessage
+    });
+    done = exec.completed;
+    prompt = exec.nextMessage;
+  } while (!done);
+});
+```
+
+**Type 3 (Core API — full control):**
+```typescript
+codebolt.onMessage(async (msg) => {
+  const filePath = extractFilePath(msg.userMessage);
+  const content = await codebolt.fs.readFile(filePath);
+  const response = await codebolt.llm.inference({
+    messages: [
+      { role: 'system', content: 'Summarize the following file.' },
+      { role: 'user', content: `File: ${filePath}\n\n${content}` }
+    ]
+  });
+  codebolt.chat.sendMessage(response.completion?.choices?.[0]?.message?.content || '', {});
+});
+```
+
+---
 
 ## Getting Started: Codebolt CLI
 
@@ -140,7 +621,7 @@ ls -la dist/
 
 ## Architecture Overview
 
-Codebolt provides a **4-tier architecture** for building AI agents:
+Codebolt provides a **layered architecture** for building AI agents. The three main types (described above with detailed examples) plus no-code Remix Agents and reusable ActionBlocks:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -148,22 +629,26 @@ Codebolt provides a **4-tier architecture** for building AI agents:
 │  Markdown files with YAML frontmatter + custom instructions     │
 │  → Use when: You want agents without writing any code           │
 ├─────────────────────────────────────────────────────────────────┤
-│  LEVEL 3: High-Level Abstractions                               │
+│  CodeboltAgent Wrapper (Level 3): High-Level Abstractions       │
 │  CodeboltAgent, Agent, Workflow, Tools                          │
-│  → Use when: You want a ready-to-use agent with minimal setup   │
+│  → Use when: Simple prompt-based agent, no custom loop needed   │
 ├─────────────────────────────────────────────────────────────────┤
-│  LEVEL 2: Base Components                                       │
+│  Base Components (Level 2): Custom Agentic Loop                 │
 │  InitialPromptGenerator, AgentStep, ResponseExecutor            │
-│  → Use when: You need control over the agent loop               │
+│  → Use when: You need to customize the agentic loop             │
 ├─────────────────────────────────────────────────────────────────┤
-│  LEVEL 1: Direct APIs                                           │
+│  Core API (Level 1): Full Control                               │
 │  codebolt.llm, codebolt.fs, codebolt.terminal, etc.            │
-│  → Use when: You want to build everything from scratch          │
+│  → Use when: Advanced behavior, build everything from scratch   │
 └─────────────────────────────────────────────────────────────────┘
          ↑↓ Mix & Match ↑↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  ActionBlocks: Reusable logic units invoked from any level      │
 └─────────────────────────────────────────────────────────────────┘
+
+Remember: Permissions, tool approval, and access control are ALL
+handled by the Codebolt application — your agent code does not
+need to implement any permission logic.
 ```
 
 ## Remix Agents (No-Code)
@@ -495,21 +980,23 @@ const orchestrationWorkflow: Workflow = new Workflow({
 
 ## Choosing the Right Level
 
-| Need | Level | What to Use |
-|------|-------|-------------|
+| Need | Type | What to Use |
+|------|------|-------------|
 | No-code agent creation | Remix | Markdown file with YAML frontmatter |
-| Quick agent with defaults | Level 3 | `CodeboltAgent` |
-| Custom agent loop logic | Level 2 | `InitialPromptGenerator` + `AgentStep` + `ResponseExecutor` |
-| Full manual control | Level 1 | Direct `codebolt.*` APIs |
-| Multi-step orchestration | Level 3 | `Workflow` with steps |
-| Orchestrator with child agents | Level 2 | Agent loop + `agentEventQueue` |
-| Long-running orchestrator | Level 2 | `waitForAnyExternalEvent()` loop |
+| Simple prompt-based agent, no custom loop | CodeboltAgent Wrapper | `CodeboltAgent` with `instructions` |
+| Custom agent loop logic | Base Components | `InitialPromptGenerator` + `AgentStep` + `ResponseExecutor` |
+| Full manual control, advanced behavior | Core API | Direct `codebolt.*` APIs |
+| Multi-step orchestration | CodeboltAgent Wrapper | `Workflow` with steps |
+| Orchestrator with child agents | Base Components | Agent loop + `agentEventQueue` |
+| Long-running orchestrator | Base Components | `waitForAnyExternalEvent()` loop |
 | Reusable logic units | ActionBlocks | `codebolt.actionBlock.start()` (**invoke, don't inline!**) |
-| Tools for single agent | Level 3 | `createTool()` with Zod schemas |
+| Tools for single agent | CodeboltAgent Wrapper | `createTool()` with Zod schemas |
 | Shared tools across agents | MCP | `MCPServer` from `@codebolt/mcp` |
 | Custom context injection | Any | Extend `BaseMessageModifier` |
 
 > **Remember:** When an ActionBlock exists for a task (planning, job creation, etc.), **always invoke it** via `codebolt.actionBlock.start('action-block-name', params)` rather than implementing the logic inline in your agent.
+>
+> **Remember:** Permissions (tool approval, file access, workspace boundaries) are handled by the Codebolt application. Your agent does not need to implement any permission logic.
 
 ## Tool Execution Architecture
 
