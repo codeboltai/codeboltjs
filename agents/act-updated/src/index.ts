@@ -12,7 +12,8 @@ import {
   IdeContextModifier,
   AtFileProcessorModifier,
   ToolInjectionModifier,
-  ChatHistoryMessageModifier
+  ChatHistoryMessageModifier,
+  ConversationCompactorModifier
 } from '@codebolt/agent/processor-pieces';
 
 
@@ -356,7 +357,13 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
       let responseExecutor = new ResponseExecutor({
         preToolCallProcessors: [],
-        postToolCallProcessors: []
+        postToolCallProcessors: [
+          new ConversationCompactorModifier({
+            compactStrategy: 'summarize',
+            compressionTokenThreshold: 0.5,
+            preserveThreshold: 0.3,
+            enableLogging: true
+        })]
 
       })
       let executionResult = await responseExecutor.executeResponse({
