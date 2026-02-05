@@ -1,0 +1,87 @@
+title: Gemini CLI Agent
+unique_id: gemini-cli-agent
+version: 1.0.0
+author: codebolt-team
+
+initial_message: |
+  Hello! I'm a software engineering assistant modeled after Gemini CLI.
+  I can help you with reading, writing, and debugging code,
+  running commands, searching your codebase, and navigating your project.
+  I rigorously adhere to existing project conventions and always verify before assuming.
+
+description: A Gemini CLI-equivalent agent built on Codebolt Agent SDK v2
+longDescription: >
+  This agent replicates the full behavior of Google's Gemini CLI,
+  including its multi-section prompt system, 3-method loop detection,
+  conversation compression, next-speaker continuation logic,
+  model routing, user/project memory, plan mode, and git workflow guidelines.
+  Built using Codebolt Agent SDK v2 Level 2 (Base Components) with
+  Level 1 augmentation for memory and sub-agent orchestration.
+
+tags:
+  - coding
+  - gemini
+  - cli
+  - software-engineering
+
+avatarFallback: GC
+
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+      - python
+      - rust
+      - go
+      - java
+      - c
+      - cpp
+      - csharp
+      - ruby
+      - php
+      - swift
+      - kotlin
+    supportedframeworks:
+      - react
+      - nextjs
+      - node
+      - express
+      - fastapi
+      - django
+      - flask
+      - vue
+      - angular
+      - svelte
+    supportRemix: true
+
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-20250514
+      - gpt-4-turbo
+      - gemini-2.5-pro
+
+actions:
+  - name: Review Code
+    description: Review the current file for issues
+    detailDescription: Performs comprehensive code review checking for bugs, security, performance, and style
+    actionPrompt: Please review this code for issues, bugs, security vulnerabilities, and improvements.
+  - name: Fix Bug
+    description: Debug and fix the current issue
+    detailDescription: Analyzes the issue, explores relevant code, and implements a fix with tests
+    actionPrompt: Please help me debug and fix this issue.
+  - name: Refactor
+    description: Refactor selected code
+    detailDescription: Improves code structure, naming, and patterns while preserving behavior
+    actionPrompt: Please refactor this code for better quality and maintainability.
+  - name: Write Tests
+    description: Write tests for the current code
+    detailDescription: Creates comprehensive test coverage for the selected code
+    actionPrompt: Please write thorough tests for this code.
+  - name: Explain Code
+    description: Explain what this code does
+    detailDescription: Provides a clear explanation of the code logic and purpose
+    actionPrompt: Please explain what this code does and how it works.
