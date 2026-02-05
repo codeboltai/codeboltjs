@@ -504,7 +504,7 @@ import { utilsTools } from './utils';
 export const allTools = [
     ...fileTools,
     // ...searchTools,
-    // ...terminalTools,
+    ...terminalTools,
     // ...gitTools,
     // ...browserTools,
     // ...agentTools,
@@ -533,7 +533,7 @@ export const allTools = [
     // ...debugTools,
     // ...codeutilsTools,
     // ...historyTools,
-    ...actionBlockTools,
+    // ...actionBlockTools,
     // ...actionPlanTools,
     // ...kvStoreTools,
     // ...roadmapTools,
@@ -542,11 +542,11 @@ export const allTools = [
     // ...ragTools,
     // ...webSearchTools,
     // ...dbmemoryTools,
-    ...agentDeliberationTools,
+    // ...agentDeliberationTools,
     // ...agentPortfolioTools,
     ...codebaseSearchTools,
     // ...codemapTools,
-    ...backgroundChildThreadsTools,
+    // ...backgroundChildThreadsTools,
     // ...contextAssemblyTools,
     // ...contextRuleEngineTools,
     // ...groupFeedbackTools,
@@ -563,7 +563,7 @@ export const allTools = [
     // ...userMessageManagerTools,
     // ...userMessageUtilitiesTools,
     // ...utilsTools,
-    ...agentEventQueueTools,
+    // ...agentEventQueueTools,
 ];
 
 /**

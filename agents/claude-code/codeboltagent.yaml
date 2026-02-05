@@ -1,0 +1,71 @@
+title: Claude Code
+version: 1.0.0
+unique_id: claude-code
+initial_message: |
+  I'm Claude Code, your interactive CLI assistant for software engineering tasks.
+  I can help you build features, debug issues, navigate codebases, and automate tasks.
+  Tell me what you'd like to work on.
+description: An interactive CLI assistant that works exactly like Claude Code - professional, concise, and focused on software engineering tasks.
+tags:
+  - coding
+  - cli
+  - software-engineering
+longDescription: |
+  Claude Code is an agentic coding assistant that helps with software engineering tasks.
+  It features task management for complex multi-step work, professional communication style,
+  and specialized tool usage for file operations, code search, and terminal commands.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CC
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+      - c
+      - cpp
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+      - django
+      - flask
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-20250514
+      - claude-3-5-sonnet-20241022
+      - gpt-4-turbo
+  llm_role:
+    - name: mainllm
+      description: Main LLM for coding tasks
+      strict: false
+      modelorder:
+        - claude-sonnet-4-20250514
+        - claude-3-5-sonnet-20241022
+actions:
+  - name: Plan
+    description: Enter plan mode to design an implementation approach
+    detailDescription: Create a detailed plan before making changes
+    actionPrompt: Let's plan how to approach this task
+  - name: Explore
+    description: Explore and understand the codebase
+    detailDescription: Navigate and analyze the codebase structure
+    actionPrompt: Help me understand this codebase
+  - name: Build
+    description: Build a feature from description
+    detailDescription: Implement a new feature based on requirements
+    actionPrompt: Build this feature for me
+  - name: Debug
+    description: Debug and fix an issue
+    detailDescription: Analyze and fix bugs or errors
+    actionPrompt: Help me debug this issue
+supportRemix: true
+author: codebolt
