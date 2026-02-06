@@ -146,7 +146,7 @@ import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionRe
  */
 const ZAI_MODEL_TOKEN_LIMITS: Record<string, { tokenLimit: number; maxOutput: number; supportsTools?: boolean }> = {
   // GLM-4.7 series
-  'glm-4.7': { tokenLimit: 1000, maxOutput: 128000, supportsTools: true },
+  'glm-4.7': { tokenLimit: 200000, maxOutput: 128000, supportsTools: true },
   'glm-4.7-flashx': { tokenLimit: 200000, maxOutput: 128000, supportsTools: true },
   'glm-4.7-flash': { tokenLimit: 200000, maxOutput: 128000, supportsTools: true },
   // Legacy models

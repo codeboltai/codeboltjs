@@ -310,7 +310,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
   try {
 
-    codebolt.chat.sendMessage("Gemini agent started", {})
+    // codebolt.chat.sendMessage("Gemini agent started", {})
     // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
     // Instantiate modifiers that need state persistence
     const ideContextModifier = new IdeContextModifier({
