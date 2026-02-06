@@ -4,15 +4,14 @@
  * For remote agents (AgentFS Provider) running in separate filesystems.
  *
  * Flow:
- * 1. Get diff from git in the projectPath (using child_process)
- * 2. Get changed files list from git status
+ * 1. Get diff from git using codebolt.git API
+ * 2. Get changed files list from codebolt.git.status()
  * 3. Create merge request via codebolt.reviewMergeRequest.create()
  * 4. Optionally start background review agent
  * 5. Optionally wait for review events via eventQueue
  */
 
 import codebolt from '@codebolt/codeboltjs';
-import { execSync } from 'child_process';
 import type {
     SubmitMergeRequestInput,
     SubmitMergeRequestOutput,
@@ -21,74 +20,123 @@ import type {
 } from './types';
 
 /**
- * Execute a git command in the project directory
+ * Get diff using codebolt.git.diff()
+ * @param commitHash - The commit hash to get diff for (defaults to 'HEAD')
  */
-function execGitCommand(command: string, cwd: string): string {
+async function getDiff(commitHash: string = 'HEAD'): Promise<string> {
     try {
-        return execSync(command, {
-            cwd,
-            encoding: 'utf-8',
-            maxBuffer: 50 * 1024 * 1024 // 50MB buffer for large diffs
-        }).trim();
+        const diffResponse = await codebolt.git.diff(commitHash);
+        // Extract diff content from response
+        if (diffResponse && typeof diffResponse === 'object') {
+            // Handle different response formats
+            if ('diff' in diffResponse) {
+                return (diffResponse as { diff: string }).diff || '';
+            }
+            if ('data' in diffResponse) {
+                return (diffResponse as { data: string }).data || '';
+            }
+            // If response is the diff string itself
+            return JSON.stringify(diffResponse);
+        }
+        return '';
     } catch (error) {
-        console.error(`[SubmitMR] Git command failed: ${command}`, error);
+        console.error('[SubmitMR] Failed to get diff:', error);
         return '';
     }
 }
 
 /**
- * Get diff from the project path
- * Gets all uncommitted/staged changes
+ * Get list of changed files using codebolt.git.status()
  */
-function getDiff(projectPath: string, baseBranch?: string): string {
-    // If base branch specified, get diff against it
-    if (baseBranch) {
-        const branchDiff = execGitCommand(`git diff ${baseBranch}`, projectPath);
-        if (branchDiff) return branchDiff;
+async function getChangedFiles(): Promise<string[]> {
+    try {
+        const statusResponse = await codebolt.git.status();
+        const files: string[] = [];
+
+        if (statusResponse && typeof statusResponse === 'object') {
+            // Cast to unknown first, then to our expected shape
+            const status = statusResponse as unknown as {
+                modified?: string[];
+                added?: string[];
+                deleted?: string[];
+                untracked?: string[];
+                staged?: string[];
+                files?: Array<{ path?: string; file?: string }>;
+                data?: { files?: Array<{ path?: string; file?: string }> };
+            };
+
+            // Collect files from various status categories
+            if (status.modified) files.push(...status.modified);
+            if (status.added) files.push(...status.added);
+            if (status.deleted) files.push(...status.deleted);
+            if (status.untracked) files.push(...status.untracked);
+            if (status.staged) files.push(...status.staged);
+            if (status.files) {
+                files.push(...status.files.map(f => f.path || f.file || '').filter(Boolean));
+            }
+            if (status.data?.files) {
+                files.push(...status.data.files.map(f => f.path || f.file || '').filter(Boolean));
+            }
+        }
+
+        // Remove duplicates
+        return [...new Set(files)];
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get status:', error);
+        return [];
     }
-
-    // Get diff of all changes (staged + unstaged)
-    const allChanges = execGitCommand('git diff HEAD', projectPath);
-    if (allChanges) return allChanges;
-
-    // Fallback: get diff of staged changes only
-    const stagedChanges = execGitCommand('git diff --cached', projectPath);
-    if (stagedChanges) return stagedChanges;
-
-    // Fallback: get diff of unstaged changes
-    return execGitCommand('git diff', projectPath);
 }
 
 /**
- * Get list of changed files
+ * Get commit info using codebolt.git.logs()
+ * @param path - The project path
  */
-function getChangedFiles(projectPath: string): string[] {
-    // Get files from git status
-    const statusOutput = execGitCommand('git status --porcelain', projectPath);
-    if (statusOutput) {
-        return statusOutput
-            .split('\n')
-            .filter(line => line.length > 0)
-            .map(line => line.substring(3).trim())
-            .filter(f => f.length > 0);
+async function getCommitInfo(path: string): Promise<{ message: string; hash: string }> {
+    try {
+        const logsResponse = await codebolt.git.logs(path);
+
+        if (logsResponse && typeof logsResponse === 'object') {
+            // Cast to unknown first for safe type handling
+            const logs = logsResponse as unknown as {
+                logs?: Array<{ message?: string; hash?: string }>;
+                data?: Array<{ message?: string; hash?: string }>;
+            };
+
+            // Get the latest commit
+            const latestCommit = logs.logs?.[0] || logs.data?.[0];
+            if (latestCommit) {
+                return {
+                    message: latestCommit.message || '',
+                    hash: latestCommit.hash || ''
+                };
+            }
+        }
+        return { message: '', hash: '' };
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get logs:', error);
+        return { message: '', hash: '' };
     }
-    return [];
 }
 
 /**
- * Get commit info for generating title/description
+ * Get current branch name from git status response
  */
-function getCommitInfo(projectPath: string): { message: string; hash: string } {
-    const message = execGitCommand('git log -1 --pretty=%B', projectPath);
-    const hash = execGitCommand('git rev-parse --short HEAD', projectPath);
-    return { message: message || '', hash: hash || '' };
-}
-
-/**
- * Get current branch name
- */
-function getCurrentBranch(projectPath: string): string {
-    return execGitCommand('git rev-parse --abbrev-ref HEAD', projectPath) || 'unknown';
+async function getCurrentBranch(): Promise<string> {
+    try {
+        const statusResponse = await codebolt.git.status();
+        if (statusResponse && typeof statusResponse === 'object') {
+            const status = statusResponse as unknown as {
+                current?: string;
+                branch?: string;
+                data?: { current?: string; branch?: string };
+            };
+            return status.current || status.branch || status.data?.current || status.data?.branch || 'unknown';
+        }
+        return 'unknown';
+    } catch (error) {
+        console.error('[SubmitMR] Failed to get current branch:', error);
+        return 'unknown';
+    }
 }
 
 /**
@@ -197,8 +245,8 @@ export async function submitMergeRequest(
 
         codebolt.chat.sendMessage(`Getting changes from: ${projectPath}`, {});
 
-        // Step 1: Get diff from git
-        const diffPatch = getDiff(projectPath, baseBranch);
+        // Step 1: Get diff from git using codebolt API
+        const diffPatch = await getDiff(baseBranch || 'HEAD');
 
         if (!diffPatch) {
             return {
@@ -207,12 +255,12 @@ export async function submitMergeRequest(
             };
         }
 
-        // Step 2: Get list of changed files
-        const majorFilesChanged = getChangedFiles(projectPath);
+        // Step 2: Get list of changed files using codebolt API
+        const majorFilesChanged = await getChangedFiles();
 
-        // Step 3: Get info for title/description
-        const commitInfo = getCommitInfo(projectPath);
-        const currentBranch = getCurrentBranch(projectPath);
+        // Step 3: Get info for title/description using codebolt API
+        const commitInfo = await getCommitInfo(projectPath);
+        const currentBranch = await getCurrentBranch();
 
         // Derive title and description
         const title = input.title || commitInfo.message.split('\n')[0] || `Changes from ${currentBranch}`;

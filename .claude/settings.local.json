@@ -41,7 +41,9 @@
       "Read(//tmp/**)",
       "Bash(git stash:*)",
       "Bash(git restore:*)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(npm view:*)",
+      "Bash(npm run build:dll:*)"
     ],
     "deny": [],
     "ask": []
