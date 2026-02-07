@@ -80,6 +80,18 @@
     "./lib": {
       "types": "./dist/codeboltjstypes/libFunctionTypes/index.d.ts",
       "default": "./dist/codeboltjstypes/libFunctionTypes/index.js"
+    },
+    "./clientapi": {
+      "types": "./dist/clientapi/index.d.ts",
+      "default": "./dist/clientapi/index.js"
+    },
+    "./clientapi/api": {
+      "types": "./dist/clientapi/api/index.d.ts",
+      "default": "./dist/clientapi/api/index.js"
+    },
+    "./clientapi/sdk": {
+      "types": "./dist/clientapi/sdk/events.d.ts",
+      "default": "./dist/clientapi/sdk/events.js"
     }
   },
   "scripts": {

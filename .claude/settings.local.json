@@ -40,7 +40,10 @@
       "Bash(curl:*)",
       "Read(//tmp/**)",
       "Bash(git stash:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "WebSearch",
+      "WebFetch(domain:paddo.dev)",
+      "WebFetch(domain:gist.github.com)"
     ],
     "deny": [],
     "ask": []
