@@ -23,80 +23,80 @@ const eventQueue = codebolt.agentEventQueue;
 const agentTracker = codebolt.backgroundChildThreads;
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
-    let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
+    //     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
 
-<important>
-When starting child worker agents using the \`thread_create_background\` tool, you MUST use:
-- agentId: "b29a9229-a76c-4d8c-acfc-e00a4511fb8c"
-
-
-</important>`;
+    // <important>
+    // When starting child worker agents using the \`thread_create_background\` tool, you MUST use:
+    // - agentId: "b29a9229-a76c-4d8c-acfc-e00a4511fb8c"
 
 
+    // </important>`;
 
-    const promptGenerator = new InitialPromptGenerator({
-        processors: [
-            new ChatHistoryMessageModifier({ enableChatHistory: true }),
-            new EnvironmentContextModifier({ enableFullContext: true }),
-            new DirectoryContextModifier(),
-            new IdeContextModifier({
-                includeActiveFile: true,
-                includeOpenFiles: true,
-                includeCursorPosition: true,
-                includeSelectedText: true
-            }),
-            new CoreSystemPromptModifier({ customSystemPrompt: sessionSystemPrompt }),
-            new ToolInjectionModifier({ includeToolDescriptions: true }),
-            new AtFileProcessorModifier({ enableRecursiveSearch: true })
-        ],
-        baseSystemPrompt: sessionSystemPrompt
-    });
 
-    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-    let executionResult: any;
 
-    // Run the initial agent loop
-    const result = await runWhileLoop(reqMessage, prompt);
+    //     const promptGenerator = new InitialPromptGenerator({
+    //         processors: [
+    //             new ChatHistoryMessageModifier({ enableChatHistory: true }),
+    //             new EnvironmentContextModifier({ enableFullContext: true }),
+    //             new DirectoryContextModifier(),
+    //             new IdeContextModifier({
+    //                 includeActiveFile: true,
+    //                 includeOpenFiles: true,
+    //                 includeCursorPosition: true,
+    //                 includeSelectedText: true
+    //             }),
+    //             new CoreSystemPromptModifier({ customSystemPrompt: sessionSystemPrompt }),
+    //             new ToolInjectionModifier({ includeToolDescriptions: true }),
+    //             new AtFileProcessorModifier({ enableRecursiveSearch: true })
+    //         ],
+    //         baseSystemPrompt: sessionSystemPrompt
+    //     });
 
-    if (result instanceof Error) {
-        codebolt.chat.sendMessage(`Error in agent loop: ${result.message}`);
-        return "Error occurred";
-    }
+    //     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    //     let executionResult: any;
 
-    executionResult = result.executionResult;
-    prompt = result.prompt;
+    //     // Run the initial agent loop
+    //     const result = await runWhileLoop(reqMessage, prompt);
 
-    // If background agents were started, wait for all of them to finish
-    // Using waitForAnyExternalEvent() to block instead of polling in a while loop
-    while (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
-        // Block and wait for an external event (no busy polling)
-        const event = await eventQueue.waitForAnyExternalEvent();
-        codebolt.chat.sendMessage(`Event received: ${event.type}`);
-        if (event.type === 'agentQueueEvent' || event.type === 'backgroundGroupedAgentCompletion') {
-            // Process the received event
-            processExternalEvent(event, prompt);
+    //     if (result instanceof Error) {
+    //         codebolt.chat.sendMessage(`Error in agent loop: ${result.message}`);
+    //         return "Error occurred";
+    //     }
 
-            // Run the agent loop again to process the event result
-            const loopResult = await runWhileLoop(reqMessage, prompt);
+    //     executionResult = result.executionResult;
+    //     prompt = result.prompt;
 
-            if (loopResult instanceof Error) {
-                codebolt.chat.sendMessage(`Error processing event: ${loopResult.message}`);
-                continue;
-            }
+    //     // If background agents were started, wait for all of them to finish
+    //     // Using waitForAnyExternalEvent() to block instead of polling in a while loop
+    //     while (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
+    //         // Block and wait for an external event (no busy polling)
+    //         const event = await eventQueue.waitForAnyExternalEvent();
+    //         codebolt.chat.sendMessage(`Event received: ${event.type}`);
+    //         if (event.type === 'agentQueueEvent' || event.type === 'backgroundGroupedAgentCompletion') {
+    //             // Process the received event
+    //             processExternalEvent(event, prompt);
 
-            executionResult = loopResult.executionResult;
-            prompt = loopResult.prompt;
-        }
-    }
+    //             // Run the agent loop again to process the event result
+    //             const loopResult = await runWhileLoop(reqMessage, prompt);
 
-    // After all loops complete, invoke the create-jobs-from-action-plan action block
-    codebolt.chat.sendMessage('🚀 Planning complete! Creating jobs from requirement plan...');
+    //             if (loopResult instanceof Error) {
+    //                 codebolt.chat.sendMessage(`Error processing event: ${loopResult.message}`);
+    //                 continue;
+    //             }
+
+    //             executionResult = loopResult.executionResult;
+    //             prompt = loopResult.prompt;
+    //         }
+    //     }
+
+    //     // After all loops complete, invoke the create-jobs-from-action-plan action block
+    //     codebolt.chat.sendMessage('🚀 Planning complete! Creating jobs from requirement plan...');
 
     try {
         // Find the requirement plan ID from the last messages or context
         // For testing, we'll need to extract this from the conversation history
         // This is a placeholder - in production, this would extract the actual requirement plan ID
-        const requirementPlanId = 'test-requirement-plan'; // TODO: Extract from context
+        const requirementPlanId = '/Users/ravirawat/Documents/cbtest/orchestrator-team-test/plans/nodejs-express-app-implementation.plan'; // TODO: Extract from context
 
         const jobCreationResult = await codebolt.actionBlock.start('create-jobs-from-action-plan', {
             requirementPlanId: requirementPlanId,
@@ -115,5 +115,5 @@ When starting child worker agents using the \`thread_create_background\` tool, y
         codebolt.chat.sendMessage(`❌ Failed to create jobs: ${errorMsg}`);
     }
 
-    return executionResult?.finalMessage || "No response generated";
+    // return executionResult?.finalMessage || "No response generated";
 });

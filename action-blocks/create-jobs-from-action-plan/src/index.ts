@@ -35,6 +35,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         codebolt.chat.sendMessage(MESSAGES.READING_PLAN(requirementPlanId), {});
 
         const planResponse = await codebolt.requirementPlan.get(requirementPlanId);
+        codebolt.chat.sendMessage(JSON.stringify(planResponse), {});
         if (!planResponse.success || !planResponse.data) {
             const errorMsg = MESSAGES.ERROR_READING_PLAN(planResponse.error || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});
@@ -98,6 +99,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         codebolt.chat.sendMessage(MESSAGES.READING_ACTION_PLAN(actionPlanId), {});
 
         const actionPlanResponse = await codebolt.actionPlan.getPlanDetail(actionPlanId);
+        codebolt.chat.sendMessage(JSON.stringify(actionPlanResponse), {});
         if (!actionPlanResponse.success || !actionPlanResponse.actionPlan) {
             const errorMsg = MESSAGES.ERROR_READING_ACTION_PLAN(actionPlanResponse.message || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});
