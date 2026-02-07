@@ -19,13 +19,35 @@ const completedBackgroundAgents = new Map<string, BackgroundAgentCompletion>();
 const groupedAgentCompletionMap = new Map<string, BackgroundAgentCompletion>();
 const backgroundAgentGroups = new Map<string, Set<string>>();
 
-// Helper to cleanup group membership
-const cleanupAgentGroup = (threadId: string): void => {
+// Track completed agents per group for grouped completion
+const groupCompletedAgents = new Map<string, BackgroundAgentCompletion[]>();
+
+// Helper to cleanup group membership and check for group completion
+const cleanupAgentGroup = (threadId: string, completion: BackgroundAgentCompletion): void => {
     for (const [groupId, agents] of backgroundAgentGroups.entries()) {
         if (agents.has(threadId)) {
+            // Track this completion in the group
+            if (!groupCompletedAgents.has(groupId)) {
+                groupCompletedAgents.set(groupId, []);
+            }
+            groupCompletedAgents.get(groupId)!.push(completion);
+
             agents.delete(threadId);
+
+            // Check if all agents in the group have completed
             if (agents.size === 0) {
+                // All agents in this group are done - emit grouped completion
+                const groupCompletions = groupCompletedAgents.get(groupId) || [];
+                groupedAgentSubscription.emit('message', {
+                    groupId,
+                    threadId, // Last completed thread
+                    completions: groupCompletions,
+                    success: groupCompletions.every(c => c.success !== false)
+                });
+
+                // Cleanup
                 backgroundAgentGroups.delete(groupId);
+                groupCompletedAgents.delete(groupId);
             }
         }
     }
@@ -38,8 +60,8 @@ const handleBackgroundAgentCompletion = (message: BackgroundAgentCompletion): vo
     completedBackgroundAgents.set(message.threadId, message);
     // Remove from running map since agent is now complete
     runningBackgroundAgents.delete(message.threadId);
-    // Clean up any group associations
-    cleanupAgentGroup(message.threadId);
+    // Clean up any group associations and check for group completion
+    cleanupAgentGroup(message.threadId, message);
 };
 
 // Subscribe to background agent completion - primary message type

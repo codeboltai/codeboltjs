@@ -62,7 +62,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     } catch (error) {
         console.log('[Orchestrator] Using default configuration');
     }
-  
+
 
     // ================================
     // PHASE 1: Requirement Analysis & Planning

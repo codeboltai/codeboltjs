@@ -356,6 +356,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     // return;
     let completed = false;
+    let executionResult: any;
     do {
       let agent = new AgentStep({
         preInferenceProcessors: [ideContextModifier], // Inject IDE context (incremental) before every step
@@ -375,12 +376,14 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
           })],
         loopDetectionService: loopDetectionService // Use shared service
       })
-      let executionResult = await responseExecutor.executeResponse({
+      executionResult = await responseExecutor.executeResponse({
         initialUserMessage: reqMessage,
         actualMessageSentToLLM: result.actualMessageSentToLLM,
         rawLLMOutput: result.rawLLMResponse,
         nextMessage: result.nextMessage,
       });
+
+
 
       completed = executionResult.completed;
       prompt = executionResult.nextMessage;
@@ -392,8 +395,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     } while (!completed);
 
-
-
+    return executionResult.finalMessage;
 
 
   } catch (error) {
