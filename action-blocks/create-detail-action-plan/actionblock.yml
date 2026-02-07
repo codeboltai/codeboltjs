@@ -1,7 +1,7 @@
 # ActionBlock Configuration File
 # This ActionBlock creates a detailed specification file from a plan
 
-name: create-detail-specification
+name: create-detail-action-plan
 
 description: Creates a detailed specification file in the specs folder based on a provided plan.
 
