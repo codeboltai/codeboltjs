@@ -89,5 +89,31 @@ When starting child worker agents using the \`thread_create_background\` tool, y
         }
     }
 
+    // After all loops complete, invoke the create-jobs-from-action-plan action block
+    codebolt.chat.sendMessage('🚀 Planning complete! Creating jobs from requirement plan...');
+
+    try {
+        // Find the requirement plan ID from the last messages or context
+        // For testing, we'll need to extract this from the conversation history
+        // This is a placeholder - in production, this would extract the actual requirement plan ID
+        const requirementPlanId = 'test-requirement-plan'; // TODO: Extract from context
+
+        const jobCreationResult = await codebolt.actionBlock.start('create-jobs-from-action-plan', {
+            requirementPlanId: requirementPlanId,
+            workerAgentId: 'b29a9229-a76c-4d8c-acfc-e00a4511fb8c' // Worker agent ID
+        });
+
+        if (jobCreationResult.success && jobCreationResult.result) {
+            const { groupId, jobsCreated, totalJobs } = jobCreationResult.result;
+            codebolt.chat.sendMessage(`✅ Successfully created ${totalJobs} jobs in group ${groupId}!`);
+            codebolt.chat.sendMessage(`Job IDs: ${jobsCreated?.join(', ')}`);
+        } else {
+            codebolt.chat.sendMessage(`⚠️ Job creation completed with issues: ${jobCreationResult.error || 'Unknown error'}`);
+        }
+    } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        codebolt.chat.sendMessage(`❌ Failed to create jobs: ${errorMsg}`);
+    }
+
     return executionResult?.finalMessage || "No response generated";
 });
