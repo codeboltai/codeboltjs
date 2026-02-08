@@ -58,9 +58,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
       requirements: ctx.requirements,
       swarmConfig: SWARM_CONFIG
     });
-
     codebolt.chat.sendMessage(`📋 Action block response: ${JSON.stringify(actionBlockResponse)}`);
-
     // Check if action block call itself failed
     if (!actionBlockResponse?.success) {
       codebolt.chat.sendMessage(`⚠️ Action block call failed: ${actionBlockResponse?.error}`);

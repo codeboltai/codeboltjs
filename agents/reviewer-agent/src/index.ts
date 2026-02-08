@@ -8,8 +8,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<void> => {
 
         const userMessage = reqMessage.userMessage || '';
         // Match "Review MR {id}"
-        // const mrIdMatch = userMessage.match(/Review MR ([\w-]+)/i);
-        const mrId = "rmr-86c1dd41"// mrIdMatch ? mrIdMatch[1] : null;
+        const mrIdMatch = userMessage.match(/Review MR ([\w-]+)/i);
+        const mrId =  mrIdMatch ? mrIdMatch[1] : null;
 
         if (!mrId) {
             codebolt.chat.sendMessage("Could not find MR ID in the task message. Please provide 'Review MR <id>'.", {});
@@ -22,9 +22,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<void> => {
         // Fetch MR details
         let mrData;
         try {
-            const response = await codebolt.reviewMergeRequest.get("rrmr-86c1dd41");
-            codebolt.chat.sendMessage(`MR details: ${JSON.stringify(response)}`, {});
-            mrData = response.request;
+            const response:any = await codebolt.reviewMergeRequest.get(mrId);
+            mrData = response.data.request;
+            codebolt.chat.sendMessage(`MR details: ${JSON.stringify(mrData)}`, {});
+
         } catch (e) {
             codebolt.chat.sendMessage(`Failed to fetch MR: ${e}`, {});
             return;

@@ -123,7 +123,7 @@ class ReviewCreateToolInvocation extends BaseToolInvocation<
 
             return {
                 llmContent: JSON.stringify(response, null, 2),
-                returnDisplay: `Successfully created review request: ${response.request.id}`,
+                returnDisplay: `Successfully created review request: ${response}`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

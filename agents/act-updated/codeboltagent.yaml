@@ -1,5 +1,5 @@
 title: Act
-version: 1.1.44
+version: 1.1.46
 unique_id: act
 initial_message: Codebolt Dev, is a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices
 description:  Codebolt Dev, is  a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
@@ -71,5 +71,24 @@ actions:
     description: Executes the given task.
     detailDescription: more detailed description
     actionPrompt: Please create website
-supportRemix: true    
+supportRemix: true
 author: ravi
+
+# Pre-completion verification configuration
+# Inspired by patterns from Aider, SWE-agent, Gemini CLI, and Windsurf
+verification:
+  enabled: true
+  # Run all checks before allowing task completion
+  checks:
+    lint: true       # Run linter (eslint, flake8, golangci-lint, etc.)
+    test: true       # Run test suite (npm test, pytest, go test, etc.)
+    build: true      # Run build (npm run build, go build, cargo build, etc.)
+    typecheck: true  # Run type checker (tsc, mypy, etc.)
+  # Timeout per check in milliseconds
+  timeout: 60000
+  # Skip verification if no project config found (package.json, etc.)
+  skipOnNoConfig: true
+  # Skip verification for non-code tasks (docs, config changes only)
+  skipForNonCodeTasks: true
+  # Maximum retries not limited (-1 = keep retrying until fixed)
+  maxRetries: -1

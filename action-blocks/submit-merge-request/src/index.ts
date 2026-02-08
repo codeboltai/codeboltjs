@@ -31,7 +31,7 @@ codebolt.onActionBlockInvocation(async (threadContext: Record<string, unknown>, 
         codebolt.chat.sendMessage(`[STATIC MODE] Would submit merge request from: ${projectPath}`, {});
 
         // COMMENTED OUT ACTUAL LOGIC - Return static response instead
-        /*
+        
         if (!projectPath) {
             throw new Error('Missing required input: projectPath');
         }
@@ -96,30 +96,30 @@ codebolt.onActionBlockInvocation(async (threadContext: Record<string, unknown>, 
         }
 
         return output;
-        */
+        
 
-        // STATIC RESPONSE
-        const staticMergeRequestId = `static-mr-${Date.now()}`;
-        const output: SubmitMergeRequestOutput = {
-            success: true,
-            mergeRequestId: staticMergeRequestId,
-            mergeRequest: {
-                id: staticMergeRequestId,
-                title: (params.title as string) || 'Static Merge Request',
-                status: 'pending',
-                diffPatch: '--- Static diff patch for testing ---',
-                majorFilesChanged: ['static/file1.ts', 'static/file2.ts']
-            },
-            reviewResult: {
-                completed: false,
-                approved: false,
-                reviewThreadId: `static-review-${Date.now()}`
-            }
-        };
+        // // STATIC RESPONSE
+        // const staticMergeRequestId = `static-mr-${Date.now()}`;
+        // const output: SubmitMergeRequestOutput = {
+        //     success: true,
+        //     mergeRequestId: staticMergeRequestId,
+        //     mergeRequest: {
+        //         id: staticMergeRequestId,
+        //         title: (params.title as string) || 'Static Merge Request',
+        //         status: 'pending',
+        //         diffPatch: '--- Static diff patch for testing ---',
+        //         majorFilesChanged: ['static/file1.ts', 'static/file2.ts']
+        //     },
+        //     reviewResult: {
+        //         completed: false,
+        //         approved: false,
+        //         reviewThreadId: `static-review-${Date.now()}`
+        //     }
+        // };
 
-        codebolt.chat.sendMessage(`[STATIC MODE] Merge request created with ID: ${staticMergeRequestId}`, {});
+        // codebolt.chat.sendMessage(`[STATIC MODE] Merge request created with ID: ${staticMergeRequestId}`, {});
 
-        return output;
+        // return output;
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

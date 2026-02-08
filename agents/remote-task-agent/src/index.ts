@@ -242,7 +242,7 @@ async function submitMergeRequest(input: SubmitMergeRequestInput): Promise<Submi
         const createResponse: any = await codebolt.reviewMergeRequest.create(createData);
 
         const mergeRequest = createResponse?.data?.request || createResponse?.request;
-        codebolt.chat.sendMessage(`Merge request created successfully! ID: ${JSON.stringify(createResponse)}`, {});
+        // codebolt.chat.sendMessage(`Merge request created successfully! ID: ${JSON.stringify(createResponse)}`, {});
         if (!mergeRequest) {
             return {
                 success: false,
@@ -250,7 +250,7 @@ async function submitMergeRequest(input: SubmitMergeRequestInput): Promise<Submi
             };
         }
 
-        codebolt.chat.sendMessage(`Merge request created successfully! ID: ${mergeRequest.id}`, {});
+        // codebolt.chat.sendMessage(`Merge request created successfully! ID: ${mergeRequest.id}`, {});
 
 
 
@@ -277,40 +277,44 @@ async function submitMergeRequest(input: SubmitMergeRequestInput): Promise<Submi
                     const runningCount = agentTracker.getRunningAgentCount();
                     const pendingCount = eventQueue.getPendingExternalEventCount();
 
-                    codebolt.chat.sendMessage(`Checking status - Running agents: ${runningCount}, Pending events: ${pendingCount}`, {});
+                    // codebolt.chat.sendMessage(`Checking status - Running agents: ${runningCount}, Pending events: ${pendingCount}`, {});
 
                     if (runningCount > 0 || pendingCount > 0) {
-                        codebolt.chat.sendMessage(`Waiting for external events...`, {});
+                        // codebolt.chat.sendMessage(`Waiting for external events...`, {});
 
                         // Wait for any external event (queue events, background completions)
-                        const event = await eventQueue.waitForAnyExternalEvent();
+                        const events = await eventQueue.getPendingQueueEvents();
 
-                        codebolt.chat.sendMessage(`Received event: ${JSON.stringify(event)}`, {});
+                        // codebolt.chat.sendMessage(`Received events: ${JSON.stringify(events)}`, {});
 
-                        // Process the event based on type
-                        if (event.type === 'backgroundAgentCompletion') {
-                            codebolt.chat.sendMessage(`Background agent completed: ${JSON.stringify(event.data)}`, {});
-                            reviewCompleted = true;
+                        // Process each event in the array
+                        for (const event of events) {
+                            const eventType = (event as any).type;
 
-                            // Check the review status
-                            const updatedMR = await codebolt.reviewMergeRequest.get(mergeRequest.id);
-                            const mrData = (updatedMR as any)?.request || (updatedMR as any)?.data?.request;
-                            const reviews = mrData?.reviews || [];
-                            const latestReview = reviews[reviews.length - 1];
+                            if (eventType === 'backgroundAgentCompletion') {
+                                // codebolt.chat.sendMessage(`Background agent completed: ${JSON.stringify(event)}`, {});
+                                reviewCompleted = true;
 
-                            if (latestReview?.type === 'approve') {
-                                codebolt.chat.sendMessage('✅ Review APPROVED! Changes can be merged.', {});
-                            } else if (latestReview?.type === 'request_changes') {
-                                codebolt.chat.sendMessage(`❌ Changes requested: ${latestReview.comment || 'See review details'}`, {});
-                            } else {
-                                codebolt.chat.sendMessage(`📋 Review status: ${mrData?.status || 'pending'}`, {});
+                                // Check the review status
+                                const updatedMR = await codebolt.reviewMergeRequest.get(mergeRequest.id);
+                                const mrData = (updatedMR as any)?.request || (updatedMR as any)?.data?.request;
+                                const reviews = mrData?.reviews || [];
+                                const latestReview = reviews[reviews.length - 1];
+
+                                if (latestReview?.type === 'approve') {
+                                    codebolt.chat.sendMessage('✅ Review APPROVED! Changes can be merged.', {});
+                                } else if (latestReview?.type === 'request_changes') {
+                                    codebolt.chat.sendMessage(`❌ Changes requested: ${latestReview.comment || 'See review details'}`, {});
+                                } else {
+                                    codebolt.chat.sendMessage(`📋 Review status: ${mrData?.status || 'pending'}`, {});
+                                }
+                            } else if (eventType === 'agentQueueEvent') {
+                                codebolt.chat.sendMessage(`Message from reviewer agent: ${JSON.stringify(event)}`, {});
+                                // Continue waiting for completion
+                            } else if (eventType === 'backgroundGroupedAgentCompletion') {
+                                codebolt.chat.sendMessage(`Grouped agents completed: ${JSON.stringify(event)}`, {});
+                                reviewCompleted = true;
                             }
-                        } else if (event.type === 'agentQueueEvent') {
-                            codebolt.chat.sendMessage(`Message from reviewer agent: ${JSON.stringify(event.data)}`, {});
-                            // Continue waiting for completion
-                        } else if (event.type === 'backgroundGroupedAgentCompletion') {
-                            codebolt.chat.sendMessage(`Grouped agents completed: ${JSON.stringify(event.data)}`, {});
-                            reviewCompleted = true;
                         }
                     } else {
                         // No running agents and no pending events - check once more and exit
@@ -504,7 +508,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
 
         // Original agent logic commented out below:
-        codebolt.chat.sendMessage("Gemini agent started", {})
+        codebolt.chat.sendMessage("Remote Task Agent started", {})
         // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
         let promptGenerator = new InitialPromptGenerator({
 
@@ -589,7 +593,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
             mergeStrategy: 'patch'
         });
 
-        codebolt.chat.sendMessage(JSON.stringify(mrResult));
+        codebolt.chat.sendMessage(JSON.stringify(mrResult), {});
 
         // if (mrResult.success) {
         //     codebolt.chat.sendMessage(`Merge request submitted: ${mrResult.mergeRequestId}`, {});
@@ -638,10 +642,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         codebolt.chat.sendMessage(`Agent error: ${errorMessage}`, {});
     }
 })
-
-
-
-
 
 
 

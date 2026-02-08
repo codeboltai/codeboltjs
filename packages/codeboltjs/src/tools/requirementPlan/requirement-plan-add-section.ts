@@ -55,7 +55,7 @@ export class RequirementPlanAddSectionTool extends BaseDeclarativeTool<Requireme
             {
                 type: 'object',
                 properties: {
-                    filePath: { type: 'string', description: 'Path to the plan file' },
+                    filePath: { type: 'string', description: 'Path to the plan file or actionplan id' },
                     section: {
                         type: 'object',
                         description: 'Section data to add',

@@ -45,9 +45,9 @@ class UserMessageManager {
       this.state.userConfig = { ...config };
     } else {
       this.state.userConfig = {
-        processMentionedMCPs: message.mentionedMCPs?.length > 0,
+        processMentionedMCPs: (message.mentionedMCPs?.length ?? 0) > 0,
         processRemixPrompt: !!message.remixPrompt,
-        processMentionedFiles: (message.mentionedFiles?.length > 0) || (message.mentionedFullPaths?.length > 0),
+        processMentionedFiles: (message.mentionedFiles?.length ?? 0) > 0 || (message.mentionedFullPaths?.length ?? 0) > 0,
         processMentionedAgents: message.mentionedAgents?.length > 0
       };
     }

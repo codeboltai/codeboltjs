@@ -1,0 +1,48 @@
+# ActionBlock Configuration File
+# This ActionBlock creates a detailed specification file from a plan
+
+name: create-detail-action-plan
+
+description: Creates a detailed specification file in the specs folder based on a provided plan.
+
+version: 1.0.0
+
+entryPoint: dist/index.js
+
+metadata:
+  author: Codebolt Team
+
+  tags:
+    - specs
+    - documentation
+    - planning
+    - generator
+
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/agent"
+    - "@codebolt/types"
+
+  inputs:
+    - name: detailPlan
+      type: object
+      required: true
+      description: The detailed plan object or string to base the specification on
+
+    - name: userMessage
+      type: object
+      required: false
+      description: Optional original user message for context
+
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether the specification was successfully created
+
+    - name: specsFilePath
+      type: string
+      description: The path to the created .specs file
+
+    - name: error
+      type: string
+      description: Error message if creation failed

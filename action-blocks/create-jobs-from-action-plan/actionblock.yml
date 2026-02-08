@@ -1,0 +1,41 @@
+name: create-jobs-from-action-plan
+description: Reads a requirement plan by ID, extracts sections, and uses LLM to create granular jobs with dependencies in a new job group
+version: 1.0.0
+entryPoint: dist/index.js
+metadata:
+  author: Codebolt Team
+  tags:
+    - jobs
+    - action-plan
+    - orchestration
+    - automation
+    - llm
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/agent"
+    - "@codebolt/types"
+  inputs:
+    - name: requirementPlanId
+      type: string
+      required: true
+      description: ID of the requirement plan
+    - name: workerAgentId
+      type: string
+      required: false
+      description: Optional agent ID to assign jobs to
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether job creation succeeded
+    - name: groupId
+      type: string
+      description: ID of the created job group
+    - name: jobsCreated
+      type: array
+      description: List of created job IDs
+    - name: totalJobs
+      type: number
+      description: Total number of jobs created
+    - name: error
+      type: string
+      description: Error message if operation failed
