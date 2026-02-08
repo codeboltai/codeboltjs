@@ -58,4 +58,7 @@ export type StartSubagentTaskResponseNotification = z.infer<typeof startSubagent
 export type SubagentTaskCompletedNotification = z.infer<typeof subagentTaskCompletedNotificationSchema>;
 
 // Union types for convenience
-export type AgentNotification = z.infer<typeof agentNotificationSchema>; 
+export type AgentNotification = z.infer<typeof agentNotificationSchema>;
+
+// Aliases for backward compatibility
+export type AgentStartedNotification = AgentNotification;

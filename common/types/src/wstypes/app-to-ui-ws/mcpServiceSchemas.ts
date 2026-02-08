@@ -191,4 +191,31 @@ export type DisableToolBoxResponse = z.infer<typeof disableToolBoxResponseSchema
 export type GetToolBoxConfigResponse = z.infer<typeof getToolBoxConfigResponseSchema>;
 export type UpdateToolBoxConfigResponse = z.infer<typeof updateToolBoxConfigResponseSchema>;
 export type GetToolBoxStatusResponse = z.infer<typeof getToolBoxStatusResponseSchema>;
-export type McpService = z.infer<typeof mcpServiceSchema>; 
+export type McpService = z.infer<typeof mcpServiceSchema>;
+
+// Aliases for server compatibility
+export const searchAvailableToolBoxesResponseSchema = getAvailableToolBoxesResponseSchema;
+export const listToolsFromToolBoxesResponseSchema = installToolBoxResponseSchema;
+export const configureToolBoxResponseSchema = enableToolBoxResponseSchema;
+export const getToolsResponseSchema = executeToolResponseSchema;
+export const getMcpToolsResponseSchema = getLocalToolBoxesResponseSchema;
+export const getMcpListResponseSchema = z.object({ type: z.literal('getMcpListResponse'), list: z.array(z.any()) });
+export const getAllMCPToolsResponseSchema = getLocalToolBoxesResponseSchema;
+export const getEnabledMCPSResponseSchema = getEnabledToolBoxesResponseSchema;
+export const configureMCPToolResponseSchema = z.object({ type: z.literal('configureMCPToolResponse'), success: z.boolean(), error: z.string().optional() });
+export const mcpErrorResponseSchema = z.object({ type: z.literal('mcpError'), error: z.string(), code: z.string().optional() });
+export const mcpStartupErrorMessageSchema = z.object({ type: z.literal('mcpStartupError'), error: z.string(), serverName: z.string().optional() });
+export const mcpServiceMessageSchema = mcpServiceSchema;
+
+export type SearchAvailableToolBoxesResponse = z.infer<typeof searchAvailableToolBoxesResponseSchema>;
+export type ListToolsFromToolBoxesResponse = z.infer<typeof listToolsFromToolBoxesResponseSchema>;
+export type ConfigureToolBoxResponse = z.infer<typeof configureToolBoxResponseSchema>;
+export type GetToolsResponse = z.infer<typeof getToolsResponseSchema>;
+export type GetMcpToolsResponse = z.infer<typeof getMcpToolsResponseSchema>;
+export type GetMcpListResponse = z.infer<typeof getMcpListResponseSchema>;
+export type GetAllMCPToolsResponse = z.infer<typeof getAllMCPToolsResponseSchema>;
+export type GetEnabledMCPSResponse = z.infer<typeof getEnabledMCPSResponseSchema>;
+export type ConfigureMCPToolResponse = z.infer<typeof configureMCPToolResponseSchema>;
+export type McpErrorResponse = z.infer<typeof mcpErrorResponseSchema>;
+export type McpStartupErrorMessage = z.infer<typeof mcpStartupErrorMessageSchema>;
+export type McpServiceMessage = z.infer<typeof mcpServiceMessageSchema>;
