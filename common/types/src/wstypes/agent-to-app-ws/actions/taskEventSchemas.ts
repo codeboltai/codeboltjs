@@ -458,3 +458,19 @@ export type GetTaskDependencyChainEvent = z.infer<typeof getTaskDependencyChainE
 export type GetTaskStatsEvent = z.infer<typeof getTaskStatsEventSchema>;
 export type TaskEvent = z.infer<typeof taskEventSchema>;
 
+// Response type aliases for server compatibility
+export type CreateTaskResponse = any;
+export type GetTaskListResponse = any;
+export type GetTaskDetailResponse = any;
+export type StartTaskWithAgentResponse = any;
+export type TaskErrorResponse = any;
+export type UpdateTaskResponse = any;
+export type TaskServiceResponse = any;
+export type ExtendedTask = any;
+export type DeleteTaskResponse = any;
+export type AssignAgentResponse = any;
+export type AssignAgentToTaskResponse = any;
+export type AssignAgentEvent = any;
+export type AssignAgentToTaskEvent = any;
+export type StartTaskWithAgentEvent = any;
+

@@ -109,4 +109,8 @@ export type DebugMcpToolExecuting = z.infer<typeof debugMcpToolExecutingSchema>;
 export type DebugMcpToolSuccess = z.infer<typeof debugMcpToolSuccessSchema>;
 export type DebugMcpToolError = z.infer<typeof debugMcpToolErrorSchema>;
 export type DebugMcpToolRejected = z.infer<typeof debugMcpToolRejectedSchema>;
-export type DebugService = z.infer<typeof debugServiceSchema>; 
+export type DebugService = z.infer<typeof debugServiceSchema>;
+
+// Aliases for server compatibility
+export const debugServiceMessageSchema = debugServiceSchema;
+export type DebugServiceMessage = DebugService;

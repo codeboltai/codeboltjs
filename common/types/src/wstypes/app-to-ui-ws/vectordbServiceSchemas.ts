@@ -172,4 +172,12 @@ export type ListVectorItemsResponse = z.infer<typeof listVectorItemsResponseSche
 export type SearchVectorItemsResponse = z.infer<typeof searchVectorItemsResponseSchema>;
 export type GetVectorStatsResponse = z.infer<typeof getVectorStatsResponseSchema>;
 export type ClearVectorDatabaseResponse = z.infer<typeof clearVectorDatabaseResponseSchema>;
-export type VectordbService = z.infer<typeof vectordbServiceSchema>; 
+export type VectordbService = z.infer<typeof vectordbServiceSchema>;
+
+// Aliases for server compatibility
+export const queryVectorItemsResponseSchema = queryVectorItemResponseSchema;
+export type QueryVectorItemsResponse = QueryVectorItemResponse;
+export const vectordbErrorResponseSchema = z.object({ type: z.literal('vectordbError'), error: z.string() });
+export type VectordbErrorResponse = z.infer<typeof vectordbErrorResponseSchema>;
+export const vectordbServiceMessageSchema = vectordbServiceSchema;
+export type VectordbServiceMessage = VectordbService;

@@ -86,4 +86,7 @@ export type CommandOutputResponse = z.infer<typeof CommandOutputResponseSchema>;
 export type CommandErrorResponse = z.infer<typeof CommandErrorResponseSchema>;
 export type CommandFinishResponse = z.infer<typeof CommandFinishResponseSchema>;
 export type TerminalInterruptResponse = z.infer<typeof TerminalInterruptResponseSchema>;
-export type TerminalServiceResponse = z.infer<typeof TerminalServiceResponseSchema>; 
+export type TerminalServiceResponse = z.infer<typeof TerminalServiceResponseSchema>;
+
+// Aliases for backward compatibility
+export type TerminalServiceErrorResponse = TerminalServiceResponse;

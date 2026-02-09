@@ -41,6 +41,9 @@
       "Read(//tmp/**)",
       "Bash(git stash:*)",
       "Bash(git restore:*)",
+      "WebSearch",
+      "WebFetch(domain:paddo.dev)",
+      "WebFetch(domain:gist.github.com)",
       "Bash(unzip:*)",
       "Bash(npm view:*)",
       "Bash(npm run build:dll:*)"

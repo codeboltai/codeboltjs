@@ -191,4 +191,8 @@ export type GetTerminalStatusResponse = z.infer<typeof getTerminalStatusResponse
 export type SetTerminalDirectoryResponse = z.infer<typeof setTerminalDirectoryResponseSchema>;
 export type GetTerminalHistoryResponse = z.infer<typeof getTerminalHistoryResponseSchema>;
 export type ClearTerminalResponse = z.infer<typeof clearTerminalResponseSchema>;
-export type TerminalServiceMessage = z.infer<typeof terminalServiceMessageSchema>; 
+export type TerminalServiceMessage = z.infer<typeof terminalServiceMessageSchema>;
+
+// Aliases for server compatibility
+export const terminalServiceSchema = terminalServiceMessageSchema;
+export type TerminalService = TerminalServiceMessage;

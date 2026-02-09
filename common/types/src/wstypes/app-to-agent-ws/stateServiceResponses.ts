@@ -94,4 +94,7 @@ export type GetAgentStateResponse = z.infer<typeof GetAgentStateResponseSchema>;
 export type GetProjectStateResponse = z.infer<typeof GetProjectStateResponseSchema>;
 export type UpdateProjectStateResponse = z.infer<typeof UpdateProjectStateResponseSchema>;
 export type StateOperationErrorResponse = z.infer<typeof StateOperationErrorResponseSchema>;
-export type StateServiceResponse = z.infer<typeof StateServiceResponseSchema>; 
+export type StateServiceResponse = z.infer<typeof StateServiceResponseSchema>;
+
+// Aliases for backward compatibility
+export type StateOperationSuccessResponse = StateServiceResponse;

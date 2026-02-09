@@ -208,4 +208,21 @@ export type WaitForReplyResponse = z.infer<typeof waitForReplyResponseSchema>;
 export type ConfirmationRequestResponse = z.infer<typeof confirmationRequestResponseSchema>;
 export type FileReadWriteRequestResponse = z.infer<typeof fileReadWriteRequestResponseSchema>;
 export type ConfirmationWithFeedbackResponse = z.infer<typeof confirmationWithFeedbackResponseSchema>;
-export type MessageService = z.infer<typeof messageServiceSchema>; 
+export type MessageService = z.infer<typeof messageServiceSchema>;
+
+// Aliases for server compatibility
+export const confirmationChatMessageSchema = codeConfirmationMessageSchema;
+export const sendMessageEventSchema = sendMessageResponseSchema;
+export const processStartedEventSchema = infoWithLinkMessageSchema;
+export const processStoppedEventSchema = infoWithLinkMessageSchema;
+export const confirmationRequestEventSchema = confirmationRequestResponseSchema;
+export const waitForReplyEventSchema = waitForReplyResponseSchema;
+export const messageServiceMessageSchema = messageServiceSchema;
+
+export type ConfirmationChatMessage = CodeConfirmationMessage;
+export type SendMessageEvent = SendMessageResponse;
+export type ProcessStartedEvent = InfoWithLinkMessage;
+export type ProcessStoppedEvent = InfoWithLinkMessage;
+export type ConfirmationRequestEvent = ConfirmationRequestResponse;
+export type WaitForReplyEvent = WaitForReplyResponse;
+export type MessageServiceMessage = MessageService;

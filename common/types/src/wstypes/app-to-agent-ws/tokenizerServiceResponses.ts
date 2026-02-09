@@ -55,4 +55,7 @@ export const tokenizerServiceResponseSchema = TokenizerServiceResponseSchema;
 export type AddTokenResponse = z.infer<typeof AddTokenResponseSchema>;
 export type GetTokenResponse = z.infer<typeof GetTokenResponseSchema>;
 export type TokenizerErrorResponse = z.infer<typeof TokenizerErrorResponseSchema>;
-export type TokenizerServiceResponse = z.infer<typeof TokenizerServiceResponseSchema>; 
+export type TokenizerServiceResponse = z.infer<typeof TokenizerServiceResponseSchema>;
+
+// Aliases for backward compatibility
+export type TokenizerOperationSuccessResponse = TokenizerServiceResponse;
