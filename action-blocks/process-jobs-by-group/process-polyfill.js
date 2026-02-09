@@ -1,0 +1,23 @@
+// Minimal process polyfill for webpack
+module.exports = {
+    env: {},
+    cwd: function () { return '/'; },
+    nextTick: function (fn) { setTimeout(fn, 0); },
+    platform: 'browser',
+    version: '',
+    versions: {},
+    argv: [],
+    on: function () { },
+    once: function () { },
+    off: function () { },
+    emit: function () { },
+    removeListener: function () { },
+    removeAllListeners: function () { },
+    listeners: function () { return []; },
+    binding: function () { throw new Error('process.binding is not supported'); },
+    umask: function () { return 0; },
+    hrtime: function () { return [0, 0]; },
+    uptime: function () { return 0; },
+    memoryUsage: function () { return { rss: 0, heapTotal: 0, heapUsed: 0, external: 0 }; },
+    cpuUsage: function () { return { user: 0, system: 0 }; },
+};

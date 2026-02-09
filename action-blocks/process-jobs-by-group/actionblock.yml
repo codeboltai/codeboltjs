@@ -1,0 +1,40 @@
+name: process-jobs-by-group
+description: Processes all jobs in a job group with dependency management - dispatching independent jobs to background agent threads and resolving dependencies as jobs complete
+version: 1.0.0
+entryPoint: dist/index.js
+metadata:
+  author: Codebolt Team
+  tags:
+    - jobs
+    - orchestration
+    - dependency-management
+    - parallel-processing
+  dependencies:
+    - "@codebolt/codeboltjs"
+    - "@codebolt/agent"
+    - "@codebolt/types"
+  inputs:
+    - name: jobGroupId
+      type: string
+      required: true
+      description: ID of the job group to process
+    - name: workerAgentId
+      type: string
+      required: true
+      description: Agent ID to assign and process jobs with
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether all jobs were processed successfully
+    - name: processedJobs
+      type: array
+      description: List of successfully processed job IDs
+    - name: failedJobs
+      type: array
+      description: List of failed job IDs
+    - name: totalProcessed
+      type: number
+      description: Total number of jobs processed
+    - name: error
+      type: string
+      description: Error message if operation failed

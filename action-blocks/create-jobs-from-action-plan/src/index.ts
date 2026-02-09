@@ -32,10 +32,10 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         }
 
         // Step 1: Read requirement plan
-        codebolt.chat.sendMessage(MESSAGES.READING_PLAN(requirementPlanId), {});
+        // codebolt.chat.sendMessage(MESSAGES.READING_PLAN(requirementPlanId), {});
 
         const planResponse = await codebolt.requirementPlan.get(requirementPlanId);
-        codebolt.chat.sendMessage(JSON.stringify(planResponse), {});
+        // codebolt.chat.sendMessage(JSON.stringify(planResponse), {});
         if (!planResponse.success || !planResponse.data) {
             const errorMsg = MESSAGES.ERROR_READING_PLAN(planResponse.error || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});
@@ -50,7 +50,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         const reqPlan: RequirementPlanDocument = planResponse.data;
 
         // Step 2: Extract sections
-        codebolt.chat.sendMessage(MESSAGES.EXTRACTING_SECTIONS(), {});
+        // codebolt.chat.sendMessage(MESSAGES.EXTRACTING_SECTIONS(), {});
 
         const specsSection = reqPlan.sections.find(s => s.type === 'specs-link');
         const actionPlanSection = reqPlan.sections.find(s => s.type === 'actionplan-link');
@@ -58,7 +58,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         const specsPath = specsSection?.linkedFile;
         const actionPlanId = actionPlanSection?.linkedFile;
 
-        codebolt.chat.sendMessage(MESSAGES.FOUND_SECTIONS(specsPath, actionPlanId), {});
+        // codebolt.chat.sendMessage(MESSAGES.FOUND_SECTIONS(specsPath, actionPlanId), {});
 
         // Validate action plan section exists
         if (!actionPlanId) {
@@ -80,7 +80,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         // Step 3: Read specs file (if exists)
         let specsContent = '';
         if (specsPath) {
-            codebolt.chat.sendMessage(MESSAGES.READING_SPECS(specsPath), {});
+            // codebolt.chat.sendMessage(MESSAGES.READING_SPECS(specsPath), {});
 
             try {
                 const specsResponse = await codebolt.fs.readFile(specsPath);
@@ -96,10 +96,10 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         }
 
         // Step 4: Fetch action plan details
-        codebolt.chat.sendMessage(MESSAGES.READING_ACTION_PLAN(actionPlanId), {});
+        // codebolt.chat.sendMessage(MESSAGES.READING_ACTION_PLAN(actionPlanId), {});
 
         const actionPlanResponse = await codebolt.actionPlan.getPlanDetail(actionPlanId);
-        codebolt.chat.sendMessage(JSON.stringify(actionPlanResponse), {});
+        // codebolt.chat.sendMessage(JSON.stringify(actionPlanResponse), {});
         if (!actionPlanResponse.success || !actionPlanResponse.actionPlan) {
             const errorMsg = MESSAGES.ERROR_READING_ACTION_PLAN(actionPlanResponse.message || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});
