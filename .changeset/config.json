@@ -66,7 +66,6 @@
     "codebolt-dummytui",
     "codebolt-wsproxyserver",
     "codeboltcontainers",
-    "codeboltjs-test-project",
     "container-app",
     "dockerprovideragent",
     "epoml",
@@ -85,6 +84,12 @@
     "@codebolt/create-jobs-from-action-plan",
     "@codebolt/create-plan-from-job",
     "@codebolt/process-jobs-by-group",
-    "submit-merge-request"
+    "submit-merge-request",
+    "chat-comparator-testing",
+    "remote-task-agent",
+    "reviewer-agent",
+    "test-deliberation-agent",
+    "visual-codebolt-testing",
+    "@codebolt/claude-code"
   ]
 }
