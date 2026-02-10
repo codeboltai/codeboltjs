@@ -26,7 +26,7 @@ class RequirementPlanReviewInvocation extends BaseToolInvocation<RequirementPlan
             }
 
             return {
-                llmContent: `Requirement plan review status: ${response.data.status || 'pending'}`,
+                llmContent: `Requirement plan review status: ${response.data.status || 'pending'} `,
                 returnDisplay: `Review status: ${response.status || 'pending'}`,
             };
         } catch (error) {

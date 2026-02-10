@@ -52,6 +52,7 @@
     "@codebolt/utils",
     "@codeboltagent/main-swarm-agent",
     "@codeboltagent/main-swarm-agent-bkp",
+    "@@codebolt/planner-with-multi-agent",
     "@epoml/example",
     "@tests",
     "Planner",

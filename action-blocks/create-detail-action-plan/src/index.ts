@@ -19,7 +19,7 @@ interface ActionBlockResult {
     success: boolean;
     specs_path?: string;
     action_plan?: string;
-    requirementplan?: string;
+    createdRequirementPlanPath?: string;
     error?: string;
 }
 
@@ -50,6 +50,12 @@ ${planContent}`;
     let completed = false;
     let finalMessage = "";
 
+    // Track artifacts as they are created across iterations
+    let createdSpecsPath: string | undefined;
+    let createdActionPlanId: string | undefined;
+    let createdRequirementPlanPath: string | undefined;
+    let reviewApproved = false;
+
     do {
         const agent = new AgentStep({
             preInferenceProcessors: [],
@@ -77,10 +83,57 @@ ${planContent}`;
             finalMessage = executionResult.finalMessage;
         }
 
-        // VALIDATION CHECK: Ensure all planning artifacts were created AND reviewed
-        // This ActionBlock is for PLANNING ONLY - we check that plans were created and approved
-        if (completed) {
+        // Check tool results from this iteration for requirement_plan_review approval
+        if (executionResult.toolResults && executionResult.toolResults.length > 0) {
+            for (const toolResult of executionResult.toolResults) {
+                const content = typeof toolResult.content === 'string' ? toolResult.content : JSON.stringify(toolResult.content);
 
+                // Track requirement_plan_create path
+                const reqPlanCreateMatch = content.match(/[Rr]equirement plan created at:\s*(\S+)/);
+                if (reqPlanCreateMatch) createdRequirementPlanPath = reqPlanCreateMatch[1];
+
+                // Track filePath from JSON responses (e.g. {"filePath":"..."})
+                try {
+                    const parsed = JSON.parse(content);
+                    if (parsed.filePath && !createdRequirementPlanPath) {
+                        createdRequirementPlanPath = parsed.filePath;
+                    }
+                } catch { /* not JSON, skip */ }
+
+                // Track action plan ID
+                const planIdMatch = content.match(/ID:\s*([a-zA-Z0-9_-]+)/);
+                if (planIdMatch) createdActionPlanId = planIdMatch[1];
+
+                // Detect requirement_plan_review approval
+                const reviewStatusMatch = content.match(/review status:\s*(approved|rejected)/i);
+                if (reviewStatusMatch && reviewStatusMatch[1].toLowerCase() === 'approved') {
+                    reviewApproved = true;
+                }
+            }
+        }
+
+        // Also scan conversation messages for any missed artifacts
+        if (prompt.message && prompt.message.messages) {
+            for (const msg of prompt.message.messages) {
+                if (msg.role === 'tool') {
+                    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+                    if (!createdRequirementPlanPath) {
+                        const reqPlanCreateMatch = content.match(/[Rr]equirement plan created at:\s*(\S+)/);
+                        if (reqPlanCreateMatch) createdRequirementPlanPath = reqPlanCreateMatch[1];
+                    }
+                }
+            }
+        }
+
+        // If review was approved, return immediately — don't wait for attempt_completion
+        if (reviewApproved && createdRequirementPlanPath) {
+            codebolt.chat.sendMessage(`Requirement plan created successfully ${createdRequirementPlanPath}`);
+            return {
+                success: true,
+                specs_path: createdSpecsPath,
+                action_plan: createdActionPlanId,
+                createdRequirementPlanPath: createdRequirementPlanPath,
+            };
         }
 
         if (completed) {
@@ -88,42 +141,15 @@ ${planContent}`;
         }
     } while (!completed);
 
-    let createdSpecsPath: string | undefined;
-    let createdActionPlanId: string | undefined;
-    let createdRequirementPlanPath: string | undefined;
-
-    if (prompt.message && prompt.message.messages) {
-        for (const msg of prompt.message.messages) {
-            if (msg.role === 'tool') {
-                const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-                const planIdMatch = content.match(/ID:\s*([a-zA-Z0-9_-]+)/);
-                if (planIdMatch) createdActionPlanId = planIdMatch[1];
-
-                const reqPlanPathMatch = content.match(/requirement plan.*at:\s*(\S+)/i);
-                if (reqPlanPathMatch) createdRequirementPlanPath = reqPlanPathMatch[1];
-            } else if (msg.role === 'assistant') {
-                const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-                const specsPathMatch = content.match(/specs\/[a-zA-Z0-9_-]+\.specs/);
-                if (specsPathMatch) createdSpecsPath = specsPathMatch[0];
-            }
-        }
-    }
-
-    if (createdRequirementPlanPath) {
-        return {
-            success: true,
-            specs_path: createdSpecsPath,
-            action_plan: createdActionPlanId,
-            requirementplan: createdRequirementPlanPath
-        };
-    } else {
-        return {
-            success: completed,
-            specs_path: createdSpecsPath,
-            action_plan: createdActionPlanId,
-            requirementplan: createdRequirementPlanPath
-        };
-    }
+    // If loop ended without approval (e.g. LLM called attempt_completion before approval, or review was rejected)
+    return {
+        success: false,
+        specs_path: createdSpecsPath,
+        action_plan: createdActionPlanId,
+        error: !reviewApproved
+            ? 'Requirement plan was not approved by user'
+            : 'Requirement plan path not found',
+    };
 }
 
 // ================================
