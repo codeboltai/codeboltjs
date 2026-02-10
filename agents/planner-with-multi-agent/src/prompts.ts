@@ -61,12 +61,13 @@ This will create a \`.specs\` file in the \`specs/\` directory.
 - The plan goes ONLY to the create-detail-action-plan ActionBlock, not to the user
 
 **🚨 AFTER the \`startActionBlock\` tool returns, you MUST call \`attempt_completion\` IMMEDIATELY as your VERY NEXT tool call.**
-- The \`create-detail-action-plan\` ActionBlock will return a result containing the path to the created requirement plan (e.g., "createdRequirementPlanPath").
+- The \`create-detail-action-plan\` ActionBlock will return a result containing the path to the created requirement plan (e.g., "requirementPlanPath").
 - You MUST extract this path and pass it to \`attempt_completion\`.
 - The \`attempt_completion\` tool expects a \`result\` object with the following format:
-  \`\`\`json
+  \`\`\`
   {
       "status": "success",
+      "specsPath": "<path_returned_by_action_block>",
       "requirementPlanPath": "<path_returned_by_action_block>"
   }
   \`\`\`

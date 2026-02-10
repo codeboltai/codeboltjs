@@ -19,7 +19,7 @@ interface ActionBlockResult {
     success: boolean;
     specs_path?: string;
     action_plan?: string;
-    createdRequirementPlanPath?: string;
+    requirementPlanPath?: string;
     error?: string;
 }
 
@@ -107,12 +107,12 @@ ${planContent}`;
         if (completed) {
             try {
                 const { result } = JSON.parse(finalMessage);
-                codebolt.chat.sendMessage(`Completion result: ${JSON.stringify(result)}`);
+                // codebolt.chat.sendMessage(`Completion result: ${JSON.stringify(result)}`);
 
                 if (result.status == 'success' && result.requirementPlanPath) {
                     return {
                         success: true,
-                        createdRequirementPlanPath: result.requirementPlanPath,
+                        requirementPlanPath: result.requirementPlanPath,
                         // Optional fields if provided in result
                         specs_path: result.specs_path,
                         action_plan: result.action_plan,
@@ -141,6 +141,7 @@ ${planContent}`;
     // If loop ended without approval (e.g. LLM called attempt_completion before approval, or review was rejected)
     return {
         success: false,
+        requirementPlanPath: createdRequirementPlanPath,
         specs_path: createdSpecsPath,
         action_plan: createdActionPlanId,
         error: !reviewApproved

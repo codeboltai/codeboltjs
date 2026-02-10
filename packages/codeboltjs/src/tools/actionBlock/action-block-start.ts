@@ -30,11 +30,7 @@ class StartActionBlockInvocation extends BaseToolInvocation<StartActionBlockPara
                 };
             }
 
-            const content = response.sideExecutionId
-                ? `ActionBlock "${this.params.actionBlockName}" started. ID: ${response.sideExecutionId}`
-                : `ActionBlock "${this.params.actionBlockName}" started`;
-
-            return { llmContent: content, returnDisplay: content };
+            return { llmContent: JSON.stringify(response), returnDisplay: JSON.stringify(response) };
         } catch (error) {
             return {
                 llmContent: `Error: ${error}`,

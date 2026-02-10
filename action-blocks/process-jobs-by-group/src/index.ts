@@ -167,7 +167,7 @@ codebolt.onActionBlockInvocation(async (
                         const threadResult = await codebolt.thread.createThreadInBackground({
                             title: `Job: ${job.name}`,
                             userMessage: createJobMessage(job),
-                            agentId: workerAgentId,
+                            selectedAgent: { id: workerAgentId },
                             groupId: jobGroupId,
                             metadata: { jobId: job.id }
                         });

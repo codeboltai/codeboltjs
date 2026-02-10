@@ -1,23 +1,17 @@
-// Minimal process polyfill for webpack
-module.exports = {
-    env: {},
-    cwd: function () { return '/'; },
-    nextTick: function (fn) { setTimeout(fn, 0); },
-    platform: 'browser',
-    version: '',
-    versions: {},
-    argv: [],
-    on: function () { },
-    once: function () { },
-    off: function () { },
-    emit: function () { },
-    removeListener: function () { },
-    removeAllListeners: function () { },
-    listeners: function () { return []; },
-    binding: function () { throw new Error('process.binding is not supported'); },
-    umask: function () { return 0; },
-    hrtime: function () { return [0, 0]; },
-    uptime: function () { return 0; },
-    memoryUsage: function () { return { rss: 0, heapTotal: 0, heapUsed: 0, external: 0 }; },
-    cpuUsage: function () { return { user: 0, system: 0 }; },
-};
+const process = require('process/browser');
+
+// Preserve the original process.env from the Node.js environment
+const originalEnv = typeof global !== 'undefined' && global.process && global.process.env
+    ? global.process.env
+    : (typeof window !== 'undefined' && window.process && window.process.env
+        ? window.process.env
+        : {});
+
+// Merge the original env with the browser polyfill
+process.env = { ...originalEnv, ...process.env };
+
+// Add the versions property that's missing in the browser polyfill
+process.versions = process.versions || {};
+process.versions.node = process.versions.node || '18.16.1'; // Default Node.js version
+
+module.exports = process;

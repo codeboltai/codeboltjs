@@ -9,19 +9,20 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'index.js',
-        libraryTarget: 'commonjs2',
+        libraryTarget: 'commonjs2', // Ensures compatibility with Node.js module system
     },
 
     plugins: [
         new CopyWebpackPlugin({
             patterns: [
-                { from: 'actionblock.yml', to: './' },
+                { from: 'actionblock.yml', to: './' }, // Copy actionblock.yml to the dist folder
             ],
         }),
         new webpack.ProvidePlugin({
             process: path.resolve(__dirname, 'process-polyfill.js'),
             Buffer: ['buffer', 'Buffer'],
         }),
+        // Define __dirname and __filename to be the actual runtime values
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
             ...Object.keys(process.env).reduce((env, key) => {
@@ -30,11 +31,12 @@ module.exports = {
             }, {}),
             'process.versions.node': JSON.stringify(process.versions.node),
             'process.versions': JSON.stringify(process.versions),
-            'module.parent': JSON.stringify({}),
+            'module.parent': JSON.stringify({}), // Force module.parent to be truthy to disable debug mode
         }),
         new webpack.IgnorePlugin({
             resourceRegExp: /test\/.*\.pdf$/,
         }),
+        // Ignore optional native WebSocket dependencies
         new webpack.IgnorePlugin({
             resourceRegExp: /^bufferutil$/,
         }),
@@ -43,7 +45,7 @@ module.exports = {
         }),
     ],
     resolve: {
-        extensions: ['.ts', '.js', '.handlebars'],
+        extensions: ['.ts', '.js', '.handlebars'], // Include TypeScript and handlebars
         fallback: {
             path: require.resolve('path-browserify'),
             fs: false,
@@ -77,7 +79,9 @@ module.exports = {
             diagnostics_channel: false,
             sqlite: false,
         },
-        alias: {}
+        alias: {
+            // Add any specific module aliases if needed
+        }
     },
     module: {
         rules: [
@@ -88,17 +92,17 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                exclude: /node_modules[\\/]pdf-parse/,
+                exclude: /node_modules[\\\/\\]pdf-parse/, // Exclude pdf-parse to avoid large file warnings
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        compact: false,
+                        compact: false, // Disable compact mode to avoid large file warnings
                         presets: [
                             [
                                 '@babel/preset-env',
                                 {
                                     targets: {
-                                        node: 'current',
+                                        node: 'current', // Ensure compatibility with the current Node.js version
                                     },
                                 },
                             ],
@@ -108,7 +112,7 @@ module.exports = {
             },
             {
                 test: /\.handlebars$/,
-                use: 'handlebars-loader',
+                use: 'handlebars-loader', // Process .handlebars files
             },
             {
                 test: /\.node$/,
@@ -118,10 +122,10 @@ module.exports = {
         ],
     },
     experiments: {
-        topLevelAwait: true,
+        topLevelAwait: true, // Enable top-level await for dynamic imports
     },
     optimization: {
-        minimize: false,
+        minimize: false, // Disable minimization for easier debugging
     },
     node: {
         global: true,
@@ -129,11 +133,14 @@ module.exports = {
         __dirname: false,
     },
     externals: [
+        // Only exclude built-in Node.js modules
         function ({ request }, callback) {
             if (request.match(/^node:/)) {
+                // Handle node: protocol imports
                 return callback(null, "commonjs " + request.substr(5));
             }
             if (request.match(/^[a-z][a-z\/\.\-0-9]*$/i) && !request.includes('@codebolt')) {
+                // If it's a built-in module (but not @codebolt modules), externalize it
                 const builtinModules = [
                     'assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events',
                     'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream',

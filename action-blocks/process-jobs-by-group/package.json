@@ -9,18 +9,14 @@
         "build": "npx webpack",
         "dev": "npx tsx src/index.ts",
         "clean": "rimraf dist",
-        "prebuild": "npm run clean",
-        "typecheck": "npx tsc --noEmit",
-        "lint": "npx eslint src/"
+        "prebuild": "npm run clean"
     },
     "keywords": [
         "ai",
         "agent",
         "codebolt",
-        "jobs",
-        "orchestration",
-        "dependency-management",
-        "parallel-processing"
+        "llm",
+        "specs"
     ],
     "author": "",
     "license": "MIT",
@@ -31,7 +27,8 @@
         "@codebolt/types": "workspace:*",
         "copy-webpack-plugin": "^12.0.2",
         "node-loader": "^2.1.0",
-        "utf-8-validate": "^6.0.5"
+        "utf-8-validate": "^6.0.5",
+        "zod": "^3.22.4"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.26.0",
