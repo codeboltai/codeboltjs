@@ -20,5 +20,6 @@
     "webpack-cli": "^5.1.0",
     "ts-loader": "^9.4.0",
     "@types/node": "^20.0.0"
-  }
+  },
+  "private": true
 }
