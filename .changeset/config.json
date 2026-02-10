@@ -52,7 +52,10 @@
     "@codebolt/utils",
     "@codeboltagent/main-swarm-agent",
     "@codeboltagent/main-swarm-agent-bkp",
-    "@@codebolt/planner-with-multi-agent",
+    "planner-with-multi-agent",
+    "@codebolt/create-detail-specification",
+    "@codebolt/create-plan-for-given-task",
+    "deleberation-one-out-of-n",
     "@epoml/example",
     "@tests",
     "Planner",
@@ -76,6 +79,12 @@
     "swarm-task-spliter-agent",
     "swarmbkp",
     "swarmfunctiontester",
-    "testingagent"
+    "testingagent",
+    "@codebolt/break-task-into-jobs",
+    "@codebolt/create-jobs-from-plan",
+    "@codebolt/create-jobs-from-action-plan",
+    "@codebolt/create-plan-from-job",
+    "@codebolt/process-jobs-by-group",
+    "submit-merge-request"
   ]
 }
