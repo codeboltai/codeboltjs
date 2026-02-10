@@ -1,5 +1,11 @@
 # @codebolt/types
 
+## 5.0.8
+
+### Patch Changes
+
+- updated the types and Structure for clientsdk
+
 ## 5.0.7
 
 ### Patch Changes

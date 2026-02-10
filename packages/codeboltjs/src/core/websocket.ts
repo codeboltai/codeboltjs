@@ -67,34 +67,31 @@ class cbws {
         const serverUrl = process.env.CODEBOLT_SERVER_URL || 'localhost';
         const threadToken =process.env.threadToken|| null
 
-        // console.log('[WebSocket] Logging all relevant variables:');
-        // console.log('uniqueConnectionId:', uniqueConnectionId);
-        // console.log('initialMessage:', initialMessage);
-        // console.log('agentIdParam:', agentIdParam);
-        // console.log('parentIdParam:', parentIdParam);
-        // console.log('parentAgentInstanceIdParam:', parentAgentInstanceIdParam);
-        // console.log('agentTask:', agentTask);
-        // console.log('socketPort:', socketPort);
-        // console.log('serverUrl:', serverUrl);
-        // console.log('threadToken:', threadToken);
-        // console.log('[WebSocket] Environment variables check:');
-        // console.log('process.env.agentId:', process.env.agentId);
-        // console.log('process.env.threadToken:', process.env.threadToken);
-        // console.log('process.env.parentId:', process.env.parentId);
-        // console.log('process.env.agentTask:', process.env.agentTask);
-        
+        // Plugin mode detection
+        const isPlugin = process.env.IS_PLUGIN === 'true';
+        const pluginId = process.env.pluginId || '';
+        const pluginToken = process.env.pluginToken || '';
+
         const threadTokenParam = threadToken ? `&threadToken=${encodeURIComponent(threadToken)}` : '';
-        
+
         // Add all custom environment variables as URL parameters
-        const knownEnvVars = ['SOCKET_PORT', 'CODEBOLT_SERVER_URL', 'agentId', 'parentId', 'parentAgentInstanceId', 'agentTask', 'threadToken', 'Is_Dev', 'PATH', 'NODE_ENV', 'HOME', 'USER', 'SHELL'];
+        const knownEnvVars = ['SOCKET_PORT', 'CODEBOLT_SERVER_URL', 'agentId', 'parentId', 'parentAgentInstanceId', 'agentTask', 'threadToken', 'Is_Dev', 'PATH', 'NODE_ENV', 'HOME', 'USER', 'SHELL', 'IS_PLUGIN', 'pluginId', 'pluginToken', 'PLUGIN_DIR', 'instanceId'];
         let customParams = '';
         for (const [key, value] of Object.entries(process.env)) {
             if (!knownEnvVars.includes(key) && value && !key.startsWith('npm_') && !key.startsWith('_')) {
                 customParams += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
             }
         }
-        
-        const wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${threadTokenParam}${customParams}${process.env.Is_Dev ? '&dev=true' : ''}`;
+
+        let wsUrl: string;
+        if (isPlugin) {
+            // Plugins connect to /plugin endpoint with pluginId/pluginToken
+            wsUrl = `ws://${serverUrl}:${socketPort}/plugin?id=${uniqueConnectionId}&pluginId=${encodeURIComponent(pluginId)}&pluginToken=${encodeURIComponent(pluginToken)}${customParams}`;
+            console.log('[WebSocket] Plugin mode detected, connecting to /plugin endpoint');
+        } else {
+            // Agents connect to /codebolt endpoint (existing behavior)
+            wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${threadTokenParam}${customParams}${process.env.Is_Dev ? '&dev=true' : ''}`;
+        }
         console.log('[WebSocket] Connecting to:', serverUrl);
         
         this.websocket = new WebSocket(wsUrl);
