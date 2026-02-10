@@ -296,8 +296,8 @@ export class ResponseExecutor implements AgentResponseExecutor {
                 if (taskCompletedBlock) {
                     const completionArgs = JSON.parse(taskCompletedBlock.function.arguments || "{}");
                     // Capture the final message from attempt_completion
-                    if (completionArgs.result) {
-                        this.finalMessage = completionArgs.result;
+                    if (completionArgs) {
+                        this.finalMessage = JSON.stringify(completionArgs);
                     }
 
                     let [_, result] = await this.executeTool(

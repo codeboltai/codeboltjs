@@ -41,7 +41,28 @@ ${planContent}`;
             new EnvironmentContextModifier({ enableFullContext: true }),
             new DirectoryContextModifier(),
             new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
-            new ToolInjectionModifier({ includeToolDescriptions: true })
+            new ToolInjectionModifier({
+                includeToolDescriptions: true,
+                // allowedTools: [
+                //     // FS tools
+                //     'codebolt--fs_create_file', 'codebolt--fs_create_folder', 'codebolt--fs_read_file', 'codebolt--fs_update_file',
+                //     'codebolt--fs_delete_file', 'codebolt--fs_delete_folder', 'codebolt--fs_list_file', 'codebolt--fs_grep_search',
+                //     'codebolt--fs_file_search', 'codebolt--fs_search_files', 'codebolt--fs_read_many_files', 'codebolt--fs_list_directory',
+                //     'codebolt--fs_list_code_definitions',
+                //     // Search tools
+                //     'codebolt--search_files', 'codebolt--codebase_search', 'codebolt--glob', 'codebolt--grep',
+                //     'codebolt--search_mcp_tool', 'codebolt--list_code_definition_names',
+                //     'codebolt--search_web', 'codebolt--search_get_first_link',
+                //     // Action Plan tools
+                //     'codebolt--actionPlan_getAll', 'codebolt--actionPlan_create', 'codebolt--actionPlan_addTask',
+                //     // Requirement Plan tools
+                //     'codebolt--requirement_plan_create', 'codebolt--requirement_plan_get', 'codebolt--requirement_plan_update',
+                //     'codebolt--requirement_plan_list', 'codebolt--requirement_plan_add_section',
+                //     'codebolt--requirement_plan_update_section', 'codebolt--requirement_plan_remove_section',
+                //     'codebolt--requirement_plan_reorder_sections', 'codebolt--requirement_plan_review',
+                //     'codebolt--attempt_completion'
+                // ],
+            })
         ],
         baseSystemPrompt: systemPrompt
     });
@@ -83,60 +104,36 @@ ${planContent}`;
             finalMessage = executionResult.finalMessage;
         }
 
-        // Check tool results from this iteration for requirement_plan_review approval
-        if (executionResult.toolResults && executionResult.toolResults.length > 0) {
-            for (const toolResult of executionResult.toolResults) {
-                const content = typeof toolResult.content === 'string' ? toolResult.content : JSON.stringify(toolResult.content);
-
-                // Track requirement_plan_create path
-                const reqPlanCreateMatch = content.match(/[Rr]equirement plan created at:\s*(\S+)/);
-                if (reqPlanCreateMatch) createdRequirementPlanPath = reqPlanCreateMatch[1];
-
-                // Track filePath from JSON responses (e.g. {"filePath":"..."})
-                try {
-                    const parsed = JSON.parse(content);
-                    if (parsed.filePath && !createdRequirementPlanPath) {
-                        createdRequirementPlanPath = parsed.filePath;
-                    }
-                } catch { /* not JSON, skip */ }
-
-                // Track action plan ID
-                const planIdMatch = content.match(/ID:\s*([a-zA-Z0-9_-]+)/);
-                if (planIdMatch) createdActionPlanId = planIdMatch[1];
-
-                // Detect requirement_plan_review approval
-                const reviewStatusMatch = content.match(/review status:\s*(approved|rejected)/i);
-                if (reviewStatusMatch && reviewStatusMatch[1].toLowerCase() === 'approved') {
-                    reviewApproved = true;
-                }
-            }
-        }
-
-        // Also scan conversation messages for any missed artifacts
-        if (prompt.message && prompt.message.messages) {
-            for (const msg of prompt.message.messages) {
-                if (msg.role === 'tool') {
-                    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-                    if (!createdRequirementPlanPath) {
-                        const reqPlanCreateMatch = content.match(/[Rr]equirement plan created at:\s*(\S+)/);
-                        if (reqPlanCreateMatch) createdRequirementPlanPath = reqPlanCreateMatch[1];
-                    }
-                }
-            }
-        }
-
-        // If review was approved, return immediately — don't wait for attempt_completion
-        if (reviewApproved && createdRequirementPlanPath) {
-            codebolt.chat.sendMessage(`Requirement plan created successfully ${createdRequirementPlanPath}`);
-            return {
-                success: true,
-                specs_path: createdSpecsPath,
-                action_plan: createdActionPlanId,
-                createdRequirementPlanPath: createdRequirementPlanPath,
-            };
-        }
-
         if (completed) {
+            try {
+                const { result } = JSON.parse(finalMessage);
+                codebolt.chat.sendMessage(`Completion result: ${JSON.stringify(result)}`);
+
+                if (result.status == 'success' && result.requirementPlanPath) {
+                    return {
+                        success: true,
+                        createdRequirementPlanPath: result.requirementPlanPath,
+                        // Optional fields if provided in result
+                        specs_path: result.specs_path,
+                        action_plan: result.action_plan,
+                    };
+                }
+            } catch (error) {
+                codebolt.chat.sendMessage(`Failed to parse completion result: ${error} ${finalMessage}`);
+                console.error("Failed to parse completion result:", error);
+            }
+
+            // If we are here, text processing failed or requirementPlanPath was missing.
+            // Force the agent to retry by adding a user message and setting completed = false.
+            if (prompt.message && (prompt.message as any).messages) {
+                (prompt.message as any).messages.push({
+                    role: 'user',
+                    content: "Missing 'requirementPlanPath' in the final completion result. You MUST call attempt_completion again with the following JSON structure:\n\n{\n  \"status\": \"success\",\n  \"requirementPlanPath\": \"<path_to_requirement_plan>\"\n}"
+                });
+                completed = false;
+                continue;
+            }
+
             break;
         }
     } while (!completed);

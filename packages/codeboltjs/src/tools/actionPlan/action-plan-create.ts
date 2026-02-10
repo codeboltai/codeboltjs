@@ -31,7 +31,7 @@ class CreateActionPlanInvocation extends BaseToolInvocation<CreateActionPlanPara
                 };
             }
 
-            const content = `Action plan "${name}" created successfully. ID: ${response.plan?.planId}`;
+            const content = JSON.stringify(response, null, 2)
             return { llmContent: content, returnDisplay: content };
         } catch (error) {
             return {

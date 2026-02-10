@@ -433,6 +433,10 @@ export * from './userMessageUtilities';
 export { utilsTools } from './utils';
 export * from './utils';
 
+// Export completion tools
+export { completionTools } from './completion';
+export * from './completion';
+
 // Import all tool arrays
 import { fileTools } from './file';
 import { searchTools } from './search';
@@ -468,6 +472,7 @@ import { historyTools } from './history';
 import { ToolRegistry } from './registry';
 import { actionBlockTools } from './actionBlock';
 import { actionPlanTools } from './actionPlan';
+import { completionTools } from './completion';
 import { kvStoreTools } from './kvStore';
 import { roadmapTools } from './roadmap';
 import { reviewMergeRequestTools } from './reviewMergeRequest';
@@ -534,7 +539,7 @@ export const allTools = [
     // ...codeutilsTools,
     // ...historyTools,
     ...actionBlockTools,
-    // ...actionPlanTools,
+    ...actionPlanTools,
     // ...kvStoreTools,
     // ...roadmapTools,
     // ...reviewMergeRequestTools,
@@ -560,10 +565,10 @@ export const allTools = [
     // ...persistentMemoryTools,
     // ...projectStructureUpdateRequestTools,
     ...requirementPlanTools,
-    // ...userMessageManagerTools,
     // ...userMessageUtilitiesTools,
     // ...utilsTools,
     // ...agentEventQueueTools,
+    ...completionTools,
 ];
 
 /**
@@ -679,6 +684,7 @@ const tools = {
     userMessageUtilities: userMessageUtilitiesTools,
     utils: utilsTools,
     agentEventQueue: agentEventQueueTools,
+    completion: completionTools,
 };
 
 export default tools;

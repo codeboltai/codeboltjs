@@ -235,6 +235,7 @@ codebolt.onActionBlockInvocation(async (threadContext: any, _metadata: any): Pro
         return {
             success: true,
             groupId,
+            jobGroupId: groupId, // Alias for compatibility
             jobsCreated: jobsCreated.map(j => j.jobId),
             totalJobs: jobsCreated.length,
             message: finalMessage

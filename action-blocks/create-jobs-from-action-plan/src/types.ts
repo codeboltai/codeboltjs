@@ -11,6 +11,7 @@ export interface CreateJobsFromPlanResult {
     success: boolean;
     error?: string;
     groupId?: string;
+    jobGroupId?: string; // Alias for groupId for compatibility with process-jobs-by-group
     jobsCreated: string[];
     totalJobs: number;
     message?: string;

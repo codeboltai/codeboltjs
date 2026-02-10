@@ -1099,7 +1099,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.0.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -1417,7 +1417,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.0.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -2617,6 +2617,37 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  agents/main-orchestrator:
+    dependencies:
+      '@codebolt/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.25
+        version: 20.19.19
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.10
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+
   agents/mainSwarmAgent:
     dependencies:
       '@codebolt/agent':
@@ -3080,7 +3111,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.0.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3093,7 +3124,7 @@ importers:
         version: 7.28.6(@babel/core@7.28.6)
       '@codebolt/types':
         specifier: latest
-        version: link:../../common/types
+        version: 5.0.8
       '@types/node':
         specifier: ^20.11.25
         version: 20.19.19
@@ -3628,6 +3659,37 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  providers/gitWorkTreeProvider:
+    dependencies:
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      '@e2b/sdk':
+        specifier: ^0.16.0
+        version: 0.16.2
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.19
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   providers/gitworktreeprovider:
     dependencies:
       '@codebolt/codeboltjs':
@@ -3768,7 +3830,7 @@ importers:
     dependencies:
       '@arrowai/multillm':
         specifier: latest
-        version: 1.1.52(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
+        version: 1.1.53(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
       '@codebolt/types':
         specifier: workspace:*
         version: link:../../common/types
@@ -4222,8 +4284,8 @@ packages:
   '@anthropic-ai/vertex-sdk@0.6.4':
     resolution: {integrity: sha512-rMBlO2jF53TfMRmsQMm1bPO2JRUh4jYddjq/OJLj8DSAkfbCrNWhc0yhDed6oLYJg5s+VpDbvlPzMggqHhTfMw==}
 
-  '@arrowai/multillm@1.1.52':
-    resolution: {integrity: sha512-S+KUQZBhQDUnq+yc6nhazFUMR6qnlrZO9f+EREd5hgDyvgJdcCcxeNvDxrOQks9ALjGNwpgqolWnsQyIaMnieQ==}
+  '@arrowai/multillm@1.1.53':
+    resolution: {integrity: sha512-0T4M9sS5FmwuZQbcefGT7mjblD13UiXk5ceUdZUUgI2qxJnfqppaBPKKFkkWjQ0Q53qlU3FjGN3m9M6SS3quDA==}
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -5446,8 +5508,14 @@ packages:
   '@cloudflare/workers-types@4.20251008.0':
     resolution: {integrity: sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA==}
 
+  '@codebolt/codeboltjs@5.0.8':
+    resolution: {integrity: sha512-Yn5v+Ju+UumcbK8201tR9Jeslc3zeHQnPNjqS40PH7Te8SnLGm5RqXiY5ytHGaYsk3J6XH0z5RKmdijRulcGvA==}
+
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
+
+  '@codebolt/types@5.0.8':
+    resolution: {integrity: sha512-1ICNr7OPDad32xpt7O3sz0hdcJBmfrZBko9Xf+RSiH5rcoExM76Ybiqjn9m2tzbTxlcsuYfEgxUUA/0ZPkPhmA==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -12227,6 +12295,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   global-dirs@3.0.1:
@@ -17373,7 +17442,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@arrowai/multillm@1.1.52(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)':
+  '@arrowai/multillm@1.1.53(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)':
     dependencies:
       '@anthropic-ai/bedrock-sdk': 0.12.6
       '@anthropic-ai/sdk': 0.37.0
@@ -19587,9 +19656,32 @@ snapshots:
 
   '@cloudflare/workers-types@4.20251008.0': {}
 
+  '@codebolt/codeboltjs@5.0.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 5.0.8
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
+
+  '@codebolt/types@5.0.8':
+    dependencies:
+      zod: 3.25.76
 
   '@colors/colors@1.5.0':
     optional: true
@@ -25226,7 +25318,7 @@ snapshots:
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/configtest@2.1.1(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -25241,7 +25333,7 @@ snapshots:
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/info@2.0.2(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -25256,7 +25348,7 @@ snapshots:
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.102.1)':
     dependencies:
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.102.1)
 
   '@webpack-cli/serve@2.0.5(webpack-cli@5.1.4)(webpack@5.103.0)':
@@ -27523,7 +27615,7 @@ snapshots:
       '@next/eslint-plugin-next': 16.1.6
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.37.0(jiti@2.6.1))
@@ -27546,7 +27638,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -27561,14 +27653,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -27587,7 +27679,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -34306,7 +34398,7 @@ snapshots:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.102.1(webpack-cli@5.1.4)
+      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
 
   webpack-cli@5.1.4(webpack@5.103.0):
