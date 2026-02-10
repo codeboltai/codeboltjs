@@ -64,6 +64,7 @@ import cbagentPortfolio from '../modules/agentPortfolio';
 import orchestrator from '../modules/orchestrator';
 import cbbackgroundChildThreads from '../modules/backgroundChildThreads';
 import cbagentEventQueue from '../modules/agentEventQueue';
+import cbdynamicPanel from '../modules/dynamicPanel';
 /**
  * @class Codebolt
  * @description This class provides a unified interface to interact with various modules.
@@ -191,6 +192,7 @@ class Codebolt {
     orchestrator = orchestrator;
     backgroundChildThreads = cbbackgroundChildThreads;
     agentEventQueue = cbagentEventQueue;
+    dynamicPanel = cbdynamicPanel;
 
     /**
      * User message utilities for accessing current user message and context

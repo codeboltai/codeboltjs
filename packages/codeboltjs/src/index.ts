@@ -1197,6 +1197,17 @@ export { default as codebaseSearch } from './modules/codebaseSearch';
 // Background Child Threads module
 export { default as backgroundChildThreads } from './modules/backgroundChildThreads';
 
+// DynamicPanel module
+export { default as dynamicPanel } from './modules/dynamicPanel';
+export type {
+    DynamicPanelOpenOptions,
+    DynamicPanelOpenResponse,
+    DynamicPanelResponse,
+    DynamicPanelInfo,
+    DynamicPanelListResponse,
+    DynamicPanelMessageEvent,
+} from './modules/dynamicPanel';
+
 // ================================
 // Tools Module - LLM-ready tool definitions
 // ================================
