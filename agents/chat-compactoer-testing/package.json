@@ -1,5 +1,5 @@
 {
-  "name": "remote-task-agent",
+  "name": "chat-comparator-testing",
   "version": "1.0.0",
   "description": "Remote agent that executes tasks in AgentFS and submits merge requests",
   "main": "dist/index.js",

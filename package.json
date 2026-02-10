@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "build:main": "turbo run build --filter='./packages/*' --filter='./common/*' --filter='./remoteexecutor/*' --filter='./agentcreator/*' --filter='./documentation/*' --filter='./cli/*' --filter='./multillm-node/*'",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
