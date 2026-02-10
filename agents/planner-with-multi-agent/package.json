@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/orchestrator",
+  "name": "planner-with-multi-agent",
   "version": "1.0.11",
   "description": "TestAgent",
   "main": "dist/index.js",

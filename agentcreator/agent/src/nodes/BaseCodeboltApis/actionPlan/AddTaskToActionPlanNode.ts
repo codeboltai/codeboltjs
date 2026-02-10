@@ -1,5 +1,6 @@
 import { BaseAddTaskToActionPlanNode } from '@codebolt/agent-shared-nodes';
 import codebolt from '@codebolt/codeboltjs';
+import { TaskPriority } from '@codebolt/types/lib';
 
 // Backend-specific AddTaskToActionPlan Node - actual implementation
 export class AddTaskToActionPlanNode extends BaseAddTaskToActionPlanNode {
@@ -9,10 +10,10 @@ export class AddTaskToActionPlanNode extends BaseAddTaskToActionPlanNode {
 
   async onExecute() {
     const planId = this.getInputData(1) as string;
-    const task = this.getInputData(2) as { [key: string]: any; name: string; description?: string; priority?: string; taskType?: string; } | undefined;
+    const task = this.getInputData(2) as { [key: string]: any; name: string; description?: string; priority?: TaskPriority; taskType?: string; } | undefined;
     const taskName = this.getInputData(3) as string;
     const taskDescription = this.getInputData(4) as string;
-    const taskPriority = this.getInputData(5) as string;
+    const taskPriority = this.getInputData(5) as TaskPriority;
     const taskType = this.getInputData(6) as string;
 
     if (!planId || typeof planId !== 'string' || !planId.trim()) {
