@@ -512,6 +512,66 @@ class Codebolt {
     }
 
     /**
+     * Sets up a listener for plugin start events.
+     * Called when a plugin process connects and receives its context from the server.
+     * @param {Function} handler - The handler function to call when the plugin receives its start message.
+     * @returns {void}
+     */
+    onPluginStart(handler: (context: {
+        pluginId: string;
+        pluginDir: string;
+        manifest: any;
+    }) => void | Promise<void> | any | Promise<any>) {
+        this.waitForReady().then(() => {
+            const handlePluginStart = async (response: any) => {
+                if (response.type === "pluginStartMessage") {
+                    try {
+                        await handler({
+                            pluginId: response.pluginId,
+                            pluginDir: response.pluginDir,
+                            manifest: response.manifest,
+                        });
+                    } catch (error) {
+                        console.error('Error in plugin start handler:', error);
+                    }
+                }
+            };
+            cbws.messageManager.on('message', handlePluginStart);
+        }).catch(error => {
+            console.error('Failed to set up plugin start handler:', error);
+        });
+    }
+
+    /**
+     * Sets up a listener for graceful plugin stop requests from the server.
+     * The handler should perform cleanup (close panels, unsubscribe events, etc.)
+     * @param {Function} handler - The handler function to call when the server requests plugin stop.
+     * @returns {void}
+     */
+    onPluginStop(handler: () => void | Promise<void>) {
+        this.waitForReady().then(() => {
+            const handlePluginStop = async (response: any) => {
+                if (response.type === "pluginStopMessage") {
+                    try {
+                        await handler();
+                        cbws.messageManager.send({ type: 'pluginStopResponse', success: true });
+                    } catch (error) {
+                        console.error('Error in plugin stop handler:', error);
+                        cbws.messageManager.send({
+                            type: 'pluginStopResponse',
+                            success: false,
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        });
+                    }
+                }
+            };
+            cbws.messageManager.on('message', handlePluginStop);
+        }).catch(error => {
+            console.error('Failed to set up plugin stop handler:', error);
+        });
+    }
+
+    /**
      * Sets up a listener for provider agent start events.
      * @param {Function} handler - The handler function to call when provider agent starts.
      * @returns {void}
