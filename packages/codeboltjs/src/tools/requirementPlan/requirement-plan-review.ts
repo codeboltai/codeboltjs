@@ -14,8 +14,9 @@ class RequirementPlanReviewInvocation extends BaseToolInvocation<RequirementPlan
 
     async execute(_signal: AbortSignal): Promise<ToolResult> {
         try {
-            const response = await requirementPlanService.review(this.params.filePath);
-            
+
+            const response: any = await requirementPlanService.review(this.params.filePath);
+
             if (!response.success) {
                 return {
                     llmContent: `Error: ${response.error}`,
@@ -23,9 +24,9 @@ class RequirementPlanReviewInvocation extends BaseToolInvocation<RequirementPlan
                     error: { message: response.error || 'Unknown error', type: ToolErrorType.EXECUTION_FAILED },
                 };
             }
-            
+
             return {
-                llmContent: `Requirement plan review status: ${response.status || 'pending'}`,
+                llmContent: `Requirement plan review status: ${response.data.status || 'pending'}`,
                 returnDisplay: `Review status: ${response.status || 'pending'}`,
             };
         } catch (error) {

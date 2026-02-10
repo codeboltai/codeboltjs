@@ -23,6 +23,7 @@ const eventQueue = codebolt.agentEventQueue;
 const agentTracker = codebolt.backgroundChildThreads;
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
 
     <important>

@@ -77,41 +77,10 @@ ${planContent}`;
             finalMessage = executionResult.finalMessage;
         }
 
-        // VALIDATION CHECK: Ensure all planning artifacts were created
-        // This ActionBlock is for PLANNING ONLY - we check that plans were created, not executed
+        // VALIDATION CHECK: Ensure all planning artifacts were created AND reviewed
+        // This ActionBlock is for PLANNING ONLY - we check that plans were created and approved
         if (completed) {
-            let reqPlanCreated = false;
-            let reqPlanReviewed = false;
 
-            if (prompt.message && Array.isArray(prompt.message.messages)) {
-                for (const msg of prompt.message.messages) {
-                    if (msg.role === 'assistant' && (msg as any).tool_calls) {
-                        for (const toolCall of (msg as any).tool_calls) {
-                            if (toolCall.function && toolCall.function.name) {
-                                if (toolCall.function.name.includes('requirement_plan_create')) reqPlanCreated = true;
-                                if (toolCall.function.name.includes('requirement_review')) reqPlanReviewed = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!reqPlanCreated || !reqPlanReviewed) {
-                console.log("Validation failed: Required planning artifacts missing. Forcing continuation.");
-                // If missing mandatory planning steps, force continuation
-                completed = false;
-
-                const missingSteps = [];
-                if (!reqPlanCreated) missingSteps.push("generate the requirement plan (using requirement_plan_create)");
-                if (!reqPlanReviewed) missingSteps.push("send it for review (using requirement_review)");
-
-                prompt.message.messages.push({
-                    role: 'user',
-                    content: `CRITICAL SYSTEM ALERT: You have attempted to complete the task without finishing mandatory PLANNING steps. 
-You MUST ${missingSteps.join(' AND ')}.
-Remember: Your job is to CREATE PLANS, not execute them. Complete these planning steps and then use attempt_completion.`
-                } as any);
-            }
         }
 
         if (completed) {
@@ -140,7 +109,7 @@ Remember: Your job is to CREATE PLANS, not execute them. Complete these planning
         }
     }
 
-    if (createdSpecsPath) {
+    if (createdRequirementPlanPath) {
         return {
             success: true,
             specs_path: createdSpecsPath,

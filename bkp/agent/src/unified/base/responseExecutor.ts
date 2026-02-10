@@ -1,11 +1,11 @@
 import codeboltjs from "@codebolt/codeboltjs";
 const { chatSummary } = codeboltjs;
 
-import type { 
-    OpenAIMessage, 
-    OpenAITool, 
+import type {
+    OpenAIMessage,
+    OpenAITool,
     ToolResult,
-    CodeboltAPI 
+    CodeboltAPI
 } from '../types/libTypes';
 import type {
     Processor,
@@ -97,11 +97,11 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
 
             // Check if LLM response has tool calls
             const hasToolCalls = this.hasToolCalls(input.llmResponse);
-            
+
             if (hasToolCalls) {
                 // Execute tools
                 toolResults = await this.executeTools(input.llmResponse, input.tools, input.context);
-                
+
                 // Check if any tool indicates completion
                 completed = this.checkToolCompletionStatus(toolResults, input.llmResponse);
             } else {
@@ -156,8 +156,8 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
      * Execute tools from LLM response
      */
     async executeTools(
-        llmResponse: unknown, 
-        tools: OpenAITool[], 
+        llmResponse: unknown,
+        tools: OpenAITool[],
         context?: Record<string, any>
     ): Promise<ToolResult[]> {
         try {
@@ -176,9 +176,9 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
             if (!this.isValidLLMResponse(llmResponse)) {
                 return [];
             }
-            
+
             const contentBlock = llmResponse.completion.choices[0];
-            
+
             if (!contentBlock || !contentBlock.message || !contentBlock.message.tool_calls) {
                 return [];
             }
@@ -194,9 +194,9 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                         } else {
                             // Apply pre-tool call processors
                             const preProcessResult = await this.applyPreToolCallProcessors(
-                                toolName, 
-                                toolInput, 
-                                toolUseId, 
+                                toolName,
+                                toolInput,
+                                toolUseId,
                                 { tools, context, llmResponse }
                             );
 
@@ -215,7 +215,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                             } else {
                                 // Execute the tool normally
                                 const [didUserReject, result] = await this.executeSingleTool(toolName, toolInput);
-                                
+
                                 toolResults.push(createToolResultObj(
                                     toolUseId,
                                     toolName,
@@ -231,7 +231,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                     } else {
                         // Skip tool execution due to previous rejection
                         const toolResult = this.getToolResult(
-                            toolUseId, 
+                            toolUseId,
                             "Skipping tool execution due to previous tool user rejection."
                         );
 
@@ -277,8 +277,8 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
      * Build follow-up conversation with tool results
      */
     async buildFollowUpConversation(
-        conversationHistory: OpenAIMessage[], 
-        toolResults: ToolResult[], 
+        conversationHistory: OpenAIMessage[],
+        toolResults: ToolResult[],
         llmResponse: unknown
     ): Promise<OpenAIMessage[]> {
         try {
@@ -292,7 +292,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
 
             // Add tool results to conversation
             if (toolResults.length > 0) {
-                const toolMessages = toolResults.map(result => 
+                const toolMessages = toolResults.map(result =>
                     createToolResultMessage(result.toolCallId, result.result)
                 );
                 updatedHistory.push(...toolMessages);
@@ -312,7 +312,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                 console.error('[UnifiedResponseExecutor] Error building follow-up conversation:', error);
             }
             // Return original history with tool results if processing fails
-            const toolMessages = toolResults.map(result => 
+            const toolMessages = toolResults.map(result =>
                 createToolResultMessage(result.toolCallId, result.result)
             );
             return [...conversationHistory, ...toolMessages];
@@ -371,17 +371,17 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                     };
 
                     const results = await processor.processInput(processorInput);
-                    
+
                     // Find the processed message from results
-                    const messageEvent = results.find(r => 
-                        r.type === 'MessageProcessed' || 
+                    const messageEvent = results.find(r =>
+                        r.type === 'MessageProcessed' ||
                         r.type === 'ConversationProcessed' ||
                         r.type === 'ConversationCompacted' ||
                         r.type === 'ConversationSummarized'
                     );
-                    
-                    if (messageEvent && messageEvent.value && 
-                        typeof messageEvent.value === 'object' && 
+
+                    if (messageEvent && messageEvent.value &&
+                        typeof messageEvent.value === 'object' &&
                         'messages' in messageEvent.value) {
                         processedMessage = messageEvent.value as ProcessedMessage;
                     }
@@ -429,38 +429,38 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
             // Convert to format expected by chatSummary
             const messagesToSummarize = conversationHistory.map(msg => ({
                 role: msg.role,
-                content: typeof msg.content === 'string' ? msg.content : 
-                        Array.isArray(msg.content) ? msg.content.map(c => c.text).join(' ') : 
+                content: typeof msg.content === 'string' ? msg.content :
+                    Array.isArray(msg.content) ? msg.content.map(c => c.text).join(' ') :
                         String(msg.content)
             }));
 
             // Use chat summary service
             const summaryResponse = await chatSummary.summarize(
-                messagesToSummarize, 
+                messagesToSummarize,
                 Math.floor(this.maxConversationLength / 2)
             ) as { payload?: string; summary?: string; };
-            
+
             if (summaryResponse.payload || summaryResponse.summary) {
                 const summaryText = summaryResponse.payload || summaryResponse.summary || '';
-                
+
                 // Keep system message if it exists
                 const systemMessage = conversationHistory.find(msg => msg.role === 'system');
                 const summarizedMessages: OpenAIMessage[] = [];
-                
+
                 if (systemMessage) {
                     summarizedMessages.push(systemMessage);
                 }
-                
+
                 // Add summary as system message
                 summarizedMessages.push({
                     role: 'system',
                     content: `Previous conversation summary: ${summaryText}`
                 });
-                
+
                 // Keep last few messages for context
                 const recentMessages = conversationHistory.slice(-5);
                 summarizedMessages.push(...recentMessages);
-                
+
                 return summarizedMessages;
             }
 
@@ -480,10 +480,10 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
     private hasToolCalls(llmResponse: unknown): boolean {
         try {
             if (!this.isValidLLMResponse(llmResponse)) return false;
-            
+
             const choices = llmResponse.completion.choices;
             if (!Array.isArray(choices) || choices.length === 0) return false;
-            
+
             const choice = choices[0];
             return !!(choice?.message?.tool_calls && choice.message.tool_calls.length > 0);
         } catch (error) {
@@ -561,23 +561,23 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
      */
     private async executeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
         let lastError: Error | null = null;
-        
+
         for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
             try {
                 return await operation();
             } catch (error) {
                 lastError = error instanceof Error ? error : new Error(String(error));
-                
+
                 if (this.enableLogging) {
                     console.warn(`[UnifiedResponseExecutor] Attempt ${attempt} failed:`, lastError.message);
                 }
-                
+
                 if (attempt < this.maxRetries) {
                     await this.delay(this.retryDelay);
                 }
             }
         }
-        
+
         throw lastError || new Error(`Operation failed after ${this.maxRetries} attempts`);
     }
 
@@ -596,19 +596,19 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
             if (!this.isValidToolCall(taskCompletedBlock)) {
                 throw new Error('Invalid task completion block');
             }
-            
+
             let taskArgs = {};
             if (taskCompletedBlock.function?.arguments) {
                 taskArgs = JSON.parse(taskCompletedBlock.function.arguments);
             }
-            
+
             const [, result] = await this.executeSingleTool(
                 taskCompletedBlock.function.name,
                 taskArgs
             );
 
             const finalResult = result === "" ? "The user is satisfied with the result." : result;
-            
+
             return createToolResultObj(
                 taskCompletedBlock.id || 'unknown',
                 'task_completion',
@@ -664,17 +664,20 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
     private async sendMessageToUser(llmResponse: unknown): Promise<string> {
         try {
             let messageContent = '';
-            
+
             if (!this.isValidLLMResponse(llmResponse)) {
                 return '';
             }
-            
+
             const completion = llmResponse.completion;
 
             if (completion.choices && completion.choices.length > 0) {
-                const choice = completion.choices[0];
+                const choice: any = completion.choices[0];
                 if (choice.message && choice.message.content) {
                     messageContent = choice.message.content;
+                }
+                if (choice.message && choice.message["reasoning_content"] && (!messageContent || messageContent.trim() === '')) {
+                    messageContent = choice.message["reasoning_content"];
                 }
             } else if ('content' in completion && typeof (completion as any).content === 'string') {
                 messageContent = (completion as any).content;
@@ -702,7 +705,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
             if (!this.isValidLLMResponse(llmResponse)) {
                 return null;
             }
-            
+
             const completion = llmResponse.completion;
             if (completion.choices && completion.choices.length > 0) {
                 const choice = completion.choices[0];
@@ -725,7 +728,7 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
      */
     private checkToolCompletionStatus(toolResults: ToolResult[], llmResponse: unknown): boolean {
         // Check if any tool result indicates completion
-        return toolResults.some(result => 
+        return toolResults.some(result =>
             result.result.toLowerCase().includes('task completed') ||
             result.result.toLowerCase().includes('user is satisfied')
         );
@@ -873,37 +876,37 @@ export class ResponseExecutor implements UnifiedResponseExecutor {
                     };
 
                     const results = await processor.processInput(processorInput);
-                    
+
                     // Check for interception events
-                    const interceptEvent = results.find(r => 
-                        r.type === 'ToolIntercepted' || 
+                    const interceptEvent = results.find(r =>
+                        r.type === 'ToolIntercepted' ||
                         r.type === 'ToolHandled' ||
                         r.type === 'LocalToolExecuted'
                     );
-                    
+
                     if (interceptEvent && interceptEvent.value) {
                         intercepted = true;
                         result = interceptEvent.value.result || interceptEvent.value.content || String(interceptEvent.value);
                         userRejected = interceptEvent.value.userRejected || false;
-                        
+
                         if (this.enableLogging) {
                             console.log(`[UnifiedResponseExecutor] Tool ${toolName} intercepted by processor:`, processor.constructor.name);
                         }
-                        
+
                         // Stop processing if tool was intercepted
                         break;
                     }
 
                     // Check for tool modification events
-                    const modifyEvent = results.find(r => 
-                        r.type === 'ToolModified' || 
+                    const modifyEvent = results.find(r =>
+                        r.type === 'ToolModified' ||
                         r.type === 'ToolParametersModified'
                     );
-                    
+
                     if (modifyEvent && modifyEvent.value) {
                         modifiedToolName = modifyEvent.value.toolName || modifiedToolName;
                         modifiedToolInput = modifyEvent.value.toolInput || modifiedToolInput;
-                        
+
                         if (this.enableLogging) {
                             console.log(`[UnifiedResponseExecutor] Tool ${toolName} modified by processor:`, processor.constructor.name);
                         }
