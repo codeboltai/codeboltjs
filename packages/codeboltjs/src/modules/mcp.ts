@@ -244,6 +244,9 @@ const codeboltMCP = {
      */
     executeTool: async (toolbox: string, toolName: string, params: ToolParameters): Promise<ExecuteToolResponse> => {
         // Handle local codebolt tools
+        if (toolbox == undefined) {
+            toolbox = "codebolt"
+        }
         if (isCodeboltToolbox(toolbox)) {
             // Extract actual tool name (in case it comes prefixed)
             const actualToolName = extractToolName(toolName);
