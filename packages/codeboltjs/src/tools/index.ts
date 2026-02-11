@@ -526,7 +526,7 @@ export const allTools = [
     // ...mcpTools,
     // ...knowledgeTools,
     ...planningTools,
-    // ...jobTools,
+    ...jobTools,
     // ...calendarTools,
     // ...testingTools,
     // ...collaborationTools,

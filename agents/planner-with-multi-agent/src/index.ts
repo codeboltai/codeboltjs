@@ -79,11 +79,15 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         if (runningCount > 0 || pendingEventCount > 0) {
             continueLoop = true;
 
-            // Get all pending events
-            const events = await eventQueue.getPendingQueueEvents();
+            // If agents are running but no events yet, wait for the next event
+            if (pendingEventCount === 0 && runningCount > 0) {
+                const nextEvent = await eventQueue.waitForAnyExternalEvent();
+                processExternalEvent(nextEvent, prompt);
+            }
 
-            // Process each event
-            for (const event of events) {
+            // Drain any remaining pending events
+            const remainingEvents = eventQueue.getPendingExternalEvents();
+            for (const event of remainingEvents) {
                 processExternalEvent(event, prompt);
             }
         }
@@ -206,7 +210,7 @@ ${jobContextXml}`;
 
         if (result instanceof Error) {
             codebolt.chat.sendMessage(`Error in job execution loop: ${result.message}`);
-            break;
+            break; 
         }
 
         jobExecutionResult = result.executionResult;
@@ -219,11 +223,15 @@ ${jobContextXml}`;
         if (runningCount > 0 || pendingEventCount > 0) {
             jobContinueLoop = true;
 
-            // Get all pending events
-            const events = await eventQueue.getPendingQueueEvents();
+            // If agents are running but no events yet, wait for the next event
+            if (pendingEventCount === 0 && runningCount > 0) {
+                const nextEvent = await eventQueue.waitForAnyExternalEvent();
+                processExternalEvent(nextEvent, jobPrompt);
+            }
 
-            // Process each event — injects completion data into prompt
-            for (const event of events) {
+            // Drain any remaining pending events
+            const remainingEvents = eventQueue.getPendingExternalEvents();
+            for (const event of remainingEvents) {
                 processExternalEvent(event, jobPrompt);
             }
         }

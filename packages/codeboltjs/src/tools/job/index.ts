@@ -10,6 +10,7 @@ export { JobDeleteTool, type JobDeleteToolParams } from './job-delete';
 export { JobListTool, type JobListToolParams } from './job-list';
 export { JobGroupCreateTool, type JobGroupCreateToolParams } from './job-group-create';
 export { JobAddDependencyTool, type JobAddDependencyToolParams } from './job-add-dependency';
+export { JobRemoveDependencyTool, type JobRemoveDependencyToolParams } from './job-remove-dependency';
 export { JobGetReadyTool, type JobGetReadyToolParams } from './job-get-ready';
 export { JobGetBlockedTool, type JobGetBlockedToolParams } from './job-get-blocked';
 export { JobLockTool, type JobLockToolParams } from './job-lock';
@@ -24,6 +25,7 @@ import { JobDeleteTool } from './job-delete';
 import { JobListTool } from './job-list';
 import { JobGroupCreateTool } from './job-group-create';
 import { JobAddDependencyTool } from './job-add-dependency';
+import { JobRemoveDependencyTool } from './job-remove-dependency';
 import { JobGetReadyTool } from './job-get-ready';
 import { JobGetBlockedTool } from './job-get-blocked';
 import { JobLockTool } from './job-lock';
@@ -41,6 +43,7 @@ export const jobTools = [
     new JobListTool(),
     new JobGroupCreateTool(),
     new JobAddDependencyTool(),
+    new JobRemoveDependencyTool(),
     new JobGetReadyTool(),
     new JobGetBlockedTool(),
     new JobLockTool(),

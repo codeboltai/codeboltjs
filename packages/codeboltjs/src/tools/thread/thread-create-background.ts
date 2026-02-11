@@ -114,8 +114,8 @@ export class ThreadCreateBackgroundTool extends BaseDeclarativeTool<ThreadCreate
                         type: 'string',
                     },
                     isGrouped: {
-                        description: 'Whether the thread belongs to a group.',
-                        type: 'boolean',
+                        description: 'Whether the thread belongs to a group.(true/false)',
+                        type: 'string',
                     },
                 },
                 required: ['task', 'selectedAgent'],

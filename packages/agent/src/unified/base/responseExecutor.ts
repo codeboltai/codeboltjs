@@ -349,8 +349,8 @@ export class ResponseExecutor implements AgentResponseExecutor {
         //codebolttools--readfile
         // console.log("Executing tool: ", toolName, toolInput);
         const parts = toolName.split('--');
-        const toolboxName = parts[0] ?? '';
-        const actualToolName = parts[1] ?? '';
+        const toolboxName = parts.length > 1 ? (parts[0] ?? '') : 'codebolt';
+        const actualToolName = parts.length > 1 ? (parts[1] ?? '') : (parts[0] ?? '');
         // console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
 
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
