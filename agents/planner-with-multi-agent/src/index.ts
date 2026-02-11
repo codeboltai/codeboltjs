@@ -17,6 +17,7 @@ import {
 } from './prompts';
 import { runWhileLoop } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
+import { processJobsByGroup } from './jobProcessor';
 
 // Use agentEventQueue for centralized event handling
 const eventQueue = codebolt.agentEventQueue;
@@ -96,7 +97,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         if (requirementPlanPath) {
             codebolt.chat.sendMessage(`Creating jobs from requirement plan: ${requirementPlanPath}`, {});
 
-            // 1. Create jobs from action plan
+            //STEP 2: Create jobs from action plan (still using action block)
             const createJobsResponse = await codebolt.actionBlock.start('create-jobs-from-action-plan', {
                 requirementPlanId: requirementPlanPath,
                 workerAgentId: "b29a9229-a76c-4d8c-acfc-e00a4511fb8c"
@@ -109,23 +110,16 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
                     const jobGroupId = createJobsResult.jobGroupId;
                     codebolt.chat.sendMessage(`Jobs created successfully. Group ID: ${jobGroupId}`, {});
 
-                    // 2. Process jobs by group
-                    codebolt.chat.sendMessage(`Starting job processing for group: ${jobGroupId}`, {});
+                    //STEP 3: Process jobs by group (inlined, no longer an action block)
+                    const jobResult = await processJobsByGroup(
+                        jobGroupId,
+                        "b29a9229-a76c-4d8c-acfc-e00a4511fb8c"
+                    );
 
-                    const processJobsResponse = await codebolt.actionBlock.start('process-jobs-by-group', {
-                        jobGroupId: jobGroupId,
-                        workerAgentId: "b29a9229-a76c-4d8c-acfc-e00a4511fb8c"
-                    });
-
-                    if (processJobsResponse.success && processJobsResponse.result) {
-                        const processJobsResult = processJobsResponse.result;
-                        if (processJobsResult.success) {
-                            codebolt.chat.sendMessage(`All jobs processed successfully!`, {});
-                        } else {
-                            codebolt.chat.sendMessage(`Job processing finished with errors: ${processJobsResult.error}`, {});
-                        }
+                    if (jobResult.success) {
+                        codebolt.chat.sendMessage(`All jobs processed successfully!`, {});
                     } else {
-                        codebolt.chat.sendMessage(`Failed to start job processing: ${processJobsResponse.error}`, {});
+                        codebolt.chat.sendMessage(`Job processing finished with errors: ${jobResult.error}`, {});
                     }
 
                 } else {
@@ -140,6 +134,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         codebolt.chat.sendMessage(`Error in post-planning actions: ${error}`, {});
     }
 
-    return true; // executionResult?.finalMessage || "No response generated";
+    return true;
 });
 
