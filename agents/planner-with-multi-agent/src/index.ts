@@ -15,14 +15,17 @@ import { ProcessedMessage } from '@codebolt/types/agent';
 import {
     PLANNER_SYSTEM_PROMPT
 } from './prompts';
-import { runMainAgentLoop } from './agentLoop';
+import { runWhileLoop } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
 
-
+// Use agentEventQueue for centralized event handling
 const eventQueue = codebolt.agentEventQueue;
+// Use backgroundChildThreads for tracking running agent count
 const agentTracker = codebolt.backgroundChildThreads;
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+
+    //STEP 1: Create planning 
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
     <important>
     When starting child worker agents using the \`thread_create_background\` tool, you MUST use:
@@ -48,43 +51,39 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
     let executionResult: any;
+    let continueLoop = false;
 
-    // Run the agent loop - this includes research delegation, planning,
-    // calling create-detail-action-plan ActionBlock, and waiting for user approval.
-    // The agent returns AFTER the requirement is approved by the user.
-    const result = await runMainAgentLoop(reqMessage, prompt);
+    do {
+        continueLoop = false;
 
-    if (result instanceof Error) {
-        console.error(`Error in agent loop: ${result.message}`);
-        return "Error occurred";
-    }
+        // Run the agent loop until completion or need to wait for events
+        const result = await runWhileLoop(reqMessage, prompt);
 
-    executionResult = result.executionResult;
-    prompt = result.prompt;
-
-    // If background research agents were started, wait for them to finish
-    // before the planning loop can synthesize findings
-    // Process background research agent events (if any were spawned).
-    // Once the LLM processes event results and calls attempt_completion,
-    // the planner's job is done — break out immediately.
-    while (agentTracker.getRunningAgentCount() > 0 || eventQueue.getPendingExternalEventCount() > 0) {
-        const event = await eventQueue.waitForAnyExternalEvent();
-        if (event.type === 'agentQueueEvent' || event.type === 'backgroundGroupedAgentCompletion') {
-            processExternalEvent(event, prompt);
-
-            const loopResult = await runMainAgentLoop(reqMessage, prompt);
-
-            if (loopResult instanceof Error) {
-                console.error(`Error processing event: ${loopResult.message}`);
-                continue;
-            }
-
-            executionResult = loopResult.executionResult;
-            prompt = loopResult.prompt;
-
+        if (result instanceof Error) {
+            codebolt.chat.sendMessage(`Error in agent loop: ${result.message}`);
+            break;
         }
-    }
 
+        executionResult = result.executionResult;
+        prompt = result.prompt;
+
+        // Check for async events from child agents
+        const runningCount = agentTracker.getRunningAgentCount();
+        const pendingEventCount = eventQueue.getPendingExternalEventCount();
+
+        if (runningCount > 0 || pendingEventCount > 0) {
+            continueLoop = true;
+
+            // Get all pending events
+            const events = await eventQueue.getPendingQueueEvents();
+
+            // Process each event
+            for (const event of events) {
+                processExternalEvent(event, prompt);
+            }
+        }
+
+    } while (continueLoop);
 
     codebolt.chat.sendMessage(executionResult.finalMessage)
     // Planner agent returns after requirement is approved by user.

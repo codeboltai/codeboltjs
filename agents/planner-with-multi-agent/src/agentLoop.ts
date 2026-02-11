@@ -12,7 +12,7 @@ export interface AgentLoopResult {
  * Process a single message through the agent pipeline
  * Runs the agent step loop until completion
  */
-export async function runMainAgentLoop(
+export async function runWhileLoop(
     reqMessage: FlatUserMessage,
     prompt: ProcessedMessage
 ): Promise<AgentLoopResult | Error> {
