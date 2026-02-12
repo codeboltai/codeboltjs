@@ -19,6 +19,7 @@ export const templateEnumSchema = z.enum([
   'MEMORY_CONFIRMATION',
   'BROWSER_CONFIRMATION',
   'NOTIFICATION',
+  'aiStream',
   "agentChat"
 ]);
 
