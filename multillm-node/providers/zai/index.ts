@@ -137,7 +137,8 @@ import { handleError } from '../../utils/errorHandler';
 import { OpenAI as OpenAIApi, AzureOpenAI } from 'openai';
 import type { ChatCompletion, ChatCompletionChunk, ChatCompletionCreateParams, ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam, ChatCompletionFunctionMessageParam } from 'openai/resources/chat';
 import type { Stream } from 'openai/streaming';
-import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, EmbeddingOptions, EmbeddingResponse } from '../../types';
+import type { BaseProvider, LLMProviderWithStreaming, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, StreamChunk, StreamingOptions, EmbeddingOptions, EmbeddingResponse } from '../../types';
+import { aggregateStreamChunks } from '../../utils/sseParser';
 
 function extractText(content: ChatMessage['content']): string {
   if (content === null || content === undefined) return '';
@@ -184,7 +185,7 @@ function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[
   });
 }
 
-class ZAi implements LLMProvider {
+class ZAi implements LLMProviderWithStreaming {
   private options: BaseProvider;
   private client: OpenAIApi | AzureOpenAI;
   private embeddingModels: string[];
@@ -227,19 +228,208 @@ class ZAi implements LLMProvider {
 
   async createCompletion(options: ChatCompletionOptions): Promise<ChatCompletionResponse> {
     try {
+      // If streaming with callbacks, delegate to createCompletionStream
+      if (options.stream && (options as StreamingOptions).onChunk) {
+        return this.createCompletionStream(options as StreamingOptions);
+      }
+
       const completion = await this.client.chat.completions.create({
         // @ts-ignore
         messages: options.messages,
-        model: 'glm-4.6', //||options.model || this.model || "glm-4.6",
+        model: options.model || this.model || 'glm-4.6',
         temperature: options.temperature,
         top_p: options.top_p,
         max_tokens: options.max_tokens,
-        stream: options.stream,
+        stream: false,
         tools: options.tools,
         stop: options.stop,
       });
 
       return completion as unknown as ChatCompletionResponse;
+    } catch (error) {
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * Create completion with streaming support and callbacks.
+   * Z.AI uses the OpenAI-compatible SSE protocol with stream=true.
+   * Chunks include delta.content and delta.reasoning_content.
+   */
+  async createCompletionStream(options: StreamingOptions): Promise<ChatCompletionResponse> {
+    const modelName = options.model || this.model || 'glm-4.6';
+
+    try {
+      const requestParams: any = {
+        messages: options.messages,
+        model: modelName,
+        stream: true,
+        tools: options.tools,
+        stop: options.stop,
+      };
+
+      if (options.temperature !== undefined) {
+        requestParams.temperature = options.temperature;
+      }
+      if (options.top_p !== undefined) {
+        requestParams.top_p = options.top_p;
+      }
+      if (options.max_tokens !== undefined) {
+        requestParams.max_tokens = options.max_tokens;
+      }
+
+      const stream = await this.client.chat.completions.create(requestParams) as unknown as AsyncIterable<ChatCompletionChunk>;
+
+      const chunks: StreamChunk[] = [];
+
+      for await (const chunk of stream) {
+        const rawDelta = (chunk.choices?.[0] as any)?.delta || {};
+        const streamChunk: StreamChunk = {
+          id: chunk.id,
+          object: 'chat.completion.chunk',
+          created: chunk.created,
+          model: chunk.model,
+          choices: chunk.choices.map((choice: any) => ({
+            index: choice.index,
+            delta: {
+              role: choice.delta.role as 'assistant' | undefined,
+              content: choice.delta.content || undefined,
+              // Z.AI sends reasoning_content for reasoning models
+              reasoning: rawDelta.reasoning_content || undefined,
+              tool_calls: choice.delta.tool_calls?.map((tc: any) => ({
+                index: tc.index,
+                id: tc.id,
+                type: tc.type as 'function' | undefined,
+                function: tc.function ? {
+                  name: tc.function.name,
+                  arguments: tc.function.arguments
+                } : undefined
+              }))
+            },
+            finish_reason: choice.finish_reason as 'stop' | 'length' | 'tool_calls' | 'content_filter' | null
+          })),
+          usage: chunk.usage ? {
+            prompt_tokens: chunk.usage.prompt_tokens,
+            completion_tokens: chunk.usage.completion_tokens,
+            total_tokens: chunk.usage.total_tokens
+          } : undefined
+        };
+
+        chunks.push(streamChunk);
+
+        // Call onChunk callback
+        options.onChunk?.(streamChunk);
+
+        // Check for abort signal
+        if (options.signal?.aborted) {
+          break;
+        }
+      }
+
+      // Aggregate chunks into final response
+      const aggregated = aggregateStreamChunks(chunks, modelName);
+
+      const lastChunkWithUsage = [...chunks].reverse().find((c: StreamChunk) => c.usage);
+      const rawUsage = lastChunkWithUsage?.usage as any;
+
+      const response: ChatCompletionResponse = {
+        id: aggregated.id,
+        object: 'chat.completion',
+        created: Math.floor(Date.now() / 1000),
+        model: modelName,
+        choices: [{
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: aggregated.content || null,
+            tool_calls: aggregated.toolCalls.length > 0 ? aggregated.toolCalls : undefined
+          },
+          finish_reason: aggregated.finishReason
+        }],
+        usage: {
+          ...aggregated.usage,
+          cached_tokens: rawUsage?.prompt_tokens_details?.cached_tokens,
+          provider_usage: rawUsage ? {
+            prompt_tokens: rawUsage.prompt_tokens,
+            completion_tokens: rawUsage.completion_tokens,
+            total_tokens: rawUsage.total_tokens,
+            prompt_tokens_details: rawUsage.prompt_tokens_details,
+            completion_tokens_details: rawUsage.completion_tokens_details
+          } : undefined
+        }
+      };
+
+      // Call onComplete callback
+      options.onComplete?.(response);
+
+      return response;
+    } catch (error) {
+      options.onError?.(error as Error);
+      throw handleError(error);
+    }
+  }
+
+  /**
+   * AsyncGenerator-based streaming for use with for-await-of
+   */
+  async *streamCompletion(options: ChatCompletionOptions): AsyncGenerator<StreamChunk, void, unknown> {
+    const modelName = options.model || this.model || 'glm-4.6';
+
+    try {
+      const requestParams: any = {
+        messages: options.messages,
+        model: modelName,
+        stream: true,
+        tools: options.tools,
+        stop: options.stop,
+      };
+
+      if (options.temperature !== undefined) {
+        requestParams.temperature = options.temperature;
+      }
+      if (options.top_p !== undefined) {
+        requestParams.top_p = options.top_p;
+      }
+      if (options.max_tokens !== undefined) {
+        requestParams.max_tokens = options.max_tokens;
+      }
+
+      const stream = await this.client.chat.completions.create(requestParams) as unknown as AsyncIterable<ChatCompletionChunk>;
+
+      for await (const chunk of stream) {
+        const rawDelta = (chunk.choices?.[0] as any)?.delta || {};
+        const streamChunk: StreamChunk = {
+          id: chunk.id,
+          object: 'chat.completion.chunk',
+          created: chunk.created,
+          model: chunk.model,
+          choices: chunk.choices.map((choice: any) => ({
+            index: choice.index,
+            delta: {
+              role: choice.delta.role as 'assistant' | undefined,
+              content: choice.delta.content || undefined,
+              reasoning: rawDelta.reasoning_content || undefined,
+              tool_calls: choice.delta.tool_calls?.map((tc: any) => ({
+                index: tc.index,
+                id: tc.id,
+                type: tc.type as 'function' | undefined,
+                function: tc.function ? {
+                  name: tc.function.name,
+                  arguments: tc.function.arguments
+                } : undefined
+              }))
+            },
+            finish_reason: choice.finish_reason as 'stop' | 'length' | 'tool_calls' | 'content_filter' | null
+          })),
+          usage: chunk.usage ? {
+            prompt_tokens: chunk.usage.prompt_tokens,
+            completion_tokens: chunk.usage.completion_tokens,
+            total_tokens: chunk.usage.total_tokens
+          } : undefined
+        };
+
+        yield streamChunk;
+      }
     } catch (error) {
       throw handleError(error);
     }
