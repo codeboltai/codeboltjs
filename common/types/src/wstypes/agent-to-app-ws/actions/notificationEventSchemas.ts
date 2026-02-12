@@ -20,6 +20,7 @@ export const templateEnumSchema = z.enum([
     'MEMORY_CONFIRMATION',
     'BROWSER_CONFIRMATION',
     'NOTIFICATION',
+    'aiStream',
     "agentChat"
 ]);
 
@@ -177,6 +178,8 @@ export const notificationPrioritySchema = z.enum([
 // AI request state enum schema for notification service
 export const aiRequestStateSchema = z.enum([
     'SENDING_REQUEST',
+    'STREAMING',
+    'STREAMING_REASONING',
     'REQUEST_SUCCESS',
     'REQUEST_ERROR'
 ]);

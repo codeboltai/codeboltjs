@@ -8,6 +8,8 @@ import { z } from 'zod';
 // AI request state enum schema
 export const aiRequestStateEnumSchema = z.enum([
   'SENDING_REQUEST',
+  'STREAMING',
+  'STREAMING_REASONING',
   'REQUEST_SUCCESS',
   'REQUEST_ERROR'
 ]);

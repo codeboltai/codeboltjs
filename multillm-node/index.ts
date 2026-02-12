@@ -30,7 +30,7 @@ import { extractTextContent } from './utils/contentTransformer';
 
 // Providers that support streaming
 const STREAMING_PROVIDERS = new Set<SupportedProvider>([
-  'openai', 'anthropic', 'mistral', 'groq', 'ollama', 'deepseek', 'gemini'
+  'openai', 'anthropic', 'mistral', 'groq', 'ollama', 'deepseek', 'gemini', 'zai'
 ]);
 
 // Providers that support tools/function calling
@@ -274,7 +274,7 @@ class Multillm implements LLMProviderWithStreaming {
       if (proc?.on) {
         const collector = this.telemetryCollector;
         proc.on('beforeExit', () => {
-          collector?.flush().catch(() => {});
+          collector?.flush().catch(() => { });
         });
       }
     } catch {
@@ -478,7 +478,7 @@ class Multillm implements LLMProviderWithStreaming {
       supportsEmbeddings: EMBEDDING_PROVIDERS.has(this.provider),
       supportsCaching: CACHING_PROVIDERS.has(this.provider),
       cachingType: AUTOMATIC_CACHING_PROVIDERS.has(this.provider) ? 'automatic' :
-                   CACHING_PROVIDERS.has(this.provider) ? 'explicit' : 'none',
+        CACHING_PROVIDERS.has(this.provider) ? 'explicit' : 'none',
       supportsImageGeneration: IMAGE_GENERATION_PROVIDERS.has(this.provider),
       supportsReranking: RERANKING_PROVIDERS.has(this.provider),
       supportsTranscription: TRANSCRIPTION_PROVIDERS.has(this.provider),

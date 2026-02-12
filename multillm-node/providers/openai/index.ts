@@ -263,7 +263,7 @@ class OpenAI implements LLMProviderWithStreaming {
         }
       }
 
-      const stream = await this.client.chat.completions.create(requestParams);
+      const stream = await this.client.chat.completions.create(requestParams) as unknown as AsyncIterable<ChatCompletionChunk>;
 
       const chunks: StreamChunk[] = [];
 
@@ -273,12 +273,12 @@ class OpenAI implements LLMProviderWithStreaming {
           object: 'chat.completion.chunk',
           created: chunk.created,
           model: chunk.model,
-          choices: chunk.choices.map(choice => ({
+          choices: chunk.choices.map((choice: any) => ({
             index: choice.index,
             delta: {
               role: choice.delta.role as 'assistant' | undefined,
               content: choice.delta.content || undefined,
-              tool_calls: choice.delta.tool_calls?.map(tc => ({
+              tool_calls: choice.delta.tool_calls?.map((tc: any) => ({
                 index: tc.index,
                 id: tc.id,
                 type: tc.type as 'function' | undefined,
@@ -312,7 +312,7 @@ class OpenAI implements LLMProviderWithStreaming {
       const aggregated = aggregateStreamChunks(chunks, modelName);
 
       // Extract cached_tokens from the last chunk's usage if available
-      const lastChunkWithUsage = chunks.findLast(c => c.usage);
+      const lastChunkWithUsage = [...chunks].reverse().find((c: StreamChunk) => c.usage);
       const rawUsage = lastChunkWithUsage?.usage as any;
 
       const response: ChatCompletionResponse = {
@@ -393,7 +393,7 @@ class OpenAI implements LLMProviderWithStreaming {
         }
       }
 
-      const stream = await this.client.chat.completions.create(requestParams);
+      const stream = await this.client.chat.completions.create(requestParams) as unknown as AsyncIterable<ChatCompletionChunk>;
 
       for await (const chunk of stream) {
         const streamChunk: StreamChunk = {
@@ -401,12 +401,12 @@ class OpenAI implements LLMProviderWithStreaming {
           object: 'chat.completion.chunk',
           created: chunk.created,
           model: chunk.model,
-          choices: chunk.choices.map(choice => ({
+          choices: chunk.choices.map((choice: any) => ({
             index: choice.index,
             delta: {
               role: choice.delta.role as 'assistant' | undefined,
               content: choice.delta.content || undefined,
-              tool_calls: choice.delta.tool_calls?.map(tc => ({
+              tool_calls: choice.delta.tool_calls?.map((tc: any) => ({
                 index: tc.index,
                 id: tc.id,
                 type: tc.type as 'function' | undefined,

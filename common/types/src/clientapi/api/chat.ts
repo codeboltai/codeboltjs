@@ -6,6 +6,7 @@ export type TemplateType =
   | 'agentChat'
   | 'informationWithUILink'
   | 'aiRequest'
+  | 'aiStream'
   | 'agentChatWithButton'
   | 'confirmationChat'
   | 'centerInfo'
