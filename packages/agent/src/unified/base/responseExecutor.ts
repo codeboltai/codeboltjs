@@ -143,11 +143,11 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
                     if (contentBlock.message.content != null) {
                         lastMessageContent = contentBlock.message.content;
-                        await codebolt.chat.sendMessage(contentBlock.message.content, {});
+                        // await codebolt.chat.sendMessage(contentBlock.message.content, {});
                     }
                     if ((contentBlock.message as any)["reasoning_content"] != null && (!lastMessageContent || lastMessageContent.trim() === '')) {
                         lastMessageContent = (contentBlock.message as any)["reasoning_content"];
-                        await codebolt.chat.sendMessage((contentBlock.message as any)["reasoning_content"], {});
+                        // await codebolt.chat.sendMessage((contentBlock.message as any)["reasoning_content"], {});
                     }
                 }
             }

@@ -1,25 +1,7 @@
 import codebolt from '@codebolt/codeboltjs';
 import { FlatUserMessage } from "@codebolt/types/sdk";
-
-// ================================
-// TYPE DEFINITIONS
-// ================================
-
-interface AgentContext {
-  swarmId: string;
-  swarmName: string;
-  agentId: string;
-  agentName: string;
-  capabilities: string[];
-  requirements: string;
-}
-
-interface SwarmConfig {
-  isJobSelfSplittingEnabled: boolean;
-  minimumJobSplitProposalRequired: number;
-  isJobSplitDeliberationRequired: boolean;
-  selectJobSplitDeliberationType: string;
-}
+import { findNextJobForAgent } from './jobfinder';
+import { SwarmConfig, AgentContext } from './jobfinder/types';
 
 // ================================
 // MAIN AGENT ENTRY POINT
@@ -46,32 +28,13 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
   let running = true;
   while (running) {
-    // Use the find-next-job-for-agent action block to find and pick the next job
-    codebolt.chat.sendMessage(`🔍 Invoking find-next-job-for-agent action block...`);
+    codebolt.chat.sendMessage(`🔍 Finding next job for agent...`);
 
-    const actionBlockResponse: any = await codebolt.actionBlock.start('find-next-job-for-agent', {
-      swarmId: ctx.swarmId,
-      swarmName: ctx.swarmName,
-      agentId: ctx.agentId,
-      agentName: ctx.agentName,
-      capabilities: ctx.capabilities,
-      requirements: ctx.requirements,
-      swarmConfig: SWARM_CONFIG
-    });
-    codebolt.chat.sendMessage(`📋 Action block response: ${JSON.stringify(actionBlockResponse)}`);
-    // Check if action block call itself failed
-    if (!actionBlockResponse?.success) {
-      codebolt.chat.sendMessage(`⚠️ Action block call failed: ${actionBlockResponse?.error}`);
-      running = false;
-      break;
-    }
-
-    // Extract the actual result from the action block response
-    const findJobResult = actionBlockResponse.result;
+    const findJobResult = await findNextJobForAgent(ctx, SWARM_CONFIG);
 
     codebolt.chat.sendMessage(`📋 Find job result: success=${findJobResult?.success}, action=${findJobResult?.action}`);
 
-    // Handle action block result
+    // Handle find job result
     if (!findJobResult?.success) {
       if (findJobResult?.action === 'terminate') {
         codebolt.chat.sendMessage(`🛑 No open jobs available. Agent terminating.`);
@@ -107,9 +70,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
           // TODO: Implement actual job execution logic here
           codebolt.chat.sendMessage(`📝 Job ${job.id} is now being worked on...`);
 
-          // For now, just mark as completed after one iteration
-          // In real implementation, this would involve actual work
-          // running = false;
+
+
+
+
         }
         break;
 

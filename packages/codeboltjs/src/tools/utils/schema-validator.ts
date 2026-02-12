@@ -6,6 +6,15 @@
  * Simple JSON Schema validator
  */
 export class SchemaValidator {
+    private static tryParseJson(value: unknown): unknown {
+        if (typeof value !== 'string') return value;
+        try {
+            return JSON.parse(value);
+        } catch {
+            return value;
+        }
+    }
+
     static validate(schema: unknown, data: unknown): string | null {
         if (!schema || typeof schema !== 'object') {
             return null; // No schema to validate against
@@ -53,7 +62,9 @@ export class SchemaValidator {
 
             for (const [key, propSchema] of Object.entries(properties)) {
                 if (key in dataObj) {
-                    const propError = this.validate(propSchema, dataObj[key]);
+                    // Try parsing JSON strings before validating nested properties
+                    const resolvedValue = this.tryParseJson(dataObj[key]);
+                    const propError = this.validate(propSchema, resolvedValue);
                     if (propError) {
                         return `Property '${key}': ${propError}`;
                     }
