@@ -498,13 +498,8 @@ class AnthropicProvider implements LLMProviderWithStreaming {
         }
       }
 
-      // Add beta header for prompt caching if enabled
-      let response;
-      if (enableCaching) {
-        response = await this.client.beta.promptCaching.messages.create(requestPayload);
-      } else {
-        response = await this.client.messages.create(requestPayload);
-      }
+      // Create message (prompt caching is handled via cache_control in message content)
+      const response = await this.client.messages.create(requestPayload);
 
       return this.transformResponseToOpenAI(response as any, enableCaching, enableThinking);
     } catch (error) {

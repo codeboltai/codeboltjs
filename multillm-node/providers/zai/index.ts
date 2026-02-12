@@ -139,13 +139,22 @@ import type { ChatCompletion, ChatCompletionChunk, ChatCompletionCreateParams, C
 import type { Stream } from 'openai/streaming';
 import type { BaseProvider, LLMProvider, ChatCompletionOptions, ChatCompletionResponse, Provider, ChatMessage, EmbeddingOptions, EmbeddingResponse } from '../../types';
 
+function extractText(content: ChatMessage['content']): string {
+  if (content === null || content === undefined) return '';
+  if (typeof content === 'string') return content;
+  return content
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map(part => part.text)
+    .join('');
+}
+
 function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[] {
   return messages.map(message => {
     if (message.role === 'function') {
       const functionMessage: ChatCompletionFunctionMessageParam = {
         role: 'function',
         name: message.name || 'unknown',
-        content: message.content || ''
+        content: extractText(message.content)
       };
       return functionMessage;
     }
@@ -153,7 +162,7 @@ function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[
     if (message.role === 'assistant' && message.tool_calls) {
       const assistantMessage: ChatCompletionAssistantMessageParam = {
         role: 'assistant',
-        content: message.content || '',
+        content: extractText(message.content),
         tool_calls: message.tool_calls
       };
       return assistantMessage;
@@ -162,14 +171,14 @@ function transformMessages(messages: ChatMessage[]): ChatCompletionMessageParam[
     if (message.role === 'system') {
       const systemMessage: ChatCompletionSystemMessageParam = {
         role: 'system',
-        content: message.content || ''
+        content: extractText(message.content)
       };
       return systemMessage;
     }
 
     const userMessage: ChatCompletionUserMessageParam = {
       role: 'user',
-      content: message.content || ''
+      content: extractText(message.content)
     };
     return userMessage;
   });
