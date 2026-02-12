@@ -20,6 +20,7 @@ import {
 import { runWhileLoop } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
 import { fetchJobsForGroup } from './jobProcessor';
+import { runSpecGenerator } from './specProcessor';
 
 // Use agentEventQueue for centralized event handling
 const eventQueue = codebolt.agentEventQueue;
@@ -30,7 +31,7 @@ const WORKER_AGENT_ID = "b29a9229-a76c-4d8c-acfc-e00a4511fb8c";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
-    //STEP 1: Create planning
+    //STEP 1: Analysis and planning only — no ActionBlock calls
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
     <important>
     When starting child worker agents using the \`thread_create_background\` tool, you MUST use:
@@ -94,39 +95,57 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
     } while (continueLoop);
 
-    codebolt.chat.sendMessage(executionResult.finalMessage)
-    // Planner agent returns after requirement is approved by user.
-    // It does NOT process the requirement - that is handled separately.
+    // codebolt.chat.sendMessage(executionResult.finalMessage)
 
     try {
-        const { result } = executionResult?.finalMessage ? JSON.parse(executionResult.finalMessage) : {};
-        const requirementPlanPath = result.requirementPlanPath;
+        let { result } = executionResult?.finalMessage ? JSON.parse(executionResult.finalMessage) : {};
+        // codebolt.chat.sendMessage(`${JSON.stringify(result)}`);
 
-        if (requirementPlanPath) {
-            codebolt.chat.sendMessage(`Creating jobs from requirement plan: ${requirementPlanPath}`, {});
+        let detailPlan = result?.detailPlan;
 
-            //STEP 2: Create jobs from action plan (still using action block)
-            const createJobsResponse = await codebolt.actionBlock.start('create-jobs-from-action-plan', {
-                requirementPlanId: requirementPlanPath,
-                workerAgentId: WORKER_AGENT_ID
-            });
 
-            if (createJobsResponse.success && createJobsResponse.result) {
-                const createJobsResult = createJobsResponse.result;
+        if (!detailPlan) {
+            detailPlan = result;
+            // codebolt.chat.sendMessage(`Planner did not return a detailPlan. Cannot proceed.`);
+            // return true;
+        }
 
-                if (createJobsResult.success && createJobsResult.jobGroupId) {
-                    const jobGroupId = createJobsResult.jobGroupId;
-                    codebolt.chat.sendMessage(`Jobs created successfully. Group ID: ${jobGroupId}`, {});
+        //STEP 2: Run spec generation directly (copied from create-detail-action-plan action-block)
+        codebolt.chat.sendMessage(`Creating detailed specification from plan...`, {});
 
-                    //STEP 3: Process jobs via agentic loop (LLM-driven orchestration)
-                    await executeJobsWithAgentLoop(jobGroupId, WORKER_AGENT_ID, reqMessage);
+        const specResult = await runSpecGenerator(reqMessage, detailPlan);
 
-                } else {
-                    codebolt.chat.sendMessage(`Failed to create jobs: ${createJobsResult.error || 'Unknown error'}`, {});
-                }
+        if (!specResult.success || !specResult.requirementPlanPath) {
+            codebolt.chat.sendMessage(`Failed to create specification: ${specResult.error || 'Unknown error'}`, {});
+            return true;
+        }
+
+        const requirementPlanPath = specResult.requirementPlanPath;
+        codebolt.chat.sendMessage(`Specification created. Requirement plan: ${requirementPlanPath}`, {});
+
+        //STEP 3: Create jobs from action plan (still using action block)
+        codebolt.chat.sendMessage(`Creating jobs from requirement plan: ${requirementPlanPath}`, {});
+
+        const createJobsResponse = await codebolt.actionBlock.start('create-jobs-from-action-plan', {
+            requirementPlanId: requirementPlanPath,
+            workerAgentId: WORKER_AGENT_ID
+        });
+
+        if (createJobsResponse.success && createJobsResponse.result) {
+            const createJobsResult = createJobsResponse.result;
+
+            if (createJobsResult.success && createJobsResult.jobGroupId) {
+                const jobGroupId = createJobsResult.jobGroupId;
+                codebolt.chat.sendMessage(`Jobs created successfully. Group ID: ${jobGroupId}`, {});
+
+                //STEP 4: Process jobs via agentic loop (LLM-driven orchestration)
+                await executeJobsWithAgentLoop(jobGroupId, WORKER_AGENT_ID, reqMessage);
+
             } else {
-                codebolt.chat.sendMessage(`Failed to start job creation: ${createJobsResponse.error || 'Unknown error'}`, {});
+                codebolt.chat.sendMessage(`Failed to create jobs: ${createJobsResult.error || 'Unknown error'}`, {});
             }
+        } else {
+            codebolt.chat.sendMessage(`Failed to start job creation: ${createJobsResponse.error || 'Unknown error'}`, {});
         }
     } catch (error) {
         console.error('Error processing post-planning actions:', error);
@@ -137,7 +156,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 });
 
 /**
- * STEP 3: Execute jobs using the same agentic loop pattern as Step 1 (planning).
+ * STEP 4: Execute jobs using the same agentic loop pattern as Step 1 (planning).
  * The LLM drives job orchestration — analyzing dependencies, launching parallel jobs,
  * reacting to completion events, and handling errors intelligently.
  */
@@ -210,7 +229,7 @@ ${jobContextXml}`;
 
         if (result instanceof Error) {
             codebolt.chat.sendMessage(`Error in job execution loop: ${result.message}`);
-            break; 
+            break;
         }
 
         jobExecutionResult = result.executionResult;
