@@ -2,6 +2,7 @@ import codebolt from '@codebolt/codeboltjs';
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import { findNextJobForAgent } from './jobfinder';
 import { SwarmConfig, AgentContext } from './jobfinder/types';
+import { executeJob } from './implementor';
 
 // ================================
 // MAIN AGENT ENTRY POINT
@@ -65,15 +66,22 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
           await codebolt.job.lockJob(job.id, ctx.agentId, ctx.agentName);
 
           // Update job status to working
-          await codebolt.job.updateJob(job.id, { status: 'closed' });
+          await codebolt.job.updateJob(job.id, { status: 'working' });
 
-          // TODO: Implement actual job execution logic here
-          codebolt.chat.sendMessage(`📝 Job ${job.id} is now being worked on...`);
+          try {
+            // Run the agent loop to implement the job
+            await executeJob(reqMessage, job, ctx);
 
-
-
-
-
+            // Mark job as review (not closed — reviewer will close it)
+            await codebolt.job.updateJob(job.id, { status: 'review' });
+            codebolt.chat.sendMessage(`✅ Job ${job.id} implementation done, submitted for review`);
+          } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            codebolt.chat.sendMessage(`❌ Job ${job.id} failed: ${errorMsg}`);
+            // Unlock the job so another agent can pick it up
+            await codebolt.job.unlockJob(job.id, ctx.agentId);
+            await codebolt.job.updateJob(job.id, { status: 'open' });
+          }
         }
         break;
 
