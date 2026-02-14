@@ -1,0 +1,16 @@
+{
+  "name": "feedback-form-plugin",
+  "version": "1.0.0",
+  "displayName": "Feedback Form",
+  "description": "Sample plugin demonstrating DynamicPanel + Plugin system. Opens a feedback form, receives submissions, pushes live updates, and listens to application events.",
+  "main": "dist/index.js",
+  "codebolt": {
+    "plugin": {
+      "triggers": [
+        {
+          "type": "manual"
+        }
+      ]
+    }
+  }
+}
