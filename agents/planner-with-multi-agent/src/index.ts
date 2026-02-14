@@ -110,8 +110,17 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     // codebolt.chat.sendMessage(executionResult.finalMessage)
 
     try {
-        let { result } = executionResult?.finalMessage ? JSON.parse(executionResult.finalMessage) : {};
-        // codebolt.chat.sendMessage(`${JSON.stringify(result)}`);
+        let result: any;
+        if (executionResult?.finalMessage) {
+            try {
+                const parsed = JSON.parse(executionResult.finalMessage);
+                result = parsed?.result;
+            } catch (parseError) {
+                // LLM returned plain text instead of JSON — use raw message as the plan
+                codebolt.chat.sendMessage("Planner returned a text response instead of structured JSON. Using it as the plan.");
+                result = { detailPlan: executionResult.finalMessage };
+            }
+        }
         codebolt.chat.sendMessage("Planning Phase completed")
 
         let detailPlan = result?.detailPlan;
@@ -119,8 +128,6 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
         if (!detailPlan) {
             detailPlan = JSON.stringify(result);
-            // codebolt.chat.sendMessage(`Planner did not return a detailPlan. Cannot proceed.`);
-            // return true;
         }
 
         //STEP 2: Run spec generation directly (copied from create-detail-action-plan action-block)

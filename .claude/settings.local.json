@@ -46,7 +46,8 @@
       "WebFetch(domain:gist.github.com)",
       "Bash(unzip:*)",
       "Bash(npm view:*)",
-      "Bash(npm run build:dll:*)"
+      "Bash(npm run build:dll:*)",
+      "Bash(xxd:*)"
     ],
     "deny": [],
     "ask": []

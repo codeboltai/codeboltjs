@@ -203,7 +203,7 @@ class ZAi implements LLMProviderWithStreaming {
     apiEndpoint: string | null = null
   ) {
     this.embeddingModels = ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"];
-    this.chatModels = ["gpt-4", "gpt-3.5-turbo"];
+    this.chatModels = ["glm-5", "glm-4.7", "gpt-4", "gpt-3.5-turbo"];
     this.model = model;
     this.device_map = device_map;
     this.apiKey = apiKey;
@@ -236,7 +236,7 @@ class ZAi implements LLMProviderWithStreaming {
       const completion = await this.client.chat.completions.create({
         // @ts-ignore
         messages: options.messages,
-        model: options.model || this.model || 'glm-4.6',
+        model: options.model || this.model || 'glm-5',
         temperature: options.temperature,
         top_p: options.top_p,
         max_tokens: options.max_tokens,
@@ -257,7 +257,7 @@ class ZAi implements LLMProviderWithStreaming {
    * Chunks include delta.content and delta.reasoning_content.
    */
   async createCompletionStream(options: StreamingOptions): Promise<ChatCompletionResponse> {
-    const modelName = options.model || this.model || 'glm-4.6';
+    const modelName = options.model || this.model || 'glm-5';
 
     try {
       const requestParams: any = {
@@ -373,7 +373,7 @@ class ZAi implements LLMProviderWithStreaming {
    * AsyncGenerator-based streaming for use with for-await-of
    */
   async *streamCompletion(options: ChatCompletionOptions): AsyncGenerator<StreamChunk, void, unknown> {
-    const modelName = options.model || this.model || 'glm-4.6';
+    const modelName = options.model || this.model || 'glm-5';
 
     try {
       const requestParams: any = {
@@ -437,12 +437,13 @@ class ZAi implements LLMProviderWithStreaming {
 
   async getModels(): Promise<any> {
     try {
-      return [{
-        id: 'glm-4.7',
-        name: 'glm-4.7',
+      const completion = await this.client.models.list();
+      return completion.data.map((model: any) => ({
+        id: model.id,
+        name: model.id,
         provider: 'zai',
         type: 'chat'
-      }];
+      }));
     } catch (error) {
       throw handleError(error);
     }

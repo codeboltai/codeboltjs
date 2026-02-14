@@ -218,20 +218,24 @@ ${planContent}`;
         }
 
         if (completed) {
+            let parsedResult: any;
             try {
-                const { result } = JSON.parse(finalMessage);
-
-                if (result.status == 'success' && result.requirementPlanPath) {
-                    return {
-                        success: true,
-                        requirementPlanPath: result.requirementPlanPath,
-                        specs_path: result.specs_path,
-                        action_plan: result.action_plan,
-                    };
-                }
+                const parsed = JSON.parse(finalMessage);
+                parsedResult = parsed?.result;
             } catch (error) {
-                codebolt.chat.sendMessage(`Failed to parse completion result: ${error} ${finalMessage}`);
+                // LLM returned plain text instead of JSON — ask it to retry with proper JSON
+                codebolt.chat.sendMessage(`Spec generator returned a text response instead of structured JSON. Retrying...`);
                 console.error("Failed to parse completion result:", error);
+                parsedResult = null;
+            }
+
+            if (parsedResult?.status == 'success' && parsedResult?.requirementPlanPath) {
+                return {
+                    success: true,
+                    requirementPlanPath: parsedResult.requirementPlanPath,
+                    specs_path: parsedResult.specs_path,
+                    action_plan: parsedResult.action_plan,
+                };
             }
 
             // If we are here, text processing failed or requirementPlanPath was missing.

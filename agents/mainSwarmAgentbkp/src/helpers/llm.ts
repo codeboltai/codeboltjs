@@ -28,7 +28,7 @@ export async function llm(systemPrompt: string, userPrompt: string): Promise<str
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
         ],
-        llmrole: 'default',
+        // llmrole: 'default',
     });
     return res.completion?.choices?.[0]?.message?.content || '';
 }

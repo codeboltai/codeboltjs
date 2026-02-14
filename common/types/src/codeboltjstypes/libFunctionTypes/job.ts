@@ -9,7 +9,7 @@ export interface JobGroup {
 }
 
 // Job Status
-export type JobStatus = 'open' | 'working' | 'hold' | 'closed';
+export type JobStatus = 'open' | 'working' | 'hold' | 'review' | 'closed';
 
 // Job Type
 export type JobType = 'bug' | 'feature' | 'task' | 'epic' | 'chore';
