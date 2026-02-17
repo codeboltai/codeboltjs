@@ -28,21 +28,23 @@ const eventQueue = codebolt.agentEventQueue;
 // Use backgroundChildThreads for tracking running agent count
 const agentTracker = codebolt.backgroundChildThreads;
 
-let WORKER_AGENT_ID = "";
+let WORKER_AGENT_ID = "b29a9229-a76c-4d8c-acfc-e00a4511fb8c";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
 
-    try {
-        const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-        const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-        const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
-        WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
+    // try {
+    //     const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
+    //     const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
+    //     const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
+    //     WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
+    //     codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
+    //     codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
+    //     return true
 
-
-    } catch (error) {
-        console.log('[Orchestrator] Using default configuration');
-    }
+    // } catch (error) {
+    //     console.log('[Orchestrator] Using default configuration');
+    // }
     //STEP 1: Analysis and planning only — no ActionBlock calls
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
     <important>

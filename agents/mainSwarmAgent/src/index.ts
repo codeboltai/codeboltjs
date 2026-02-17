@@ -8,12 +8,6 @@ import { executeJob } from './implementor';
 // MAIN AGENT ENTRY POINT
 // ================================
 
-const SWARM_CONFIG: SwarmConfig = {
-  isJobSelfSplittingEnabled: false,
-  minimumJobSplitProposalRequired: 1, // if split proposal required only 1 that auto approve,
-  isJobSplitDeliberationRequired: false,
-  selectJobSplitDeliberationType: '', // random,
-}
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
   codebolt.chat.sendMessage("🚀 Starting Main Swarm Agent");
@@ -27,11 +21,37 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     requirements: additionalVariable.requirements || 'Build a web application',
   };
 
+  // Fetch swarm configuration
+  let swarmConfig: SwarmConfig = {
+    isJobSelfSplittingEnabled: false,
+    minimumJobSplitProposalRequired: 1,
+    isJobSplitDeliberationRequired: false,
+    selectJobSplitDeliberationType: '',
+  };
+
+  try {
+    const configResponse = await codebolt.swarm.getSwarmConfig(ctx.swarmId);
+    if (configResponse.success && configResponse.data?.config) {
+      const fetchedConfig = configResponse.data.config;
+      swarmConfig = {
+        isJobSelfSplittingEnabled: false, // Defaulting to false as direct mapping is not present in JobCoordinationSettings
+        minimumJobSplitProposalRequired: fetchedConfig.jobCoordination?.minSplitProposals ?? 1,
+        isJobSplitDeliberationRequired: fetchedConfig.jobCoordination?.splitDeliberationEnabled ?? false,
+        selectJobSplitDeliberationType: '',
+      };
+      codebolt.chat.sendMessage(`🔧 Loaded swarm config: SplitDeliberation=${swarmConfig.isJobSplitDeliberationRequired}`);
+    } else {
+      codebolt.chat.sendMessage(`⚠️ Failed to load swarm config, using defaults: ${configResponse.error?.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    codebolt.chat.sendMessage(`⚠️ Error fetching swarm config: ${error}`);
+  }
+
   let running = true;
   while (running) {
     codebolt.chat.sendMessage(`🔍 Finding next job for agent...`);
 
-    const findJobResult = await findNextJobForAgent(ctx, SWARM_CONFIG);
+    const findJobResult = await findNextJobForAgent(ctx, swarmConfig);
 
     codebolt.chat.sendMessage(`📋 Find job result: success=${findJobResult?.success}, action=${findJobResult?.action}`);
 

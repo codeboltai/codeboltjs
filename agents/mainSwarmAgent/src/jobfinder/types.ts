@@ -53,6 +53,7 @@ export interface PheromoneDeposit {
     depositedBy?: string;
     depositedByName?: string;
     depositedAt?: string;
+    deliberationId?: string;
 }
 
 // ================================
@@ -64,7 +65,8 @@ export const PHEROMONE_TYPES = {
     IS_BLOCKED: 'isblocked',
     TASK_NOT_READY: 'task_not_ready',
     MIGHT_BE_COMPLETED: 'mightbecompleted',
-    IMPORTANCE: 'importance'
+    IMPORTANCE: 'importance',
+    DELIBERATION_PENDING: 'deliberation_pending'
 } as const;
 
 export interface SwarmConfig {

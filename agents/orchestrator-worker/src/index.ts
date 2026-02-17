@@ -86,6 +86,7 @@ When all goal tasks are done:
 1. Confirm that all tasks are checked off in the todo list
 2. Reconcile and close the todo list
 3. Give your summary per the summary spec
+4. **IMPORTANT**: After finishing your task, you MUST notify your parent agent using the \`eventqueue_send_message\` tool. Send a message to the parent agent (using the targetAgentId from the \`<reply_instructions>\`) with a brief summary of what was completed. This ensures the orchestrator knows the job is finished.
 
 ## Workflow
 
@@ -345,95 +346,196 @@ async function runwhileLoop(
     }
 }
 
-codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
-    let sessionSystemPrompt;
+// codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+//     let sessionSystemPrompt;
+//     try {
+//         let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
+//         let orhestratorConfig: any = await codebolt.orchestrator.getOrchestrator(orchestratorId);
+//         let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
+//         sessionSystemPrompt = systemPrompt;
+//         if (defaultWorkerAgentId) {
+//             sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent <workerAgent> ${defaultWorkerAgentId} <workerAgent> </important>`;
+//         }
+//     } catch (error) {
+//         sessionSystemPrompt = systemPrompt;
+//     }
+//     let promptGenerator = new InitialPromptGenerator({
+//         processors: [
+//             // 1. Chat History
+//             new ChatHistoryMessageModifier({ enableChatHistory: true }),
+//             // 2. Environment Context (date, OS)
+//             new EnvironmentContextModifier({ enableFullContext: true }),
+//             // 3. Directory Context (folder structure)  
+//             new DirectoryContextModifier(),
+
+//             // 4. IDE Context (active file, opened files)
+//             new IdeContextModifier({
+//                 includeActiveFile: true,
+//                 includeOpenFiles: true,
+//                 includeCursorPosition: true,
+//                 includeSelectedText: true
+//             }),
+//             // 5. Core System Prompt (instructions)
+//             new CoreSystemPromptModifier(
+//                 { customSystemPrompt: sessionSystemPrompt }
+//             ),
+//             // 6. Tools (function declarations)
+//             new ToolInjectionModifier({
+//                 includeToolDescriptions: true
+//             }),
+//             // 7. At-file processing (@file mentions)
+//             new AtFileProcessorModifier({
+//                 enableRecursiveSearch: true
+//             })
+//         ],
+//         baseSystemPrompt: sessionSystemPrompt
+//     });
+
+//     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+//     let executionResult: any;
+
+//     do {
+//         // Run the agent loop
+//         let result: any = await runwhileLoop(reqMessage, prompt);
+//         executionResult = result.executionResult;
+//         prompt = result.prompt;
+
+//         // Wait for next message
+//         let hasValidMessage = false;
+//         while (!hasValidMessage) {
+//             let pendingMessages = await codebolt.agentEventQueue.waitForNextQueueEvent();
+
+//             const messages = Array.isArray(pendingMessages) ? pendingMessages : [pendingMessages];
+
+//             if (!messages || messages.length === 0) {
+//                 continue;
+//             }
+
+//             messages.forEach((event: any) => {
+//                 if (event.eventType == 'agentEvent') {
+//                     hasValidMessage = true;
+//                     let messageContent = `<parent_agent_message>
+//             <source_agent>${event.sourceAgentId}</source_agent>
+//             <source_thread>${event.sourceThreadId}</source_thread>
+
+//             <message_type>instruction</message_type>
+//             <content>
+//             ${event.payload.content}
+//             </content>
+//             <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
+//             <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
+//             </parent_agent_message>`;
+
+//                     codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`);
+//                     if (reqMessage.userMessage) {
+//                         reqMessage.userMessage = messageContent;
+//                     }
+//                 }
+//             });
+//         }
+//     } while (true);
+//     // codebolt.chat.sendMessage('Agent finished')
+
+// })
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+
+
+
     try {
-        let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-        let orhestratorConfig: any = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-        let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
-        sessionSystemPrompt = systemPrompt;
-        if (defaultWorkerAgentId) {
-            sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent <workerAgent> ${defaultWorkerAgentId} <workerAgent> </important>`;
-        }
-    } catch (error) {
-        sessionSystemPrompt = systemPrompt;
-    }
-    let promptGenerator = new InitialPromptGenerator({
-        processors: [
-            // 1. Chat History
-            new ChatHistoryMessageModifier({ enableChatHistory: true }),
-            // 2. Environment Context (date, OS)
-            new EnvironmentContextModifier({ enableFullContext: true }),
-            // 3. Directory Context (folder structure)  
-            new DirectoryContextModifier(),
 
-            // 4. IDE Context (active file, opened files)
-            new IdeContextModifier({
-                includeActiveFile: true,
-                includeOpenFiles: true,
-                includeCursorPosition: true,
-                includeSelectedText: true
-            }),
-            // 5. Core System Prompt (instructions)
-            new CoreSystemPromptModifier(
-                { customSystemPrompt: sessionSystemPrompt }
-            ),
-            // 6. Tools (function declarations)
-            new ToolInjectionModifier({
-                includeToolDescriptions: true
-            }),
-            // 7. At-file processing (@file mentions)
-            new AtFileProcessorModifier({
-                enableRecursiveSearch: true
+        // codebolt.chat.sendMessage("Gemini agent started", {})
+        // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
+        // Instantiate modifiers that need state persistence
+        const ideContextModifier = new IdeContextModifier({
+            includeActiveFile: true,
+            includeOpenFiles: true,
+            includeCursorPosition: true,
+            includeSelectedText: true
+        });
+
+        const loopDetectionService = new LoopDetectionService({ debug: true });
+
+        let promptGenerator = new InitialPromptGenerator({
+
+            processors: [
+                // 1. Chat History
+                new ChatHistoryMessageModifier({ enableChatHistory: true }),
+                // 2. Environment Context (date, OS)
+                new EnvironmentContextModifier({ enableFullContext: true }),
+                // 3. Directory Context (folder structure)  
+                new DirectoryContextModifier(),
+
+                // 4. IDE Context (active file, opened files) - Shared instance
+                ideContextModifier,
+                // 5. Core System Prompt (instructions)
+                new CoreSystemPromptModifier(
+                    { customSystemPrompt: systemPrompt }
+                ),
+                // 6. Tools (function declarations)
+                new ToolInjectionModifier({
+                    includeToolDescriptions: true
+                }),
+
+                // 7. At-file processing (@file mentions)
+                new AtFileProcessorModifier({
+                    enableRecursiveSearch: true
+                })
+            ],
+            baseSystemPrompt: systemPrompt
+        });
+
+        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+        // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+
+        // return;
+        let completed = false;
+        let executionResult: any;
+        do {
+            let agent = new AgentStep({
+                preInferenceProcessors: [ideContextModifier], // Inject IDE context (incremental) before every step
+                postInferenceProcessors: []
             })
-        ],
-        baseSystemPrompt: sessionSystemPrompt
-    });
+            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+            prompt = result.nextMessage;
 
-    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-    let executionResult: any;
+            let responseExecutor = new ResponseExecutor({
+                preToolCallProcessors: [],
+                postToolCallProcessors: [
+                    new ConversationCompactorModifier({
+                        compactStrategy: 'summarize',
+                        compressionTokenThreshold: 0.5,
+                        preserveThreshold: 0.3,
+                        enableLogging: true
+                    })],
+                loopDetectionService: loopDetectionService // Use shared service
+            })
+            executionResult = await responseExecutor.executeResponse({
+                initialUserMessage: reqMessage,
+                actualMessageSentToLLM: result.actualMessageSentToLLM,
+                rawLLMOutput: result.rawLLMResponse,
+                nextMessage: result.nextMessage,
+            });
 
-    do {
-        // Run the agent loop
-        let result: any = await runwhileLoop(reqMessage, prompt);
-        executionResult = result.executionResult;
-        prompt = result.prompt;
 
-        // Wait for next message
-        let hasValidMessage = false;
-        while (!hasValidMessage) {
-            let pendingMessages = await codebolt.agentEventQueue.waitForNextQueueEvent();
 
-            const messages = Array.isArray(pendingMessages) ? pendingMessages : [pendingMessages];
+            completed = executionResult.completed;
+            prompt = executionResult.nextMessage;
 
-            if (!messages || messages.length === 0) {
-                continue;
+
+            if (completed) {
+                break;
             }
 
-            messages.forEach((event: any) => {
-                if (event.eventType == 'agentEvent') {
-                    hasValidMessage = true;
-                    let messageContent = `<parent_agent_message>
-            <source_agent>${event.sourceAgentId}</source_agent>
-            <source_thread>${event.sourceThreadId}</source_thread>
+        } while (!completed);
 
-            <message_type>instruction</message_type>
-            <content>
-            ${event.payload.content}
-            </content>
-            <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
-            <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
-            </parent_agent_message>`;
+        return executionResult.finalMessage;
 
-                    codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`);
-                    if (reqMessage.userMessage) {
-                        reqMessage.userMessage = messageContent;
-                    }
-                }
-            });
-        }
-    } while (true);
-    // codebolt.chat.sendMessage('Agent finished')
+
+    } catch (error) {
+
+    }
+
 
 })
 

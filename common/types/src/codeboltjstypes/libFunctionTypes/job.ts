@@ -275,6 +275,7 @@ export interface DepositPheromoneData {
     intensity?: number;
     depositedBy?: string;
     depositedByName?: string;
+    deliberationId?: string;
 }
 
 export interface AddSplitProposalData {

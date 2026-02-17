@@ -364,3 +364,49 @@ export interface GetStatusSummaryResponse extends SwarmResponse {
 export interface GetDefaultJobGroupResponse extends SwarmResponse {
     data?: { groupId: string };
 }
+
+// ================================
+// Config Types
+// ================================
+
+/**
+ * Job coordination settings
+ */
+export interface JobCoordinationSettings {
+    minSplitProposals: number;
+    minReputationForSplit: number;
+    splitDeliberationEnabled: boolean;
+    bidDeliberationEnabled: boolean;
+    requireBidForAssignment: boolean;
+    allowParallelWork: boolean;
+    maxParallelWorkers: number;
+    solutionDeliberationEnabled: boolean;
+}
+
+/**
+ * Swarm agent configuration
+ */
+export interface SwarmAgentConfig {
+    agentId: string;
+    agentName: string;
+    maxInstances: number;
+    isEnabled: boolean;
+}
+
+/**
+ * Swarm configuration
+ */
+export interface SwarmConfig {
+    agents: SwarmAgentConfig[];
+    maxConcurrentAgents: number;
+    initialPrompt: string;
+    defaultJobGroupId?: string;
+    jobCoordination?: JobCoordinationSettings;
+}
+
+/**
+ * Response for getSwarmConfig
+ */
+export interface GetSwarmConfigResponse extends SwarmResponse {
+    data?: { config: SwarmConfig };
+}

@@ -134,7 +134,118 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
                 proposedByName: ctx.agentName
             });
 
-            // Auto-approve if only 1 proposal is required
+            // Check for deliberation requirement
+            if (swarmConfig.isJobSplitDeliberationRequired) {
+                // Check if deliberation already pending
+                const deliberationPheromone = job.pheromones.find((p: any) => p.type === PHEROMONE_TYPES.DELIBERATION_PENDING);
+
+                if (!deliberationPheromone) {
+                    // Create deliberation
+                    codebolt.chat.sendMessage(`⚖️ Deliberation required for job split. Creating deliberation...`);
+
+                    try {
+                        const deliberationResponse = await codebolt.agentDeliberation.create({
+                            deliberationType: 'voting',
+                            title: `Split Proposal for Job: ${job.name}`,
+                            requestMessage: `Proposed split into ${splitAnalysis.proposedJobs.length} sub-jobs. \n\nReason: ${splitAnalysis.reason || 'Complexity analysis suggested split'}\n\nPlease review and vote.`,
+                            creatorId: ctx.agentId,
+                            creatorName: ctx.agentName,
+                            status: 'voting'
+                        });
+
+                        if (deliberationResponse && deliberationResponse.payload && deliberationResponse.payload.deliberation) {
+                            const newDeliberationId = deliberationResponse.payload.deliberation.id;
+
+                            // Seed options for voting
+                            try {
+                                await codebolt.agentDeliberation.respond({
+                                    deliberationId: newDeliberationId,
+                                    responderId: ctx.agentId,
+                                    responderName: ctx.agentName,
+                                    body: "Approve Split"
+                                });
+                                await codebolt.agentDeliberation.respond({
+                                    deliberationId: newDeliberationId,
+                                    responderId: ctx.agentId,
+                                    responderName: ctx.agentName,
+                                    body: "Reject Split"
+                                });
+                            } catch (e) {
+                                codebolt.chat.sendMessage(`⚠️ Failed to seed voting options: ${e}`);
+                            }
+
+                            await codebolt.job.depositPheromone(job.id, {
+                                type: PHEROMONE_TYPES.DELIBERATION_PENDING,
+                                intensity: 1,
+                                depositedBy: ctx.agentId,
+                                depositedByName: ctx.agentName,
+                                deliberationId: newDeliberationId
+                            });
+                            codebolt.chat.sendMessage(`✅ Deliberation created: ${newDeliberationId} with voting options.`);
+                        } else {
+                            codebolt.chat.sendMessage(`⚠️ Failed to create deliberation: Invalid response`);
+                        }
+                    } catch (err) {
+                        codebolt.chat.sendMessage(`⚠️ Error creating deliberation: ${err}`);
+                    }
+                    return { job: null, action: null };
+                } else {
+                    // Check status of existing deliberation
+                    const deliberationId = deliberationPheromone.deliberationId;
+                    if (deliberationId) {
+                        try {
+                            const deliberationResult = await codebolt.agentDeliberation.get({ id: deliberationId });
+                            const deliberation = deliberationResult.payload?.deliberation;
+                            const winner = deliberationResult.payload?.winner;
+
+                            if (deliberation && (deliberation.status === 'completed' || deliberation.status === 'closed' || deliberation.winnerId)) {
+                                codebolt.chat.sendMessage(`✅ Deliberation ${deliberationId} completed.`);
+                                await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.DELIBERATION_PENDING);
+
+                                if (winner && winner.body.toLowerCase().includes("approve")) {
+                                    codebolt.chat.sendMessage(`🎉 Split approved by deliberation. Proceeding with split.`);
+
+                                    // Accept the split proposal
+                                    const jobDetails = await codebolt.job.getJob(job.id);
+                                    const currentJob = jobDetails.job || job;
+                                    // @ts-ignore
+                                    const pendingProposal = currentJob.splitProposals?.find((p: any) => p.status === 'pending');
+
+                                    if (pendingProposal) {
+                                        await codebolt.job.acceptSplitProposal(job.id, pendingProposal.id);
+                                        codebolt.chat.sendMessage(`✅ Automatically accepted split proposal ${pendingProposal.id} based on deliberation result.`);
+                                    } else {
+                                        codebolt.chat.sendMessage(`⚠️ Could not find pending split proposal to accept for job ${job.id}`);
+                                    }
+
+                                    // Fall through to split logic (which returns action: 'split')
+                                } else if (winner && winner.body.toLowerCase().includes("reject")) {
+                                    codebolt.chat.sendMessage(`⛔ Split rejected by deliberation. Canceling split.`);
+                                    await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.SPLIT_THIS_JOB);
+                                    // Proceed as implement since split was rejected
+                                    return { job, action: 'implement' };
+                                } else {
+                                    codebolt.chat.sendMessage(`⚠️ Deliberation finished but result unclear (Winner: ${winner?.body}). Defaulting to split cancellation.`);
+                                    await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.SPLIT_THIS_JOB);
+                                    return { job, action: 'implement' };
+                                }
+                            } else {
+                                codebolt.chat.sendMessage(`⏳ Waiting for deliberation ${deliberationId} (Status: ${deliberation?.status})`);
+                                return { job: null, action: null };
+                            }
+                        } catch (err) {
+                            codebolt.chat.sendMessage(`⚠️ Error checking deliberation status: ${err}`);
+                            return { job: null, action: null };
+                        }
+                    } else {
+                        codebolt.chat.sendMessage(`⚠️ Deliberation pheromone found but no ID. cleaning up.`);
+                        await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.DELIBERATION_PENDING);
+                        return { job: null, action: null };
+                    }
+                }
+            }
+
+            // Auto-approve if only 1 proposal is required and deliberation is NOT required
             if (swarmConfig.minimumJobSplitProposalRequired == 1) {
                 const updatedJob = splitResult?.job || splitResult?.data?.job;
                 const pendingProposal = updatedJob?.splitProposals?.find((p: any) => p.status === 'pending');
@@ -243,7 +354,70 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
                 proposedByName: ctx.agentName
             });
 
-            // Auto-approve if only 1 proposal is required
+            // Check for deliberation requirement
+            if (swarmConfig.isJobSplitDeliberationRequired) {
+                // Check if deliberation already pending
+                const deliberationPheromone = job.pheromones.find((p: any) => p.type === PHEROMONE_TYPES.DELIBERATION_PENDING);
+
+                if (!deliberationPheromone) {
+                    // Create deliberation
+                    codebolt.chat.sendMessage(`⚖️ Deliberation required for job split. Creating deliberation...`);
+
+                    try {
+                        const deliberationResponse = await codebolt.agentDeliberation.create({
+                            deliberationType: 'voting',
+                            title: `Split Proposal for Job: ${job.name}`,
+                            requestMessage: `Proposed split into ${splitAnalysis.proposedJobs.length} sub-jobs. \n\nReason: ${splitAnalysis.reason || 'Complexity analysis suggested split'}\n\nPlease review and vote.`,
+                            creatorId: ctx.agentId,
+                            creatorName: ctx.agentName,
+                            status: 'voting'
+                        });
+
+                        if (deliberationResponse && deliberationResponse.payload && deliberationResponse.payload.deliberation) {
+                            await codebolt.job.depositPheromone(job.id, {
+                                type: PHEROMONE_TYPES.DELIBERATION_PENDING,
+                                intensity: 1,
+                                depositedBy: ctx.agentId,
+                                depositedByName: ctx.agentName,
+                                deliberationId: deliberationResponse.payload.deliberation.id
+                            });
+                            codebolt.chat.sendMessage(`✅ Deliberation created: ${deliberationResponse.payload.deliberation.id}`);
+                        } else {
+                            codebolt.chat.sendMessage(`⚠️ Failed to create deliberation: Invalid response`);
+                        }
+                    } catch (err) {
+                        codebolt.chat.sendMessage(`⚠️ Error creating deliberation: ${err}`);
+                    }
+                    return { job: null, action: null };
+                } else {
+                    // Check status of existing deliberation
+                    const deliberationId = deliberationPheromone.deliberationId;
+                    if (deliberationId) {
+                        try {
+                            const deliberationResult = await codebolt.agentDeliberation.get({ id: deliberationId });
+                            const deliberation = deliberationResult.payload?.deliberation;
+
+                            if (deliberation && (deliberation.status === 'completed' || deliberation.status === 'closed' || deliberation.winnerId)) {
+                                codebolt.chat.sendMessage(`✅ Deliberation ${deliberationId} completed. Proceeding with split.`);
+                                await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.DELIBERATION_PENDING);
+                                // Fall through to split logic
+                            } else {
+                                codebolt.chat.sendMessage(`⏳ Waiting for deliberation ${deliberationId} (Status: ${deliberation?.status})`);
+                                return { job: null, action: null };
+                            }
+                        } catch (err) {
+                            codebolt.chat.sendMessage(`⚠️ Error checking deliberation status: ${err}`);
+                            return { job: null, action: null };
+                        }
+                    } else {
+                        codebolt.chat.sendMessage(`⚠️ Deliberation pheromone found but no ID. cleaning up.`);
+                        await codebolt.job.removePheromone(job.id, PHEROMONE_TYPES.DELIBERATION_PENDING);
+                        return { job: null, action: null };
+                    }
+                }
+            }
+
+            // Auto-approve if only 1 proposal is required and deliberation is NOT required
             if (swarmConfig.minimumJobSplitProposalRequired == 1) {
                 const updatedJob = splitResult?.job || splitResult?.data?.job;
                 const pendingProposal = updatedJob?.splitProposals?.find((p: any) => p.status === 'pending');
@@ -253,11 +427,11 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
                 }
             }
 
-            codebolt.chat.sendMessage(`✂️ Found splittable job ${job.id}, marked for splitting`);
+            codebolt.chat.sendMessage(`✂️ Job ${job.id} marked for splitting into ${splitAnalysis.proposedJobs.length} sub-jobs`);
             return { job, action: 'split' };
         }
 
-        // Job is not splittable, return it for implementation
+        // Job is ready to implement (not splittable, no blockers)
         return { job, action: 'implement' };
     }
 

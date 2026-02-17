@@ -76,7 +76,7 @@ export async function analyzeJobDependencies(
  * Determine if a job is splittable (can be broken into sub-jobs)
  * Uses LLM inference with retry logic from swarmAgent
  */
-export async function isJobSplittable(job: Job): Promise<{ splittable: boolean; proposedJobs?: { name: string; description: string }[] }> {
+export async function isJobSplittable(job: Job): Promise<{ splittable: boolean; proposedJobs?: { name: string; description: string }[]; reason?: string }> {
     // Only split root-level jobs (jobs without a parent)
     if (job.parentJobId) {
         codebolt.chat.sendMessage(`Note: Skipping split analysis for sub-task "${job.name}"`);
@@ -97,7 +97,8 @@ export async function isJobSplittable(job: Job): Promise<{ splittable: boolean; 
         codebolt.chat.sendMessage(`Proposing split into ${splitAnalysis.proposedJobs.length} sub-tasks...`);
         return {
             splittable: true,
-            proposedJobs: splitAnalysis.proposedJobs
+            proposedJobs: splitAnalysis.proposedJobs,
+            reason: splitAnalysis.reason
         };
     }
 
