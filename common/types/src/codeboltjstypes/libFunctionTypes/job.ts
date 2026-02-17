@@ -40,12 +40,15 @@ export interface Job {
     assignees: string[]; // List of assignee names/IDs
     labels: string[]; // Tags/labels
     dependencies: JobDependency[];
+    pheromones: PheromoneDeposit[];
     parentJobId?: string; // For sub-jobs (hierarchical)
     notes?: string; // Additional notes
     dueDate?: string;
     createdAt: string;
     updatedAt: string;
     closedAt?: string;
+    splitProposals?: SplitProposal[];
+    splitStatus?: 'not_split' | 'partial_split' | 'split_up';
 }
 
 // Filter options for list command

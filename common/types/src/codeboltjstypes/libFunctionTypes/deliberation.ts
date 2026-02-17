@@ -50,6 +50,7 @@ export interface DeliberationResponse {
   responderId: string;
   responderName: string;
   body: string;
+  proposedBy?: string;
   voteCount: number;
   createdAt: string;
 }
@@ -71,6 +72,7 @@ export interface ICreateDeliberationParams {
   creatorName: string;
   participants?: string[];
   status?: DeliberationStatus;
+  options?: { text: string; proposedBy: string }[];
 }
 
 export interface IGetDeliberationParams {

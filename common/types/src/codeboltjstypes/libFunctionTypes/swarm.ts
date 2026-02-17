@@ -374,6 +374,7 @@ export interface GetDefaultJobGroupResponse extends SwarmResponse {
  */
 export interface JobCoordinationSettings {
     minSplitProposals: number;
+    maxSplitProposals: number;
     minReputationForSplit: number;
     splitDeliberationEnabled: boolean;
     bidDeliberationEnabled: boolean;

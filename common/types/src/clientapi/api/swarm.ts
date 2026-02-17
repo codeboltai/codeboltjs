@@ -146,6 +146,7 @@ export interface SwarmAgentConfig {
 /** Job coordination settings */
 export interface JobCoordinationSettings {
   minSplitProposals: number;
+  maxSplitProposals: number;
   minReputationForSplit: number;
   splitDeliberationEnabled: boolean;
   bidDeliberationEnabled: boolean;

@@ -72,6 +72,7 @@ export const PHEROMONE_TYPES = {
 export interface SwarmConfig {
     isJobSelfSplittingEnabled: boolean;
     minimumJobSplitProposalRequired: number;
+    maxSplitProposals: number;
     isJobSplitDeliberationRequired: boolean;
     selectJobSplitDeliberationType: string;
 }

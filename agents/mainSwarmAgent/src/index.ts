@@ -25,6 +25,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
   let swarmConfig: SwarmConfig = {
     isJobSelfSplittingEnabled: false,
     minimumJobSplitProposalRequired: 1,
+    maxSplitProposals: 5,
     isJobSplitDeliberationRequired: false,
     selectJobSplitDeliberationType: '',
   };
@@ -36,6 +37,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
       swarmConfig = {
         isJobSelfSplittingEnabled: false, // Defaulting to false as direct mapping is not present in JobCoordinationSettings
         minimumJobSplitProposalRequired: fetchedConfig.jobCoordination?.minSplitProposals ?? 1,
+        maxSplitProposals: fetchedConfig.jobCoordination?.maxSplitProposals ?? 5,
         isJobSplitDeliberationRequired: fetchedConfig.jobCoordination?.splitDeliberationEnabled ?? false,
         selectJobSplitDeliberationType: '',
       };
