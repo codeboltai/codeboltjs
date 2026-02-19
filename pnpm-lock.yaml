@@ -3662,6 +3662,34 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  providers/narrative-snapshot-provider:
+    dependencies:
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/narrative':
+        specifier: file:../../../CodeBolt/packages/narrativejspackage
+        version: file:../CodeBolt/packages/narrativejspackage
+      '@codebolt/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.19
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   providers/remoteserverprovider:
     dependencies:
       '@codebolt/types':
@@ -5454,6 +5482,10 @@ packages:
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
+
+  '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
+    resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
+    engines: {node: '>=16.0.0'}
 
   '@codebolt/types@5.0.8':
     resolution: {integrity: sha512-1ICNr7OPDad32xpt7O3sz0hdcJBmfrZBko9Xf+RSiH5rcoExM76Ybiqjn9m2tzbTxlcsuYfEgxUUA/0ZPkPhmA==}
@@ -19619,6 +19651,8 @@ snapshots:
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
+
+  '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage': {}
 
   '@codebolt/types@5.0.8':
     dependencies:
