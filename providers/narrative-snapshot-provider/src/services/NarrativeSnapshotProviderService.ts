@@ -298,8 +298,15 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
     });
 
     this.logger.log('Exported bundle:', bundleResult.bundle_path);
+    this.logger.log('Snapshot ID:', this.importedSnapshotId);
+    // this.importedSnapshotId = snapshotResult.snapshot_id;
 
-    return { snapshot: snapshotResult, bundle: bundleResult };
+    // Include the base snapshot ID so the server can compute diffs
+    return {
+      snapshot: snapshotResult,
+      bundle: bundleResult,
+      baseSnapshotId: this.importedSnapshotId,
+    };
   }
 
   // --- BaseProvider abstract method implementations ---
