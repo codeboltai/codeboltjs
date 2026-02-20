@@ -28,6 +28,7 @@ interface ProviderConfig {
 export class NarrativeSnapshotProviderService extends BaseProvider {
   private narrativeClient: NarrativeClient | null = null;
   private importedSnapshotId: string | null = null;
+  private serverSnapshotId: string | null = null;
   private baseProjectPath: string | null = null;
   private isStartupCheck = false;
 
@@ -298,14 +299,14 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
     });
 
     this.logger.log('Exported bundle:', bundleResult.bundle_path);
-    this.logger.log('Snapshot ID:', this.importedSnapshotId);
-    // this.importedSnapshotId = snapshotResult.snapshot_id;
 
-    // Include the base snapshot ID so the server can compute diffs
+    // Echo back the server-side snapshot ID as the diff base.
+    // This ID originates from the server's local narrative DB, so it
+    // is guaranteed to exist there when computing the diff.
     return {
       snapshot: snapshotResult,
       bundle: bundleResult,
-      baseSnapshotId: this.importedSnapshotId,
+      baseSnapshotId: this.serverSnapshotId,
     };
   }
 
@@ -360,11 +361,9 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
     this.logger.log('Narrative engine started in remote mode for environment:', environmentId);
 
     // Import snapshot archive if provided
-    // initVars.archivePath can be a string or an object { archivePath, snapshotId }
-    const rawArchive = initVars.archivePath;
-    const archivePath = typeof rawArchive === 'string'
-      ? rawArchive
-      : (rawArchive as any)?.archivePath as string | undefined;
+    const archivePath = initVars.archivePath as string | undefined;
+    // Store the server-side snapshot ID so we can echo it back in onSendPR
+    this.serverSnapshotId = (initVars as any).snapshotId || null;
     if (archivePath) {
       this.logger.log('Importing snapshot archive:', archivePath);
 
@@ -376,8 +375,7 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
 
       this.importedSnapshotId = importResult.snapshot_id;
       this.logger.log('Imported snapshot:', importResult.snapshot_id, 'tree_hash:', importResult.tree_hash);
-
-
+      this.logger.log('Server snapshot ID (for diff base):', this.serverSnapshotId);
     } else {
       this.logger.warn('No archivePath provided in initVars, workspace will be empty');
     }

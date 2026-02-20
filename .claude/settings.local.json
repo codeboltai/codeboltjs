@@ -47,7 +47,9 @@
       "Bash(unzip:*)",
       "Bash(npm view:*)",
       "Bash(npm run build:dll:*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "WebFetch(domain:www.daytona.io)",
+      "WebFetch(domain:www.npmjs.com)"
     ],
     "deny": [],
     "ask": []
