@@ -360,7 +360,11 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
     this.logger.log('Narrative engine started in remote mode for environment:', environmentId);
 
     // Import snapshot archive if provided
-    const archivePath = initVars.archivePath as string | undefined;
+    // initVars.archivePath can be a string or an object { archivePath, snapshotId }
+    const rawArchive = initVars.archivePath;
+    const archivePath = typeof rawArchive === 'string'
+      ? rawArchive
+      : (rawArchive as any)?.archivePath as string | undefined;
     if (archivePath) {
       this.logger.log('Importing snapshot archive:', archivePath);
 
