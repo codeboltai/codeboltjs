@@ -1,5 +1,17 @@
 # @codebolt/types
 
+## 6.0.0
+
+### Major Changes
+
+- updated agent server
+
+## 5.0.9
+
+### Patch Changes
+
+- updated agent server
+
 ## 5.0.8
 
 ### Patch Changes

@@ -1,0 +1,43 @@
+{
+  "name": "@codebolt/daytona-remote-provider",
+  "version": "1.0.0",
+  "description": "Daytona Remote Provider for CodeBolt - uses Daytona sandbox infrastructure for remote execution",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "codebolt",
+    "daytona",
+    "remote",
+    "provider"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/provider": "workspace:*",
+    "@codebolt/types": "workspace:*",
+    "@codebolt/agentserver": "latest",
+    "@codebolt/narrative": "file:../../../CodeBolt/packages/narrativejspackage",
+    "@daytonaio/sdk": "latest",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

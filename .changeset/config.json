@@ -28,7 +28,6 @@
     "@codebolt/act-old",
     "@codebolt/actionBlockTest",
     "@codebolt/agentfs-provider",
-    "@codebolt/agentserver",
     "@codebolt/clitestagent",
     "@codebolt/codeparser",
     "@codebolt/create-team-for-swarm",
@@ -90,6 +89,8 @@
     "reviewer-agent",
     "test-deliberation-agent",
     "visual-codebolt-testing",
-    "@codebolt/claude-code"
+    "@codebolt/claude-code",
+    "@codebolt/daytona-remote-provider",
+    "@codebolt/narrative-snapshot-provider"
   ]
 }

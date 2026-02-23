@@ -1,0 +1,16 @@
+name: daytona-remote-provider
+version: 1.0.0
+description: Daytona Remote Provider for CodeBolt
+entrypoint: dist/index.js
+config:
+  agentServerPort: 3001
+  agentServerHost: localhost
+  daytonaApiKey: ""
+  daytonaApiUrl: ""
+  sandboxImage: ""
+  sandboxLanguage: "typescript"
+  autoStopInterval: 0
+  timeouts:
+    agentServerStartup: 30000
+    wsConnection: 10000
+    cleanup: 15000
