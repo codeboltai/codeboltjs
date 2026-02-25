@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px;
+            background: #1e1e2e;
+            color: #cdd6f4;
+        }
+
+        h2 {
+            margin-bottom: 16px;
+            color: #89b4fa;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #a6adc8;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            background: #313244;
+            color: #cdd6f4;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #89b4fa;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background: #89b4fa;
+            color: #1e1e2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #74c7ec;
+        }
+
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: #a6e3a1;
+            color: #1e1e2e;
+        }
+
+        .status.info {
+            display: block;
+            background: #313244;
+            color: #89b4fa;
+            border: 1px solid #45475a;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Feedback Form</h2>
+    <form id="feedbackForm">
+        <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required />
+        </div>
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+                <option value="bug">Bug Report</option>
+                <option value="feature">Feature Request</option>
+                <option value="general">General Feedback</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="Describe your feedback..." required></textarea>
+        </div>
+        <button type="submit">Submit Feedback</button>
+    </form>
+
+    <div id="status" class="status"></div>
+
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = Object.fromEntries(new FormData(e.target));
+            window.parent.postMessage({ type: 'submit', data: formData }, '*');
+        });
+
+        window.addEventListener('message', function (e) {
+            const msg = e.data;
+            if (msg.type === 'submission-ack') {
+                const el = document.getElementById('status');
+                el.className = 'status success';
+                el.textContent = msg.message;
+                document.getElementById('feedbackForm').reset();
+            }
+            if (msg.type === 'stats') {
+                const el = document.getElementById('status');
+                el.className = 'status info';
+                el.textContent = 'Total submissions this session: ' + msg.count;
+            }
+        });
+    </script>
+</body>
+
+</html>

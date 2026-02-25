@@ -16,7 +16,8 @@ packages:
   - testcases/*
   - cli/*
   - multillm-node/*
-  
+  - sample-plugins/*
+
 ignoredBuiltDependencies:
   - esbuild
   - workerd

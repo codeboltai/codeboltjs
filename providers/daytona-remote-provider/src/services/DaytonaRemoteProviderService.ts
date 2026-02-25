@@ -1,7 +1,5 @@
-import type { ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import * as net from 'net';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -10,11 +8,6 @@ import {
 import { Daytona, Sandbox } from '@daytonaio/sdk';
 import { NarrativeClient } from '@codebolt/narrative';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
-import {
-  startAgentServer as startAgentServerUtil,
-  stopAgentServer as stopAgentServerUtil,
-  isPortInUse,
-} from '../utils/agentServer';
 
 interface DaytonaProviderConfig {
   agentServerPort?: number;
@@ -42,6 +35,9 @@ export class DaytonaRemoteProviderService extends BaseProvider {
   private sandboxWorkspacePath: string = '/home/daytona';
   private isStartupCheck = false;
   private setupInProgress = false;
+  private sandboxAgentSessionId = 'codebolt-agent-server';
+  private sandboxAgentCommandId: string | null = null;
+  private sandboxPreviewToken: string | null = null;
 
   private readonly providerConfig: DaytonaProviderConfig;
   private readonly logger: Logger;
@@ -59,7 +55,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      daytonaApiKey: config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
+      daytonaApiKey: "", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
       daytonaApiUrl: "https://app.daytona.io/api",// config.daytonaApiUrl ?? process.env.DAYTONA_API_URL,
       sandboxImage: config.sandboxImage,
       sandboxLanguage: config.sandboxLanguage ?? 'typescript',
@@ -114,22 +110,46 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       this.providerConfig.sandboxLanguage = initVars.sandboxLanguage as string;
     }
 
-    this.isStartupCheck = true;
-    try {
-      const result = await super.onProviderStart(initVars);
-      this.logger.log('Started environment with workspace:', result.workspacePath);
+    // Custom startup order: sandbox first, then agent server, then transport.
+    // Cannot use super.onProviderStart because base class calls ensureAgentServer
+    // before setupEnvironment, but we need the sandbox to exist first.
+    this.resetState();
+    this.state.environmentName = initVars.environmentName;
 
-      this.startHeartbeat();
+    await this.resolveProjectContext(initVars);
+    this.state.workspacePath = await this.resolveWorkspacePath(initVars);
 
-      if (initVars.environmentName) {
-        this.registerConnectedEnvironment(initVars.environmentName);
-        this.startEnvironmentHeartbeat(initVars.environmentName);
-      }
+    // 1. Create sandbox and copy code via narrative import
+    await this.setupEnvironment(initVars);
 
-      return result;
-    } finally {
-      this.isStartupCheck = false;
+    // 2. Start agent server inside the sandbox (sandbox is now available)
+    await this.ensureAgentServer();
+
+    // 3. Connect WebSocket transport to sandbox agent server
+    await this.ensureTransportConnection(initVars);
+
+    this.state.initialized = true;
+
+    const startResult: ProviderStartResult = {
+      success: true,
+      environmentName: initVars.environmentName,
+      agentServerUrl: this.agentServer.serverUrl,
+      workspacePath: this.state.workspacePath!,
+      transport: this.config.transport,
+    };
+
+    await this.afterConnected(startResult);
+
+    this.logger.log('Started environment with workspace:', startResult.workspacePath);
+
+    this.startHeartbeat();
+
+    if (initVars.environmentName) {
+      this.registerConnectedEnvironment(initVars.environmentName);
+      this.startEnvironmentHeartbeat(initVars.environmentName);
     }
+
+    return startResult;
   }
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
@@ -613,21 +633,26 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       this.logger.log('Repository cloned successfully');
     }
 
-    // Initialize NarrativeClient for snapshot tracking
+    // Initialize NarrativeClient for snapshot tracking (optional — binary may not be available)
     const environmentId = (process.env.environmentId as string) || initVars.environmentName;
-    this.narrativeClient = new NarrativeClient({
-      environmentId,
-      workspace: this.state.projectPath ?? undefined,
-      remote: true,
-    });
+    try {
+      this.narrativeClient = new NarrativeClient({
+        environmentId,
+        workspace: this.state.projectPath ?? undefined,
+        remote: true,
+      });
 
-    await this.narrativeClient.start();
-    this.logger.log('Narrative engine started in remote mode for environment:', environmentId);
+      await this.narrativeClient.start();
+      this.logger.log('Narrative engine started in remote mode for environment:', environmentId);
+    } catch (narrativeError) {
+      this.logger.warn('Narrative engine not available, snapshot features will be disabled:', narrativeError);
+      this.narrativeClient = null;
+    }
 
-    // Import snapshot archive if provided
+    // Import snapshot archive if provided and narrative is available
     const archivePath = initVars.archivePath as string | undefined;
     this.serverSnapshotId = (initVars as any).snapshotId || null;
-    if (archivePath) {
+    if (archivePath && this.narrativeClient) {
       this.logger.log('Importing snapshot archive:', archivePath);
       const importResult = await this.narrativeClient.snapshot.importSnapshotArchive({
         archive_path: archivePath,
@@ -670,6 +695,8 @@ export class DaytonaRemoteProviderService extends BaseProvider {
         await this.syncLocalToSandbox(this.state.projectPath, this.sandboxWorkspacePath);
         this.logger.log('Snapshot files synced to sandbox');
       }
+    } else if (archivePath && !this.narrativeClient) {
+      this.logger.warn('Snapshot archive provided but narrative engine is not available, skipping import');
     }
   }
 
@@ -729,22 +756,23 @@ export class DaytonaRemoteProviderService extends BaseProvider {
   }
 
   protected async ensureAgentServer(): Promise<void> {
-    try {
-      const portInUse = await isPortInUse({
-        port: this.providerConfig.agentServerPort ?? 3001,
-        host: this.providerConfig.agentServerHost ?? 'localhost',
-      });
+    if (!this.sandbox) {
+      this.logger.log('Sandbox not available yet, deferring agent server startup');
+      return;
+    }
 
-      if (portInUse) {
-        this.logger.log('Agent server already running, skipping startup');
+    // Check if agent server session is already running in sandbox
+    try {
+      const session = await this.sandbox.process.getSession(this.sandboxAgentSessionId);
+      if (session) {
+        this.logger.log('Agent server session already exists in sandbox');
         return;
       }
-
-      await this.startAgentServer();
-    } catch (error: any) {
-      this.logger.error('Error ensuring agent server:', error);
-      throw new Error(`Failed to ensure agent server: ${error.message}`);
+    } catch {
+      // Session doesn't exist, need to start
     }
+
+    await this.startAgentServerInSandbox();
   }
 
   protected async beforeClose(): Promise<void> {
@@ -763,8 +791,11 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       projectName: initVars.environmentName,
     });
 
-    if (this.state.projectPath) {
-      query.set('currentProject', this.state.projectPath);
+    // Use sandbox workspace path since agent server runs inside sandbox
+    query.set('currentProject', this.sandboxWorkspacePath);
+
+    if (this.sandboxPreviewToken) {
+      query.set('token', this.sandboxPreviewToken);
     }
 
     return `${this.agentServer.serverUrl}?${query.toString()}`;
@@ -801,77 +832,119 @@ export class DaytonaRemoteProviderService extends BaseProvider {
 
   // --- Agent server management ---
 
-  private async startAgentServer(): Promise<void> {
-    this.logger.log('Starting agent server...');
-
-    try {
-      if (this.agentServer.process && !(this.agentServer.process as ChildProcess).killed) {
-        this.logger.log('Agent server process already exists, skipping startup');
-        return;
-      }
-
-      const preferredPort = this.providerConfig.agentServerPort!;
-      const availablePort = await this.findAvailablePort(preferredPort);
-
-      if (availablePort !== preferredPort) {
-        this.logger.log(`Using port ${availablePort} instead of configured port ${preferredPort}`);
-        this.providerConfig.agentServerPort = availablePort;
-      }
-
-      this.agentServer.process = await startAgentServerUtil({
-        logger: this.logger,
-        port: availablePort,
-        projectPath: this.state.projectPath ?? undefined,
-      });
-
-      (this.agentServer.process as ChildProcess).on('exit', (code, signal) => {
-        this.logger.warn(`Agent server process exited with code ${code} and signal ${signal}`);
-        this.agentServer.process = null;
-        this.agentServer.isConnected = false;
-      });
-    } catch (error: any) {
-      this.logger.error('Error starting agent server:', error);
-      throw new Error(`Failed to start agent server: ${error.message}`);
+  private async startAgentServerInSandbox(): Promise<void> {
+    if (!this.sandbox) {
+      throw new Error('Cannot start agent server: sandbox not available');
     }
+
+    const port = this.providerConfig.agentServerPort!;
+    this.logger.log(`Installing and starting agent server in sandbox on port ${port}...`);
+
+    // Install @codebolt/agentserver in the sandbox
+    const installResult = await this.sandbox.process.executeCommand(
+      'npm install @codebolt/agentserver',
+      this.sandboxWorkspacePath,
+    );
+    if (installResult.exitCode !== 0) {
+      throw new Error(`Failed to install @codebolt/agentserver in sandbox: ${installResult.result}`);
+    }
+    this.logger.log('Installed @codebolt/agentserver in sandbox');
+
+    // Create a background session for the agent server
+    await this.sandbox.process.createSession(this.sandboxAgentSessionId);
+
+    // Start the agent server asynchronously in the session
+    const startCmd = [
+      `cd ${this.sandboxWorkspacePath}`,
+      '&&',
+      `node $(node -p "require.resolve('@codebolt/agentserver')")`,
+      '--noui',
+      '--port', port.toString(),
+      '--project-path', this.sandboxWorkspacePath,
+    ].join(' ');
+
+    const execResult = await this.sandbox.process.executeSessionCommand(
+      this.sandboxAgentSessionId,
+      { command: startCmd, runAsync: true },
+    );
+    this.sandboxAgentCommandId = execResult.cmdId || null;
+    this.logger.log('Agent server process started in sandbox, cmdId:', this.sandboxAgentCommandId);
+
+    // Wait for the server to be ready
+    await this.waitForAgentServerReady(port);
+
+    // Get the sandbox preview URL for the agent server port
+    const previewLink = await this.sandbox.getPreviewLink(port);
+    const wsUrl = previewLink.url
+      .replace(/^https:\/\//, 'wss://')
+      .replace(/^http:\/\//, 'ws://');
+    this.agentServer.serverUrl = wsUrl;
+    this.sandboxPreviewToken = (previewLink as any).token || null;
+
+    this.logger.log('Agent server accessible at:', wsUrl);
+  }
+
+  private async waitForAgentServerReady(port: number): Promise<void> {
+    const timeout = this.providerConfig.timeouts?.agentServerStartup ?? 60_000;
+    const startTime = Date.now();
+
+    this.logger.log(`Waiting for agent server to be ready (timeout: ${timeout}ms)...`);
+
+    while (Date.now() - startTime < timeout) {
+      // Try health check inside the sandbox
+      try {
+        const healthCheck = await this.sandbox!.process.executeCommand(
+          `node -e "const http=require('http');http.get('http://localhost:${port}/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"`,
+          this.sandboxWorkspacePath,
+        );
+        if (healthCheck.exitCode === 0) {
+          this.logger.log('Agent server health check passed');
+          return;
+        }
+      } catch {
+        // Server not ready yet
+      }
+
+      // Also check session logs for startup confirmation
+      if (this.sandboxAgentCommandId) {
+        try {
+          const logs = await this.sandbox!.process.getSessionCommandLogs(
+            this.sandboxAgentSessionId,
+            this.sandboxAgentCommandId,
+          );
+          const output = logs.output || logs.stdout || '';
+          if (output.includes('Server started successfully')) {
+            this.logger.log('Agent server startup confirmed via logs');
+            return;
+          }
+        } catch {
+          // Logs not available yet
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1_000));
+    }
+
+    throw new Error(`Agent server in sandbox failed to start within ${timeout}ms`);
   }
 
   private async stopAgentServer(): Promise<boolean> {
+    if (!this.sandbox) {
+      this.logger.log('No sandbox available, skipping agent server stop');
+      return true;
+    }
+
     try {
-      const result = await stopAgentServerUtil({
-        logger: this.logger,
-        processRef: this.agentServer.process as ChildProcess | null,
-      });
-
-      this.agentServer.process = null;
-      return result;
-    } catch (error: any) {
-      this.logger.error('Error stopping agent server:', error);
-      return false;
+      this.logger.log('Stopping agent server session in sandbox...');
+      await this.sandbox.process.deleteSession(this.sandboxAgentSessionId);
+      this.logger.log('Agent server session deleted from sandbox');
+    } catch (error) {
+      this.logger.warn('Error deleting agent server session:', error);
     }
-  }
 
-  private async findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
-    let port = preferredPort;
-    for (let i = 0; i < maxAttempts; i++) {
-      if (await this.isPortAvailable(port)) {
-        return port;
-      }
-      this.logger.warn(`Port ${port} is in use, trying next port...`);
-      port++;
-    }
-    throw new Error(`Could not find an available port after ${maxAttempts} attempts starting from ${preferredPort}`);
-  }
-
-  private async isPortAvailable(port: number): Promise<boolean> {
-    return new Promise((resolve) => {
-      const server = net.createServer();
-      server.once('error', () => resolve(false));
-      server.once('listening', () => {
-        server.close();
-        resolve(true);
-      });
-      server.listen(port, '127.0.0.1');
-    });
+    this.sandboxAgentCommandId = null;
+    this.agentServer.process = null;
+    return true;
   }
 
   async onCloseSignal(): Promise<void> {

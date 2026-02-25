@@ -4,13 +4,26 @@
   "displayName": "Feedback Form",
   "description": "Sample plugin demonstrating DynamicPanel + Plugin system. Opens a feedback form, receives submissions, pushes live updates, and listens to application events.",
   "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/codeboltjs": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
   "codebolt": {
     "plugin": {
       "triggers": [
         {
           "type": "manual"
         }
-      ]
+      ],
+      "ui": {
+        "path": "./ui/default/index.html"
+      }
     }
   }
 }
