@@ -1,0 +1,30 @@
+{
+  "name": "simpleui-plugin",
+  "version": "1.0.0",
+  "displayName": "Simple UI",
+  "description": "Codebolt plugin wrapping the simpleui SPA. Serves the full Vite-built React app as a plugin UI.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:ui": "cd ../../../CodeBolt/packages/simpleui && npx vite build --base './' --outDir ../../../codeboltjs/sample-plugins/simpleui-plugin/ui --emptyOutDir",
+    "clean": "rm -rf dist ui"
+  },
+  "dependencies": {
+    "@codebolt/codeboltjs": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "triggers": [
+        {
+          "type": "manual"
+        }
+      ],
+      "ui": {
+        "path": "./ui/index.html"
+      }
+    }
+  }
+}
