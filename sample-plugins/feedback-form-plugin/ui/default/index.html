@@ -121,11 +121,12 @@
         document.getElementById('feedbackForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = Object.fromEntries(new FormData(e.target));
-            window.parent.postMessage({ type: 'submit', data: formData }, '*');
+            // Use the injected codeboltPlugin bridge
+            codeboltPlugin.sendMessage({ type: 'submit', data: formData });
         });
 
-        window.addEventListener('message', function (e) {
-            const msg = e.data;
+        // Use the injected codeboltPlugin bridge to receive messages
+        codeboltPlugin.onMessage(function (msg) {
             if (msg.type === 'submission-ack') {
                 const el = document.getElementById('status');
                 el.className = 'status success';

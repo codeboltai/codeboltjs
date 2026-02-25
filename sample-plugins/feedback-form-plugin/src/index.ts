@@ -24,10 +24,7 @@
  */
 
 import codebolt from '@codebolt/codeboltjs';
-// import fs from 'fs';
-// import path from 'path';
 
-const PANEL_ID = 'feedback-form';
 let submissionCount = 0;
 
 // ---------------------------------------------------------------------------
@@ -38,15 +35,11 @@ codebolt.onPluginStart(async (ctx) => {
     console.log(`[FeedbackFormPlugin] Started: ${ctx.pluginId}`);
     submissionCount = 0;
 
-    // Read HTML from the ui/default/index.html file
-    // const htmlPath = path.resolve(__dirname, '..', 'ui', 'default', 'index.html');
-    // const FORM_HTML = fs.readFileSync(htmlPath, 'utf-8');
+    // Panel ID matches the one registered by the /pluginui/:pluginId route
+    const PANEL_ID = `plugin-ui-${ctx.pluginId}`;
+    console.log(`[FeedbackFormPlugin] Listening on panel: ${PANEL_ID}`);
 
-    // Open the feedback form panel using the full codeboltjs SDK
-    // await codebolt.dynamicPanel.open(PANEL_ID, 'Feedback Form', FORM_HTML);
-    console.log('[FeedbackFormPlugin] Panel opened');
-
-    // Listen for messages from the panel
+    // Listen for messages from the plugin UI panel
     codebolt.dynamicPanel.onMessage(PANEL_ID, (data: any) => {
         console.log('[FeedbackFormPlugin] Received panel message:', data);
 
@@ -70,7 +63,5 @@ codebolt.onPluginStart(async (ctx) => {
 });
 
 codebolt.onPluginStop(async () => {
-    console.log('[FeedbackFormPlugin] Stopping...');
-    await codebolt.dynamicPanel.close(PANEL_ID);
     console.log(`[FeedbackFormPlugin] Stopped. Total submissions: ${submissionCount}`);
 });
