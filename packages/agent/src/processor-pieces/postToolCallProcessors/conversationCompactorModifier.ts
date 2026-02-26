@@ -877,9 +877,14 @@ Keep the same XML format.`;
             const modelTokenLimit = tokenLimit
                 ?? (modelName ? getModelTokenLimit(modelName) : this.options.modelTokenLimit);
 
-            // Use actual token count from LLM response if available, otherwise estimate
-            const currentTokens = rawLLMResponseMessage?.usage?.prompt_tokens
-                ?? this.countMessageTokens(messages);
+            // Always count the ACTUAL messages array (which includes LLM response + tool results).
+            // Do NOT use rawLLMResponseMessage.usage.prompt_tokens here because that only
+            // reflects the prompt sent to the LLM, BEFORE the LLM response and tool results
+            // were appended. Using the stale prompt_tokens causes the "was compression
+            // effective" check (newTokens >= currentTokens) to reject valid compressions
+            // when the compressed size is smaller than the full messages but larger than
+            // the stale prompt-only count, leading to repeated compression every iteration.
+            const currentTokens = this.countMessageTokens(messages);
 
             const threshold = modelTokenLimit * this.options.compressionTokenThreshold;
 
