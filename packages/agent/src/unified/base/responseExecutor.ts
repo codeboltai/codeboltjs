@@ -27,6 +27,9 @@ export class ResponseExecutor implements AgentResponseExecutor {
     }
     private loopDetectionService?: LoopDetectionService;
     async executeResponse(input: ResponseInput): Promise<ResponseOutput> {
+        // Reset per-execution state so the executor can be reused across loop iterations
+        this.completed = false;
+        this.finalMessage = undefined;
 
         let nextMessage: ProcessedMessage = input.nextMessage;
 

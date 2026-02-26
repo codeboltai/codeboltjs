@@ -225,6 +225,8 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
     private readonly options: Required<ConversationCompactorOptions>;
     private failedCompressionAttempts: number = 0;
     private hasFailedCompression: boolean = false;
+    private lastCompressionTokenCount: number = 0;
+    private stepsSinceLastCompression: number = 0;
 
     constructor(options: ConversationCompactorOptions = {}) {
         super();
@@ -881,8 +883,58 @@ Keep the same XML format.`;
 
             const threshold = modelTokenLimit * this.options.compressionTokenThreshold;
 
+            this.stepsSinceLastCompression++;
+
             if (this.options.enableLogging) {
-                console.log(`[ConversationCompactor] Current tokens: ${currentTokens}, Threshold: ${threshold}`);
+                console.log(`[ConversationCompactor] Current tokens: ${currentTokens}, Threshold: ${threshold}, Steps since last compression: ${this.stepsSinceLastCompression}`);
+            }
+
+            // Skip if we just compressed recently and tokens haven't grown significantly
+            // This prevents re-compressing when the token estimate is still high right after compression
+            if (this.lastCompressionTokenCount > 0 && this.stepsSinceLastCompression <= 2) {
+                // Only re-compress if tokens have grown by at least 20% since last compression
+                const growthThreshold = this.lastCompressionTokenCount * 1.2;
+                if (currentTokens < growthThreshold) {
+                    if (this.options.enableLogging) {
+                        console.log(`[ConversationCompactor] Skipping - recently compressed (${this.stepsSinceLastCompression} steps ago), tokens: ${currentTokens}, last compressed to: ${this.lastCompressionTokenCount}`);
+                    }
+                    return {
+                        nextPrompt: {
+                            ...nextPrompt,
+                            metadata: {
+                                ...nextPrompt.metadata,
+                                compression: {
+                                    status: CompressionStatus.NOOP,
+                                    originalTokenCount: currentTokens,
+                                    newTokenCount: currentTokens,
+                                    messagesCompressed: 0,
+                                    messagesPreserved: messages.length,
+                                    toolOutputsTruncated: false,
+                                    failedAttempts: this.failedCompressionAttempts,
+                                    timestamp: new Date().toISOString(),
+                                    strategy: this.options.compactStrategy
+                                } as CompressionMetadata
+                            }
+                        },
+                        shouldExit: false
+                    };
+                }
+            }
+
+            // Also check metadata from previous compression (in case instance state was lost)
+            const prevCompression = nextPrompt.metadata?.['compression'] as
+                | { status?: string; newTokenCount?: number }
+                | undefined;
+            if (prevCompression?.status === 'COMPRESSED' && prevCompression.newTokenCount) {
+                if (currentTokens < prevCompression.newTokenCount * 1.2) {
+                    if (this.options.enableLogging) {
+                        console.log(`[ConversationCompactor] Skipping - metadata indicates recent compression, tokens haven't grown significantly`);
+                    }
+                    return {
+                        nextPrompt,
+                        shouldExit: false
+                    };
+                }
             }
 
             // Check if compression is needed
@@ -990,6 +1042,10 @@ Keep the same XML format.`;
                 strategy: this.options.compactStrategy
             };
 
+            // Track compression state for cooldown logic
+            this.lastCompressionTokenCount = newTokens;
+            this.stepsSinceLastCompression = 0;
+
             if (this.options.enableLogging) {
                 console.log(`[ConversationCompactor] Compression complete: ${currentTokens} -> ${newTokens} tokens (saved ${currentTokens - newTokens})`);
             }
@@ -1049,6 +1105,8 @@ Keep the same XML format.`;
     public resetCompressionState(): void {
         this.failedCompressionAttempts = 0;
         this.hasFailedCompression = false;
+        this.lastCompressionTokenCount = 0;
+        this.stepsSinceLastCompression = 0;
     }
 
     /**

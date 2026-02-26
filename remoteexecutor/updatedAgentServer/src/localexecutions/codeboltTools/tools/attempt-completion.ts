@@ -103,7 +103,7 @@ export class AttemptCompletionTool extends BaseDeclarativeTool<
         super(
             AttemptCompletionTool.Name,
             'Attempt Completion',
-            'Once you\'ve completed the task, use this tool to present the result to the user. They may respond with feedback if they are not satisfied with the result, which you can use to make improvements and try again.',
+            'Once you\'ve completed the task, use this tool to present the result to the user. IMPORTANT: Before calling this tool, you MUST have run all applicable verification checks (build, type check, lint, test) for the project and confirmed they pass. If you have not run these checks yet, run them first using the terminal, fix any errors, and only then call this tool. The user may respond with feedback if they are not satisfied with the result, which you can use to make improvements and try again.',
             Kind.Think,
             {
                 type: 'object',

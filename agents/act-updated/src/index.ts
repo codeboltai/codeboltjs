@@ -23,6 +23,7 @@ import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 import { promise } from 'zod/v4';
 const eventManager = codebolt.backgroundChildThreads;
+
 let systemPrompt = `
 
 You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.
@@ -81,19 +82,40 @@ At the end of your turn, provide a summary:
 
 ## Completion
 
-When all goal tasks are done:
+**CRITICAL — You MUST verify your work before calling \`attempt_completion\`. Never mark a task as done without first confirming there are no errors.**
 
+When all goal tasks are done, follow this mandatory sequence:
+
+### Step 1: Detect the project stack
+- Look at the project files to identify the language/framework (e.g., \`package.json\` → Node/JS/TS, \`requirements.txt\`/\`pyproject.toml\` → Python, \`go.mod\` → Go, \`Cargo.toml\` → Rust, \`pom.xml\`/\`build.gradle\` → Java, etc.)
+
+### Step 2: Run verification checks (use the terminal)
+Run **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:
+
+- **Build**: Run the project's build command (e.g., \`npm run build\`, \`go build ./...\`, \`cargo build\`, \`mvn compile\`, \`python -m py_compile\`)
+- **Type check**: Run the type checker if the project uses one (e.g., \`npx tsc --noEmit\`, \`mypy .\`, \`pyright\`)
+- **Lint**: Run the linter if configured (e.g., \`npm run lint\`, \`flake8\`, \`golangci-lint run\`, \`cargo clippy\`)
+- **Test**: Run the test suite if tests exist (e.g., \`npm test\`, \`pytest\`, \`go test ./...\`, \`cargo test\`)
+
+### Step 3: Fix any errors
+- If ANY check fails, **fix the errors** and re-run the failing check until it passes
+- Do NOT call \`attempt_completion\` while any check is still failing
+- Repeat Steps 2-3 until all checks pass
+
+### Step 4: Complete
 1. Confirm that all tasks are checked off in the todo list
 2. Reconcile and close the todo list
 3. Give your summary per the summary spec
+4. **Only now** call \`attempt_completion\`
 
 ## Workflow
 
 1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)
 2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly
 3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update
-4. When all tasks for the goal are done, reconcile and close the todo list, and give a brief summary
-5. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding
+4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding
+5. Once all checks pass, reconcile and close the todo list, and give a brief summary
+6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding
 
 ## Tool Calling
 
@@ -215,6 +237,7 @@ When making code changes, **NEVER output code to the USER**, unless requested. I
 
 - If you fail to call \`todo_write\` to check off tasks before claiming them done, self-correct in the next turn immediately
 - If you used tools without a status update, or failed to update todos correctly, self-correct next turn before proceeding
+- **CRITICAL**: If you call \`attempt_completion\` without having run and passed the verification checks (build, typecheck, lint, test), you MUST self-correct immediately — run the checks, fix any failures, and only then call \`attempt_completion\` again
 - If you report code work as done without a successful test/build run, self-correct next turn by running and fixing first
 - If a turn contains any tool call, the message MUST include at least one micro-update near the top before those calls
 
@@ -357,25 +380,25 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     // return;
     let completed = false;
     let executionResult: any;
+    const conversationCompactor = new ConversationCompactorModifier({
+      compactStrategy: 'summarize',
+      compressionTokenThreshold: 0.5,
+      preserveThreshold: 0.3,
+      enableLogging: true
+    });
+    const responseExecutor = new ResponseExecutor({
+      preToolCallProcessors: [],
+      postToolCallProcessors: [conversationCompactor],
+      loopDetectionService: loopDetectionService
+    });
     do {
       let agent = new AgentStep({
         preInferenceProcessors: [ideContextModifier], // Inject IDE context (incremental) before every step
         postInferenceProcessors: []
       })
-      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
+      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has
       prompt = result.nextMessage;
 
-      let responseExecutor = new ResponseExecutor({
-        preToolCallProcessors: [],
-        postToolCallProcessors: [
-          new ConversationCompactorModifier({
-            compactStrategy: 'summarize',
-            compressionTokenThreshold: 0.5,
-            preserveThreshold: 0.3,
-            enableLogging: true
-          })],
-        loopDetectionService: loopDetectionService // Use shared service
-      })
       executionResult = await responseExecutor.executeResponse({
         initialUserMessage: reqMessage,
         actualMessageSentToLLM: result.actualMessageSentToLLM,
@@ -383,11 +406,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         nextMessage: result.nextMessage,
       });
 
-
-
       completed = executionResult.completed;
       prompt = executionResult.nextMessage;
-
 
       if (completed) {
         break;

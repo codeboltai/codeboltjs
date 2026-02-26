@@ -47,10 +47,10 @@ export class AgentStep implements AgentStepInterface {
 
             // Generate LLM response
             const rawLLMResponse:LLMCompletion = await this.generateResponse(createdMessage.message);
-            
-            // add llm reslponse to created message
-            
-            let modifiedMessage:ProcessedMessage= createdMessage;
+
+            // Deep copy so that pushing LLM response and tool results into modifiedMessage
+            // does not mutate createdMessage (used as actualMessageSentToLLM).
+            let modifiedMessage:ProcessedMessage= JSON.parse(JSON.stringify(createdMessage));
             rawLLMResponse.choices?.forEach(contentBlock=>{
                 modifiedMessage.message.messages.push({
                     ...contentBlock.message,

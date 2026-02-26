@@ -55,7 +55,7 @@ export class AttemptCompletionTool extends BaseDeclarativeTool<
         super(
             AttemptCompletionTool.Name,
             'AttemptCompletion',
-            'Signals the completion of the task and returns the final result.',
+            'Signals the completion of the task and returns the final result. IMPORTANT: Before calling this tool, you MUST have run all applicable verification checks (build, type check, lint, test) for the project and confirmed they pass. If you have not run these checks yet, run them first using the terminal, fix any errors, and only then call this tool.',
             Kind.Other,
             {
                 type: 'object',

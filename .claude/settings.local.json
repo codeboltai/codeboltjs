@@ -51,7 +51,8 @@
       "WebFetch(domain:www.daytona.io)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:docs.daytona.io)",
-      "WebFetch(domain:daytona.io)"
+      "WebFetch(domain:daytona.io)",
+      "WebFetch(domain:swe-agent.com)"
     ],
     "deny": [],
     "ask": []

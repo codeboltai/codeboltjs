@@ -38,6 +38,8 @@ export interface ChatCompressionOptions {
     contextPercentageThreshold?: number;
     enableCompression?: boolean;
     force?: boolean;
+    /** Model token limit used for threshold calculation. @default 128000 */
+    modelTokenLimit?: number;
 }
 
 /**
@@ -80,15 +82,8 @@ function isFunctionResponse(message: MessageObject): boolean {
   return false;
 }
 
-// Mock token limit for different models (should be replaced with actual implementation)
-function tokenLimit(model: string): number {
-  // Default token limits for common models
-  if (model.includes('gemini-pro')) return 30720;
-  if (model.includes('gemini-flash')) return 1048576;
-  if (model.includes('gpt-4')) return 8192;
-  if (model.includes('gpt-3.5')) return 4096;
-  return 8192; // Default fallback
-}
+/** Default model token limit when none is configured */
+const DEFAULT_MODEL_TOKEN_LIMIT = 128000;
 
 export class ChatCompressionModifier extends BasePreInferenceProcessor {
     private readonly options: ChatCompressionOptions;
@@ -99,14 +94,40 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         this.options = {
             contextPercentageThreshold: options.contextPercentageThreshold || COMPRESSION_TOKEN_THRESHOLD,
             enableCompression: options.enableCompression !== false,
-            force: options.force || false
+            force: options.force || false,
+            modelTokenLimit: options.modelTokenLimit || DEFAULT_MODEL_TOKEN_LIMIT
         };
     }
 
     async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
+            // Check if ConversationCompactorModifier already compressed in the previous iteration.
+            // If so, skip re-compression unless token count has grown past the threshold again.
+            const compressionMeta = createdMessage.metadata?.['compression'] as
+                | { status?: string; newTokenCount?: number }
+                | undefined;
+
+            if (compressionMeta?.status === 'COMPRESSED') {
+                const modelTokenLimit = this.options.modelTokenLimit || DEFAULT_MODEL_TOKEN_LIMIT;
+                const threshold = (this.options.contextPercentageThreshold ?? COMPRESSION_TOKEN_THRESHOLD) * modelTokenLimit;
+                const currentTokens = compressionMeta.newTokenCount ?? 0;
+
+                if (currentTokens < threshold) {
+                    // Already compressed and still under threshold — skip
+                    return {
+                        ...createdMessage,
+                        metadata: {
+                            ...createdMessage.metadata,
+                            compressionStatus: CompressionStatus.NOOP,
+                            chatCompressionSkipped: true,
+                            chatCompressionSkipReason: 'Already compressed by ConversationCompactorModifier'
+                        }
+                    };
+                }
+            }
+
             const compressionResult = await this.tryCompressChat(
-                createdMessage.message.messages, 
+                createdMessage.message.messages,
                 this.options.force || false
             );
 
@@ -119,6 +140,7 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
                     metadata: {
                         ...createdMessage.metadata,
                         chatCompressed: true,
+                        compressionTimestamp: new Date().toISOString(),
                         originalTokenCount: compressionResult.originalTokenCount,
                         newTokenCount: compressionResult.newTokenCount,
                         compressionStatus: compressionResult.compressionStatus
@@ -160,12 +182,11 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
             };
         }
 
-        // Mock model - should be replaced with actual model detection
-        const model = "gemini-pro";
+        const modelTokenLimit = this.options.modelTokenLimit || DEFAULT_MODEL_TOKEN_LIMIT;
 
-        const originalTokenCount = await this.countTokens(model, curatedHistory);
+        const originalTokenCount = await this.countTokens(curatedHistory);
         if (originalTokenCount === undefined) {
-            console.warn(`Could not determine token count for model ${model}.`);
+            console.warn(`Could not determine token count.`);
             this.hasFailedCompressionAttempt = !force && true;
             return {
                 originalTokenCount: 0,
@@ -179,7 +200,7 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         // Don't compress if not forced and we are under the limit.
         if (!force) {
             const threshold = contextPercentageThreshold ?? COMPRESSION_TOKEN_THRESHOLD;
-            if (originalTokenCount < threshold * tokenLimit(model)) {
+            if (originalTokenCount < threshold * modelTokenLimit) {
                 return {
                     originalTokenCount,
                     newTokenCount: originalTokenCount,
@@ -219,7 +240,7 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
             ...historyToKeep,
         ];
 
-        const newTokenCount = await this.countTokens(model, compressedMessages);
+        const newTokenCount = await this.countTokens(compressedMessages);
         if (newTokenCount === undefined) {
             console.warn('Could not determine compressed history token count.');
             this.hasFailedCompressionAttempt = !force && true;
@@ -247,7 +268,7 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         };
     }
 
-    private async countTokens(_model: string, messages: MessageObject[]): Promise<number | undefined> {
+    private async countTokens(messages: MessageObject[]): Promise<number | undefined> {
         // Mock token counting - should be replaced with actual API call
         // Rough approximation: 4 characters per token
         const totalCharacters = messages.reduce((sum, msg) => {
