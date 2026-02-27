@@ -1,7 +1,9 @@
 import codebolt from "@codebolt/codeboltjs";
 import { DaytonaRemoteProviderService } from "./services/DaytonaRemoteProviderService";
 
-const providerService = new DaytonaRemoteProviderService();
+const providerService = new DaytonaRemoteProviderService({
+  localAgentServerPath: process.env.LOCAL_AGENT_SERVER_PATH || undefined,
+});
 const handlers = providerService.getEventHandlers();
 
 // Lifecycle hooks

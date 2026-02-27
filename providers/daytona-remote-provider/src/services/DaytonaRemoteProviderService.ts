@@ -7,6 +7,7 @@ import {
 } from '@codebolt/provider';
 import { Daytona, Sandbox } from '@daytonaio/sdk';
 import { NarrativeClient } from '@codebolt/narrative';
+import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 
 interface DaytonaProviderConfig {
@@ -17,6 +18,10 @@ interface DaytonaProviderConfig {
   sandboxImage?: string;
   sandboxLanguage?: string;
   autoStopInterval?: number;
+  /** Path to a local agent server bundle (server.mjs) to upload to the sandbox.
+   *  When set, the file is uploaded directly instead of running `npm install @codebolt/agentserver`.
+   *  Useful for development/testing with a custom build. */
+  localAgentServerPath?: string;
   timeouts?: {
     agentServerStartup?: number;
     wsConnection?: number;
@@ -55,7 +60,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      daytonaApiKey: "", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
+      daytonaApiKey: "dtn_69ce9b828522278f0c1286264a7462d65484346f4c60f1cf55c7996207637433", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
       daytonaApiUrl: "https://app.daytona.io/api",// config.daytonaApiUrl ?? process.env.DAYTONA_API_URL,
       sandboxImage: config.sandboxImage,
       sandboxLanguage: config.sandboxLanguage ?? 'typescript',
@@ -649,54 +654,40 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       this.narrativeClient = null;
     }
 
-    // Import snapshot archive if provided and narrative is available
+    // Import snapshot archive if provided
     const archivePath = initVars.archivePath as string | undefined;
     this.serverSnapshotId = (initVars as any).snapshotId || null;
-    if (archivePath && this.narrativeClient) {
-      this.logger.log('Importing snapshot archive:', archivePath);
-      const importResult = await this.narrativeClient.snapshot.importSnapshotArchive({
-        archive_path: archivePath,
-        thread_id: 'provider-init',
-        remote_environment_id: environmentId,
-      });
-      this.importedSnapshotId = importResult.snapshot_id;
-      this.logger.log('Imported snapshot:', importResult.snapshot_id, 'tree_hash:', importResult.tree_hash);
-      this.logger.log('Server snapshot ID (for diff base):', this.serverSnapshotId);
-
-      // Create narrative context required for checkout
-      const { objective_id } = await this.narrativeClient.narrative.createObjective({
-        description: 'Provider init checkout',
-      });
-      const { thread_id } = await this.narrativeClient.narrative.createThread({
-        objective_id,
-        name: 'provider-init',
-      });
-      const { agent_run_id } = await this.narrativeClient.narrative.createAgentRun({
-        thread_id,
-        agent_name: 'provider-init',
-      });
-
-      // Checkout the imported snapshot to materialize files on disk
-      this.logger.log('Checking out snapshot to workspace...');
-      const checkoutResult = await this.narrativeClient.snapshot.checkoutSnapshot({
-        snapshot_id: importResult.snapshot_id,
-        strategy: { type: 'replace', thread_id },
-        agent_run_id,
-      } as any);
-      this.logger.log('Snapshot checked out, tree_hash:', checkoutResult.restored_tree_hash);
-
-      // Log what's in the local workspace after checkout
-      const localEntries = await fs.readdir(this.state.projectPath!, { withFileTypes: true });
-      this.logger.log('Local workspace contents after checkout:', localEntries.map(e => `${e.name}${e.isDirectory() ? '/' : ''}`).join(', '));
-
-      // Sync checked-out files from local workspace to Daytona sandbox
-      if (this.sandbox && this.state.projectPath) {
-        this.logger.log('Syncing snapshot files to Daytona sandbox...');
-        await this.syncLocalToSandbox(this.state.projectPath, this.sandboxWorkspacePath);
-        this.logger.log('Snapshot files synced to sandbox');
+    if (archivePath) {
+      // Track snapshot metadata locally via narrative engine (if available)
+      if (this.narrativeClient) {
+        this.logger.log('Importing snapshot metadata via narrative engine:', archivePath);
+        const importResult = await this.narrativeClient.snapshot.importSnapshotArchive({
+          archive_path: archivePath,
+          thread_id: 'provider-init',
+          remote_environment_id: environmentId,
+        });
+        this.importedSnapshotId = importResult.snapshot_id;
+        this.logger.log('Imported snapshot:', importResult.snapshot_id, 'tree_hash:', importResult.tree_hash);
+        this.logger.log('Server snapshot ID (for diff base):', this.serverSnapshotId);
       }
-    } else if (archivePath && !this.narrativeClient) {
-      this.logger.warn('Snapshot archive provided but narrative engine is not available, skipping import');
+
+      // Upload archive directly to sandbox and extract it there
+      if (this.sandbox) {
+        const remoteTmpArchive = '/tmp/snapshot-archive.tar.gz';
+        this.logger.log('Uploading snapshot archive to sandbox:', archivePath, '->', remoteTmpArchive);
+        const archiveBuffer = await fs.readFile(archivePath);
+        await this.sandbox.fs.uploadFile(archiveBuffer, remoteTmpArchive);
+
+        this.logger.log('Extracting archive in sandbox to:', this.sandboxWorkspacePath);
+        await this.sandbox.process.executeCommand(
+          `tar -xzf ${remoteTmpArchive} -C ${this.sandboxWorkspacePath}`,
+          this.sandboxWorkspacePath,
+        );
+
+        // Cleanup the archive from sandbox
+        await this.sandbox.fs.deleteFile(remoteTmpArchive);
+        this.logger.log('Snapshot files extracted to sandbox successfully');
+      }
     }
   }
 
@@ -715,6 +706,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
 
       if (entry.isDirectory()) {
         try {
+          this.logger.log('Creating folder:', localPath, '->', remotePath);
           await this.sandbox.fs.createFolder(remotePath, '755');
         } catch {
           // Folder may already exist
@@ -723,9 +715,10 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       } else {
         try {
           const content = await fs.readFile(localPath);
+          this.logger.log('Uploading file:', localPath, '->', remotePath);
           await this.sandbox.fs.uploadFile(content, remotePath);
         } catch (error) {
-          this.logger.warn('Failed to upload file to sandbox:', remotePath, error);
+          this.logger.warn('Failed to upload file to sandbox:', localPath, '->', remotePath, error);
         }
       }
     }
@@ -784,6 +777,90 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     }
   }
 
+  /**
+   * Override transport connection to handle HTTP 307 redirects from Daytona proxy.
+   * The `ws` library supports `followRedirects` since v8.14.0.
+   */
+  async ensureTransportConnection(initVars: ProviderInitVars): Promise<void> {
+    if (this.agentServer.wsConnection && this.agentServer.isConnected) {
+      return;
+    }
+
+    const url = this.buildWebSocketUrl(initVars);
+    this.logger.log('Connecting WebSocket (with redirect support) to:', url);
+
+    await new Promise<void>((resolve, reject) => {
+      const wsOptions: any = {
+        followRedirects: true,
+        maxRedirects: 5,
+        headers: {} as Record<string, string>,
+      };
+
+      if (this.sandboxPreviewToken) {
+        wsOptions.headers['Authorization'] = `Bearer ${this.sandboxPreviewToken}`;
+      }
+
+      const ws = new WebSocket(url, wsOptions);
+      let isRegistered = false;
+
+      const registrationTimeout = setTimeout(() => {
+        ws.close();
+        reject(new Error('WebSocket registration timeout'));
+      }, this.config.wsRegistrationTimeout);
+
+      ws.on('open', () => {
+        this.agentServer.wsConnection = ws;
+        this.agentServer.isConnected = true;
+        this.agentServer.metadata = { connectedAt: Date.now() };
+        this.logger.log('WebSocket connection established');
+      });
+
+      ws.on('message', (data: any) => {
+        try {
+          const payload = JSON.parse(data.toString());
+          if (!isRegistered && payload.type === 'registered') {
+            isRegistered = true;
+            clearTimeout(registrationTimeout);
+            this.logger.log('WebSocket registered with agent server');
+            resolve();
+          }
+          this.handleTransportMessage(payload);
+        } catch (error) {
+          this.logger.error('Failed to parse WebSocket message', error);
+        }
+      });
+
+      ws.on('unexpected-response', (_req: any, res: any) => {
+        let body = '';
+        res.on('data', (chunk: any) => { body += chunk; });
+        res.on('end', () => {
+          this.logger.error(
+            `WebSocket upgrade rejected: ${res.statusCode}`,
+            'headers:', JSON.stringify(res.headers),
+            'body:', body,
+          );
+        });
+      });
+
+      ws.on('error', (error: any) => {
+        clearTimeout(registrationTimeout);
+        this.agentServer.isConnected = false;
+        this.agentServer.wsConnection = null;
+        this.agentServer.metadata = { lastError: error };
+        this.logger.error('WebSocket error:', error.message || error);
+        reject(error);
+      });
+
+      ws.on('close', () => {
+        clearTimeout(registrationTimeout);
+        this.agentServer.isConnected = false;
+        this.agentServer.wsConnection = null;
+        this.agentServer.metadata = { closedAt: Date.now() };
+        this.logger.log('WebSocket connection closed');
+      });
+    });
+  }
+
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
     const query = new URLSearchParams({
       clientType: 'app',
@@ -838,17 +915,31 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     }
 
     const port = this.providerConfig.agentServerPort!;
-    this.logger.log(`Installing and starting agent server in sandbox on port ${port}...`);
+    let serverEntrypoint: string;
 
-    // Install @codebolt/agentserver in the sandbox
-    const installResult = await this.sandbox.process.executeCommand(
-      'npm install @codebolt/agentserver',
-      this.sandboxWorkspacePath,
-    );
-    if (installResult.exitCode !== 0) {
-      throw new Error(`Failed to install @codebolt/agentserver in sandbox: ${installResult.result}`);
+    if (this.providerConfig.localAgentServerPath) {
+      // Dev/test mode: upload local agent server bundle directly to sandbox
+      const remoteServerPath = '/home/daytona/.codebolt-agentserver/server.mjs';
+      const localServerPath = this.providerConfig.localAgentServerPath;
+      this.logger.log(`Uploading local agent server to sandbox: ${localServerPath} -> ${remoteServerPath}`);
+      const serverBuffer = await fs.readFile(localServerPath);
+      await this.sandbox.fs.createFolder('/home/daytona/.codebolt-agentserver', '755');
+      await this.sandbox.fs.uploadFile(serverBuffer, remoteServerPath);
+      this.logger.log('Agent server uploaded to sandbox');
+      serverEntrypoint = remoteServerPath;
+    } else {
+      // Production mode: install from npm registry
+      this.logger.log(`Installing @codebolt/agentserver in sandbox...`);
+      const installResult = await this.sandbox.process.executeCommand(
+        'npm install @codebolt/agentserver',
+        this.sandboxWorkspacePath,
+      );
+      if (installResult.exitCode !== 0) {
+        throw new Error(`Failed to install @codebolt/agentserver in sandbox: ${installResult.result}`);
+      }
+      this.logger.log('Installed @codebolt/agentserver in sandbox');
+      serverEntrypoint = `$(node -p "require.resolve('@codebolt/agentserver')")`;
     }
-    this.logger.log('Installed @codebolt/agentserver in sandbox');
 
     // Create a background session for the agent server
     await this.sandbox.process.createSession(this.sandboxAgentSessionId);
@@ -857,7 +948,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     const startCmd = [
       `cd ${this.sandboxWorkspacePath}`,
       '&&',
-      `node $(node -p "require.resolve('@codebolt/agentserver')")`,
+      `node ${serverEntrypoint}`,
       '--noui',
       '--port', port.toString(),
       '--project-path', this.sandboxWorkspacePath,
@@ -873,56 +964,38 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     // Wait for the server to be ready
     await this.waitForAgentServerReady(port);
 
-    // Get the sandbox preview URL for the agent server port
-    const previewLink = await this.sandbox.getPreviewLink(port);
+    // Get a signed preview URL that bypasses Auth0 session requirements
+    const previewLink = await this.sandbox.getSignedPreviewUrl(port, 3600);
     const wsUrl = previewLink.url
       .replace(/^https:\/\//, 'wss://')
       .replace(/^http:\/\//, 'ws://');
     this.agentServer.serverUrl = wsUrl;
-    this.sandboxPreviewToken = (previewLink as any).token || null;
+    this.sandboxPreviewToken = previewLink.token || null;
 
     this.logger.log('Agent server accessible at:', wsUrl);
   }
 
   private async waitForAgentServerReady(port: number): Promise<void> {
     const timeout = this.providerConfig.timeouts?.agentServerStartup ?? 60_000;
+    const pollInterval = 1_000;
     const startTime = Date.now();
 
-    this.logger.log(`Waiting for agent server to be ready (timeout: ${timeout}ms)...`);
+    this.logger.log(`Waiting for agent server to be ready on port ${port} (timeout: ${timeout}ms)...`);
 
     while (Date.now() - startTime < timeout) {
-      // Try health check inside the sandbox
       try {
-        const healthCheck = await this.sandbox!.process.executeCommand(
-          `node -e "const http=require('http');http.get('http://localhost:${port}/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"`,
+        const result = await this.sandbox!.process.executeCommand(
+          `curl -sf -o /dev/null http://localhost:${port}/`,
           this.sandboxWorkspacePath,
         );
-        if (healthCheck.exitCode === 0) {
-          this.logger.log('Agent server health check passed');
+        if (result.exitCode === 0) {
+          this.logger.log('Agent server is ready (port is listening)');
           return;
         }
       } catch {
         // Server not ready yet
       }
-
-      // Also check session logs for startup confirmation
-      if (this.sandboxAgentCommandId) {
-        try {
-          const logs = await this.sandbox!.process.getSessionCommandLogs(
-            this.sandboxAgentSessionId,
-            this.sandboxAgentCommandId,
-          );
-          const output = logs.output || logs.stdout || '';
-          if (output.includes('Server started successfully')) {
-            this.logger.log('Agent server startup confirmed via logs');
-            return;
-          }
-        } catch {
-          // Logs not available yet
-        }
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 1_000));
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
     }
 
     throw new Error(`Agent server in sandbox failed to start within ${timeout}ms`);
