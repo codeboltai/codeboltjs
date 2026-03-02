@@ -60,7 +60,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      daytonaApiKey: "dtn_69ce9b828522278f0c1286264a7462d65484346f4c60f1cf55c7996207637433", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
+      daytonaApiKey: "dtn_7071c145a99d659e0a96dc73007f19ab9337895cc4e51b2a86c7850fd4efd2e3", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
       daytonaApiUrl: "https://app.daytona.io/api",// config.daytonaApiUrl ?? process.env.DAYTONA_API_URL,
       sandboxImage: config.sandboxImage,
       sandboxLanguage: config.sandboxLanguage ?? 'typescript',

@@ -37,11 +37,6 @@ export class ChildAgentProcessManager {
    * Get OS-specific agent storage path
    */
   private getAgentStoragePath(): string {
-    // For testing purposes, return the specified test path
-    // return '/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/remote-agent';
-
-    // Original OS-specific logic (commented out for testing)
-
     const platform = os.platform();
 
     switch (platform) {

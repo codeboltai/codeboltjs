@@ -97,12 +97,15 @@ export class AppMessageRouter {
       )
     );
 
-    message.message.selectedAgent = {
-      "agentDetails": "/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/remote-task-agent/dist",
-      "agentType": AgentTypeEnum.localPath,
-      "id": "cli-agent",
-      "name": "Ask Agent"
-    };
+    // Only set selectedAgent if not already provided in the message
+    if (!message.message.selectedAgent) {
+      message.message.selectedAgent = {
+        "agentDetails": "cli-agent",
+        "agentType": AgentTypeEnum.marketplace,
+        "id": "cli-agent",
+        "name": "Ask Agent"
+      };
+    }
 
     this.sendMessageToAgent.sendInitialMessage(message, app.id);
   }

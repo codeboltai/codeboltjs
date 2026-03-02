@@ -14,9 +14,6 @@ export function CodeboltApplicationPath(): string {
     return path.join(config.projectPath, '.codebolt');
   }
 
-  // For testing purposes, return the specified test path
-  // return '/Users/ravirawat/Documents/codeboltai/codeboltjs/agents/remote-agent';
-
   const platform = os.platform();
 
   switch (platform) {

@@ -549,7 +549,7 @@ export const allTools = [
     // ...dbmemoryTools,
     // ...agentDeliberationTools,
     // ...agentPortfolioTools,
-    ...codebaseSearchTools,
+    // ...codebaseSearchTools,
     // ...codemapTools,
     // ...backgroundChildThreadsTools,
     // ...contextAssemblyTools,
