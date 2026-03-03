@@ -508,7 +508,7 @@ import { utilsTools } from './utils';
  */
 export const allTools = [
     ...fileTools,
-    // ...searchTools,
+    ...searchTools,
     ...terminalTools,
     // ...gitTools,
     // ...browserTools,

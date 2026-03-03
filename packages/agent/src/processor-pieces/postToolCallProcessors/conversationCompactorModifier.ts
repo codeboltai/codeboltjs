@@ -250,12 +250,47 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
     // ========================================================================
 
     /**
+     * Calibrated characters-per-token ratio.
+     * Starts at 4 (rough default) but gets refined when actual API usage data is available.
+     */
+    private charsPerToken: number = 4;
+
+    /**
      * Estimates token count for a string
-     * Uses the ~4 characters per token approximation
+     * Uses calibrated chars-per-token ratio (refined by actual API usage when available)
      */
     private estimateTokens(text: string): number {
         if (!text) return 0;
-        return Math.ceil(text.length / 4);
+        return Math.ceil(text.length / this.charsPerToken);
+    }
+
+    /**
+     * Calibrates the chars-per-token ratio using actual API usage data.
+     * Called when rawLLMResponseMessage.usage is available to improve estimation accuracy.
+     */
+    private calibrateTokenEstimation(messages: MessageObject[], usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }): void {
+        if (!usage?.prompt_tokens || usage.prompt_tokens <= 0) return;
+
+        // Calculate total characters in messages that were sent as the prompt
+        // (exclude the last assistant message which is the completion)
+        let promptChars = 0;
+        for (const msg of messages) {
+            if (!msg) continue;
+            const content = typeof msg.content === 'string'
+                ? msg.content
+                : (msg.content ? JSON.stringify(msg.content) : '');
+            promptChars += content.length;
+        }
+
+        if (promptChars > 0) {
+            // Calculate actual ratio, but clamp to reasonable bounds (2-6 chars per token)
+            const actualRatio = promptChars / usage.prompt_tokens;
+            this.charsPerToken = Math.max(2, Math.min(6, actualRatio));
+
+            if (this.options.enableLogging) {
+                console.log(`[ConversationCompactor] Calibrated chars/token ratio to ${this.charsPerToken.toFixed(2)} (from API usage: ${usage.prompt_tokens} tokens, ${promptChars} chars)`);
+            }
+        }
     }
 
     /**
@@ -270,19 +305,6 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
             // Add overhead for role and structure (~4 tokens per message)
             return total + this.estimateTokens(content) + 4;
         }, 0);
-    }
-
-    /**
-     * Gets content length from a message (handles string and array content)
-     */
-    private getMessageContentLength(message: MessageObject): number {
-        if (!message || message.content === undefined || message.content === null) {
-            return 0;
-        }
-        if (typeof message.content === 'string') {
-            return message.content.length;
-        }
-        return JSON.stringify(message.content).length;
     }
 
     /**
@@ -327,6 +349,45 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
             }
         }
         return false;
+    }
+
+    /**
+     * Finds the original user request (first non-system, non-tool user message)
+     */
+    private getOriginalUserMessage(messages: MessageObject[]): MessageObject | null {
+        return messages.find(m => m.role === 'user' && !this.isToolResponseMessage(m)) || null;
+    }
+
+    /**
+     * Inserts the original user message right after system messages if it's
+     * not already present in the preserved messages.
+     */
+    private ensureOriginalUserMessage(
+        compressedMessages: MessageObject[],
+        originalMessages: MessageObject[]
+    ): MessageObject[] {
+        const originalUserMessage = this.getOriginalUserMessage(originalMessages);
+        if (!originalUserMessage) return compressedMessages;
+
+        // Check if the original user message is already in compressed messages
+        if (compressedMessages.includes(originalUserMessage)) return compressedMessages;
+
+        // Find insertion point: right after the last system message (or at index 0)
+        let insertIndex = 0;
+        for (let i = 0; i < compressedMessages.length; i++) {
+            if (compressedMessages[i]?.role === 'system') {
+                insertIndex = i + 1;
+            } else {
+                break;
+            }
+        }
+
+        const result = [...compressedMessages];
+        result.splice(insertIndex, 0, {
+            role: 'user' as const,
+            content: `[Original user request]: ${this.getMessageContent(originalUserMessage)}`
+        });
+        return result;
     }
 
     /**
@@ -442,15 +503,28 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
     private adjustToTurnBoundary(messages: MessageObject[], index: number): number {
         while (index < messages.length) {
             const msg = messages[index];
-            if (!msg) {
+            if (!msg) { index++; continue; }
+
+            // Never split right after an assistant with tool_calls
+            // (tool responses must follow)
+            if (index > 0) {
+                const prevMsg = messages[index - 1];
+                if (prevMsg?.role === 'assistant' && prevMsg.tool_calls && prevMsg.tool_calls.length > 0) {
+                    index++;
+                    continue;
+                }
+            }
+
+            // Never split on a tool response message
+            if (msg.role === 'tool' || this.isToolResponseMessage(msg)) {
                 index++;
                 continue;
             }
-            // Stop at a user message that isn't a tool response
+
+            // Safe to split at user message (non-tool) or assistant without pending tool calls
             if (msg.role === 'user' && !this.isToolResponseMessage(msg)) {
                 break;
             }
-            // Also stop at assistant message without pending tool calls
             if (msg.role === 'assistant' && (!msg.tool_calls || msg.tool_calls.length === 0)) {
                 break;
             }
@@ -488,34 +562,42 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
             return 0;
         }
 
-        // Calculate content lengths for fraction-based splitting
-        const contentLengths = processableMessages.map(msg => this.getMessageContentLength(msg));
-        const totalLength = contentLengths.reduce((sum, len) => sum + len, 0);
-
-        // Find index after (1 - preserveThreshold) of content
-        // e.g., if preserveThreshold is 0.3, find index after 70% of content
-        const targetLength = totalLength * (1 - this.options.preserveThreshold);
-
-        let accumulatedLength = 0;
-        let splitIndex = 0;
-
-        for (let i = 0; i < contentLengths.length; i++) {
-            const len = contentLengths[i];
-            if (len !== undefined) {
-                accumulatedLength += len;
-            }
-            if (accumulatedLength >= targetLength) {
-                splitIndex = i;
-                break;
+        // Identify turn boundaries (each turn starts with a user message)
+        const turnStartIndices: number[] = [];
+        for (let i = 0; i < processableMessages.length; i++) {
+            const msg = processableMessages[i];
+            if (msg && msg.role === 'user' && !this.isToolResponseMessage(msg)) {
+                turnStartIndices.push(i);
             }
         }
 
-        // Ensure we don't split too early
-        if (splitIndex === 0) {
+        if (turnStartIndices.length <= this.options.minPreservedUserMessages) {
+            // Too few turns to compress
+            return 0;
+        }
+
+        // Calculate how many turns to preserve based on preserveThreshold
+        const turnsToPreserve = Math.max(
+            this.options.minPreservedUserMessages,
+            Math.ceil(turnStartIndices.length * this.options.preserveThreshold)
+        );
+
+        // The split point is at the start of the first preserved turn
+        // We always keep the first user message (original task) separately via ensureOriginalUserMessage,
+        // so we split to keep the last N turns
+        const turnsToRemove = turnStartIndices.length - turnsToPreserve;
+
+        if (turnsToRemove <= 0) {
+            return 0;
+        }
+
+        // Split at the boundary of the last turn to remove
+        let splitIndex = turnStartIndices[turnsToRemove];
+        if (splitIndex === undefined) {
             splitIndex = Math.floor(processableMessages.length * (1 - this.options.preserveThreshold));
         }
 
-        // Adjust to turn boundary - find the next user message
+        // Adjust to turn boundary for safety (handles tool response edge cases)
         splitIndex = this.adjustToTurnBoundary(processableMessages, splitIndex);
 
         // Map back to original messages array if we filtered system messages
@@ -537,52 +619,65 @@ export class ConversationCompactorModifier extends BasePostToolCallProcessor {
     private getCompressionPrompt(historyToCompress: MessageObject[]): string {
         const historyText = historyToCompress.map((msg, i) => {
             const content = this.getMessageContent(msg);
-            const truncated = content.length > 500 ? content.substring(0, 500) + '...' : content;
-            return `[${i + 1}] ${msg.role}: ${truncated}`;
+            return `[${i + 1}] ${msg.role}: ${content}`;
         }).join('\n\n');
 
-        return `You are a conversation compression assistant. Analyze the following conversation history and create a concise state snapshot that preserves all critical information.
+        return `You are a conversation compression assistant. Your job is to create a detailed, structured summary that preserves ALL critical context so work can continue seamlessly.
 
 CONVERSATION HISTORY TO COMPRESS:
 ${historyText}
 
-Generate a state snapshot in the following XML format. Be extremely concise but preserve all critical technical details:
+First, analyze the conversation in a <thinking> block to identify what information is essential for continuing the work. Then produce the summary.
 
-<state_snapshot>
-    <overall_goal>
-        [Describe the user's high-level objective in 1-2 sentences]
-    </overall_goal>
+<thinking>
+Analyze: What is the user's core task? What technical decisions were made? What files were read/modified? What problems were encountered and how were they solved? What is the current state of work?
+</thinking>
 
-    <active_constraints>
-        [List any user-specified rules, preferences, or constraints that must be maintained]
-    </active_constraints>
+Then generate the summary with ALL of the following sections. If a section is not applicable, write "N/A" but do NOT omit the section.
 
-    <key_knowledge>
-        [List crucial technical facts discovered: file structures, dependencies, API details, error patterns, etc.]
-    </key_knowledge>
+<summary>
+1. PRIMARY REQUEST
+[The user's original, complete request — use verbatim quotes where possible]
 
-    <artifact_trail>
-        [Track evolution of critical files/symbols that were modified or are important]
-    </artifact_trail>
+2. TASK EVOLUTION
+[How the task evolved through the conversation. Include verbatim quotes of key user instructions or clarifications that changed the direction of work]
 
-    <file_system_state>
-        [Describe current relevant file system state: created files, modified files, directory structure if relevant]
-    </file_system_state>
+3. KEY TECHNICAL CONCEPTS
+[Technical details critical for continuing: architecture decisions, design patterns chosen, algorithms, data structures, API contracts, configuration values]
 
-    <recent_actions>
-        [Fact-based summary of tool calls and their outcomes - what was done, not how]
-    </recent_actions>
+4. FILES AND CODE
+[Every file that was read, created, or modified. For each file include:
+- Full file path
+- What was done (read/created/modified)
+- Key content or changes made (include exact code snippets for critical changes)
+- Current state of the file]
 
-    <task_state>
-        [Current state of the task: what's complete, what's pending, and the IMMEDIATE next step]
-    </task_state>
-</state_snapshot>
+5. PROBLEM SOLVING
+[Problems encountered and their solutions:
+- Error messages (verbatim)
+- Root causes identified
+- Solutions applied
+- Workarounds in place]
 
-IMPORTANT:
-- Be extremely concise - aim for maximum information density
-- Preserve technical accuracy - exact file paths, function names, error messages
-- Focus on facts that affect future decisions
-- Do not include conversational pleasantries or redundant information`;
+6. PENDING TASKS
+[Tasks that were mentioned but NOT yet completed. Be specific about what remains.]
+
+7. CURRENT WORK STATE
+[Exactly where the work left off — what was the last action taken and what was its result?]
+
+8. NEXT STEP
+[The single most logical next action to take to continue the work]
+
+9. REQUIRED FILES
+[List of file paths that the agent will need to re-read to continue working effectively. These are files whose contents were important context but will be lost after compression.]
+</summary>
+
+CRITICAL RULES:
+- Preserve ALL file paths exactly as they appeared
+- Preserve ALL code snippets, function names, variable names, error messages verbatim
+- Include the FULL original user request, not a paraphrase
+- Do not summarize away technical details — they are needed to continue work
+- Focus on facts and specifics, not general descriptions`;
     }
 
     /**
@@ -650,6 +745,136 @@ Keep the same XML format.`;
         }
     }
 
+    /**
+     * Extracts file paths from the "Required Files" section of a summary.
+     * Looks for section 9 (REQUIRED FILES) and extracts paths listed there.
+     */
+    private extractRequiredFiles(summary: string): string[] {
+        const files: string[] = [];
+
+        // Match section "9. REQUIRED FILES" through the next section or end of summary
+        const sectionMatch = summary.match(/9\.\s*REQUIRED FILES\s*\n([\s\S]*?)(?=\n\d+\.\s|\n<\/summary>|$)/i);
+        if (!sectionMatch || !sectionMatch[1]) return files;
+
+        const sectionContent = sectionMatch[1].trim();
+        if (sectionContent === 'N/A' || sectionContent === 'None') return files;
+
+        // Extract file paths: lines starting with -, *, or just paths starting with /
+        const lines = sectionContent.split('\n');
+        for (const line of lines) {
+            const trimmed = line.trim().replace(/^[-*•]\s*/, '');
+            // Match file paths (absolute or relative)
+            const pathMatch = trimmed.match(/^[`'"]*([^\s`'"]+\.[a-zA-Z0-9]+)[`'"]*/) ||
+                              trimmed.match(/^[`'"]*([/~][^\s`'"]+)[`'"]*/) ||
+                              trimmed.match(/^[`'"]*([a-zA-Z][^\s`'"]*\/[^\s`'"]+)[`'"]*$/);
+            if (pathMatch && pathMatch[1]) {
+                files.push(pathMatch[1]);
+            }
+        }
+
+        return files;
+    }
+
+    // ========================================================================
+    // File-Read Deduplication (Pre-compression)
+    // ========================================================================
+
+    /**
+     * Deduplicates repeated file reads in conversation history.
+     * When the same file is read multiple times, older reads are replaced with
+     * a short note, keeping only the latest read for each file path.
+     * This reduces token count before full compression kicks in.
+     */
+    private deduplicateFileReads(messages: MessageObject[]): {
+        messages: MessageObject[];
+        deduplicatedCount: number;
+    } {
+        // Track the last occurrence index of each file path
+        const fileReadIndices: Map<string, number[]> = new Map();
+
+        // Common patterns for file read tool results
+        const filePathPatterns = [
+            /(?:read_file|readFile|cat|file_read)\s*[:\-]?\s*(.+)/i,
+            /(?:Content of|Reading|File:)\s+['"`]?([^\s'"`]+)['"`]?/i,
+            /^(['"`]?\/[^\s'"`]+['"`]?)/m,
+        ];
+
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            if (!msg || !this.isToolResponseMessage(msg)) continue;
+
+            const content = this.getMessageContent(msg);
+            if (!content) continue;
+
+            // Try to extract a file path from the tool result
+            let filePath: string | null = null;
+            for (const pattern of filePathPatterns) {
+                const match = content.match(pattern);
+                if (match && match[1]) {
+                    filePath = match[1].trim().replace(/['"`]/g, '');
+                    break;
+                }
+            }
+
+            // Also check the message name field (often contains the tool name + path)
+            if (!filePath && msg.name) {
+                const nameMatch = msg.name.match(/read[_-]?file/i);
+                if (nameMatch) {
+                    // Path might be in tool_call arguments of the preceding assistant message
+                    if (i > 0) {
+                        const prevMsg = messages[i - 1];
+                        if (prevMsg?.tool_calls) {
+                            for (const tc of prevMsg.tool_calls) {
+                                const args = typeof tc.function?.arguments === 'string'
+                                    ? tc.function.arguments
+                                    : JSON.stringify(tc.function?.arguments || '');
+                                const pathMatch = args.match(/['"]?path['"]?\s*:\s*['"]([^'"]+)['"]/);
+                                if (pathMatch && pathMatch[1]) {
+                                    filePath = pathMatch[1];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (filePath) {
+                const indices = fileReadIndices.get(filePath) || [];
+                indices.push(i);
+                fileReadIndices.set(filePath, indices);
+            }
+        }
+
+        // Replace older duplicate reads with a short note
+        let deduplicatedCount = 0;
+        const result = [...messages];
+
+        fileReadIndices.forEach((indices, filePath) => {
+            if (indices.length <= 1) return;
+
+            // Keep the last read (most recent), replace older ones
+            for (let j = 0; j < indices.length - 1; j++) {
+                const idx = indices[j];
+                if (idx === undefined) continue;
+                const msg = result[idx];
+                if (!msg) continue;
+
+                result[idx] = {
+                    ...msg,
+                    content: `[NOTE: Duplicate file read removed for "${filePath}". See latest read below.]`
+                };
+                deduplicatedCount++;
+            }
+        });
+
+        if (this.options.enableLogging && deduplicatedCount > 0) {
+            console.log(`[ConversationCompactor] Deduplicated ${deduplicatedCount} file reads`);
+        }
+
+        return { messages: result, deduplicatedCount };
+    }
+
     // ========================================================================
     // Compression Strategies
     // ========================================================================
@@ -683,14 +908,17 @@ Keep the same XML format.`;
         const preservedMessages = messages.slice(splitIndex);
 
         // Combine: system messages first, then placeholder, then preserved history
-        const compressedMessages: MessageObject[] = [
+        let compressedMessages: MessageObject[] = [
             ...systemMessages.filter(sm => !preservedMessages.includes(sm)),
             {
                 role: 'user' as const,
-                content: `[Previous conversation context has been compressed. ${splitIndex} messages were removed to manage context length.]`
+                content: `[Previous conversation context has been compressed. ${splitIndex} messages were removed to manage context length.\nThe original user task has been retained above. Pay special attention to recent messages as they contain the most current state of work.\nIf you need the contents of any files that were previously read, please re-read them before making changes.]`
             },
             ...preservedMessages
         ];
+
+        // Ensure original user request is preserved
+        compressedMessages = this.ensureOriginalUserMessage(compressedMessages, messages);
 
         return {
             compressedMessages,
@@ -751,14 +979,17 @@ Keep the same XML format.`;
 
         const preservedMessages = truncatedMessages.slice(splitIndex);
 
-        const compressedMessages: MessageObject[] = [
+        let compressedMessages: MessageObject[] = [
             ...systemMessages.filter(sm => !preservedMessages.includes(sm)),
             {
                 role: 'user' as const,
-                content: `[Conversation compressed. ${splitIndex} older messages summarized. Tool outputs may have been truncated.]`
+                content: `[Conversation compressed. ${splitIndex} older messages were removed and tool outputs may have been truncated.\nThe original user task has been retained above. Pay special attention to recent messages as they contain the most current state of work.\nIf you need the contents of any files that were previously read, please re-read them before making changes.]`
             },
             ...preservedMessages
         ];
+
+        // Ensure original user request is preserved
+        compressedMessages = this.ensureOriginalUserMessage(compressedMessages, messages);
 
         return {
             compressedMessages,
@@ -820,19 +1051,33 @@ Keep the same XML format.`;
                 throw new Error('Empty summary generated');
             }
 
-            // Build compressed message array
-            const compressedMessages: MessageObject[] = [
+            // Build compressed message array with continuation framing
+            const continuationWrappedSummary = `This session is being continued from a previous conversation that ran out of context. Below is a summary of the conversation so far.
+
+${summary}
+
+Please continue from where the previous conversation left off. Do not ask the user to re-explain what they already told you — the summary above contains all the context you need. If you need to read any files mentioned in the summary, do so before making changes.`;
+
+            let compressedMessages: MessageObject[] = [
                 ...systemMessages.filter(sm => !preservedMessages.includes(sm)),
                 {
                     role: 'user' as const,
-                    content: summary
-                },
-                {
-                    role: 'assistant' as const,
-                    content: 'Understood. I have processed the conversation state snapshot and am ready to continue from where we left off.'
+                    content: continuationWrappedSummary
                 },
                 ...preservedMessages
             ];
+
+            // Ensure original user request is preserved
+            compressedMessages = this.ensureOriginalUserMessage(compressedMessages, messages);
+
+            // Parse "Required Files" from summary and inject a hint for the agent
+            const requiredFiles = this.extractRequiredFiles(summary);
+            if (requiredFiles.length > 0) {
+                compressedMessages.push({
+                    role: 'user' as const,
+                    content: `[IMPORTANT: The following files were being actively worked on before context compression and their contents are no longer in context. You should re-read these files before making any changes:\n${requiredFiles.map((f: string) => `- ${f}`).join('\n')}]`
+                });
+            }
 
             return {
                 compressedMessages,
@@ -877,13 +1122,15 @@ Keep the same XML format.`;
             const modelTokenLimit = tokenLimit
                 ?? (modelName ? getModelTokenLimit(modelName) : this.options.modelTokenLimit);
 
-            // Always count the ACTUAL messages array (which includes LLM response + tool results).
-            // Do NOT use rawLLMResponseMessage.usage.prompt_tokens here because that only
-            // reflects the prompt sent to the LLM, BEFORE the LLM response and tool results
-            // were appended. Using the stale prompt_tokens causes the "was compression
-            // effective" check (newTokens >= currentTokens) to reject valid compressions
-            // when the compressed size is smaller than the full messages but larger than
-            // the stale prompt-only count, leading to repeated compression every iteration.
+            // Calibrate token estimation using actual API usage data when available.
+            // This improves the chars/4 approximation with real tokenizer data.
+            // Note: We still count the ACTUAL messages array (not usage.prompt_tokens directly)
+            // because the messages array has grown since the LLM call (tool results appended).
+            const usage = rawLLMResponseMessage?.usage as { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined;
+            if (usage) {
+                this.calibrateTokenEstimation(messages, usage);
+            }
+
             const currentTokens = this.countMessageTokens(messages);
 
             const threshold = modelTokenLimit * this.options.compressionTokenThreshold;
@@ -984,24 +1231,36 @@ Keep the same XML format.`;
                 };
             }
 
+            // Pre-compression: deduplicate file reads to reduce token waste
+            const { messages: dedupedMessages } = this.deduplicateFileReads(messages);
+
             // Apply compression based on strategy
             let result: { compressedMessages: MessageObject[]; metadata: Partial<CompressionMetadata> };
 
             switch (this.options.compactStrategy) {
                 case 'simple':
-                    result = await this.compressSimple(messages);
+                    result = await this.compressSimple(dedupedMessages);
                     break;
                 case 'smart':
-                    result = await this.compressSmart(messages);
+                    result = await this.compressSmart(dedupedMessages);
                     break;
                 case 'summarize':
-                    result = await this.compressSummarize(messages);
+                    result = await this.compressSummarize(dedupedMessages);
                     break;
                 default:
-                    result = await this.compressSmart(messages);
+                    result = await this.compressSmart(dedupedMessages);
             }
 
             const newTokens = this.countMessageTokens(result.compressedMessages);
+
+            // Ensure system message is preserved after compression
+            const hasSystemMessage = result.compressedMessages.some(m => m.role === 'system');
+            if (!hasSystemMessage) {
+                const originalSystemMsg = messages.find(m => m.role === 'system');
+                if (originalSystemMsg) {
+                    result.compressedMessages.unshift(originalSystemMsg);
+                }
+            }
 
             // Verify compression was effective
             if (newTokens >= currentTokens) {
