@@ -3941,7 +3941,17 @@ importers:
   sample-plugins/feedback-form-plugin:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
+        specifier: latest
+        version: link:../../packages/codeboltjs
+    devDependencies:
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
+  sample-plugins/simpleui-plugin:
+    dependencies:
+      '@codebolt/codeboltjs':
+        specifier: latest
         version: link:../../packages/codeboltjs
     devDependencies:
       typescript:

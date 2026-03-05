@@ -55,7 +55,7 @@ class cbws {
      */
     public async initializeWebSocket(): Promise<WebSocket> {
         console.log('[WebSocket] Starting WebSocket initialization');
-        
+
         const uniqueConnectionId = this.getUniqueConnectionId();
         // const initialMessage = "Hello" //this.getInitialMessage();
 
@@ -65,7 +65,7 @@ class cbws {
         const agentTask = process.env.agentTask ? `&agentTask=${process.env.agentTask}` : '';
         const socketPort = process.env.SOCKET_PORT || '12345';
         const serverUrl = process.env.CODEBOLT_SERVER_URL || 'localhost';
-        const threadToken =process.env.threadToken|| null
+        const threadToken = process.env.threadToken || null
 
         // Plugin mode detection
         const isPlugin = process.env.IS_PLUGIN === 'true';
@@ -93,7 +93,7 @@ class cbws {
             wsUrl = `ws://${serverUrl}:${socketPort}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${parentAgentInstanceIdParam}${agentTask}${threadTokenParam}${customParams}${process.env.Is_Dev ? '&dev=true' : ''}`;
         }
         console.log('[WebSocket] Connecting to:', serverUrl);
-        
+
         this.websocket = new WebSocket(wsUrl);
 
         return new Promise((resolve, reject) => {
@@ -133,7 +133,7 @@ class cbws {
             });
 
             this.websocket.on('message', (data: WebSocket.Data) => {
-                console.log('[WebSocket] Message received:', data.toString());
+                // console.log('[WebSocket] Message received:', data.toString());
             });
 
             this.websocket.on('ping', () => {

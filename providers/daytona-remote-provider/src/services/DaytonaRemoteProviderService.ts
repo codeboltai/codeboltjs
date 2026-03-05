@@ -43,6 +43,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
   private sandboxAgentSessionId = 'codebolt-agent-server';
   private sandboxAgentCommandId: string | null = null;
   private sandboxPreviewToken: string | null = null;
+  private logStreamPromise: Promise<void> | null = null;
 
   private readonly providerConfig: DaytonaProviderConfig;
   private readonly logger: Logger;
@@ -60,7 +61,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      daytonaApiKey: "dtn_7071c145a99d659e0a96dc73007f19ab9337895cc4e51b2a86c7850fd4efd2e3", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
+      daytonaApiKey: "dtn_eaf65547c1b21ce885d854c2011b405a2ac492eee7bdf81628457c6a73d141a6", //config.daytonaApiKey ?? process.env.DAYTONA_API_KEY,
       daytonaApiUrl: "https://app.daytona.io/api",// config.daytonaApiUrl ?? process.env.DAYTONA_API_URL,
       sandboxImage: config.sandboxImage,
       sandboxLanguage: config.sandboxLanguage ?? 'typescript',
@@ -818,6 +819,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       ws.on('message', (data: any) => {
         try {
           const payload = JSON.parse(data.toString());
+          this.logger.log('WebSocket message received from agent server:', payload);
           if (!isRegistered && payload.type === 'registered') {
             isRegistered = true;
             clearTimeout(registrationTimeout);
@@ -880,8 +882,11 @@ export class DaytonaRemoteProviderService extends BaseProvider {
 
   protected handleTransportMessage(message: RawMessageForAgent): void {
     try {
+      this.logger.log('WebSocket message received from Daytona:', message.type);
+
+      // console.log('WebSocket message received:', message);
       if (message?.type) {
-        this.logger.log('WebSocket message received:', message.type);
+        this.logger.log('WebSocket message received from Daytona:', message.type);
       }
 
       switch (message.type) {
@@ -973,6 +978,35 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     this.sandboxPreviewToken = previewLink.token || null;
 
     this.logger.log('Agent server accessible at:', wsUrl);
+
+    // Start streaming agent server logs in the background
+    this.startLogStreaming();
+  }
+
+  /**
+   * Streams stdout/stderr logs from the agent server session command
+   * in real-time using the Daytona SDK's async log streaming API.
+   */
+  private startLogStreaming(): void {
+    if (!this.sandbox || !this.sandboxAgentCommandId) {
+      this.logger.warn('Cannot start log streaming: sandbox or commandId not available');
+      return;
+    }
+
+    this.logger.log('Starting log streaming for agent server, cmdId:', this.sandboxAgentCommandId);
+
+    this.logStreamPromise = this.sandbox.process.getSessionCommandLogs(
+      this.sandboxAgentSessionId,
+      this.sandboxAgentCommandId,
+      (stdout) => {
+        this.logger.log('[sandbox stdout]', stdout);
+      },
+      (stderr) => {
+        this.logger.error('[sandbox stderr]', stderr);
+      },
+    ).catch((error) => {
+      this.logger.warn('Log stream ended:', error?.message || error);
+    });
   }
 
   private async waitForAgentServerReady(port: number): Promise<void> {
@@ -1005,6 +1039,13 @@ export class DaytonaRemoteProviderService extends BaseProvider {
     if (!this.sandbox) {
       this.logger.log('No sandbox available, skipping agent server stop');
       return true;
+    }
+
+    // Wait for log stream to finish (it will end when the session is deleted)
+    if (this.logStreamPromise) {
+      this.logger.log('Waiting for log stream to finish...');
+      await this.logStreamPromise.catch(() => {});
+      this.logStreamPromise = null;
     }
 
     try {

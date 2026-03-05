@@ -579,7 +579,7 @@ class Codebolt {
     onProviderAgentStart(handler: (userMessage: any) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleProviderAgentStart = async (response: any) => {
-                console.log("Provider agent start event received");
+                // console.log("Provider agent start event received");
                 if (response.type === "providerAgentStart") {
                     try {
 
@@ -659,7 +659,7 @@ class Codebolt {
     onGetDiffFiles(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleGetDiffFiles = async (response: any) => {
-                console.log("Get diff files event received");
+                // console.log("Get diff files event received");
                 if (response.type === "providerGetDiffFiles") {
                     try {
                         const result = await handler();
@@ -698,7 +698,7 @@ class Codebolt {
     onReadFile(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleReadFile = async (response: any) => {
-                console.log("Read file event received");
+                // console.log("Read file event received");
                 if (response.type === "providerReadFile") {
                     try {
                         const result = await handler(response.path);
@@ -738,7 +738,7 @@ class Codebolt {
     onWriteFile(handler: (path: string, content: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleWriteFile = async (response: any) => {
-                console.log("Write file event received");
+                // console.log("Write file event received");
                 if (response.type === "providerWriteFile") {
                     try {
                         const result = await handler(response.path, response.content);
@@ -778,7 +778,7 @@ class Codebolt {
     onDeleteFile(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleDeleteFile = async (response: any) => {
-                console.log("Delete file event received");
+                // console.log("Delete file event received");
                 if (response.type === "providerDeleteFile") {
                     try {
                         const result = await handler(response.path);
@@ -818,7 +818,7 @@ class Codebolt {
     onDeleteFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleDeleteFolder = async (response: any) => {
-                console.log("Delete folder event received");
+                // console.log("Delete folder event received");
                 if (response.type === "providerDeleteFolder") {
                     try {
                         const result = await handler(response.path);
@@ -858,7 +858,7 @@ class Codebolt {
     onRenameItem(handler: (oldPath: string, newPath: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleRenameItem = async (response: any) => {
-                console.log("Rename item event received");
+                // console.log("Rename item event received");
                 if (response.type === "providerRenameItem") {
                     try {
                         const result = await handler(response.oldPath, response.newPath);
@@ -898,7 +898,7 @@ class Codebolt {
     onCreateFolder(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCreateFolder = async (response: any) => {
-                console.log("Create folder event received");
+                // console.log("Create folder event received");
                 if (response.type === "providerCreateFolder") {
                     try {
                         const result = await handler(response.path);
@@ -938,7 +938,7 @@ class Codebolt {
     onCopyFile(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCopyFile = async (response: any) => {
-                console.log("Copy file event received");
+                // console.log("Copy file event received");
                 if (response.type === "providerCopyFile") {
                     try {
                         const result = await handler(response.sourcePath, response.destinationPath);
@@ -978,7 +978,7 @@ class Codebolt {
     onCopyFolder(handler: (sourcePath: string, destinationPath: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCopyFolder = async (response: any) => {
-                console.log("Copy folder event received");
+                // console.log("Copy folder event received");
                 if (response.type === "providerCopyFolder") {
                     try {
                         const result = await handler(response.sourcePath, response.destinationPath);
@@ -1018,7 +1018,7 @@ class Codebolt {
     onGetFullProject(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleGetFullProject = async (response: any) => {
-                console.log("Get full project event received");
+                // console.log("Get full project event received");
                 if (response.type === "providerGetFullProject") {
                     try {
                         const result = await handler();
@@ -1058,7 +1058,7 @@ class Codebolt {
     onCloseSignal(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCloseSignal = async (response: any) => {
-                console.log("Close signal event received");
+                // console.log("Close signal event received");
                 if (response.type === "closeSignal") {
                     try {
                         const result = await handler();
@@ -1096,7 +1096,7 @@ class Codebolt {
     onCreatePatchRequest(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCreatePatchRequest = async (response: any) => {
-                console.log("Create patch request event received");
+                // console.log("Create patch request event received");
                 if (response.type === "createPatchRequest") {
                     try {
                         const result = await handler();
@@ -1134,7 +1134,7 @@ class Codebolt {
     onCreatePullRequestRequest(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleCreatePullRequestRequest = async (response: any) => {
-                console.log("Create pull request event received");
+                // console.log("Create pull request event received");
                 if (response.type === "createPullRequestRequest") {
                     try {
                         const result = await handler();
@@ -1172,7 +1172,7 @@ class Codebolt {
     onMergeAsPatch(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleMergeAsPatch = async (response: any) => {
-                console.log("Merge as patch event received");
+                // console.log("Merge as patch event received");
                 if (response.type === "providerMergeAsPatch") {
                     try {
                         const result = await handler();
@@ -1212,7 +1212,7 @@ class Codebolt {
     onSendPR(handler: () => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleSendPR = async (response: any) => {
-                console.log("Send PR event received");
+                // console.log("Send PR event received");
                 if (response.type === "providerSendPR") {
                     try {
                         const result = await handler();
@@ -1252,7 +1252,7 @@ class Codebolt {
     onGetTreeChildren(handler: (path: string) => void | Promise<void> | any | Promise<any>) {
         this.waitForReady().then(() => {
             const handleGetTreeChildren = async (response: any) => {
-                console.log("Get tree children event received");
+                // console.log("Get tree children event received");
                 if (response.type === "providerGetTreeChildren") {
                     try {
                         const result = await handler(response.path);
