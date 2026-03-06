@@ -611,6 +611,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
           environment: initVars.environmentName,
         },
         autoStopInterval: this.providerConfig.autoStopInterval,
+        networkBlockAll: false,
       };
 
       if (this.providerConfig.sandboxImage) {

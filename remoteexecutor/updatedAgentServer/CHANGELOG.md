@@ -1,5 +1,11 @@
 # @codebolt/agentserver
 
+## 4.0.0
+
+### Major Changes
+
+- updated
+
 ## 3.0.0
 
 ### Major Changes

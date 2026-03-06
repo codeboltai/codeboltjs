@@ -98,7 +98,7 @@ export class AppMessageRouter {
     );
 
     // Only set selectedAgent if not already provided in the message
-    if (!message.message.selectedAgent) {
+    if (message.message.selectedAgent) {
       message.message.selectedAgent = {
         "agentDetails": "cli-agent",
         "agentType": AgentTypeEnum.marketplace,
