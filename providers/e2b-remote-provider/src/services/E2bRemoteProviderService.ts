@@ -83,6 +83,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   private isStartupCheck = false;
   private setupInProgress = false;
   private backgroundCommand: any = null;
+  private pendingMessages: any[] = [];
 
   private readonly providerConfig: E2bProviderConfig;
   private readonly logger: Logger;
@@ -175,6 +176,9 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     await this.afterConnected(startResult);
 
+    // Flush any messages that arrived while the agent server was being set up
+    await this.flushPendingMessages();
+
     this.logger.log('Started environment with workspace:', startResult.workspacePath);
 
     this.startHeartbeat();
@@ -204,6 +208,29 @@ export class E2bRemoteProviderService extends BaseProvider {
       await super.onProviderAgentStart(agentMessage);
     } finally {
       this.isStartupCheck = false;
+    }
+  }
+
+  async onRawMessage(message: any): Promise<void> {
+    if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
+      this.logger.warn('Agent server not connected yet, queuing message:', message?.type);
+      this.pendingMessages.push(message);
+      return;
+    }
+    await super.onRawMessage(message);
+  }
+
+  private async flushPendingMessages(): Promise<void> {
+    if (this.pendingMessages.length === 0) return;
+    this.logger.log('Flushing', this.pendingMessages.length, 'pending messages to agent server');
+    const messages = [...this.pendingMessages];
+    this.pendingMessages = [];
+    for (const msg of messages) {
+      try {
+        await super.onRawMessage(msg);
+      } catch (error) {
+        this.logger.error('Error flushing pending message:', error);
+      }
     }
   }
 
