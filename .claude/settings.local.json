@@ -52,7 +52,10 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:docs.daytona.io)",
       "WebFetch(domain:daytona.io)",
-      "WebFetch(domain:swe-agent.com)"
+      "WebFetch(domain:swe-agent.com)",
+      "WebFetch(domain:e2b.dev)",
+      "WebFetch(domain:e2b.mintlify.app)",
+      "Bash(mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/services && mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/utils)"
     ],
     "deny": [],
     "ask": []

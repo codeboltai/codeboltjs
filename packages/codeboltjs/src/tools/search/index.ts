@@ -24,7 +24,7 @@ export const searchTools = [
     new GlobTool(),
     new GrepTool(),
     new SearchFilesTool(),
-    new CodebaseSearchTool(),
+    // new CodebaseSearchTool(),
     new SearchMcpToolTool(),
-    new ListCodeDefinitionNamesTool(),
+    // new ListCodeDefinitionNamesTool(),
 ];

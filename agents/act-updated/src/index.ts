@@ -1,5 +1,4 @@
 import codebolt from '@codebolt/codeboltjs';
-import fs from 'fs'
 import {
   InitialPromptGenerator,
   ResponseExecutor,
@@ -17,12 +16,10 @@ import {
   ConversationCompactorModifier
 } from '@codebolt/agent/processor-pieces';
 
-
-
 import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
-import { promise } from 'zod/v4';
-const eventManager = codebolt.backgroundChildThreads;
+
+const eventQueue = codebolt.agentEventQueue;
 
 let systemPrompt = `
 
@@ -327,14 +324,71 @@ Specific markdown rules:
 - **IMPORTANT**: Always finish small talk responses with a codebolt-attempt_completion tool call do not  proceed to the next turn
 `.trim();
 
+/**
+ * Process an external event (steering, agent queue, background completion)
+ * and inject it into the prompt so the LLM sees it on the next iteration.
+ */
+function processExternalEvent(event: any, prompt: ProcessedMessage): void {
+  console.log(`[act-updated][Event] Received external event:`, JSON.stringify(event, null, 2));
+
+  if (!event) {
+    console.warn(`[act-updated][Event] Skipping null/undefined event`);
+    return;
+  }
+  if (!prompt?.message?.messages) {
+    console.warn(`[act-updated][Event] Skipping event - prompt.message.messages is not available`);
+    return;
+  }
+
+  const eventType = event.type || event.eventType;
+  const eventData = event.data || event;
+  console.log(`[act-updated][Event] eventType=${eventType}, eventData keys=${Object.keys(eventData || {}).join(',')}`);
+
+  if (eventType === 'agentQueueEvent') {
+    const payload = eventData?.payload || {};
+    console.log(`[act-updated][Event] agentQueueEvent payload:`, JSON.stringify(payload, null, 2));
+
+    // Handle steering events from the user
+    if (payload.type === 'steering' || eventData?.eventType === 'steering') {
+      const instruction = payload.instruction || payload.content || JSON.stringify(payload);
+      console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
+      const steeringMessage = {
+        role: "user" as const,
+        content: `<steering_message>
+<instruction>${instruction}</instruction>
+<context>The user has sent a steering message while you are working. Review the instruction and adjust your current approach accordingly. Prioritize this instruction for your next actions.</context>
+</steering_message>`
+      };
+      prompt.message.messages.push(steeringMessage);
+      console.log(`[act-updated][Steering] Prompt now has ${prompt.message.messages.length} messages after injection`);
+      return;
+    }
+
+    // Handle other agent queue events (inter-agent messages)
+    const content = payload.content || JSON.stringify(payload);
+    console.log(`[act-updated][Event] Injecting agent queue event from ${eventData.sourceAgentId || 'system'}`);
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<agent_event>
+<source>${eventData.sourceAgentId || 'system'}</source>
+<content>${content}</content>
+</agent_event>`
+    });
+  } else if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
+    console.log(`[act-updated][Event] Injecting background agent completion event`);
+    prompt.message.messages.push({
+      role: "assistant" as const,
+      content: `Background agent completed:\n${JSON.stringify(eventData, null, 2)}`
+    });
+  } else {
+    console.warn(`[act-updated][Event] Unknown event type: ${eventType}, skipping`);
+  }
+}
+
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
-
-
+  console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
 
   try {
-
-    // codebolt.chat.sendMessage("Gemini agent started", {})
-    // codebolt.chat.sendMessage(JSON.stringify(reqMessage),{})
     // Instantiate modifiers that need state persistence
     const ideContextModifier = new IdeContextModifier({
       includeActiveFile: true,
@@ -393,14 +447,28 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
       postToolCallProcessors: [conversationCompactor],
       loopDetectionService: loopDetectionService
     });
+    let loopIteration = 0;
     do {
+      loopIteration++;
+      console.log(`[act-updated][Loop] === Iteration ${loopIteration} ===`);
+
+      // Check for pending steering/external events before each LLM call
+      const pendingEvents = eventQueue.getPendingExternalEvents();
+      console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
+      for (const externalEvent of pendingEvents) {
+        processExternalEvent(externalEvent, prompt);
+      }
+
+      console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
       let agent = new AgentStep({
         preInferenceProcessors: [coreSystemPromptModifier, ideContextModifier],
         postInferenceProcessors: []
       })
-      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has
+      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+      console.log(`[act-updated][Loop] AgentStep completed`);
       prompt = result.nextMessage;
 
+      console.log(`[act-updated][Loop] Executing response...`);
       executionResult = await responseExecutor.executeResponse({
         initialUserMessage: reqMessage,
         actualMessageSentToLLM: result.actualMessageSentToLLM,
@@ -410,6 +478,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
       completed = executionResult.completed;
       prompt = executionResult.nextMessage;
+      console.log(`[act-updated][Loop] Iteration ${loopIteration} done, completed=${completed}`);
 
       if (completed) {
         break;
@@ -417,149 +486,14 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
     } while (!completed);
 
+    console.log(`[act-updated] Agent finished after ${loopIteration} iterations`);
     return executionResult.finalMessage;
 
-
   } catch (error) {
-
+    console.error(`[act-updated] Agent error:`, error);
   }
 
 
 })
-
-// async function runwhileLoop(
-//   reqMessage: FlatUserMessage,
-//   prompt: ProcessedMessage
-// ) {
-//   try {
-//     let completed = false;
-//     let executionResult;
-//     do {
-//       let agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] })
-//       let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt); //Primarily for LLM Calling and has 
-//       prompt = result.nextMessage;
-//       let responseExecutor = new ResponseExecutor({
-//         preToolCallProcessors: [],
-//         postToolCallProcessors: []
-
-//       })
-//       executionResult = await responseExecutor.executeResponse({
-//         initialUserMessage: reqMessage,
-//         actualMessageSentToLLM: result.actualMessageSentToLLM,
-//         rawLLMOutput: result.rawLLMResponse,
-//         nextMessage: result.nextMessage,
-//       });
-
-//       completed = executionResult.completed;
-//       prompt = executionResult.nextMessage;
-
-//     } while (!completed);
-
-//     return {
-//       executionResult: executionResult,
-//       prompt: prompt
-//     }
-
-//   } catch (error) {
-//     console.error(error);
-//     return error;
-//   }
-// }
-
-// codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
-//   let sessionSystemPrompt;
-//   try {
-//     let orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-//     let orhestratorConfig:any = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-//     let defaultWorkerAgentId = orhestratorConfig.data.orchestrator.defaultWorkerAgentId;
-//     sessionSystemPrompt = systemPrompt;
-//     if (defaultWorkerAgentId) {
-//       sessionSystemPrompt += `\n\n<important> when using createAndStartThread use this agent <workerAgent> ${defaultWorkerAgentId} <workerAgent> </important>`;
-//     }
-//   } catch (error) {
-//     sessionSystemPrompt = systemPrompt;
-//   }
-//   let promptGenerator = new InitialPromptGenerator({
-//     processors: [
-//       // 1. Chat History
-//       new ChatHistoryMessageModifier({ enableChatHistory: true }),
-//       // 2. Environment Context (date, OS)
-//       new EnvironmentContextModifier({ enableFullContext: true }),
-//       // 3. Directory Context (folder structure)  
-//       new DirectoryContextModifier(),
-
-//       // 4. IDE Context (active file, opened files)
-//       new IdeContextModifier({
-//         includeActiveFile: true,
-//         includeOpenFiles: true,
-//         includeCursorPosition: true,
-//         includeSelectedText: true
-//       }),
-//       // 5. Core System Prompt (instructions)
-//       new CoreSystemPromptModifier(
-//         { customSystemPrompt: sessionSystemPrompt }
-//       ),
-//       // 6. Tools (function declarations)
-//       new ToolInjectionModifier({
-//         includeToolDescriptions: true
-//       }),
-//       // 7. At-file processing (@file mentions)
-//       new AtFileProcessorModifier({
-//         enableRecursiveSearch: true
-//       })
-//     ],
-//     baseSystemPrompt: sessionSystemPrompt
-//   });
-
-//   let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-//   let executionResult: any;
-
-//   do {
-//     // Run the agent loop
-//     let result: any = await runwhileLoop(reqMessage, prompt);
-//     executionResult = result.executionResult;
-//     prompt = result.prompt;
-
-//     // Wait for next message
-//     let hasValidMessage = false;
-//     while (!hasValidMessage) {
-//       let pendingMessages = await codebolt.agentEventQueue.waitForNextQueueEvent();
-
-//       const messages = Array.isArray(pendingMessages) ? pendingMessages : [pendingMessages];
-
-//       if (!messages || messages.length === 0) {
-//         continue;
-//       }
-
-//       messages.forEach((event: any) => {
-//         if (event.eventType == 'agentEvent') {
-//           hasValidMessage = true;
-//           let messageContent = `<parent_agent_message>
-//             <source_agent>${event.sourceAgentId}</source_agent>
-//             <source_thread>${event.sourceThreadId}</source_thread>
-
-//             <message_type>instruction</message_type>
-//             <content>
-//             ${event.payload.content}
-//             </content>
-//             <context>This message is from your parent agent in the orchestration hierarchy. Review the content and take appropriate action based on the instructions provided.</context>
-//             <reply_instructions>To reply to your parent agent, use the eventqueue_send_message tool with targetAgentId set to "${event.sourceAgentId}" and your response in the content parameter.</reply_instructions>
-//             </parent_agent_message>`;
-
-//           codebolt.chat.sendMessage(`Sending this message to agent ${messageContent}`);
-//           if (reqMessage.userMessage) {
-//             reqMessage.userMessage = messageContent;
-//           }
-//         }
-//       });
-//     }
-//   } while (true);
-// // codebolt.chat.sendMessage('Agent finished')
-//   // return executionResult?.finalMessage || "No response generated";
-// })
-
-
-
-
 
 
