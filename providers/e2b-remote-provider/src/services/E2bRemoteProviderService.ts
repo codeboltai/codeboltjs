@@ -101,7 +101,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      e2bApiKey: "e2b_98d489c12270b1c0f70fdd24a07b82107b2062f9",// config.e2bApiKey ?? process.env.E2B_API_KEY,
+      e2bApiKey: config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate,
       autoStopInterval: config.autoStopInterval ?? 0,
       timeouts: {
