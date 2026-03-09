@@ -3638,6 +3638,40 @@ importers:
         specifier: ^5.0.0
         version: 5.4.20(@types/node@22.18.8)(lightningcss@1.30.2)(terser@5.46.0)
 
+  providers/e2b:
+    dependencies:
+      '@codebolt/agentserver':
+        specifier: latest
+        version: link:../../remoteexecutor/updatedAgentServer
+      '@codebolt/codeboltjs':
+        specifier: workspace:*
+        version: link:../../packages/codeboltjs
+      '@codebolt/narrative':
+        specifier: file:../../../CodeBolt/packages/narrativejspackage
+        version: file:../CodeBolt/packages/narrativejspackage
+      '@codebolt/provider':
+        specifier: workspace:*
+        version: link:../../packages/provider
+      '@codebolt/types':
+        specifier: workspace:*
+        version: link:../../common/types
+      '@e2b/code-interpreter':
+        specifier: latest
+        version: 2.3.3
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.19
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   providers/e2b-remote-provider:
     dependencies:
       '@codebolt/agentserver':
@@ -5723,6 +5757,21 @@ packages:
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
+
+  '@codebolt/narrative-darwin-arm64@1.11.0':
+    resolution: {integrity: sha512-ta7askVCA3F0f7es1OfkmkKF8Y/ttDYmkgogWwfXJxVsvd8hnJAPueJGu5NOp0kPiutNAMZBChL4zPhtOH0Viw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@codebolt/narrative-linux-x64@1.11.0':
+    resolution: {integrity: sha512-afa9QelvcV1nbu4tgv0EeVAaPl1qO6Z7SqkCxHFHDkGKvAk5KA7/oZXVTbEAPu23hZFZabNfnLIIR5uNHqaWnA==}
+    cpu: [x64]
+    os: [linux]
+
+  '@codebolt/narrative-win32-x64@1.11.0':
+    resolution: {integrity: sha512-GmAxj0CDxFkCyPCY2U8n6HDg3TFKUq3vUjgKnznPzHWnFCb6S+FOzov0KHUBWShq0mM3ytjK3H/j5qkN7LAJPw==}
+    cpu: [x64]
+    os: [win32]
 
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
@@ -20817,7 +20866,20 @@ snapshots:
     dependencies:
       globby: 14.1.0
 
-  '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage': {}
+  '@codebolt/narrative-darwin-arm64@1.11.0':
+    optional: true
+
+  '@codebolt/narrative-linux-x64@1.11.0':
+    optional: true
+
+  '@codebolt/narrative-win32-x64@1.11.0':
+    optional: true
+
+  '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
+    optionalDependencies:
+      '@codebolt/narrative-darwin-arm64': 1.11.0
+      '@codebolt/narrative-linux-x64': 1.11.0
+      '@codebolt/narrative-win32-x64': 1.11.0
 
   '@colors/colors@1.5.0':
     optional: true

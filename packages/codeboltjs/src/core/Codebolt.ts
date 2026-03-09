@@ -83,7 +83,7 @@ class Codebolt {
      * @description Initializes the websocket connection.
      */
     constructor() {
-        console.log("Codebolt Agent initialized");
+        // console.log("Codebolt Agent initialized");
         this.readyPromise = this.initializeConnection();
         this.setupMessageListener()
         this.lastUserMessage = undefined
@@ -99,7 +99,7 @@ class Codebolt {
             await cbws.initializeWebSocket();
             this.websocket = cbws.getWebsocket;
             this.isReady = true;
-            console.log("Codebolt WebSocket connection established");
+            // console.log("Codebolt WebSocket connection established");
 
             // Execute all registered ready handlers
             for (const handler of this.readyHandlers) {
@@ -238,27 +238,27 @@ class Codebolt {
      */
     async getMessage(): Promise<FlatUserMessage> {
         // Wait for WebSocket to be ready first
-        console.log('[Codebolt] getMessage called');
+        // console.log('[Codebolt] getMessage called');
         // await this.waitForReady();
 
 
         // First, check if there's a current message being processed
         const currentMessage = userMessageManager.getMessage();
         if (currentMessage) {
-            console.log('[Codebolt] Returning current message');
+            // console.log('[Codebolt] Returning current message');
             return Promise.resolve(currentMessage);
         }
 
         // If there are queued messages, return the first one
         if (this.messageQueue.length > 0 || this.lastUserMessage) {
-            console.log('[Codebolt] Returning queued message');
+            // console.log('[Codebolt] Returning queued message');
             const message = this.messageQueue.shift() || this.lastUserMessage;
             if (message)
                 return Promise.resolve(message);
         }
 
         // Otherwise, create a new promise that will be resolved when a message arrives
-        console.log('[Codebolt] Waiting for next message');
+        // console.log('[Codebolt] Waiting for next message');
         return new Promise<FlatUserMessage>((resolve) => {
             this.messageResolvers.push(resolve);
         });
@@ -286,10 +286,10 @@ class Codebolt {
      * @private
      */
     private setupMessageListener() {
-        console.log("listener setup")
+        // console.log("listener setup")
         this.waitForReady().then(() => {
             const handleSocketMessage = async (response: any) => {
-                console.log(response)
+                // console.log(response)
                 if (response.type === "messageResponse") {
                     // Extract user-facing message from internal socket message
                     const userMessage: FlatUserMessage = {
@@ -338,7 +338,7 @@ class Codebolt {
         // Wait for the WebSocket to be ready before setting up the handler
         this.waitForReady().then(() => {
             const handleUserMessage = async (response: any) => {
-                console.log("Message received By Agent Library Starting Custom Agent Handler Logic", response);
+                // console.log("Message received By Agent Library Starting Custom Agent Handler Logic", response);
                 if (response.type === "messageResponse") {
                     try {
                         // Extract user-facing message from internal socket message
@@ -414,7 +414,7 @@ class Codebolt {
         this.waitForReady().then(() => {
             const handleActionBlockInvocation = async (response: any) => {
                 if (response.type === "actionBlockInvocation") {
-                    console.log("ActionBlock invocation received", response);
+                    // console.log("ActionBlock invocation received", response);
                     try {
                         // Merge params into threadContext so action blocks can access them
                         // params contains the custom parameters passed via actionBlock.start()

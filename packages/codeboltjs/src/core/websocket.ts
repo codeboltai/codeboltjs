@@ -14,7 +14,7 @@ class cbws {
      * Constructs a new cbws instance and initializes the WebSocket connection.
      */
     constructor() {
-        console.log('[WebSocket] Initializing cbws instance');
+        // console.log('[WebSocket] Initializing cbws instance');
         // this.websocket=undefined;
         // this.websocket = new WebSocket(`ws://localhost:${process.env.SOCKET_PORT}/codebolt?id=${uniqueConnectionId}${agentIdParam}${parentIdParam}${process.env.Is_Dev ? '&dev=true' : ''}`);
         // this.initializeWebSocket(initialMessage).catch(error => {
@@ -54,7 +54,7 @@ class cbws {
      * @returns {Promise<WebSocket>} A promise that resolves with the WebSocket instance.
      */
     public async initializeWebSocket(): Promise<WebSocket> {
-        console.log('[WebSocket] Starting WebSocket initialization');
+        // console.log('[WebSocket] Starting WebSocket initialization');
 
         const uniqueConnectionId = this.getUniqueConnectionId();
         // const initialMessage = "Hello" //this.getInitialMessage();

@@ -198,7 +198,7 @@ export abstract class BaseProvider
       try {
         this.agentServer.wsConnection.close();
       } catch (error) {
-        console.warn("[BaseProvider] Error closing WebSocket", error);
+        // console.warn("[BaseProvider] Error closing WebSocket", error);
       }
       this.agentServer.metadata = {};
       this.agentServer.wsConnection = null;
@@ -223,7 +223,7 @@ export abstract class BaseProvider
       return true;
     } catch (error) {
       this.agentServer.metadata = { lastSendError: error };
-      console.error("[BaseProvider] Failed to send message to agent server", error);
+      // console.error("[BaseProvider] Failed to send message to agent server", error);
       return false;
     }
   }
@@ -255,7 +255,7 @@ export abstract class BaseProvider
       this.sendProviderHeartbeat();
     }, HEARTBEAT_INTERVAL);
 
-    console.log('[BaseProvider] Heartbeat monitoring started');
+    // console.log('[BaseProvider] Heartbeat monitoring started');
   }
 
   /**
@@ -265,12 +265,12 @@ export abstract class BaseProvider
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
-      console.log('[BaseProvider] Heartbeat monitoring stopped');
+      // console.log('[BaseProvider] Heartbeat monitoring stopped');
     }
     if (this.environmentHeartbeatInterval) {
       clearInterval(this.environmentHeartbeatInterval);
       this.environmentHeartbeatInterval = null;
-      console.log('[BaseProvider] Environment heartbeat monitoring stopped');
+      // console.log('[BaseProvider] Environment heartbeat monitoring stopped');
     }
   }
 
@@ -279,7 +279,7 @@ export abstract class BaseProvider
    */
   protected sendProviderHeartbeat(): void {
     if (!codebolt.ready) {
-      console.warn('[BaseProvider] Cannot send heartbeat - Codebolt not ready');
+      // console.warn('[BaseProvider] Cannot send heartbeat - Codebolt not ready');
       return;
     }
 
@@ -300,7 +300,7 @@ export abstract class BaseProvider
         },
       });
     } catch (error) {
-      console.error('[BaseProvider] Failed to send provider heartbeat:', error);
+      // console.error('[BaseProvider] Failed to send provider heartbeat:', error);
     }
   }
 
@@ -319,7 +319,7 @@ export abstract class BaseProvider
       this.sendEnvironmentHeartbeat(environmentId);
     }, ENVIRONMENT_HEARTBEAT_INTERVAL);
 
-    console.log(`[BaseProvider] Environment heartbeat started for: ${environmentId}`);
+    // console.log(`[BaseProvider] Environment heartbeat started for: ${environmentId}`);
   }
 
   /**
@@ -327,7 +327,7 @@ export abstract class BaseProvider
    */
   protected sendEnvironmentHeartbeat(environmentId: string): void {
     if (!codebolt.ready) {
-      console.warn('[BaseProvider] Cannot send environment heartbeat - Codebolt not ready');
+      // console.warn('[BaseProvider] Cannot send environment heartbeat - Codebolt not ready');
       return;
     }
 
@@ -338,7 +338,7 @@ export abstract class BaseProvider
         providerId: this.state.providerId || this.state.environmentName || 'unknown',
       });
     } catch (error) {
-      console.error('[BaseProvider] Failed to send environment heartbeat:', error);
+      // console.error('[BaseProvider] Failed to send environment heartbeat:', error);
     }
   }
 
@@ -481,7 +481,7 @@ export abstract class BaseProvider
 
           this.handleTransportMessage(payload);
         } catch (error) {
-          console.error("[BaseProvider] Failed to parse WebSocket message", error);
+          // console.error("[BaseProvider] Failed to parse WebSocket message", error);
         }
       });
 
@@ -534,7 +534,7 @@ export abstract class BaseProvider
       try {
         codebolt.websocket.send(JSON.stringify(message));
       } catch (error) {
-        console.warn("[BaseProvider] Unable to forward message to Codebolt websocket", error);
+        // console.warn("[BaseProvider] Unable to forward message to Codebolt websocket", error);
       }
     }
   }
