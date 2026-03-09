@@ -1208,6 +1208,9 @@ export type {
     DynamicPanelMessageEvent,
 } from './modules/dynamicPanel';
 
+// Environment module
+export { default as environment } from './modules/environment';
+
 // ================================
 // Tools Module - LLM-ready tool definitions
 // ================================

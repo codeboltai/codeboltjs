@@ -1,410 +1,499 @@
 import codebolt from '@codebolt/codeboltjs';
+import {
+    InitialPromptGenerator,
+    ResponseExecutor,
+    LoopDetectionService
+} from '@codebolt/agent/unified'
 import { FlatUserMessage } from "@codebolt/types/sdk";
+import {
+    EnvironmentContextModifier,
+    CoreSystemPromptModifier,
+    DirectoryContextModifier,
+    IdeContextModifier,
+    AtFileProcessorModifier,
+    ToolInjectionModifier,
+    ChatHistoryMessageModifier,
+    ConversationCompactorModifier
+} from '@codebolt/agent/processor-pieces';
 
-const TEST_DIR = '/Users/utkarshshukla/Desktop/my/delicious-coffee';
+import { AgentStep } from '@codebolt/agent/unified';
+import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+const eventQueue = codebolt.agentEventQueue;
+
+let systemPrompt = `
+
+You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.
+
+## Communication
+
+- Always ensure **only relevant sections** (code snippets, tables, commands, or structured data) are formatted in valid Markdown with proper fencing
+- Avoid wrapping the entire message in a single code block
+- Use Markdown **only where semantically correct** (e.g., \`inline code\`, code fences, lists, tables)
+- ALWAYS use backticks to format file, directory, function, and class names
+- Use \\( and \\) for inline math, \\[ and \\] for block math
+- Optimize writing for clarity and skimmability
+- Ensure code snippets are properly formatted for markdown rendering
+- Do not add narration comments inside code
+- Refer to code changes as "edits" not "patches"
+- State assumptions and continue; don't stop for approval unless blocked
+
+## Status Updates
+
+**Definition**: A brief progress note (1-3 sentences) about what just happened, what you're about to do, blockers/risks if relevant.
+
+**Critical execution rule**: If you say you're about to do something, actually do it in the same turn (run the tool call right after).
+
+**Guidelines**:
+- Use correct tenses: "I'll" or "Let me" for future actions, past tense for past actions, present tense for current actions
+- Skip saying what just happened if there's no new information since your previous update
+- Check off completed TODOs before reporting progress
+- Before starting any new file or code edit, reconcile the todo list
+- If you decide to skip a task, explicitly state a one-line justification and mark the task as cancelled
+- Reference todo task names (not IDs); never reprint the full list
+- Don't mention updating the todo list
+- Use backticks when mentioning files, directories, functions, etc (e.g., \`app/components/Card.tsx\`)
+- Only pause if you truly cannot proceed without the user or a tool result
+- Don't add headings like "Update:"
+
+**Example**:
+> "Let me search for where the load balancer is configured."
+> "I found the load balancer configuration. Now I'll update the number of replicas to 3."
+> "My edit introduced a linter error. Let me fix that."
+
+## Summary
+
+At the end of your turn, provide a summary:
+
+- Summarize any changes at a high-level and their impact
+- If the user asked for info, summarize the answer but don't explain your search process
+- If the user asked a basic query, skip the summary entirely
+- Use concise bullet points for lists; short paragraphs if needed
+- Use markdown if you need headings
+- Don't repeat the plan
+- Include short code fences only when essential; never fence the entire message
+- Use backticks when mentioning files, directories, functions, etc
+- Keep the summary short, non-repetitive, and high-signal
+- The user can view full code changes in the editor, so only flag specific code changes that are very important
+- Don't add headings like "Summary:" or "Update:"
+
+## Completion
+
+**CRITICAL — You MUST verify your work before calling \`attempt_completion\`. Never mark a task as done without first confirming there are no errors.**
+
+When all goal tasks are done, follow this mandatory sequence:
+
+### Step 1: Detect the project stack
+- Look at the project files to identify the language/framework (e.g., \`package.json\` → Node/JS/TS, \`requirements.txt\`/\`pyproject.toml\` → Python, \`go.mod\` → Go, \`Cargo.toml\` → Rust, \`pom.xml\`/\`build.gradle\` → Java, etc.)
+
+### Step 2: Run verification checks (use the terminal)
+Run **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:
+
+- **Build**: Run the project's build command (e.g., \`npm run build\`, \`go build ./...\`, \`cargo build\`, \`mvn compile\`, \`python -m py_compile\`)
+- **Type check**: Run the type checker if the project uses one (e.g., \`npx tsc --noEmit\`, \`mypy .\`, \`pyright\`)
+- **Lint**: Run the linter if configured (e.g., \`npm run lint\`, \`flake8\`, \`golangci-lint run\`, \`cargo clippy\`)
+- **Test**: Run the test suite if tests exist (e.g., \`npm test\`, \`pytest\`, \`go test ./...\`, \`cargo test\`)
+
+### Step 3: Fix any errors
+- If ANY check fails, **fix the errors** and re-run the failing check until it passes
+- Do NOT call \`attempt_completion\` while any check is still failing
+- Repeat Steps 2-3 until all checks pass
+
+### Step 4: Complete
+1. Confirm that all tasks are checked off in the todo list
+2. Reconcile and close the todo list
+3. Give your summary per the summary spec
+4. **Only now** call \`attempt_completion\`
+
+## Workflow
+
+1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)
+2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly
+3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update
+4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding
+5. Once all checks pass, reconcile and close the todo list, and give a brief summary
+6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding
+
+## Tool Calling
+
+- Use only provided tools; follow their schemas exactly
+- Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls
+- Use \`codebase_search\` to search for code in the codebase
+- If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.
+- Don't mention tool names to the user; describe actions naturally.
+- If info is discoverable via tools, prefer that over asking the user.
+- Read multiple files as needed; don't guess.
+- Give a brief progress note before the first tool call each turn; add another before any new batch and before ending your turn.
+- Whenever you complete tasks, call todo_write to update the todo list before reporting progress.
+- There is no apply_patch CLI available in terminal. Use the appropriate tool for editing the code instead.
+- Gate before new edits: Before starting any new file or code edit, reconcile the TODO list via todo_write (merge=true): mark newly completed tasks as completed and set the next task to in_progress.
+- Cadence after steps: After each successful step (e.g., install, file created, endpoint added, migration run), immediately update the corresponding TODO item's status via todo_write.
+- Before processing todo items, you must start them in "in_progress" using the write_tool, and mark newly completed tasks as "completed" and set the next task to "in_progress".
+
+## Context Understanding
+
+Semantic search (\`codebase_search\`) is your MAIN exploration tool.
+
+**CRITICAL**:
+- Mark newly completed tasks as completed and set the next task to in_progress. \`write_tool\`
+- Start with a broad, high-level query that captures overall intent (e.g., "authentication flow" or "error-handling policy"), not low-level terms
+- Break multi-part questions into focused sub-queries
+- **MANDATORY**: Run multiple \`codebase_search\` searches with different wording; first-pass results often miss key details
+- Keep searching new areas until you're CONFIDENT nothing important remains
+- If you've performed an edit that may partially fulfill the query but you're not confident, gather more information before ending your turn
+- Bias towards not asking the user for help if you can find the answer yourself
+
+## Maximize Parallel Tool Calls
+
+**CRITICAL INSTRUCTION**: For maximum efficiency, invoke all relevant tools concurrently with \`multi_tool_use.parallel\` rather than sequentially. Prioritize calling tools in parallel whenever possible.
+
+**Examples**:
+- When reading 3 files, run 3 tool calls in parallel to read all 3 files at once
+- When running multiple read-only commands like \`read_file\`, \`grep_search\` or \`codebase_search\`, always run all commands in parallel
+- Limit to 3-5 tool calls at a time or they might time out
+
+**Cases that SHOULD use parallel tool calls**:
+- Searching for different patterns (imports, usage, definitions)
+- Multiple grep searches with different regex patterns
+- Reading multiple files or searching different directories
+- Combining \`codebase_search\` with grep for comprehensive results
+- Any information gathering where you know upfront what you're looking for
+
+Before making tool calls, briefly consider: What information do I need to fully answer this question? Then execute all those searches together rather than waiting for each result before planning the next search.
+
+**DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously. Parallel tool execution can be 3-5x faster than sequential calls.
+
+## Searching Code
+
+- **ALWAYS prefer** using \`codebase_search\` over grep for searching for code because it is much faster for efficient codebase exploration
+- Use grep to search for exact strings, symbols, or other patterns
+
+## Making Code Changes
+
+When making code changes, **NEVER output code to the USER**, unless requested. Instead use one of the code edit tools to implement the change.
+
+**EXTREMELY important** that your generated code can be run immediately:
+
+- Add all necessary import statements, dependencies, and endpoints required to run the code
+- If creating the codebase from scratch, create an appropriate dependency management file (e.g., \`requirements.txt\`) with package versions and a helpful README
+- If building a web app from scratch, give it a beautiful and modern UI, imbued with best UX practices
+- **NEVER generate** an extremely long hash or any non-textual code, such as binary
+
+- Every time you write code, follow the code style guidelines
+
+## Code Style
+
+**IMPORTANT**: The code you write will be reviewed by humans; optimize for clarity and readability. Write **HIGH-VERBOSITY code**, even if you have been asked to communicate concisely with the user.
+
+### Naming
+
+- Avoid short variable/symbol names. Never use 1-2 character names
+- Functions should be verbs/verb-phrases, variables should be nouns/noun-phrases
+- Use meaningful variable names as described in Martin's "Clean Code":
+  - Descriptive enough that comments are generally not needed
+  - Prefer full words over abbreviations
+  - Use variables to capture the meaning of complex conditions or operations
+
+**Examples (Bad → Good)**:
+- \`genYmdStr\` → \`generateDateString\`
+- \`n\` → \`numSuccessfulRequests\`
+- \`[key, value] of map\` → \`[userId, user] of userIdToUser\`
+- \`resMs\` → \`fetchUserDataResponseMs\`
+
+### Static Typed Languages
+
+- Explicitly annotate function signatures and exported/public APIs
+- Don't annotate trivially inferred variables
+- Avoid unsafe typecasts or types like \`any\`
+
+### Control Flow
+
+- Use guard clauses/early returns
+- Handle error and edge cases first
+- Avoid unnecessary try/catch blocks
+- **NEVER catch errors** without meaningful handling
+- Avoid deep nesting beyond 2-3 levels
+
+### Comments
+
+- Do not add comments for trivial or obvious code. Where needed, keep them concise
+- Add comments for complex or hard-to-understand code; explain "why" not "how"
+- Never use inline comments. Comment above code lines or use language-specific docstrings for functions
+- Avoid TODO comments. Implement instead
+
+### Formatting
+
+- Match existing code style and formatting
+- Prefer multi-line over one-liners/complex ternaries
+- Wrap long lines
+- Don't reformat unrelated code
+
+
+
+## Non-Compliance
+
+- If you fail to call \`todo_write\` to check off tasks before claiming them done, self-correct in the next turn immediately
+- If you used tools without a status update, or failed to update todos correctly, self-correct next turn before proceeding
+- **CRITICAL**: If you call \`attempt_completion\` without having run and passed the verification checks (build, typecheck, lint, test), you MUST self-correct immediately — run the checks, fix any failures, and only then call \`attempt_completion\` again
+- If you report code work as done without a successful test/build run, self-correct next turn by running and fixing first
+- If a turn contains any tool call, the message MUST include at least one micro-update near the top before those calls
+
+## Citing Code
+
+There are two ways to display code to the user:
+
+### Method 1: Citing Code That Is In The Codebase
+
+Use this format:
+
+\\\`\\\`\\\`filepath startLine-endLine
+code content here
+\\\`\\\`\\\`
+
+Where \`startLine\` and \`endLine\` are line numbers and the filepath is the path to the file. All three must be provided, and do not add anything else (like a language tag).
+
+**Working example**:
+
+\\\`\\\`\\\`src/components/Todo.tsx 1-3
+export const Todo = () => {
+  return <div>Todo</div>; // Implement this!
+};
+\\\`\\\`\\\`
+
+The code block should contain the code content from the file, although you are allowed to truncate the code, add your own edits, or add comments for readability. If you do truncate the code, include a comment to indicate that there is more code that is not shown.
+
+**YOU MUST SHOW AT LEAST 1 LINE OF CODE** or else the block will not render properly in the editor.
+
+### Method 2: Proposing New Code That Is Not In The Codebase
+
+Use fenced code blocks with language tags. Do not include anything other than the language tag.
+
+**Examples**:
+
+\\\`\\\`\\\`python
+for i in range(10):
+  print(i)
+\\\`\\\`\\\`
+
+\\\`\\\`\\\`bash
+sudo apt update && sudo apt upgrade -y
+\\\`\\\`\\\`
+
+### For Both Methods
+
+- Do not include line numbers
+- Do not add any leading indentation before \\\`\\\`\\\` fences, even if it clashes with the indentation of the surrounding text
+
+## Inline Line Numbers
+
+Code chunks that you receive (via tool calls or from user) may include inline line numbers in the form "Lxxx:LINE_CONTENT", e.g., "L123:LINE_CONTENT". Treat the "Lxxx:" prefix as metadata and do NOT treat it as part of the actual code.
+
+## Markdown Spec
+
+Specific markdown rules:
+
+- Users love it when you organize messages using \`###\` headings and \`##\` headings. Never use \`#\` headings as users find them overwhelming
+- Use bold markdown (\`**text**\`) to highlight critical information, such as the specific answer to a question, or a key insight
+- Bullet points (formatted with \`- \` instead of \`• \`) should also have bold markdown as a pseudo-heading, especially if there are sub-bullets
+- Convert \`- item: description\` bullet point pairs to use bold markdown like: \`- **item**: description\`
+- When mentioning files, directories, classes, or functions by name, use backticks to format them (e.g., \`app/components/Card.tsx\`)
+- When mentioning URLs, do NOT paste bare URLs. Always use backticks or markdown links. Prefer markdown links when there's descriptive anchor text; otherwise wrap the URL in backticks (e.g., \`https://example.com\`)
+- If there is a mathematical expression that is unlikely to be copied and pasted in the code, use inline math (\\( and \\)) or block math (\\[ and \\]) to format it
+
+## TODO Spec
+
+**Purpose**: Use the \`todo_write\` tool to track and manage tasks.
+
+### Defining Tasks
+
+- Create atomic todo items (≤14 words, verb-led, clear outcome) using \`todo_write\` before starting work on an implementation task
+- Todo items should be high-level, meaningful, nontrivial tasks that would take a user at least 5 minutes to perform
+- They can be user-facing UI elements, added/updated/deleted logical elements, architectural updates, etc.
+- Changes across multiple files can be contained in one task
+- Don't cram multiple semantically different steps into one todo, but if there's a clear higher-level grouping then use that
+- Prefer fewer, larger todo items
+- Todo items should NOT include operational actions done in service of higher-level tasks
+- If the user asks you to plan but not implement, don't create a todo list until it's actually time to implement
+- If the user asks you to implement, do not output a separate text-based High-Level Plan. Just build and display the todo list
+
+### Todo Item Content
+
+- Should be simple, clear, and short, with just enough context that a user can quickly understand the task
+- Should be a verb and action-oriented, like "Add LRUCache interface to types.ts" or "Create new widget on the landing page"
+- **SHOULD NOT** include details like specific types, variable names, event names, etc., or making comprehensive lists of items or elements that will be updated, unless the user's goal is a large refactor that just involves making these changes
+- **IMPORTANT**: Always finish small talk responses with a codebolt-attempt_completion tool call do not  proceed to the next turn
+`.trim();
+
+/**
+ * Process an external event (steering, agent queue, background completion)
+ * and inject it into the prompt so the LLM sees it on the next iteration.
+ */
+function processExternalEvent(event: any, prompt: ProcessedMessage): void {
+    console.log(`[act-updated][Event] Received external event:`, JSON.stringify(event, null, 2));
+
+    if (!event) {
+        console.warn(`[act-updated][Event] Skipping null/undefined event`);
+        return;
+    }
+    if (!prompt?.message?.messages) {
+        console.warn(`[act-updated][Event] Skipping event - prompt.message.messages is not available`);
+        return;
+    }
+
+    const eventType = event.type || event.eventType;
+    const eventData = event.data || event;
+    console.log(`[act-updated][Event] eventType=${eventType}, eventData keys=${Object.keys(eventData || {}).join(',')}`);
+
+    if (eventType === 'agentQueueEvent') {
+        const payload = eventData?.payload || {};
+        console.log(`[act-updated][Event] agentQueueEvent payload:`, JSON.stringify(payload, null, 2));
+
+        // Handle steering events from the user
+        if (payload.type === 'steering' || eventData?.eventType === 'steering') {
+            const instruction = payload.instruction || payload.content || JSON.stringify(payload);
+            console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
+            const steeringMessage = {
+                role: "user" as const,
+                content: `<steering_message>
+<instruction>${instruction}</instruction>
+<context>The user has sent a steering message while you are working. Review the instruction and adjust your current approach accordingly. Prioritize this instruction for your next actions.</context>
+</steering_message>`
+            };
+            prompt.message.messages.push(steeringMessage);
+            console.log(`[act-updated][Steering] Prompt now has ${prompt.message.messages.length} messages after injection`);
+            return;
+        }
+
+        // Handle other agent queue events (inter-agent messages)
+        const content = payload.content || JSON.stringify(payload);
+        console.log(`[act-updated][Event] Injecting agent queue event from ${eventData.sourceAgentId || 'system'}`);
+        prompt.message.messages.push({
+            role: "user" as const,
+            content: `<agent_event>
+<source>${eventData.sourceAgentId || 'system'}</source>
+<content>${content}</content>
+</agent_event>`
+        });
+    } else if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
+        console.log(`[act-updated][Event] Injecting background agent completion event`);
+        prompt.message.messages.push({
+            role: "assistant" as const,
+            content: `Background agent completed:\n${JSON.stringify(eventData, null, 2)}`
+        });
+    } else {
+        console.warn(`[act-updated][Event] Unknown event type: ${eventType}, skipping`);
+    }
+}
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+    console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
+
     try {
-        codebolt.chat.sendMessage("Starting Tool Tests (MCP + Direct API)...\n");
-        // await codebolt.job.createJob({
-        //     name: "test-job",
-        //     description: "test job",
-
-        // })
-
-        // // Setup test directory
-        // await codebolt.terminal.executeCommand(`mkdir -p ${TEST_DIR}`);
-
-        // // ============================================
-        // // FILE TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== FILE TOOLS ===\n");
-
-        // // 1. write_file (MCP) vs writeToFile (Direct API)
-        // codebolt.chat.sendMessage("--- write_file ---");
-        // const mcpWriteResult = await codebolt.mcp.executeTool("codebolt", "write_file", {
-        //     absolute_path: `${TEST_DIR}/test.txt`,
-        //     content: "Hello World\nLine 2\nLine 3\nLine 4\nLine 5"
-        // });
-        // codebolt.chat.sendMessage(`MCP write_file: ${JSON.stringify(mcpWriteResult, null, 2)}`);
-
-        // const apiWriteResult = await codebolt.fs.writeToFile(`${TEST_DIR}/test2.txt`, "Hello World API\nLine 2\nLine 3");
-        // codebolt.chat.sendMessage(`API writeToFile: ${JSON.stringify(apiWriteResult, null, 2)}`);
-
-        // // 2. read_file (MCP) vs readFile (Direct API)
-        // codebolt.chat.sendMessage("--- read_file ---");
-        // const mcpReadResult = await codebolt.mcp.executeTool("codebolt", "read_file", {
-        //     absolute_path: `${TEST_DIR}/test.txt`
-        // });
-        // codebolt.chat.sendMessage(`MCP read_file: ${JSON.stringify(mcpReadResult, null, 2)}`);
-
-        // const apiReadResult = await codebolt.fs.readFile(`${TEST_DIR}/test.txt`);
-        // codebolt.chat.sendMessage(`API readFile: ${JSON.stringify(apiReadResult, null, 2)}`);
-
-        // // 3. read_file with offset/limit (MCP only)
-        // codebolt.chat.sendMessage("--- read_file (offset/limit) ---");
-        // const mcpReadOffsetResult = await codebolt.mcp.executeTool("codebolt", "read_file", {
-        //     absolute_path: `${TEST_DIR}/test.txt`,
-        //     offset: 2,
-        //     limit: 2
-        // });
-        // codebolt.chat.sendMessage(`MCP read_file (offset): ${JSON.stringify(mcpReadOffsetResult, null, 2)}`);
-
-        // // 4. edit (MCP only)
-        // codebolt.chat.sendMessage("--- edit ---");
-        // const mcpEditResult = await codebolt.mcp.executeTool("codebolt", "edit", {
-        //     absolute_path: `${TEST_DIR}/test.txt`,
-        //     old_string: "Hello World",
-        //     new_string: "Hello Universe"
-        // });
-        // codebolt.chat.sendMessage(`MCP edit: ${JSON.stringify(mcpEditResult, null, 2)}`);
-
-        // // 5. ls (MCP) vs listDirectory (Direct API)
-        // codebolt.chat.sendMessage("--- ls / listDirectory ---");
-        // const mcpLsResult = await codebolt.mcp.executeTool("codebolt", "ls", {
-        //     path: TEST_DIR
-        // });
-        // codebolt.chat.sendMessage(`MCP ls: ${JSON.stringify(mcpLsResult, null, 2)}`);
-
-        // const apiListDirResult = await codebolt.fs.listDirectory({ path: TEST_DIR });
-        // codebolt.chat.sendMessage(`API listDirectory: ${JSON.stringify(apiListDirResult, null, 2)}`);
-
-        // // 6. read_many_files (MCP) vs readManyFiles (Direct API)
-        // codebolt.chat.sendMessage("--- read_many_files ---");
-        // const mcpReadManyResult = await codebolt.mcp.executeTool("codebolt", "read_many_files", {
-        //     paths: [`${TEST_DIR}/test.txt`, `${TEST_DIR}/test2.txt`]
-        // });
-        // codebolt.chat.sendMessage(`MCP read_many_files: ${JSON.stringify(mcpReadManyResult, null, 2)}`);
-
-        // const apiReadManyResult = await codebolt.fs.readManyFiles({
-        //     paths: [`${TEST_DIR}/test.txt`, `${TEST_DIR}/test2.txt`]
-        // });
-        // codebolt.chat.sendMessage(`API readManyFiles: ${JSON.stringify(apiReadManyResult, null, 2)}`);
-
-        // // ============================================
-        // // SEARCH TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== SEARCH TOOLS ===\n");
-
-        //----------Not Working both mcp Api--------
-        // // 7. glob (MCP) vs fileSearch (Direct API)
-        // codebolt.chat.sendMessage("--- glob / fileSearch ---");
-        // const mcpGlobResult = await codebolt.mcp.executeTool("codebolt", "glob", {
-        //     pattern: "**/*.txt"
-        // });
-        // codebolt.chat.sendMessage(`MCP glob: ${JSON.stringify(mcpGlobResult, null, 2)}`);
-
-        // const apiFileSearchResult = await codebolt.fs.fileSearch("test");
-        // codebolt.chat.sendMessage(`API fileSearch: ${JSON.stringify(apiFileSearchResult, null, 2)}`);
-
-        // 8. grep (MCP) vs grepSearch (Direct API)
-        // codebolt.chat.sendMessage("--- grep / grepSearch ---");
-        // const mcpGrepResult = await codebolt.mcp.executeTool("codebolt", "grep", {
-        //     path: TEST_DIR,
-        //     pattern: "hi"
-        // });
-        // codebolt.chat.sendMessage(`MCP grep: ${JSON.stringify(mcpGrepResult, null, 2)}`);
-
-        // const apiGrepResult = await codebolt.fs.grepSearch(TEST_DIR, "Hello");
-        // codebolt.chat.sendMessage(`API grepSearch: ${JSON.stringify(apiGrepResult, null, 2)}`);
-
-        // // 9. search_files (MCP) vs searchFiles (Direct API)
-        // codebolt.chat.sendMessage("--- search_files ---");
-        // const mcpSearchFilesResult = await codebolt.mcp.executeTool("codebolt", "search_files", {
-        //     path: TEST_DIR,
-        //     regex: "Line\\s+\\d+"
-        // });
-        // codebolt.chat.sendMessage(`MCP search_files: ${JSON.stringify(mcpSearchFilesResult, null, 2)}`);
-
-        // const apiSearchFilesResult = await codebolt.fs.searchFiles(TEST_DIR, "Line\\s+\\d+", "*.txt");
-        // codebolt.chat.sendMessage(`API searchFiles: ${JSON.stringify(apiSearchFilesResult, null, 2)}`);
-
-        // // 10. codebase_search (MCP only - semantic search)
-        // codebolt.chat.sendMessage("--- codebase_search ---");
-        // const mcpCodebaseSearchResult = await codebolt.mcp.executeTool("codebolt", "codebase_search", {
-        //     query: "file content"
-        // });
-        // codebolt.chat.sendMessage(`MCP codebase_search: ${JSON.stringify(mcpCodebaseSearchResult, null, 2)}`);
-
-        // // 11. search_mcp_tool (MCP only)
-        // codebolt.chat.sendMessage("--- search_mcp_tool ---");
-        // const mcpSearchMcpToolResult = await codebolt.mcp.executeTool("codebolt", "search_mcp_tool", {
-        //     query: "file"
-        // });
-        // codebolt.chat.sendMessage(`MCP search_mcp_tool: ${JSON.stringify(mcpSearchMcpToolResult, null, 2)}`);
-
-        // // 12. list_code_definition_names (MCP) vs listCodeDefinitionNames (Direct API)
-        // codebolt.chat.sendMessage("--- list_code_definition_names ---");
-        // await codebolt.fs.writeToFile(`${TEST_DIR}/sample.ts`, `export function hello() { return "world"; }\nexport class TestClass { getValue() { return 42; } }`);
-
-        // const mcpListCodeDefResult = await codebolt.mcp.executeTool("codebolt", "list_code_definition_names", {
-        //     path: `${TEST_DIR}/sample.ts`
-        // });
-        // codebolt.chat.sendMessage(`MCP list_code_definition_names: ${JSON.stringify(mcpListCodeDefResult, null, 2)}`);
-
-        // const apiListCodeDefResult = await codebolt.fs.listCodeDefinitionNames(`${TEST_DIR}/sample.ts`);
-        // codebolt.chat.sendMessage(`API listCodeDefinitionNames: ${JSON.stringify(apiListCodeDefResult, null, 2)}`);
-
-        // // ============================================
-        // // TERMINAL TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== TERMINAL TOOLS ===\n");
-
-        // // 13. execute_command (MCP) vs executeCommand (Direct API)
-        // codebolt.chat.sendMessage("--- execute_command ---");
-        // const mcpEchoResult = await codebolt.mcp.executeTool("codebolt", "execute_command", {
-        //     command: "echo 'Hello from MCP'"
-        // });
-        // codebolt.chat.sendMessage(`MCP execute_command: ${JSON.stringify(mcpEchoResult, null, 2)}`);
-
-        // const apiEchoResult = await codebolt.terminal.executeCommand("echo 'Hello from API'");
-        // codebolt.chat.sendMessage(`API executeCommand: ${JSON.stringify(apiEchoResult, null, 2)}`);
-
-        // // Additional terminal tests
-        // codebolt.chat.sendMessage("--- execute_command (pwd) ---");
-        // const mcpPwdResult = await codebolt.mcp.executeTool("codebolt", "execute_command", {
-        //     command: "pwd"
-        // });
-        // codebolt.chat.sendMessage(`MCP pwd: ${JSON.stringify(mcpPwdResult, null, 2)}`);
-
-        // const apiPwdResult = await codebolt.terminal.executeCommand("pwd");
-        // codebolt.chat.sendMessage(`API pwd: ${JSON.stringify(apiPwdResult, null, 2)}`);
-
-        // // ============================================
-        // // GIT TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== GIT TOOLS ===\n");
-
-        // // Setup git repo
-        // const gitDir = `${TEST_DIR}/git-repo`;
-        // await codebolt.terminal.executeCommand(`mkdir -p ${gitDir} && cd ${gitDir} && git init && git config user.email "test@test.com" && git config user.name "Test"`);
-        // await codebolt.fs.writeToFile(`${gitDir}/README.md`, "# Test Repo");
-
-        // // 14. git_status (MCP) vs status (Direct API )
-        // codebolt.chat.sendMessage("--- git status ---");
-        // const mcpGitStatusResult = await codebolt.mcp.executeTool("codebolt", "git_status", {});
-        // codebolt.chat.sendMessage(`MCP git_status: ${JSON.stringify(mcpGitStatusResult, null, 2)}`);
-
-        // const apiGitStatusResult = await codebolt.git.status();
-        // codebolt.chat.sendMessage(`API git.status: ${JSON.stringify(apiGitStatusResult, null, 2)}`);
-
-        // // 15. git_action add (MCP) vs addAll (Direct API)
-        // codebolt.chat.sendMessage("--- git add ---");
-        // const mcpGitAddResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "add",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (add): ${JSON.stringify(mcpGitAddResult, null, 2)}`);
-
-        // const apiGitAddResult = await codebolt.git.addAll();
-        // codebolt.chat.sendMessage(`API git.addAll: ${JSON.stringify(apiGitAddResult, null, 2)}`);
-
-        // // 16. git_action commit (MCP) vs commit (Direct API)
-        // codebolt.chat.sendMessage("--- git commit ---");
-        // const mcpGitCommitResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "commit",
-        //     message: "MCP commit",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (commit): ${JSON.stringify(mcpGitCommitResult, null, 2)}`);
-
-        // // const apiGitCommitResult = await codebolt.git.commit("API commit");
-        // // codebolt.chat.sendMessage(`API git.commit: ${JSON.stringify(apiGitCommitResult, null, 2)}`);
-
-        // // 17. git_action logs (MCP) vs logs (Direct API)
-        // codebolt.chat.sendMessage("--- git logs ---");
-        // const mcpGitLogsResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "logs",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (logs): ${JSON.stringify(mcpGitLogsResult, null, 2)}`);
-
-        // const apiGitLogsResult = await codebolt.git.logs(gitDir);
-        // codebolt.chat.sendMessage(`API git.logs: ${JSON.stringify(apiGitLogsResult, null, 2)}`);
-
-        // // 18. git_action branch (MCP) vs branch (Direct API)
-        // codebolt.chat.sendMessage("--- git branch ---");
-        // const mcpGitBranchResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "branch",
-        //     branch: "test-branch-mcp",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (branch): ${JSON.stringify(mcpGitBranchResult, null, 2)}`);
-
-        // const apiGitBranchResult = await codebolt.git.branch("test-branch-api");
-        // codebolt.chat.sendMessage(`API git.branch: ${JSON.stringify(apiGitBranchResult, null, 2)}`);
-
-        // // 19. git_action diff (MCP) vs diff (Direct API)
-        // codebolt.chat.sendMessage("--- git diff ---");
-        // const mcpGitDiffResult = await codebolt.mcp.executeTool("codebolt", "git_action", {
-        //     action: "diff",
-        //     path: gitDir
-        // });
-        // codebolt.chat.sendMessage(`MCP git_action (diff): ${JSON.stringify(mcpGitDiffResult, null, 2)}`);
-
-        // const apiGitDiffResult = await codebolt.git.diff("HEAD");
-        // codebolt.chat.sendMessage(`API git.diff: ${JSON.stringify(apiGitDiffResult, null, 2)}`);
-
-        // // ============================================
-        // // BROWSER TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== BROWSER TOOLS ===\n");
-
-        // // 20. browser_action navigate (MCP) vs goToPage (Direct API)
-        // codebolt.chat.sendMessage("--- browser navigate ---");
-        // const mcpBrowserNavigateResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "navigate",
-        //     url: "https://example.com"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (navigate): ${JSON.stringify(mcpBrowserNavigateResult, null, 2)}`);
-
-        // const apiBrowserNavigateResult = await codebolt.browser.goToPage("https://example.com");
-        // codebolt.chat.sendMessage(`API browser.goToPage: ${JSON.stringify(apiBrowserNavigateResult, null, 2)}`);
-
-        // // 21. browser_action get_url (MCP) vs getUrl (Direct API)
-        // codebolt.chat.sendMessage("--- browser get_url ---");
-        // const mcpBrowserUrlResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "get_url"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (get_url): ${JSON.stringify(mcpBrowserUrlResult, null, 2)}`);
-
-        // const apiBrowserUrlResult = await codebolt.browser.getUrl();
-        // codebolt.chat.sendMessage(`API browser.getUrl: ${JSON.stringify(apiBrowserUrlResult, null, 2)}`);
-
-        // // 22. browser_action get_content (MCP) vs getContent (Direct API)
-        // codebolt.chat.sendMessage("--- browser get_content ---");
-        // const mcpBrowserContentResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "get_content"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (get_content): ${JSON.stringify(mcpBrowserContentResult, null, 2)}`);
-
-        // const apiBrowserContentResult = await codebolt.browser.getContent();
-        // codebolt.chat.sendMessage(`API browser.getContent: ${JSON.stringify(apiBrowserContentResult, null, 2)}`);
-
-        // // 23. browser_action get_html (MCP) vs getHTML (Direct API)
-        // codebolt.chat.sendMessage("--- browser get_html ---");
-        // const mcpBrowserHtmlResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "get_html"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (get_html): ${JSON.stringify(mcpBrowserHtmlResult, null, 2)}`);
-
-        // const apiBrowserHtmlResult = await codebolt.browser.getHTML();
-        // codebolt.chat.sendMessage(`API browser.getHTML: ${JSON.stringify(apiBrowserHtmlResult, null, 2)}`);
-
-        // // 24. browser_action get_markdown (MCP) vs getMarkdown (Direct API)
-        // codebolt.chat.sendMessage("--- browser get_markdown ---");
-        // const mcpBrowserMarkdownResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "get_markdown"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (get_markdown): ${JSON.stringify(mcpBrowserMarkdownResult, null, 2)}`);
-
-        // const apiBrowserMarkdownResult = await codebolt.browser.getMarkdown();
-        // codebolt.chat.sendMessage(`API browser.getMarkdown: ${JSON.stringify(apiBrowserMarkdownResult, null, 2)}`);
-
-        // // 25. browser_action screenshot (MCP) vs screenshot (Direct API)
-        // codebolt.chat.sendMessage("--- browser screenshot ---");
-        // const mcpBrowserScreenshotResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "screenshot"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (screenshot): ${JSON.stringify(mcpBrowserScreenshotResult, null, 2)}`);
-
-        // const apiBrowserScreenshotResult = await codebolt.browser.screenshot();
-        // codebolt.chat.sendMessage(`API browser.screenshot: ${JSON.stringify(apiBrowserScreenshotResult, null, 2)}`);
-
-        // // 26. browser_action scroll (MCP) vs scroll (Direct API)
-        // codebolt.chat.sendMessage("--- browser scroll ---");
-        // const mcpBrowserScrollResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "scroll",
-        //     direction: "down",
-        //     pixels: "200"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (scroll): ${JSON.stringify(mcpBrowserScrollResult, null, 2)}`);
-
-        // const apiBrowserScrollResult = await codebolt.browser.scroll("down", "200");
-        // codebolt.chat.sendMessage(`API browser.scroll: ${JSON.stringify(apiBrowserScrollResult, null, 2)}`);
-
-        // // 27. browser_action close (MCP) vs close (Direct API)
-        // codebolt.chat.sendMessage("--- browser close ---");
-        // const mcpBrowserCloseResult = await codebolt.mcp.executeTool("codebolt", "browser_action", {
-        //     action: "close"
-        // });
-        // codebolt.chat.sendMessage(`MCP browser_action (close): ${JSON.stringify(mcpBrowserCloseResult, null, 2)}`);
-
-        // // await codebolt.browser.close(); // Don't close via API as MCP already closed
-
-        // // ============================================
-        // // ORCHESTRATION TOOLS
-        // // ============================================
-        // codebolt.chat.sendMessage("\n=== ORCHESTRATION TOOLS ===\n");
-
-        // // 28. create_task (MCP only)
-        // codebolt.chat.sendMessage("--- create_task ---");
-        // const mcpCreateTaskResult = await codebolt.mcp.executeTool("codebolt", "create_task", {
-        //     action: "create",
-        //     title: "Test Task",
-        //     description: "This is a test task"
-        // });
-        // codebolt.chat.sendMessage(`MCP create_task (create): ${JSON.stringify(mcpCreateTaskResult, null, 2)}`);
-
-        // const mcpListTaskResult = await codebolt.mcp.executeTool("codebolt", "create_task", {
-        //     action: "list"
-        // });
-        // codebolt.chat.sendMessage(`MCP create_task (list): ${JSON.stringify(mcpListTaskResult, null, 2)}`);
-
-        // // 29. agent_management list (MCP) vs getAgentsList (Direct API)
-        // codebolt.chat.sendMessage("--- agent_management list ---");
-        // const mcpAgentListResult = await codebolt.mcp.executeTool("codebolt", "agent_management", {
-        //     action: "list"
-        // });
-        // codebolt.chat.sendMessage(`MCP agent_management (list): ${JSON.stringify(mcpAgentListResult, null, 2)}`);
-
-        // const apiAgentListResult = await codebolt.agent.getAgentsList();
-        // codebolt.chat.sendMessage(`API agent.getAgentsList: ${JSON.stringify(apiAgentListResult, null, 2)}`);
-
-        // // 30. agent_management find (MCP) vs findAgent (Direct API)
-        // codebolt.chat.sendMessage("--- agent_management find ---");
-        // const mcpAgentFindResult = await codebolt.mcp.executeTool("codebolt", "agent_management", {
-        //     action: "find",
-        //     task: "write code"
-        // });
-        // codebolt.chat.sendMessage(`MCP agent_management (find): ${JSON.stringify(mcpAgentFindResult, null, 2)}`);
-
-        // // Note: findAgent requires multiple params (task, maxResult, agents, location, getFrom)
-        // // const apiAgentFindResult = await codebolt.agent.findAgent("write code", 1, [], AgentLocation.ALL, FilterUsing.USE_VECTOR_DB);
-        // // codebolt.chat.sendMessage(`API agent.findAgent: ${JSON.stringify(apiAgentFindResult, null, 2)}`);
-
-        // // 31. agent_management details (MCP) vs getAgentsDetail (Direct API)
-        // codebolt.chat.sendMessage("--- agent_management details ---");
-        // const mcpAgentDetailsResult = await codebolt.mcp.executeTool("codebolt", "agent_management", {
-        //     action: "details",
-        //     agent_list: ["testingagent"]
-        // });
-        // codebolt.chat.sendMessage(`MCP agent_management (details): ${JSON.stringify(mcpAgentDetailsResult, null, 2)}`);
-
-        // const apiAgentDetailsResult = await codebolt.agent.getAgentsDetail(["testingagent"]);
-        // codebolt.chat.sendMessage(`API agent.getAgentsDetail: ${JSON.stringify(apiAgentDetailsResult, null, 2)}`);
-
-        // // ============================================
-        // // CLEANUP
-        // // ============================================
-        // await codebolt.terminal.executeCommand(`rm -rf ${TEST_DIR}`);
-
-        // ============================================
-        // JOB TOOLS
-        // ============================================
-        codebolt.chat.sendMessage("\n=== JOB TOOLS ===\n");
-
-        const jobResult = await codebolt.job.createJob("a2ee9728-37ff-4067-802a-2854da179340", {
-            title: "Test Job",
-            description: "This is a test job created via testingagent",
-            priority: "high"
-        } as any); // Casting as any because CreateJobData type might mismatch slightly with direct object literal if strict
-
-        codebolt.chat.sendMessage(`API createJob: ${JSON.stringify(jobResult, null, 2)}`);
-
-        codebolt.chat.sendMessage("\n=== ALL TESTS COMPLETED (MCP + Direct API) ===");
+        // Instantiate modifiers that need state persistence
+        const ideContextModifier = new IdeContextModifier({
+            includeActiveFile: true,
+            includeOpenFiles: true,
+            includeCursorPosition: true,
+            includeSelectedText: true
+        });
+
+        const coreSystemPromptModifier = new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt });
+
+        const loopDetectionService = new LoopDetectionService({ debug: true });
+
+        let promptGenerator = new InitialPromptGenerator({
+
+            processors: [
+                // 1. Chat History
+                new ChatHistoryMessageModifier({ enableChatHistory: true }),
+                // 2. Environment Context (date, OS)
+                new EnvironmentContextModifier({ enableFullContext: false }),
+                // 3. Directory Context (folder structure)  
+                new DirectoryContextModifier(),
+
+                // 4. IDE Context (active file, opened files) - Shared instance
+                ideContextModifier,
+                // 5. Core System Prompt (instructions)
+                new CoreSystemPromptModifier(
+                    { customSystemPrompt: systemPrompt }
+                ),
+                // 6. Tools (function declarations)
+                new ToolInjectionModifier({
+                    includeToolDescriptions: true
+                }),
+
+                // 7. At-file processing (@file mentions)
+                new AtFileProcessorModifier({
+                    enableRecursiveSearch: true
+                })
+            ],
+            baseSystemPrompt: systemPrompt
+        });
+
+        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+        // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+
+        // return;
+        let completed = false;
+        let executionResult: any;
+        const conversationCompactor = new ConversationCompactorModifier({
+            compactStrategy: 'summarize',
+            compressionTokenThreshold: 0.5,
+            preserveThreshold: 0.3,
+            enableLogging: true
+        });
+        const responseExecutor = new ResponseExecutor({
+            preToolCallProcessors: [],
+            postToolCallProcessors: [conversationCompactor],
+            loopDetectionService: loopDetectionService
+        });
+        let loopIteration = 0;
+        do {
+            loopIteration++;
+            console.log(`[act-updated][Loop] === Iteration ${loopIteration} ===`);
+
+            // Check for pending steering/external events before each LLM call
+            const pendingEvents = eventQueue.getPendingExternalEvents();
+            console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
+            for (const externalEvent of pendingEvents) {
+                processExternalEvent(externalEvent, prompt);
+            }
+
+            console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
+            let agent = new AgentStep({
+                preInferenceProcessors: [coreSystemPromptModifier, ideContextModifier],
+                postInferenceProcessors: []
+            })
+            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+            console.log(`[act-updated][Loop] AgentStep completed`);
+            prompt = result.nextMessage;
+
+            console.log(`[act-updated][Loop] Executing response...`);
+            executionResult = await responseExecutor.executeResponse({
+                initialUserMessage: reqMessage,
+                actualMessageSentToLLM: result.actualMessageSentToLLM,
+                rawLLMOutput: result.rawLLMResponse,
+                nextMessage: result.nextMessage,
+            });
+
+            completed = executionResult.completed;
+            prompt = executionResult.nextMessage;
+            console.log(`[act-updated][Loop] Iteration ${loopIteration} done, completed=${completed}`);
+
+            if (completed) {
+                break;
+            }
+
+        } while (!completed);
+
+        console.log(`[act-updated] Agent finished after ${loopIteration} iterations`);
+        return executionResult.finalMessage;
 
     } catch (error) {
-        codebolt.chat.sendMessage(`Error: ${error}`);
+        console.error(`[act-updated] Agent error:`, error);
     }
-});
+
+
+})
+
+

@@ -21,8 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/agent": "workspace:*",
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/codeboltjs": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltjs",
+    "@codebolt/types": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/types",
     "zod": "^3.22.4"
   },
   "devDependencies": {

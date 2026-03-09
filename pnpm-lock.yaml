@@ -3135,11 +3135,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltjs
+        version: file:../CodeBolt/packages/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/types
+        version: file:../CodeBolt/packages/types
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3639,40 +3639,6 @@ importers:
         version: 5.4.20(@types/node@22.18.8)(lightningcss@1.30.2)(terser@5.46.0)
 
   providers/e2b:
-    dependencies:
-      '@codebolt/agentserver':
-        specifier: latest
-        version: link:../../remoteexecutor/updatedAgentServer
-      '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
-      '@codebolt/narrative':
-        specifier: file:../../../CodeBolt/packages/narrativejspackage
-        version: file:../CodeBolt/packages/narrativejspackage
-      '@codebolt/provider':
-        specifier: workspace:*
-        version: link:../../packages/provider
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      '@e2b/code-interpreter':
-        specifier: latest
-        version: 2.3.3
-      ws:
-        specifier: ^8.18.0
-        version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.2
-        version: 20.19.19
-      '@types/ws':
-        specifier: ^8.5.13
-        version: 8.18.1
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-
-  providers/e2b-remote-provider:
     dependencies:
       '@codebolt/agentserver':
         specifier: latest
@@ -5755,6 +5721,9 @@ packages:
   '@cloudflare/workers-types@4.20251008.0':
     resolution: {integrity: sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA==}
 
+  '@codebolt/codeboltjs@file:../CodeBolt/packages/codeboltjs':
+    resolution: {directory: ../CodeBolt/packages/codeboltjs, type: directory}
+
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
 
@@ -5776,6 +5745,12 @@ packages:
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
     engines: {node: '>=16.0.0'}
+
+  '@codebolt/types@6.0.0':
+    resolution: {integrity: sha512-rgB2Bfz81xriVI3jh1kcddCAZLcUsrK+3Ts8YORHyVgXka2ZYrNIpWojtzikoYPNHiZCZNkVKkjF6NZGZ5oyZg==}
+
+  '@codebolt/types@file:../CodeBolt/packages/types':
+    resolution: {directory: ../CodeBolt/packages/types, type: directory}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -14700,6 +14675,9 @@ packages:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
 
+  minisearch@7.2.0:
+    resolution: {integrity: sha512-dqT2XBYUOZOiC5t2HRnwADjhNS2cecp9u+TJRiJ1Qp/f5qjkeT5APcGPjHw+bz89Ms8Jp+cG4AlE+QZ/QnDglg==}
+
   minizlib@3.1.0:
     resolution: {integrity: sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==}
     engines: {node: '>= 18'}
@@ -20862,6 +20840,26 @@ snapshots:
 
   '@cloudflare/workers-types@4.20251008.0': {}
 
+  '@codebolt/codeboltjs@file:../CodeBolt/packages/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 6.0.0
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
@@ -20880,6 +20878,14 @@ snapshots:
       '@codebolt/narrative-darwin-arm64': 1.11.0
       '@codebolt/narrative-linux-x64': 1.11.0
       '@codebolt/narrative-win32-x64': 1.11.0
+
+  '@codebolt/types@6.0.0':
+    dependencies:
+      zod: 3.25.76
+
+  '@codebolt/types@file:../CodeBolt/packages/types':
+    dependencies:
+      zod: 3.25.76
 
   '@colors/colors@1.5.0':
     optional: true
@@ -32826,6 +32832,8 @@ snapshots:
   minimist@1.2.8: {}
 
   minipass@7.1.2: {}
+
+  minisearch@7.2.0: {}
 
   minizlib@3.1.0:
     dependencies:

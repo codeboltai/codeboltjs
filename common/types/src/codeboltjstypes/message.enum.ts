@@ -17,7 +17,8 @@ export enum EventType {
     MEMORY_EVENT = "memoryEvent",
     ACTION_PLAN = "actionPlanEvent",
     TODO_EVENT = "todoEvent",
-    AGENT_PORTFOLIO_EVENT = "agentPortfolioEvent"
+    AGENT_PORTFOLIO_EVENT = "agentPortfolioEvent",
+    ENVIRONMENT_EVENT = "environment"
 }
 
 export enum AgentAction {
@@ -485,6 +486,38 @@ export enum MemoryResponseType {
 
 export enum LLMResponseType {
     LLM_RESPONSE = "llmResponse",
+}
+
+export enum EnvironmentAction {
+    LIST_ENVIRONMENTS = "listEnvironments",
+    GET_ENVIRONMENT = "getEnvironment",
+    CREATE_ENVIRONMENT = "createEnvironment",
+    UPDATE_ENVIRONMENT = "updateEnvironment",
+    DELETE_ENVIRONMENT = "deleteEnvironment",
+    START_ENVIRONMENT = "startEnvironment",
+    STOP_ENVIRONMENT = "stopEnvironment",
+    RESTART_ENVIRONMENT = "restartEnvironment",
+    GET_ENVIRONMENT_STATUS = "getEnvironmentStatus",
+    GET_RUNNING_PROVIDERS = "getRunningProviders",
+    GET_LOCAL_PROVIDERS = "getLocalProviders",
+    GET_ENVIRONMENT_STATISTICS = "getEnvironmentStatistics",
+    SEND_MESSAGE_TO_ENVIRONMENT = "sendMessageToEnvironment",
+}
+
+export enum EnvironmentResponseType {
+    LIST_ENVIRONMENTS_RESPONSE = "listEnvironmentsResponse",
+    GET_ENVIRONMENT_RESPONSE = "getEnvironmentResponse",
+    CREATE_ENVIRONMENT_RESPONSE = "createEnvironmentResponse",
+    UPDATE_ENVIRONMENT_RESPONSE = "updateEnvironmentResponse",
+    DELETE_ENVIRONMENT_RESPONSE = "deleteEnvironmentResponse",
+    START_ENVIRONMENT_RESPONSE = "startEnvironmentResponse",
+    STOP_ENVIRONMENT_RESPONSE = "stopEnvironmentResponse",
+    RESTART_ENVIRONMENT_RESPONSE = "restartEnvironmentResponse",
+    GET_ENVIRONMENT_STATUS_RESPONSE = "getEnvironmentStatusResponse",
+    GET_RUNNING_PROVIDERS_RESPONSE = "getRunningProvidersResponse",
+    GET_LOCAL_PROVIDERS_RESPONSE = "getLocalProvidersResponse",
+    GET_ENVIRONMENT_STATISTICS_RESPONSE = "getEnvironmentStatisticsResponse",
+    SEND_MESSAGE_TO_ENVIRONMENT_RESPONSE = "sendMessageToEnvironmentResponse",
 }
 
 
