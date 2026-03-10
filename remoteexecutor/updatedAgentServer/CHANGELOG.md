@@ -1,5 +1,11 @@
 # @codebolt/agentserver
 
+## 9.0.0
+
+### Major Changes
+
+- connection error fix
+
 ## 8.0.0
 
 ### Major Changes

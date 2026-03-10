@@ -851,6 +851,11 @@ export class E2bRemoteProviderService extends BaseProvider {
         followRedirects: true,
         maxRedirects: 5,
         headers: {} as Record<string, string>,
+        perMessageDeflate: {
+          zlibDeflateOptions: { level: 6 },
+          threshold: 1024, // compress messages larger than 1KB
+        },
+        maxPayload: 0, // unlimited payload size
       };
 
       const ws = new WebSocket(url, wsOptions);
@@ -971,10 +976,18 @@ export class E2bRemoteProviderService extends BaseProvider {
 
         // Before reconnecting WebSocket, ensure the agent server port is actually open
         if (this.sandbox) {
-          const portCheck = await this.sandbox.commands.run(
-            `curl -sf -o /dev/null http://localhost:${this.providerConfig.agentServerPort}/`,
-          );
-          if (portCheck.exitCode !== 0) {
+          let portOpen = false;
+          try {
+            const portCheck = await this.sandbox.commands.run(
+              `curl -sf -o /dev/null http://localhost:${this.providerConfig.agentServerPort}/`,
+            );
+            portOpen = portCheck.exitCode === 0;
+          } catch {
+            // E2B SDK throws CommandExitError on non-zero exit codes (e.g. curl exit 7 = connection refused)
+            portOpen = false;
+          }
+
+          if (!portOpen) {
             this.logger.warn('Agent server port not open, attempting to restart agent server...');
             try {
               await this.startAgentServerInSandbox();

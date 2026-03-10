@@ -40,7 +40,14 @@ export class WebSocketServer {
   private heartbeatInterval: NodeJS.Timeout | null = null;
 
   constructor(server: Server) {
-    this.wss = new WSServer({ server });
+    this.wss = new WSServer({
+      server,
+      perMessageDeflate: {
+        zlibDeflateOptions: { level: 6 },
+        threshold: 1024,
+      },
+      maxPayload: 0, // unlimited payload size
+    });
     this.connectionManager = ConnectionManager.getInstance();
     this.notificationService = NotificationService.getInstance();
     this.appMessageRouter = new AppMessageRouter();
@@ -119,7 +126,8 @@ export class WebSocketServer {
       try {
         switch (connection.type) {
           case WEBSOCKET_CONSTANTS.CLIENT_TYPES.AGENT:
-            this.agentMessageRouter.handleAgentRequestMessage(connection, message as any);
+            this.agentMessageRouter.handleAgentRequestMessage(connection, message as any)
+              .catch((err: Error) => logger.logError(err, `Async error in agent handler for ${connection.id}`));
             break;
           case WEBSOCKET_CONSTANTS.CLIENT_TYPES.APP:
             this.appMessageRouter.handleAppResponse(connection, message as any);
