@@ -91,6 +91,9 @@
     "visual-codebolt-testing",
     "@codebolt/claude-code",
     "@codebolt/daytona-remote-provider",
-    "@codebolt/narrative-snapshot-provider"
+    "@codebolt/narrative-snapshot-provider",
+    "@codebolt/e2b-remote-provider",
+    "testingagent",
+    "@codebolt/agent"
   ]
 }

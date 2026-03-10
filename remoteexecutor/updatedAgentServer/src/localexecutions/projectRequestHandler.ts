@@ -1,54 +1,105 @@
-import { v4 as uuidv4 } from "uuid";
-
+import * as path from 'path';
 import type { ClientConnection } from "../types";
-import { formatLogMessage } from "../types/utils";
 import { ConnectionManager } from "../main/core/connectionManagers/connectionManager.js";
-import { FileServices, createFileServices } from "../../main/services/FileServices";
-import { DefaultFileSystem } from "../utils/DefaultFileSystem";
-import { DefaultWorkspaceContext } from "../utils/DefaultWorkspaceContext";
 import { logger } from "../main/utils/logger";
-import { PermissionManager, PermissionUtils } from "./PermissionManager";
-import { ApprovalService, NotificationService, ClientResolver, type TargetClient } from "../shared";
-
-import type {
-  FileReadConfirmation,
-  FileReadSuccess,
-} from "@codebolt/types/wstypes/app-to-ui-ws/fileMessageSchemas";
-import { WriteFileConfirmation } from "./file/writeFileHandler";
-import { GetChatHistoryEvent, ProjectEvent } from "@codebolt/types/agent-to-app-ws-types";
-
-import type { ChatHistoryResponse, GetProjectPathResponse } from '@codebolt/types/app-to-agent-ws-types'
+import { formatLogMessage } from "../types/utils";
+import { ProjectEvent } from "@codebolt/types/agent-to-app-ws-types";
 
 
 
 export class ProjectRequestHandler {
   private connectionManager = ConnectionManager.getInstance();
-  constructor() {
-    // Initialize FileServices with default configuration
-    const config = {
-      targetDir: process.cwd(), // Use current working directory as target
-      workspaceContext: new DefaultWorkspaceContext(),
-      fileSystemService: new DefaultFileSystem(),
-    };
-
-  }
+  constructor() {}
 
   async handleProjectEvent(agent: ClientConnection, event: ProjectEvent): Promise<void> {
-    // Use project path from connection if available, otherwise fallback to current working directory
     const projectPath = agent.currentProject?.path || process.cwd();
-    const projectName = agent.currentProject?.name || 'Unknown Project';
+    const projectName = agent.currentProject?.name || path.basename(projectPath);
+    const action = (event as any).action as string;
+    const timestamp = new Date().toISOString();
 
-    const projectPathResponse: GetProjectPathResponse = {
-      type: 'getProjectPathResponse',
-      success: true,
-      message: 'Project path retrieved successfully',
-      requestId: event.requestId,
-      projectPath,
-      projectName
-    };
-    this.connectionManager.sendToConnection(agent.id, projectPathResponse);
+    switch (action) {
+      case 'getProjectPath': {
+        this.connectionManager.sendToConnection(agent.id, {
+          type: 'getProjectPathResponse',
+          success: true,
+          message: 'Project path retrieved successfully',
+          timestamp,
+          requestId: event.requestId,
+          projectPath,
+          projectName,
+        });
+        break;
+      }
+
+      case 'getProjectSettings': {
+        // Return project settings matching main app structure
+        const projectSettings: Record<string, unknown> = {
+          user_active_project_path: projectPath,
+          projectName,
+          projectType: agent.currentProject?.type || 'unknown',
+          ...(agent.currentProject?.metadata || {}),
+        };
+        this.connectionManager.sendToConnection(agent.id, {
+          type: 'getProjectSettingsResponse',
+          success: true,
+          message: 'Project settings retrieved successfully',
+          timestamp,
+          requestId: event.requestId,
+          projectSettings,
+        });
+        break;
+      }
+
+      case 'getRepoMap': {
+        // Main app calls get_repo_map(); in remote mode return empty
+        this.connectionManager.sendToConnection(agent.id, {
+          type: 'getRepoMapResponse',
+          success: true,
+          message: 'Project repomap retrieved successfully',
+          timestamp,
+          requestId: event.requestId,
+          repoMap: '',
+        });
+        break;
+      }
+
+      case 'getEditorFileStatus': {
+        // Match main app's default response format
+        const defaultDetails = "\n\n# Codebolt Visible Files\n(Currently not available - using default values)\n\n# Codebolt Open Tabs\n(Currently not available - using default values)";
+        this.connectionManager.sendToConnection(agent.id, {
+          type: 'getEditorFileStatusResponse',
+          success: true,
+          message: 'Default editor status retrieved',
+          timestamp,
+          requestId: event.requestId,
+          editorStatus: defaultDetails,
+        });
+        break;
+      }
+
+      case 'runProject': {
+        // runProject is fire-and-forget in the SDK (no response expected)
+        logger.info(
+          formatLogMessage("info", "ProjectRequestHandler", `runProject requested but not supported in remote execution mode`)
+        );
+        break;
+      }
+
+      default: {
+        // Match main app's error response for unknown actions
+        logger.warn(
+          formatLogMessage("warn", "ProjectRequestHandler", `Unknown project action: ${action}`)
+        );
+        this.connectionManager.sendToConnection(agent.id, {
+          type: 'error',
+          success: false,
+          message: `Unknown project action: ${action}`,
+          error: `Unknown project action: ${action}`,
+          timestamp,
+          requestId: event.requestId,
+        });
+        break;
+      }
+    }
   }
-
-
-
 }
