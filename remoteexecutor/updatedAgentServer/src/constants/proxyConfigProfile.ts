@@ -27,7 +27,7 @@ export const profiles = {
         },
         // Terminal operations - local for TUI
         "terminalEvent": {
-            'proxyType': 'local'
+            'proxyType': 'proxy'
         },
         // Project/Settings operations - local for TUI
         "projectEvent": {

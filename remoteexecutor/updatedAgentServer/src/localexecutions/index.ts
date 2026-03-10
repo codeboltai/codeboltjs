@@ -14,6 +14,9 @@ import type {
 
 import { ReadFileHandler } from "./file/readFileHandler";
 import { WriteFileHandler } from "./file/writeFileHandler";
+import { ListDirectoryHandler } from "./file/listDirectoryHandler";
+import { ReadManyFilesHandler } from "./file/readManyFilesHandler";
+import { SmartEditHandler } from "./file/smartEditHandler";
 import { ToolHandler } from "./toolHandler";
 import { AIRequesteHandler } from "./llmRequestHandler";
 import { ChatHistoryHandler } from "./chatHistoryHandler";
@@ -89,6 +92,9 @@ class LocalExecutionHandlers {
 
   public readFileHandler: ReadFileHandler;
   public writeFileHandler: WriteFileHandler;
+  public listDirectoryHandler: ListDirectoryHandler;
+  public readManyFilesHandler: ReadManyFilesHandler;
+  public smartEditHandler: SmartEditHandler;
   public toolHandler: ToolHandler;
   public llmRequestHandler: AIRequesteHandler;
   public chatHistoryHandler: ChatHistoryHandler;
@@ -100,6 +106,9 @@ class LocalExecutionHandlers {
   private constructor() {
     this.readFileHandler = new ReadFileHandler();
     this.writeFileHandler = new WriteFileHandler();
+    this.listDirectoryHandler = new ListDirectoryHandler();
+    this.readManyFilesHandler = new ReadManyFilesHandler();
+    this.smartEditHandler = new SmartEditHandler();
     this.toolHandler = new ToolHandler();
     this.llmRequestHandler = new AIRequesteHandler();
     this.chatHistoryHandler = new ChatHistoryHandler();
@@ -145,6 +154,21 @@ export const executeActionOnMessage = async (
     return true;
   }
 
+  if (message.type === "fsEvent" && (message as any).action === "createFile") {
+    const msg = message as any;
+    const writeFileEvent: WriteToFileEvent = {
+      type: "fsEvent",
+      action: "writeToFile",
+      requestId: msg.requestId ?? '',
+      message: {
+        relPath: msg.message?.filePath ?? '',
+        newContent: msg.message?.content ?? '',
+      }
+    };
+    await handlers.writeFileHandler.handleWriteFile(agent, writeFileEvent);
+    return true;
+  }
+
   if (message.type === "fsEvent" && message.action === "writeToFile") {
     const schemaMessage = message as SchemaWriteToFileEvent;
     // Convert schema-based event to handler-based event
@@ -158,6 +182,52 @@ export const executeActionOnMessage = async (
       }
     };
     await handlers.writeFileHandler.handleWriteFile(agent, writeFileEvent);
+    return true;
+  }
+
+  if (message.type === "fsEvent" && (message as any).action === "list_directory") {
+    const msg = message as any;
+    const listDirEvent = {
+      type: "fsEvent" as const,
+      action: "listDirectory" as const,
+      requestId: msg.requestId ?? '',
+      message: {
+        path: msg.message?.path ?? '',
+      }
+    };
+    await handlers.listDirectoryHandler.handleListDirectory(agent, listDirEvent);
+    return true;
+  }
+
+  if (message.type === "fsEvent" && (message as any).action === "readManyFiles") {
+    const msg = message as any;
+    const readManyEvent = {
+      type: "fsEvent" as const,
+      action: "readManyFiles" as const,
+      requestId: msg.requestId ?? '',
+      message: {
+        paths: msg.message?.paths ?? [],
+      }
+    };
+    await handlers.readManyFilesHandler.handleReadManyFiles(agent, readManyEvent);
+    return true;
+  }
+
+  if (message.type === "fsEvent" && (message as any).action === "smartEdit") {
+    const msg = message as any;
+    const smartEditEvent = {
+      type: "fsEvent" as const,
+      action: "smartEdit" as const,
+      requestId: msg.requestId ?? '',
+      message: {
+        filePath: msg.message?.filePath ?? '',
+        prompt: msg.message?.prompt ?? '',
+        oldString: msg.message?.oldString ?? '',
+        newString: msg.message?.newString ?? '',
+        expectedReplacements: msg.message?.expectedReplacements,
+      }
+    };
+    await handlers.smartEditHandler.handleSmartEdit(agent, smartEditEvent);
     return true;
   }
 
