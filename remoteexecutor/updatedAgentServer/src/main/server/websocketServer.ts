@@ -75,6 +75,9 @@ export class WebSocketServer {
       actualClientId = registrationResult.clientId;
 
       ws.on(WEBSOCKET_CONSTANTS.EVENTS.MESSAGE, (data: WebSocket.Data) => {
+        // Any incoming message proves the connection is alive
+        // (critical for connections through proxies that don't forward ping/pong frames)
+        (ws as any).isAlive = true;
         const result = this.processIncomingMessage(ws, data, actualClientId);
         if (result?.newClientId) {
           actualClientId = result.newClientId;
@@ -113,7 +116,10 @@ export class WebSocketServer {
         return;
       }
 
-      // All registration happens on connection, so just handle the message normally
+      // Handle application-level keepalive messages (bypass routing)
+      if ((message as any).type === '__pong' || (message as any).type === '__ping') {
+        return;
+      }
 
       const connection = this.connectionManager.getConnection(clientId);
       logger.logWebSocketMessage('incoming', connection?.type || 'unknown', message);
@@ -410,7 +416,9 @@ export class WebSocketServer {
   }
 
   /**
-   * Start server-side ping/pong heartbeat to detect dead connections
+   * Start server-side ping/pong heartbeat to detect dead connections.
+   * Sends both WebSocket ping frames AND application-level ping messages,
+   * because proxies (like E2B) may not forward WebSocket control frames.
    */
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
@@ -422,7 +430,13 @@ export class WebSocketServer {
             return;
           }
           (ws as any).isAlive = false;
+          // Send WebSocket-level ping (may not traverse all proxies)
           ws.ping();
+          // Also send an application-level ping as a regular data message
+          // This works through any proxy since it's a normal WebSocket data frame
+          try {
+            ws.send(JSON.stringify({ type: '__ping', timestamp: Date.now() }));
+          } catch { /* ignore send errors */ }
         } catch (err) {
           logger.error(formatLogMessage('error', 'WebSocketServer', `Heartbeat error: ${err}`));
         }

@@ -878,7 +878,15 @@ export class E2bRemoteProviderService extends BaseProvider {
       ws.on('message', (data: any) => {
         try {
           const payload = JSON.parse(data.toString());
-          this.logger.log('WebSocket message received from agent server:', payload);
+          // Respond to application-level pings from agent server
+          // (WebSocket control frame pings may not traverse E2B's proxy)
+          if (payload.type === '__ping') {
+            try {
+              ws.send(JSON.stringify({ type: '__pong', timestamp: Date.now() }));
+            } catch { /* ignore */ }
+            return;
+          }
+          this.logger.log('WebSocket message received from agent server:', payload?.type);
           if (!isRegistered && payload.type === 'registered') {
             isRegistered = true;
             clearTimeout(registrationTimeout);
@@ -1095,8 +1103,12 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     this.backgroundCommand = await this.sandbox.commands.run(startCmd, {
       background: true,
+      timeoutMs: 24 * 60 * 60 * 1000, // 24 hours — agent server must run for the sandbox lifetime
       onStdout: (data: any) => {
         this.logger.log('[sandbox stdout]', data);
+      },
+      onStderr: (data: any) => {
+        this.logger.error('[sandbox stderr]', data);
       },
     });
     this.logger.log('Agent server process started in sandbox as background command');

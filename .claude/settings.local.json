@@ -55,7 +55,10 @@
       "WebFetch(domain:swe-agent.com)",
       "WebFetch(domain:e2b.dev)",
       "WebFetch(domain:e2b.mintlify.app)",
-      "Bash(mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/services && mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/utils)"
+      "Bash(mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/services && mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/utils)",
+      "Bash(which e2b:*)",
+      "Bash(npx e2b:*)",
+      "Bash(e2b --version 2>&1)"
     ],
     "deny": [],
     "ask": []
