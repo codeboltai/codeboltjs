@@ -415,12 +415,17 @@ export class WebSocketServer {
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(() => {
       this.wss.clients.forEach((ws) => {
-        if ((ws as any).isAlive === false) {
-          logger.warn(formatLogMessage('warn', 'WebSocketServer', 'Terminating unresponsive WebSocket connection'));
-          return ws.terminate();
+        try {
+          if ((ws as any).isAlive === false) {
+            logger.warn(formatLogMessage('warn', 'WebSocketServer', 'Terminating unresponsive WebSocket connection'));
+            ws.terminate();
+            return;
+          }
+          (ws as any).isAlive = false;
+          ws.ping();
+        } catch (err) {
+          logger.error(formatLogMessage('error', 'WebSocketServer', `Heartbeat error: ${err}`));
         }
-        (ws as any).isAlive = false;
-        ws.ping();
       });
     }, WEBSOCKET_DEFAULTS.HEARTBEAT_INTERVAL);
   }

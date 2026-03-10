@@ -139,10 +139,13 @@ export class AgentMessageRouter {
 
     // Try to execute the action locally if configured to do so
     if (shouldHandleLocally) {
-
-      const handled = await executeActionOnMessage(agent, message as AgentMessage);
-      if (handled) {
-        return;
+      try {
+        const handled = await executeActionOnMessage(agent, message as AgentMessage);
+        if (handled) {
+          return;
+        }
+      } catch (error) {
+        logger.error(formatLogMessage("error", "MessageRouter", `Error executing local action for ${message.type}: ${error}`));
       }
     }
 

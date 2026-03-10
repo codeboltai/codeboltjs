@@ -479,12 +479,18 @@ export class ChildAgentProcessManager {
         logger.info(formatLogMessage('info', `Agent-${agentId}`, output));
       }
     });
+    agentProcess.stdout?.on('error', (err) => {
+      logger.error(formatLogMessage('error', `Agent-${agentId}`, `stdout stream error: ${err.message}`));
+    });
 
     agentProcess.stderr?.on('data', (data) => {
       const error = data.toString().trim();
       if (error) {
         logger.error(formatLogMessage('error', `Agent-${agentId}`, error));
       }
+    });
+    agentProcess.stderr?.on('error', (err) => {
+      logger.error(formatLogMessage('error', `Agent-${agentId}`, `stderr stream error: ${err.message}`));
     });
 
     agentProcess.on('error', (error) => {

@@ -272,33 +272,51 @@ export class SideExecutionManager extends EventEmitter {
         childProcess.stdout?.on('data', (data: Buffer) => {
             logger.info(`[SideExecution ${sideExecutionId}] stdout: ${data.toString().trim()}`);
         });
+        childProcess.stdout?.on('error', (err: Error) => {
+            logger.error(`[SideExecution ${sideExecutionId}] stdout stream error: ${err.message}`);
+        });
 
         childProcess.stderr?.on('data', (data: Buffer) => {
             logger.warn(`[SideExecution ${sideExecutionId}] stderr: ${data.toString().trim()}`);
+        });
+        childProcess.stderr?.on('error', (err: Error) => {
+            logger.error(`[SideExecution ${sideExecutionId}] stderr stream error: ${err.message}`);
         });
 
         childProcess.on('exit', (code: number | null, signal: string | null) => {
             logger.info(`[SideExecution ${sideExecutionId}] Process exited with code ${code}, signal ${signal}`);
 
-            if (code === 0) {
-                this.handleCompletion(sideExecutionId, { exitCode: code });
-            } else {
-                this.handleError(sideExecutionId, new Error(`Process exited with code ${code}`));
+            try {
+                if (code === 0) {
+                    this.handleCompletion(sideExecutionId, { exitCode: code });
+                } else {
+                    this.handleError(sideExecutionId, new Error(`Process exited with code ${code}`));
+                }
+            } catch (err) {
+                logger.error(`[SideExecution ${sideExecutionId}] Error in exit handler: ${err}`);
             }
         });
 
         childProcess.on('error', (error: Error) => {
             logger.error(`[SideExecution ${sideExecutionId}] Process error: ${error.message}`);
-            this.handleError(sideExecutionId, error);
+            try {
+                this.handleError(sideExecutionId, error);
+            } catch (err) {
+                logger.error(`[SideExecution ${sideExecutionId}] Error in error handler: ${err}`);
+            }
         });
 
         childProcess.on('message', (message: any) => {
-            logger.info(`[SideExecution ${sideExecutionId}] IPC message: ${JSON.stringify(message)}`);
+            try {
+                logger.info(`[SideExecution ${sideExecutionId}] IPC message: ${JSON.stringify(message)}`);
 
-            if (message.type === 'sideExecutionComplete') {
-                this.handleCompletion(sideExecutionId, message.result);
-            } else if (message.type === 'sideExecutionError') {
-                this.handleError(sideExecutionId, new Error(message.error));
+                if (message.type === 'sideExecutionComplete') {
+                    this.handleCompletion(sideExecutionId, message.result);
+                } else if (message.type === 'sideExecutionError') {
+                    this.handleError(sideExecutionId, new Error(message.error));
+                }
+            } catch (err) {
+                logger.error(`[SideExecution ${sideExecutionId}] Error in IPC message handler: ${err}`);
             }
         });
     }

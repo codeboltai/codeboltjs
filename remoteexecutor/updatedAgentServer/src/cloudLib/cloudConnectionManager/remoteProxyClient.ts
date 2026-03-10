@@ -169,7 +169,11 @@ export class RemoteProxyClient {
   private onMessage(data: string): void {
     try {
       const message = JSON.parse(data) as RemoteProxyIncomingMessage;
-      this.handleIncomingMessage(message);
+      try {
+        this.handleIncomingMessage(message);
+      } catch (handlerError) {
+        logger.error(formatLogMessage('error', 'WranglerProxyClient', `Error handling message: ${handlerError}`));
+      }
     } catch (error) {
       logger.error(formatLogMessage('error', 'WranglerProxyClient', `Failed to parse message: ${error}`));
     }
@@ -234,7 +238,11 @@ export class RemoteProxyClient {
       tuiId: extra.tuiId
     };
 
-    this.remoteRouter.handleRemoteMessage(message);
+    try {
+      this.remoteRouter.handleRemoteMessage(message);
+    } catch (error) {
+      logger.error(formatLogMessage('error', 'WranglerProxyClient', `Error routing inbound message: ${error}`));
+    }
   }
 
   private onClose(): void {

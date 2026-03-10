@@ -234,7 +234,12 @@ export class AgentConnectionsManager extends EventEmitter {
 
     if (!this.isWebSocketReady(agent.ws)) {
       logger.info(formatLogMessage('info', 'AgentConnectionsManager', `Agent ${agentId} WebSocket not ready, waiting...`));
-      await this.waitForWebSocketReady(agent.ws);
+      try {
+        await this.waitForWebSocketReady(agent.ws);
+      } catch (error) {
+        logger.error(formatLogMessage('error', 'AgentConnectionsManager', `WebSocket not ready for agent ${agentId}: ${error}`));
+        return false;
+      }
     }
 
     return this.sendMessageToReadyAgent(agent, agentId, message);
@@ -341,13 +346,21 @@ export class AgentConnectionsManager extends EventEmitter {
       return;
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const checkInterval = 100;
+      const maxWait = 30000; // 30 second timeout
+      const startTime = Date.now();
 
       const checkReady = (): void => {
         if (this.isWebSocketReady(ws)) {
           logger.info(formatLogMessage('info', 'AgentConnectionsManager', 'WebSocket is now ready'));
           resolve();
+          return;
+        }
+
+        if (Date.now() - startTime > maxWait) {
+          logger.error(formatLogMessage('error', 'AgentConnectionsManager', 'Timeout waiting for WebSocket to become ready'));
+          reject(new Error('WebSocket ready timeout'));
           return;
         }
 

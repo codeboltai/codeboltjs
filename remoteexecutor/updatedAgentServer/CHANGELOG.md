@@ -1,5 +1,17 @@
 # @codebolt/agentserver
 
+## 11.0.0
+
+### Major Changes
+
+- logging error
+
+## 10.0.0
+
+### Major Changes
+
+- updated
+
 ## 9.0.0
 
 ### Major Changes
