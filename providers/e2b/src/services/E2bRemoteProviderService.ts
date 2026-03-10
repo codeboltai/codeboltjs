@@ -217,7 +217,8 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.pendingMessages.push(message);
       return;
     }
-    await super.onRawMessage(message);
+    if (message?.type !== 'providerHeartbeatResponse' && message?.type !== 'providerHeartbeatAck')
+      await super.onRawMessage(message);
   }
 
   private async flushPendingMessages(): Promise<void> {
@@ -227,7 +228,8 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.pendingMessages = [];
     for (const msg of messages) {
       try {
-        await super.onRawMessage(msg);
+        if (msg?.type !== 'providerHeartbeatResponse' && msg?.type !== 'providerHeartbeatAck')
+          await super.onRawMessage(msg);
       } catch (error) {
         this.logger.error('Error flushing pending message:', error);
       }
