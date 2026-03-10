@@ -287,50 +287,16 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onGetDiffFiles(): Promise<{ files: any[]; summary?: any }> {
-    const emptyResult = { files: [], summary: { totalFiles: 0, totalAdditions: 0, totalDeletions: 0, totalChanges: 0 } };
-
-    if (!this.sandbox) {
-      return emptyResult;
-    }
-
-    try {
-      // Check if a git repo exists in the sandbox workspace before querying
-      const gitCheck = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git rev-parse --is-inside-work-tree`,
-      );
-      if (gitCheck.exitCode !== 0) {
-        this.logger.log('No git repository in sandbox workspace, returning empty diff');
-        return emptyResult;
-      }
-
-      const statusResult = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git status --porcelain`,
-      );
-      const diffResult = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git diff --stat`,
-      );
-
-      const files = (statusResult.stdout || '').split('\n')
-        .filter((line: string) => line.trim())
-        .map((line: string) => ({
-          status: line.substring(0, 2).trim(),
-          path: line.substring(3).trim(),
-        }));
-
-      return {
-        files,
-        summary: {
-          totalFiles: files.length,
-          totalAdditions: 0,
-          totalDeletions: 0,
-          totalChanges: files.length,
-          diffOutput: diffResult.stdout,
-        },
-      };
-    } catch (error) {
-      this.logger.error('Error getting diff files:', error);
-      return emptyResult;
-    }
+    // Diff tracking is handled via narrative snapshots, not git.
+    return {
+      files: [],
+      summary: {
+        totalFiles: 0,
+        totalAdditions: 0,
+        totalDeletions: 0,
+        totalChanges: 0,
+      },
+    };
   }
 
   // --- File operation handlers ---
@@ -512,85 +478,71 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onMergeAsPatch(): Promise<string> {
-    this.logger.log('Generating patch from git diff...');
-    try {
-      if (!this.sandbox) {
-        return '';
-      }
-      const result = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git diff HEAD`,
-      );
-      return result.stdout || '';
-    } catch (error) {
-      this.logger.error('Error generating patch:', error);
-      return '';
-    }
+    this.logger.log('Merge as patch not supported for e2b provider');
+    return '';
   }
 
   async onSendPR(): Promise<any> {
-    this.logger.log('Sending PR - creating snapshot, staging, committing, and pushing changes...');
+    this.logger.log('Creating snapshot and exporting bundle...');
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
 
-    // Create a narrative snapshot to record the change point
-    let snapshotResult: any = null;
-    let bundleResult: any = null;
-    if (this.narrativeClient) {
-      try {
-        const { objective_id } = await this.narrativeClient.narrative.createObjective({
-          description: 'Send PR snapshot',
-        });
-        const { thread_id } = await this.narrativeClient.narrative.createThread({
-          objective_id,
-          name: 'send-pr',
-        });
-        const { agent_run_id } = await this.narrativeClient.narrative.createAgentRun({
-          thread_id,
-          agent_name: 'send-pr',
-        });
-
-        snapshotResult = await this.narrativeClient.snapshot.createSnapshot({
-          agent_run_id,
-          description: 'send-pr-snapshot',
-        });
-        this.logger.log('Created narrative snapshot:', snapshotResult.snapshot_id);
-
-        bundleResult = await this.narrativeClient.snapshot.exportSnapshotBundle({
-          snapshot_id: snapshotResult.snapshot_id,
-          incremental: false,
-        });
-        this.logger.log('Exported snapshot bundle:', bundleResult.bundle_path);
-      } catch (error) {
-        this.logger.error('Error creating narrative snapshot (continuing with git push):', error);
-      }
+    if (!this.narrativeClient) {
+      throw new Error('Narrative client is not initialized');
     }
 
-    // Push changes via git commands in E2B sandbox
-    try {
-      await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git add .`,
-      );
-      const commitResult = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git -c user.name="CodeBolt" -c user.email="codebolt@codebolt.ai" commit -m "Changes from E2B remote environment"`,
-      );
-      await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && git push`,
-      );
+    // Step 1: Download sandbox workspace files to local so the snapshot captures them
+    const remoteTmpArchive = '/tmp/sandbox-workspace.tar.gz';
+    await this.sandbox.commands.run(
+      `tar -czf ${remoteTmpArchive} -C ${this.sandboxWorkspacePath} .`,
+    );
+    const archiveBytes = await this.sandbox.files.read(remoteTmpArchive, { format: 'bytes' });
+    const localProjectPath = this.state.projectPath!;
+    await fs.mkdir(localProjectPath, { recursive: true });
+    const localTmpArchive = path.join(localProjectPath, '.sandbox-sync.tar.gz');
+    await fs.writeFile(localTmpArchive, archiveBytes);
+    const { execSync } = require('child_process');
+    execSync(`tar -xzf "${localTmpArchive}" -C "${localProjectPath}"`);
+    await fs.unlink(localTmpArchive);
+    await this.sandbox.commands.run(`rm -f ${remoteTmpArchive}`);
+    this.logger.log('Synced sandbox workspace to local:', localProjectPath);
 
-      this.logger.log('Changes pushed successfully, commit:', commitResult.stdout);
-      return {
-        success: true,
-        commit: commitResult.stdout,
-        snapshot: snapshotResult,
-        bundle: bundleResult,
-        baseSnapshotId: this.serverSnapshotId,
-      };
-    } catch (error: any) {
-      this.logger.error('Error sending PR:', error);
-      throw new Error(`Failed to send PR: ${error.message}`);
-    }
+    // Step 2: Create a snapshot of the current workspace
+    const { objective_id } = await this.narrativeClient.narrative.createObjective({
+      description: 'Send PR snapshot',
+    });
+    const { thread_id } = await this.narrativeClient.narrative.createThread({
+      objective_id,
+      name: 'send-pr',
+    });
+    const { agent_run_id } = await this.narrativeClient.narrative.createAgentRun({
+      thread_id,
+      agent_name: 'send-pr',
+    });
+
+    const snapshotResult = await this.narrativeClient.snapshot.createSnapshot({
+      agent_run_id,
+      description: 'send-pr-snapshot',
+    });
+
+    this.logger.log('Created snapshot:', snapshotResult.snapshot_id);
+
+    // Step 3: Export the snapshot as a git bundle
+    const bundleResult = await this.narrativeClient.snapshot.exportSnapshotBundle({
+      snapshot_id: snapshotResult.snapshot_id,
+      incremental: false,
+    });
+
+    this.logger.log('Exported bundle:', bundleResult.bundle_path);
+
+    // Echo back the server-side snapshot ID as the diff base
+    return {
+      snapshot: snapshotResult,
+      bundle: bundleResult,
+      baseSnapshotId: this.serverSnapshotId,
+    };
   }
 
   // --- BaseProvider abstract method implementations ---
