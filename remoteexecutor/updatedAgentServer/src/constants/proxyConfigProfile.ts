@@ -180,8 +180,7 @@ export const profiles = {
         },
         // Project/Settings operations - proxy for non-TUI
         "projectEvent": {
-            'proxyType': 'proxy',
-            'primaryProxy': 'app'
+            'proxyType': 'local'
         },
         // Memory operations - proxy for non-TUI
         "memoryEvent": {
