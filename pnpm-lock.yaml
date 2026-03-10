@@ -3268,8 +3268,8 @@ importers:
   packages/agent:
     dependencies:
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.10
+        version: 5.1.10
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -3278,8 +3278,8 @@ importers:
         version: 3.25.76
     devDependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../codeboltjs
+        specifier: ^5.1.10
+        version: 5.1.10(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -5721,6 +5721,9 @@ packages:
   '@cloudflare/workers-types@4.20251008.0':
     resolution: {integrity: sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA==}
 
+  '@codebolt/codeboltjs@5.1.10':
+    resolution: {integrity: sha512-h0CvXd8FydE5gAN5c/1MwY6zbTpd6ZKdp9DCCTLRwXeiRWD/Sb34bNtMYIk0yCkkpOCSfnNMRMyye1PYAYvP8w==}
+
   '@codebolt/codeboltjs@file:../CodeBolt/packages/codeboltjs':
     resolution: {directory: ../CodeBolt/packages/codeboltjs, type: directory}
 
@@ -5745,6 +5748,9 @@ packages:
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
     engines: {node: '>=16.0.0'}
+
+  '@codebolt/types@5.1.10':
+    resolution: {integrity: sha512-Lo8VP6Tussc2P3v4raJU1NrNHAKcORSTlDKPK3q4CtSG56FsPBQKvA3+gOY5Hx7SSHWVz1788MUMP3EzQ9oO2A==}
 
   '@codebolt/types@6.0.0':
     resolution: {integrity: sha512-rgB2Bfz81xriVI3jh1kcddCAZLcUsrK+3Ts8YORHyVgXka2ZYrNIpWojtzikoYPNHiZCZNkVKkjF6NZGZ5oyZg==}
@@ -20840,6 +20846,26 @@ snapshots:
 
   '@cloudflare/workers-types@4.20251008.0': {}
 
+  '@codebolt/codeboltjs@5.1.10(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 5.1.10
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@codebolt/codeboltjs@file:../CodeBolt/packages/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
     dependencies:
       '@codebolt/types': 6.0.0
@@ -20878,6 +20904,10 @@ snapshots:
       '@codebolt/narrative-darwin-arm64': 1.11.0
       '@codebolt/narrative-linux-x64': 1.11.0
       '@codebolt/narrative-win32-x64': 1.11.0
+
+  '@codebolt/types@5.1.10':
+    dependencies:
+      zod: 3.25.76
 
   '@codebolt/types@6.0.0':
     dependencies:
