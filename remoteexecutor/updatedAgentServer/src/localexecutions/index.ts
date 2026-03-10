@@ -24,6 +24,7 @@ import { ProjectRequestHandler } from "./projectRequestHandler";
 import { ChatMessageHandler } from "./chatMessageHandler";
 import { GitHandler } from "./git";
 import { ActionBlockHandler } from "./actionBlockHandler";
+import { TerminalHandler } from "./terminal/terminalHandler";
 import { sideExecutionManager } from "./managers/SideExecutionManager";
 import type { ActionBlockRequest } from "../types/sideExecution";
 import { logger } from "../main/utils/logger";
@@ -102,6 +103,7 @@ class LocalExecutionHandlers {
   public chatMessageRequestHandler: ChatMessageHandler;
   public gitHandler: GitHandler;
   public actionBlockHandler: ActionBlockHandler;
+  public terminalHandler: TerminalHandler;
 
   private constructor() {
     this.readFileHandler = new ReadFileHandler();
@@ -116,6 +118,7 @@ class LocalExecutionHandlers {
     this.chatMessageRequestHandler = new ChatMessageHandler();
     this.gitHandler = new GitHandler();
     this.actionBlockHandler = new ActionBlockHandler();
+    this.terminalHandler = new TerminalHandler();
   }
 
   public static getInstance(): LocalExecutionHandlers {
@@ -258,6 +261,13 @@ export const executeActionOnMessage = async (
 
   if (message.type === 'gitEvent') {
     await handlers.gitHandler.handleGitEvent(agent, message as GitEvent);
+    return true;
+  }
+
+  // Terminal events — actual message.type values from SDK
+  const terminalTypes = ['executeCommand', 'executeCommandRunUntilError', 'executeCommandRunUntilInterrupt', 'executeCommandWithStream', 'sendInterruptToTerminal'];
+  if (terminalTypes.includes(message.type as string)) {
+    await handlers.terminalHandler.handleTerminalEvent(agent, message as any);
     return true;
   }
 

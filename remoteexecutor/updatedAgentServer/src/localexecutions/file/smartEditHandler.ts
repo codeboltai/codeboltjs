@@ -71,20 +71,8 @@ export class SmartEditHandler {
   async handleSmartEdit(agent: ClientConnection, event: SmartEditEvent): Promise<void> {
     const targetClient = this.clientResolver.resolveParent(agent);
 
-    if (!targetClient) {
-      await this.executeSmartEdit(agent, event);
-      return;
-    }
-
-    if (this.hasPermission(agent.id, event.message.filePath)) {
-      await this.executeSmartEdit(agent, event, targetClient);
-      return;
-    }
-
-    const messageId = uuidv4();
-    this.pendingRequests.set(messageId, { agent, request: event, targetClient });
-
-    this.requestApproval(agent, targetClient, messageId, event);
+    // Auto-approve: execute directly without confirmation
+    await this.executeSmartEdit(agent, event, targetClient);
   }
 
   async handleConfirmation(message: SmartEditConfirmation): Promise<void> {

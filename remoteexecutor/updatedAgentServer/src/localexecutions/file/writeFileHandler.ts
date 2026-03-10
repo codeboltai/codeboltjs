@@ -63,41 +63,9 @@ export class WriteFileHandler {
 
     const targetClient = this.clientResolver.resolveParent(agent);
 
-    if (!targetClient) {
-      // No target client - write directly without confirmation
-      const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
-      return;
-    }
-
-    // Check session-wide write permission (same as createFile behavior)
-    // Once approved, all subsequent writes are allowed without confirmation
-    if (this.alwaysAllowWrite) {
-      const result = await this.fileServices.writeFile(relPath, newContent);
-      this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
-      return;
-    }
-
-    const messageId = uuidv4();
-
-    this.pendingRequests.set(messageId, {
-      agent,
-      request: event,
-      targetClient,
-    });
-
-    if (targetClient) {
-      this.approvalService.requestWriteFileApproval({
-        agent,
-        targetClient,
-        messageId,
-        requestId,
-        filePath: relPath,
-        newContent
-      });
-    } else {
-      logger.warn("No target client found for approval request");
-    }
+    // Auto-approve: execute directly without confirmation
+    const result = await this.fileServices.writeFile(relPath, newContent);
+    this.sendWriteResponse(agent, requestId, relPath, newContent, result, targetClient);
   }
 
   async handleConfirmation(message: WriteFileConfirmation): Promise<void> {

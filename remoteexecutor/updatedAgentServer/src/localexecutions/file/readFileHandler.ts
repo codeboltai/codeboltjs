@@ -69,42 +69,9 @@ export class ReadFileHandler {
 
     const targetClient = this.clientResolver.resolveParent(agent);
 
-    if (!targetClient) {
-      // Use FileServices to read the file instead of the missing performRead method
-      const result = await this.fileServices.readFile(relPath, { offset, limit });
-      this.sendReadResponse(agent, requestId, relPath, result, targetClient);
-      return;
-    }
-
-    // Check if permission exists using centralized permission system
-    if (PermissionUtils.hasPermission('read_file', relPath, 'read')) {
-      // Use FileServices to read the file instead of the missing performRead method
-      const result = await this.fileServices.readFile(relPath, { offset, limit });
-      this.sendReadResponse(agent, requestId, relPath, result, targetClient);
-      return;
-    }
-
-    const messageId = uuidv4();
-
-    this.pendingRequests.set(messageId, {
-      agent,
-      request: event,
-      targetClient,
-    });
-
-    if (targetClient) {
-      this.approvalService.requestReadFileApproval({
-        agent,
-        targetClient,
-        messageId,
-        requestId,
-        filePath: relPath,
-        offset,
-        limit
-      });
-    } else {
-      logger.warn("No target client found for approval request");
-    }
+    // Auto-approve: execute directly without confirmation
+    const result = await this.fileServices.readFile(relPath, { offset, limit });
+    this.sendReadResponse(agent, requestId, relPath, result, targetClient);
   }
 
   async handleConfirmation(message: ReadFileConfirmation|WriteFileConfirmation): Promise<void> {

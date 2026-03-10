@@ -27,7 +27,23 @@ export const profiles = {
         },
         // Terminal operations - local for TUI
         "terminalEvent": {
-            'proxyType': 'proxy'
+            'proxyType': 'local'
+        },
+        // Terminal event types (actual message.type values from SDK)
+        "executeCommand": {
+            'proxyType': 'local'
+        },
+        "executeCommandRunUntilError": {
+            'proxyType': 'local'
+        },
+        "executeCommandRunUntilInterrupt": {
+            'proxyType': 'local'
+        },
+        "executeCommandWithStream": {
+            'proxyType': 'local'
+        },
+        "sendInterruptToTerminal": {
+            'proxyType': 'local'
         },
         // Project/Settings operations - local for TUI
         "projectEvent": {
@@ -176,7 +192,23 @@ export const profiles = {
         },
         // Terminal operations - local for non-TUI
         "terminalEvent": {
-            'proxyType': 'proxy'
+            'proxyType': 'local'
+        },
+        // Terminal event types (actual message.type values from SDK)
+        "executeCommand": {
+            'proxyType': 'local'
+        },
+        "executeCommandRunUntilError": {
+            'proxyType': 'local'
+        },
+        "executeCommandRunUntilInterrupt": {
+            'proxyType': 'local'
+        },
+        "executeCommandWithStream": {
+            'proxyType': 'local'
+        },
+        "sendInterruptToTerminal": {
+            'proxyType': 'local'
         },
         // Project/Settings operations - proxy for non-TUI
         "projectEvent": {

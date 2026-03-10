@@ -63,38 +63,10 @@ export class ReadManyFilesHandler {
   }
 
   async handleReadManyFiles(agent: ClientConnection, event: ReadManyFilesEvent): Promise<void> {
-    const { requestId, message } = event;
-    const { paths } = message;
-
-    // Use the new client resolver
     const targetClient = this.clientResolver.resolveParent(agent);
 
-    if (!targetClient) {
-      await this.executeReadManyFiles(agent, event);
-      return;
-    }
-
-    // Check if permission exists for all paths using centralized permission system
-    const hasPermissionForAllPaths = paths.every(path => 
-      PermissionUtils.hasPermission('read_many_files', path, 'read')
-    );
-
-    if (hasPermissionForAllPaths) {
-      await this.executeReadManyFiles(agent, event, targetClient);
-      return;
-    }
-
-    const messageId = uuidv4();
-    this.pendingRequests.set(messageId, { agent, request: event, targetClient });
-
-    // Use the new approval service
-    this.approvalService.requestReadManyFilesApproval({
-      agent,
-      targetClient,
-      messageId,
-      requestId,
-      paths
-    });
+    // Auto-approve: execute directly without confirmation
+    await this.executeReadManyFiles(agent, event, targetClient);
   }
 
   async handleConfirmation(message: ReadManyFilesConfirmation): Promise<void> {
