@@ -101,7 +101,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      e2bApiKey: config.e2bApiKey ?? process.env.E2B_API_KEY,
+      e2bApiKey: "e2b_2b9972e86594a10245a3634149423c29daa65920", // config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate,
       autoStopInterval: config.autoStopInterval ?? 0,
       timeouts: {
@@ -239,6 +239,11 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     try {
       this.stopHeartbeat();
+      this.stopWsPing();
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
 
       if (initVars.environmentName) {
         this.unregisterConnectedEnvironment(initVars.environmentName);
@@ -888,6 +893,10 @@ export class E2bRemoteProviderService extends BaseProvider {
             'headers:', JSON.stringify(res.headers),
             'body:', body,
           );
+          clearTimeout(registrationTimeout);
+          this.agentServer.isConnected = false;
+          this.agentServer.wsConnection = null;
+          reject(new Error(`WebSocket upgrade rejected with status ${res.statusCode}: ${body}`));
         });
       });
 
@@ -902,12 +911,93 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       ws.on('close', () => {
         clearTimeout(registrationTimeout);
+        this.stopWsPing();
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { closedAt: Date.now() };
         this.logger.log('WebSocket connection closed');
+
+        if (!isRegistered) {
+          reject(new Error('WebSocket closed before registration'));
+        } else {
+          // Connection dropped after registration — attempt reconnect
+          this.scheduleReconnect();
+        }
       });
     });
+
+    // Start ping/pong keepalive after successful connection
+    this.startWsPing();
+  }
+
+  private wsPingInterval: ReturnType<typeof setInterval> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
+  private readonly MAX_RECONNECT_ATTEMPTS = 10;
+  private readonly WS_PING_INTERVAL = 20_000; // 20 seconds
+
+  private startWsPing(): void {
+    this.stopWsPing();
+    this.wsPingInterval = setInterval(() => {
+      const ws = this.agentServer.wsConnection;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, this.WS_PING_INTERVAL);
+  }
+
+  private stopWsPing(): void {
+    if (this.wsPingInterval) {
+      clearInterval(this.wsPingInterval);
+      this.wsPingInterval = null;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
+      this.logger.error(`Max reconnect attempts (${this.MAX_RECONNECT_ATTEMPTS}) reached, giving up`);
+      return;
+    }
+
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // exponential backoff, max 30s
+    this.reconnectAttempts++;
+    this.logger.log(`Scheduling WebSocket reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
+
+    this.reconnectTimer = setTimeout(async () => {
+      try {
+        if (this.agentServer.isConnected) return; // already reconnected
+
+        if (!this.state.environmentName) return;
+
+        // Before reconnecting WebSocket, ensure the agent server port is actually open
+        if (this.sandbox) {
+          const portCheck = await this.sandbox.commands.run(
+            `curl -sf -o /dev/null http://localhost:${this.providerConfig.agentServerPort}/`,
+          );
+          if (portCheck.exitCode !== 0) {
+            this.logger.warn('Agent server port not open, attempting to restart agent server...');
+            try {
+              await this.startAgentServerInSandbox();
+            } catch (restartError) {
+              this.logger.error('Failed to restart agent server:', restartError);
+              this.scheduleReconnect();
+              return;
+            }
+          }
+        }
+
+        await this.ensureTransportConnection({
+          environmentName: this.state.environmentName,
+          projectPath: this.state.projectPath ?? undefined,
+        } as any);
+        this.reconnectAttempts = 0;
+        this.logger.log('WebSocket reconnected successfully');
+        await this.flushPendingMessages();
+      } catch (error) {
+        this.logger.error('WebSocket reconnect failed:', error);
+        this.scheduleReconnect();
+      }
+    }, delay);
   }
 
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {

@@ -188,19 +188,23 @@ async function main(): Promise<void> {
 
     tuiManager.initialize();
 
-    // Handle uncaught exceptions
+    // Handle uncaught exceptions — log but don't crash the server for non-fatal errors
     process.on('uncaughtException', async (error: Error): Promise<void> => {
       logger.logError(error, 'Uncaught Exception');
-      await tuiManager.stopTuiProcess();
-      await server.stop();
-      process.exit(1);
+      // Only exit for truly fatal errors (e.g., out of memory, cannot listen on port)
+      if (error.message?.includes('EADDRINUSE') || error.message?.includes('ERR_IPC_CHANNEL_CLOSED')) {
+        logger.error('Fatal error — shutting down server');
+        await tuiManager.stopTuiProcess();
+        await server.stop();
+        process.exit(1);
+      }
+      // For other exceptions, log and continue running
+      logger.warn('Non-fatal uncaught exception — server continues running');
     });
 
     process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>): Promise<void> => {
       logger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, { promise, reason });
-      await tuiManager.stopTuiProcess();
-      await server.stop();
-      process.exit(1);
+      // Don't crash — unhandled rejections are typically recoverable
     });
 
   } catch (error) {

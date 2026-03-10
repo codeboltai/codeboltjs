@@ -1,5 +1,11 @@
 # @codebolt/agentserver
 
+## 8.0.0
+
+### Major Changes
+
+- local terminal added
+
 ## 7.0.0
 
 ### Major Changes

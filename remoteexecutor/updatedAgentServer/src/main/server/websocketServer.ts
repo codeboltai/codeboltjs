@@ -22,7 +22,7 @@ import {
   RegistrationType,
   HealthStatus,
 } from '../../types';
-import { WEBSOCKET_CONSTANTS } from '../../constants';
+import { WEBSOCKET_CONSTANTS, WEBSOCKET_DEFAULTS } from '../../constants';
 import { logger } from '../utils/logger';
 import { threadId } from 'worker_threads';
 import { sideExecutionManager } from '../../localexecutions/managers/SideExecutionManager';
@@ -37,6 +37,7 @@ export class WebSocketServer {
   private appMessageRouter: AppMessageRouter;
   private agentMessageRouter: AgentMessageRouter;
   private tuiMessageRouter: TuiMessageRouter;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
 
   constructor(server: Server) {
     this.wss = new WSServer({ server });
@@ -46,6 +47,7 @@ export class WebSocketServer {
     this.agentMessageRouter = new AgentMessageRouter();
     this.tuiMessageRouter = new TuiMessageRouter();
     this.setupWebSocket();
+    this.startHeartbeat();
   }
 
   /**
@@ -70,6 +72,12 @@ export class WebSocketServer {
         if (result?.newClientId) {
           actualClientId = result.newClientId;
         }
+      });
+
+      // Mark connection as alive on pong
+      (ws as any).isAlive = true;
+      ws.on('pong', () => {
+        (ws as any).isAlive = true;
       });
 
       ws.on(WEBSOCKET_CONSTANTS.EVENTS.CLOSE, () => {
@@ -150,10 +158,11 @@ export class WebSocketServer {
 
   /**
    * Handle connection error event
+   * Only log the error — don't remove the connection immediately.
+   * The 'close' event always fires after 'error', so cleanup happens there.
    */
   private handleConnectionError(clientId: string, error: Error): void {
     logger.logError(error, `WebSocket error for client ${clientId}`);
-    this.connectionManager.removeConnection(clientId);
   }
 
   /**
@@ -393,10 +402,37 @@ export class WebSocketServer {
   }
 
   /**
+   * Start server-side ping/pong heartbeat to detect dead connections
+   */
+  private startHeartbeat(): void {
+    this.heartbeatInterval = setInterval(() => {
+      this.wss.clients.forEach((ws) => {
+        if ((ws as any).isAlive === false) {
+          logger.warn(formatLogMessage('warn', 'WebSocketServer', 'Terminating unresponsive WebSocket connection'));
+          return ws.terminate();
+        }
+        (ws as any).isAlive = false;
+        ws.ping();
+      });
+    }, WEBSOCKET_DEFAULTS.HEARTBEAT_INTERVAL);
+  }
+
+  /**
+   * Stop the heartbeat interval
+   */
+  private stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  }
+
+  /**
    * Gracefully close the WebSocket server
    */
   public close(): void {
     try {
+      this.stopHeartbeat();
       this.wss.close(() => {
         logger.info(formatLogMessage('info', 'WebSocketServer', 'WebSocket server closed gracefully'));
       });
