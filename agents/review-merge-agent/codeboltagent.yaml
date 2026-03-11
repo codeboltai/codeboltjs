@@ -1,0 +1,56 @@
+title: Conflict Resolution Agent
+unique_id: review-merge-agent
+version: 1.0.0
+author: codebolt
+initial_message: Conflict Resolution Agent ready. I modify local code to absorb incoming remote changes so merges pass cleanly.
+description: Modifies local workspace code so that incoming remote PR code (via Codebolt Narrative snapshots) can merge without conflicts.
+avatarSrc: ''
+avatarFallback: CR
+
+longDescription: >
+  This agent is auto-started when the system detects merge conflicts during an
+  auto-merge attempt between a remote environment's Narrative snapshot and local code.
+
+  It receives the conflicting file contents — current local code (ours), incoming remote
+  code (theirs), and the common ancestor — then edits the LOCAL files in the workspace
+  to incorporate the incoming changes. Once local code already contains the remote changes,
+  the Narrative merge engine re-runs and passes cleanly.
+
+  This is NOT a git-based merge. The project uses Codebolt Narrative for version control.
+  The agent never runs git commands — it edits files directly in the workspace.
+
+tags:
+  - conflict-resolution
+  - merge
+  - narrative
+
+metadata:
+  agent_routing:
+    worksonblankcode: false
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - node
+      - react
+      - next
+    supportRemix: false
+
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-5-20250929
+      - gpt-4o
+
+actions:
+  - name: Resolve Conflicts
+    description: Modify local code to absorb incoming remote changes
+    detailDescription: >
+      Reads conflicting file contents (ours vs theirs vs ancestor), edits local workspace
+      files to incorporate the incoming changes, then triggers the merge via Narrative engine.
+    actionPrompt: Resolve merge conflicts
