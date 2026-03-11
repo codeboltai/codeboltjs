@@ -217,8 +217,29 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.pendingMessages.push(message);
       return;
     }
-    if (message?.type !== 'providerHeartbeatResponse' && message?.type !== 'providerHeartbeatAck')
-      await super.onRawMessage(message);
+    if (message?.type === 'providerSendPR') {
+      this.logger.log('Handling providerSendPR locally');
+      try {
+        const result = await this.onSendPR();
+        this.handleTransportMessage({
+          type: 'remoteProviderEvent',
+          action: 'providerSendPRResponse',
+          message: result,
+        } as any);
+      } catch (error: any) {
+        this.logger.error('Error handling sendPR:', error);
+        this.handleTransportMessage({
+          type: 'remoteProviderEvent',
+          action: 'providerSendPRResponse',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        } as any);
+      }
+      return;
+    }
+    if (message?.type === 'providerHeartbeatResponse' || message?.type === 'providerHeartbeatAck') {
+      return;
+    }
+    await super.onRawMessage(message);
   }
 
   private async flushPendingMessages(): Promise<void> {
@@ -228,8 +249,25 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.pendingMessages = [];
     for (const msg of messages) {
       try {
-        if (msg?.type !== 'providerHeartbeatResponse' && msg?.type !== 'providerHeartbeatAck')
+        if (msg?.type === 'providerSendPR') {
+          try {
+            const result = await this.onSendPR();
+            this.handleTransportMessage({
+              type: 'remoteProviderEvent',
+              action: 'providerSendPRResponse',
+              message: result,
+            } as any);
+          } catch (sendPRError: any) {
+            this.logger.error('Error handling queued sendPR:', sendPRError);
+            this.handleTransportMessage({
+              type: 'remoteProviderEvent',
+              action: 'providerSendPRResponse',
+              error: sendPRError instanceof Error ? sendPRError.message : 'Unknown error',
+            } as any);
+          }
+        } else if (msg?.type !== 'providerHeartbeatResponse' && msg?.type !== 'providerHeartbeatAck') {
           await super.onRawMessage(msg);
+        }
       } catch (error) {
         this.logger.error('Error flushing pending message:', error);
       }
@@ -483,7 +521,11 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onSendPR(): Promise<any> {
-    this.logger.log('Creating snapshot and exporting bundle...');
+    this.logger.log('onSendPR started');
+    this.logger.log('Sandbox available:', !!this.sandbox, 'Narrative client available:', !!this.narrativeClient);
+    this.logger.log('Sandbox workspace path:', this.sandboxWorkspacePath);
+    this.logger.log('Local project path:', this.state.projectPath);
+    this.logger.log('Server snapshot ID:', this.serverSnapshotId);
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
@@ -493,56 +535,74 @@ export class E2bRemoteProviderService extends BaseProvider {
       throw new Error('Narrative client is not initialized');
     }
 
-    // Step 1: Download sandbox workspace files to local so the snapshot captures them
-    const remoteTmpArchive = '/tmp/sandbox-workspace.tar.gz';
-    await this.sandbox.commands.run(
-      `tar -czf ${remoteTmpArchive} -C ${this.sandboxWorkspacePath} .`,
-    );
-    const archiveBytes = await this.sandbox.files.read(remoteTmpArchive, { format: 'bytes' });
+    // Step 1: Sync sandbox workspace files to local so the snapshot captures them
     const localProjectPath = this.state.projectPath!;
     await fs.mkdir(localProjectPath, { recursive: true });
+    this.logger.log('Step 1: Creating tar archive in sandbox (excluding node_modules, .git)...');
+    const tarResult = await this.sandbox.commands.run(
+      `cd ${this.sandboxWorkspacePath} && tar -czf /tmp/sandbox-workspace.tar.gz --exclude='node_modules' --exclude='.git' --exclude='.cache' --exclude='.npm' .`,
+      { timeoutMs: 120_000 },
+    );
+    this.logger.log('Step 1: Tar created, exit code:', tarResult.exitCode);
+
+    this.logger.log('Step 1: Reading base64 of archive...');
+    const base64Result = await this.sandbox.commands.run(
+      'base64 /tmp/sandbox-workspace.tar.gz',
+      { timeoutMs: 120_000 },
+    );
+    this.logger.log('Step 1: Base64 output length:', base64Result.stdout?.length ?? 0);
+
+    const archiveBuffer = Buffer.from(base64Result.stdout || '', 'base64');
+    this.logger.log('Step 1: Decoded archive size:', archiveBuffer.length, 'bytes');
+
     const localTmpArchive = path.join(localProjectPath, '.sandbox-sync.tar.gz');
-    await fs.writeFile(localTmpArchive, archiveBytes);
+    await fs.writeFile(localTmpArchive, archiveBuffer);
+    this.logger.log('Step 1: Extracting archive to:', localProjectPath);
     const { execSync } = require('child_process');
     execSync(`tar -xzf "${localTmpArchive}" -C "${localProjectPath}"`);
     await fs.unlink(localTmpArchive);
-    await this.sandbox.commands.run(`rm -f ${remoteTmpArchive}`);
-    this.logger.log('Synced sandbox workspace to local:', localProjectPath);
+    await this.sandbox.commands.run('rm -f /tmp/sandbox-workspace.tar.gz');
+    this.logger.log('Step 1: Sandbox workspace synced to local:', localProjectPath);
 
     // Step 2: Create a snapshot of the current workspace
+    this.logger.log('Step 2: Creating narrative objective...');
     const { objective_id } = await this.narrativeClient.narrative.createObjective({
       description: 'Send PR snapshot',
     });
+    this.logger.log('Step 2: Objective created:', objective_id);
     const { thread_id } = await this.narrativeClient.narrative.createThread({
       objective_id,
       name: 'send-pr',
     });
+    this.logger.log('Step 2: Thread created:', thread_id);
     const { agent_run_id } = await this.narrativeClient.narrative.createAgentRun({
       thread_id,
       agent_name: 'send-pr',
     });
+    this.logger.log('Step 2: Agent run created:', agent_run_id);
 
+    this.logger.log('Step 2: Creating snapshot...');
     const snapshotResult = await this.narrativeClient.snapshot.createSnapshot({
       agent_run_id,
       description: 'send-pr-snapshot',
     });
-
-    this.logger.log('Created snapshot:', snapshotResult.snapshot_id);
+    this.logger.log('Step 2: Snapshot created:', snapshotResult.snapshot_id);
 
     // Step 3: Export the snapshot as a git bundle
+    this.logger.log('Step 3: Exporting snapshot bundle...');
     const bundleResult = await this.narrativeClient.snapshot.exportSnapshotBundle({
       snapshot_id: snapshotResult.snapshot_id,
       incremental: false,
     });
+    this.logger.log('Step 3: Bundle exported:', bundleResult.bundle_path);
 
-    this.logger.log('Exported bundle:', bundleResult.bundle_path);
-
-    // Echo back the server-side snapshot ID as the diff base
-    return {
+    const result = {
       snapshot: snapshotResult,
       bundle: bundleResult,
       baseSnapshotId: this.serverSnapshotId,
     };
+    this.logger.log('onSendPR completed, returning:', JSON.stringify(result));
+    return result;
   }
 
   // --- BaseProvider abstract method implementations ---
@@ -1007,6 +1067,11 @@ export class E2bRemoteProviderService extends BaseProvider {
         case 'error':
           this.logger.error('Agent server error:', (message as any).message ?? 'unknown error');
           break;
+        case 'processStoped':
+        case 'processStopped':
+          this.logger.log('Agent process stopped, sending PR to parent before forwarding');
+          this.sendPROnAgentFinish(message);
+          return; // Don't forward yet - sendPROnAgentFinish will forward after PR
         default:
           this.logger.log('Unhandled message type:', message.type);
       }
@@ -1014,6 +1079,38 @@ export class E2bRemoteProviderService extends BaseProvider {
       super.handleTransportMessage(message);
     } catch (error) {
       this.logger.error('Error handling transport message:', error);
+    }
+  }
+
+  /**
+   * When an agent finishes, automatically send a PR to the parent
+   * before forwarding the processStopped message.
+   */
+  private async sendPROnAgentFinish(originalMessage: RawMessageForAgent): Promise<void> {
+    try {
+      this.logger.log('Triggering automatic PR submission on agent finish');
+      const prResult = await this.onSendPR();
+      this.logger.log('PR submitted successfully on agent finish');
+
+      // Send the PR result to the parent app
+      super.handleTransportMessage({
+        type: 'remoteProviderEvent',
+        action: 'providerSendPRResponse',
+        requestId: originalMessage.requestId || '',
+        message: prResult,
+      } as any);
+    } catch (error: any) {
+      this.logger.error('Failed to send PR on agent finish:', error);
+      // Send error notification but don't block the process stop
+      super.handleTransportMessage({
+        type: 'remoteProviderEvent',
+        action: 'providerSendPRResponse',
+        requestId: originalMessage.requestId || '',
+        error: error instanceof Error ? error.message : 'Failed to send PR on agent finish',
+      } as any);
+    } finally {
+      // Always forward the original processStopped message after PR attempt
+      super.handleTransportMessage(originalMessage);
     }
   }
 

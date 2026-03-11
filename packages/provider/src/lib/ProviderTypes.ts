@@ -1,6 +1,6 @@
 import type WebSocket from "ws";
 import type { ChildProcess } from "child_process";
-import {RawMessageForAgent,AgentStartMessage} from '@codebolt/types/provider'
+import {RawMessageForAgent,AgentStartMessage, MergeConfig} from '@codebolt/types/provider'
 import { ProviderInitVars } from "@codebolt/types/provider";
 
 export type ProviderTransportType = "websocket" | "custom";
@@ -21,6 +21,7 @@ export interface ProviderState {
   environmentName: string | null;
   projectPath: string | null;
   workspacePath: string | null;
+  mergeConfig?: MergeConfig;
 }
 
 export interface AgentServerConnection {

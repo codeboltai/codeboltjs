@@ -78,6 +78,24 @@ export abstract class BaseProvider
     this.resetState();
     this.state.environmentName = initVars.environmentName;
 
+    // Store merge config from init vars or environment config
+    if (initVars.mergeConfig) {
+      this.state.mergeConfig = initVars.mergeConfig;
+    } else {
+      // Try reading from ENVIRONMENT_CONFIG env var (set by server when spawning provider)
+      try {
+        const envConfig = process.env.ENVIRONMENT_CONFIG;
+        if (envConfig) {
+          const parsed = JSON.parse(envConfig);
+          if (parsed.mergeConfig) {
+            this.state.mergeConfig = parsed.mergeConfig;
+          }
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
     await this.resolveProjectContext(initVars);
     this.state.workspacePath = await this.resolveWorkspacePath(initVars);
 
@@ -233,6 +251,14 @@ export abstract class BaseProvider
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   protected async beforeClose(): Promise<void> { }
+
+  /**
+   * Get the merge configuration for this provider's environment.
+   * Returns undefined if no merge config was provided.
+   */
+  getMergeConfig() {
+    return this.state.mergeConfig;
+  }
 
   // ===== HEARTBEAT METHODS =====
 

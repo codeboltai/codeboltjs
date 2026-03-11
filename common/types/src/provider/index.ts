@@ -27,8 +27,15 @@ export enum AgentType {
     [key: string]: unknown;
   }
 
+  export interface MergeConfig {
+    mergeStrategy: 'auto' | 'manual';
+    conflictResolution: 'manual' | 'agent';
+    conflictResolutionAgentId?: string;
+  }
+
   export interface ProviderInitVars {
     environmentName: string;
     type: string;
+    mergeConfig?: MergeConfig;
     [key: string]: unknown;
   }

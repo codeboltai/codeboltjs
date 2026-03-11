@@ -21,8 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/agent": "workspace:*",
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/codeboltjs": "^5.1.15",
+    "@codebolt/types": "^5.1.11",
     "zod": "^3.22.4"
   },
   "devDependencies": {
