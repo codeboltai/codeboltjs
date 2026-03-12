@@ -23,7 +23,7 @@
   "dependencies": {
     "@babel/core": "^7.26.0",
     "@codebolt/agent": "workspace:*",
-    "@codebolt/codeboltjs": "^5.1.15",
+    "@codebolt/codeboltjs": "^5.1.16",
     "@codebolt/types": "^5.1.11",
     "copy-webpack-plugin": "^12.0.2",
     "node-loader": "^2.1.0",

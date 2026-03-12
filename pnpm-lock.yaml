@@ -2903,8 +2903,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: ^5.1.15
-        version: 5.1.15(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        specifier: ^5.1.16
+        version: 5.1.16(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.11
         version: 5.1.11
@@ -3411,8 +3411,8 @@ importers:
         version: 3.25.76
     devDependencies:
       '@codebolt/codeboltjs':
-        specifier: ^5.1.15
-        version: 5.1.15(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        specifier: ^5.1.17
+        version: 5.1.17(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -5856,6 +5856,12 @@ packages:
 
   '@codebolt/codeboltjs@5.1.15':
     resolution: {integrity: sha512-Px0wTfJd+Mbk98+4pLkFsuFzL+JCxCt/fw4oY2S6Y99mqyL99tNwxyFEzBpP6gQc/RjwrPp2dhcmoMt/3JpmNA==}
+
+  '@codebolt/codeboltjs@5.1.16':
+    resolution: {integrity: sha512-Y1x5O6kQ6eRQdJ4HWjQu4RP/l7PhgEVRB++ZBRAeaNNpa2mFtYhZzAF5dl+35cFhMHpgUQ7l+YYeLy74N/HfvQ==}
+
+  '@codebolt/codeboltjs@5.1.17':
+    resolution: {integrity: sha512-4OYBBWx20QGbNasowBifMSvCE96RcSkysNhovriDEccllg9Q4lfF0Q4IYV4KtwIADT7oGeYerhkm5FOyoPpzkg==}
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
@@ -20971,6 +20977,46 @@ snapshots:
   '@cloudflare/workers-types@4.20251008.0': {}
 
   '@codebolt/codeboltjs@5.1.15(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 5.1.11
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@codebolt/codeboltjs@5.1.16(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 5.1.11
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@codebolt/codeboltjs@5.1.17(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
     dependencies:
       '@codebolt/types': 5.1.11
       '@types/uuid': 10.0.0

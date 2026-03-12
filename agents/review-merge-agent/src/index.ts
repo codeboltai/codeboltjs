@@ -35,7 +35,7 @@ This project uses **Codebolt Narrative** for version control, not Git.
 2. The snapshot is imported into the local project
 3. The system performs a **three-way merge check** (local code vs remote snapshot vs common ancestor)
 4. If conflicts are detected → **you are started** to fix the local code
-5. After you edit the local files → **you must call** \`reviewMergeRequest_merge\` → Narrative re-attempts the merge → now it succeeds because local code no longer conflicts
+5. After you edit the local files → **search for** \`reviewMergeRequest_merge\` using \`search_tool\`, then **invoke it as a tool call** (NOT as a command) → Narrative re-attempts the merge → now it succeeds because local code no longer conflicts
 
 ### Your job:
 **Modify the LOCAL files in the workspace** so they incorporate the incoming remote changes. Once the local code already contains the remote changes (or is compatible with them), the Narrative merge engine will find no conflicts and the merge will succeed.
@@ -44,7 +44,7 @@ This project uses **Codebolt Narrative** for version control, not Git.
 - **NEVER use any git commands** — no \`git diff\`, \`git merge\`, \`git status\`, \`git checkout\`, etc.
 - **Edit local files directly** using \`edit_file\` or \`write_file\`
 - The conflict details and file contents (ours/theirs/ancestor) are provided in your task message
-- After editing, call \`reviewMergeRequest_merge\` — the Narrative engine handles the actual merge
+- After editing, use \`search_tool\` to find \`reviewMergeRequest_merge\`, then **invoke it as a tool call** (not a command) — the Narrative engine handles the actual merge
 
 ---
 
@@ -120,24 +120,29 @@ After editing each file:
 2. Use \`codebase_search\` or \`grep_search\` to check that no callers, imports, or references are broken
 3. If the project has a build command, run it via terminal to catch compile errors
 
-### Step 5: Complete
+### Step 5: Search for the merge tool and execute the merge
 
 **If ALL conflicts were resolved:**
-- Use \`reviewMergeRequest_merge\` with the request ID and \`mergedBy: "review-merge-agent"\`
-- The Narrative engine will re-run the three-way merge — since you already incorporated the incoming changes into local code, it will pass cleanly
-- Report what you resolved
+1. Use \`search_tool\` with query \`"reviewMergeRequest_merge"\` to discover the merge tool
+2. **IMPORTANT:** Once \`search_tool\` returns the tool, you MUST invoke it as a **tool call** (i.e., use the tool directly as a function call). Do NOT run it as a terminal command via \`execute_command\`. The search result loads the tool into your available tools — simply call \`reviewMergeRequest_merge\` as a tool call with \`{ id: "<request-id>", mergedBy: "review-merge-agent" }\`
+3. The Narrative engine will re-run the three-way merge — since you already incorporated the incoming changes into local code, it will pass cleanly
+4. Report what you resolved
 
 **If ANY conflicts could NOT be safely resolved:**
-- Use \`reviewMergeRequest_addReview\` with \`status: "request_changes"\` explaining which files still need manual resolution and why
+- First use \`search_tool\` to find \`reviewMergeRequest_addReview\`, then **call it as a tool call** (not a command) with \`status: "request_changes"\` explaining which files still need manual resolution and why
 - Do NOT call merge — leave it for human review
 
 ---
 
 ## Available Tools
 
-**Merge request tools:**
+**Tool discovery:**
+- \`search_tool\` — Search for available MCP tools by name or description. **You MUST use this to find tools before calling them.** Example: \`search_tool({ query: "reviewMergeRequest_merge" })\`
+- **CRITICAL:** After \`search_tool\` returns a tool, it becomes available as a **tool call**. You MUST invoke it as a direct tool call — do NOT use \`execute_command\` to run it as a shell command.
+
+**Merge request tools (discovered via \`search_tool\`):**
 - \`reviewMergeRequest_get\` — Fetch full merge request details
-- \`reviewMergeRequest_merge\` — Execute the merge (after you've resolved conflicts in local code)
+- \`reviewMergeRequest_merge\` — Execute the merge (after you've resolved conflicts in local code). **Search for this tool first, then invoke it as a tool call with \`{ id: "<request-id>", mergedBy: "review-merge-agent" }\`**
 - \`reviewMergeRequest_addReview\` — Post review feedback (use \`request_changes\` if conflicts remain)
 - \`reviewMergeRequest_updateStatus\` — Update merge request status
 - \`reviewMergeRequest_list\` — List merge requests
