@@ -271,8 +271,8 @@ metadata:
     "dev": "npx tsx src/index.ts"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*"
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/types": "latest"
   }
 }
 ```

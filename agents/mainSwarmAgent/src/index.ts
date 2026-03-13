@@ -37,7 +37,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
       swarmConfig = {
         isJobSelfSplittingEnabled: false, // Defaulting to false as direct mapping is not present in JobCoordinationSettings
         minimumJobSplitProposalRequired: fetchedConfig.jobCoordination?.minSplitProposals ?? 1,
-        maxSplitProposals: fetchedConfig.jobCoordination?.maxSplitProposals ?? 5,
+        maxSplitProposals: 5,
         isJobSplitDeliberationRequired: fetchedConfig.jobCoordination?.splitDeliberationEnabled ?? false,
         selectJobSplitDeliberationType: '',
       };
@@ -95,6 +95,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
             await executeJob(reqMessage, job, ctx);
 
             // Mark job as review (not closed — reviewer will close it)
+            // @ts-expect-error 'review' is a valid API status not yet in JobStatus type
             await codebolt.job.updateJob(job.id, { status: 'review' });
             codebolt.chat.sendMessage(`✅ Job ${job.id} implementation done, submitted for review`);
           } catch (error) {

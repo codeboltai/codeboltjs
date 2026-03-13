@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@arrowai/multillm": "latest",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/types": "^5.1.12",
     "@types/js-yaml": "^4.0.9",
     "adm-zip": "^0.5.16",
     "axios": "^1.11.0",

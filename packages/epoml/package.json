@@ -45,7 +45,7 @@
     "@swc/wasm": "^1.13.20",
     "@types/node": "^24.3.1",
     "ts-node": "^10.9.2",
-    "@codebolt/codeboltjs": "workspace:*"
+    "@codebolt/codeboltjs": "latest"
   },
   "private": true
 }

@@ -10,9 +10,9 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
     "@codebolt/provider": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/types": "^5.1.12",
     "ws": "^8.18.0"
   },
   "devDependencies": {

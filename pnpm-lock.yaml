@@ -47,11 +47,11 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -177,11 +177,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -307,11 +307,11 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -437,11 +437,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -570,11 +570,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -703,11 +703,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -836,11 +836,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -969,11 +969,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -1100,7 +1100,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -1157,11 +1157,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -1290,11 +1290,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -1421,7 +1421,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -1478,14 +1478,14 @@ importers:
         specifier: workspace:*
         version: link:../shared-nodes
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/litegraph':
         specifier: workspace:*
         version: link:../litegraphjs
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: latest
+        version: 5.1.12
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -1750,11 +1750,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1781,11 +1781,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1812,11 +1812,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1843,11 +1843,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1874,8 +1874,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -1989,11 +1989,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -2122,11 +2122,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.103.0)
@@ -2252,11 +2252,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2286,11 +2286,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       axios:
         specifier: ^1.10.0
         version: 1.12.2
@@ -2404,11 +2404,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2435,11 +2435,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: latest
+        version: 5.1.12
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -2466,11 +2466,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -2596,11 +2596,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2627,11 +2627,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: 5.1.20
+        version: 5.1.20(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2658,11 +2658,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2689,11 +2689,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2720,42 +2720,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.25
-        version: 20.19.19
-      esbuild:
-        specifier: ^0.25.9
-        version: 0.25.10
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      tsx:
-        specifier: ^4.7.0
-        version: 4.20.6
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-
-  agents/orchestrator-no-plan:
-    dependencies:
-      '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
-      '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: latest
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2782,11 +2751,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2813,11 +2782,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2844,11 +2813,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -2875,11 +2844,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: latest
+        version: 5.1.12
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -2903,8 +2872,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@swc/wasm':
         specifier: ^1.13.5
         version: 1.13.20
@@ -3064,11 +3033,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3095,11 +3064,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: latest
+        version: 5.1.12
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -3123,11 +3092,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3154,11 +3123,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3185,11 +3154,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3216,11 +3185,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -3248,7 +3217,7 @@ importers:
         version: 7.28.6
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3261,7 +3230,7 @@ importers:
         version: 7.28.6(@babel/core@7.28.6)
       '@codebolt/types':
         specifier: latest
-        version: link:../../common/types
+        version: 5.1.12
       '@types/node':
         specifier: ^20.11.25
         version: 20.19.19
@@ -3322,16 +3291,6 @@ importers:
         version: 4.20.6
       typescript:
         specifier: ^5.3.3
-        version: 5.9.3
-
-  common/types:
-    dependencies:
-      zod:
-        specifier: ^3.24.1
-        version: 3.25.76
-    devDependencies:
-      typescript:
-        specifier: ^5.4.5
         version: 5.9.3
 
   documentation/internaldocuments:
@@ -3466,100 +3425,6 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
-  packages/codeboltjs:
-    dependencies:
-      '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
-      execa:
-        specifier: ^9.5.2
-        version: 9.6.0
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.0
-      os-browserify:
-        specifier: ^0.3.0
-        version: 0.3.0
-      path-browserify:
-        specifier: ^1.0.1
-        version: 1.0.1
-      stream-browserify:
-        specifier: ^3.0.0
-        version: 3.0.0
-      timers:
-        specifier: ^0.1.1
-        version: 0.1.1
-      util:
-        specifier: ^0.12.5
-        version: 0.12.5
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
-      ws:
-        specifier: ^8.18.3
-        version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      yargs:
-        specifier: ^17.7.2
-        version: 17.7.2
-    devDependencies:
-      '@types/events':
-        specifier: ^3.0.3
-        version: 3.0.3
-      '@types/jest':
-        specifier: ^29.5.14
-        version: 29.5.14
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^20.14.2
-        version: 20.19.19
-      '@types/uri-templates':
-        specifier: ^0.1.34
-        version: 0.1.34
-      '@types/ws':
-        specifier: ^8.5.10
-        version: 8.18.1
-      fast-check:
-        specifier: ^4.5.3
-        version: 4.5.3
-      jest:
-        specifier: ^30.2.0
-        version: 30.2.0(@types/node@20.19.19)(ts-node@10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3))
-      jest-serial-runner:
-        specifier: ^1.2.1
-        version: 1.2.2(jest-runner@30.2.0)
-      ts-jest:
-        specifier: ^29.1.2
-        version: 29.4.4(@babel/core@7.28.6)(@jest/transform@30.2.0)(@jest/types@30.2.0)(babel-jest@30.2.0(@babel/core@7.28.6))(jest-util@30.2.0)(jest@30.2.0(@types/node@20.19.19)(ts-node@10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)))(typescript@5.9.3)
-      ts-loader:
-        specifier: ^9.5.1
-        version: 9.5.4(typescript@5.9.3)(webpack@5.102.1)
-      typedoc:
-        specifier: 0.28.16
-        version: 0.28.16(typescript@5.9.3)
-      typedoc-plugin-markdown:
-        specifier: 4.9.0
-        version: 4.9.0(typedoc@0.28.16(typescript@5.9.3))
-      typedoc-plugin-missing-exports:
-        specifier: ^4.1.0
-        version: 4.1.0(typedoc@0.28.16(typescript@5.9.3))
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-      webpack:
-        specifier: ^5.102.1
-        version: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
-      webpack-cli:
-        specifier: ^5.1.4
-        version: 5.1.4(webpack@5.102.1)
-
   packages/codeparser:
     dependencies:
       '@codebolt/globby':
@@ -3582,8 +3447,8 @@ importers:
   packages/epoml:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@swc/wasm':
         specifier: ^1.13.20
         version: 1.13.20
@@ -3647,15 +3512,15 @@ importers:
   packages/provider:
     dependencies:
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       ws:
         specifier: ^8.18.3
         version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     devDependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../codeboltjs
+        specifier: ^5.1.19
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@types/node':
         specifier: ^20.14.2
         version: 20.19.19
@@ -3675,8 +3540,8 @@ importers:
   packages/utils:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     devDependencies:
       '@types/node':
         specifier: ^20.14.2
@@ -3691,14 +3556,14 @@ importers:
   providers/agentfs-provider:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/provider':
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       ws:
         specifier: ^8.18.0
         version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -3719,8 +3584,8 @@ importers:
         specifier: latest
         version: link:../../remoteexecutor/updatedAgentServer
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/narrative':
         specifier: file:../../../CodeBolt/packages/narrativejspackage
         version: file:../CodeBolt/packages/narrativejspackage
@@ -3728,8 +3593,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       '@daytonaio/sdk':
         specifier: latest
         version: 0.149.0(ws@8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))
@@ -3750,8 +3615,8 @@ importers:
   providers/dockerprovider:
     dependencies:
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       dockerode:
         specifier: ^4.0.2
         version: 4.0.9
@@ -3808,8 +3673,8 @@ importers:
         specifier: latest
         version: link:../../remoteexecutor/updatedAgentServer
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: ^5.1.19
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/narrative':
         specifier: file:../../../CodeBolt/packages/narrativejspackage
         version: file:../CodeBolt/packages/narrativejspackage
@@ -3817,8 +3682,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       '@e2b/code-interpreter':
         specifier: latest
         version: 2.3.3
@@ -3839,14 +3704,14 @@ importers:
   providers/git-worktree-production:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/provider':
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       ws:
         specifier: ^8.18.0
         version: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -3867,14 +3732,14 @@ importers:
   providers/gitWorkTreeProvider:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/provider':
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       '@e2b/sdk':
         specifier: ^0.16.0
         version: 0.16.2
@@ -3898,8 +3763,8 @@ importers:
   providers/narrative-snapshot-provider:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/narrative':
         specifier: file:../../../CodeBolt/packages/narrativejspackage
         version: file:../CodeBolt/packages/narrativejspackage
@@ -3907,8 +3772,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/provider
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       ws:
         specifier: ^8.18.0
         version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -3926,8 +3791,8 @@ importers:
   providers/remoteserverprovider:
     dependencies:
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       dockerode:
         specifier: ^4.0.2
         version: 4.0.9
@@ -4034,8 +3899,8 @@ importers:
         specifier: latest
         version: 1.1.53(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
       '@codebolt/types':
-        specifier: workspace:*
-        version: link:../../common/types
+        specifier: ^5.1.12
+        version: 5.1.12
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -4141,7 +4006,7 @@ importers:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     devDependencies:
       typescript:
         specifier: ^5.4.5
@@ -4151,7 +4016,7 @@ importers:
     dependencies:
       '@codebolt/codeboltjs':
         specifier: latest
-        version: link:../../packages/codeboltjs
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     devDependencies:
       typescript:
         specifier: ^5.4.5
@@ -4201,8 +4066,8 @@ importers:
   testcases/visual-codebolt-testing:
     dependencies:
       '@codebolt/codeboltjs':
-        specifier: workspace:*
-        version: link:../../packages/codeboltjs
+        specifier: latest
+        version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -5891,6 +5756,9 @@ packages:
   '@codebolt/codeboltjs@5.1.19':
     resolution: {integrity: sha512-GmDQbKS+rf6trdM+MEfL+na7qNAx8S5uOwZ8wxdrLqZNb/imu+gCqXGhm2mm+K9IhzK7CIEibNa+mMy+B4lZvA==}
 
+  '@codebolt/codeboltjs@5.1.20':
+    resolution: {integrity: sha512-BKZxP0Y/FLjjGgKU3AV0hGSMRQUH+Y7GGBKAdiz9KmBPou8OW070zwnja4VNj4RIqQoP7OnzqQ/fOMqW8Ms8RQ==}
+
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
 
@@ -5915,6 +5783,9 @@ packages:
 
   '@codebolt/types@5.1.11':
     resolution: {integrity: sha512-Ohdfw1f57MAl3LG9zTc+a7bnaNtyELxMHsGTC3EPnUJGLMMGP4CnFPUo0ey0DYHA2DPt6rLQslF4GOmEbRr4hA==}
+
+  '@codebolt/types@5.1.12':
+    resolution: {integrity: sha512-jYqx7Bz2KenBfzQXcoEHWAUoBanADOdoKA7FN6ADOXmMYQFOIa0iU6XFrIBjf2HCQm4iMawGt85ZH+mv54L8gQ==}
 
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
@@ -10081,9 +9952,6 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
-  '@types/events@3.0.3':
-    resolution: {integrity: sha512-trOc4AAUThEz9hapPtSd7wf5tiQKvTtu5b371UxXdTuqzIh0ArcRspRP0i0Viu+LXstIQ1z96t1nsPxT9ol01g==}
-
   '@types/express-serve-static-core@4.19.7':
     resolution: {integrity: sha512-FvPtiIf1LfhzsaIXhv/PHan/2FeQBbtBDtfX2QfvPxdUelMDEckK08SM6nqo1MIZY3RUlfA+HV8+hFUSio78qg==}
 
@@ -12799,10 +12667,6 @@ packages:
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
 
-  fast-check@4.5.3:
-    resolution: {integrity: sha512-IE9csY7lnhxBnA8g/WI5eg/hygA6MGWJMSNfFRrBlXUciADEhS1EDB0SIsMSvzubzIlOBbVITSsypCsW717poA==}
-    engines: {node: '>=12.17.0'}
-
   fast-content-type-parse@2.0.1:
     resolution: {integrity: sha512-nGqtvLrj5w0naR6tDPfB4cUmYCqouzyQiz6C5y/LtcDllJdrcc6WaWW6iXyIIOErTa/XRybj28aasdn4LkVk6Q==}
 
@@ -14056,11 +13920,6 @@ packages:
   jest-runtime@30.2.0:
     resolution: {integrity: sha512-p1+GVX/PJqTucvsmERPMgCPvQJpFt4hFbM+VN3n8TMo47decMUcJbt+rgzwrEme0MQUA/R+1de2axftTHkKckg==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
-
-  jest-serial-runner@1.2.2:
-    resolution: {integrity: sha512-LKdzq44gBSBmVOisTCXrF+JA83TWyyLS+9Pw4jcUHUlh67OIq90HfiTVq7yq2MuUgG1HGsV0Edr04Xy1He+tGw==}
-    peerDependencies:
-      jest-runner: 24.x - 30.x
 
   jest-snapshot@30.2.0:
     resolution: {integrity: sha512-5WEtTy2jXPFypadKNpbNkZ72puZCa6UjSr/7djeecHWOu7iYhSXSnHScT8wBz3Rn8Ena5d5RYRcsyKIeqG1IyA==}
@@ -17220,11 +17079,6 @@ packages:
     engines: {node: '>= 18'}
     peerDependencies:
       typedoc: 0.28.x
-
-  typedoc-plugin-missing-exports@4.1.0:
-    resolution: {integrity: sha512-p1M5jXnEbQ4qqy0erJz41BBZEDb8XDrbLjndlH4RhYEcymbdQr0xLF6yUw1GWBrhSIfkU98m3BELMAiQh+R1zA==}
-    peerDependencies:
-      typedoc: ^0.28.1
 
   typedoc@0.28.16:
     resolution: {integrity: sha512-x4xW77QC3i5DUFMBp0qjukOTnr/sSg+oEs86nB3LjDslvAmwe/PUGDWbe3GrIqt59oTqoXK5GRK9tAa0sYMiog==}
@@ -21044,6 +20898,26 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@codebolt/codeboltjs@5.1.20(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/types': 5.1.12
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
@@ -21064,6 +20938,10 @@ snapshots:
       '@codebolt/narrative-win32-x64': 1.11.0
 
   '@codebolt/types@5.1.11':
+    dependencies:
+      zod: 3.25.76
+
+  '@codebolt/types@5.1.12':
     dependencies:
       zod: 3.25.76
 
@@ -26639,8 +26517,6 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/events@3.0.3': {}
-
   '@types/express-serve-static-core@4.19.7':
     dependencies:
       '@types/node': 20.19.19
@@ -30224,10 +30100,6 @@ snapshots:
 
   extendable-error@0.1.7: {}
 
-  fast-check@4.5.3:
-    dependencies:
-      pure-rand: 7.0.1
-
   fast-content-type-parse@2.0.1: {}
 
   fast-deep-equal@3.1.3: {}
@@ -31856,10 +31728,6 @@ snapshots:
       strip-bom: 4.0.0
     transitivePeerDependencies:
       - supports-color
-
-  jest-serial-runner@1.2.2(jest-runner@30.2.0):
-    dependencies:
-      jest-runner: 30.2.0
 
   jest-snapshot@30.2.0:
     dependencies:
@@ -35505,17 +35373,6 @@ snapshots:
 
   term-size@2.2.1: {}
 
-  terser-webpack-plugin@5.3.14(@swc/core@1.13.20)(webpack@5.102.1):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      serialize-javascript: 6.0.2
-      terser: 5.44.0
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
-    optionalDependencies:
-      '@swc/core': 1.13.20
-
   terser-webpack-plugin@5.3.14(esbuild@0.27.0)(webpack@5.103.0):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -35716,16 +35573,6 @@ snapshots:
       '@jest/types': 30.2.0
       babel-jest: 30.2.0(@babel/core@7.28.6)
       jest-util: 30.2.0
-
-  ts-loader@9.5.4(typescript@5.9.3)(webpack@5.102.1):
-    dependencies:
-      chalk: 4.1.2
-      enhanced-resolve: 5.18.3
-      micromatch: 4.0.8
-      semver: 7.7.3
-      source-map: 0.7.6
-      typescript: 5.9.3
-      webpack: 5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4)
 
   ts-loader@9.5.4(typescript@5.9.3)(webpack@5.103.0):
     dependencies:
@@ -35953,10 +35800,6 @@ snapshots:
       is-typedarray: 1.0.0
 
   typedoc-plugin-markdown@4.9.0(typedoc@0.28.16(typescript@5.9.3)):
-    dependencies:
-      typedoc: 0.28.16(typescript@5.9.3)
-
-  typedoc-plugin-missing-exports@4.1.0(typedoc@0.28.16(typescript@5.9.3)):
     dependencies:
       typedoc: 0.28.16(typescript@5.9.3)
 
@@ -36650,40 +36493,6 @@ snapshots:
   webpack-node-externals@3.0.0: {}
 
   webpack-sources@3.3.3: {}
-
-  webpack@5.102.1(@swc/core@1.13.20)(webpack-cli@5.1.4):
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.15.0
-      acorn-import-phases: 1.0.4(acorn@8.15.0)
-      browserslist: 4.26.3
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.18.3
-      es-module-lexer: 1.7.0
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.1
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.0
-      terser-webpack-plugin: 5.3.14(@swc/core@1.13.20)(webpack@5.102.1)
-      watchpack: 2.4.4
-      webpack-sources: 3.3.3
-    optionalDependencies:
-      webpack-cli: 5.1.4(webpack@5.102.1)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
 
   webpack@5.102.1(webpack-cli@5.1.4):
     dependencies:

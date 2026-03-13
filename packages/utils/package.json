@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*"
+    "@codebolt/codeboltjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

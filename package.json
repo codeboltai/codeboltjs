@@ -5,7 +5,12 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "build:main": "turbo run build --filter='./packages/*' --filter='./common/*' --filter='./remoteexecutor/*' --filter='./agentcreator/*' --filter='./documentation/*' --filter='./cli/*' --filter='./multillm-node/*'",
+    "build:core": "bash scripts/build.sh core",
+    "build:agents": "bash scripts/build.sh agents",
+    "build:providers": "bash scripts/build.sh providers",
+    "build:actions": "bash scripts/build.sh actions",
+    "build:main": "bash scripts/build.sh main",
+    "build:all": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",

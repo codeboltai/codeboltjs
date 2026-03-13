@@ -62,7 +62,7 @@
   "license": "ISC",
   "description": "Test project for CodeboltJS SDK",
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
     "@codebolt/globby": "^1.0.1"
   },
   "private": true

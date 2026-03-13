@@ -23,9 +23,9 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "^5.1.19",
     "@codebolt/provider": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/types": "^5.1.12",
     "@codebolt/agentserver": "latest",
     "@codebolt/narrative": "file:../../../CodeBolt/packages/narrativejspackage",
     "@e2b/code-interpreter": "latest",

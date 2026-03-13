@@ -10,9 +10,9 @@
     "lint": "npx eslint src/"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
     "@codebolt/agent": "workspace:*",
-    "@codebolt/types": "workspace:*"
+    "@codebolt/types": "latest"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

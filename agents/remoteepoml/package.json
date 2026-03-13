@@ -21,7 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/agent": "workspace:*",
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
     "epoml": "workspace:*",
     "@swc/wasm": "^1.13.5"
   },

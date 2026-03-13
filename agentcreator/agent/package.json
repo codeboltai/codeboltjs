@@ -19,9 +19,9 @@
   "dependencies": {
     "@codebolt/agent": "workspace:*",
     "@codebolt/agent-shared-nodes": "workspace:*",
-    "@codebolt/codeboltjs": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
     "@codebolt/litegraph": "workspace:*",
-    "@codebolt/types": "workspace:*"
+    "@codebolt/types": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

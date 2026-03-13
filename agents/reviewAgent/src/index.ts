@@ -158,8 +158,8 @@ async function createTaskForRequestedChanges(request: any, reviewComment: string
     const task = {
       name: `Review Changes: ${request.title}`,
       description: `**Review Request ID:** ${request.id}\n\n**Requested Changes:**\n${reviewComment}\n\n**Files Affected:**\n${request.majorFilesChanged?.join('\n') || 'No files listed'}`,
-      priority: 'high',
-      status: 'pending',
+      priority: 'high' as const,
+      status: 'pending' as const,
       tags: ['code-review', 'changes-requested'],
       // Link back to the review request
       mentionedFiles: request.majorFilesChanged || []

@@ -35,13 +35,13 @@
     "directory": "packages/agent"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "workspace:*",
-    "@codebolt/types": "workspace:*",
+    "@codebolt/codeboltjs": "latest",
+    "@codebolt/types": "^5.1.12",
     "js-yaml": "^4.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@codebolt/types": "workspace:*",
+    "@codebolt/types": "^5.1.12",
     "@codebolt/eslint-config": "workspace:*",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",

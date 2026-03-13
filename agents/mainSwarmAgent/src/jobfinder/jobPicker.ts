@@ -142,8 +142,8 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
                 if (!deliberationPheromone) {
                     // Re-fetch job to get the current split proposals count
                     const refreshedJobResponse = await codebolt.job.getJob(job.id);
-                    const refreshedJob = refreshedJobResponse?.job || job;
-                    const pendingProposals = (refreshedJob.splitProposals || []).filter((p: any) => p.status === 'pending');
+                    const refreshedJob = (refreshedJobResponse?.job || job) as Job;
+                    const pendingProposals = (refreshedJob.splitProposals || []).filter((p: { status: string }) => p.status === 'pending');
 
                     if (pendingProposals.length < swarmConfig.maxSplitProposals) {
                         // Not enough proposals yet - wait for more agents to propose
@@ -207,12 +207,12 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
 
                                     // Find the matching split proposal for the winning option
                                     const jobDetails = await codebolt.job.getJob(job.id);
-                                    const currentJob = jobDetails.job || job;
-                                    const currentPendingProposals = (currentJob.splitProposals || []).filter((p: any) => p.status === 'pending');
+                                    const currentJob = (jobDetails.job || job) as Job;
+                                    const currentPendingProposals = (currentJob.splitProposals || []).filter((p: { status: string }) => p.status === 'pending');
 
-                                    // Match winner to a proposal by proposedBy or description
-                                    const winningProposal = currentPendingProposals.find((p: any) =>
-                                        winner.body?.includes(p.description) || winner.proposedBy === p.proposedBy
+                                    // Match winner to a proposal by responderId or description
+                                    const winningProposal = currentPendingProposals.find((p: { description: string; proposedBy?: string }) =>
+                                        winner.body?.includes(p.description) || winner.responderId === p.proposedBy
                                     ) || currentPendingProposals[0];
 
                                     if (winningProposal) {
@@ -359,8 +359,8 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
                 if (!deliberationPheromone) {
                     // Re-fetch job to get the current split proposals count
                     const refreshedJobResponse = await codebolt.job.getJob(job.id);
-                    const refreshedJob = refreshedJobResponse?.job || job;
-                    const pendingProposals = (refreshedJob.splitProposals || []).filter((p: any) => p.status === 'pending');
+                    const refreshedJob = (refreshedJobResponse?.job || job) as Job;
+                    const pendingProposals = (refreshedJob.splitProposals || []).filter((p: { status: string }) => p.status === 'pending');
 
                     if (pendingProposals.length < swarmConfig.maxSplitProposals) {
                         // Not enough proposals yet - wait for more agents to propose
@@ -422,12 +422,12 @@ export async function pickJob(jobs: Job[], ctx: AgentContext, swarmConfig: Swarm
 
                                     // Find the matching split proposal for the winning option
                                     const jobDetails = await codebolt.job.getJob(job.id);
-                                    const currentJob = jobDetails.job || job;
-                                    const currentPendingProposals = (currentJob.splitProposals || []).filter((p: any) => p.status === 'pending');
+                                    const currentJob = (jobDetails.job || job) as Job;
+                                    const currentPendingProposals = (currentJob.splitProposals || []).filter((p: { status: string }) => p.status === 'pending');
 
-                                    // Match winner to a proposal by proposedBy or description
-                                    const winningProposal = currentPendingProposals.find((p: any) =>
-                                        winner.body?.includes(p.description) || winner.proposedBy === p.proposedBy
+                                    // Match winner to a proposal by responderId or description
+                                    const winningProposal = currentPendingProposals.find((p: { description: string; proposedBy?: string }) =>
+                                        winner.body?.includes(p.description) || winner.responderId === p.proposedBy
                                     ) || currentPendingProposals[0];
 
                                     if (winningProposal) {
