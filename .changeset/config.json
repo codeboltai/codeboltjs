@@ -7,7 +7,8 @@
     [
       "@codebolt/codeboltjs",
       "@codebolt/types",
-      "@codebolt/agent"
+      "@codebolt/agent",
+      "@codebolt/provider"
     ],
     [
       "@codebolt/litegraph",
@@ -43,7 +44,6 @@
     "@codebolt/plugin-enhanced-math",
     "@codebolt/plugin-template",
     "@codebolt/plugin-text-processor",
-    "@codebolt/provider",
     "@codebolt/taskTestAgent",
     "@codebolt/taskTestingAgent",
     "@codebolt/testAgent",
@@ -94,6 +94,9 @@
     "@codebolt/narrative-snapshot-provider",
     "@codebolt/e2b-remote-provider",
     "testingagent",
-    "@codebolt/agent"
+    "@codebolt/agent",
+    "@codebolt/review-merge-agent",
+    "feedback-form-plugin",
+    "simpleui-plugin"
   ]
 }
