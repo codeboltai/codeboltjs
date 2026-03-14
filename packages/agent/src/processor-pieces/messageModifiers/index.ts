@@ -10,3 +10,6 @@ export { LoopDetectionModifier, type LoopDetectionOptions } from '../postInferen
 export { ToolInjectionModifier, type ToolInjectionOptions } from './toolInjectionModifier';
 export { ChatRecordingModifier, type ChatRecordingOptions } from './chatRecordingModifier';
 export { ChatHistoryMessageModifier, type ChatHistoryMessageModifierOptions } from './chatHistoryMessageModifier';
+export { ContextAssemblyModifier, type ContextAssemblyModifierOptions } from './contextAssemblyModifier';
+export { RuleBasedContextModifier, type RuleBasedContextModifierOptions } from './contextAssemblyModifier';
+export { MemoryTypeContextModifier, type MemoryTypeContextModifierOptions } from './contextAssemblyModifier';

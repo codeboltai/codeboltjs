@@ -118,19 +118,13 @@ export async function testContextAssembly() {
         // // 11. Evaluate Rules — with rule engine IDs
         // await log('\n11. Evaluate Rules — with IDs');
         // const rulesIds = await codebolt.contextAssembly.evaluateRules({
-        //     scope_variables: {
-        //         agentId: 'memoryTestAgent'
-        //     },
+        //     memory_names: ['test'],
         //     input: 'evaluate specific rules'
         // } as any, ['rule-engine-1']);
         // await assert(!!rulesIds, 'evaluateRules with IDs');
-        await log('\n6. Get Context — basic');
+        // await log('\n6. Get Context — basic');
         const ctxRes = await codebolt.contextAssembly.getContext({
-            scope_variables: {
-                agentId: 'memoryTestAgent',
-                projectId: 'test-project'
-            },
-            memory_names: ['test'],
+            explicit_memory: ['test'],
             input: 'how to solve the problem npm start'
         } as any);
         await assert(!!ctxRes, `getContext returns response ${JSON.stringify(ctxRes)}`);
