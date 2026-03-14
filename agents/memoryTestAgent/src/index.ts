@@ -11,6 +11,7 @@ import { testVectorDB } from './tests/vectordb.test';
 import { testGeneralMemory } from './tests/generalMemory.test';
 import { testContextAssembly } from './tests/contextAssembly.test';
 import { testDbMemory } from './tests/dbMemory.test';
+import { testContextRuleEngine } from './tests/contextRuleEngine.test';
 
 const TEST_MAP: Record<string, () => Promise<void>> = {
     episodic: testEpisodicMemory,
@@ -30,6 +31,9 @@ const TEST_MAP: Record<string, () => Promise<void>> = {
     contextassembly: testContextAssembly,
     db: testDbMemory,
     dbmemory: testDbMemory,
+    contextruleengine: testContextRuleEngine,
+    ruleengine: testContextRuleEngine,
+    rules: testContextRuleEngine,
 };
 
 async function runAllTests() {
@@ -49,6 +53,7 @@ async function runAllTests() {
     await testGeneralMemory();
     await testContextAssembly();
     await testDbMemory();
+    await testContextRuleEngine();
 
     const duration = ((Date.now() - start) / 1000).toFixed(1);
 
