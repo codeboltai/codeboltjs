@@ -2590,6 +2590,40 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
 
+  agents/claude-wrapper:
+    dependencies:
+      '@anthropic-ai/claude-code':
+        specifier: ^1.0.56
+        version: 1.0.128
+      '@anthropic-ai/sdk':
+        specifier: ^0.56.0
+        version: 0.56.0
+      '@codebolt/codeboltjs':
+        specifier: ^5.1.24
+        version: 5.1.24(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types':
+        specifier: ^5.1.11
+        version: 5.1.12
+      cli-table:
+        specifier: ^0.3.11
+        version: 0.3.11
+      ts-pattern:
+        specifier: ^5.7.1
+        version: 5.9.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.19
+      ts-node:
+        specifier: ^10.9.0
+        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.20.3
+        version: 4.20.6
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   agents/geminiAgentTest:
     dependencies:
       '@codebolt/agent':
@@ -4365,8 +4399,17 @@ packages:
   '@anthropic-ai/bedrock-sdk@0.12.6':
     resolution: {integrity: sha512-g9tmm6zXf3+2P5Se+c2zi7jmZ6+t+qtfu8NhoNYxetPxn6ez1aeNQ+YfqzSMm/ZWye8hy3hcDhbRhWaHC2Wbwg==}
 
+  '@anthropic-ai/claude-code@1.0.128':
+    resolution: {integrity: sha512-uUg5cFMJfeQetQzFw76Vpbro6DAXst2Lpu8aoZWRFSoQVYu5ZSAnbBoxaWmW/IgnHSqIIvtMwzCoqmcA9j9rNQ==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   '@anthropic-ai/sdk@0.37.0':
     resolution: {integrity: sha512-tHjX2YbkUBwEgg0JZU3EFSSAQPoK4qQR/NFYa8Vtzd5UAyXzZksCw2In69Rml4R/TyHPBfRYaLK35XiOe33pjw==}
+
+  '@anthropic-ai/sdk@0.56.0':
+    resolution: {integrity: sha512-SLCB8M8+VMg1cpCucnA1XWHGWqVSZtIWzmOdDOEu3eTFZMB+A0sGZ1ESO5MHDnqrNTXz3safMrWx9x4rMZSOqA==}
+    hasBin: true
 
   '@anthropic-ai/vertex-sdk@0.6.4':
     resolution: {integrity: sha512-rMBlO2jF53TfMRmsQMm1bPO2JRUh4jYddjq/OJLj8DSAkfbCrNWhc0yhDed6oLYJg5s+VpDbvlPzMggqHhTfMw==}
@@ -11276,6 +11319,10 @@ packages:
     resolution: {integrity: sha512-+W/5efTR7y5HRD7gACw9yQjqMVvEMLBHmboM/kPWam+H+Hmyrgjh6YncVKK122YZkXrLudzTuAukUw9FnMf7IQ==}
     engines: {node: 10.* || >= 12.*}
 
+  cli-table@0.3.11:
+    resolution: {integrity: sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==}
+    engines: {node: '>= 0.2.0'}
+
   cli-truncate@4.0.0:
     resolution: {integrity: sha512-nPdaFdQ0h/GEigbPClz11D0v/ZJEwxmeVZGeMo3Z5StPtUTkA9o1lD6QwoirYiSDzbcwn2XcjwmCp68W1IS4TA==}
     engines: {node: '>=18'}
@@ -11334,6 +11381,10 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
+  colors@1.0.3:
+    resolution: {integrity: sha512-pFGrxThWcWQ2MsAz6RtgeWe4NK2kUE1WfsrvvlctdII745EW9I0yflqhe7++M5LEc7bV2c/9/5zc8sFcpL0Drw==}
+    engines: {node: '>=0.1.90'}
 
   combine-promises@1.2.0:
     resolution: {integrity: sha512-VcQB1ziGD0NXrhKxiwyNbCDmRzs/OShMs2GqW2DlU2A/Sd0nQxE1oWDAE5O0ygSx5mgQOn9eIFh7yKPgFRVkPQ==}
@@ -16958,6 +17009,9 @@ packages:
       '@swc/wasm':
         optional: true
 
+  ts-pattern@5.9.0:
+    resolution: {integrity: sha512-6s5V71mX8qBUmlgbrfL33xDUwO0fq48rxAu2LBE11WBeGdpCPOsXksQbZJHvHwhrd3QjUusd3mAOM5Gg0mFBLg==}
+
   tsconfig-paths@3.15.0:
     resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
 
@@ -18139,7 +18193,7 @@ snapshots:
 
   '@anthropic-ai/bedrock-sdk@0.12.6':
     dependencies:
-      '@anthropic-ai/sdk': 0.37.0
+      '@anthropic-ai/sdk': 0.56.0
       '@aws-crypto/sha256-js': 4.0.0
       '@aws-sdk/client-bedrock-runtime': 3.901.0
       '@aws-sdk/credential-providers': 3.901.0
@@ -18152,7 +18206,15 @@ snapshots:
       '@smithy/util-base64': 2.3.0
     transitivePeerDependencies:
       - aws-crt
-      - encoding
+
+  '@anthropic-ai/claude-code@1.0.128':
+    optionalDependencies:
+      '@img/sharp-darwin-arm64': 0.33.5
+      '@img/sharp-darwin-x64': 0.33.5
+      '@img/sharp-linux-arm': 0.33.5
+      '@img/sharp-linux-arm64': 0.33.5
+      '@img/sharp-linux-x64': 0.33.5
+      '@img/sharp-win32-x64': 0.33.5
 
   '@anthropic-ai/sdk@0.37.0':
     dependencies:
@@ -18166,9 +18228,11 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  '@anthropic-ai/sdk@0.56.0': {}
+
   '@anthropic-ai/vertex-sdk@0.6.4':
     dependencies:
-      '@anthropic-ai/sdk': 0.37.0
+      '@anthropic-ai/sdk': 0.56.0
       google-auth-library: 9.15.1
     transitivePeerDependencies:
       - encoding
@@ -28188,6 +28252,10 @@ snapshots:
     optionalDependencies:
       '@colors/colors': 1.5.0
 
+  cli-table@0.3.11:
+    dependencies:
+      colors: 1.0.3
+
   cli-truncate@4.0.0:
     dependencies:
       slice-ansi: 5.0.0
@@ -28244,6 +28312,8 @@ snapshots:
   colord@2.9.3: {}
 
   colorette@2.0.20: {}
+
+  colors@1.0.3: {}
 
   combine-promises@1.2.0: {}
 
@@ -35677,6 +35747,8 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.13.20
       '@swc/wasm': 1.13.20
+
+  ts-pattern@5.9.0: {}
 
   tsconfig-paths@3.15.0:
     dependencies:
