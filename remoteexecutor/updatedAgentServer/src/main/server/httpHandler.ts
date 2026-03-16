@@ -15,6 +15,7 @@ import { AgentRoutes } from '../../tuiLib/routes/agentRoutes';
 import { ProviderRoutes } from '../../tuiLib/routes/llmProviderRoutes';
 import { ConversationRoutes } from '../../tuiLib/routes/conversationRoutes';
 import { EnvironmentRoutes } from '../../tuiLib/routes/EnvironmentRoutes';
+import { SnapshotRoutes } from '../../tuiLib/routes/snapshotRoutes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,7 @@ export class HttpHandler {
   private providerRoutes: ProviderRoutes;
   private conversationRoutes: ConversationRoutes;
   private environmentRoutes: EnvironmentRoutes;
+  private snapshotRoutes: SnapshotRoutes;
 
   constructor(private app: express.Application) {
     this.startTime = new Date();
@@ -43,6 +45,7 @@ export class HttpHandler {
     this.providerRoutes = new ProviderRoutes();
     this.conversationRoutes = new ConversationRoutes();
     this.environmentRoutes = new EnvironmentRoutes();
+    this.snapshotRoutes = new SnapshotRoutes();
     this.setupRoutes();
   }
 
@@ -72,6 +75,9 @@ export class HttpHandler {
 
     // Mount Environment routes
     this.app.use('/environments', this.environmentRoutes.router);
+
+    // Mount Snapshot routes
+    this.app.use('/snapshot', this.snapshotRoutes.router);
 
     // Health check endpoint
     this.app.get('/health', this.handleHealthCheck.bind(this));
@@ -199,7 +205,8 @@ export class HttpHandler {
         bundle: '/bundle/',
         download: '/download/sampleagent',
         mcp: '/mcp/',
-        todos: '/todos/'
+        todos: '/todos/',
+        snapshot: '/snapshot/'
       },
       websocket: 'ws://localhost:3001',
       documentation: 'See README.md for API documentation'

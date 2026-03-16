@@ -1,7 +1,14 @@
 import { formatLogMessage, Message } from '../../types';
 import { ConnectionManager } from '../../main/core/connectionManagers/connectionManager';
+import { NarrativeService } from '../../main/server/services/NarrativeService';
 import { SendMessageToTui } from '../../tuiLib/tuiMessaging/sendMessageToTui';
+import { SendMessageToRemote } from './sendMessageToRemote';
 import { logger } from '../../main/utils/logger';
+import type {
+  SnapshotArchiveImportMessage,
+  SnapshotExportRequest,
+} from '../../types/messages';
+import { getServerConfig } from '../../main/config/config';
 
 /**
  * Routes inbound messages arriving from the remote proxy to local recipients.
@@ -12,6 +19,18 @@ export class RemoteMessageRouter {
 
   handleRemoteMessage(message: Message): void {
     logger.info(formatLogMessage('info', 'RemoteMessageRouter', `Handling remote message of type ${message.type}`));
+
+    // Handle snapshot archive import from cloud proxy
+    if (message.type === 'snapshotArchiveImport') {
+      this.handleSnapshotImport(message as unknown as SnapshotArchiveImportMessage);
+      return;
+    }
+
+    // Handle snapshot export request from cloud proxy
+    if (message.type === 'snapshotExportRequest') {
+      this.handleSnapshotExport(message as unknown as SnapshotExportRequest);
+      return;
+    }
 
     const { target, agentId, clientId, tuiId } = message as Message & {
       target?: 'agent' | 'app' | 'tui';
@@ -31,6 +50,73 @@ export class RemoteMessageRouter {
       default:
         this.forwardToApp(clientId, message);
         break;
+    }
+  }
+
+  private async handleSnapshotImport(message: SnapshotArchiveImportMessage): Promise<void> {
+    const narrativeService = NarrativeService.getInstance();
+    const sendRemote = new SendMessageToRemote();
+    try {
+      const result = await narrativeService.importArchive(message.archiveData, {
+        environmentId: message.environmentId,
+        environmentName: message.environmentName,
+        snapshotId: message.snapshotId,
+        workspacePath: message.workspacePath,
+        narrativeContext: message.narrativeContext,
+      });
+      sendRemote.forwardAppMessage(undefined, {
+        type: 'snapshotArchiveImportResult',
+        success: true,
+        snapshotId: result.snapshot_id,
+        treeHash: result.tree_hash,
+        environmentId: message.environmentId,
+      } as any);
+    } catch (error) {
+      logger.error(
+        formatLogMessage('error', 'RemoteMessageRouter', `Snapshot import failed: ${(error as Error).message}`)
+      );
+      sendRemote.forwardAppMessage(undefined, {
+        type: 'snapshotArchiveImportResult',
+        success: false,
+        environmentId: message.environmentId,
+        error: (error as Error).message,
+      } as any);
+    }
+  }
+
+  private async handleSnapshotExport(message: SnapshotExportRequest): Promise<void> {
+    const narrativeService = NarrativeService.getInstance();
+    const sendRemote = new SendMessageToRemote();
+    try {
+      // Auto-initialize NarrativeService if no archive was imported beforehand
+      if (!narrativeService.isInitialized) {
+        const config = getServerConfig();
+        const workspace = config.projectPath || process.cwd();
+        await narrativeService.initialize(message.environmentId, workspace);
+      }
+      const result = await narrativeService.exportBundle();
+      sendRemote.forwardAppMessage(undefined, {
+        type: 'snapshotBundleExport',
+        bundleData: result.bundleData,
+        snapshotId: result.snapshotId,
+        baseSnapshotId: result.baseSnapshotId,
+        environmentId: message.environmentId,
+        success: true,
+        ...(result.narrativeContext ? { narrativeContext: result.narrativeContext } : {}),
+      } as any);
+    } catch (error) {
+      logger.error(
+        formatLogMessage('error', 'RemoteMessageRouter', `Snapshot export failed: ${(error as Error).message}`)
+      );
+      sendRemote.forwardAppMessage(undefined, {
+        type: 'snapshotBundleExport',
+        bundleData: '',
+        snapshotId: '',
+        baseSnapshotId: null,
+        environmentId: message.environmentId,
+        success: false,
+        error: (error as Error).message,
+      } as any);
     }
   }
 

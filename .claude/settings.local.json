@@ -58,7 +58,8 @@
       "Bash(mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/services && mkdir -p /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b-remote-provider/src/utils)",
       "Bash(which e2b:*)",
       "Bash(npx e2b:*)",
-      "Bash(e2b --version 2>&1)"
+      "Bash(e2b --version 2>&1)",
+      "Bash(pnpm:*)"
     ],
     "deny": [],
     "ask": []

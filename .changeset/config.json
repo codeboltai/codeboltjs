@@ -5,8 +5,6 @@
   "fixed": [],
   "linked": [
     [
-      "@codebolt/codeboltjs",
-      "@codebolt/types",
       "@codebolt/agent",
       "@codebolt/provider"
     ],

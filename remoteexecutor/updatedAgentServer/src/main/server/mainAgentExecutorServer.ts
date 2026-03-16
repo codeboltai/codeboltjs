@@ -12,6 +12,7 @@ import { UserMessage } from '@codebolt/types/sdk-types';
 import e from 'express';
 import { logger } from '../utils/logger';
 import { AgentService } from './services/AgentService';
+import { NarrativeService } from './services/NarrativeService';
 
 /**
  * Main Docker Server class
@@ -209,6 +210,9 @@ export class AgentExecutorServer {
    */
   public async stop(): Promise<void> {
     logger.info('Stopping Docker Server...');
+
+    // Stop NarrativeService
+    await NarrativeService.getInstance().shutdown();
 
     // Stop managed processes
     await this.childAgentProcessManager.stopAll();

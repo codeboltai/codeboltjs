@@ -2598,31 +2598,133 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.56.0
         version: 0.56.0
+      '@babel/core':
+        specifier: ^7.26.0
+        version: 7.28.6
       '@codebolt/codeboltjs':
-        specifier: ^5.1.24
+        specifier: latest
         version: 5.1.24(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
-        specifier: ^5.1.11
+        specifier: ^5.1.12
         version: 5.1.12
-      cli-table:
-        specifier: ^0.3.11
-        version: 0.3.11
+      copy-webpack-plugin:
+        specifier: ^12.0.2
+        version: 12.0.2(webpack@5.104.1)
+      node-loader:
+        specifier: ^2.1.0
+        version: 2.1.0(webpack@5.104.1)
       ts-pattern:
         specifier: ^5.7.1
         version: 5.9.0
+      utf-8-validate:
+        specifier: ^6.0.5
+        version: 6.0.5
     devDependencies:
+      '@babel/preset-env':
+        specifier: ^7.26.0
+        version: 7.28.6(@babel/core@7.28.6)
       '@types/node':
-        specifier: ^20.0.0
+        specifier: ^20.11.25
         version: 20.19.19
-      ts-node:
-        specifier: ^10.9.0
-        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
+      assert:
+        specifier: ^2.1.0
+        version: 2.1.0
+      babel-loader:
+        specifier: ^9.2.1
+        version: 9.2.1(@babel/core@7.28.6)(webpack@5.104.1)
+      browserify-zlib:
+        specifier: ^0.2.0
+        version: 0.2.0
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
+      bufferutil:
+        specifier: ^4.0.8
+        version: 4.0.9
+      console-browserify:
+        specifier: ^1.2.0
+        version: 1.2.0
+      constants-browserify:
+        specifier: ^1.0.0
+        version: 1.0.0
+      crypto-browserify:
+        specifier: ^3.12.1
+        version: 3.12.1
+      domain-browser:
+        specifier: ^5.7.0
+        version: 5.7.0
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
+      https-browserify:
+        specifier: ^1.0.0
+        version: 1.0.0
+      ignore-loader:
+        specifier: ^0.1.2
+        version: 0.1.2
+      node-polyfill-webpack-plugin:
+        specifier: ^4.1.0
+        version: 4.1.0(webpack@5.104.1)
+      os-browserify:
+        specifier: ^0.3.0
+        version: 0.3.0
+      path-browserify:
+        specifier: ^1.0.1
+        version: 1.0.1
+      process:
+        specifier: ^0.11.10
+        version: 0.11.10
+      punycode:
+        specifier: ^2.3.1
+        version: 2.3.1
+      querystring-es3:
+        specifier: ^0.2.1
+        version: 0.2.1
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      stream-browserify:
+        specifier: ^3.0.0
+        version: 3.0.0
+      stream-http:
+        specifier: ^3.2.0
+        version: 3.2.0
+      string_decoder:
+        specifier: ^1.3.0
+        version: 1.3.0
+      timers-browserify:
+        specifier: ^2.0.12
+        version: 2.0.12
+      ts-loader:
+        specifier: ^9.5.1
+        version: 9.5.4(typescript@5.9.3)(webpack@5.104.1)
       tsx:
-        specifier: ^4.20.3
+        specifier: ^4.7.0
         version: 4.20.6
+      tty-browserify:
+        specifier: ^0.0.1
+        version: 0.0.1
       typescript:
-        specifier: ^5.0.0
+        specifier: ^5.3.3
         version: 5.9.3
+      url:
+        specifier: ^0.11.4
+        version: 0.11.4
+      util:
+        specifier: ^0.12.5
+        version: 0.12.5
+      vm-browserify:
+        specifier: ^1.1.2
+        version: 1.1.2
+      webpack:
+        specifier: ^5.96.1
+        version: 5.104.1(webpack-cli@5.1.4)
+      webpack-cli:
+        specifier: ^5.1.4
+        version: 5.1.4(webpack@5.104.1)
+      webpack-node-externals:
+        specifier: ^3.0.0
+        version: 3.0.0
 
   agents/geminiAgentTest:
     dependencies:
@@ -3709,9 +3811,6 @@ importers:
       '@codebolt/codeboltjs':
         specifier: ^5.1.19
         version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      '@codebolt/narrative':
-        specifier: file:../../../CodeBolt/packages/narrativejspackage
-        version: file:../CodeBolt/packages/narrativejspackage
       '@codebolt/provider':
         specifier: workspace:*
         version: link:../../packages/provider
@@ -3932,6 +4031,9 @@ importers:
       '@arrowai/multillm':
         specifier: latest
         version: 1.1.53(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
+      '@codebolt/narrative':
+        specifier: latest
+        version: 1.12.4
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -5810,15 +5912,28 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@codebolt/narrative-darwin-arm64@1.12.4':
+    resolution: {integrity: sha512-R4qpE05cGzkZlCTf+fuD+s11lWkp6Mkzp61oJSbg30hDERPTfe9ybkZTZXAi3EoaQf+3RtIUKGrBeMzOr5duNw==}
+
   '@codebolt/narrative-linux-x64@1.11.0':
     resolution: {integrity: sha512-afa9QelvcV1nbu4tgv0EeVAaPl1qO6Z7SqkCxHFHDkGKvAk5KA7/oZXVTbEAPu23hZFZabNfnLIIR5uNHqaWnA==}
     cpu: [x64]
     os: [linux]
 
+  '@codebolt/narrative-linux-x64@1.12.4':
+    resolution: {integrity: sha512-fWjWokJR2jjtziyuebkgDdWzwwwB+rnTq2J2d+uoRBlm1h76M8vewA+xfXgkVlDKbxQogFwrq3luzQrTDxTdtQ==}
+
   '@codebolt/narrative-win32-x64@1.11.0':
     resolution: {integrity: sha512-GmAxj0CDxFkCyPCY2U8n6HDg3TFKUq3vUjgKnznPzHWnFCb6S+FOzov0KHUBWShq0mM3ytjK3H/j5qkN7LAJPw==}
     cpu: [x64]
     os: [win32]
+
+  '@codebolt/narrative-win32-x64@1.12.4':
+    resolution: {integrity: sha512-I5+b+pILWX/01Y2ZT+kCEfuZtXjunsBkNrLUTVuOHTa0uQcYdq+QdDodbG9++uDXgBGi+O1iWEUZh6NO4VXgKA==}
+
+  '@codebolt/narrative@1.12.4':
+    resolution: {integrity: sha512-wB2eyEyxAGntkJH6l3lULN44FBIq/SSlx2usuyWXZ0ptvtXbL0FykY1a3+zoKshg0bzeMOf/R8dJl0+qPVlNZQ==}
+    engines: {node: '>=16.0.0'}
 
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
@@ -11319,10 +11434,6 @@ packages:
     resolution: {integrity: sha512-+W/5efTR7y5HRD7gACw9yQjqMVvEMLBHmboM/kPWam+H+Hmyrgjh6YncVKK122YZkXrLudzTuAukUw9FnMf7IQ==}
     engines: {node: 10.* || >= 12.*}
 
-  cli-table@0.3.11:
-    resolution: {integrity: sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==}
-    engines: {node: '>= 0.2.0'}
-
   cli-truncate@4.0.0:
     resolution: {integrity: sha512-nPdaFdQ0h/GEigbPClz11D0v/ZJEwxmeVZGeMo3Z5StPtUTkA9o1lD6QwoirYiSDzbcwn2XcjwmCp68W1IS4TA==}
     engines: {node: '>=18'}
@@ -11381,10 +11492,6 @@ packages:
 
   colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
-
-  colors@1.0.3:
-    resolution: {integrity: sha512-pFGrxThWcWQ2MsAz6RtgeWe4NK2kUE1WfsrvvlctdII745EW9I0yflqhe7++M5LEc7bV2c/9/5zc8sFcpL0Drw==}
-    engines: {node: '>=0.1.90'}
 
   combine-promises@1.2.0:
     resolution: {integrity: sha512-VcQB1ziGD0NXrhKxiwyNbCDmRzs/OShMs2GqW2DlU2A/Sd0nQxE1oWDAE5O0ygSx5mgQOn9eIFh7yKPgFRVkPQ==}
@@ -20989,11 +21096,26 @@ snapshots:
   '@codebolt/narrative-darwin-arm64@1.11.0':
     optional: true
 
+  '@codebolt/narrative-darwin-arm64@1.12.4':
+    optional: true
+
   '@codebolt/narrative-linux-x64@1.11.0':
+    optional: true
+
+  '@codebolt/narrative-linux-x64@1.12.4':
     optional: true
 
   '@codebolt/narrative-win32-x64@1.11.0':
     optional: true
+
+  '@codebolt/narrative-win32-x64@1.12.4':
+    optional: true
+
+  '@codebolt/narrative@1.12.4':
+    optionalDependencies:
+      '@codebolt/narrative-darwin-arm64': 1.12.4
+      '@codebolt/narrative-linux-x64': 1.12.4
+      '@codebolt/narrative-win32-x64': 1.12.4
 
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     optionalDependencies:
@@ -28252,10 +28374,6 @@ snapshots:
     optionalDependencies:
       '@colors/colors': 1.5.0
 
-  cli-table@0.3.11:
-    dependencies:
-      colors: 1.0.3
-
   cli-truncate@4.0.0:
     dependencies:
       slice-ansi: 5.0.0
@@ -28312,8 +28430,6 @@ snapshots:
   colord@2.9.3: {}
 
   colorette@2.0.20: {}
-
-  colors@1.0.3: {}
 
   combine-promises@1.2.0: {}
 

@@ -27,7 +27,6 @@
     "@codebolt/provider": "workspace:*",
     "@codebolt/types": "^5.1.12",
     "@codebolt/agentserver": "latest",
-    "@codebolt/narrative": "file:../../../CodeBolt/packages/narrativejspackage",
     "@e2b/code-interpreter": "latest",
     "ws": "^8.18.0"
   },

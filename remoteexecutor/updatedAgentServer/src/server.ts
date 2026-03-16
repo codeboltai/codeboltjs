@@ -32,6 +32,7 @@ function setupCLI(): AgentCliOptions {
     .option('--model-name <name>', 'default model name to pass to TUI')
     .option('--model-provider <provider>', 'default model provider to pass to TUI')
     .option('--project-path <path>', 'path to the project')
+    .option('--environment-id <id>', 'environment ID for narrative snapshot tracking')
     .addHelpText('after', `
  Examples:
    $ codebolt-code                    # Start with TUI interface
@@ -75,7 +76,8 @@ function setupCLI(): AgentCliOptions {
     prompt: resolveStringOption(options.prompt, 'prompt'),
     modelName: resolveStringOption(options.modelName, 'model-name') ?? process.env.SELECTED_MODEL_NAME,
     modelProvider: resolveStringOption(options.modelProvider, 'model-provider') ?? process.env.SELECTED_MODEL_PROVIDER,
-    projectPath: resolveStringOption(options.projectPath, 'project-path')
+    projectPath: resolveStringOption(options.projectPath, 'project-path'),
+    environmentId: resolveStringOption(options.environmentId, 'environment-id')
   };
 }
 

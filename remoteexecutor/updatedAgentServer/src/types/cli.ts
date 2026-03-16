@@ -19,4 +19,5 @@ export interface AgentCliOptions {
   modelName?: string;
   modelProvider?: string;
   projectPath?: string;
+  environmentId?: string;
 }

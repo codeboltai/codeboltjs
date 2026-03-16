@@ -79,18 +79,79 @@ export interface CustomOperationMessage extends BaseMessage {
   data?: unknown;
 }
 
+// --- Snapshot archive import/export messages ---
+
+/**
+ * Import: Server/Provider → Remote Executor
+ */
+export interface SnapshotArchiveImportMessage extends BaseMessage {
+  type: 'snapshotArchiveImport';
+  archiveData: string;          // base64-encoded .tar.gz
+  environmentId: string;
+  environmentName: string;
+  snapshotId?: string;          // server-side snapshot ID for diff base
+  workspacePath?: string;       // target workspace path
+  narrativeContext?: {           // parent server's narrative hierarchy IDs
+    objective_id: string;
+    narrative_thread_id: string;
+    agent_run_id: string;
+  };
+}
+
+/**
+ * Import result: Remote Executor → Server/Provider
+ */
+export interface SnapshotArchiveImportResult extends BaseMessage {
+  type: 'snapshotArchiveImportResult';
+  success: boolean;
+  snapshotId?: string;
+  treeHash?: string;
+  environmentId: string;
+  error?: string;
+}
+
+/**
+ * Export request: Server → Remote Executor
+ */
+export interface SnapshotExportRequest extends BaseMessage {
+  type: 'snapshotExportRequest';
+  environmentId: string;
+}
+
+/**
+ * Export result: Remote Executor → Server
+ */
+export interface SnapshotBundleExport extends BaseMessage {
+  type: 'snapshotBundleExport';
+  bundleData: string;           // base64-encoded .bundle file
+  snapshotId: string;
+  baseSnapshotId: string | null;
+  environmentId: string;
+  success: boolean;
+  error?: string;
+  narrativeContext?: {           // echoed back from import for parent to complete agent run
+    objective_id: string;
+    narrative_thread_id: string;
+    agent_run_id: string;
+  };
+}
+
 /**
  * Union type of all possible messages
  */
-export type Message = 
+export type Message =
   | RegisterMessage
-  | ReadFileMessage 
+  | ReadFileMessage
   | WriteFileMessage
   | AskAIMessage
   | ResponseMessage
   | ConnectionMessage
   | RegisteredMessage
-  | CustomOperationMessage;
+  | CustomOperationMessage
+  | SnapshotArchiveImportMessage
+  | SnapshotArchiveImportResult
+  | SnapshotExportRequest
+  | SnapshotBundleExport;
 
 /**
  * Union type of messages that can be sent by clients

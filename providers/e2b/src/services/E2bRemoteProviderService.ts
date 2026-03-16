@@ -5,7 +5,6 @@ import {
   BaseProvider,
   ProviderStartResult,
 } from '@codebolt/provider';
-import { NarrativeClient } from '@codebolt/narrative';
 import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 
@@ -75,9 +74,6 @@ interface E2bProviderConfig {
 export class E2bRemoteProviderService extends BaseProvider {
   private sandbox: any = null;
   private sandboxId: string | null = null;
-  private narrativeClient: NarrativeClient | null = null;
-  private importedSnapshotId: string | null = null;
-  private serverSnapshotId: string | null = null;
   private baseProjectPath: string | null = null;
   private sandboxWorkspacePath: string = '/home/user';
   private isStartupCheck = false;
@@ -290,17 +286,6 @@ export class E2bRemoteProviderService extends BaseProvider {
       }
 
       await this.stopAgentServer();
-
-      // Shutdown NarrativeClient
-      if (this.narrativeClient) {
-        try {
-          await this.narrativeClient.shutdown();
-          this.logger.log('Narrative client shut down');
-        } catch (error) {
-          this.logger.error('Error shutting down narrative client:', error);
-        }
-        this.narrativeClient = null;
-      }
 
       // Teardown E2B sandbox
       if (this.sandbox) {
@@ -521,89 +506,96 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onSendPR(): Promise<any> {
-    this.logger.log('onSendPR started');
-    this.logger.log('Sandbox available:', !!this.sandbox, 'Narrative client available:', !!this.narrativeClient);
-    this.logger.log('Sandbox workspace path:', this.sandboxWorkspacePath);
-    this.logger.log('Local project path:', this.state.projectPath);
-    this.logger.log('Server snapshot ID:', this.serverSnapshotId);
+    this.logger.log('onSendPR started — delegating snapshot export to remote agent server');
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
 
-    if (!this.narrativeClient) {
-      throw new Error('Narrative client is not initialized');
-    }
-
-    // Step 1: Sync sandbox workspace files to local so the snapshot captures them
-    const localProjectPath = this.state.projectPath!;
-    await fs.mkdir(localProjectPath, { recursive: true });
-    this.logger.log('Step 1: Creating tar archive in sandbox (excluding node_modules, .git)...');
-    const tarResult = await this.sandbox.commands.run(
-      `cd ${this.sandboxWorkspacePath} && tar -czf /tmp/sandbox-workspace.tar.gz --exclude='node_modules' --exclude='.git' --exclude='.cache' --exclude='.npm' .`,
-      { timeoutMs: 120_000 },
-    );
-    this.logger.log('Step 1: Tar created, exit code:', tarResult.exitCode);
-
-    this.logger.log('Step 1: Reading base64 of archive...');
-    const base64Result = await this.sandbox.commands.run(
-      'base64 /tmp/sandbox-workspace.tar.gz',
-      { timeoutMs: 120_000 },
-    );
-    this.logger.log('Step 1: Base64 output length:', base64Result.stdout?.length ?? 0);
-
-    const archiveBuffer = Buffer.from(base64Result.stdout || '', 'base64');
-    this.logger.log('Step 1: Decoded archive size:', archiveBuffer.length, 'bytes');
-
-    const localTmpArchive = path.join(localProjectPath, '.sandbox-sync.tar.gz');
-    await fs.writeFile(localTmpArchive, archiveBuffer);
-    this.logger.log('Step 1: Extracting archive to:', localProjectPath);
-    const { execSync } = require('child_process');
-    execSync(`tar -xzf "${localTmpArchive}" -C "${localProjectPath}"`);
-    await fs.unlink(localTmpArchive);
-    await this.sandbox.commands.run('rm -f /tmp/sandbox-workspace.tar.gz');
-    this.logger.log('Step 1: Sandbox workspace synced to local:', localProjectPath);
-
-    // Step 2: Create a snapshot of the current workspace
-    this.logger.log('Step 2: Creating narrative objective...');
-    const { objective_id } = await this.narrativeClient.narrative.createObjective({
-      description: 'Send PR snapshot',
-    });
-    this.logger.log('Step 2: Objective created:', objective_id);
-    const { thread_id } = await this.narrativeClient.narrative.createThread({
-      objective_id,
-      name: 'send-pr',
-    });
-    this.logger.log('Step 2: Thread created:', thread_id);
-    const { agent_run_id } = await this.narrativeClient.narrative.createAgentRun({
-      thread_id,
-      agent_name: 'send-pr',
-    });
-    this.logger.log('Step 2: Agent run created:', agent_run_id);
-
-    this.logger.log('Step 2: Creating snapshot...');
-    const snapshotResult = await this.narrativeClient.snapshot.createSnapshot({
-      agent_run_id,
-      description: 'send-pr-snapshot',
-    });
-    this.logger.log('Step 2: Snapshot created:', snapshotResult.snapshot_id);
-
-    // Step 3: Export the snapshot as a git bundle
-    this.logger.log('Step 3: Exporting snapshot bundle...');
-    const bundleResult = await this.narrativeClient.snapshot.exportSnapshotBundle({
-      snapshot_id: snapshotResult.snapshot_id,
-      incremental: false,
-    });
-    this.logger.log('Step 3: Bundle exported:', bundleResult.bundle_path);
-
-    const result = {
-      snapshot: snapshotResult,
-      bundle: bundleResult,
-      baseSnapshotId: this.serverSnapshotId,
+    // Send snapshotExportRequest to the agent server running in the sandbox.
+    // The agent server's NarrativeService will handle snapshot creation and bundle export.
+    const environmentId = this.state.environmentName || 'unknown';
+    const exportRequest = {
+      type: 'snapshotExportRequest',
+      id: `export-${Date.now()}`,
+      environmentId,
     };
-    this.logger.log('onSendPR completed, returning:', JSON.stringify(result));
-    return result;
+
+    this.logger.log('Sending snapshotExportRequest to agent server for environment:', environmentId);
+
+    // Wait for the snapshotBundleExport response from the agent server
+    const result = await new Promise<any>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this._pendingExportResolve = null;
+        reject(new Error('Snapshot export timed out after 120 seconds'));
+      }, 120_000);
+
+      // Register a one-time listener for the export response
+      this._pendingExportResolve = (response: any) => {
+        clearTimeout(timeout);
+        if (response.success) {
+          resolve(response);
+        } else {
+          reject(new Error(response.error || 'Snapshot export failed'));
+        }
+      };
+
+      this.sendToAgentServer(exportRequest as any).catch((error) => {
+        clearTimeout(timeout);
+        this._pendingExportResolve = null;
+        reject(error);
+      });
+    });
+
+    this.logger.log('Snapshot export received from agent server:', result.snapshotId);
+
+    return {
+      bundleData: result.bundleData,
+      baseSnapshotId: result.baseSnapshotId,
+      snapshot: { snapshot_id: result.snapshotId },
+    };
   }
+
+  /** Pending resolve callback for snapshot export response from agent server */
+  private _pendingExportResolve: ((response: any) => void) | null = null;
+
+  /**
+   * Sends the deferred snapshotArchiveImport message to the agent server
+   * once the WS connection is established.
+   */
+  private async flushPendingSnapshotImport(): Promise<void> {
+    if (!this._pendingSnapshotImport) return;
+
+    const { archivePath, environmentId, environmentName, snapshotId } = this._pendingSnapshotImport;
+    this._pendingSnapshotImport = null;
+
+    try {
+      const archiveBuffer = await fs.readFile(archivePath);
+      const archiveBase64 = archiveBuffer.toString('base64');
+
+      this.logger.log('Sending snapshotArchiveImport to agent server for environment:', environmentId);
+      await this.sendToAgentServer({
+        type: 'snapshotArchiveImport',
+        id: `import-${Date.now()}`,
+        archiveData: archiveBase64,
+        environmentId,
+        environmentName,
+        snapshotId: snapshotId || undefined,
+        workspacePath: this.sandboxWorkspacePath,
+      } as any);
+      this.logger.log('snapshotArchiveImport sent to agent server');
+    } catch (error) {
+      this.logger.error('Failed to send snapshot import to agent server:', error);
+    }
+  }
+
+  /** Pending snapshot import to send to agent server once WS is connected */
+  private _pendingSnapshotImport: {
+    archivePath: string;
+    environmentId: string;
+    environmentName: string;
+    snapshotId: string | null;
+  } | null = null;
 
   // --- BaseProvider abstract method implementations ---
 
@@ -708,39 +700,12 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.logger.log('Repository cloned successfully');
     }
 
-    // Initialize NarrativeClient for snapshot tracking (optional)
-    const environmentId = (process.env.environmentId as string) || initVars.environmentName;
-    try {
-      this.narrativeClient = new NarrativeClient({
-        environmentId,
-        workspace: this.state.projectPath ?? undefined,
-        remote: true,
-      });
-
-      await this.narrativeClient.start();
-      this.logger.log('Narrative engine started in remote mode for environment:', environmentId);
-    } catch (narrativeError) {
-      this.logger.warn('Narrative engine not available, snapshot features will be disabled:', narrativeError);
-      this.narrativeClient = null;
-    }
-
-    // Import snapshot archive if provided
+    // Import snapshot archive if provided — upload to sandbox and send to agent server's NarrativeService
     const archivePath = initVars.archivePath as string | undefined;
-    this.serverSnapshotId = (initVars as any).snapshotId || null;
-    if (archivePath) {
-      // Track snapshot metadata locally via narrative engine (if available)
-      if (this.narrativeClient) {
-        this.logger.log('Importing snapshot metadata via narrative engine:', archivePath);
-        const importResult = await this.narrativeClient.snapshot.importSnapshotArchive({
-          archive_path: archivePath,
-          thread_id: 'provider-init',
-          remote_environment_id: environmentId,
-        });
-        this.importedSnapshotId = importResult.snapshot_id;
-        this.logger.log('Imported snapshot:', importResult.snapshot_id, 'tree_hash:', importResult.tree_hash);
-        this.logger.log('Server snapshot ID (for diff base):', this.serverSnapshotId);
-      }
+    const serverSnapshotId = (initVars as any).snapshotId || null;
+    const environmentId = (process.env.environmentId as string) || initVars.environmentName;
 
+    if (archivePath) {
       // Upload archive to sandbox and extract it there
       if (this.sandbox) {
         const remoteTmpArchive = '/tmp/snapshot-archive.tar.gz';
@@ -758,6 +723,15 @@ export class E2bRemoteProviderService extends BaseProvider {
         await this.sandbox.commands.run(`rm -f ${remoteTmpArchive} /tmp/snapshot-archive-decoded.tar.gz`);
         this.logger.log('Snapshot files extracted to sandbox successfully');
       }
+
+      // Send archive to agent server's NarrativeService for snapshot tracking via WS
+      // (deferred until agent server WS is connected — see connectTransport)
+      this._pendingSnapshotImport = {
+        archivePath,
+        environmentId,
+        environmentName: initVars.environmentName,
+        snapshotId: serverSnapshotId,
+      };
     }
   }
 
@@ -795,16 +769,6 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   protected async teardownEnvironment(): Promise<void> {
-    if (this.narrativeClient) {
-      try {
-        await this.narrativeClient.shutdown();
-        this.logger.log('Narrative engine shut down');
-      } catch (error) {
-        this.logger.error('Error shutting down narrative engine:', error);
-      }
-      this.narrativeClient = null;
-    }
-
     if (this.sandbox) {
       try {
         await this.sandbox.kill();
@@ -903,6 +867,8 @@ export class E2bRemoteProviderService extends BaseProvider {
             isRegistered = true;
             clearTimeout(registrationTimeout);
             this.logger.log('WebSocket registered with agent server');
+            // Send pending snapshot import to agent server's NarrativeService
+            this.flushPendingSnapshotImport();
             resolve();
           }
           this.handleTransportMessage(payload);
@@ -1054,6 +1020,26 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.logger.log('WebSocket message received from E2B:', message.type);
       }
 
+      // Log snapshot archive import result from agent server
+      if (message.type === 'snapshotArchiveImportResult') {
+        const importResult = message as any;
+        if (importResult.success) {
+          this.logger.log('Snapshot archive imported by agent server: snapshot=', importResult.snapshotId);
+        } else {
+          this.logger.error('Snapshot archive import failed on agent server:', importResult.error);
+        }
+        return;
+      }
+
+      // Intercept snapshot bundle export response from agent server
+      if (message.type === 'snapshotBundleExport' && this._pendingExportResolve) {
+        this.logger.log('Received snapshotBundleExport from agent server');
+        const resolve = this._pendingExportResolve;
+        this._pendingExportResolve = null;
+        resolve(message);
+        return;
+      }
+
       switch (message.type) {
         case 'agentStartResponse':
           this.logger.log('Agent start response:', message.data ?? 'unknown');
@@ -1135,16 +1121,21 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.logger.log('Agent server uploaded to sandbox');
       serverEntrypoint = remoteServerPath;
     } else {
-      // Production mode: install from npm registry
-      this.logger.log(`Installing @codebolt/agentserver in sandbox...`);
+      // Production mode: install globally from npm registry
+      // Using -g so it doesn't pollute the project's node_modules or package.json
+      // Use --ignore-scripts to avoid onnxruntime-node's post-install downloading ~500MB GPU binaries
+      // which OOM-kills small sandbox instances (exit code 137).
+      this.logger.log(`Installing @codebolt/agentserver globally in sandbox...`);
       const installResult = await this.sandbox.commands.run(
-        `cd ${this.sandboxWorkspacePath} && npm install @codebolt/agentserver`,
+        `sudo npm install -g --ignore-scripts @codebolt/agentserver`,
+        { timeoutMs: 300_000 }, // 5 minutes — large package tree
       );
       if (installResult.exitCode !== 0) {
         throw new Error(`Failed to install @codebolt/agentserver in sandbox: ${installResult.stderr}`);
       }
-      this.logger.log('Installed @codebolt/agentserver in sandbox');
-      serverEntrypoint = `$(node -p "require.resolve('@codebolt/agentserver')")`;
+      this.logger.log('Installed @codebolt/agentserver globally in sandbox');
+      // npm -g installs the "bin" entry as `codebolt-agentserver` on PATH
+      serverEntrypoint = '$(which codebolt-agentserver)';
     }
 
     // Start the agent server as a background command
