@@ -120,6 +120,13 @@ export class NarrativeService {
       narrative_thread_id: string;
       agent_run_id: string;
     };
+    narrativeSummary?: {
+      snapshots_count: number;
+      commits_count: number;
+      execution_traces_count: number;
+      trace_records_count: number;
+      agent_runs_count: number;
+    };
   }> {
     if (!this.client) {
       throw new Error('NarrativeService not initialized — import an archive first');
@@ -167,16 +174,16 @@ export class NarrativeService {
       `[NarrativeService:exportBundle] Snapshot created: snapshot_id=${snapshotResult.snapshot_id}, tree_hash=${snapshotResult.tree_hash}`
     );
 
-    // Export as git bundle
+    // Export as unified bundle (git + SQLite narrative data)
     logger.info(
-      `[NarrativeService:exportBundle] Exporting snapshot ${snapshotResult.snapshot_id} as git bundle (incremental=false)`
+      `[NarrativeService:exportBundle] Exporting snapshot ${snapshotResult.snapshot_id} as unified bundle (git + narrative data)`
     );
-    const bundleResult = await this.client.snapshot.exportSnapshotBundle({
+    const bundleResult = await this.client.snapshot.exportUnifiedBundle({
       snapshot_id: snapshotResult.snapshot_id,
       incremental: false,
     });
     logger.info(
-      `[NarrativeService:exportBundle] Bundle created at: ${bundleResult.bundle_path}`
+      `[NarrativeService:exportBundle] Unified bundle created at: ${bundleResult.bundle_path}`
     );
 
     // Read bundle file and base64 encode
@@ -187,7 +194,8 @@ export class NarrativeService {
     logger.info(
       `[NarrativeService:exportBundle] Export complete for environment ${this.environmentId}: ` +
       `snapshot=${snapshotResult.snapshot_id}, baseSnapshot=${this.serverSnapshotId || 'none'}, ` +
-      `bundleSize=${bundleSizeKB}KB, hasNarrativeContext=${!!this.narrativeContext}`
+      `bundleSize=${bundleSizeKB}KB, hasNarrativeContext=${!!this.narrativeContext}, ` +
+      `narrativeSummary=${JSON.stringify(bundleResult.narrative_summary)}`
     );
 
     return {
@@ -196,6 +204,7 @@ export class NarrativeService {
       baseSnapshotId: this.serverSnapshotId,
       // Echo back narrative context so the parent server can complete the agent run
       ...(this.narrativeContext ? { narrativeContext: this.narrativeContext } : {}),
+      narrativeSummary: bundleResult.narrative_summary,
     };
   }
 

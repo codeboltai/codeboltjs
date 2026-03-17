@@ -4032,8 +4032,8 @@ importers:
         specifier: latest
         version: 1.1.53(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.76)
       '@codebolt/narrative':
-        specifier: latest
-        version: 1.12.4
+        specifier: ^1.12.5
+        version: 1.12.5
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -5912,27 +5912,27 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
-  '@codebolt/narrative-darwin-arm64@1.12.4':
-    resolution: {integrity: sha512-R4qpE05cGzkZlCTf+fuD+s11lWkp6Mkzp61oJSbg30hDERPTfe9ybkZTZXAi3EoaQf+3RtIUKGrBeMzOr5duNw==}
+  '@codebolt/narrative-darwin-arm64@1.12.5':
+    resolution: {integrity: sha512-+dtMBweNvtx+up3pldAe7JlEVEeGZNFGPTbztUKGg93Kx1gxDbe7txxQXMRtrTeiMHVLVsC6fDPG/aAD5KR1Lw==}
 
   '@codebolt/narrative-linux-x64@1.11.0':
     resolution: {integrity: sha512-afa9QelvcV1nbu4tgv0EeVAaPl1qO6Z7SqkCxHFHDkGKvAk5KA7/oZXVTbEAPu23hZFZabNfnLIIR5uNHqaWnA==}
     cpu: [x64]
     os: [linux]
 
-  '@codebolt/narrative-linux-x64@1.12.4':
-    resolution: {integrity: sha512-fWjWokJR2jjtziyuebkgDdWzwwwB+rnTq2J2d+uoRBlm1h76M8vewA+xfXgkVlDKbxQogFwrq3luzQrTDxTdtQ==}
+  '@codebolt/narrative-linux-x64@1.12.5':
+    resolution: {integrity: sha512-z1RwxMMiuMRizIsPCJGbvgwC93kUXdKA9L682BfdmFUrSx9qvb+KdKWYD+OkhJcYmuHffVlnQ9rMRWNUBMvTrg==}
 
   '@codebolt/narrative-win32-x64@1.11.0':
     resolution: {integrity: sha512-GmAxj0CDxFkCyPCY2U8n6HDg3TFKUq3vUjgKnznPzHWnFCb6S+FOzov0KHUBWShq0mM3ytjK3H/j5qkN7LAJPw==}
     cpu: [x64]
     os: [win32]
 
-  '@codebolt/narrative-win32-x64@1.12.4':
-    resolution: {integrity: sha512-I5+b+pILWX/01Y2ZT+kCEfuZtXjunsBkNrLUTVuOHTa0uQcYdq+QdDodbG9++uDXgBGi+O1iWEUZh6NO4VXgKA==}
+  '@codebolt/narrative-win32-x64@1.12.5':
+    resolution: {integrity: sha512-c5tv4suvKFD1ekvLGpicwGnjNeINvsigM15zy9ApjaGxR6Hlt8tuaKRaaJR1wvPeX3DR56t9xYKdO8JxZWLjEQ==}
 
-  '@codebolt/narrative@1.12.4':
-    resolution: {integrity: sha512-wB2eyEyxAGntkJH6l3lULN44FBIq/SSlx2usuyWXZ0ptvtXbL0FykY1a3+zoKshg0bzeMOf/R8dJl0+qPVlNZQ==}
+  '@codebolt/narrative@1.12.5':
+    resolution: {integrity: sha512-E5wc5tclaAcyYej4aCR1FS34PXk4ECzDKUjkeSqjGtXT9Gut6UfqJgg6CHZhPiutNTiIPK9HB4J7dEn4xBlY0g==}
     engines: {node: '>=16.0.0'}
 
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
@@ -21096,26 +21096,26 @@ snapshots:
   '@codebolt/narrative-darwin-arm64@1.11.0':
     optional: true
 
-  '@codebolt/narrative-darwin-arm64@1.12.4':
+  '@codebolt/narrative-darwin-arm64@1.12.5':
     optional: true
 
   '@codebolt/narrative-linux-x64@1.11.0':
     optional: true
 
-  '@codebolt/narrative-linux-x64@1.12.4':
+  '@codebolt/narrative-linux-x64@1.12.5':
     optional: true
 
   '@codebolt/narrative-win32-x64@1.11.0':
     optional: true
 
-  '@codebolt/narrative-win32-x64@1.12.4':
+  '@codebolt/narrative-win32-x64@1.12.5':
     optional: true
 
-  '@codebolt/narrative@1.12.4':
+  '@codebolt/narrative@1.12.5':
     optionalDependencies:
-      '@codebolt/narrative-darwin-arm64': 1.12.4
-      '@codebolt/narrative-linux-x64': 1.12.4
-      '@codebolt/narrative-win32-x64': 1.12.4
+      '@codebolt/narrative-darwin-arm64': 1.12.5
+      '@codebolt/narrative-linux-x64': 1.12.5
+      '@codebolt/narrative-win32-x64': 1.12.5
 
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     optionalDependencies:

@@ -103,6 +103,7 @@ export class RemoteMessageRouter {
         environmentId: message.environmentId,
         success: true,
         ...(result.narrativeContext ? { narrativeContext: result.narrativeContext } : {}),
+        ...(result.narrativeSummary ? { narrativeSummary: result.narrativeSummary } : {}),
       } as any);
     } catch (error) {
       logger.error(

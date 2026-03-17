@@ -62,7 +62,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@codebolt/narrative": "latest",
+    "@codebolt/narrative": "^1.12.5",
     "@arrowai/multillm": "latest",
     "@codebolt/types": "^5.1.12",
     "@types/js-yaml": "^4.0.9",

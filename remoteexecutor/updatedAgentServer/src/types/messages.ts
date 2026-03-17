@@ -123,7 +123,7 @@ export interface SnapshotExportRequest extends BaseMessage {
  */
 export interface SnapshotBundleExport extends BaseMessage {
   type: 'snapshotBundleExport';
-  bundleData: string;           // base64-encoded .bundle file
+  bundleData: string;           // base64-encoded unified bundle (git + narrative data)
   snapshotId: string;
   baseSnapshotId: string | null;
   environmentId: string;
@@ -133,6 +133,13 @@ export interface SnapshotBundleExport extends BaseMessage {
     objective_id: string;
     narrative_thread_id: string;
     agent_run_id: string;
+  };
+  narrativeSummary?: {          // summary of SQLite narrative data included in bundle
+    snapshots_count: number;
+    commits_count: number;
+    execution_traces_count: number;
+    trace_records_count: number;
+    agent_runs_count: number;
   };
 }
 

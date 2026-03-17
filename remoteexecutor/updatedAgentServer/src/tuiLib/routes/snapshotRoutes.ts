@@ -59,6 +59,9 @@ export class SnapshotRoutes {
           res.setHeader('X-Narrative-Thread-Id', result.narrativeContext.narrative_thread_id);
           res.setHeader('X-Narrative-Agent-Run-Id', result.narrativeContext.agent_run_id);
         }
+        if (result.narrativeSummary) {
+          res.setHeader('X-Narrative-Summary', JSON.stringify(result.narrativeSummary));
+        }
         res.send(bundleBuffer);
       } catch (error) {
         logger.error(`Snapshot export HTTP error: ${(error as Error).message}`);
