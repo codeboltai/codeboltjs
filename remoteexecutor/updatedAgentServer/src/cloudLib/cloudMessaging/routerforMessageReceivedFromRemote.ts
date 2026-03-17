@@ -32,6 +32,16 @@ export class RemoteMessageRouter {
       return;
     }
 
+    // Handle setNarrativeContext — update the NarrativeService with the parent server's context
+    if ((message as any).type === 'setNarrativeContext') {
+      const ctx = (message as any).narrativeContext;
+      if (ctx?.objective_id && ctx?.narrative_thread_id && ctx?.agent_run_id) {
+        const narrativeService = NarrativeService.getInstance();
+        narrativeService.setNarrativeContext(ctx);
+      }
+      return;
+    }
+
     const { target, agentId, clientId, tuiId } = message as Message & {
       target?: 'agent' | 'app' | 'tui';
       agentId?: string;

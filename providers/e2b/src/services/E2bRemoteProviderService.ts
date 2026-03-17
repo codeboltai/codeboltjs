@@ -61,7 +61,7 @@ interface E2bProviderConfig {
   sandboxTemplate?: string;
   autoStopInterval?: number;
   /** Path to a local agent server bundle (server.mjs) to upload to the sandbox.
-   *  When set, the file is uploaded directly instead of running `npm install @codebolt/agentserver`.
+   *  When set, the file is uploaded directly instead of running `npm install @codebolt/agentserver@11.0.5`.
    *  Useful for development/testing with a custom build. */
   localAgentServerPath?: string;
   timeouts?: {
@@ -97,7 +97,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
-      e2bApiKey: config.e2bApiKey ?? process.env.E2B_API_KEY,
+      e2bApiKey: "e2b_f2901dc6085be9d5754d792ab344f85bf28e46f8",// config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate,
       autoStopInterval: config.autoStopInterval ?? 0,
       timeouts: {
@@ -198,6 +198,17 @@ export class E2bRemoteProviderService extends BaseProvider {
         await this.ensureTransportConnection({
           environmentName: this.state.environmentName,
           projectPath: this.state.projectPath ?? undefined,
+        } as any);
+      }
+
+      // Forward narrative context to sandbox NarrativeService so exports
+      // are attributed to the parent server's agent run (avoids fallback hierarchy)
+      const narrativeContext = (agentMessage as any).narrativeContext;
+      if (narrativeContext?.objective_id && narrativeContext?.narrative_thread_id && narrativeContext?.agent_run_id) {
+        this.logger.log('Sending narrative context to sandbox agent server');
+        await this.sendToAgentServer({
+          type: 'setNarrativeContext',
+          narrativeContext,
         } as any);
       }
 
@@ -508,6 +519,13 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onSendPR(): Promise<any> {
     this.logger.log('onSendPR started — delegating snapshot export to remote agent server');
 
+    // If an export is already in-flight, reuse its promise to avoid
+    // overwriting _pendingExportResolve and leaving the first caller hanging.
+    if (this._pendingExportPromise) {
+      this.logger.log('Export already in-flight, reusing existing request');
+      return this._pendingExportPromise;
+    }
+
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
@@ -524,15 +542,17 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.logger.log('Sending snapshotExportRequest to agent server for environment:', environmentId);
 
     // Wait for the snapshotBundleExport response from the agent server
-    const result = await new Promise<any>((resolve, reject) => {
+    this._pendingExportPromise = new Promise<any>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this._pendingExportResolve = null;
+        this._pendingExportPromise = null;
         reject(new Error('Snapshot export timed out after 120 seconds'));
       }, 120_000);
 
       // Register a one-time listener for the export response
       this._pendingExportResolve = (response: any) => {
         clearTimeout(timeout);
+        this._pendingExportPromise = null;
         if (response.success) {
           resolve(response);
         } else {
@@ -543,9 +563,12 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.sendToAgentServer(exportRequest as any).catch((error) => {
         clearTimeout(timeout);
         this._pendingExportResolve = null;
+        this._pendingExportPromise = null;
         reject(error);
       });
     });
+
+    const result = await this._pendingExportPromise;
 
     this.logger.log('Snapshot export received from agent server:', result.snapshotId);
 
@@ -558,6 +581,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   /** Pending resolve callback for snapshot export response from agent server */
   private _pendingExportResolve: ((response: any) => void) | null = null;
+  /** In-flight export promise — shared across concurrent onSendPR callers */
+  private _pendingExportPromise: Promise<any> | null = null;
 
   /**
    * Sends the deferred snapshotArchiveImport message to the agent server
@@ -1058,6 +1083,12 @@ export class E2bRemoteProviderService extends BaseProvider {
           this.logger.log('Agent process stopped, sending PR to parent before forwarding');
           this.sendPROnAgentFinish(message);
           return; // Don't forward yet - sendPROnAgentFinish will forward after PR
+        case 'snapshotBundleExport':
+          // Additional snapshotBundleExport messages after the pending resolve was consumed.
+          // The agent server may emit multiple exports (one per snapshot); only the first
+          // is used by onSendPR — the rest can be safely ignored.
+          this.logger.log('Ignoring additional snapshotBundleExport (no pending resolve), snapshotId:', (message as any).snapshotId);
+          return; // Don't forward to parent
         default:
           this.logger.log('Unhandled message type:', message.type);
       }
@@ -1125,15 +1156,15 @@ export class E2bRemoteProviderService extends BaseProvider {
       // Using -g so it doesn't pollute the project's node_modules or package.json
       // Use --ignore-scripts to avoid onnxruntime-node's post-install downloading ~500MB GPU binaries
       // which OOM-kills small sandbox instances (exit code 137).
-      this.logger.log(`Installing @codebolt/agentserver globally in sandbox...`);
+      this.logger.log(`Installing @codebolt/agentserver@11.0.5 globally in sandbox...`);
       const installResult = await this.sandbox.commands.run(
-        `sudo npm install -g --ignore-scripts @codebolt/agentserver`,
+        `sudo npm install -g --ignore-scripts @codebolt/agentserver@11.0.5`,
         { timeoutMs: 300_000 }, // 5 minutes — large package tree
       );
       if (installResult.exitCode !== 0) {
-        throw new Error(`Failed to install @codebolt/agentserver in sandbox: ${installResult.stderr}`);
+        throw new Error(`Failed to install @codebolt/agentserver@11.0.5 in sandbox: ${installResult.stderr}`);
       }
-      this.logger.log('Installed @codebolt/agentserver globally in sandbox');
+      this.logger.log('Installed @codebolt/agentserver@11.0.5 globally in sandbox');
       // npm -g installs the "bin" entry as `codebolt-agentserver` on PATH
       serverEntrypoint = '$(which codebolt-agentserver)';
     }

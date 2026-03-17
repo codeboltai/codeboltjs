@@ -238,4 +238,16 @@ export class NarrativeService {
   getNarrativeContext(): { objective_id: string; narrative_thread_id: string; agent_run_id: string } | null {
     return this.narrativeContext;
   }
+
+  /**
+   * Set the narrative context after initialization (e.g. when received via providerAgentStart).
+   * This allows the export to attribute snapshots to the parent server's agent run
+   * instead of creating a fallback hierarchy.
+   */
+  setNarrativeContext(context: { objective_id: string; narrative_thread_id: string; agent_run_id: string }): void {
+    this.narrativeContext = context;
+    logger.info(
+      `[NarrativeService] Narrative context updated: objective=${context.objective_id}, thread=${context.narrative_thread_id}, agent_run=${context.agent_run_id}`
+    );
+  }
 }

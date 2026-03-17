@@ -1,5 +1,17 @@
 # @codebolt/agentserver
 
+## 11.0.5
+
+### Patch Changes
+
+- updated for fix
+
+## 11.0.4
+
+### Patch Changes
+
+- updated narrative
+
 ## 11.0.3
 
 ### Patch Changes

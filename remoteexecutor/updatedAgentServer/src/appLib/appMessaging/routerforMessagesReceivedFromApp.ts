@@ -73,6 +73,16 @@ export class AppMessageRouter {
       return;
     }
 
+    // Handle setNarrativeContext — update the NarrativeService with the parent server's context
+    if (message.type === "setNarrativeContext") {
+      const ctx = (message as any).narrativeContext;
+      if (ctx?.objective_id && ctx?.narrative_thread_id && ctx?.agent_run_id) {
+        const narrativeService = NarrativeService.getInstance();
+        narrativeService.setNarrativeContext(ctx);
+      }
+      return;
+    }
+
     // Handle confirmation responses
     if (message.type === "confirmationResponse") {
       // Create proper confirmation objects that match the expected interface
