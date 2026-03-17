@@ -23,7 +23,7 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/codeboltjs": "^5.1.19",
+    "@codebolt/codeboltjs": "^5.1.25",
     "@codebolt/provider": "workspace:*",
     "@codebolt/types": "^5.1.12",
     "@codebolt/agentserver": "latest",
