@@ -28,23 +28,23 @@ const eventQueue = codebolt.agentEventQueue;
 // Use backgroundChildThreads for tracking running agent count
 const agentTracker = codebolt.backgroundChildThreads;
 
-let WORKER_AGENT_ID = "b29a9229-a76c-4d8c-acfc-e00a4511fb8c";
+let WORKER_AGENT_ID = "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
+    codebolt.chat.sendMessage("Orchestrator Config: " + JSON.stringify(additionalVariable));
+    try {
+        const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
+        const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
+        const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
+        WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
+        codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
+        codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
+        return true
 
-    // try {
-    //     const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-    //     const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-    //     const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
-    //     WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
-    //     codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
-    //     codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
-    //     return true
-
-    // } catch (error) {
-    //     console.log('[Orchestrator] Using default configuration');
-    // }
+    } catch (error) {
+        console.log('[Orchestrator] Using default configuration');
+    }
     //STEP 1: Analysis and planning only — no ActionBlock calls
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
     <important>
