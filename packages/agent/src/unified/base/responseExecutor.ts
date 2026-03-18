@@ -471,11 +471,23 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
                 for (const schema of discoveredSchemas) {
                     // schema is in OpenAI tool format: { type: "function", function: { name, description, parameters } }
-                    const name = schema.function?.name;
-                    if (name && !existingToolNames.has(name)) {
-                        nextMessage.message.tools.push(schema);
-                        existingToolNames.add(name);
-                    }
+                    const rawName = schema.function?.name;
+                    if (!rawName) continue;
+
+                    // Add codebolt-- prefix so executeTool routes to the correct MCP server
+                    const prefixedName = rawName.startsWith('codebolt--') ? rawName : `codebolt--${rawName}`;
+                    if (existingToolNames.has(prefixedName)) continue;
+
+                    // Clone schema with prefixed name
+                    const prefixedSchema = {
+                        ...schema,
+                        function: {
+                            ...schema.function,
+                            name: prefixedName
+                        }
+                    };
+                    nextMessage.message.tools.push(prefixedSchema);
+                    existingToolNames.add(prefixedName);
                 }
             }
         } catch (error) {

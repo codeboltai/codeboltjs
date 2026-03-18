@@ -26,7 +26,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
 
     codebolt.chat.sendMessage("Capability Testing")
-    let response = await codebolt.capability.listCapabilities()
+    codebolt.mcp.executeTool('codebolt', 'capability_list_skills', {})
+    let response = await codebolt.capability.listCapabilitiesByType(`skill`)
     // let response = await codebolt.capability.startCapability("weather", 'skill')
     codebolt.chat.sendMessage(JSON.stringify(response));
     console.log(response)
