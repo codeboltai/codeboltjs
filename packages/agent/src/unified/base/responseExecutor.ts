@@ -55,6 +55,9 @@ export class ResponseExecutor implements AgentResponseExecutor {
 
         let toolResults = await this.executeTools(input.rawLLMOutput);
 
+        // Inject runtime-discovered tools from tool_search results into the tool list
+        this.injectDiscoveredTools(input.rawLLMOutput, toolResults, nextMessage);
+
         // INSERT_YOUR_CODE
         if (nextMessage && toolResults && toolResults.length > 0 && nextMessage && nextMessage.message && Array.isArray(nextMessage.message.messages)) {
             for (const toolResult of toolResults) {
@@ -413,6 +416,72 @@ export class ResponseExecutor implements AgentResponseExecutor {
     }
     getPostToolCallProcessors(): PostToolCallProcessor[] {
         return this.postToolCallProcessors
+    }
+
+    /**
+     * After tool_search is called, parse the returned tool schemas from the tool result
+     * and inject them into nextMessage.message.tools so the LLM can call them on the next turn.
+     */
+    private injectDiscoveredTools(
+        llmResponse: LLMCompletion,
+        toolResults: ToolResult[],
+        nextMessage: ProcessedMessage
+    ): void {
+        try {
+            const toolCalls = llmResponse?.choices?.[0]?.message?.tool_calls;
+            if (!toolCalls || !nextMessage?.message?.tools) return;
+
+            for (const toolCall of toolCalls) {
+                if (!toolCall) continue;
+                const toolName = toolCall.function?.name || '';
+                // Match tool_search or codebolt--tool_search
+                const isToolSearch = toolName === 'tool_search' ||
+                    toolName === 'codebolt--tool_search' ||
+                    toolName.endsWith('--tool_search');
+
+                if (!isToolSearch) continue;
+
+                // Find the corresponding tool result by tool_call_id
+                const toolCallId = toolCall.id;
+                const toolResult = toolResults.find(r => r.tool_call_id === toolCallId);
+                if (!toolResult?.content) continue;
+
+                const content = typeof toolResult.content === 'string'
+                    ? toolResult.content
+                    : JSON.stringify(toolResult.content);
+
+                // Extract JSON array of tool schemas from the result
+                // The tool_search result format is: "Found N tool(s) matching ...\n\n[{...schemas...}]"
+                const jsonMatch = content.match(/\[[\s\S]*\]/);
+                if (!jsonMatch) continue;
+
+                let discoveredSchemas: any[];
+                try {
+                    discoveredSchemas = JSON.parse(jsonMatch[0]);
+                } catch {
+                    continue;
+                }
+
+                if (!Array.isArray(discoveredSchemas)) continue;
+
+                // Get existing tool names to avoid duplicates
+                const existingToolNames = new Set(
+                    nextMessage.message.tools.map((t: any) => t.function?.name)
+                );
+
+                for (const schema of discoveredSchemas) {
+                    // schema is in OpenAI tool format: { type: "function", function: { name, description, parameters } }
+                    const name = schema.function?.name;
+                    if (name && !existingToolNames.has(name)) {
+                        nextMessage.message.tools.push(schema);
+                        existingToolNames.add(name);
+                    }
+                }
+            }
+        } catch (error) {
+            // Non-critical — if injection fails, the agent continues without the new tools
+            console.error('[ResponseExecutor] Error injecting discovered tools:', error);
+        }
     }
 
 }
