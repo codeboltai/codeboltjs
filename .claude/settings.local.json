@@ -59,7 +59,8 @@
       "Bash(which e2b:*)",
       "Bash(npx e2b:*)",
       "Bash(e2b --version 2>&1)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(find /Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src -type f \\\\\\(-name *.ts -o -name *.js \\\\\\))"
     ],
     "deny": [],
     "ask": []

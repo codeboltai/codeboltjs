@@ -32,15 +32,15 @@ let WORKER_AGENT_ID = "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
-    codebolt.chat.sendMessage("Orchestrator Config: " + JSON.stringify(additionalVariable));
+    // codebolt.chat.sendMessage("Orchestrator Config: " + JSON.stringify(additionalVariable));
     try {
         const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
         const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
         const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
         WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
-        codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
-        codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
-        return true
+        // codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
+        // codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
+        // return true
 
     } catch (error) {
         console.log('[Orchestrator] Using default configuration');

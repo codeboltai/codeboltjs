@@ -1,0 +1,94 @@
+title:  Orchestrator
+version: 1.0.3
+unique_id: orchestrator
+initial_message: I am the Main Orchestrator agent. I analyze your requirements, create detailed plans, generate specifications, break work into jobs, and coordinate worker agents to execute them in parallel.
+description: Orchestrator agent that plans, creates specifications, generates jobs, and coordinates parallel worker agent execution on the Codebolt platform.
+tags:
+  - orchestrator
+  - planning
+  - multi-agent
+  - coordination
+longDescription: |
+  The Main Orchestrator is a multi-phase coordination agent for the Codebolt platform.
+  It receives user requirements and drives them through a full lifecycle:
+  1. Planning - Deep analysis and comprehensive plan creation using read-only tools
+  2. Specification - Generates detailed specifications from the plan
+  3. Job Creation - Breaks specifications into discrete, dependency-aware jobs
+  4. Job Execution - Launches and coordinates worker agents to execute jobs in parallel,
+     respecting dependency ordering and handling completion events via a yield-and-resume loop.
+  The orchestrator never implements code directly — it delegates all implementation
+  to worker agents via background threads.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: MO
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - web
+      - python
+      - go
+      - java
+      - rust
+    supportedframeworks:
+      - any
+    supportRemix: false
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - gpt-4-turbo
+      - claude-sonnet-4-6
+      - claude-opus-4-6
+  sdlc_steps_managed:
+    - name: planning
+      example_instructions:
+        - analyze requirements and create a detailed plan
+        - break down this feature into tasks
+    - name: specification
+      example_instructions:
+        - generate a detailed specification from the plan
+    - name: orchestration
+      example_instructions:
+        - coordinate worker agents to implement the plan
+        - execute all jobs in parallel respecting dependencies
+  llm_role:
+    - name: plannerllm
+      description: >-
+        LLM used for the planning phase. Should excel at analysis,
+        reasoning, and structured plan generation.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - claude-sonnet-4-6
+        - claude-opus-4-6
+    - name: jobexecutorllm
+      description: >-
+        LLM used for the job execution orchestration phase. Should be
+        reliable at dependency analysis and tool coordination.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - claude-sonnet-4-6
+        - claude-opus-4-6
+actions:
+  - name: Plan and Execute
+    description: Analyzes requirements, creates a plan, generates specs, and orchestrates worker agents.
+    detailDescription: >-
+      Full lifecycle orchestration: planning, specification generation,
+      job creation, and parallel worker agent coordination.
+    actionPrompt: Analyze the requirement and orchestrate its implementation
+supportRemix: false
+author: ravi
+
+# Pre-completion verification configuration
+verification:
+  enabled: true
+  checks:
+    lint: true
+    test: true
+    build: true
+    typecheck: true
+  timeout: 60000
+  skipOnNoConfig: true
+  skipForNonCodeTasks: true
+  maxRetries: -1
