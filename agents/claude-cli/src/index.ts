@@ -17,7 +17,39 @@ type PermissionMode = 'plan' | 'acceptEdits' | 'bypassPermissions' | 'default';
 let currentPermissionMode: PermissionMode = 'bypassPermissions';
 
 // ── Session tracking for resume/continue ──
+// Persisted to file so session continues across agent restarts.
 let lastSessionId: string | null = null;
+const SESSION_FILE_NAME = '.claude-cli-session';
+
+function getSessionFilePath(cwd: string): string {
+    return `${cwd}/.codebolt/${SESSION_FILE_NAME}`;
+}
+
+function loadPersistedSessionId(cwd: string): string | null {
+    try {
+        const filePath = getSessionFilePath(cwd);
+        if (fs.existsSync(filePath)) {
+            const id = fs.readFileSync(filePath, 'utf-8').trim();
+            if (id) {
+                console.log(`[claude-cli] Loaded persisted session ID: ${id}`);
+                return id;
+            }
+        }
+    } catch { /* ignore */ }
+    return null;
+}
+
+function persistSessionId(cwd: string, sessionId: string): void {
+    try {
+        const filePath = getSessionFilePath(cwd);
+        const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(filePath, sessionId, 'utf-8');
+        console.log(`[claude-cli] Persisted session ID: ${sessionId}`);
+    } catch (err) {
+        console.log(`[claude-cli] Failed to persist session ID: ${err}`);
+    }
+}
 
 // Dedup set to avoid processing same entry from both stdout and JSONL watcher
 const processedUuids = new Set<string>();
@@ -41,6 +73,10 @@ function deduplicatedDispatch(entry: any, source: string) {
     if (entry.type === 'system' && entry.subtype === 'init' && entry.session_id) {
         lastSessionId = entry.session_id;
         console.log(`[claude-cli] Session ID captured: ${lastSessionId}`);
+        // Persist so it survives agent restarts
+        codebolt.project.getProjectPath().then(({ projectPath }: any) => {
+            if (projectPath && lastSessionId) persistSessionId(projectPath, lastSessionId);
+        }).catch(() => {});
     }
 
     console.log(`[${source}] Dispatching: type=${entry.type}${entry.subtype ? ` subtype=${entry.subtype}` : ''}${uuid ? ` uuid=${uuid.substring(0, 8)}...` : ''}`);
@@ -182,7 +218,7 @@ async function executeClaudeCli(
         claudeProcess = spawn(claudePath, args, {
             cwd: cwd,
             env: { ...process.env, TERM: 'dumb' },
-            stdio: ['ignore', 'pipe', 'pipe'],
+            stdio: ['pipe', 'pipe', 'pipe'],
         });
 
         const pid = claudeProcess.pid;
@@ -352,23 +388,32 @@ codebolt.onMessage(async (userMessage: any) => {
             return;
         }
 
-        // Kill existing process if running
-        if (claudeProcess) {
-            console.log('[claude-cli] Killing existing process...');
-            if (stopWatcher) { stopWatcher(); stopWatcher = null; }
-            claudeProcess.kill('SIGTERM');
-            claudeProcess = null;
+        // Load persisted session ID if we don't have one in memory
+        if (!lastSessionId) {
+            const { projectPath: pp } = await codebolt.project.getProjectPath();
+            if (pp) lastSessionId = loadPersistedSessionId(pp);
         }
 
-        // Handle execution commands
+        // If a process is already running, send the message directly to its
+        // stdin (e.g. answering a permission prompt or user question) instead
+        // of killing and restarting
+        if (claudeProcess && claudeProcess.stdin) {
+            console.log(`[claude-cli] Process running — piping message to stdin: "${arg.substring(0, 80)}"`);
+            claudeProcess.stdin.write(arg + '\n');
+            return;
+        }
+
+        // No running process — handle execution commands
+        // If we have a previous session, resume it to maintain conversation context
         if (command === 'plan') {
-            // One-off planning mode: run this prompt in plan mode without changing default
-            await executeClaudeCli(arg, { permissionMode: 'plan' });
+            const opts: any = { permissionMode: 'plan' };
+            if (lastSessionId) opts.resumeSessionId = lastSessionId;
+            await executeClaudeCli(arg, opts);
         } else if (command === 'execute') {
-            // One-off execution mode
-            await executeClaudeCli(arg, { permissionMode: 'bypassPermissions' });
+            const opts: any = { permissionMode: 'bypassPermissions' };
+            if (lastSessionId) opts.resumeSessionId = lastSessionId;
+            await executeClaudeCli(arg, opts);
         } else if (command === 'resume') {
-            // Resume last session or specified session
             const sessionId = arg || lastSessionId;
             if (!sessionId) {
                 codebolt.notify.chat.AgentTextResponseNotify(
@@ -378,8 +423,13 @@ codebolt.onMessage(async (userMessage: any) => {
             }
             await executeClaudeCli('continue', { resumeSessionId: sessionId });
         } else {
-            // Regular message: use current permission mode
-            await executeClaudeCli(arg);
+            // Regular message: resume existing session if available
+            if (lastSessionId) {
+                console.log(`[claude-cli] Resuming session ${lastSessionId} with new message`);
+                await executeClaudeCli(arg, { resumeSessionId: lastSessionId });
+            } else {
+                await executeClaudeCli(arg);
+            }
         }
 
     } catch (error) {
