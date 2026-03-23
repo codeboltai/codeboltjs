@@ -1,4 +1,4 @@
-import { query, type SDKMessage } from "@anthropic-ai/claude-code";
+import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { match } from "ts-pattern";
 import codebolt from '@codebolt/codeboltjs';
 import {
@@ -205,13 +205,15 @@ async function executeClaudeCode(prompt: string): Promise<void> {
         console.log(`🚀 Starting Claude Code with prompt: "${prompt}"\n`);
 
         const messages: SDKMessage[] = [];
-
+        let { projectPath } = await codebolt.project.getProjectPath();
         for await (const message of query({
             prompt: prompt,
             options: {
                 abortController: new AbortController(),
                 permissionMode: "bypassPermissions",
-                cwd: "/Users/ravirawat/Documents/cbtest/frail-lime"
+                cwd: projectPath,
+                systemPrompt: { type: "preset", preset: "claude_code" },
+                settingSources: ["user", "project", "local"],
             },
         })) {
             messages.push(message);
@@ -233,7 +235,7 @@ async function executeClaudeCode(prompt: string): Promise<void> {
 // Set up CodeboltJS message handler
 console.log("🔌 Setting up CodeboltJS message handler...");
 
-codebolt.onMessage(async (userMessage) => {
+codebolt.onMessage(async (userMessage: any) => {
     try {
         console.log("📥 Received message from CodeboltJS:", userMessage);
 
@@ -252,7 +254,7 @@ codebolt.onMessage(async (userMessage) => {
                 messageContent = userMessage.text;
             } else {
                 // Fallback: stringify the object
-                messageContent = JSON.stringify(userMessage);
+                messageContent = userMessage.userMessage
             }
         }
 
@@ -262,6 +264,7 @@ codebolt.onMessage(async (userMessage) => {
         }
 
         console.log(`📝 Processing message: "${messageContent}"`);
+        // codebolt.chat.sendMessage(messageContent)
 
         // Execute Claude Code with the received message as prompt
         await executeClaudeCode(messageContent);

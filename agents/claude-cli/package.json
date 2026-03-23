@@ -1,8 +1,8 @@
 {
-  "name": "@codebolt/act",
+  "name": "@codebolt/claude-cli",
   "private": true,
-  "version": "1.1.62",
-  "description": "This is a codebolt agent.",
+  "version": "1.0.0",
+  "description": "Codebolt agent that runs Claude CLI as child process and streams JSONL logs.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -11,24 +11,17 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean"
   },
-  "keywords": [
-    "ai",
-    "agent",
-    "gemini",
-    "google",
-    "llm"
-  ],
+  "keywords": ["ai", "agent", "claude", "anthropic", "llm"],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/agent": "workspace:*",
     "@codebolt/codeboltjs": "^5.1.29",
     "@codebolt/types": "^5.1.12",
     "copy-webpack-plugin": "^12.0.2",
     "node-loader": "^2.1.0",
-    "utf-8-validate": "^6.0.5",
-    "zod": "^3.22.4"
+    "ts-pattern": "^5.7.1",
+    "utf-8-validate": "^6.0.5"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
@@ -67,9 +60,7 @@
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "publishConfig": {
     "access": "public"
   }
