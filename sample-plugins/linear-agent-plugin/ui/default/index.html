@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Linear Agent Settings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e; color: #cdd6f4; font-family: system-ui, -apple-system, sans-serif;
+    padding: 24px; line-height: 1.5;
+  }
+  h2 { color: #89b4fa; margin-bottom: 20px; font-size: 1.3rem; }
+  h3 { color: #a6adc8; margin: 20px 0 12px; font-size: 1rem; border-bottom: 1px solid #313244; padding-bottom: 6px; }
+
+  .section { margin-bottom: 16px; }
+  label { display: block; color: #a6adc8; font-size: 0.85rem; margin-bottom: 4px; }
+  input[type="password"], input[type="text"], input[type="number"] {
+    width: 100%; padding: 8px 12px; background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.9rem; outline: none;
+  }
+  input:focus { border-color: #89b4fa; }
+  input[type="number"] { width: 100px; }
+
+  .row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #89b4fa; }
+  .checkbox-row label { margin: 0; display: inline; }
+
+  button {
+    padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.85; }
+  .btn-primary { background: #89b4fa; color: #1e1e2e; }
+  .btn-secondary { background: #45475a; color: #cdd6f4; }
+  .btn-small { padding: 5px 12px; font-size: 0.8rem; }
+
+  .status {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.8rem; font-weight: 500;
+  }
+  .status-ok { background: #a6e3a1; color: #1e1e2e; }
+  .status-err { background: #f38ba8; color: #1e1e2e; }
+  .status-warn { background: #fab387; color: #1e1e2e; }
+  .status-info { background: #89b4fa; color: #1e1e2e; }
+
+  .msg { margin-top: 8px; font-size: 0.85rem; min-height: 1.3em; }
+  .msg-ok { color: #a6e3a1; }
+  .msg-err { color: #f38ba8; }
+
+  .session-card {
+    background: #313244; border-radius: 8px; padding: 12px; margin-bottom: 8px;
+    border-left: 3px solid #89b4fa;
+  }
+  .session-card .title { color: #cdd6f4; font-weight: 500; }
+  .session-card .meta { color: #6c7086; font-size: 0.8rem; margin-top: 4px; }
+
+  .empty { color: #6c7086; font-style: italic; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<h2>Linear Agent</h2>
+
+<!-- Connection -->
+<div class="section">
+  <label for="apiKey">API Key</label>
+  <input type="password" id="apiKey" placeholder="lin_api_..." />
+  <div class="row">
+    <button class="btn-secondary btn-small" id="testBtn">Test Connection</button>
+    <span id="connStatus"></span>
+  </div>
+  <div id="connMsg" class="msg"></div>
+</div>
+
+<!-- Settings -->
+<h3>Settings</h3>
+<div class="section">
+  <label for="pollInterval">Poll Interval (seconds)</label>
+  <input type="number" id="pollInterval" min="5" max="120" value="10" />
+</div>
+<div class="checkbox-row">
+  <input type="checkbox" id="enabled" checked />
+  <label for="enabled">Enable polling</label>
+</div>
+
+<div class="row" style="margin-top: 16px;">
+  <button class="btn-primary" id="saveBtn">Save Settings</button>
+  <span id="saveStatus"></span>
+</div>
+<div id="saveMsg" class="msg"></div>
+
+<!-- Active Sessions -->
+<h3>Active Sessions</h3>
+<div class="row" style="margin-bottom: 12px;">
+  <button class="btn-secondary btn-small" id="refreshBtn">Refresh</button>
+</div>
+<div id="sessionsList">
+  <div class="empty">No sessions loaded yet.</div>
+</div>
+
+<script>
+  // Request current config on load
+  codeboltPlugin.sendMessage({ type: 'get-config' });
+
+  var apiKeyInput = document.getElementById('apiKey');
+  var pollIntervalInput = document.getElementById('pollInterval');
+  var enabledInput = document.getElementById('enabled');
+  var connStatus = document.getElementById('connStatus');
+  var connMsg = document.getElementById('connMsg');
+  var saveStatus = document.getElementById('saveStatus');
+  var saveMsg = document.getElementById('saveMsg');
+  var sessionsList = document.getElementById('sessionsList');
+
+  // Handle messages from plugin backend
+  codeboltPlugin.onMessage(function(msg) {
+    if (msg.type === 'config') {
+      apiKeyInput.value = msg.config.apiKey || '';
+      pollIntervalInput.value = Math.round((msg.config.pollIntervalMs || 10000) / 1000);
+      enabledInput.checked = msg.config.enabled !== false;
+      if (msg.isConnected) {
+        connStatus.innerHTML = '<span class="status status-ok">Connected</span>';
+      } else if (msg.config.apiKey) {
+        connStatus.innerHTML = '<span class="status status-warn">Disconnected</span>';
+      } else {
+        connStatus.innerHTML = '<span class="status status-info">Not configured</span>';
+      }
+    }
+
+    if (msg.type === 'config-saved') {
+      if (msg.success) {
+        saveMsg.className = 'msg msg-ok';
+        saveMsg.textContent = 'Settings saved and polling restarted.';
+      } else {
+        saveMsg.className = 'msg msg-err';
+        saveMsg.textContent = 'Failed to save settings.';
+      }
+      setTimeout(function() { saveMsg.textContent = ''; }, 3000);
+      // Refresh config
+      codeboltPlugin.sendMessage({ type: 'get-config' });
+    }
+
+    if (msg.type === 'test-result') {
+      if (msg.valid) {
+        connMsg.className = 'msg msg-ok';
+        connMsg.textContent = 'Connected as: ' + (msg.name || 'Unknown');
+        connStatus.innerHTML = '<span class="status status-ok">Valid</span>';
+      } else {
+        connMsg.className = 'msg msg-err';
+        connMsg.textContent = 'Connection failed: ' + (msg.error || 'Unknown error');
+        connStatus.innerHTML = '<span class="status status-err">Failed</span>';
+      }
+      setTimeout(function() { connMsg.textContent = ''; }, 5000);
+    }
+
+    if (msg.type === 'sessions') {
+      if (msg.error) {
+        sessionsList.innerHTML = '<div class="empty">' + msg.error + '</div>';
+        return;
+      }
+      if (!msg.sessions || msg.sessions.length === 0) {
+        sessionsList.innerHTML = '<div class="empty">No active sessions.</div>';
+        return;
+      }
+      sessionsList.innerHTML = msg.sessions.map(function(s) {
+        var stateClass = s.state === 'active' ? 'status-ok' : s.state === 'pending' ? 'status-warn' : 'status-info';
+        return '<div class="session-card">' +
+          '<div class="title">' + (s.issueIdentifier || 'Unknown') + ': ' + (s.issueTitle || 'No title') + '</div>' +
+          '<div class="meta"><span class="status ' + stateClass + '">' + s.state + '</span> &middot; Updated: ' + new Date(s.updatedAt).toLocaleString() + '</div>' +
+          '</div>';
+      }).join('');
+    }
+  });
+
+  // Button handlers
+  document.getElementById('testBtn').onclick = function() {
+    connMsg.className = 'msg';
+    connMsg.textContent = 'Testing...';
+    // If user entered a new key, save it first then test
+    var key = apiKeyInput.value;
+    if (key && !key.startsWith('****')) {
+      codeboltPlugin.sendMessage({ type: 'save-config', apiKey: key, pollIntervalMs: parseInt(pollIntervalInput.value) * 1000, enabled: enabledInput.checked });
+    }
+    codeboltPlugin.sendMessage({ type: 'test-connection' });
+  };
+
+  document.getElementById('saveBtn').onclick = function() {
+    saveMsg.textContent = 'Saving...';
+    codeboltPlugin.sendMessage({
+      type: 'save-config',
+      apiKey: apiKeyInput.value,
+      pollIntervalMs: parseInt(pollIntervalInput.value) * 1000,
+      enabled: enabledInput.checked,
+    });
+  };
+
+  document.getElementById('refreshBtn').onclick = function() {
+    sessionsList.innerHTML = '<div class="empty">Loading...</div>';
+    codeboltPlugin.sendMessage({ type: 'get-sessions' });
+  };
+</script>
+</body>
+</html>

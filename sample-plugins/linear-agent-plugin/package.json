@@ -1,0 +1,31 @@
+{
+  "name": "linear-agent-plugin",
+  "version": "1.0.0",
+  "displayName": "Linear Agent",
+  "description": "Polls Linear for agent sessions (@mentions and delegated issues), processes them via CodeBolt agents, and reports progress back as Linear agent activities.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/codeboltjs": "latest",
+    "@linear/sdk": "^29.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "triggers": [
+        {
+          "type": "manual"
+        }
+      ],
+      "ui": {
+        "path": "./ui/default/index.html"
+      }
+    }
+  }
+}
