@@ -44,7 +44,9 @@ const uploadFile = async (filePath, fileType, authToken) => {
             'https://api.codebolt.ai/api/upload/single',
             formData,
             {
-                headers: formData.getHeaders()
+                headers: formData.getHeaders(),
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity
             }
         );
         return response.data;
@@ -136,11 +138,12 @@ const publishAgent = async (targetPath) => {
             ignoreFiles.push(...gitignoreContent.split('\n').filter(line => line && !line.startsWith('#')));
         }
 
-        // Create dist build zip
+        // Create dist build zip (don't exclude node_modules — native addons may be bundled in dist)
         console.log(chalk.blue('Packaging distribution build...'));
         const distZipPath = `${folder}/build.zip`;
-        
-        await createZipArchive(`${folder}/dist`, distZipPath, ignoreFiles);
+        const distIgnoreFiles = ['**/*.zip'];
+
+        await createZipArchive(`${folder}/dist`, distZipPath, distIgnoreFiles);
         console.log(chalk.green('Distribution build packaging done.'));
         
         // Create source code zip

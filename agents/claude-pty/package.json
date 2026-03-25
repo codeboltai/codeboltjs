@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/claude-pty",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.7",
   "description": "Codebolt agent that runs Claude CLI in interactive mode via PTY and communicates by writing to stdin.",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,14 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean"
   },
-  "keywords": ["ai", "agent", "claude", "anthropic", "llm", "pty"],
+  "keywords": [
+    "ai",
+    "agent",
+    "claude",
+    "anthropic",
+    "llm",
+    "pty"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -61,7 +68,9 @@
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "publishConfig": {
     "access": "public"
   }

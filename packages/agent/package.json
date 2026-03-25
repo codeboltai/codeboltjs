@@ -43,10 +43,10 @@
     "zod": "^3.22.4"
   },
   "peerDependencies": {
-    "@codebolt/codeboltjs": ">=5.1.29"
+    "@codebolt/codeboltjs": ">=5.1.30"
   },
   "devDependencies": {
-    "@codebolt/codeboltjs": "^5.1.29",
+    "@codebolt/codeboltjs": "^5.1.30",
     "@codebolt/types": "^5.1.11",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.2",

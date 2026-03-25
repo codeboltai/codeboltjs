@@ -388,110 +388,118 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): void {
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
 
-    try {
-        // Instantiate modifiers that need state persistence
-        const ideContextModifier = new IdeContextModifier({
-            includeActiveFile: true,
-            includeOpenFiles: true,
-            includeCursorPosition: true,
-            includeSelectedText: true
-        });
 
-        const coreSystemPromptModifier = new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt });
+    let response = await codebolt.mcp.executeTool('codebolt', 'write_file', {
+        "absolute_path": "/Users/ravirawat/Documents/cbtest/handicapped-crimson/backend/package.json",
+        "content": "{\n  \"name\": \"whatsapp-clone-backend\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Backend API for WhatsApp Web Clone\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"start\": \"node src/index.js\",\n    \"dev\": \"nodemon src/index.js\",\n    \"test\": \"jest\"\n  },\n  \"keywords\": [\"whatsapp\", \"clone\", \"chat\", \"messaging\"],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"dependencies\": {\n    \"bcryptjs\": \"^2.4.3\",\n    \"cors\": \"^2.8.5\",\n    \"dotenv\": \"^16.3.1\",\n    \"express\": \"^4.18.2\",\n    \"express-validator\": \"^7.0.1\",\n    \"jsonwebtoken\": \"^9.0.2\",\n    \"mongoose\": \"^8.0.3\",\n    \"socket.io\": \"^4.6.1\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.0.2\",\n    \"jest\": \"^29.7.0\"\n  }\n}",
+        "explanation": "Creating package.json for the WhatsApp clone backend with all required dependencies"
+    })
+    codebolt.chat.sendMessage(JSON.stringify(response))
 
-        const loopDetectionService = new LoopDetectionService({ debug: true });
+    // try {
+    //     // Instantiate modifiers that need state persistence
+    //     const ideContextModifier = new IdeContextModifier({
+    //         includeActiveFile: true,
+    //         includeOpenFiles: true,
+    //         includeCursorPosition: true,
+    //         includeSelectedText: true
+    //     });
 
-        let promptGenerator = new InitialPromptGenerator({
+    //     const coreSystemPromptModifier = new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt });
 
-            processors: [
-                // 1. Chat History
-                new ChatHistoryMessageModifier({ enableChatHistory: true }),
-                // 2. Environment Context (date, OS)
-                new EnvironmentContextModifier({ enableFullContext: false }),
-                // 3. Directory Context (folder structure)  
-                new DirectoryContextModifier(),
+    //     const loopDetectionService = new LoopDetectionService({ debug: true });
 
-                // 4. IDE Context (active file, opened files) - Shared instance
-                ideContextModifier,
-                // 5. Core System Prompt (instructions)
-                new CoreSystemPromptModifier(
-                    { customSystemPrompt: systemPrompt }
-                ),
-                // 6. Tools (function declarations)
-                new ToolInjectionModifier({
-                    includeToolDescriptions: true
-                }),
+    //     let promptGenerator = new InitialPromptGenerator({
 
-                // 7. At-file processing (@file mentions)
-                new AtFileProcessorModifier({
-                    enableRecursiveSearch: true
-                })
-            ],
-            baseSystemPrompt: systemPrompt
-        });
+    //         processors: [
+    //             // 1. Chat History
+    //             new ChatHistoryMessageModifier({ enableChatHistory: true }),
+    //             // 2. Environment Context (date, OS)
+    //             new EnvironmentContextModifier({ enableFullContext: false }),
+    //             // 3. Directory Context (folder structure)  
+    //             new DirectoryContextModifier(),
 
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-        // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+    //             // 4. IDE Context (active file, opened files) - Shared instance
+    //             ideContextModifier,
+    //             // 5. Core System Prompt (instructions)
+    //             new CoreSystemPromptModifier(
+    //                 { customSystemPrompt: systemPrompt }
+    //             ),
+    //             // 6. Tools (function declarations)
+    //             new ToolInjectionModifier({
+    //                 includeToolDescriptions: true
+    //             }),
 
-        // return;
-        let completed = false;
-        let executionResult: any;
-        const conversationCompactor = new ConversationCompactorModifier({
-            compactStrategy: 'summarize',
-            compressionTokenThreshold: 0.5,
-            preserveThreshold: 0.3,
-            enableLogging: true
-        });
-        const responseExecutor = new ResponseExecutor({
-            preToolCallProcessors: [],
-            postToolCallProcessors: [conversationCompactor],
-            loopDetectionService: loopDetectionService
-        });
-        let loopIteration = 0;
-        do {
-            loopIteration++;
-            console.log(`[act-updated][Loop] === Iteration ${loopIteration} ===`);
+    //             // 7. At-file processing (@file mentions)
+    //             new AtFileProcessorModifier({
+    //                 enableRecursiveSearch: true
+    //             })
+    //         ],
+    //         baseSystemPrompt: systemPrompt
+    //     });
 
-            // Check for pending steering/external events before each LLM call
-            const pendingEvents = eventQueue.getPendingExternalEvents();
-            console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
-            for (const externalEvent of pendingEvents) {
-                processExternalEvent(externalEvent, prompt);
-            }
+    //     let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    //     // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
 
-            console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
-            let agent = new AgentStep({
-                preInferenceProcessors: [coreSystemPromptModifier, ideContextModifier],
-                postInferenceProcessors: []
-            })
-            let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
-            console.log(`[act-updated][Loop] AgentStep completed`);
-            prompt = result.nextMessage;
+    //     // return;
+    //     let completed = false;
+    //     let executionResult: any;
+    //     const conversationCompactor = new ConversationCompactorModifier({
+    //         compactStrategy: 'summarize',
+    //         compressionTokenThreshold: 0.5,
+    //         preserveThreshold: 0.3,
+    //         enableLogging: true
+    //     });
+    //     const responseExecutor = new ResponseExecutor({
+    //         preToolCallProcessors: [],
+    //         postToolCallProcessors: [conversationCompactor],
+    //         loopDetectionService: loopDetectionService
+    //     });
+    //     let loopIteration = 0;
+    //     do {
+    //         loopIteration++;
+    //         console.log(`[act-updated][Loop] === Iteration ${loopIteration} ===`);
 
-            console.log(`[act-updated][Loop] Executing response...`);
-            executionResult = await responseExecutor.executeResponse({
-                initialUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage,
-            });
+    //         // Check for pending steering/external events before each LLM call
+    //         const pendingEvents = eventQueue.getPendingExternalEvents();
+    //         console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
+    //         for (const externalEvent of pendingEvents) {
+    //             processExternalEvent(externalEvent, prompt);
+    //         }
 
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
-            console.log(`[act-updated][Loop] Iteration ${loopIteration} done, completed=${completed}`);
+    //         console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
+    //         let agent = new AgentStep({
+    //             preInferenceProcessors: [coreSystemPromptModifier, ideContextModifier],
+    //             postInferenceProcessors: []
+    //         })
+    //         let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+    //         console.log(`[act-updated][Loop] AgentStep completed`);
+    //         prompt = result.nextMessage;
 
-            if (completed) {
-                break;
-            }
+    //         console.log(`[act-updated][Loop] Executing response...`);
+    //         executionResult = await responseExecutor.executeResponse({
+    //             initialUserMessage: reqMessage,
+    //             actualMessageSentToLLM: result.actualMessageSentToLLM,
+    //             rawLLMOutput: result.rawLLMResponse,
+    //             nextMessage: result.nextMessage,
+    //         });
 
-        } while (!completed);
+    //         completed = executionResult.completed;
+    //         prompt = executionResult.nextMessage;
+    //         console.log(`[act-updated][Loop] Iteration ${loopIteration} done, completed=${completed}`);
 
-        console.log(`[act-updated] Agent finished after ${loopIteration} iterations`);
-        return executionResult.finalMessage;
+    //         if (completed) {
+    //             break;
+    //         }
 
-    } catch (error) {
-        console.error(`[act-updated] Agent error:`, error);
-    }
+    //     } while (!completed);
+
+    //     console.log(`[act-updated] Agent finished after ${loopIteration} iterations`);
+    //     return executionResult.finalMessage;
+
+    // } catch (error) {
+    //     console.error(`[act-updated] Agent error:`, error);
+    // }
 
 
 })

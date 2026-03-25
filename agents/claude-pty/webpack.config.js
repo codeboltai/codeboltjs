@@ -16,6 +16,15 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'codeboltagent.yaml', to: './', noErrorOnMissing: true },
+        // Bundle node-pty native module with the agent (self-contained, no host dependency)
+        {
+          from: 'node_modules/node-pty',
+          to: 'node_modules/node-pty',
+          globOptions: {
+            ignore: ['**/src/**', '**/deps/**', '**/scripts/**', '**/third_party/**', '**/*.test.*', '**/binding.gyp'],
+          },
+          noErrorOnMissing: true,
+        },
       ],
     }),
     new webpack.ProvidePlugin({
@@ -123,8 +132,8 @@ module.exports = {
       if (request.match(/^node:/)) {
         return callback(null, "commonjs " + request.substr(5));
       }
-      // Externalize node-pty since it's a native module
-      if (request === 'node-pty') {
+      // Externalize node-pty variants since they are native modules
+      if (request === 'node-pty' || request === '@homebridge/node-pty-prebuilt-multiarch') {
         return callback(null, "commonjs " + request);
       }
       if (request.match(/^[a-z][a-z\/\.\-0-9]*$/i) && !request.includes('@codebolt') && !request.includes('ts-pattern')) {
