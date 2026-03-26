@@ -15,12 +15,11 @@
 
   .section { margin-bottom: 16px; }
   label { display: block; color: #a6adc8; font-size: 0.85rem; margin-bottom: 4px; }
-  input[type="password"], input[type="text"], input[type="number"] {
+  input[type="password"], input[type="text"], input[type="url"] {
     width: 100%; padding: 8px 12px; background: #313244; border: 1px solid #45475a;
     border-radius: 6px; color: #cdd6f4; font-size: 0.9rem; outline: none;
   }
   input:focus { border-color: #89b4fa; }
-  input[type="number"] { width: 100px; }
 
   .row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 
@@ -50,6 +49,8 @@
   .msg-ok { color: #a6e3a1; }
   .msg-err { color: #f38ba8; }
 
+  .hint { color: #6c7086; font-size: 0.78rem; margin-top: 3px; }
+
   .session-card {
     background: #313244; border-radius: 8px; padding: 12px; margin-bottom: 8px;
     border-left: 3px solid #89b4fa;
@@ -64,26 +65,36 @@
 
 <h2>Linear Agent</h2>
 
-<!-- Connection -->
+<!-- Worker Connection -->
 <div class="section">
-  <label for="apiKey">API Key</label>
-  <input type="password" id="apiKey" placeholder="lin_api_..." />
-  <div class="row">
-    <button class="btn-secondary btn-small" id="testBtn">Test Connection</button>
-    <span id="connStatus"></span>
-  </div>
-  <div id="connMsg" class="msg"></div>
+  <label for="workerUrl">Worker URL</label>
+  <input type="url" id="workerUrl" placeholder="wss://linear-agent-worker.arrowai.workers.dev" />
+  <div class="hint">The Cloudflare Worker WebSocket URL</div>
 </div>
+
+<div class="section">
+  <label for="appToken">App Token</label>
+  <input type="text" id="appToken" placeholder="my-codebolt-app" />
+  <div class="hint">Unique identifier for this plugin instance</div>
+</div>
+
+<div class="section">
+  <label for="accessToken">Access Token</label>
+  <input type="password" id="accessToken" placeholder="lin_oauth_..." />
+  <div class="hint">Linear OAuth access token (from agent installation)</div>
+</div>
+
+<div class="row">
+  <button class="btn-secondary btn-small" id="testBtn">Test Connection</button>
+  <span id="connStatus"></span>
+</div>
+<div id="connMsg" class="msg"></div>
 
 <!-- Settings -->
 <h3>Settings</h3>
-<div class="section">
-  <label for="pollInterval">Poll Interval (seconds)</label>
-  <input type="number" id="pollInterval" min="5" max="120" value="10" />
-</div>
 <div class="checkbox-row">
   <input type="checkbox" id="enabled" checked />
-  <label for="enabled">Enable polling</label>
+  <label for="enabled">Enable connection</label>
 </div>
 
 <div class="row" style="margin-top: 16px;">
@@ -94,59 +105,61 @@
 
 <!-- Active Sessions -->
 <h3>Active Sessions</h3>
-<div class="row" style="margin-bottom: 12px;">
-  <button class="btn-secondary btn-small" id="refreshBtn">Refresh</button>
-</div>
-<div id="sessionsList">
-  <div class="empty">No sessions loaded yet.</div>
-</div>
+<div id="sessionInfo" class="empty"></div>
 
 <script>
   // Request current config on load
   codeboltPlugin.sendMessage({ type: 'get-config' });
 
-  var apiKeyInput = document.getElementById('apiKey');
-  var pollIntervalInput = document.getElementById('pollInterval');
+  var workerUrlInput = document.getElementById('workerUrl');
+  var appTokenInput = document.getElementById('appToken');
+  var accessTokenInput = document.getElementById('accessToken');
   var enabledInput = document.getElementById('enabled');
   var connStatus = document.getElementById('connStatus');
   var connMsg = document.getElementById('connMsg');
-  var saveStatus = document.getElementById('saveStatus');
   var saveMsg = document.getElementById('saveMsg');
-  var sessionsList = document.getElementById('sessionsList');
+  var sessionInfo = document.getElementById('sessionInfo');
 
   // Handle messages from plugin backend
   codeboltPlugin.onMessage(function(msg) {
     if (msg.type === 'config') {
-      apiKeyInput.value = msg.config.apiKey || '';
-      pollIntervalInput.value = Math.round((msg.config.pollIntervalMs || 10000) / 1000);
+      workerUrlInput.value = msg.config.workerUrl || '';
+      appTokenInput.value = msg.config.appToken || '';
+      accessTokenInput.value = msg.config.accessToken || '';
       enabledInput.checked = msg.config.enabled !== false;
       if (msg.isConnected) {
         connStatus.innerHTML = '<span class="status status-ok">Connected</span>';
-      } else if (msg.config.apiKey) {
+        if (msg.activeSessions > 0) {
+          sessionInfo.textContent = msg.activeSessions + ' active session(s) being processed.';
+        } else {
+          sessionInfo.textContent = 'Connected. Waiting for sessions from Linear...';
+        }
+      } else if (msg.config.appToken && msg.config.accessToken) {
         connStatus.innerHTML = '<span class="status status-warn">Disconnected</span>';
+        sessionInfo.textContent = 'Not connected to worker.';
       } else {
         connStatus.innerHTML = '<span class="status status-info">Not configured</span>';
+        sessionInfo.textContent = 'Configure Worker URL, App Token, and Access Token to start.';
       }
     }
 
     if (msg.type === 'config-saved') {
       if (msg.success) {
         saveMsg.className = 'msg msg-ok';
-        saveMsg.textContent = 'Settings saved and polling restarted.';
+        saveMsg.textContent = 'Settings saved. Reconnecting...';
       } else {
         saveMsg.className = 'msg msg-err';
         saveMsg.textContent = 'Failed to save settings.';
       }
       setTimeout(function() { saveMsg.textContent = ''; }, 3000);
-      // Refresh config
       codeboltPlugin.sendMessage({ type: 'get-config' });
     }
 
     if (msg.type === 'test-result') {
       if (msg.valid) {
         connMsg.className = 'msg msg-ok';
-        connMsg.textContent = 'Connected as: ' + (msg.name || 'Unknown');
-        connStatus.innerHTML = '<span class="status status-ok">Valid</span>';
+        connMsg.textContent = 'Worker reachable: ' + (msg.name || 'OK');
+        connStatus.innerHTML = '<span class="status status-ok">Reachable</span>';
       } else {
         connMsg.className = 'msg msg-err';
         connMsg.textContent = 'Connection failed: ' + (msg.error || 'Unknown error');
@@ -156,21 +169,12 @@
     }
 
     if (msg.type === 'sessions') {
-      if (msg.error) {
-        sessionsList.innerHTML = '<div class="empty">' + msg.error + '</div>';
-        return;
+      if (msg.info) {
+        sessionInfo.textContent = msg.info;
       }
-      if (!msg.sessions || msg.sessions.length === 0) {
-        sessionsList.innerHTML = '<div class="empty">No active sessions.</div>';
-        return;
+      if (msg.activeSessions > 0) {
+        sessionInfo.textContent = msg.activeSessions + ' active session(s) being processed.';
       }
-      sessionsList.innerHTML = msg.sessions.map(function(s) {
-        var stateClass = s.state === 'active' ? 'status-ok' : s.state === 'pending' ? 'status-warn' : 'status-info';
-        return '<div class="session-card">' +
-          '<div class="title">' + (s.issueIdentifier || 'Unknown') + ': ' + (s.issueTitle || 'No title') + '</div>' +
-          '<div class="meta"><span class="status ' + stateClass + '">' + s.state + '</span> &middot; Updated: ' + new Date(s.updatedAt).toLocaleString() + '</div>' +
-          '</div>';
-      }).join('');
     }
   });
 
@@ -178,11 +182,6 @@
   document.getElementById('testBtn').onclick = function() {
     connMsg.className = 'msg';
     connMsg.textContent = 'Testing...';
-    // If user entered a new key, save it first then test
-    var key = apiKeyInput.value;
-    if (key && !key.startsWith('****')) {
-      codeboltPlugin.sendMessage({ type: 'save-config', apiKey: key, pollIntervalMs: parseInt(pollIntervalInput.value) * 1000, enabled: enabledInput.checked });
-    }
     codeboltPlugin.sendMessage({ type: 'test-connection' });
   };
 
@@ -190,15 +189,11 @@
     saveMsg.textContent = 'Saving...';
     codeboltPlugin.sendMessage({
       type: 'save-config',
-      apiKey: apiKeyInput.value,
-      pollIntervalMs: parseInt(pollIntervalInput.value) * 1000,
+      workerUrl: workerUrlInput.value,
+      appToken: appTokenInput.value,
+      accessToken: accessTokenInput.value,
       enabled: enabledInput.checked,
     });
-  };
-
-  document.getElementById('refreshBtn').onclick = function() {
-    sessionsList.innerHTML = '<div class="empty">Loading...</div>';
-    codeboltPlugin.sendMessage({ type: 'get-sessions' });
   };
 </script>
 </body>

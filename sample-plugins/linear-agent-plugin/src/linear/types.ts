@@ -34,8 +34,7 @@ export interface AgentSignal {
 }
 
 export interface AgentPlanStep {
-    id: string;
-    title: string;
+    content: string;
     status: 'pending' | 'inProgress' | 'completed' | 'canceled';
 }
 

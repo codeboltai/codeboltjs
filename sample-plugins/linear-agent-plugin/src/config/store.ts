@@ -2,15 +2,19 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 
 export interface LinearPluginConfig {
-    apiKey: string;
-    pollIntervalMs: number;
+    workerUrl: string;
+    appToken: string;
+    accessToken: string;
     enabled: boolean;
+    reconnectIntervalMs: number;
 }
 
 const DEFAULT_CONFIG: LinearPluginConfig = {
-    apiKey: '',
-    pollIntervalMs: 10000,
+    workerUrl: 'wss://linear-agent-worker.arrowai.workers.dev',
+    appToken: '',
+    accessToken: '',
     enabled: true,
+    reconnectIntervalMs: 5000,
 };
 
 const CONFIG_FILENAME = 'config.json';
@@ -21,11 +25,14 @@ export async function loadConfig(pluginDir: string): Promise<LinearPluginConfig>
         const raw = await fs.readFile(filePath, 'utf-8');
         const parsed = JSON.parse(raw);
         return {
-            apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : DEFAULT_CONFIG.apiKey,
-            pollIntervalMs: typeof parsed.pollIntervalMs === 'number' && parsed.pollIntervalMs >= 1000
-                ? parsed.pollIntervalMs
-                : DEFAULT_CONFIG.pollIntervalMs,
+            workerUrl: typeof parsed.workerUrl === 'string' ? parsed.workerUrl : DEFAULT_CONFIG.workerUrl,
+            appToken: typeof parsed.appToken === 'string' ? parsed.appToken : DEFAULT_CONFIG.appToken,
+            accessToken: typeof parsed.accessToken === 'string' ? parsed.accessToken : DEFAULT_CONFIG.accessToken,
             enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : DEFAULT_CONFIG.enabled,
+            reconnectIntervalMs:
+                typeof parsed.reconnectIntervalMs === 'number' && parsed.reconnectIntervalMs >= 1000
+                    ? parsed.reconnectIntervalMs
+                    : DEFAULT_CONFIG.reconnectIntervalMs,
         };
     } catch {
         return { ...DEFAULT_CONFIG };

@@ -2,7 +2,7 @@
   "name": "linear-agent-plugin",
   "version": "1.0.0",
   "displayName": "Linear Agent",
-  "description": "Polls Linear for agent sessions (@mentions and delegated issues), processes them via CodeBolt agents, and reports progress back as Linear agent activities.",
+  "description": "Connects to the Linear Agent Cloudflare Worker via WebSocket to receive agent sessions and processes them via CodeBolt agents.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@codebolt/plugin-sdk": "file:../../../../CodeBolt/packages/codeboltPluginSdk",
-    "@linear/sdk": "^29.0.0"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/ws": "^8.5.13",
     "typescript": "^5.4.5"
   },
   "codebolt": {

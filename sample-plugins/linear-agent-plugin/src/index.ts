@@ -1,76 +1,85 @@
 /**
  * Linear Agent Plugin — CodeBolt Plugin
  *
- * Polls Linear for agent sessions (@mentions and delegated issues),
- * processes them via CodeBolt agents, and reports progress back
- * as Linear agent activities.
+ * Connects to the Linear Agent Cloudflare Worker via WebSocket to receive
+ * agent sessions (from Linear webhooks) and processes them via CodeBolt agents.
+ * Results are sent back through the WebSocket to the worker, which relays
+ * them to Linear as agent activities.
  *
  * Architecture:
- *   1. Plugin starts → loads config → starts polling Linear API
- *   2. Poller detects new agent sessions → handler processes them
- *   3. Handler emits activities back to Linear (thought, action, response)
- *   4. Settings UI allows configuring API key, poll interval, and viewing sessions
+ *   1. Plugin starts → loads config → connects WebSocket to CF Worker
+ *   2. Worker sends session events (created/prompted) → handler processes them
+ *   3. Handler sends activities/state/plan updates back via WebSocket
+ *   4. Settings UI allows configuring Worker URL, App Token, and Access Token
  */
 
 import plugin from '@codebolt/plugin-sdk';
 import { loadConfig, saveConfig, type LinearPluginConfig } from './config/store.js';
-import { LinearAgentClient } from './linear/client.js';
-import { SessionPoller } from './poller/sessionPoller.js';
+import { WorkerClient } from './ws/workerClient.js';
 import { SessionHandler } from './session/handler.js';
 
-let poller: SessionPoller | null = null;
+let workerClient: WorkerClient | null = null;
 let handler: SessionHandler | null = null;
-let client: LinearAgentClient | null = null;
 let config: LinearPluginConfig;
 let pluginDir: string;
 
-function startPolling(): void {
-    if (!config.apiKey) return;
+function startConnection(): void {
+    if (!config.appToken || !config.accessToken) return;
 
-    client = new LinearAgentClient(config.apiKey);
-    handler = new SessionHandler(client);
-    poller = new SessionPoller(client, config.pollIntervalMs);
+    workerClient = new WorkerClient(
+        config.workerUrl,
+        config.appToken,
+        config.accessToken,
+        config.reconnectIntervalMs
+    );
 
-    poller.on('session:new', (session) => {
-        console.log(`[LinearAgent] New session: ${session.id} for ${session.issue?.identifier ?? session.issueId}`);
-        handler!.handleNewSession(session).catch((err) => {
+    handler = new SessionHandler(workerClient);
+
+    workerClient.on('connected', () => {
+        console.log('[LinearAgent] Connected to worker');
+    });
+
+    workerClient.on('disconnected', () => {
+        console.log('[LinearAgent] Disconnected from worker');
+    });
+
+    workerClient.on('session:new', (event) => {
+        console.log(`[LinearAgent] New session: ${event.sessionId}`);
+        handler!.handleNewSession(event).catch((err) => {
             console.error('[LinearAgent] Session handling failed:', err);
         });
     });
 
-    poller.on('session:updated', (session) => {
-        console.log(`[LinearAgent] Session updated: ${session.id}`);
+    workerClient.on('session:prompted', (event) => {
+        console.log(`[LinearAgent] Session prompted: ${event.sessionId}`);
+        handler!.handlePrompted(event.sessionId, event.message).catch((err) => {
+            console.error('[LinearAgent] Prompt handling failed:', err);
+        });
     });
 
-    poller.on('session:signal', (sessionId, signal) => {
-        console.log(`[LinearAgent] Signal ${signal.type} for session ${sessionId}`);
-        handler!.handleSignal(sessionId, signal.type);
+    workerClient.on('error', (err) => {
+        console.error('[LinearAgent] Worker client error:', err.message);
     });
 
-    poller.on('error', (err) => {
-        console.error('[LinearAgent] Poll error:', err.message);
-    });
-
-    poller.start();
-    console.log(`[LinearAgent] Polling started (interval: ${config.pollIntervalMs}ms)`);
+    workerClient.connect();
+    console.log(`[LinearAgent] Connecting to ${config.workerUrl}`);
 }
 
-function stopPolling(): void {
-    if (poller) {
-        poller.stop();
-        poller = null;
+function stopConnection(): void {
+    if (workerClient) {
+        workerClient.disconnect();
+        workerClient = null;
     }
     if (handler) {
         handler.cancelAll();
         handler = null;
     }
-    client = null;
 }
 
-async function restartPolling(): Promise<void> {
-    stopPolling();
-    if (config.apiKey && config.enabled) {
-        startPolling();
+async function restartConnection(): Promise<void> {
+    stopConnection();
+    if (config.appToken && config.accessToken && config.enabled) {
+        startConnection();
     }
 }
 
@@ -78,7 +87,7 @@ async function restartPolling(): Promise<void> {
 // Plugin lifecycle
 // ---------------------------------------------------------------------------
 
-plugin.onStart(async (ctx) => {
+plugin.onStart(async (ctx: any) => {
     console.log(`[LinearAgent] Started: ${ctx.pluginId}`);
     pluginDir = (ctx as any).pluginDir ?? process.env.PLUGIN_DIR ?? '.';
 
@@ -95,29 +104,32 @@ plugin.onStart(async (ctx) => {
                     type: 'config',
                     config: {
                         ...config,
-                        apiKey: config.apiKey ? '****' + config.apiKey.slice(-4) : '',
+                        accessToken: config.accessToken ? '****' + config.accessToken.slice(-4) : '',
                     },
-                    isConnected: !!poller,
+                    isConnected: workerClient?.connected ?? false,
                     activeSessions: handler?.activeSessionCount ?? 0,
                 });
                 break;
             }
 
             case 'save-config': {
-                if (data.apiKey !== undefined && data.apiKey !== '') {
-                    // Only update if a real key was provided (not the masked one)
-                    if (!data.apiKey.startsWith('****')) {
-                        config.apiKey = data.apiKey;
-                    }
+                if (data.workerUrl !== undefined && data.workerUrl !== '') {
+                    config.workerUrl = data.workerUrl;
                 }
-                if (typeof data.pollIntervalMs === 'number' && data.pollIntervalMs >= 1000) {
-                    config.pollIntervalMs = data.pollIntervalMs;
+                if (data.appToken !== undefined && data.appToken !== '') {
+                    config.appToken = data.appToken;
+                }
+                if (data.accessToken !== undefined && data.accessToken !== '') {
+                    // Only update if a real token was provided (not the masked one)
+                    if (!data.accessToken.startsWith('****')) {
+                        config.accessToken = data.accessToken;
+                    }
                 }
                 if (typeof data.enabled === 'boolean') {
                     config.enabled = data.enabled;
                 }
                 await saveConfig(pluginDir, config);
-                await restartPolling();
+                await restartConnection();
                 plugin.dynamicPanel.send(PANEL_ID, {
                     type: 'config-saved',
                     success: true,
@@ -126,66 +138,66 @@ plugin.onStart(async (ctx) => {
             }
 
             case 'test-connection': {
-                if (!config.apiKey) {
+                if (!config.appToken || !config.accessToken) {
                     plugin.dynamicPanel.send(PANEL_ID, {
                         type: 'test-result',
                         valid: false,
-                        error: 'No API key configured',
+                        error: 'App Token and Access Token are required',
                     });
                     return;
                 }
-                const testClient = new LinearAgentClient(config.apiKey);
-                const result = await testClient.validateConnection();
-                plugin.dynamicPanel.send(PANEL_ID, {
-                    type: 'test-result',
-                    ...result,
-                });
+
+                // Test by checking if the worker is reachable
+                try {
+                    const healthUrl = config.workerUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') + '/health';
+                    const response = await fetch(healthUrl);
+                    if (response.ok) {
+                        plugin.dynamicPanel.send(PANEL_ID, {
+                            type: 'test-result',
+                            valid: true,
+                            name: 'Worker is reachable',
+                        });
+                    } else {
+                        plugin.dynamicPanel.send(PANEL_ID, {
+                            type: 'test-result',
+                            valid: false,
+                            error: `Worker returned status ${response.status}`,
+                        });
+                    }
+                } catch (err) {
+                    plugin.dynamicPanel.send(PANEL_ID, {
+                        type: 'test-result',
+                        valid: false,
+                        error: err instanceof Error ? err.message : 'Connection failed',
+                    });
+                }
                 break;
             }
 
             case 'get-sessions': {
-                if (client) {
-                    try {
-                        const sessions = await client.fetchActiveSessions();
-                        plugin.dynamicPanel.send(PANEL_ID, {
-                            type: 'sessions',
-                            sessions: sessions.map((s) => ({
-                                id: s.id,
-                                state: s.state,
-                                issueIdentifier: s.issue?.identifier,
-                                issueTitle: s.issue?.title,
-                                updatedAt: s.updatedAt,
-                            })),
-                        });
-                    } catch {
-                        plugin.dynamicPanel.send(PANEL_ID, {
-                            type: 'sessions',
-                            sessions: [],
-                            error: 'Failed to fetch sessions',
-                        });
-                    }
-                } else {
-                    plugin.dynamicPanel.send(PANEL_ID, {
-                        type: 'sessions',
-                        sessions: [],
-                        error: 'Not connected — configure API key first',
-                    });
-                }
+                plugin.dynamicPanel.send(PANEL_ID, {
+                    type: 'sessions',
+                    sessions: [],
+                    activeSessions: handler?.activeSessionCount ?? 0,
+                    info: workerClient?.connected
+                        ? 'Sessions are received in real-time via WebSocket. Active sessions shown above.'
+                        : 'Not connected — configure settings first',
+                });
                 break;
             }
         }
     });
 
-    // Start polling if configured
-    if (config.apiKey && config.enabled) {
-        startPolling();
+    // Start connection if configured
+    if (config.appToken && config.accessToken && config.enabled) {
+        startConnection();
     } else {
-        console.log('[LinearAgent] No API key or disabled — waiting for configuration via UI');
+        console.log('[LinearAgent] Not configured — waiting for configuration via UI');
     }
 });
 
 plugin.onStop(async () => {
     console.log('[LinearAgent] Stopping...');
-    stopPolling();
+    stopConnection();
     console.log('[LinearAgent] Stopped');
 });

@@ -1,6 +1,6 @@
 import codebolt from '@codebolt/codeboltjs';
-import type { LinearAgentClient } from '../linear/client.js';
-import type { AgentSession, AgentSignalType } from '../linear/types.js';
+import type { WorkerClient, SessionCreatedEvent } from '../ws/workerClient.js';
+import type { AgentSignalType } from '../linear/types.js';
 
 interface ParsedContext {
     issueIdentifier: string;
@@ -14,95 +14,115 @@ interface ParsedContext {
 }
 
 export class SessionHandler {
-    private client: LinearAgentClient;
+    private workerClient: WorkerClient;
     private activeSessions: Map<string, AbortController> = new Map();
 
-    constructor(client: LinearAgentClient) {
-        this.client = client;
+    constructor(workerClient: WorkerClient) {
+        this.workerClient = workerClient;
     }
 
-    async handleNewSession(session: AgentSession): Promise<void> {
+    async handleNewSession(event: SessionCreatedEvent): Promise<void> {
+        const { sessionId, session } = event;
+
         // Guard against duplicate handling
-        if (this.activeSessions.has(session.id)) {
-            console.log(`[SessionHandler] Session ${session.id} already being handled, skipping`);
+        if (this.activeSessions.has(sessionId)) {
+            console.log(`[SessionHandler] Session ${sessionId} already being handled, skipping`);
             return;
         }
 
-        const issueLabel = session.issue?.identifier ?? session.issueId;
-        console.log(`[SessionHandler] Handling new session ${session.id} for issue ${issueLabel}`);
+        const issueLabel = session.issue?.identifier ?? session.issueId ?? sessionId;
+        console.log(`[SessionHandler] Handling new session ${sessionId} for issue ${issueLabel}`);
 
-        // 1. Emit initial thought immediately (Linear expects response within 10s)
-        await this.client.emitActivity(session.id, {
-            type: 'thought',
-            content: `Received issue ${issueLabel}. Analyzing context and preparing to work on it...`,
-        });
-
-        // 2. Transition to active
-        try {
-            await this.client.updateSessionState(session.id, 'active');
-        } catch (err) {
-            console.error(`[SessionHandler] Failed to set session active:`, err);
-        }
-
-        // 3. Parse context
-        const context = this.parsePromptContext(session);
-
-        // 4. Set up abort controller
+        // Set up abort controller
         const abort = new AbortController();
-        this.activeSessions.set(session.id, abort);
+        this.activeSessions.set(sessionId, abort);
 
         try {
-            // 5. Create plan on Linear
-            const planSteps = [
-                { title: 'Analyze issue context', status: 'completed' },
-                { title: 'Process with CodeBolt agent', status: 'inProgress' },
-                { title: 'Report results', status: 'pending' },
-            ];
-            await this.client.upsertPlan(session.id, planSteps);
+            // 1. Parse context from the session
+            const context = this.parseSessionContext(session);
 
-            // 6. Emit action activity
-            await this.client.emitActivity(session.id, {
+            // 2. Create plan on Linear (via worker)
+            this.workerClient.sendPlanUpdate(sessionId, [
+                { content: 'Analyze issue context', status: 'completed' },
+                { content: 'Process with CodeBolt agent', status: 'inProgress' },
+                { content: 'Report results', status: 'pending' },
+            ]);
+
+            // 3. Emit action activity (via worker)
+            this.workerClient.sendActivity(sessionId, {
                 type: 'action',
-                content: `Invoking CodeBolt agent to work on: ${context.issueTitle}`,
+                action: 'Processing',
+                parameter: context.issueTitle,
             });
 
             if (abort.signal.aborted) return;
 
-            // 7. Bridge to CodeBolt agent
+            // 4. Bridge to CodeBolt agent
             const agentResult = await this.invokeCodeBoltAgent(context, abort.signal);
 
             if (abort.signal.aborted) return;
 
-            // 8. Update plan — mark processing complete
-            await this.client.upsertPlan(session.id, [
-                { title: 'Analyze issue context', status: 'completed' },
-                { title: 'Process with CodeBolt agent', status: 'completed' },
-                { title: 'Report results', status: 'completed' },
+            // 5. Update plan — mark processing complete
+            this.workerClient.sendPlanUpdate(sessionId, [
+                { content: 'Analyze issue context', status: 'completed' },
+                { content: 'Process with CodeBolt agent', status: 'completed' },
+                { content: 'Report results', status: 'completed' },
             ]);
 
-            // 9. Emit final response
-            await this.client.emitActivity(session.id, {
+            // 6. Emit final response (via worker)
+            this.workerClient.sendActivity(sessionId, {
                 type: 'response',
-                content: agentResult,
+                body: agentResult,
             });
 
-            // 10. Mark session complete
-            await this.client.updateSessionState(session.id, 'complete');
-            console.log(`[SessionHandler] Session ${session.id} completed`);
+            // 7. Mark session complete (via worker)
+            this.workerClient.sendStateUpdate(sessionId, 'complete');
+            console.log(`[SessionHandler] Session ${sessionId} completed`);
         } catch (err) {
             if (!abort.signal.aborted) {
                 const errorMsg = err instanceof Error ? err.message : String(err);
-                console.error(`[SessionHandler] Session ${session.id} failed:`, errorMsg);
+                console.error(`[SessionHandler] Session ${sessionId} failed:`, errorMsg);
 
-                await this.client.emitActivity(session.id, {
+                this.workerClient.sendActivity(sessionId, {
                     type: 'error',
-                    content: `Failed to process issue: ${errorMsg}`,
-                }).catch(() => {});
+                    body: `Failed to process issue: ${errorMsg}`,
+                });
 
-                await this.client.updateSessionState(session.id, 'error').catch(() => {});
+                this.workerClient.sendStateUpdate(sessionId, 'error');
             }
         } finally {
-            this.activeSessions.delete(session.id);
+            this.activeSessions.delete(sessionId);
+        }
+    }
+
+    /**
+     * Handle a follow-up prompt from a user on an existing session.
+     */
+    async handlePrompted(sessionId: string, message: string): Promise<void> {
+        console.log(`[SessionHandler] Prompted on session ${sessionId}: ${message.substring(0, 100)}`);
+
+        // Emit a thought to acknowledge
+        this.workerClient.sendActivity(sessionId, {
+            type: 'thought',
+            body: `Received follow-up: "${message.substring(0, 100)}". Processing...`,
+        });
+
+        try {
+            // Send the follow-up message to the CodeBolt agent
+            const response = await (codebolt as any).chat.sendMessage(message);
+
+            const result = response?.message ?? (typeof response === 'string' ? response : 'Processed follow-up.');
+
+            this.workerClient.sendActivity(sessionId, {
+                type: 'response',
+                body: result,
+            });
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            this.workerClient.sendActivity(sessionId, {
+                type: 'error',
+                body: `Failed to process follow-up: ${errorMsg}`,
+            });
         }
     }
 
@@ -128,7 +148,7 @@ export class SessionHandler {
         return this.activeSessions.size;
     }
 
-    private parsePromptContext(session: AgentSession): ParsedContext {
+    private parseSessionContext(session: SessionCreatedEvent['session']): ParsedContext {
         const issue = session.issue;
         const xml = session.promptContext ?? '';
 
@@ -163,20 +183,17 @@ export class SessionHandler {
         context: ParsedContext,
         signal: AbortSignal
     ): Promise<string> {
-        // Build a prompt from the issue context
         const prompt = this.buildAgentPrompt(context);
 
         console.log(`[SessionHandler] Sending to CodeBolt agent: ${context.issueIdentifier}`);
 
         try {
-            // Send the issue context as a chat message to the active CodeBolt agent
             const response = await (codebolt as any).chat.sendMessage(prompt);
 
             if (signal.aborted) {
                 return 'Processing was cancelled.';
             }
 
-            // Extract the agent's response
             if (response && typeof response === 'object' && response.message) {
                 return response.message;
             }
@@ -187,7 +204,6 @@ export class SessionHandler {
             return `Processed issue ${context.issueIdentifier}: ${context.issueTitle}. The CodeBolt agent has analyzed the request.`;
         } catch (err) {
             console.error('[SessionHandler] CodeBolt agent invocation failed:', err);
-            // Return a meaningful fallback
             return [
                 `Analyzed issue **${context.issueIdentifier}**: ${context.issueTitle}`,
                 '',
