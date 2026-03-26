@@ -10,7 +10,7 @@
  *   1. Plugin starts → loads config → connects WebSocket to CF Worker
  *   2. Worker sends session events (created/prompted) → handler processes them
  *   3. Handler sends activities/state/plan updates back via WebSocket
- *   4. Settings UI allows configuring Worker URL, App Token, and Access Token
+ *   4. Settings UI allows configuring Worker URL and App Token
  */
 
 import plugin from '@codebolt/plugin-sdk';
@@ -24,12 +24,11 @@ let config: LinearPluginConfig;
 let pluginDir: string;
 
 function startConnection(): void {
-    if (!config.appToken || !config.accessToken) return;
+    if (!config.appToken) return;
 
     workerClient = new WorkerClient(
         config.workerUrl,
         config.appToken,
-        config.accessToken,
         config.reconnectIntervalMs
     );
 
@@ -78,7 +77,7 @@ function stopConnection(): void {
 
 async function restartConnection(): Promise<void> {
     stopConnection();
-    if (config.appToken && config.accessToken && config.enabled) {
+    if (config.appToken && config.enabled) {
         startConnection();
     }
 }
@@ -102,10 +101,7 @@ plugin.onStart(async (ctx: any) => {
             case 'get-config': {
                 plugin.dynamicPanel.send(PANEL_ID, {
                     type: 'config',
-                    config: {
-                        ...config,
-                        accessToken: config.accessToken ? '****' + config.accessToken.slice(-4) : '',
-                    },
+                    config,
                     isConnected: workerClient?.connected ?? false,
                     activeSessions: handler?.activeSessionCount ?? 0,
                 });
@@ -118,12 +114,6 @@ plugin.onStart(async (ctx: any) => {
                 }
                 if (data.appToken !== undefined && data.appToken !== '') {
                     config.appToken = data.appToken;
-                }
-                if (data.accessToken !== undefined && data.accessToken !== '') {
-                    // Only update if a real token was provided (not the masked one)
-                    if (!data.accessToken.startsWith('****')) {
-                        config.accessToken = data.accessToken;
-                    }
                 }
                 if (typeof data.enabled === 'boolean') {
                     config.enabled = data.enabled;
@@ -138,16 +128,15 @@ plugin.onStart(async (ctx: any) => {
             }
 
             case 'test-connection': {
-                if (!config.appToken || !config.accessToken) {
+                if (!config.appToken) {
                     plugin.dynamicPanel.send(PANEL_ID, {
                         type: 'test-result',
                         valid: false,
-                        error: 'App Token and Access Token are required',
+                        error: 'App Token is required',
                     });
                     return;
                 }
 
-                // Test by checking if the worker is reachable
                 try {
                     const healthUrl = config.workerUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:') + '/health';
                     const response = await fetch(healthUrl);
@@ -180,7 +169,7 @@ plugin.onStart(async (ctx: any) => {
                     sessions: [],
                     activeSessions: handler?.activeSessionCount ?? 0,
                     info: workerClient?.connected
-                        ? 'Sessions are received in real-time via WebSocket. Active sessions shown above.'
+                        ? 'Sessions are received in real-time via WebSocket.'
                         : 'Not connected — configure settings first',
                 });
                 break;
@@ -189,7 +178,7 @@ plugin.onStart(async (ctx: any) => {
     });
 
     // Start connection if configured
-    if (config.appToken && config.accessToken && config.enabled) {
+    if (config.appToken && config.enabled) {
         startConnection();
     } else {
         console.log('[LinearAgent] Not configured — waiting for configuration via UI');

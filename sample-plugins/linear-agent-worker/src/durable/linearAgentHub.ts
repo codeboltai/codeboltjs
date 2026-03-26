@@ -4,14 +4,11 @@
  * Maintains persistent WebSocket connections to CodeBolt apps and bridges
  * them with Linear's agent session webhook events.
  *
- * Responsibilities:
- *   1. Accept WebSocket connections from CodeBolt apps (with OAuth token)
- *   2. Receive webhook events forwarded from the Worker
- *   3. Forward agent sessions to connected apps
- *   4. Relay activity/state/plan updates from apps back to Linear
- *
- * Inspired by the existing ProxyHub pattern in:
- *   remoteenvironments/codeboltwranglerWsServer/src/durable/proxyHub.ts
+ * Simplified architecture:
+ *   - Apps just connect with an appToken (no OAuth token needed)
+ *   - Worker looks up access tokens from KV (stored during OAuth install)
+ *   - Webhook events are broadcast to ALL connected apps
+ *   - Any connected app can respond; the DO relays back to Linear
  */
 
 import { LinearAgentClient } from '../linear/client.js';
@@ -26,8 +23,6 @@ import type {
 interface AppConnection {
   socket: WebSocket;
   appToken: string;
-  accessToken: string;
-  linearClient: LinearAgentClient;
   connectedAt: number;
 }
 
@@ -43,11 +38,14 @@ export class LinearAgentHub {
   /** Connected CodeBolt apps keyed by appToken */
   private readonly apps = new Map<string, AppConnection>();
 
-  /** Pending webhook events when no app is connected (keyed by appToken) */
-  private readonly pendingEvents = new Map<string, PendingSession[]>();
+  /** Pending webhook events when no app is connected */
+  private readonly pendingEvents: PendingSession[] = [];
 
   /** Track active sessions to prevent duplicate handling */
   private readonly activeSessions = new Set<string>();
+
+  /** Linear client using the org's OAuth token (set from webhook payload) */
+  private linearClient: LinearAgentClient | null = null;
 
   constructor(state: DurableObjectState) {
     this.state = state;
@@ -70,8 +68,9 @@ export class LinearAgentHub {
     if (request.method === 'GET' && url.pathname === '/status') {
       return Response.json({
         connectedApps: this.apps.size,
+        appTokens: Array.from(this.apps.keys()),
         activeSessions: this.activeSessions.size,
-        pendingQueues: this.pendingEvents.size,
+        pendingEvents: this.pendingEvents.length,
       });
     }
 
@@ -114,7 +113,7 @@ export class LinearAgentHub {
   private handleAppMessage(socket: WebSocket, message: AppToHubMessage): void {
     switch (message.type) {
       case 'register':
-        this.handleRegister(socket, message.appToken, message.accessToken);
+        this.handleRegister(socket, message.appToken);
         break;
 
       case 'activity':
@@ -145,11 +144,7 @@ export class LinearAgentHub {
     }
   }
 
-  private handleRegister(
-    socket: WebSocket,
-    appToken: string,
-    accessToken: string
-  ): void {
+  private handleRegister(socket: WebSocket, appToken: string): void {
     // Close any existing connection for this appToken
     const existing = this.apps.get(appToken);
     if (existing && existing.socket !== socket) {
@@ -163,14 +158,12 @@ export class LinearAgentHub {
     const connection: AppConnection = {
       socket,
       appToken,
-      accessToken,
-      linearClient: new LinearAgentClient(accessToken),
       connectedAt: Date.now(),
     };
 
     this.apps.set(appToken, connection);
 
-    console.log(`[LinearAgentHub] App registered: ${appToken}`);
+    console.log(`[LinearAgentHub] App registered: ${appToken} (total: ${this.apps.size})`);
 
     // Acknowledge registration
     this.sendJson(socket, {
@@ -179,8 +172,8 @@ export class LinearAgentHub {
       success: true,
     } as HubToAppMessage);
 
-    // Flush any pending events for this appToken
-    this.flushPendingEvents(appToken);
+    // Flush any pending events to all connected apps
+    this.flushPendingEvents();
   }
 
   // ---------------------------------------------------------------------------
@@ -190,48 +183,44 @@ export class LinearAgentHub {
   private async handleWebhookForward(request: Request): Promise<Response> {
     try {
       const payload = (await request.json()) as WebhookForwardPayload;
-      const { event, accessToken, organizationId } = payload;
+      const { event, accessToken } = payload;
 
       console.log(
         `[LinearAgentHub] Webhook received: ${event.action} for session ${event.agentSession.id}`
       );
 
-      // Find a connected app (try organizationId-based routing, then any connected app)
-      const app = this.findAppForEvent(organizationId, accessToken);
-
-      // Resolve the best access token: prefer the one from KV (webhook payload),
-      // fall back to the connected app's token
-      const resolvedAccessToken = accessToken || app?.accessToken || '';
-
-      if (app) {
-        // Ensure the app's linear client uses the best available token
-        if (resolvedAccessToken && resolvedAccessToken !== app.accessToken) {
-          app.linearClient.updateAccessToken(resolvedAccessToken);
+      // Update the linear client with the access token from KV
+      if (accessToken) {
+        if (!this.linearClient) {
+          this.linearClient = new LinearAgentClient(accessToken);
+        } else {
+          this.linearClient.updateAccessToken(accessToken);
         }
-        await this.forwardEventToApp(app, event);
+      }
+
+      if (this.apps.size > 0) {
+        // Broadcast to ALL connected apps
+        await this.broadcastEvent(event);
       } else {
-        // No app connected — respond to Linear immediately so the session
-        // is not marked as inactive / unresponsive.
+        // No apps connected — respond to Linear immediately
         console.log(
-          `[LinearAgentHub] No app connected, notifying Linear and queuing event`
+          `[LinearAgentHub] No apps connected, notifying Linear and queuing event`
         );
 
         const sessionId = event.agentSession.id;
 
-        if (!resolvedAccessToken) {
+        if (!accessToken || !this.linearClient) {
           console.error(
             `[LinearAgentHub] No access token available — cannot respond to Linear for session ${sessionId}`
           );
           return new Response('No access token', { status: 500 });
         }
 
-        const tempClient = new LinearAgentClient(resolvedAccessToken);
-
-        // 1. Emit a visible response telling the user what's going on
-        await tempClient.emitActivity(sessionId, {
+        // Tell Linear that no local server is running
+        await this.linearClient.emitActivity(sessionId, {
           type: 'response',
           body: [
-            '⚠️ **No local CodeBolt server is currently connected.**',
+            '**No local CodeBolt server is currently connected.**',
             '',
             'The CodeBolt agent plugin needs to be running locally to process this request.',
             '',
@@ -244,11 +233,19 @@ export class LinearAgentHub {
           ].join('\n'),
         });
 
-        // 2. Mark session as awaiting input (not error — so it can be retried)
-        await tempClient.updateSessionState(sessionId, 'awaitingInput');
+        await this.linearClient.updateSessionState(sessionId, 'awaitingInput');
 
-        // 3. Queue the event so it can be replayed when an app connects
-        this.queueEvent(organizationId, event, resolvedAccessToken);
+        // Queue so it can be replayed when an app connects
+        this.pendingEvents.push({
+          event,
+          accessToken,
+          receivedAt: Date.now(),
+        });
+
+        // Limit queue size
+        if (this.pendingEvents.length > 50) {
+          this.pendingEvents.shift();
+        }
       }
 
       return new Response('OK', { status: 200 });
@@ -258,44 +255,54 @@ export class LinearAgentHub {
     }
   }
 
-  private async forwardEventToApp(
-    app: AppConnection,
-    event: AgentSessionWebhookPayload
-  ): Promise<void> {
+  /**
+   * Broadcast a webhook event to ALL connected apps.
+   */
+  private async broadcastEvent(event: AgentSessionWebhookPayload): Promise<void> {
     const sessionId = event.agentSession.id;
 
     if (event.action === 'created') {
-      // New session — emit immediate thought to Linear (within 10s requirement)
-      try {
-        await app.linearClient.emitActivity(sessionId, {
-          type: 'thought',
-          body: `Received task. Analyzing ${event.agentSession.issue?.identifier ?? 'issue'}...`,
-        });
-      } catch (err) {
-        console.error(
-          `[LinearAgentHub] Failed to emit initial thought:`,
-          err
-        );
+      // Emit immediate thought to Linear (within 10s requirement)
+      if (this.linearClient) {
+        try {
+          await this.linearClient.emitActivity(sessionId, {
+            type: 'thought',
+            body: `Received task. Analyzing ${event.agentSession.issue?.identifier ?? 'issue'}...`,
+          });
+        } catch (err) {
+          console.error(`[LinearAgentHub] Failed to emit initial thought:`, err);
+        }
       }
 
       this.activeSessions.add(sessionId);
 
-      // Forward full session to the app
-      this.sendJson(app.socket, {
+      // Send to all connected apps
+      const msg: HubToAppMessage = {
         type: 'session:created',
         sessionId,
         session: event.agentSession,
-      } as HubToAppMessage);
+      };
+
+      for (const app of this.apps.values()) {
+        this.sendJson(app.socket, msg);
+      }
+
+      console.log(`[LinearAgentHub] Broadcast session:created to ${this.apps.size} app(s)`);
     } else if (event.action === 'prompted') {
-      // User sent a follow-up prompt
       const message = event.agentActivity?.body ?? '';
 
-      this.sendJson(app.socket, {
+      const msg: HubToAppMessage = {
         type: 'session:prompted',
         sessionId,
         message,
         agentActivityId: event.agentActivity?.id,
-      } as HubToAppMessage);
+      };
+
+      for (const app of this.apps.values()) {
+        this.sendJson(app.socket, msg);
+      }
+
+      console.log(`[LinearAgentHub] Broadcast session:prompted to ${this.apps.size} app(s)`);
     }
   }
 
@@ -309,24 +316,16 @@ export class LinearAgentHub {
       ? A
       : never
   ): Promise<void> {
-    const client = this.findClientForSession(sessionId);
-    if (!client) {
-      console.error(
-        `[LinearAgentHub] No client found for session ${sessionId}`
-      );
+    if (!this.linearClient) {
+      console.error(`[LinearAgentHub] No linear client — cannot emit activity for session ${sessionId}`);
       return;
     }
 
     try {
-      await client.emitActivity(sessionId, activity);
-      console.log(
-        `[LinearAgentHub] Emitted ${activity.type} activity for session ${sessionId}`
-      );
+      await this.linearClient.emitActivity(sessionId, activity);
+      console.log(`[LinearAgentHub] Emitted ${activity.type} activity for session ${sessionId}`);
     } catch (err) {
-      console.error(
-        `[LinearAgentHub] Failed to emit activity for session ${sessionId}:`,
-        err
-      );
+      console.error(`[LinearAgentHub] Failed to emit activity for session ${sessionId}:`, err);
     }
   }
 
@@ -334,11 +333,10 @@ export class LinearAgentHub {
     sessionId: string,
     state: string
   ): Promise<void> {
-    const client = this.findClientForSession(sessionId);
-    if (!client) return;
+    if (!this.linearClient) return;
 
     try {
-      await client.updateSessionState(
+      await this.linearClient.updateSessionState(
         sessionId,
         state as import('../types.js').AgentSessionState
       );
@@ -347,14 +345,9 @@ export class LinearAgentHub {
         this.activeSessions.delete(sessionId);
       }
 
-      console.log(
-        `[LinearAgentHub] Updated session ${sessionId} state to ${state}`
-      );
+      console.log(`[LinearAgentHub] Updated session ${sessionId} state to ${state}`);
     } catch (err) {
-      console.error(
-        `[LinearAgentHub] Failed to update state for session ${sessionId}:`,
-        err
-      );
+      console.error(`[LinearAgentHub] Failed to update state for session ${sessionId}:`, err);
     }
   }
 
@@ -362,19 +355,13 @@ export class LinearAgentHub {
     sessionId: string,
     steps: import('../types.js').AgentPlanStep[]
   ): Promise<void> {
-    const client = this.findClientForSession(sessionId);
-    if (!client) return;
+    if (!this.linearClient) return;
 
     try {
-      await client.upsertPlan(sessionId, steps);
-      console.log(
-        `[LinearAgentHub] Updated plan for session ${sessionId} (${steps.length} steps)`
-      );
+      await this.linearClient.upsertPlan(sessionId, steps);
+      console.log(`[LinearAgentHub] Updated plan for session ${sessionId} (${steps.length} steps)`);
     } catch (err) {
-      console.error(
-        `[LinearAgentHub] Failed to update plan for session ${sessionId}:`,
-        err
-      );
+      console.error(`[LinearAgentHub] Failed to update plan for session ${sessionId}:`, err);
     }
   }
 
@@ -382,19 +369,13 @@ export class LinearAgentHub {
     sessionId: string,
     urls: Array<{ label: string; url: string }>
   ): Promise<void> {
-    const client = this.findClientForSession(sessionId);
-    if (!client) return;
+    if (!this.linearClient) return;
 
     try {
-      await client.updateExternalUrls(sessionId, urls);
-      console.log(
-        `[LinearAgentHub] Updated external URLs for session ${sessionId}`
-      );
+      await this.linearClient.updateExternalUrls(sessionId, urls);
+      console.log(`[LinearAgentHub] Updated external URLs for session ${sessionId}`);
     } catch (err) {
-      console.error(
-        `[LinearAgentHub] Failed to update external URLs for session ${sessionId}:`,
-        err
-      );
+      console.error(`[LinearAgentHub] Failed to update external URLs for session ${sessionId}:`, err);
     }
   }
 
@@ -402,67 +383,25 @@ export class LinearAgentHub {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private findAppForEvent(
-    organizationId: string,
-    accessToken: string
-  ): AppConnection | null {
-    // For now, return the first connected app
-    // In a multi-tenant setup, you'd match by organizationId or accessToken
-    for (const app of this.apps.values()) {
-      return app;
-    }
-    return null;
-  }
-
-  private findClientForSession(sessionId: string): LinearAgentClient | null {
-    // Return the first connected app's client
-    // In production, you'd maintain a sessionId → appToken mapping
-    for (const app of this.apps.values()) {
-      return app.linearClient;
-    }
-    return null;
-  }
-
-  private queueEvent(
-    key: string,
-    event: AgentSessionWebhookPayload,
-    accessToken: string
-  ): void {
-    const queue = this.pendingEvents.get(key) ?? [];
-    queue.push({
-      event,
-      accessToken,
-      receivedAt: Date.now(),
-    });
-    this.pendingEvents.set(key, queue);
-
-    // Limit queue size
-    if (queue.length > 50) {
-      queue.shift();
-    }
-  }
-
-  private async flushPendingEvents(appToken: string): Promise<void> {
-    // Flush all pending events to the newly connected app
-    const app = this.apps.get(appToken);
-    if (!app) return;
+  private async flushPendingEvents(): Promise<void> {
+    if (this.pendingEvents.length === 0 || this.apps.size === 0) return;
 
     let flushedCount = 0;
-    for (const [key, queue] of this.pendingEvents.entries()) {
-      while (queue.length > 0) {
-        const pending = queue.shift()!;
+    while (this.pendingEvents.length > 0) {
+      const pending = this.pendingEvents.shift()!;
 
-        // Update the client's access token if the pending event has one
-        if (pending.accessToken) {
-          app.linearClient.updateAccessToken(pending.accessToken);
-        }
+      // Update the linear client's token
+      if (pending.accessToken && this.linearClient) {
+        this.linearClient.updateAccessToken(pending.accessToken);
+      }
 
-        // Notify Linear that the agent is now online and processing
-        const sessionId = pending.event.agentSession.id;
+      // Notify Linear that agent is now online
+      const sessionId = pending.event.agentSession.id;
+      if (this.linearClient) {
         try {
-          await app.linearClient.emitActivity(sessionId, {
+          await this.linearClient.emitActivity(sessionId, {
             type: 'thought',
-            body: '✅ CodeBolt agent is now connected. Processing your request...',
+            body: 'CodeBolt agent is now connected. Processing your request...',
           });
         } catch (err) {
           console.error(
@@ -470,17 +409,14 @@ export class LinearAgentHub {
             err
           );
         }
-
-        await this.forwardEventToApp(app, pending.event);
-        flushedCount++;
       }
-      this.pendingEvents.delete(key);
+
+      await this.broadcastEvent(pending.event);
+      flushedCount++;
     }
 
     if (flushedCount > 0) {
-      console.log(
-        `[LinearAgentHub] Flushed ${flushedCount} pending event(s) to ${appToken}`
-      );
+      console.log(`[LinearAgentHub] Flushed ${flushedCount} pending event(s) to ${this.apps.size} app(s)`);
     }
   }
 
@@ -488,7 +424,7 @@ export class LinearAgentHub {
     for (const [appToken, conn] of this.apps.entries()) {
       if (conn.socket === socket) {
         this.apps.delete(appToken);
-        console.log(`[LinearAgentHub] App disconnected: ${appToken}`);
+        console.log(`[LinearAgentHub] App disconnected: ${appToken} (remaining: ${this.apps.size})`);
         break;
       }
     }

@@ -14,7 +14,7 @@ import {
   verifyWebhookSignature,
   parseAgentSessionEvent,
 } from './linear/webhook.js';
-import { handleAuthorize, handleCallback, getAccessTokenByOrg, storeOrgMapping } from './oauth/handler.js';
+import { handleAuthorize, handleCallback, handleGetToken, getAccessTokenByOrg, storeOrgMapping } from './oauth/handler.js';
 
 // Re-export the Durable Object class so wrangler can find it
 export { LinearAgentHub } from './durable/linearAgentHub.js';
@@ -44,6 +44,17 @@ const worker: ExportedHandler<Env> = {
       // -----------------------------------------------------------------------
       if (request.method === 'GET' && path === '/oauth/callback') {
         return await handleCallback(request, env);
+      }
+
+      // -----------------------------------------------------------------------
+      // GET /api/token/:appToken — Retrieve stored OAuth token for an app
+      // -----------------------------------------------------------------------
+      if (request.method === 'GET' && path.startsWith('/api/token/')) {
+        const appToken = path.split('/')[3];
+        if (!appToken) {
+          return new Response('Missing appToken', { status: 400 });
+        }
+        return handleGetToken(request, env, appToken);
       }
 
       // -----------------------------------------------------------------------

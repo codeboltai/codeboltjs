@@ -67,7 +67,9 @@ export function parseAgentSessionEvent(
     const payload = JSON.parse(body);
 
     // Validate it's an AgentSession event
-    if (payload.type !== 'AgentSession') {
+    // Linear sends the type as "AgentSessionEvent" in the webhook header
+    // and may use "AgentSession" or "AgentSessionEvent" in the payload body
+    if (payload.type !== 'AgentSession' && payload.type !== 'AgentSessionEvent') {
       console.log(
         `[Webhook] Ignoring non-AgentSession event: ${payload.type}`
       );

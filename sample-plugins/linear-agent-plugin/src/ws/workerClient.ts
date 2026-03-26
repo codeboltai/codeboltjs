@@ -14,12 +14,6 @@ import type { AgentSessionState, AgentPlanStep } from '../linear/types.js';
 // Message types (matches the worker's protocol in types.ts)
 // ---------------------------------------------------------------------------
 
-interface RegisterMessage {
-    type: 'register';
-    appToken: string;
-    accessToken: string;
-}
-
 interface ActivityContent {
     type: 'thought' | 'action' | 'response' | 'error' | 'elicitation';
     body?: string;
@@ -105,7 +99,6 @@ export declare interface WorkerClient {
 export class WorkerClient extends EventEmitter {
     private workerUrl: string;
     private appToken: string;
-    private accessToken: string;
     private reconnectIntervalMs: number;
 
     private ws: WebSocket | null = null;
@@ -117,13 +110,11 @@ export class WorkerClient extends EventEmitter {
     constructor(
         workerUrl: string,
         appToken: string,
-        accessToken: string,
         reconnectIntervalMs = 5000
     ) {
         super();
         this.workerUrl = workerUrl;
         this.appToken = appToken;
-        this.accessToken = accessToken;
         this.reconnectIntervalMs = reconnectIntervalMs;
     }
 
@@ -155,8 +146,7 @@ export class WorkerClient extends EventEmitter {
             this.sendJson({
                 type: 'register',
                 appToken: this.appToken,
-                accessToken: this.accessToken,
-            } as RegisterMessage);
+            });
 
             // Start ping keepalive
             this.startPing();

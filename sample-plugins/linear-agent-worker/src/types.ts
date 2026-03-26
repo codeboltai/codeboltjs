@@ -16,11 +16,10 @@ export interface Env {
 // WebSocket message protocol (CodeBolt App ↔ Durable Object)
 // ---------------------------------------------------------------------------
 
-/** App → DO: register with access token */
+/** App → DO: register this connection */
 export interface RegisterMessage {
   type: 'register';
   appToken: string;
-  accessToken: string;
 }
 
 /** DO → App: new agent session created */

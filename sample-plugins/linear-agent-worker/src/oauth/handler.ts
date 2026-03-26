@@ -1,8 +1,11 @@
 /**
  * OAuth 2.0 flow handler for Linear agent installation.
  *
- * - /oauth/authorize → Redirects to Linear OAuth with actor=app
- * - /oauth/callback  → Exchanges code for token, stores in KV
+ * Flow:
+ *   1. Plugin UI opens /oauth/authorize?appToken=xxx in the browser
+ *   2. User authorizes on Linear
+ *   3. Callback exchanges code for token, stores in KV keyed by appToken
+ *   4. Plugin retrieves its token via GET /api/token/:appToken
  */
 
 import type { Env } from '../types.js';
@@ -13,11 +16,20 @@ const LINEAR_API_URL = 'https://api.linear.app/graphql';
 
 /**
  * Handle the /oauth/authorize route.
- * Redirects to Linear's OAuth authorization page with actor=app.
+ * Accepts an optional ?appToken= query param that gets passed through
+ * the OAuth state so the callback knows which app to associate the token with.
  */
 export function handleAuthorize(request: Request, env: Env): Response {
   const url = new URL(request.url);
+  const appToken = url.searchParams.get('appToken') || '';
   const callbackUrl = `${env.WORKER_URL}/oauth/callback`;
+
+  // Encode appToken into the state parameter so we get it back in the callback
+  const stateData = JSON.stringify({
+    nonce: crypto.randomUUID(),
+    appToken,
+  });
+  const state = btoa(stateData);
 
   const params = new URLSearchParams({
     client_id: env.LINEAR_CLIENT_ID,
@@ -25,8 +37,7 @@ export function handleAuthorize(request: Request, env: Env): Response {
     response_type: 'code',
     scope: 'read,write,app:assignable,app:mentionable',
     actor: 'app',
-    // Use state parameter for CSRF protection
-    state: crypto.randomUUID(),
+    state,
   });
 
   const authorizeUrl = `${LINEAR_AUTHORIZE_URL}?${params.toString()}`;
@@ -44,6 +55,16 @@ export async function handleCallback(
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
+  const stateParam = url.searchParams.get('state') || '';
+
+  // Decode appToken from state
+  let appToken = '';
+  try {
+    const stateData = JSON.parse(atob(stateParam));
+    appToken = stateData.appToken || '';
+  } catch {
+    // state might be a plain UUID from old flow — ignore
+  }
 
   if (error) {
     return new Response(
@@ -145,15 +166,34 @@ export async function handleCallback(
       );
     }
 
+    // Store by appToken so the plugin can retrieve it
+    if (appToken) {
+      await env.OAUTH_TOKENS.put(
+        `app:${appToken}`,
+        JSON.stringify({
+          accessToken,
+          viewerId,
+          viewerName,
+          orgId,
+          orgName,
+          installedAt: new Date().toISOString(),
+        })
+      );
+      console.log(
+        `[OAuth] Stored app token mapping for appToken: ${appToken}`
+      );
+    }
+
     console.log(
       `[OAuth] Successfully installed agent as ${viewerName} (${viewerId}) in org ${orgName} (${orgId})`
     );
 
+    const successMsg = appToken
+      ? `Agent installed successfully as "${viewerName}" in workspace "${orgName}". Your CodeBolt plugin will automatically pick up the connection. You can close this tab.`
+      : `Agent installed successfully as "${viewerName}" (ID: ${viewerId}). You can now close this tab.`;
+
     return new Response(
-      getResultHTML(
-        true,
-        `Agent installed successfully as "${viewerName}" (ID: ${viewerId}). You can now close this tab.`
-      ),
+      getResultHTML(true, successMsg),
       { status: 200, headers: { 'Content-Type': 'text/html' } }
     );
   } catch (err) {
@@ -162,6 +202,39 @@ export async function handleCallback(
     return new Response(
       getResultHTML(false, `Installation failed: ${message}`),
       { status: 500, headers: { 'Content-Type': 'text/html' } }
+    );
+  }
+}
+
+/**
+ * Handle GET /api/token/:appToken
+ * Returns the access token for a given appToken (stored during OAuth callback).
+ */
+export async function handleGetToken(
+  request: Request,
+  env: Env,
+  appToken: string
+): Promise<Response> {
+  const data = await env.OAUTH_TOKENS.get(`app:${appToken}`);
+
+  if (!data) {
+    return Response.json(
+      { error: 'No token found for this appToken. Complete the OAuth flow first.' },
+      { status: 404 }
+    );
+  }
+
+  try {
+    const parsed = JSON.parse(data);
+    return Response.json({
+      accessToken: parsed.accessToken,
+      viewerName: parsed.viewerName,
+      orgName: parsed.orgName,
+    });
+  } catch {
+    return Response.json(
+      { error: 'Failed to parse stored token' },
+      { status: 500 }
     );
   }
 }
@@ -204,7 +277,6 @@ export async function getAccessTokenByOrg(
 
 /**
  * Store the mapping from organization ID to access token.
- * Called when we first receive a webhook and can associate org → token.
  */
 export async function storeOrgMapping(
   env: Env,

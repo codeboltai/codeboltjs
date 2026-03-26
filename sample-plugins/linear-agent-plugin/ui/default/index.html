@@ -15,7 +15,7 @@
 
   .section { margin-bottom: 16px; }
   label { display: block; color: #a6adc8; font-size: 0.85rem; margin-bottom: 4px; }
-  input[type="password"], input[type="text"], input[type="url"] {
+  input[type="text"], input[type="url"] {
     width: 100%; padding: 8px 12px; background: #313244; border: 1px solid #45475a;
     border-radius: 6px; color: #cdd6f4; font-size: 0.9rem; outline: none;
   }
@@ -34,6 +34,7 @@
   button:hover { opacity: 0.85; }
   .btn-primary { background: #89b4fa; color: #1e1e2e; }
   .btn-secondary { background: #45475a; color: #cdd6f4; }
+  .btn-install { background: #5e6ad2; color: white; }
   .btn-small { padding: 5px 12px; font-size: 0.8rem; }
 
   .status {
@@ -51,14 +52,13 @@
 
   .hint { color: #6c7086; font-size: 0.78rem; margin-top: 3px; }
 
-  .session-card {
-    background: #313244; border-radius: 8px; padding: 12px; margin-bottom: 8px;
-    border-left: 3px solid #89b4fa;
-  }
-  .session-card .title { color: #cdd6f4; font-weight: 500; }
-  .session-card .meta { color: #6c7086; font-size: 0.8rem; margin-top: 4px; }
-
   .empty { color: #6c7086; font-style: italic; font-size: 0.85rem; }
+
+  .install-section {
+    background: #313244; border-radius: 8px; padding: 16px; margin-top: 16px;
+    border-left: 3px solid #5e6ad2;
+  }
+  .install-section p { font-size: 0.85rem; margin-bottom: 10px; color: #a6adc8; }
 </style>
 </head>
 <body>
@@ -74,14 +74,8 @@
 
 <div class="section">
   <label for="appToken">App Token</label>
-  <input type="text" id="appToken" placeholder="my-codebolt-app" />
-  <div class="hint">Unique identifier for this plugin instance</div>
-</div>
-
-<div class="section">
-  <label for="accessToken">Access Token</label>
-  <input type="password" id="accessToken" placeholder="lin_oauth_..." />
-  <div class="hint">Linear OAuth access token (from agent installation)</div>
+  <input type="text" id="appToken" placeholder="my-codebolt-instance" />
+  <div class="hint">Unique identifier for this plugin instance (any name you choose)</div>
 </div>
 
 <div class="row">
@@ -103,8 +97,14 @@
 </div>
 <div id="saveMsg" class="msg"></div>
 
-<!-- Active Sessions -->
-<h3>Active Sessions</h3>
+<!-- Install Agent on Linear -->
+<div class="install-section">
+  <p>If the agent is not yet installed on your Linear workspace, click below to authorize it via OAuth.</p>
+  <button class="btn-install" id="installBtn">Install Agent on Linear</button>
+</div>
+
+<!-- Status -->
+<h3>Status</h3>
 <div id="sessionInfo" class="empty"></div>
 
 <script>
@@ -113,7 +113,6 @@
 
   var workerUrlInput = document.getElementById('workerUrl');
   var appTokenInput = document.getElementById('appToken');
-  var accessTokenInput = document.getElementById('accessToken');
   var enabledInput = document.getElementById('enabled');
   var connStatus = document.getElementById('connStatus');
   var connMsg = document.getElementById('connMsg');
@@ -125,7 +124,6 @@
     if (msg.type === 'config') {
       workerUrlInput.value = msg.config.workerUrl || '';
       appTokenInput.value = msg.config.appToken || '';
-      accessTokenInput.value = msg.config.accessToken || '';
       enabledInput.checked = msg.config.enabled !== false;
       if (msg.isConnected) {
         connStatus.innerHTML = '<span class="status status-ok">Connected</span>';
@@ -134,12 +132,12 @@
         } else {
           sessionInfo.textContent = 'Connected. Waiting for sessions from Linear...';
         }
-      } else if (msg.config.appToken && msg.config.accessToken) {
+      } else if (msg.config.appToken) {
         connStatus.innerHTML = '<span class="status status-warn">Disconnected</span>';
         sessionInfo.textContent = 'Not connected to worker.';
       } else {
         connStatus.innerHTML = '<span class="status status-info">Not configured</span>';
-        sessionInfo.textContent = 'Configure Worker URL, App Token, and Access Token to start.';
+        sessionInfo.textContent = 'Enter an App Token and save to connect.';
       }
     }
 
@@ -191,9 +189,19 @@
       type: 'save-config',
       workerUrl: workerUrlInput.value,
       appToken: appTokenInput.value,
-      accessToken: accessTokenInput.value,
       enabled: enabledInput.checked,
     });
+  };
+
+  document.getElementById('installBtn').onclick = function() {
+    var baseUrl = workerUrlInput.value || 'wss://linear-agent-worker.arrowai.workers.dev';
+    var httpUrl = baseUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+    var appToken = appTokenInput.value || '';
+    var installUrl = httpUrl + '/oauth/authorize';
+    if (appToken) {
+      installUrl += '?appToken=' + encodeURIComponent(appToken);
+    }
+    window.open(installUrl, '_blank');
   };
 </script>
 </body>

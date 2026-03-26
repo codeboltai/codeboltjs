@@ -4,7 +4,6 @@ import * as path from 'path';
 export interface LinearPluginConfig {
     workerUrl: string;
     appToken: string;
-    accessToken: string;
     enabled: boolean;
     reconnectIntervalMs: number;
 }
@@ -12,7 +11,6 @@ export interface LinearPluginConfig {
 const DEFAULT_CONFIG: LinearPluginConfig = {
     workerUrl: 'wss://linear-agent-worker.arrowai.workers.dev',
     appToken: '',
-    accessToken: '',
     enabled: true,
     reconnectIntervalMs: 5000,
 };
@@ -27,7 +25,6 @@ export async function loadConfig(pluginDir: string): Promise<LinearPluginConfig>
         return {
             workerUrl: typeof parsed.workerUrl === 'string' ? parsed.workerUrl : DEFAULT_CONFIG.workerUrl,
             appToken: typeof parsed.appToken === 'string' ? parsed.appToken : DEFAULT_CONFIG.appToken,
-            accessToken: typeof parsed.accessToken === 'string' ? parsed.accessToken : DEFAULT_CONFIG.accessToken,
             enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : DEFAULT_CONFIG.enabled,
             reconnectIntervalMs:
                 typeof parsed.reconnectIntervalMs === 'number' && parsed.reconnectIntervalMs >= 1000
