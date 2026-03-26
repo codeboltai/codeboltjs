@@ -10,6 +10,40 @@ let stopWatcher: (() => void) | null = null;
 let isClaudeReady = false;
 let claudeSessionId: string | null = null;
 
+// ── Session persistence (like Carapace session-history.ts) ──
+// Persist session ID to file so we can --resume across agent restarts
+const SESSION_FILE_NAME = '.claude-pty-session';
+
+function getSessionFilePath(cwd: string): string {
+    return `${cwd}/.codebolt/${SESSION_FILE_NAME}`;
+}
+
+function loadPersistedSessionId(cwd: string): string | null {
+    try {
+        const filePath = getSessionFilePath(cwd);
+        if (fs.existsSync(filePath)) {
+            const id = fs.readFileSync(filePath, 'utf-8').trim();
+            if (id) {
+                console.log(`[claude-pty] Loaded persisted session ID: ${id}`);
+                return id;
+            }
+        }
+    } catch { /* ignore */ }
+    return null;
+}
+
+function persistSessionId(cwd: string, sessionId: string): void {
+    try {
+        const filePath = getSessionFilePath(cwd);
+        const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(filePath, sessionId, 'utf-8');
+        console.log(`[claude-pty] Persisted session ID: ${sessionId}`);
+    } catch (err) {
+        console.log(`[claude-pty] Failed to persist session ID: ${err}`);
+    }
+}
+
 // ── Thinking state (like Carapace) ──
 // Set when user sends Enter, cleared by JSONL end_turn or idle timeout
 let isThinking = false;
@@ -20,8 +54,13 @@ const MAX_THINKING_MS = 300000;    // absolute max: 5 minutes
 
 // ── Readiness detection (like Carapace scheduler) ──
 // Claude is ready when we see the status line in PTY output
-const STARTUP_GRACE_MS = 15000;    // fallback if detection fails
-const MAX_READY_WAIT_MS = 30000;   // absolute max wait (same as Carapace)
+// Resumed sessions take much longer to load (~20-30s vs ~2s fresh)
+const STARTUP_GRACE_MS_FRESH = 15000;     // fallback for fresh sessions
+const STARTUP_GRACE_MS_RESUME = 60000;    // fallback for resumed sessions (longer load)
+const MAX_READY_WAIT_MS_FRESH = 30000;    // max wait for fresh
+const MAX_READY_WAIT_MS_RESUME = 90000;   // max wait for resume
+let startupGraceMs = STARTUP_GRACE_MS_FRESH;
+let maxReadyWaitMs = MAX_READY_WAIT_MS_FRESH;
 let sessionCreatedAt = 0;
 
 // ── Completion tracking for JSONL ──
@@ -33,14 +72,6 @@ let responseResolve: (() => void) | null = null;
 
 // ── Trust/bypass dialog auto-handling (from Carapace scheduler.ts) ──
 // Carapace detects trust/safety/bypass prompts and auto-accepts with Enter
-// Keywords with AND without spaces — ANSI stripping can collapse words together
-// IMPORTANT: Do NOT include words from our own exec command (e.g. "dangerously")
-// as they get echoed back by the shell and cause false matches.
-const TRUST_KEYWORDS = [
-    'safety', 'enter to confirm',
-    'bypass permissions mode', 'bypasspermissionsmode',
-    'byproceeding', 'acceptallresponsibility',
-];
 // Minimum time after spawn before checking for trust dialog (skip shell echo period)
 const TRUST_CHECK_DELAY_MS = 3000;
 let trustDetected = false;
@@ -134,7 +165,7 @@ function rearmThinking(): void {
  *   3. Write user messages to PTY stdin
  *   4. Watch JSONL session file for structured output
  */
-async function spawnClaudePty(): Promise<void> {
+async function spawnClaudePty(resumeSessionId?: string | null): Promise<void> {
     const claudePath = findClaudePath();
     const { projectPath } = await codebolt.project.getProjectPath();
     const cwd = projectPath || process.cwd();
@@ -143,11 +174,18 @@ async function spawnClaudePty(): Promise<void> {
     if (bypassPermissions) {
         flags = ' --dangerously-skip-permissions';
     }
+    // Like Carapace session-spawner.ts: pass --resume to continue conversation
+    if (resumeSessionId) {
+        flags += ` --resume ${resumeSessionId}`;
+    }
 
     console.log(`[claude-pty] ──────────────────────────────────`);
     console.log(`[claude-pty] Claude path: ${claudePath}`);
     console.log(`[claude-pty] Working dir: ${cwd}`);
     console.log(`[claude-pty] Bypass permissions: ${bypassPermissions}`);
+    if (resumeSessionId) {
+        console.log(`[claude-pty] Resuming session: ${resumeSessionId}`);
+    }
 
     // Build clean env — remove CLAUDECODE to avoid nesting detection
     const env = { ...process.env } as Record<string, string>;
@@ -159,13 +197,34 @@ async function spawnClaudePty(): Promise<void> {
     const shell = process.env.SHELL || '/bin/zsh';
 
     // Try to load node-pty (native addon)
+    // Priority: bundled copy in dist/node_modules/node-pty (self-contained, no host dependency)
     let nodePty: any;
+    let nodePtySource = '';
+
+    // 1. Try bundled node-pty shipped alongside this agent's dist
+    const bundledPtyPath = require('path').join(__dirname, 'node_modules', 'node-pty');
     try {
-        nodePty = require('node-pty');
-        console.log(`[claude-pty] node-pty loaded successfully`);
-    } catch (err) {
-        console.error(`[claude-pty] Failed to load node-pty: ${err}`);
-        throw new Error(`node-pty not available: ${err}`);
+        nodePty = require(bundledPtyPath);
+        nodePtySource = `bundled (${bundledPtyPath})`;
+    } catch (err1) {
+        console.log(`[claude-pty] Could not load bundled node-pty: ${(err1 as Error).message}`);
+        // 2. Fallback: try standard require resolution (host or global)
+        try {
+            nodePty = require('node-pty');
+            nodePtySource = 'node-pty (resolved)';
+        } catch (err2) {
+            console.log(`[claude-pty] Could not load 'node-pty': ${(err2 as Error).message}`);
+        }
+    }
+    if (nodePty) {
+        console.log(`[claude-pty] node-pty loaded via '${nodePtySource}'`);
+        // Fix spawn-helper execute permissions (may be lost during zip packaging)
+        try {
+            const { execSync: fixExec } = require('child_process');
+            fixExec(`find "${bundledPtyPath}" -name "spawn-helper" -exec chmod +x {} + 2>/dev/null`, { timeout: 3000 });
+        } catch { /* ignore */ }
+    } else {
+        throw new Error('node-pty not available: could not load bundled or system node-pty');
     }
 
     // Spawn interactive login shell via PTY (like Carapace pty-manager.ts)
@@ -209,6 +268,11 @@ async function spawnClaudePty(): Promise<void> {
     completionCount = 0;
     trustDetected = false;
     trustAccepted = false;
+
+    // Resumed sessions take much longer to load — use longer timeouts
+    startupGraceMs = resumeSessionId ? STARTUP_GRACE_MS_RESUME : STARTUP_GRACE_MS_FRESH;
+    maxReadyWaitMs = resumeSessionId ? MAX_READY_WAIT_MS_RESUME : MAX_READY_WAIT_MS_FRESH;
+    console.log(`[claude-pty] Timeouts: grace=${startupGraceMs}ms, maxReady=${maxReadyWaitMs}ms`);
 
     console.log(`[claude-pty] PTY spawned (PID: ${pty.pid}), via shell: ${spawnedViaShell}`);
 
@@ -261,13 +325,16 @@ async function spawnClaudePty(): Promise<void> {
             // These keywords ONLY appear in the bypass warning dialog, not in the TUI status bar
             const isBypassWarning = (lower.includes('no,exit') && lower.includes('yes,iaccept')) ||
                 lower.includes('entertoconfirm');
+            // Folder trust dialog: "Yes, I trust this folder" / "No, exit"
+            const isFolderTrust = lower.includes('trustthisfolder') ||
+                (lower.includes('trust') && lower.includes('no,exit'));
             const isTrustDialog = lower.includes('safety') ||
-                lower.includes('trust') ||
-                lower.includes('entertoconfirm');
+                lower.includes('entertoconfirm') ||
+                isFolderTrust;
 
             if (isBypassWarning || isTrustDialog) {
                 trustDetected = true;
-                const dialogType = isBypassWarning ? 'bypass warning' : 'trust dialog';
+                const dialogType = isBypassWarning ? 'bypass warning' : isFolderTrust ? 'folder trust dialog' : 'trust dialog';
                 console.log(`[claude-pty] ${dialogType} detected, auto-accepting in 1.5s...`);
                 setTimeout(() => {
                     if (!pty) return;
@@ -279,6 +346,17 @@ async function spawnClaudePty(): Promise<void> {
                         setTimeout(() => {
                             if (pty) {
                                 console.log('[claude-pty] Enter to confirm');
+                                pty.write('\r');
+                            }
+                        }, 500);
+                    } else if (isFolderTrust) {
+                        // Folder trust: "Yes, I trust this folder" is first option
+                        // but ❯ may be on "No, exit" — need Up arrow first, then Enter
+                        console.log('[claude-pty] Up arrow → "Yes, I trust this folder"');
+                        pty.write('\x1b[A');
+                        setTimeout(() => {
+                            if (pty) {
+                                console.log('[claude-pty] Enter to confirm trust');
                                 pty.write('\r');
                             }
                         }, 500);
@@ -296,17 +374,20 @@ async function spawnClaudePty(): Promise<void> {
         if (trustDetected && !trustAccepted) return;
 
         // Step 3: Detect Claude ready — multiple indicators from Claude's TUI
+        // Only check AFTER trust dialog is fully handled (detected + accepted)
         if (!isClaudeReady) {
-            // Check raw buffer for the ❯ prompt character (most reliable)
-            const hasPrompt = rawBuffer.includes('❯');
-            // Check stripped text for status bar indicators
+            // Check stripped text for status bar indicators (most reliable — unique to TUI)
             const hasStatusBar = lower.includes('cost:') ||
                 lower.includes('/effort') ||
                 lower.includes('medium') ||
-                lower.includes('claude code');
-            if (hasPrompt || hasStatusBar) {
+                lower.includes('claude code') ||
+                lower.includes('bypass permissions');
+            // Check raw buffer for the ❯ prompt — but ONLY if no trust dialog is active
+            // Trust dialogs also contain ❯ as a menu cursor, so we must exclude those
+            const hasPrompt = !trustDetected && rawBuffer.includes('❯');
+            if (hasStatusBar || hasPrompt) {
                 isClaudeReady = true;
-                const indicator = hasPrompt ? '❯ prompt' : 'status bar';
+                const indicator = hasStatusBar ? 'status bar' : '❯ prompt';
                 console.log(`[claude-pty] Claude is ready (detected ${indicator})`);
             }
         }
@@ -409,6 +490,9 @@ async function spawnClaudePty(): Promise<void> {
             claudeSessionId = filename.replace('.jsonl', '');
             console.log(`[claude-pty] Session ID: ${claudeSessionId}`);
 
+            // Persist session ID for resume across agent restarts (like Carapace)
+            persistSessionId(cwd, claudeSessionId);
+
             // Stop previous watcher if any
             if (stopWatcher) { stopWatcher(); stopWatcher = null; }
 
@@ -465,7 +549,7 @@ async function spawnClaudePty(): Promise<void> {
         isClaudeReady = true;
         console.log(`[claude-pty] Claude marked ready (fallback)`);
     };
-    setTimeout(readyFallbackCheck, STARTUP_GRACE_MS);
+    setTimeout(readyFallbackCheck, startupGraceMs);
 
     // Notify codebolt that agent is initialized
     codebolt.notify.system.AgentInitNotify();
@@ -497,6 +581,7 @@ function sendMessageToPty(message: string): void {
  *   /bypass on|off   - Toggle --dangerously-skip-permissions (requires restart)
  *   /restart         - Kill PTY and respawn Claude
  *   /kill            - Kill the PTY session
+ *   /status          - Show session ID, PTY state, and completions
  */
 function parseCommand(message: string): { command: string | null; arg: string } {
     const trimmed = message.trim();
@@ -512,6 +597,9 @@ function parseCommand(message: string): { command: string | null; arg: string } 
     }
     if (trimmed === '/kill') {
         return { command: 'kill', arg: '' };
+    }
+    if (trimmed === '/status') {
+        return { command: 'status', arg: '' };
     }
 
     return { command: null, arg: trimmed };
@@ -579,6 +667,54 @@ codebolt.onMessage(async (userMessage: any) => {
             }
             return;
         }
+        if (command === 'status') {
+            if (!pty) {
+                codebolt.notify.chat.AgentTextResponseNotify('No active PTY session.');
+                return;
+            }
+            // Send /status to Claude Code PTY and capture the TUI output
+            // /status is a local command — it renders in PTY but NOT in JSONL
+            // So we temporarily capture raw PTY output to extract session info
+            console.log('[claude-pty] Sending /status to Claude Code PTY');
+            let statusBuffer = '';
+            const statusListener = (data: string) => {
+                statusBuffer += data;
+            };
+            pty.onData(statusListener);
+            pty.write('/status\r');
+
+            // Wait for the status output to render, then parse it
+            setTimeout(() => {
+                // Strip ANSI codes for parsing
+                const stripped = statusBuffer
+                    .replace(/\x1b\[[^\x40-\x7e]*[\x40-\x7e]/g, '')
+                    .replace(/\x1b\][^\x07]*\x07/g, '')
+                    .replace(/\x1b[^[]/g, '')
+                    .replace(/[\x00-\x1f]/g, ' ')
+                    .replace(/\s+/g, ' ');
+
+                console.log(`[claude-pty] /status output (stripped): ${stripped.substring(0, 500)}`);
+
+                // Extract session ID from status output (format: "Session: <uuid>")
+                const sessionMatch = stripped.match(/[Ss]ession[:\s]+([a-f0-9-]{36})/);
+                if (sessionMatch) {
+                    claudeSessionId = sessionMatch[1];
+                    console.log(`[claude-pty] Session ID from /status: ${claudeSessionId}`);
+                }
+
+                // Build status response with our state + anything we parsed
+                const status = [
+                    `**Session ID:** ${claudeSessionId || 'unknown'}`,
+                    `**PTY:** active (PID: ${pty?.pid || 'n/a'})`,
+                    `**Ready:** ${isClaudeReady}`,
+                    `**Thinking:** ${isThinking}`,
+                    `**Completions:** ${completionCount}`,
+                    `**Bypass permissions:** ${bypassPermissions}`,
+                ];
+                codebolt.notify.chat.AgentTextResponseNotify(status.join('\n'));
+            }, 2000);
+            return;
+        }
         if (command === 'restart') {
             if (pty) {
                 console.log('[claude-pty] Restarting PTY session...');
@@ -595,9 +731,12 @@ codebolt.onMessage(async (userMessage: any) => {
         }
 
         // ── If no PTY session exists, spawn one ──
+        // Like Carapace: load persisted session ID for --resume to maintain conversation
         if (!pty) {
-            console.log('[claude-pty] No PTY session — spawning Claude...');
-            await spawnClaudePty();
+            const { projectPath: pp } = await codebolt.project.getProjectPath();
+            const savedSessionId = pp ? loadPersistedSessionId(pp) : null;
+            console.log(`[claude-pty] No PTY session — spawning Claude...${savedSessionId ? ` (resuming ${savedSessionId})` : ''}`);
+            await spawnClaudePty(savedSessionId);
             await waitForReady();
         }
 
@@ -644,7 +783,7 @@ function waitForReady(): Promise<void> {
         const check = () => {
             if (isClaudeReady) {
                 resolve();
-            } else if (Date.now() - startWait > MAX_READY_WAIT_MS) {
+            } else if (Date.now() - startWait > maxReadyWaitMs) {
                 // Safety: send anyway after max wait (like Carapace's 30s fallback)
                 console.log('[claude-pty] Max wait exceeded — sending anyway');
                 isClaudeReady = true;
@@ -658,5 +797,5 @@ function waitForReady(): Promise<void> {
 }
 
 console.log('[claude-pty] Agent ready. Listening for messages.');
-console.log('[claude-pty] Commands: /bypass on|off, /restart, /kill');
+console.log('[claude-pty] Commands: /bypass on|off, /restart, /kill, /status');
 console.log('[claude-pty] Messages are written directly to Claude PTY — no kill/restart needed.');

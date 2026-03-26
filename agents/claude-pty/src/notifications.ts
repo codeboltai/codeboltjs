@@ -18,35 +18,9 @@ import { match } from 'ts-pattern';
 export const dispatchJsonlEntry = (entry: any) => {
     match(entry)
         // ── User entries ──
-        .with({ type: 'user' }, (e: any) => {
-            const content = e.message?.content;
-            if (typeof content === 'string') {
-                console.log(`[notify] User message: "${content.substring(0, 80)}"`);
-                codebolt.notify.chat.UserMessageRequestNotify(content, {
-                    sessionId: e.sessionId,
-                    uuid: e.uuid,
-                });
-            } else if (Array.isArray(content)) {
-                for (const block of content) {
-                    match(block)
-                        .with({ type: 'text' }, (b: any) => {
-                            codebolt.notify.chat.UserMessageRequestNotify(b.text, {
-                                sessionId: e.sessionId,
-                                uuid: e.uuid,
-                            });
-                        })
-                        .with({ type: 'tool_result' }, (b: any) => {
-                            dispatchToolResult(b);
-                        })
-                        .otherwise(() => {
-                            codebolt.notify.chat.UserMessageRequestNotify(
-                                JSON.stringify(block),
-                                { sessionId: e.sessionId, uuid: e.uuid }
-                            );
-                        });
-                }
-            }
-        })
+        // Skip: user messages originate from the user and are already displayed in the UI.
+        // Sending them back would echo/duplicate the user's own input.
+        .with({ type: 'user' }, () => {})
 
         // ── Assistant entries ──
         .with({ type: 'assistant' }, (e: any) => {
