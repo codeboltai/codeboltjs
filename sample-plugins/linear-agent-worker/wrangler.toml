@@ -1,0 +1,42 @@
+name = "linear-agent-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "8073e84dbfc4e2bc95666192dcee62c0"
+
+# Durable Objects configuration
+[durable_objects]
+bindings = [
+  { name = "LINEAR_AGENT_HUB", class_name = "LinearAgentHub" }
+]
+
+# KV namespace for OAuth token storage
+[[kv_namespaces]]
+binding = "OAUTH_TOKENS"
+id = "0d0258b44c8e401ebeb0d2561c198ec7"
+
+# Migration configuration
+[[migrations]]
+tag = "v1"
+new_classes = ["LinearAgentHub"]
+
+# Secrets (set via `wrangler secret put`):
+#   LINEAR_CLIENT_ID
+#   LINEAR_CLIENT_SECRET
+#   LINEAR_WEBHOOK_SECRET
+
+[vars]
+ENVIRONMENT = "development"
+WORKER_URL = "https://linear-agent-worker.arrowai.workers.dev"
+
+# Environment-specific configurations
+[env.staging]
+name = "linear-agent-worker-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "linear-agent-worker-production"
+vars = { ENVIRONMENT = "production" }
+
+[limits]
+cpu_ms = 50000
