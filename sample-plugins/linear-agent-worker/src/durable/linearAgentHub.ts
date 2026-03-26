@@ -199,21 +199,56 @@ export class LinearAgentHub {
       // Find a connected app (try organizationId-based routing, then any connected app)
       const app = this.findAppForEvent(organizationId, accessToken);
 
+      // Resolve the best access token: prefer the one from KV (webhook payload),
+      // fall back to the connected app's token
+      const resolvedAccessToken = accessToken || app?.accessToken || '';
+
       if (app) {
+        // Ensure the app's linear client uses the best available token
+        if (resolvedAccessToken && resolvedAccessToken !== app.accessToken) {
+          app.linearClient.updateAccessToken(resolvedAccessToken);
+        }
         await this.forwardEventToApp(app, event);
       } else {
-        // No app connected — queue the event and emit a "waiting" thought
+        // No app connected — respond to Linear immediately so the session
+        // is not marked as inactive / unresponsive.
         console.log(
-          `[LinearAgentHub] No app connected, queuing event for later`
+          `[LinearAgentHub] No app connected, notifying Linear and queuing event`
         );
-        this.queueEvent(organizationId, event, accessToken);
 
-        // Still emit a thought to Linear so the session isn't marked unresponsive
-        const tempClient = new LinearAgentClient(accessToken);
-        await tempClient.emitActivity(event.agentSession.id, {
-          type: 'thought',
-          body: 'Waiting for CodeBolt agent to connect...',
+        const sessionId = event.agentSession.id;
+
+        if (!resolvedAccessToken) {
+          console.error(
+            `[LinearAgentHub] No access token available — cannot respond to Linear for session ${sessionId}`
+          );
+          return new Response('No access token', { status: 500 });
+        }
+
+        const tempClient = new LinearAgentClient(resolvedAccessToken);
+
+        // 1. Emit a visible response telling the user what's going on
+        await tempClient.emitActivity(sessionId, {
+          type: 'response',
+          body: [
+            '⚠️ **No local CodeBolt server is currently connected.**',
+            '',
+            'The CodeBolt agent plugin needs to be running locally to process this request.',
+            '',
+            '**To fix this:**',
+            '1. Open CodeBolt on your machine',
+            '2. Ensure the Linear Agent plugin is installed and enabled',
+            '3. Verify the plugin shows "Connected" status in its settings panel',
+            '',
+            'Once connected, you can @mention the agent again or re-assign this issue.',
+          ].join('\n'),
         });
+
+        // 2. Mark session as awaiting input (not error — so it can be retried)
+        await tempClient.updateSessionState(sessionId, 'awaitingInput');
+
+        // 3. Queue the event so it can be replayed when an app connects
+        this.queueEvent(organizationId, event, resolvedAccessToken);
       }
 
       return new Response('OK', { status: 200 });
@@ -412,6 +447,7 @@ export class LinearAgentHub {
     const app = this.apps.get(appToken);
     if (!app) return;
 
+    let flushedCount = 0;
     for (const [key, queue] of this.pendingEvents.entries()) {
       while (queue.length > 0) {
         const pending = queue.shift()!;
@@ -421,9 +457,30 @@ export class LinearAgentHub {
           app.linearClient.updateAccessToken(pending.accessToken);
         }
 
+        // Notify Linear that the agent is now online and processing
+        const sessionId = pending.event.agentSession.id;
+        try {
+          await app.linearClient.emitActivity(sessionId, {
+            type: 'thought',
+            body: '✅ CodeBolt agent is now connected. Processing your request...',
+          });
+        } catch (err) {
+          console.error(
+            `[LinearAgentHub] Failed to emit reconnection notice for ${sessionId}:`,
+            err
+          );
+        }
+
         await this.forwardEventToApp(app, pending.event);
+        flushedCount++;
       }
       this.pendingEvents.delete(key);
+    }
+
+    if (flushedCount > 0) {
+      console.log(
+        `[LinearAgentHub] Flushed ${flushedCount} pending event(s) to ${appToken}`
+      );
     }
   }
 

@@ -127,8 +127,9 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   }
 
   // Forward to the Durable Object
-  // Use organizationId to route to the correct DO instance
-  const doId = env.LINEAR_AGENT_HUB.idFromName(`hub-${organizationId}`);
+  // Use a single shared hub instance so webhooks and WebSocket connections
+  // always reach the same DO. Multi-tenant routing is handled inside the DO.
+  const doId = env.LINEAR_AGENT_HUB.idFromName('hub-global');
   const stub = env.LINEAR_AGENT_HUB.get(doId);
 
   const forwardPayload: WebhookForwardPayload = {
@@ -165,10 +166,9 @@ async function handleWebSocket(
     return new Response('Missing appToken in URL path', { status: 400 });
   }
 
-  // Route to a DO instance based on appToken
-  // For simplicity, each appToken maps to its own DO instance
-  // In production, you might want to group by organization
-  const doId = env.LINEAR_AGENT_HUB.idFromName(`hub-${appToken}`);
+  // Route to the same shared hub instance so the WebSocket connection
+  // is in the same DO as the webhook events
+  const doId = env.LINEAR_AGENT_HUB.idFromName('hub-global');
   const stub = env.LINEAR_AGENT_HUB.get(doId);
 
   // Forward the WebSocket upgrade request to the DO

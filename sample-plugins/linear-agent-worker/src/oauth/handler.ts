@@ -94,7 +94,7 @@ export async function handleCallback(
       throw new Error('No access_token in token response');
     }
 
-    // Query viewer to get the app's workspace user ID
+    // Query viewer and organization to get IDs for token storage
     const viewerResponse = await fetch(LINEAR_API_URL, {
       method: 'POST',
       headers: {
@@ -102,16 +102,21 @@ export async function handleCallback(
         Authorization: accessToken,
       },
       body: JSON.stringify({
-        query: `query { viewer { id name } }`,
+        query: `query { viewer { id name } organization { id name } }`,
       }),
     });
 
     const viewerData = (await viewerResponse.json()) as {
-      data?: { viewer?: { id: string; name: string } };
+      data?: {
+        viewer?: { id: string; name: string };
+        organization?: { id: string; name: string };
+      };
     };
 
     const viewerId = viewerData.data?.viewer?.id;
     const viewerName = viewerData.data?.viewer?.name ?? 'Agent';
+    const orgId = viewerData.data?.organization?.id;
+    const orgName = viewerData.data?.organization?.name ?? 'Unknown';
 
     if (!viewerId) {
       throw new Error('Could not retrieve viewer ID after OAuth');
@@ -129,10 +134,19 @@ export async function handleCallback(
       })
     );
 
-    // Also store by organization for webhook lookup
-    // We'll update this when we receive the first webhook with organizationId
+    // Store by organization ID for webhook lookup
+    if (orgId) {
+      await env.OAUTH_TOKENS.put(
+        `org:${orgId}`,
+        JSON.stringify({ accessToken, organizationId: orgId })
+      );
+      console.log(
+        `[OAuth] Stored org mapping: ${orgId} (${orgName})`
+      );
+    }
+
     console.log(
-      `[OAuth] Successfully installed agent as ${viewerName} (${viewerId})`
+      `[OAuth] Successfully installed agent as ${viewerName} (${viewerId}) in org ${orgName} (${orgId})`
     );
 
     return new Response(
