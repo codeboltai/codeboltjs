@@ -12,7 +12,7 @@
  *   4. Settings UI allows configuring API key, poll interval, and viewing sessions
  */
 
-import codebolt from '@codebolt/codeboltjs';
+import plugin from '@codebolt/plugin-sdk';
 import { loadConfig, saveConfig, type LinearPluginConfig } from './config/store.js';
 import { LinearAgentClient } from './linear/client.js';
 import { SessionPoller } from './poller/sessionPoller.js';
@@ -78,7 +78,7 @@ async function restartPolling(): Promise<void> {
 // Plugin lifecycle
 // ---------------------------------------------------------------------------
 
-codebolt.onPluginStart(async (ctx) => {
+plugin.onStart(async (ctx) => {
     console.log(`[LinearAgent] Started: ${ctx.pluginId}`);
     pluginDir = (ctx as any).pluginDir ?? process.env.PLUGIN_DIR ?? '.';
 
@@ -88,10 +88,10 @@ codebolt.onPluginStart(async (ctx) => {
     config = await loadConfig(pluginDir);
 
     // Listen for messages from the settings UI panel
-    codebolt.dynamicPanel.onMessage(PANEL_ID, async (data: any) => {
+    plugin.dynamicPanel.onMessage(PANEL_ID, async (data: any) => {
         switch (data.type) {
             case 'get-config': {
-                codebolt.dynamicPanel.send(PANEL_ID, {
+                plugin.dynamicPanel.send(PANEL_ID, {
                     type: 'config',
                     config: {
                         ...config,
@@ -118,7 +118,7 @@ codebolt.onPluginStart(async (ctx) => {
                 }
                 await saveConfig(pluginDir, config);
                 await restartPolling();
-                codebolt.dynamicPanel.send(PANEL_ID, {
+                plugin.dynamicPanel.send(PANEL_ID, {
                     type: 'config-saved',
                     success: true,
                 });
@@ -127,7 +127,7 @@ codebolt.onPluginStart(async (ctx) => {
 
             case 'test-connection': {
                 if (!config.apiKey) {
-                    codebolt.dynamicPanel.send(PANEL_ID, {
+                    plugin.dynamicPanel.send(PANEL_ID, {
                         type: 'test-result',
                         valid: false,
                         error: 'No API key configured',
@@ -136,7 +136,7 @@ codebolt.onPluginStart(async (ctx) => {
                 }
                 const testClient = new LinearAgentClient(config.apiKey);
                 const result = await testClient.validateConnection();
-                codebolt.dynamicPanel.send(PANEL_ID, {
+                plugin.dynamicPanel.send(PANEL_ID, {
                     type: 'test-result',
                     ...result,
                 });
@@ -147,7 +147,7 @@ codebolt.onPluginStart(async (ctx) => {
                 if (client) {
                     try {
                         const sessions = await client.fetchActiveSessions();
-                        codebolt.dynamicPanel.send(PANEL_ID, {
+                        plugin.dynamicPanel.send(PANEL_ID, {
                             type: 'sessions',
                             sessions: sessions.map((s) => ({
                                 id: s.id,
@@ -158,14 +158,14 @@ codebolt.onPluginStart(async (ctx) => {
                             })),
                         });
                     } catch {
-                        codebolt.dynamicPanel.send(PANEL_ID, {
+                        plugin.dynamicPanel.send(PANEL_ID, {
                             type: 'sessions',
                             sessions: [],
                             error: 'Failed to fetch sessions',
                         });
                     }
                 } else {
-                    codebolt.dynamicPanel.send(PANEL_ID, {
+                    plugin.dynamicPanel.send(PANEL_ID, {
                         type: 'sessions',
                         sessions: [],
                         error: 'Not connected — configure API key first',
@@ -184,7 +184,7 @@ codebolt.onPluginStart(async (ctx) => {
     }
 });
 
-codebolt.onPluginStop(async () => {
+plugin.onStop(async () => {
     console.log('[LinearAgent] Stopping...');
     stopPolling();
     console.log('[LinearAgent] Stopped');

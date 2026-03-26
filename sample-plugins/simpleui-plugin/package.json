@@ -10,7 +10,7 @@
     "clean": "rm -rf dist ui"
   },
   "dependencies": {
-    "@codebolt/codeboltjs": "latest"
+    "@codebolt/plugin-sdk": "file:../../../../CodeBolt/packages/codeboltPluginSdk"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

@@ -1,9 +1,9 @@
-import codebolt from '@codebolt/codeboltjs';
+import plugin from '@codebolt/plugin-sdk';
 
-codebolt.onPluginStart(async (ctx) => {
+plugin.onStart(async (ctx) => {
     console.log(`[SimpleUIPlugin] Started: ${ctx.pluginId}`);
 });
 
-codebolt.onPluginStop(async () => {
+plugin.onStop(async () => {
     console.log('[SimpleUIPlugin] Stopped');
 });

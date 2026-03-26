@@ -2,13 +2,13 @@
  * Feedback Form Plugin — Sample CodeBolt Plugin (Child Process Architecture)
  *
  * This plugin runs as a child process and connects to the server via WebSocket.
- * It uses the full codeboltjs SDK for all interactions.
+ * It uses the @codebolt/plugin-sdk for all interactions.
  *
  * Lifecycle:
- *   1. codeboltjs SDK connects to /plugin WebSocket endpoint
- *   2. Server sends pluginStartMessage → onPluginStart fires
+ *   1. Plugin SDK connects to /plugin WebSocket endpoint
+ *   2. Server sends pluginStartMessage → onStart fires
  *   3. Plugin opens a DynamicPanel, listens for messages
- *   4. Server sends pluginStopMessage → onPluginStop fires for cleanup
+ *   4. Server sends pluginStopMessage → onStop fires for cleanup
  *
  * Communication flow:
  *
@@ -23,15 +23,15 @@
  *        |--- dynamicPanel.close() ---------->|  (panel removed from dockview)
  */
 
-import codebolt from '@codebolt/codeboltjs';
+import plugin from '@codebolt/plugin-sdk';
 
 let submissionCount = 0;
 
 // ---------------------------------------------------------------------------
-// Plugin lifecycle using codeboltjs SDK
+// Plugin lifecycle using @codebolt/plugin-sdk
 // ---------------------------------------------------------------------------
 
-codebolt.onPluginStart(async (ctx) => {
+plugin.onStart(async (ctx) => {
     console.log(`[FeedbackFormPlugin] Started: ${ctx.pluginId}`);
     submissionCount = 0;
 
@@ -40,7 +40,7 @@ codebolt.onPluginStart(async (ctx) => {
     console.log(`[FeedbackFormPlugin] Listening on panel: ${PANEL_ID}`);
 
     // Listen for messages from the plugin UI panel
-    codebolt.dynamicPanel.onMessage(PANEL_ID, (data: any) => {
+    plugin.dynamicPanel.onMessage(PANEL_ID, (data: any) => {
         console.log('[FeedbackFormPlugin] Received panel message:', data);
 
         if (data.type === 'submit') {
@@ -48,13 +48,13 @@ codebolt.onPluginStart(async (ctx) => {
             console.log(`[FeedbackFormPlugin] Feedback from ${data.data.name}: [${data.data.category}] ${data.data.message}`);
 
             // Send acknowledgment back to the panel
-            codebolt.dynamicPanel.send(PANEL_ID, {
+            plugin.dynamicPanel.send(PANEL_ID, {
                 type: 'submission-ack',
                 message: `Thank you, ${data.data.name}! Your ${data.data.category} feedback has been received.`,
             });
 
             // Push updated stats
-            codebolt.dynamicPanel.send(PANEL_ID, {
+            plugin.dynamicPanel.send(PANEL_ID, {
                 type: 'stats',
                 count: submissionCount,
             });
@@ -62,6 +62,6 @@ codebolt.onPluginStart(async (ctx) => {
     });
 });
 
-codebolt.onPluginStop(async () => {
+plugin.onStop(async () => {
     console.log(`[FeedbackFormPlugin] Stopped. Total submissions: ${submissionCount}`);
 });
