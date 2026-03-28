@@ -22,6 +22,7 @@ export interface GatewayRegisterMessage {
   type: 'register_gateway';
   serverId?: string;
   appToken?: string;
+  userId?: string;
   timestamp?: number;
 }
 
@@ -49,6 +50,15 @@ export interface RequestConnectionsMessage {
   type: 'request_connections';
 }
 
+export interface RequestSyncMessage {
+  type: 'requestSync';
+}
+
+export interface RequestThreadMessagesMessage {
+  type: 'requestThreadMessages';
+  threadId: string;
+}
+
 export type ProxyIncomingMessage =
   | RegisterMessage
   | ForwardMessage
@@ -56,7 +66,9 @@ export type ProxyIncomingMessage =
   | GatewayForwardFromAgent
   | GatewayForwardFromApp
   | PingMessage
-  | RequestConnectionsMessage;
+  | RequestConnectionsMessage
+  | RequestSyncMessage
+  | RequestThreadMessagesMessage;
 
 export interface RegisteredMessage {
   type: 'registered';
@@ -106,4 +118,5 @@ export type GatewayOutgoingMessage =
 
 export interface Env {
   PROXY_HUB: DurableObjectNamespace;
+  CHAT_STORE: KVNamespace;
 }

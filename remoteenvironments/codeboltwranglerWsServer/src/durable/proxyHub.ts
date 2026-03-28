@@ -6,10 +6,17 @@ import {
   GatewayRegisterMessage,
   ProxyIncomingMessage,
   RegisterMessage,
-  RegisteredMessage
+  RegisteredMessage,
+  Env,
 } from '../types';
 
 const DEFAULT_TOKEN = 'default';
+
+interface SocketMeta {
+  role: 'gateway' | 'app' | 'agent';
+  token: string;
+  userId?: string;
+}
 
 export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
@@ -21,7 +28,9 @@ export class ProxyHub {
   private readonly pendingAppMessagesByToken = new Map<string, unknown[]>();
   private readonly pendingGatewayMessagesByToken = new Map<string, GatewayOutgoingMessage[]>();
 
-  constructor(private readonly state: DurableObjectState) {}
+  private readonly socketMeta = new WeakMap<WebSocket, SocketMeta>();
+
+  constructor(readonly state: DurableObjectState, private readonly env: Env) {}
 
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') {
@@ -105,8 +114,15 @@ export class ProxyHub {
           timestamp: Date.now()
         });
         break;
+      case 'requestSync':
+        this.handleRequestSync(socket);
+        break;
+      case 'requestThreadMessages':
+        this.handleRequestThreadMessages(socket, message);
+        break;
       default:
-        console.warn('[ProxyHub] Unknown message type received:', (message as { type?: string }).type);
+        // Raw forwarding: forward unknown message types between gateway and app sockets
+        this.handleRawForward(socket, message as any);
     }
   }
 
@@ -130,6 +146,8 @@ export class ProxyHub {
     }
 
     this.gatewaySocketsByToken.set(token, socket);
+    this.socketMeta.set(socket, { role: 'gateway', token, userId: message.userId });
+
     this.sendJson(socket, {
       type: 'registered',
       actor: 'gateway',
@@ -173,14 +191,135 @@ export class ProxyHub {
     this.logMessage('incoming', 'app', message.agentId, message.payload, message);
   }
 
+  /**
+   * Handle raw forwarding for unknown message types.
+   * If sender is gateway -> forward to all app sockets for that token
+   * If sender is app -> forward to gateway socket for that token
+   */
+  private async handleRawForward(socket: WebSocket, message: any): Promise<void> {
+    const meta = this.socketMeta.get(socket);
+    if (!meta) {
+      console.warn('[ProxyHub] Unknown message type from unregistered socket:', message?.type);
+      return;
+    }
+
+    if (meta.role === 'gateway') {
+      // Gateway -> forward to all app sockets for this token
+      const appSocket = this.appSocketsByToken.get(meta.token);
+      if (appSocket) {
+        this.sendJson(appSocket, message);
+      }
+
+      // Store chat events in KV
+      if (message.type === 'chatEvent' && message.data?.threadId) {
+        await this.storeChatMessage(meta.token, message.data);
+      }
+
+      this.logMessage('outgoing', 'app', undefined, message, message);
+    } else if (meta.role === 'app') {
+      // App -> forward to gateway socket for this token
+      const gatewaySocket = this.gatewaySocketsByToken.get(meta.token);
+      if (gatewaySocket) {
+        this.sendJson(gatewaySocket, message);
+      }
+      this.logMessage('outgoing', 'agent', undefined, message, message);
+    }
+  }
+
+  /**
+   * Store a chat message in KV for history/sync.
+   */
+  private async storeChatMessage(appToken: string, messageData: any): Promise<void> {
+    if (!this.env.CHAT_STORE) return;
+
+    try {
+      const threadId = messageData.threadId;
+      const key = `messages:${appToken}:${threadId}`;
+
+      // Append to thread messages
+      const existingRaw = await this.env.CHAT_STORE.get(key);
+      const existing: any[] = existingRaw ? JSON.parse(existingRaw) : [];
+      existing.push(messageData);
+      // Cap at 500 messages per thread
+      if (existing.length > 500) existing.shift();
+      await this.env.CHAT_STORE.put(key, JSON.stringify(existing));
+
+      // Track thread in list
+      const threadsKey = `threads:${appToken}`;
+      const threadsRaw = await this.env.CHAT_STORE.get(threadsKey);
+      const threads: any[] = threadsRaw ? JSON.parse(threadsRaw) : [];
+      const existingThread = threads.find((t: any) => t.threadId === threadId);
+      if (existingThread) {
+        existingThread.updatedAt = Date.now();
+      } else {
+        threads.push({ threadId, updatedAt: Date.now() });
+      }
+      await this.env.CHAT_STORE.put(threadsKey, JSON.stringify(threads));
+    } catch (error) {
+      console.error('[ProxyHub] Failed to store chat message in KV:', error);
+    }
+  }
+
+  /**
+   * Handle sync request -- return list of threads from KV.
+   */
+  private async handleRequestSync(socket: WebSocket): Promise<void> {
+    const meta = this.socketMeta.get(socket);
+    if (!meta) return;
+
+    if (!this.env.CHAT_STORE) {
+      this.sendJson(socket, { type: 'syncThreadList', data: [] });
+      return;
+    }
+
+    try {
+      const threadsKey = `threads:${meta.token}`;
+      const threadsRaw = await this.env.CHAT_STORE.get(threadsKey);
+      const threads = threadsRaw ? JSON.parse(threadsRaw) : [];
+      this.sendJson(socket, { type: 'syncThreadList', data: threads });
+    } catch (error) {
+      console.error('[ProxyHub] Failed to handle requestSync:', error);
+      this.sendJson(socket, { type: 'syncThreadList', data: [] });
+    }
+  }
+
+  /**
+   * Handle request for thread messages -- return messages from KV.
+   */
+  private async handleRequestThreadMessages(socket: WebSocket, message: any): Promise<void> {
+    const meta = this.socketMeta.get(socket);
+    if (!meta) return;
+
+    const threadId = message.threadId;
+    if (!threadId) return;
+
+    if (!this.env.CHAT_STORE) {
+      this.sendJson(socket, { type: 'syncThreadMessages', threadId, data: [] });
+      return;
+    }
+
+    try {
+      const key = `messages:${meta.token}:${threadId}`;
+      const msgsRaw = await this.env.CHAT_STORE.get(key);
+      const msgs = msgsRaw ? JSON.parse(msgsRaw) : [];
+      this.sendJson(socket, { type: 'syncThreadMessages', threadId, data: msgs });
+    } catch (error) {
+      console.error('[ProxyHub] Failed to handle requestThreadMessages:', error);
+      this.sendJson(socket, { type: 'syncThreadMessages', threadId, data: [] });
+    }
+  }
+
   private registerSocket(socket: WebSocket, message: RegisterMessage): RegisteredMessage {
     if (message.actor === 'agent' && message.agentId) {
       this.agents.set(message.agentId, socket);
-      return { type: 'registered', actor: 'agent', agentId: message.agentId, appToken: this.normalizeToken(message.appToken) };
+      const token = this.normalizeToken(message.appToken);
+      this.socketMeta.set(socket, { role: 'agent', token });
+      return { type: 'registered', actor: 'agent', agentId: message.agentId, appToken: token };
     }
 
     const token = this.normalizeToken(message.appToken);
     this.appSocketsByToken.set(token, socket);
+    this.socketMeta.set(socket, { role: 'app', token });
     return { type: 'registered', actor: 'app', appToken: token };
   }
 
@@ -322,7 +461,7 @@ export class ProxyHub {
 
   private removeSocket(socket: WebSocket): void {
     let disconnectedActor: { actor: string; id?: string } | null = null;
-    
+
     for (const [agentId, ws] of this.agents.entries()) {
       if (ws === socket) {
         this.agents.delete(agentId);
@@ -349,7 +488,7 @@ export class ProxyHub {
 
     if (disconnectedActor) {
       this.broadcastConnectionUpdate();
-      this.logMessage('system', 'system', undefined, 
+      this.logMessage('system', 'system', undefined,
         { type: 'disconnection', actor: disconnectedActor.actor, id: disconnectedActor.id },
         disconnectedActor
       );

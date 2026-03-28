@@ -389,9 +389,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
 
 
-    let response = await codebolt.mcp.executeTool('codebolt', 'write_file', {
-        "absolute_path": "/Users/ravirawat/Documents/cbtest/handicapped-crimson/backend/package.json",
-        "content": "{\n  \"name\": \"whatsapp-clone-backend\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Backend API for WhatsApp Web Clone\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"start\": \"node src/index.js\",\n    \"dev\": \"nodemon src/index.js\",\n    \"test\": \"jest\"\n  },\n  \"keywords\": [\"whatsapp\", \"clone\", \"chat\", \"messaging\"],\n  \"author\": \"\",\n  \"license\": \"MIT\",\n  \"dependencies\": {\n    \"bcryptjs\": \"^2.4.3\",\n    \"cors\": \"^2.8.5\",\n    \"dotenv\": \"^16.3.1\",\n    \"express\": \"^4.18.2\",\n    \"express-validator\": \"^7.0.1\",\n    \"jsonwebtoken\": \"^9.0.2\",\n    \"mongoose\": \"^8.0.3\",\n    \"socket.io\": \"^4.6.1\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.0.2\",\n    \"jest\": \"^29.7.0\"\n  }\n}",
+    let response = await codebolt.mcp.executeTool('codebolt', 'read_file', {
+        "absolute_path": "/Users/ravirawat/Documents/cbtest/handicapped-crimson/package.json",
         "explanation": "Creating package.json for the WhatsApp clone backend with all required dependencies"
     })
     codebolt.chat.sendMessage(JSON.stringify(response))

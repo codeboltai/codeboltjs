@@ -16,7 +16,12 @@ bindings = [
 # Migration configuration
 [[migrations]]
 tag = "v1"
-new_classes = ["ProxyHub"]
+new_sqlite_classes = ["ProxyHub"]
+
+[[kv_namespaces]]
+binding = "CHAT_STORE"
+id = "61074f06f6dd4bfaa14fe51a9d0563cd"
+preview_id = "50783270715f4884a2be4c4a4a840c3a"
 
 # Environment-specific configurations
 [env.staging]
@@ -26,7 +31,3 @@ vars = { ENVIRONMENT = "staging" }
 [env.production]
 name = "codebolt-wrangler-ws-production"
 vars = { ENVIRONMENT = "production" }
-
-# Limits and configuration
-[limits]
-cpu_ms = 50000
