@@ -54,7 +54,7 @@ export class ProxyHub {
       this.broadcastConnectionUpdate();
     }
 
-    server.addEventListener('message', (event) => {
+    server.addEventListener('message', async (event) => {
       try {
         const raw = event.data?.toString();
         if (!raw) {
@@ -62,7 +62,7 @@ export class ProxyHub {
         }
 
         const message = JSON.parse(raw) as ProxyIncomingMessage;
-        this.handleMessage(server, message);
+        await this.handleMessage(server, message);
       } catch (error) {
         console.error('[ProxyHub] Failed to process message', error);
       }
@@ -87,7 +87,7 @@ export class ProxyHub {
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  private handleMessage(socket: WebSocket, message: ProxyIncomingMessage): void {
+  private async handleMessage(socket: WebSocket, message: ProxyIncomingMessage): Promise<void> {
     switch (message.type) {
       case 'registered':
         this.handleClientRegistration(socket, message);
@@ -115,14 +115,14 @@ export class ProxyHub {
         });
         break;
       case 'requestSync':
-        this.handleRequestSync(socket);
+        await this.handleRequestSync(socket);
         break;
       case 'requestThreadMessages':
-        this.handleRequestThreadMessages(socket, message);
+        await this.handleRequestThreadMessages(socket, message);
         break;
       default:
         // Raw forwarding: forward unknown message types between gateway and app sockets
-        this.handleRawForward(socket, message as any);
+        await this.handleRawForward(socket, message as any);
     }
   }
 
@@ -210,9 +210,14 @@ export class ProxyHub {
         this.sendJson(appSocket, message);
       }
 
-      // Store chat events in KV
-      if (message.type === 'chatEvent' && message.data?.threadId) {
-        await this.storeChatMessage(meta.token, message.data);
+      // Store all chatEvent messages in KV — extract threadId from anywhere
+      if (message.type === 'chatEvent' && message.data) {
+        const d = message.data;
+        const threadId = d.threadId || d.message?.threadId || message.threadId;
+        if (threadId) {
+          const toStore = { ...d, threadId };
+          await this.storeChatMessage(meta.token, toStore);
+        }
       }
 
       this.logMessage('outgoing', 'app', undefined, message, message);

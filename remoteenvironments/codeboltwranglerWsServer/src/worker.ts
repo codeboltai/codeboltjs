@@ -81,6 +81,42 @@ const worker = {
       });
     }
 
+    // Debug: list KV keys
+    if (url.pathname === '/debug/kv-keys') {
+      try {
+        const list = await env.CHAT_STORE.list();
+        return new Response(JSON.stringify(list.keys, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e: any) {
+        return new Response(`KV error: ${e.message}`, { status: 500 });
+      }
+    }
+
+    // Debug: get KV value
+    if (url.pathname.startsWith('/debug/kv/')) {
+      const key = decodeURIComponent(url.pathname.slice('/debug/kv/'.length));
+      try {
+        const value = await env.CHAT_STORE.get(key);
+        return new Response(value || 'null', {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e: any) {
+        return new Response(`KV error: ${e.message}`, { status: 500 });
+      }
+    }
+
+    // Debug: test KV write
+    if (url.pathname === '/debug/kv-test') {
+      try {
+        await env.CHAT_STORE.put('test-key', JSON.stringify({ test: true, time: Date.now() }));
+        const val = await env.CHAT_STORE.get('test-key');
+        return new Response(`KV write+read OK: ${val}`, { headers: { 'Content-Type': 'text/plain' } });
+      } catch (e: any) {
+        return new Response(`KV error: ${e.message}`, { status: 500 });
+      }
+    }
+
     return new Response('Codebolt Wrangler WS Proxy', { status: 200 });
   }
 };
