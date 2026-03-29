@@ -1,0 +1,12 @@
+{
+  "name": "e2b-template-builder",
+  "private": true,
+  "scripts": {
+    "build": "tsx build-template.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "e2b": "^2.18.0",
+    "tsx": "^4.21.0"
+  }
+}

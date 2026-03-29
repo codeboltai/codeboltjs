@@ -23,6 +23,7 @@ const { createprovider } = require('./actions/createprovider');
 const { publishProvider } = require('./actions/publishProvider');
 const { createactionblock } = require('./actions/createactionblock');
 const { publishSkill } = require('./actions/publishSkill');
+const { publishPlugin } = require('./actions/publishPlugin');
 
 program.version('1.0.1');
 
@@ -179,6 +180,11 @@ program
   .command('publishskill [folderPath]')
   .description('Publish a Codebolt Skill to the registry')
   .action(publishSkill);
+
+program
+  .command('publishplugin [folderPath]')
+  .description('Publish a Codebolt Plugin to the registry')
+  .action(publishPlugin);
 
 program.parse(process.argv);
 

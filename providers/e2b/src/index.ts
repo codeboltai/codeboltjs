@@ -2,7 +2,9 @@ import codebolt from "@codebolt/codeboltjs";
 import { E2bRemoteProviderService } from "./services/E2bRemoteProviderService";
 
 const providerService = new E2bRemoteProviderService({
-  localAgentServerPath: process.env.LOCAL_AGENT_SERVER_PATH || undefined,
+  pluginPort: parseInt(process.env.REMOTE_EXECUTION_PORT || '', 10) || undefined,
+  codeboltStartCommand: process.env.CODEBOLT_START_CMD || undefined,
+  sandboxTemplate: process.env.E2B_SANDBOX_TEMPLATE || '26sv45vrb3u0dharhkyn',
 });
 const handlers = providerService.getEventHandlers();
 

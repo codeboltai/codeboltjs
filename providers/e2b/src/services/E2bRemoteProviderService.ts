@@ -55,17 +55,18 @@ async function getE2bSandbox(): Promise<any> {
 }
 
 interface E2bProviderConfig {
-  agentServerPort?: number;
-  agentServerHost?: string;
+  pluginPort?: number;
   e2bApiKey?: string;
+  /** E2B sandbox template ID. The template should have codebolt and the
+   *  remote-execution-plugin pre-installed (see E2B template docs).
+   *  This is the recommended approach — avoids runtime installs. */
   sandboxTemplate?: string;
   autoStopInterval?: number;
-  /** Path to a local agent server bundle (server.mjs) to upload to the sandbox.
-   *  When set, the file is uploaded directly instead of running `npm install @codebolt/agentserver@11.0.5`.
-   *  Useful for development/testing with a custom build. */
-  localAgentServerPath?: string;
+  /** Custom command to start codebolt in the sandbox.
+   *  When empty/undefined, uses `npx codebolt start --headless`. */
+  codeboltStartCommand?: string;
   timeouts?: {
-    agentServerStartup?: number;
+    codeboltStartup?: number;
     wsConnection?: number;
     cleanup?: number;
   };
@@ -81,27 +82,34 @@ export class E2bRemoteProviderService extends BaseProvider {
   private backgroundCommand: any = null;
   private pendingMessages: any[] = [];
 
+  /** Track execution requests from the plugin awaiting replies */
+  private pendingExecutionRequests: Map<string, {
+    requestId: string;
+    originalType: string;
+    timestamp: number;
+  }> = new Map();
+
   private readonly providerConfig: E2bProviderConfig;
   private readonly logger: Logger;
 
   constructor(config: E2bProviderConfig = {}) {
     super({
-      agentServerPort: config.agentServerPort ?? 3001,
-      agentServerHost: config.agentServerHost ?? 'localhost',
-      wsRegistrationTimeout: config.timeouts?.wsConnection ?? 10_000,
+      agentServerPort: config.pluginPort ?? 3100,
+      agentServerHost: 'localhost',
+      wsRegistrationTimeout: config.timeouts?.wsConnection ?? 30_000,
       reconnectAttempts: 10,
       reconnectDelay: 1_000,
       transport: 'websocket',
     });
 
     this.providerConfig = {
-      agentServerPort: config.agentServerPort ?? 3001,
-      agentServerHost: config.agentServerHost ?? 'localhost',
-      e2bApiKey: "e2b_f2901dc6085be9d5754d792ab344f85bf28e46f8",// config.e2bApiKey ?? process.env.E2B_API_KEY,
+      pluginPort: config.pluginPort ?? 3100,
+      e2bApiKey: "e2b_8f5c9dabc485e81a46769ecd1f31abef05938895",// config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate,
       autoStopInterval: config.autoStopInterval ?? 0,
+      codeboltStartCommand: config.codeboltStartCommand,
       timeouts: {
-        agentServerStartup: config.timeouts?.agentServerStartup ?? 60_000,
+        codeboltStartup: config.timeouts?.codeboltStartup ?? 120_000,
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
         cleanup: config.timeouts?.cleanup ?? 15_000,
       },
@@ -144,7 +152,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.providerConfig.sandboxTemplate = initVars.sandboxTemplate as string;
     }
 
-    // Custom startup order: sandbox first, then agent server, then transport.
+    // Custom startup order: sandbox first, then CodeBolt + plugin, then transport.
     this.resetState();
     this.state.environmentName = initVars.environmentName;
 
@@ -154,10 +162,10 @@ export class E2bRemoteProviderService extends BaseProvider {
     // 1. Create sandbox and copy code
     await this.setupEnvironment(initVars);
 
-    // 2. Start agent server inside the sandbox
+    // 2. Start CodeBolt with remote-execution-plugin inside the sandbox
     await this.ensureAgentServer();
 
-    // 3. Connect WebSocket transport to sandbox agent server
+    // 3. Connect WebSocket transport to plugin WS server
     await this.ensureTransportConnection(initVars);
 
     this.state.initialized = true;
@@ -172,7 +180,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     await this.afterConnected(startResult);
 
-    // Flush any messages that arrived while the agent server was being set up
+    // Flush any messages that arrived while CodeBolt was being set up
     await this.flushPendingMessages();
 
     this.logger.log('Started environment with workspace:', startResult.workspacePath);
@@ -188,31 +196,32 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
-    this.logger.log('Agent start requested, forwarding to agent server');
+    this.logger.log('Agent start requested, forwarding to sandbox CodeBolt server');
     this.isStartupCheck = true;
     try {
       await this.ensureAgentServer();
 
       if (!this.agentServer.isConnected && this.state.environmentName) {
-        this.logger.log('Agent server not connected, attempting to reconnect transport...');
+        this.logger.log('Plugin not connected, attempting to reconnect transport...');
         await this.ensureTransportConnection({
           environmentName: this.state.environmentName,
           projectPath: this.state.projectPath ?? undefined,
         } as any);
       }
 
-      // Forward narrative context to sandbox NarrativeService so exports
-      // are attributed to the parent server's agent run (avoids fallback hierarchy)
-      const narrativeContext = (agentMessage as any).narrativeContext;
-      if (narrativeContext?.objective_id && narrativeContext?.narrative_thread_id && narrativeContext?.agent_run_id) {
-        this.logger.log('Sending narrative context to sandbox agent server');
-        await this.sendToAgentServer({
-          type: 'setNarrativeContext',
-          narrativeContext,
-        } as any);
+      // Send agent start message directly to sandbox CodeBolt server via the plugin WS.
+      // Wrap it so the plugin can forward it through the ExecutionGateway.
+      if (this.agentServer.wsConnection && this.agentServer.isConnected) {
+        const ws = this.agentServer.wsConnection;
+        ws.send(JSON.stringify({
+          type: 'agentStart',
+          ...agentMessage,
+          timestamp: Date.now(),
+        }));
+        this.logger.log('Agent start message sent to plugin');
+      } else {
+        throw new Error('Plugin WS not connected. Cannot start agent.');
       }
-
-      await super.onProviderAgentStart(agentMessage);
     } finally {
       this.isStartupCheck = false;
     }
@@ -220,7 +229,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   async onRawMessage(message: any): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
-      this.logger.warn('Agent server not connected yet, queuing message:', message?.type);
+      this.logger.warn('Plugin not connected yet, queuing message:', message?.type);
       this.pendingMessages.push(message);
       return;
     }
@@ -246,35 +255,26 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (message?.type === 'providerHeartbeatResponse' || message?.type === 'providerHeartbeatAck') {
       return;
     }
+
+    // Check if this is a reply to a pending execution request
+    const pendingRequestId = this.matchPendingExecutionRequest(message);
+    if (pendingRequestId) {
+      this.sendExecutionReply(pendingRequestId, message);
+      return;
+    }
+
+    // Forward as a raw message to plugin
     await super.onRawMessage(message);
   }
 
   private async flushPendingMessages(): Promise<void> {
     if (this.pendingMessages.length === 0) return;
-    this.logger.log('Flushing', this.pendingMessages.length, 'pending messages to agent server');
+    this.logger.log('Flushing', this.pendingMessages.length, 'pending messages to plugin');
     const messages = [...this.pendingMessages];
     this.pendingMessages = [];
     for (const msg of messages) {
       try {
-        if (msg?.type === 'providerSendPR') {
-          try {
-            const result = await this.onSendPR();
-            this.handleTransportMessage({
-              type: 'remoteProviderEvent',
-              action: 'providerSendPRResponse',
-              message: result,
-            } as any);
-          } catch (sendPRError: any) {
-            this.logger.error('Error handling queued sendPR:', sendPRError);
-            this.handleTransportMessage({
-              type: 'remoteProviderEvent',
-              action: 'providerSendPRResponse',
-              error: sendPRError instanceof Error ? sendPRError.message : 'Unknown error',
-            } as any);
-          }
-        } else if (msg?.type !== 'providerHeartbeatResponse' && msg?.type !== 'providerHeartbeatAck') {
-          await super.onRawMessage(msg);
-        }
+        await this.onRawMessage(msg);
       } catch (error) {
         this.logger.error('Error flushing pending message:', error);
       }
@@ -296,7 +296,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.unregisterConnectedEnvironment(initVars.environmentName);
       }
 
-      await this.stopAgentServer();
+      await this.stopCodeBoltInSandbox();
 
       // Teardown E2B sandbox
       if (this.sandbox) {
@@ -321,7 +321,6 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onGetDiffFiles(): Promise<{ files: any[]; summary?: any }> {
-    // Diff tracking is handled via narrative snapshots, not git.
     return {
       files: [],
       summary: {
@@ -331,6 +330,84 @@ export class E2bRemoteProviderService extends BaseProvider {
         totalChanges: 0,
       },
     };
+  }
+
+  // --- Execution request/reply tracking ---
+
+  /**
+   * Match an outgoing message to a pending execution request.
+   * Returns the requestId if matched, null otherwise.
+   */
+  private matchPendingExecutionRequest(message: any): string | null {
+    // Match by message type to the originalType of pending requests
+    if (!message?.type) return null;
+
+    for (const [requestId, pending] of this.pendingExecutionRequests) {
+      if (pending.originalType === message.type || message.requestId === requestId) {
+        return requestId;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Send an executionReply back to the plugin for a completed request.
+   */
+  private sendExecutionReply(requestId: string, result: any): void {
+    this.pendingExecutionRequests.delete(requestId);
+    const ws = this.agentServer.wsConnection;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      const reply = JSON.stringify({
+        type: 'executionReply',
+        requestId,
+        result,
+      });
+      ws.send(reply);
+      this.logger.log('Sent executionReply for requestId:', requestId);
+    } else {
+      this.logger.warn('Cannot send executionReply, WS not open for requestId:', requestId);
+    }
+  }
+
+  /**
+   * Handle messages from the remote-execution-plugin WS server.
+   */
+  private handlePluginMessage(message: any): void {
+    switch (message.type) {
+      case 'executionRequest': {
+        const { requestId, originalType, type: _type, ...payload } = message;
+        this.logger.log(`Received executionRequest: ${requestId} (originalType: ${originalType})`);
+
+        // Track this request so we can match the reply
+        this.pendingExecutionRequests.set(requestId, {
+          requestId,
+          originalType,
+          timestamp: Date.now(),
+        });
+
+        // Reconstruct the original message for the local CodeBolt platform
+        const platformMessage = {
+          type: originalType,
+          requestId,
+          ...payload,
+        };
+        super.handleTransportMessage(platformMessage as any);
+        break;
+      }
+
+      case 'executionNotification': {
+        const { type: _type, ...notificationPayload } = message;
+        this.logger.log('Received executionNotification');
+        super.handleTransportMessage(notificationPayload as any);
+        break;
+      }
+
+      default:
+        // Forward any other message types to the platform as-is
+        this.logger.log('Received plugin message:', message.type);
+        super.handleTransportMessage(message as any);
+        break;
+    }
   }
 
   // --- File operation handlers ---
@@ -357,7 +434,6 @@ export class E2bRemoteProviderService extends BaseProvider {
         throw new Error('No sandbox available');
       }
       const sandboxPath = this.resolveSandboxPath(filePath);
-      // Ensure parent directory exists
       const parentDir = path.dirname(sandboxPath);
       try {
         await this.sandbox.commands.run(`mkdir -p "${parentDir}"`);
@@ -517,110 +593,33 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onSendPR(): Promise<any> {
-    this.logger.log('onSendPR started — delegating snapshot export to remote agent server');
-
-    // If an export is already in-flight, reuse its promise to avoid
-    // overwriting _pendingExportResolve and leaving the first caller hanging.
-    if (this._pendingExportPromise) {
-      this.logger.log('Export already in-flight, reusing existing request');
-      return this._pendingExportPromise;
-    }
+    this.logger.log('onSendPR — exporting workspace snapshot via E2B files API');
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
 
-    // Send snapshotExportRequest to the agent server running in the sandbox.
-    // The agent server's NarrativeService will handle snapshot creation and bundle export.
-    const environmentId = this.state.environmentName || 'unknown';
-    const exportRequest = {
-      type: 'snapshotExportRequest',
-      id: `export-${Date.now()}`,
-      environmentId,
-    };
+    // Create a tar.gz of the workspace directly in the sandbox
+    const snapshotId = `snapshot-${Date.now()}`;
+    const archivePath = `/tmp/${snapshotId}.tar.gz`;
 
-    this.logger.log('Sending snapshotExportRequest to agent server for environment:', environmentId);
+    await this.sandbox.commands.run(
+      `cd ${this.sandboxWorkspacePath} && tar -czf ${archivePath} .`,
+    );
 
-    // Wait for the snapshotBundleExport response from the agent server
-    this._pendingExportPromise = new Promise<any>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this._pendingExportResolve = null;
-        this._pendingExportPromise = null;
-        reject(new Error('Snapshot export timed out after 120 seconds'));
-      }, 120_000);
+    // Read the archive from sandbox as base64
+    const archiveContent = await this.sandbox.files.read(archivePath);
 
-      // Register a one-time listener for the export response
-      this._pendingExportResolve = (response: any) => {
-        clearTimeout(timeout);
-        this._pendingExportPromise = null;
-        if (response.success) {
-          resolve(response);
-        } else {
-          reject(new Error(response.error || 'Snapshot export failed'));
-        }
-      };
+    // Cleanup
+    await this.sandbox.commands.run(`rm -f ${archivePath}`);
 
-      this.sendToAgentServer(exportRequest as any).catch((error) => {
-        clearTimeout(timeout);
-        this._pendingExportResolve = null;
-        this._pendingExportPromise = null;
-        reject(error);
-      });
-    });
-
-    const result = await this._pendingExportPromise;
-
-    this.logger.log('Snapshot export received from agent server:', result.snapshotId);
+    this.logger.log('Snapshot exported:', snapshotId);
 
     return {
-      bundleData: result.bundleData,
-      baseSnapshotId: result.baseSnapshotId,
-      snapshot: { snapshot_id: result.snapshotId },
+      bundleData: archiveContent,
+      snapshot: { snapshot_id: snapshotId },
     };
   }
-
-  /** Pending resolve callback for snapshot export response from agent server */
-  private _pendingExportResolve: ((response: any) => void) | null = null;
-  /** In-flight export promise — shared across concurrent onSendPR callers */
-  private _pendingExportPromise: Promise<any> | null = null;
-
-  /**
-   * Sends the deferred snapshotArchiveImport message to the agent server
-   * once the WS connection is established.
-   */
-  private async flushPendingSnapshotImport(): Promise<void> {
-    if (!this._pendingSnapshotImport) return;
-
-    const { archivePath, environmentId, environmentName, snapshotId } = this._pendingSnapshotImport;
-    this._pendingSnapshotImport = null;
-
-    try {
-      const archiveBuffer = await fs.readFile(archivePath);
-      const archiveBase64 = archiveBuffer.toString('base64');
-
-      this.logger.log('Sending snapshotArchiveImport to agent server for environment:', environmentId);
-      await this.sendToAgentServer({
-        type: 'snapshotArchiveImport',
-        id: `import-${Date.now()}`,
-        archiveData: archiveBase64,
-        environmentId,
-        environmentName,
-        snapshotId: snapshotId || undefined,
-        workspacePath: this.sandboxWorkspacePath,
-      } as any);
-      this.logger.log('snapshotArchiveImport sent to agent server');
-    } catch (error) {
-      this.logger.error('Failed to send snapshot import to agent server:', error);
-    }
-  }
-
-  /** Pending snapshot import to send to agent server once WS is connected */
-  private _pendingSnapshotImport: {
-    archivePath: string;
-    environmentId: string;
-    environmentName: string;
-    snapshotId: string | null;
-  } | null = null;
 
   // --- BaseProvider abstract method implementations ---
 
@@ -645,7 +644,6 @@ export class E2bRemoteProviderService extends BaseProvider {
       throw new Error('Project path is not available');
     }
 
-    // Guard against concurrent setupEnvironment calls
     if (this.setupInProgress) {
       this.logger.warn('setupEnvironment already in progress, skipping duplicate call');
       return;
@@ -692,7 +690,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       const createParams: any = {
         timeoutMs: this.providerConfig.autoStopInterval
           ? this.providerConfig.autoStopInterval * 1000
-          : 60 * 60 * 1000, // Default 1 hour (E2B max for base tier)
+          : 60 * 60 * 1000,
         metadata: {
           provider: 'e2b-remote',
           environment: initVars.environmentName,
@@ -725,71 +723,34 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.logger.log('Repository cloned successfully');
     }
 
-    // Import snapshot archive if provided — upload to sandbox and send to agent server's NarrativeService
+    // Import snapshot archive if provided — upload to sandbox and extract
     const archivePath = initVars.archivePath as string | undefined;
-    const serverSnapshotId = (initVars as any).snapshotId || null;
-    const environmentId = (process.env.environmentId as string) || initVars.environmentName;
+    if (archivePath && this.sandbox) {
+      const remoteTmpArchive = '/tmp/snapshot-archive.tar.gz';
+      this.logger.log('Uploading snapshot archive to sandbox:', archivePath, '->', remoteTmpArchive);
+      const archiveBuffer = await fs.readFile(archivePath);
+      await this.sandbox.files.write(remoteTmpArchive, archiveBuffer.toString('base64'));
 
-    if (archivePath) {
-      // Upload archive to sandbox and extract it there
-      if (this.sandbox) {
-        const remoteTmpArchive = '/tmp/snapshot-archive.tar.gz';
-        this.logger.log('Uploading snapshot archive to sandbox:', archivePath, '->', remoteTmpArchive);
-        const archiveBuffer = await fs.readFile(archivePath);
-        await this.sandbox.files.write(remoteTmpArchive, archiveBuffer.toString('base64'));
+      // Back up .codebolt (plugins, config) and globally installed binaries
+      // before extraction — the archive may overwrite /home/user
+      await this.sandbox.commands.run(
+        'cp -a /home/user/.codebolt /tmp/.codebolt-backup 2>/dev/null || true',
+      );
 
-        // Decode base64 and extract
-        this.logger.log('Extracting archive in sandbox to:', this.sandboxWorkspacePath);
-        await this.sandbox.commands.run(
-          `base64 -d ${remoteTmpArchive} > /tmp/snapshot-archive-decoded.tar.gz && tar -xzf /tmp/snapshot-archive-decoded.tar.gz -C ${this.sandboxWorkspacePath}`,
-        );
+      // Decode base64 and extract
+      this.logger.log('Extracting archive in sandbox to:', this.sandboxWorkspacePath);
+      await this.sandbox.commands.run(
+        `base64 -d ${remoteTmpArchive} > /tmp/snapshot-archive-decoded.tar.gz && tar -xzf /tmp/snapshot-archive-decoded.tar.gz -C ${this.sandboxWorkspacePath}`,
+      );
 
-        // Cleanup
-        await this.sandbox.commands.run(`rm -f ${remoteTmpArchive} /tmp/snapshot-archive-decoded.tar.gz`);
-        this.logger.log('Snapshot files extracted to sandbox successfully');
-      }
+      // Restore .codebolt (plugins etc.) that may have been overwritten and fix ownership
+      await this.sandbox.commands.run(
+        'mkdir -p /home/user/.codebolt && cp -a /tmp/.codebolt-backup/* /home/user/.codebolt/ 2>/dev/null; cp -a /tmp/.codebolt-backup/.* /home/user/.codebolt/ 2>/dev/null; rm -rf /tmp/.codebolt-backup; chown -R user:user /home/user/.codebolt || true',
+      );
 
-      // Send archive to agent server's NarrativeService for snapshot tracking via WS
-      // (deferred until agent server WS is connected — see connectTransport)
-      this._pendingSnapshotImport = {
-        archivePath,
-        environmentId,
-        environmentName: initVars.environmentName,
-        snapshotId: serverSnapshotId,
-      };
-    }
-  }
-
-  private async syncLocalToSandbox(localDir: string, sandboxDir: string): Promise<void> {
-    if (!this.sandbox) return;
-
-    const entries = await fs.readdir(localDir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const localPath = path.join(localDir, entry.name);
-      const remotePath = path.join(sandboxDir, entry.name);
-
-      if (entry.name.startsWith('.') && entry.name !== '.codebolt' && entry.name !== '.codeboltAgents') {
-        continue;
-      }
-
-      if (entry.isDirectory()) {
-        try {
-          this.logger.log('Creating folder:', localPath, '->', remotePath);
-          await this.sandbox.commands.run(`mkdir -p "${remotePath}"`);
-        } catch {
-          // Folder may already exist
-        }
-        await this.syncLocalToSandbox(localPath, remotePath);
-      } else {
-        try {
-          const content = await fs.readFile(localPath, 'utf-8');
-          this.logger.log('Uploading file:', localPath, '->', remotePath);
-          await this.sandbox.files.write(remotePath, content);
-        } catch (error) {
-          this.logger.warn('Failed to upload file to sandbox:', localPath, '->', remotePath, error);
-        }
-      }
+      // Cleanup
+      await this.sandbox.commands.run(`rm -f ${remoteTmpArchive} /tmp/snapshot-archive-decoded.tar.gz`);
+      this.logger.log('Snapshot files extracted to sandbox successfully');
     }
   }
 
@@ -806,40 +767,267 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
   }
 
+  /**
+   * Ensure CodeBolt with remote-execution-plugin is running in the sandbox.
+   * Overrides BaseProvider.ensureAgentServer().
+   */
   protected async ensureAgentServer(): Promise<void> {
     if (!this.sandbox) {
-      this.logger.log('Sandbox not available yet, deferring agent server startup');
+      this.logger.log('Sandbox not available yet, deferring CodeBolt startup');
       return;
     }
 
-    // Check if agent server is already running
+    const port = this.providerConfig.pluginPort!;
+
+    // Check if plugin WS server is already running (TCP port check)
     try {
       const check = await this.sandbox.commands.run(
-        `curl -sf -o /dev/null http://localhost:${this.providerConfig.agentServerPort}/`,
+        `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED`,
       );
-      if (check.exitCode === 0) {
-        this.logger.log('Agent server already running in sandbox');
+      if (check.stdout?.includes('OPEN')) {
+        this.logger.log('remote-execution-plugin already running in sandbox');
         return;
       }
     } catch {
       // Not running, need to start
     }
 
-    await this.startAgentServerInSandbox();
+    await this.startCodeBoltInSandbox();
   }
 
   protected async beforeClose(): Promise<void> {
     try {
       this.logger.log('Received close signal, initiating cleanup...');
-      await this.stopAgentServer();
+      await this.stopCodeBoltInSandbox();
     } catch (error) {
       this.logger.error('Error during beforeClose cleanup:', error);
     }
   }
 
+  // --- CodeBolt + Plugin management in sandbox ---
+
   /**
-   * Override transport connection to connect WebSocket to E2B sandbox.
-   * E2B exposes ports via getHost() which returns a public hostname.
+   * Start CodeBolt in the sandbox.
+   * The sandbox template should have codebolt + remote-execution-plugin pre-installed.
+   * This just starts the codebolt process which auto-discovers and starts the plugin.
+   */
+  private async startCodeBoltInSandbox(): Promise<void> {
+    if (!this.sandbox) {
+      throw new Error('Cannot start CodeBolt: sandbox not available');
+    }
+
+    const port = this.providerConfig.pluginPort!;
+
+    // Find codebolt binary — check known paths directly (PATH may be broken after archive extraction)
+    const verifyResult = await this.sandbox.commands.run(
+      'for p in /usr/local/bin/codebolt /usr/bin/codebolt; do test -f "$p" && echo "$p" && exit 0; done; which codebolt 2>/dev/null || echo "NOT_FOUND"',
+    );
+    let codeboltBin = verifyResult.stdout?.trim() || 'NOT_FOUND';
+    this.logger.log('CodeBolt binary search result:', codeboltBin);
+
+    if (codeboltBin === 'NOT_FOUND') {
+      // codebolt not installed in template — install it now as fallback
+      this.logger.log('CodeBolt not found in sandbox, installing...');
+      const installResult = await this.sandbox.commands.run(
+        'npm install -g --ignore-scripts codebolt',
+        { user: 'root', timeoutMs: 300_000 },
+      );
+      if (installResult.exitCode !== 0) {
+        throw new Error(`Failed to install codebolt in sandbox: ${installResult.stderr}`);
+      }
+      this.logger.log('CodeBolt installed in sandbox');
+
+      // Re-resolve after install
+      const resolvedPath = await this.sandbox.commands.run(
+        'for p in /usr/local/bin/codebolt /usr/bin/codebolt; do test -f "$p" && echo "$p" && exit 0; done; echo "/usr/local/bin/codebolt"',
+      );
+      codeboltBin = resolvedPath.stdout?.trim() || '/usr/local/bin/codebolt';
+    }
+
+    this.logger.log('Using codebolt binary:', codeboltBin);
+
+    // Ensure the remote-execution-plugin is installed in the sandbox.
+    // Download from the API if not already present (e.g. when codebolt npm package doesn't bundle it yet).
+    await this.ensurePluginInstalled(codeboltBin);
+
+    // Ensure .codebolt dir is owned by user (may have been touched by root during install)
+    await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
+
+    // Override startCmd with the resolved path
+    const finalStartCmd = this.providerConfig.codeboltStartCommand
+      || `REMOTE_EXECUTION_PORT=${port} ${codeboltBin} --server --project ${this.sandboxWorkspacePath}`;
+
+    // Track if the process fails immediately (e.g. command not found)
+    let startupError: string | null = null;
+
+    this.backgroundCommand = await this.sandbox.commands.run(finalStartCmd, {
+      background: true,
+      timeoutMs: 24 * 60 * 60 * 1000,
+      onStdout: (data: any) => {
+        this.logger.log('[sandbox stdout]', data);
+      },
+      onStderr: (data: any) => {
+        const msg = typeof data === 'string' ? data : String(data);
+        this.logger.error('[sandbox stderr]', msg);
+        if (msg.includes('command not found') || msg.includes('No such file')) {
+          startupError = msg;
+        }
+      },
+    });
+    this.logger.log('CodeBolt started in sandbox as background process');
+
+    // Give a moment for immediate failures to surface
+    await new Promise(resolve => setTimeout(resolve, 2_000));
+    if (startupError) {
+      throw new Error(`CodeBolt failed to start in sandbox: ${startupError}`);
+    }
+
+    // Wait for the plugin WS server to be ready
+    await this.waitForPluginReady(port);
+
+    // Build the WebSocket URL using E2B's getHost
+    const host = this.sandbox.getHost(port);
+    const wsUrl = `wss://${host}`;
+    this.agentServer.serverUrl = wsUrl;
+
+    this.logger.log('Plugin WS server accessible at:', wsUrl);
+  }
+
+  /**
+   * Ensure the remote-execution-plugin is installed in the sandbox.
+   * Checks both the codebolt built-in plugins dir and ~/.codebolt/plugins/.
+   * If not found, downloads it from the API.
+   */
+  private async ensurePluginInstalled(codeboltBin: string): Promise<void> {
+    if (!this.sandbox) return;
+
+    const PLUGIN_ID = '@codebolt/remote-execution-plugin';
+
+    // Find the codebolt package root (e.g. /usr/lib/node_modules/codebolt)
+    const pkgRootResult = await this.sandbox.commands.run(
+      `node -e "console.log(require.resolve('codebolt/package.json').replace('/package.json',''))"  2>/dev/null || dirname $(dirname ${codeboltBin})`,
+    );
+    const codeboltRoot = pkgRootResult.stdout?.trim() || '/usr/lib/node_modules/codebolt';
+    const builtinPluginDir = `${codeboltRoot}/dist/plugins/remote-execution-plugin`;
+    const globalPluginDir = '/home/user/.codebolt/plugins/remote-execution-plugin';
+
+    // Check if plugin exists in either location
+    const checkResult = await this.sandbox.commands.run(
+      `test -f ${builtinPluginDir}/dist/index.js && echo "BUILTIN" || (test -f ${globalPluginDir}/dist/index.js && echo "GLOBAL" || echo "MISSING")`,
+    );
+    const pluginLocation = checkResult.stdout?.trim();
+    this.logger.log('Plugin check result:', pluginLocation);
+
+    if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
+      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
+      return;
+    }
+
+    // Plugin not found — download from API and install to BOTH locations
+    // (builtin dir takes priority in discovery, so we must fix it there too)
+    this.logger.log('remote-execution-plugin not found, downloading from API...');
+
+    // Write package.json as a separate file write (avoids heredoc quoting issues)
+    const pluginPkgJson = JSON.stringify({
+      name: PLUGIN_ID,
+      version: '1.0.0',
+      main: 'dist/index.js',
+      codebolt: {
+        plugin: {
+          type: 'execution',
+          gateway: { claimsExecutionGateway: true },
+          triggers: [{ type: 'startup' }],
+        },
+      },
+    });
+
+    // Download the plugin dist zip
+    const downloadCmd = [
+      `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
+      `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
+      `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
+      `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
+      // Extract to builtin dir (takes priority in CodeBolt discovery)
+      `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/dist/`,
+      // Also extract to global dir as fallback
+      `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/dist/`,
+      `rm -f /tmp/plugin-dist.zip`,
+    ].join(' && ');
+
+    const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
+    if (downloadResult.exitCode !== 0) {
+      throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
+    }
+
+    // Write package.json to both locations using sandbox files API (no heredoc issues)
+    await this.sandbox.files.write(`${builtinPluginDir}/package.json`, pluginPkgJson);
+    await this.sandbox.files.write(`${globalPluginDir}/package.json`, pluginPkgJson);
+
+    // Fix ownership
+    await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
+
+    this.logger.log('remote-execution-plugin downloaded and installed from API');
+  }
+
+  private async waitForPluginReady(port: number): Promise<void> {
+    const timeout = this.providerConfig.timeouts?.codeboltStartup ?? 120_000;
+    const pollInterval = 2_000;
+    const startTime = Date.now();
+
+    this.logger.log(`Waiting for plugin WS server on port ${port} (timeout: ${timeout}ms)...`);
+
+    while (Date.now() - startTime < timeout) {
+      try {
+        // Use TCP port check since the plugin runs a raw WebSocket server
+        // (not an HTTP server), so curl/HTTP won't get a 200
+        const result = await this.sandbox!.commands.run(
+          `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED`,
+        );
+        if (result.stdout?.includes('OPEN')) {
+          this.logger.log('Plugin WS server is ready (port is open)');
+          return;
+        }
+      } catch {
+        // Not ready yet
+      }
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    throw new Error(`CodeBolt plugin WS server failed to start within ${timeout}ms`);
+  }
+
+  private async stopCodeBoltInSandbox(): Promise<boolean> {
+    if (!this.sandbox) {
+      this.logger.log('No sandbox available, skipping CodeBolt stop');
+      return true;
+    }
+
+    try {
+      if (this.backgroundCommand) {
+        this.logger.log('Killing CodeBolt background process...');
+        await this.backgroundCommand.kill();
+        this.backgroundCommand = null;
+        this.logger.log('CodeBolt process killed');
+      } else {
+        // Fallback: kill by port
+        this.logger.log('Stopping CodeBolt by killing process on port...');
+        await this.sandbox.commands.run(
+          `kill $(lsof -t -i:${this.providerConfig.pluginPort}) 2>/dev/null || true`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn('Error stopping CodeBolt in sandbox:', error);
+    }
+
+    this.agentServer.process = null;
+    return true;
+  }
+
+  // --- Transport connection to plugin WS server ---
+
+  /**
+   * Connect to the remote-execution-plugin's WebSocket server as a provider client.
+   * The plugin does not send a "registered" handshake — connection itself means ready.
    */
   async ensureTransportConnection(initVars: ProviderInitVars): Promise<void> {
     if (this.agentServer.wsConnection && this.agentServer.isConnected) {
@@ -847,7 +1035,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     const url = this.buildWebSocketUrl(initVars);
-    this.logger.log('Connecting WebSocket to:', url);
+    this.logger.log('Connecting to plugin WS server:', url);
 
     await new Promise<void>((resolve, reject) => {
       const wsOptions: any = {
@@ -856,49 +1044,34 @@ export class E2bRemoteProviderService extends BaseProvider {
         headers: {} as Record<string, string>,
         perMessageDeflate: {
           zlibDeflateOptions: { level: 6 },
-          threshold: 1024, // compress messages larger than 1KB
+          threshold: 1024,
         },
-        maxPayload: 0, // unlimited payload size
+        maxPayload: 0,
       };
 
       const ws = new WebSocket(url, wsOptions);
-      let isRegistered = false;
 
-      const registrationTimeout = setTimeout(() => {
+      const connectionTimeout = setTimeout(() => {
         ws.close();
-        reject(new Error('WebSocket registration timeout'));
+        reject(new Error('Plugin WS connection timeout'));
       }, this.config.wsRegistrationTimeout);
 
       ws.on('open', () => {
+        clearTimeout(connectionTimeout);
         this.agentServer.wsConnection = ws;
         this.agentServer.isConnected = true;
         this.agentServer.metadata = { connectedAt: Date.now() };
-        this.logger.log('WebSocket connection established');
+        this.logger.log('Connected to plugin WS server');
+        this.reconnectAttempts = 0;
+        resolve();
       });
 
       ws.on('message', (data: any) => {
         try {
-          const payload = JSON.parse(data.toString());
-          // Respond to application-level pings from agent server
-          // (WebSocket control frame pings may not traverse E2B's proxy)
-          if (payload.type === '__ping') {
-            try {
-              ws.send(JSON.stringify({ type: '__pong', timestamp: Date.now() }));
-            } catch { /* ignore */ }
-            return;
-          }
-          this.logger.log('WebSocket message received from agent server:', payload?.type);
-          if (!isRegistered && payload.type === 'registered') {
-            isRegistered = true;
-            clearTimeout(registrationTimeout);
-            this.logger.log('WebSocket registered with agent server');
-            // Send pending snapshot import to agent server's NarrativeService
-            this.flushPendingSnapshotImport();
-            resolve();
-          }
-          this.handleTransportMessage(payload);
+          const message = JSON.parse(data.toString());
+          this.handlePluginMessage(message);
         } catch (error) {
-          this.logger.error('Failed to parse WebSocket message', error);
+          this.logger.error('Failed to parse plugin WS message', error);
         }
       });
 
@@ -907,44 +1080,50 @@ export class E2bRemoteProviderService extends BaseProvider {
         res.on('data', (chunk: any) => { body += chunk; });
         res.on('end', () => {
           this.logger.error(
-            `WebSocket upgrade rejected: ${res.statusCode}`,
+            `Plugin WS upgrade rejected: ${res.statusCode}`,
             'headers:', JSON.stringify(res.headers),
             'body:', body,
           );
-          clearTimeout(registrationTimeout);
+          clearTimeout(connectionTimeout);
           this.agentServer.isConnected = false;
           this.agentServer.wsConnection = null;
-          reject(new Error(`WebSocket upgrade rejected with status ${res.statusCode}: ${body}`));
+          reject(new Error(`Plugin WS upgrade rejected with status ${res.statusCode}: ${body}`));
         });
       });
 
       ws.on('error', (error: any) => {
-        clearTimeout(registrationTimeout);
+        clearTimeout(connectionTimeout);
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { lastError: error };
-        this.logger.error('WebSocket error:', error.message || error);
+        this.logger.error('Plugin WS error:', error.message || error);
         reject(error);
       });
 
       ws.on('close', () => {
-        clearTimeout(registrationTimeout);
+        clearTimeout(connectionTimeout);
         this.stopWsPing();
+        const wasConnected = this.agentServer.isConnected;
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { closedAt: Date.now() };
-        this.logger.log('WebSocket connection closed');
+        this.logger.log('Plugin WS connection closed');
 
-        if (!isRegistered) {
-          reject(new Error('WebSocket closed before registration'));
-        } else {
-          // Connection dropped after registration — attempt reconnect
+        // Reject all pending execution requests
+        for (const [id] of this.pendingExecutionRequests) {
+          this.logger.warn('Rejecting pending execution request due to disconnect:', id);
+        }
+        this.pendingExecutionRequests.clear();
+
+        if (wasConnected) {
           this.scheduleReconnect();
+        } else {
+          reject(new Error('Plugin WS closed before connection established'));
         }
       });
     });
 
-    // Start ping/pong keepalive after successful connection
+    // Start ping/pong keepalive
     this.startWsPing();
   }
 
@@ -952,7 +1131,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 10;
-  private readonly WS_PING_INTERVAL = 20_000; // 20 seconds
+  private readonly WS_PING_INTERVAL = 20_000;
 
   private startWsPing(): void {
     this.stopWsPing();
@@ -977,35 +1156,33 @@ export class E2bRemoteProviderService extends BaseProvider {
       return;
     }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // exponential backoff, max 30s
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
     this.reconnectAttempts++;
-    this.logger.log(`Scheduling WebSocket reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
+    this.logger.log(`Scheduling plugin WS reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
 
     this.reconnectTimer = setTimeout(async () => {
       try {
-        if (this.agentServer.isConnected) return; // already reconnected
-
+        if (this.agentServer.isConnected) return;
         if (!this.state.environmentName) return;
 
-        // Before reconnecting WebSocket, ensure the agent server port is actually open
+        // Ensure plugin is still running before reconnecting WS
         if (this.sandbox) {
           let portOpen = false;
           try {
             const portCheck = await this.sandbox.commands.run(
-              `curl -sf -o /dev/null http://localhost:${this.providerConfig.agentServerPort}/`,
+              `(echo > /dev/tcp/localhost/${this.providerConfig.pluginPort}) 2>/dev/null && echo OPEN || echo CLOSED`,
             );
-            portOpen = portCheck.exitCode === 0;
+            portOpen = portCheck.stdout?.includes('OPEN') ?? false;
           } catch {
-            // E2B SDK throws CommandExitError on non-zero exit codes (e.g. curl exit 7 = connection refused)
             portOpen = false;
           }
 
           if (!portOpen) {
-            this.logger.warn('Agent server port not open, attempting to restart agent server...');
+            this.logger.warn('Plugin port not open, attempting to restart CodeBolt...');
             try {
-              await this.startAgentServerInSandbox();
+              await this.startCodeBoltInSandbox();
             } catch (restartError) {
-              this.logger.error('Failed to restart agent server:', restartError);
+              this.logger.error('Failed to restart CodeBolt:', restartError);
               this.scheduleReconnect();
               return;
             }
@@ -1016,83 +1193,34 @@ export class E2bRemoteProviderService extends BaseProvider {
           environmentName: this.state.environmentName,
           projectPath: this.state.projectPath ?? undefined,
         } as any);
-        this.reconnectAttempts = 0;
-        this.logger.log('WebSocket reconnected successfully');
+        this.logger.log('Plugin WS reconnected successfully');
         await this.flushPendingMessages();
       } catch (error) {
-        this.logger.error('WebSocket reconnect failed:', error);
+        this.logger.error('Plugin WS reconnect failed:', error);
         this.scheduleReconnect();
       }
     }, delay);
   }
 
+  /**
+   * Build WebSocket URL for connecting to the remote-execution-plugin.
+   * Plugin expects `?providerId=xxx` query param.
+   */
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
-    const query = new URLSearchParams({
-      clientType: 'app',
-      appId: `e2b-${initVars.environmentName}`,
-      projectName: initVars.environmentName,
-    });
-
-    // Use sandbox workspace path since agent server runs inside sandbox
-    query.set('currentProject', this.sandboxWorkspacePath);
-
-    return `${this.agentServer.serverUrl}?${query.toString()}`;
+    const providerId = `e2b-${initVars.environmentName}`;
+    return `${this.agentServer.serverUrl}?providerId=${encodeURIComponent(providerId)}`;
   }
 
+  /**
+   * Override handleTransportMessage to intercept processStopped for auto-PR.
+   */
   protected handleTransportMessage(message: RawMessageForAgent): void {
     try {
-      if (message?.type) {
-        this.logger.log('WebSocket message received from E2B:', message.type);
-      }
-
-      // Log snapshot archive import result from agent server
-      if (message.type === 'snapshotArchiveImportResult') {
-        const importResult = message as any;
-        if (importResult.success) {
-          this.logger.log('Snapshot archive imported by agent server: snapshot=', importResult.snapshotId);
-        } else {
-          this.logger.error('Snapshot archive import failed on agent server:', importResult.error);
-        }
+      if (message?.type === 'processStoped' || message?.type === 'processStopped') {
+        this.logger.log('Agent process stopped, sending PR before forwarding');
+        this.sendPROnAgentFinish(message);
         return;
       }
-
-      // Intercept snapshot bundle export response from agent server
-      if (message.type === 'snapshotBundleExport' && this._pendingExportResolve) {
-        this.logger.log('Received snapshotBundleExport from agent server');
-        const resolve = this._pendingExportResolve;
-        this._pendingExportResolve = null;
-        resolve(message);
-        return;
-      }
-
-      switch (message.type) {
-        case 'agentStartResponse':
-          this.logger.log('Agent start response:', message.data ?? 'unknown');
-          break;
-        case 'agentMessage':
-          this.logger.log('Agent message:', message.data ?? 'no message');
-          break;
-        case 'notification':
-          this.logger.log('Agent notification:', message.action, message.data);
-          break;
-        case 'error':
-          this.logger.error('Agent server error:', (message as any).message ?? 'unknown error');
-          break;
-        case 'processStoped':
-        case 'processStopped':
-          this.logger.log('Agent process stopped, sending PR to parent before forwarding');
-          this.sendPROnAgentFinish(message);
-          return; // Don't forward yet - sendPROnAgentFinish will forward after PR
-        case 'snapshotBundleExport':
-          // Additional snapshotBundleExport messages after the pending resolve was consumed.
-          // The agent server may emit multiple exports (one per snapshot); only the first
-          // is used by onSendPR — the rest can be safely ignored.
-          this.logger.log('Ignoring additional snapshotBundleExport (no pending resolve), snapshotId:', (message as any).snapshotId);
-          return; // Don't forward to parent
-        default:
-          this.logger.log('Unhandled message type:', message.type);
-      }
-
       super.handleTransportMessage(message);
     } catch (error) {
       this.logger.error('Error handling transport message:', error);
@@ -1109,7 +1237,6 @@ export class E2bRemoteProviderService extends BaseProvider {
       const prResult = await this.onSendPR();
       this.logger.log('PR submitted successfully on agent finish');
 
-      // Send the PR result to the parent app
       super.handleTransportMessage({
         type: 'remoteProviderEvent',
         action: 'providerSendPRResponse',
@@ -1118,7 +1245,6 @@ export class E2bRemoteProviderService extends BaseProvider {
       } as any);
     } catch (error: any) {
       this.logger.error('Failed to send PR on agent finish:', error);
-      // Send error notification but don't block the process stop
       super.handleTransportMessage({
         type: 'remoteProviderEvent',
         action: 'providerSendPRResponse',
@@ -1126,131 +1252,14 @@ export class E2bRemoteProviderService extends BaseProvider {
         error: error instanceof Error ? error.message : 'Failed to send PR on agent finish',
       } as any);
     } finally {
-      // Always forward the original processStopped message after PR attempt
       super.handleTransportMessage(originalMessage);
     }
-  }
-
-  // --- Agent server management ---
-
-  private async startAgentServerInSandbox(): Promise<void> {
-    if (!this.sandbox) {
-      throw new Error('Cannot start agent server: sandbox not available');
-    }
-
-    const port = this.providerConfig.agentServerPort!;
-    let serverEntrypoint: string;
-
-    if (this.providerConfig.localAgentServerPath) {
-      // Dev/test mode: upload local agent server bundle directly to sandbox
-      const remoteServerPath = '/home/user/.codebolt-agentserver/server.mjs';
-      const localServerPath = this.providerConfig.localAgentServerPath;
-      this.logger.log(`Uploading local agent server to sandbox: ${localServerPath} -> ${remoteServerPath}`);
-      const serverContent = await fs.readFile(localServerPath, 'utf-8');
-      await this.sandbox.commands.run('mkdir -p /home/user/.codebolt-agentserver');
-      await this.sandbox.files.write(remoteServerPath, serverContent);
-      this.logger.log('Agent server uploaded to sandbox');
-      serverEntrypoint = remoteServerPath;
-    } else {
-      // Production mode: install globally from npm registry
-      // Using -g so it doesn't pollute the project's node_modules or package.json
-      // Use --ignore-scripts to avoid onnxruntime-node's post-install downloading ~500MB GPU binaries
-      // which OOM-kills small sandbox instances (exit code 137).
-      this.logger.log(`Installing @codebolt/agentserver@11.0.5 globally in sandbox...`);
-      const installResult = await this.sandbox.commands.run(
-        `sudo npm install -g --ignore-scripts @codebolt/agentserver@11.0.5`,
-        { timeoutMs: 300_000 }, // 5 minutes — large package tree
-      );
-      if (installResult.exitCode !== 0) {
-        throw new Error(`Failed to install @codebolt/agentserver@11.0.5 in sandbox: ${installResult.stderr}`);
-      }
-      this.logger.log('Installed @codebolt/agentserver@11.0.5 globally in sandbox');
-      // npm -g installs the "bin" entry as `codebolt-agentserver` on PATH
-      serverEntrypoint = '$(which codebolt-agentserver)';
-    }
-
-    // Start the agent server as a background command
-    const startCmd = `cd ${this.sandboxWorkspacePath} && node ${serverEntrypoint} --noui --port ${port} --project-path ${this.sandboxWorkspacePath}`;
-
-    this.backgroundCommand = await this.sandbox.commands.run(startCmd, {
-      background: true,
-      timeoutMs: 24 * 60 * 60 * 1000, // 24 hours — agent server must run for the sandbox lifetime
-      onStdout: (data: any) => {
-        this.logger.log('[sandbox stdout]', data);
-      },
-      onStderr: (data: any) => {
-        this.logger.error('[sandbox stderr]', data);
-      },
-    });
-    this.logger.log('Agent server process started in sandbox as background command');
-
-    // Wait for the server to be ready
-    await this.waitForAgentServerReady(port);
-
-    // Build the WebSocket URL using E2B's getHost
-    const host = this.sandbox.getHost(port);
-    const wsUrl = `wss://${host}`;
-    this.agentServer.serverUrl = wsUrl;
-
-    this.logger.log('Agent server accessible at:', wsUrl);
-  }
-
-  private async waitForAgentServerReady(port: number): Promise<void> {
-    const timeout = this.providerConfig.timeouts?.agentServerStartup ?? 60_000;
-    const pollInterval = 1_000;
-    const startTime = Date.now();
-
-    this.logger.log(`Waiting for agent server to be ready on port ${port} (timeout: ${timeout}ms)...`);
-
-    while (Date.now() - startTime < timeout) {
-      try {
-        const result = await this.sandbox!.commands.run(
-          `curl -sf -o /dev/null http://localhost:${port}/`,
-        );
-        if (result.exitCode === 0) {
-          this.logger.log('Agent server is ready (port is listening)');
-          return;
-        }
-      } catch {
-        // Server not ready yet
-      }
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
-    }
-
-    throw new Error(`Agent server in sandbox failed to start within ${timeout}ms`);
-  }
-
-  private async stopAgentServer(): Promise<boolean> {
-    if (!this.sandbox) {
-      this.logger.log('No sandbox available, skipping agent server stop');
-      return true;
-    }
-
-    try {
-      if (this.backgroundCommand) {
-        this.logger.log('Killing agent server background command...');
-        await this.backgroundCommand.kill();
-        this.backgroundCommand = null;
-        this.logger.log('Agent server background command killed');
-      } else {
-        // Fallback: kill by port
-        this.logger.log('Stopping agent server by killing process on port...');
-        await this.sandbox.commands.run(
-          `kill $(lsof -t -i:${this.providerConfig.agentServerPort}) 2>/dev/null || true`,
-        );
-      }
-    } catch (error) {
-      this.logger.warn('Error stopping agent server:', error);
-    }
-
-    this.agentServer.process = null;
-    return true;
   }
 
   async onCloseSignal(): Promise<void> {
     try {
       this.logger.log('Received close signal, initiating cleanup...');
-      await this.stopAgentServer();
+      await this.stopCodeBoltInSandbox();
       await this.teardownEnvironment();
     } catch (error) {
       this.logger.error('Error during onCloseSignal cleanup:', error);

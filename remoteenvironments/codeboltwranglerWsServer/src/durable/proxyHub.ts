@@ -30,7 +30,20 @@ export class ProxyHub {
 
   private readonly socketMeta = new WeakMap<WebSocket, SocketMeta>();
 
+  // Buffered KV writes — accumulate messages in memory, flush every 2s
+  private readonly messageBuffer = new Map<string, any[]>(); // key → messages to append
+  private readonly threadUpdates = new Map<string, { appToken: string; threadId: string }>(); // key → thread info
+  private flushScheduled = false;
+
   constructor(readonly state: DurableObjectState, private readonly env: Env) {}
+
+  /**
+   * Alarm handler — flushes buffered messages to KV.
+   */
+  async alarm(): Promise<void> {
+    this.flushScheduled = false;
+    await this.flushBufferToKV();
+  }
 
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') {
@@ -210,13 +223,12 @@ export class ProxyHub {
         this.sendJson(appSocket, message);
       }
 
-      // Store all chatEvent messages in KV — extract threadId from anywhere
+      // Buffer chatEvent messages for batch KV write
       if (message.type === 'chatEvent' && message.data) {
         const d = message.data;
         const threadId = d.threadId || d.message?.threadId || message.threadId;
         if (threadId) {
-          const toStore = { ...d, threadId };
-          await this.storeChatMessage(meta.token, toStore);
+          this.bufferChatMessage(meta.token, { ...d, threadId });
         }
       }
 
@@ -232,36 +244,67 @@ export class ProxyHub {
   }
 
   /**
-   * Store a chat message in KV for history/sync.
+   * Buffer a chat message for batch KV write.
    */
-  private async storeChatMessage(appToken: string, messageData: any): Promise<void> {
-    if (!this.env.CHAT_STORE) return;
+  private bufferChatMessage(appToken: string, messageData: any): void {
+    const threadId = messageData.threadId;
+    const key = `messages:${appToken}:${threadId}`;
+
+    const buf = this.messageBuffer.get(key) || [];
+    buf.push(messageData);
+    this.messageBuffer.set(key, buf);
+    this.threadUpdates.set(`${appToken}:${threadId}`, { appToken, threadId });
+
+    // Schedule flush if not already scheduled
+    if (!this.flushScheduled) {
+      this.flushScheduled = true;
+      this.state.storage.setAlarm(Date.now() + 2000); // flush in 2s
+    }
+  }
+
+  /**
+   * Flush all buffered messages to KV in a single batch.
+   */
+  private async flushBufferToKV(): Promise<void> {
+    if (!this.env.CHAT_STORE || this.messageBuffer.size === 0) return;
 
     try {
-      const threadId = messageData.threadId;
-      const key = `messages:${appToken}:${threadId}`;
-
-      // Append to thread messages
-      const existingRaw = await this.env.CHAT_STORE.get(key);
-      const existing: any[] = existingRaw ? JSON.parse(existingRaw) : [];
-      existing.push(messageData);
-      // Cap at 500 messages per thread
-      if (existing.length > 500) existing.shift();
-      await this.env.CHAT_STORE.put(key, JSON.stringify(existing));
-
-      // Track thread in list
-      const threadsKey = `threads:${appToken}`;
-      const threadsRaw = await this.env.CHAT_STORE.get(threadsKey);
-      const threads: any[] = threadsRaw ? JSON.parse(threadsRaw) : [];
-      const existingThread = threads.find((t: any) => t.threadId === threadId);
-      if (existingThread) {
-        existingThread.updatedAt = Date.now();
-      } else {
-        threads.push({ threadId, updatedAt: Date.now() });
+      // Flush message buffers
+      for (const [key, newMessages] of this.messageBuffer) {
+        const existingRaw = await this.env.CHAT_STORE.get(key);
+        const existing: any[] = existingRaw ? JSON.parse(existingRaw) : [];
+        existing.push(...newMessages);
+        // Cap at 1000 messages per thread
+        while (existing.length > 1000) existing.shift();
+        await this.env.CHAT_STORE.put(key, JSON.stringify(existing));
       }
-      await this.env.CHAT_STORE.put(threadsKey, JSON.stringify(threads));
+      this.messageBuffer.clear();
+
+      // Flush thread list updates
+      const threadsByToken = new Map<string, { threadId: string }[]>();
+      for (const { appToken, threadId } of this.threadUpdates.values()) {
+        const list = threadsByToken.get(appToken) || [];
+        list.push({ threadId });
+        threadsByToken.set(appToken, list);
+      }
+
+      for (const [appToken, updates] of threadsByToken) {
+        const threadsKey = `threads:${appToken}`;
+        const threadsRaw = await this.env.CHAT_STORE.get(threadsKey);
+        const threads: any[] = threadsRaw ? JSON.parse(threadsRaw) : [];
+        for (const { threadId } of updates) {
+          const existing = threads.find((t: any) => t.threadId === threadId);
+          if (existing) {
+            existing.updatedAt = Date.now();
+          } else {
+            threads.push({ threadId, updatedAt: Date.now() });
+          }
+        }
+        await this.env.CHAT_STORE.put(threadsKey, JSON.stringify(threads));
+      }
+      this.threadUpdates.clear();
     } catch (error) {
-      console.error('[ProxyHub] Failed to store chat message in KV:', error);
+      console.error('[ProxyHub] Failed to flush buffer to KV:', error);
     }
   }
 
@@ -271,6 +314,9 @@ export class ProxyHub {
   private async handleRequestSync(socket: WebSocket): Promise<void> {
     const meta = this.socketMeta.get(socket);
     if (!meta) return;
+
+    // Flush any buffered messages before responding
+    await this.flushBufferToKV();
 
     if (!this.env.CHAT_STORE) {
       this.sendJson(socket, { type: 'syncThreadList', data: [] });
@@ -297,6 +343,9 @@ export class ProxyHub {
 
     const threadId = message.threadId;
     if (!threadId) return;
+
+    // Flush any buffered messages before responding
+    await this.flushBufferToKV();
 
     if (!this.env.CHAT_STORE) {
       this.sendJson(socket, { type: 'syncThreadMessages', threadId, data: [] });
