@@ -144,6 +144,13 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
     this.baseProjectPath = projectPath;
 
+    // Set sandbox workspace path using project name so code goes into a subdirectory
+    const projectName = (initVars as any).projectName || path.basename(projectPath);
+    if (projectName) {
+      this.sandboxWorkspacePath = `/home/user/${projectName}`;
+      this.logger.log('Sandbox workspace path set to:', this.sandboxWorkspacePath);
+    }
+
     // Allow runtime override of E2B config from initVars
     if (initVars.e2bApiKey) {
       this.providerConfig.e2bApiKey = initVars.e2bApiKey as string;
@@ -196,7 +203,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
-    this.logger.log('Agent start requested, forwarding to sandbox CodeBolt server');
+    this.logger.log('Agent start requested, forwarding to sandbox CodeBolt server', JSON.stringify(agentMessage));
     this.isStartupCheck = true;
     try {
       await this.ensureAgentServer();
@@ -214,7 +221,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       if (this.agentServer.wsConnection && this.agentServer.isConnected) {
         const ws = this.agentServer.wsConnection;
         ws.send(JSON.stringify({
-          type: 'agentStart',
+          // type: 'agentStart',
           ...agentMessage,
           timestamp: Date.now(),
         }));
@@ -739,6 +746,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       // Decode base64 and extract
       this.logger.log('Extracting archive in sandbox to:', this.sandboxWorkspacePath);
+      await this.sandbox.commands.run(`mkdir -p ${this.sandboxWorkspacePath}`);
       await this.sandbox.commands.run(
         `base64 -d ${remoteTmpArchive} > /tmp/snapshot-archive-decoded.tar.gz && tar -xzf /tmp/snapshot-archive-decoded.tar.gz -C ${this.sandboxWorkspacePath}`,
       );
