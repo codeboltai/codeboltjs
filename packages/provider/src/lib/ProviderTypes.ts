@@ -22,6 +22,7 @@ export interface ProviderState {
   projectPath: string | null;
   workspacePath: string | null;
   mergeConfig?: MergeConfig;
+  environmentResourceId?: string;
 }
 
 export interface AgentServerConnection {
@@ -41,12 +42,23 @@ export interface BaseProviderConfig {
   transport: ProviderTransportType;
   agentServerPath?: string;
   agentServerArgs?: string[];
+  maxReconnectAttempts?: number;
+  maxReconnectDelay?: number;
+  wsKeepaliveInterval?: number;
+  requestTimeout?: number;
   timeouts?: {
     agentServerStartup?: number;
     connection?: number;
     cleanup?: number;
   };
   [key: string]: unknown;
+}
+
+export interface PendingRequest {
+  requestId: string;
+  type: string;
+  timestamp: number;
+  timeoutHandle: NodeJS.Timeout;
 }
 
 export interface ProviderLifecycleHandlers {

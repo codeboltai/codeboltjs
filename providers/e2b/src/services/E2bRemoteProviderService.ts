@@ -40,17 +40,8 @@ export class E2bRemoteProviderService extends BaseProvider {
   private sandboxId: string | null = null;
   private baseProjectPath: string | null = null;
   private sandboxWorkspacePath: string = '/home/user';
-  private isStartupCheck = false;
   private setupInProgress = false;
   private backgroundCommand: any = null;
-  private pendingMessages: any[] = [];
-
-  /** Track execution requests from the plugin awaiting replies */
-  private pendingExecutionRequests: Map<string, {
-    requestId: string;
-    originalType: string;
-    timestamp: number;
-  }> = new Map();
 
   private readonly providerConfig: E2bProviderConfig;
   private readonly logger: Logger;
@@ -106,6 +97,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       throw new Error('Project path is not available in initVars');
     }
     this.baseProjectPath = projectPath;
+    this.lastInitVars = initVars;
 
     // Set sandbox workspace path using project name so code goes into a subdirectory
     const projectName = (initVars as any).projectName || path.basename(projectPath);
@@ -150,9 +142,6 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     await this.afterConnected(startResult);
 
-    // Flush any messages that arrived while CodeBolt was being set up
-    await this.flushPendingMessages();
-
     this.logger.log('Started environment with workspace:', startResult.workspacePath);
 
     this.startHeartbeat();
@@ -167,7 +156,6 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
     this.logger.log('Agent start requested, forwarding to sandbox CodeBolt server', JSON.stringify(agentMessage));
-    this.isStartupCheck = true;
     try {
       await this.ensureAgentServer();
 
@@ -180,26 +168,23 @@ export class E2bRemoteProviderService extends BaseProvider {
       }
 
       // Send user message to sandbox CodeBolt server via the plugin WS.
-      // The agentMessage has type: 'providerAgentStart' with the user message in .userMessage
-      // The plugin expects type: 'messageResponse' to forward via chat socket.
       if (this.agentServer.wsConnection && this.agentServer.isConnected) {
         const ws = this.agentServer.wsConnection;
-        // Extract the user message and send as messageResponse (same format as local UI)
         const userMessage = (agentMessage as any).userMessage || agentMessage;
         ws.send(JSON.stringify(userMessage));
         this.logger.log('Agent start message sent to plugin as messageResponse');
       } else {
         throw new Error('Plugin WS not connected. Cannot start agent.');
       }
-    } finally {
-      this.isStartupCheck = false;
+    } catch (error) {
+      throw error;
     }
   }
 
   async onRawMessage(message: any): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
-      this.logger.warn('Plugin not connected yet, queuing message:', message?.type);
-      this.pendingMessages.push(message);
+      // Queue via base class
+      await super.onRawMessage(message);
       return;
     }
     if (message?.type === 'providerSendPR') {
@@ -236,30 +221,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     await super.onRawMessage(message);
   }
 
-  private async flushPendingMessages(): Promise<void> {
-    if (this.pendingMessages.length === 0) return;
-    this.logger.log('Flushing', this.pendingMessages.length, 'pending messages to plugin');
-    const messages = [...this.pendingMessages];
-    this.pendingMessages = [];
-    for (const msg of messages) {
-      try {
-        await this.onRawMessage(msg);
-      } catch (error) {
-        this.logger.error('Error flushing pending message:', error);
-      }
-    }
-  }
-
   async onProviderStop(initVars: ProviderInitVars): Promise<void> {
     this.logger.log('Provider stop requested for environment:', initVars.environmentName);
 
     try {
       this.stopHeartbeat();
-      this.stopWsPing();
-      if (this.reconnectTimer) {
-        clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
 
       if (initVars.environmentName) {
         this.unregisterConnectedEnvironment(initVars.environmentName);
@@ -267,19 +233,9 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       await this.stopCodeBoltInSandbox();
 
-      // Teardown E2B sandbox
-      if (this.sandbox) {
-        try {
-          await this.sandbox.kill();
-          this.logger.log('E2B sandbox killed');
-        } catch (error) {
-          this.logger.error('Error killing E2B sandbox:', error);
-        }
-        this.sandbox = null;
-        this.sandboxId = null;
-      }
-
+      // disconnectTransport handles cancelReconnect + stopWsPing + clearAllPendingRequests
       await this.disconnectTransport();
+      await this.teardownEnvironment();
       this.resetState();
 
       this.logger.log('Provider stopped successfully');
@@ -314,13 +270,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       return null;
     }
 
-    this.logger.log(`matchPendingExecutionRequest: looking for match for type="${message.type}" requestId="${message.requestId || 'none'}", pending count=${this.pendingExecutionRequests.size}`);
+    this.logger.log(`matchPendingExecutionRequest: looking for match for type="${message.type}" requestId="${message.requestId || 'none'}", pending count=${this.pendingRequests.size}`);
 
-    for (const [requestId, pending] of this.pendingExecutionRequests) {
-      const matchByType = pending.originalType === message.type;
+    for (const [requestId, pending] of this.pendingRequests) {
+      const matchByType = pending.type === message.type;
       const matchByRequestId = message.requestId === requestId;
       if (matchByType || matchByRequestId) {
-        this.logger.log(`matchPendingExecutionRequest: matched requestId="${requestId}" (byType=${matchByType}, byRequestId=${matchByRequestId}, originalType="${pending.originalType}")`);
+        this.logger.log(`matchPendingExecutionRequest: matched requestId="${requestId}" (byType=${matchByType}, byRequestId=${matchByRequestId}, originalType="${pending.type}")`);
         return requestId;
       }
     }
@@ -333,7 +289,7 @@ export class E2bRemoteProviderService extends BaseProvider {
    * Send an executionReply back to the plugin for a completed request.
    */
   private sendExecutionReply(requestId: string, result: any): void {
-    this.pendingExecutionRequests.delete(requestId);
+    this.resolveRequest(requestId);
     const ws = this.agentServer.wsConnection;
     if (ws && ws.readyState === WebSocket.OPEN) {
       const reply = JSON.stringify({
@@ -349,6 +305,22 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
+   * Override onRequestTimeout to send error executionReply back to plugin.
+   */
+  protected onRequestTimeout(requestId: string): void {
+    this.logger.warn(`Request ${requestId} timed out, sending error reply`);
+    this.pendingRequests.delete(requestId);
+    const ws = this.agentServer.wsConnection;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'executionReply',
+        requestId,
+        result: { error: 'Request timed out' },
+      }));
+    }
+  }
+
+  /**
    * Handle messages from the remote-execution-plugin WS server.
    */
   private handlePluginMessage(message: any): void {
@@ -357,12 +329,8 @@ export class E2bRemoteProviderService extends BaseProvider {
         const { requestId, originalType, originalMessage } = message;
         this.logger.log(`Received executionRequest: ${requestId} (originalType: ${originalType})`);
 
-        // Track this request so we can match the reply
-        this.pendingExecutionRequests.set(requestId, {
-          requestId,
-          originalType,
-          timestamp: Date.now(),
-        });
+        // Track this request via base class (with timeout)
+        this.trackRequest(requestId, originalType);
 
         // Forward the original message to the local CodeBolt platform
         super.handleTransportMessage(originalMessage as any);
@@ -654,7 +622,9 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     // Reconnect to existing sandbox or create a new one
-    const existingSandboxId = initVars.sandboxId as string | undefined;
+    // Try persisted resource ID first, then fall back to initVars.sandboxId
+    const existingSandboxId = this.getPersistedResourceId(initVars)
+      || (initVars.sandboxId as string | undefined);
     if (existingSandboxId) {
       try {
         const SandboxCls = await getE2bSandbox();
@@ -663,6 +633,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.logger.log('Reconnected to existing sandbox:', existingSandboxId);
       } catch (error) {
         this.logger.warn('Failed to reconnect to sandbox:', existingSandboxId, '- creating new one');
+        await this.onEnvironmentRecoveryFailed(existingSandboxId);
         this.sandbox = null;
       }
     }
@@ -690,6 +661,11 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.sandbox = await SandboxCls.create(createParams);
       this.sandboxId = this.sandbox.sandboxId || null;
       this.logger.log('Created new E2B sandbox:', this.sandboxId);
+    }
+
+    // Persist sandbox ID for recovery across restarts
+    if (this.sandboxId) {
+      this.setEnvironmentResourceId(this.sandboxId);
     }
 
     // Clone git repo if provided
@@ -1102,7 +1078,6 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.isConnected = true;
         this.agentServer.metadata = { connectedAt: Date.now() };
         this.logger.log('Connected to plugin WS server');
-        this.reconnectAttempts = 0;
         resolve();
       });
 
@@ -1149,13 +1124,8 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.metadata = { closedAt: Date.now() };
         this.logger.log('Plugin WS connection closed');
 
-        // Reject all pending execution requests
-        for (const [id] of this.pendingExecutionRequests) {
-          this.logger.warn('Rejecting pending execution request due to disconnect:', id);
-        }
-        this.pendingExecutionRequests.clear();
-
         if (wasConnected) {
+          // Use base class exponential backoff reconnect
           this.scheduleReconnect();
         } else {
           reject(new Error('Plugin WS closed before connection established'));
@@ -1163,83 +1133,59 @@ export class E2bRemoteProviderService extends BaseProvider {
       });
     });
 
-    // Start ping/pong keepalive
+    // Start keepalive ping (base class)
     this.startWsPing();
   }
 
-  private wsPingInterval: ReturnType<typeof setInterval> | null = null;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private reconnectAttempts = 0;
-  private readonly MAX_RECONNECT_ATTEMPTS = 10;
-  private readonly WS_PING_INTERVAL = 20_000;
+  /**
+   * Pre-reconnect hook: check if sandbox plugin port is still open.
+   * If not, restart CodeBolt in the sandbox before attempting WS reconnect.
+   */
+  protected async onReconnectAttempt(): Promise<void> {
+    if (!this.sandbox) return;
 
-  private startWsPing(): void {
-    this.stopWsPing();
-    this.wsPingInterval = setInterval(() => {
-      const ws = this.agentServer.wsConnection;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.ping();
-      }
-    }, this.WS_PING_INTERVAL);
-  }
+    let portOpen = false;
+    try {
+      const portCheck = await this.sandbox.commands.run(
+        `(echo > /dev/tcp/localhost/${this.providerConfig.pluginPort}) 2>/dev/null && echo OPEN || echo CLOSED`,
+      );
+      portOpen = portCheck.stdout?.includes('OPEN') ?? false;
+    } catch {
+      portOpen = false;
+    }
 
-  private stopWsPing(): void {
-    if (this.wsPingInterval) {
-      clearInterval(this.wsPingInterval);
-      this.wsPingInterval = null;
+    if (!portOpen) {
+      this.logger.warn('Plugin port not open, attempting to restart CodeBolt...');
+      await this.startCodeBoltInSandbox();
     }
   }
 
-  private scheduleReconnect(): void {
-    if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-      this.logger.error(`Max reconnect attempts (${this.MAX_RECONNECT_ATTEMPTS}) reached, giving up`);
-      return;
+  /**
+   * Handle orphaned sandbox cleanup when recovery fails.
+   */
+  protected async onEnvironmentRecoveryFailed(oldResourceId: string): Promise<void> {
+    this.logger.warn('Environment recovery failed for sandbox:', oldResourceId, '- attempting cleanup');
+    try {
+      const SandboxCls = await getE2bSandbox();
+      const orphan = await SandboxCls.connect(oldResourceId);
+      await orphan.kill();
+      this.logger.log('Killed orphaned sandbox:', oldResourceId);
+    } catch (error) {
+      this.logger.warn('Could not kill orphaned sandbox:', oldResourceId, error);
     }
+  }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    this.reconnectAttempts++;
-    this.logger.log(`Scheduling plugin WS reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-
-    this.reconnectTimer = setTimeout(async () => {
-      try {
-        if (this.agentServer.isConnected) return;
-        if (!this.state.environmentName) return;
-
-        // Ensure plugin is still running before reconnecting WS
-        if (this.sandbox) {
-          let portOpen = false;
-          try {
-            const portCheck = await this.sandbox.commands.run(
-              `(echo > /dev/tcp/localhost/${this.providerConfig.pluginPort}) 2>/dev/null && echo OPEN || echo CLOSED`,
-            );
-            portOpen = portCheck.stdout?.includes('OPEN') ?? false;
-          } catch {
-            portOpen = false;
-          }
-
-          if (!portOpen) {
-            this.logger.warn('Plugin port not open, attempting to restart CodeBolt...');
-            try {
-              await this.startCodeBoltInSandbox();
-            } catch (restartError) {
-              this.logger.error('Failed to restart CodeBolt:', restartError);
-              this.scheduleReconnect();
-              return;
-            }
-          }
-        }
-
-        await this.ensureTransportConnection({
-          environmentName: this.state.environmentName,
-          projectPath: this.state.projectPath ?? undefined,
-        } as any);
-        this.logger.log('Plugin WS reconnected successfully');
-        await this.flushPendingMessages();
-      } catch (error) {
-        this.logger.error('Plugin WS reconnect failed:', error);
-        this.scheduleReconnect();
-      }
-    }, delay);
+  /**
+   * Check if the sandbox environment is alive by running a simple command.
+   */
+  protected async checkEnvironmentHealth(): Promise<boolean> {
+    if (!this.sandbox) return false;
+    try {
+      const result = await this.sandbox.commands.run('echo OK', { timeoutMs: 5_000 });
+      return result.exitCode === 0;
+    } catch {
+      return false;
+    }
   }
 
   /**

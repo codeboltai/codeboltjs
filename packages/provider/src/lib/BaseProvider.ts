@@ -3,6 +3,7 @@ import codebolt from "@codebolt/codeboltjs";
 import {
   AgentServerConnection,
   BaseProviderConfig,
+  PendingRequest,
   ProviderEventHandlers,
   ProviderLifecycleHandlers,
   ProviderStartResult,
@@ -38,6 +39,20 @@ export abstract class BaseProvider
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private environmentHeartbeatInterval: NodeJS.Timeout | null = null;
 
+  // Phase 1: Pending message queue
+  private pendingMessages: Array<RawMessageForAgent | AgentStartMessage> = [];
+
+  // Phase 2: WS Reconnect with exponential backoff
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  protected lastInitVars: ProviderInitVars | null = null;
+
+  // Phase 3: WS Keepalive (ping/pong)
+  private wsPingInterval: NodeJS.Timeout | null = null;
+
+  // Phase 4: Request timeouts
+  protected pendingRequests: Map<string, PendingRequest> = new Map();
+
   constructor(config?: Partial<BaseProviderConfig>) {
     this.config = {
       agentServerPort: 3001,
@@ -46,6 +61,10 @@ export abstract class BaseProvider
       reconnectDelay: 1_000,
       wsRegistrationTimeout: 10_000,
       transport: "websocket",
+      maxReconnectAttempts: 10,
+      maxReconnectDelay: 30_000,
+      wsKeepaliveInterval: 20_000,
+      requestTimeout: 120_000,
       ...config,
     } as BaseProviderConfig;
 
@@ -77,6 +96,7 @@ export abstract class BaseProvider
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.resetState();
     this.state.environmentName = initVars.environmentName;
+    this.lastInitVars = initVars;
 
     // Store merge config from init vars or environment config
     if (initVars.mergeConfig) {
@@ -121,11 +141,12 @@ export abstract class BaseProvider
   /**
    * Called after {@link onProviderStart} completes to begin the agent loop.
    * Default implementation forwards the message to the agent server through
-   * {@link sendToAgentServer}.
+   * {@link sendToAgentServer}. If WS is not connected, queues the message.
    */
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
     if (!this.agentServer.isConnected) {
-      throw new Error("Agent server is not connected. Cannot start agent");
+      this.pendingMessages.push(agentMessage);
+      return;
     }
 
     const success = await this.sendToAgentServer(agentMessage);
@@ -145,7 +166,7 @@ export abstract class BaseProvider
       await this.beforeClose();
     } finally {
       await this.disconnectTransport();
-      await this.teardownEnvironment();
+      await this.teardownEnvironmentWithTimeout();
       this.state.initialized = false;
     }
   }
@@ -164,18 +185,19 @@ export abstract class BaseProvider
       await this.beforeClose();
     } finally {
       await this.disconnectTransport();
-      await this.teardownEnvironment();
+      await this.teardownEnvironmentWithTimeout();
       this.state.initialized = false;
     }
   }
 
   /**
    * Handle raw incoming messages from the platform. Default behavior is to
-   * forward the payload to the agent server transport.
+   * forward the payload to the agent server transport. If not connected, queues the message.
    */
   async onRawMessage(message: RawMessageForAgent): Promise<void> {
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
-      throw new Error("Agent server connection is not established");
+      this.pendingMessages.push(message);
+      return;
     }
 
     const success = await this.sendToAgentServer(message);
@@ -212,6 +234,10 @@ export abstract class BaseProvider
    * Transport: disconnect from agent server.
    */
   protected async disconnectTransport(): Promise<void> {
+    this.cancelReconnect();
+    this.stopWsPing();
+    this.clearAllPendingRequests();
+
     if (this.agentServer.wsConnection) {
       try {
         this.agentServer.wsConnection.close();
@@ -226,10 +252,12 @@ export abstract class BaseProvider
 
   /**
    * Helper to send messages to the agent server.
+   * If WS is not connected, queues the message and returns true.
    */
   async sendToAgentServer(message: RawMessageForAgent | AgentStartMessage): Promise<boolean> {
-    if (!this.agentServer.wsConnection) {
-      throw new Error("WebSocket connection is not open");
+    if (!this.agentServer.wsConnection || !this.agentServer.isConnected) {
+      this.pendingMessages.push(message);
+      return true;
     }
 
     try {
@@ -258,6 +286,240 @@ export abstract class BaseProvider
    */
   getMergeConfig() {
     return this.state.mergeConfig;
+  }
+
+  // ===== PHASE 1: PENDING MESSAGE QUEUE =====
+
+  /**
+   * Flush all queued messages to the agent server.
+   * Called automatically after WS connection is established.
+   */
+  protected async flushPendingMessages(): Promise<void> {
+    if (this.pendingMessages.length === 0) return;
+    const messages = [...this.pendingMessages];
+    this.pendingMessages = [];
+    for (const msg of messages) {
+      try {
+        if (this.agentServer.wsConnection && this.agentServer.isConnected) {
+          const json = JSON.stringify({
+            ...msg,
+            timestamp: (msg as any).timestamp ?? Date.now(),
+          });
+          this.agentServer.wsConnection.send(json);
+        }
+      } catch (error) {
+        // console.error("[BaseProvider] Error flushing pending message:", error);
+      }
+    }
+  }
+
+  /**
+   * Clear all pending messages without sending them.
+   */
+  protected clearPendingMessages(): void {
+    this.pendingMessages = [];
+  }
+
+  // ===== PHASE 2: WS RECONNECT WITH EXPONENTIAL BACKOFF =====
+
+  /**
+   * Schedule a reconnect attempt with exponential backoff.
+   */
+  protected scheduleReconnect(): void {
+    const maxAttempts = this.config.maxReconnectAttempts ?? 10;
+    if (this.reconnectAttempts >= maxAttempts) {
+      // console.error(`[BaseProvider] Max reconnect attempts (${maxAttempts}) reached, giving up`);
+      return;
+    }
+
+    const maxDelay = this.config.maxReconnectDelay ?? 30_000;
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), maxDelay);
+    this.reconnectAttempts++;
+
+    this.reconnectTimer = setTimeout(async () => {
+      await this.attemptReconnect();
+    }, delay);
+  }
+
+  /**
+   * Attempt to reconnect to the agent server.
+   */
+  protected async attemptReconnect(): Promise<void> {
+    try {
+      if (this.agentServer.isConnected) return;
+      if (!this.state.environmentName) return;
+
+      await this.onReconnectAttempt();
+
+      const initVars = this.lastInitVars || {
+        environmentName: this.state.environmentName,
+        projectPath: this.state.projectPath ?? undefined,
+      } as any;
+
+      await this.ensureTransportConnection(initVars);
+      await this.flushPendingMessages();
+    } catch (error) {
+      // console.error("[BaseProvider] Reconnect failed:", error);
+      this.scheduleReconnect();
+    }
+  }
+
+  /**
+   * Cancel any pending reconnect timer.
+   */
+  protected cancelReconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  /**
+   * Hook called before each reconnect attempt. Subclasses can override
+   * to perform pre-reconnect checks (e.g., verify sandbox is alive).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  protected async onReconnectAttempt(): Promise<void> { }
+
+  // ===== PHASE 3: WS KEEPALIVE (PING/PONG) =====
+
+  /**
+   * Start sending WS ping frames at the configured interval.
+   */
+  protected startWsPing(): void {
+    this.stopWsPing();
+    const interval = this.config.wsKeepaliveInterval ?? 20_000;
+    this.wsPingInterval = setInterval(() => {
+      const ws = this.agentServer.wsConnection;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, interval);
+  }
+
+  /**
+   * Stop sending WS ping frames.
+   */
+  protected stopWsPing(): void {
+    if (this.wsPingInterval) {
+      clearInterval(this.wsPingInterval);
+      this.wsPingInterval = null;
+    }
+  }
+
+  // ===== PHASE 4: REQUEST TIMEOUTS =====
+
+  /**
+   * Track a pending request with an automatic timeout.
+   */
+  protected trackRequest(requestId: string, type: string): void {
+    const timeout = this.config.requestTimeout ?? 120_000;
+    const timeoutHandle = setTimeout(() => {
+      this.onRequestTimeout(requestId);
+    }, timeout);
+
+    this.pendingRequests.set(requestId, {
+      requestId,
+      type,
+      timestamp: Date.now(),
+      timeoutHandle,
+    });
+  }
+
+  /**
+   * Resolve a pending request (remove from tracking, clear timeout).
+   * Returns the entry if found, undefined otherwise.
+   */
+  protected resolveRequest(requestId: string): PendingRequest | undefined {
+    const entry = this.pendingRequests.get(requestId);
+    if (entry) {
+      clearTimeout(entry.timeoutHandle);
+      this.pendingRequests.delete(requestId);
+    }
+    return entry;
+  }
+
+  /**
+   * Called when a tracked request times out. Default logs a warning.
+   * Subclasses can override to send error responses.
+   */
+  protected onRequestTimeout(requestId: string): void {
+    // console.warn(`[BaseProvider] Request ${requestId} timed out`);
+    this.pendingRequests.delete(requestId);
+  }
+
+  /**
+   * Clear all pending request timeout handles.
+   */
+  private clearAllPendingRequests(): void {
+    for (const [, entry] of this.pendingRequests) {
+      clearTimeout(entry.timeoutHandle);
+    }
+    this.pendingRequests.clear();
+  }
+
+  // ===== PHASE 5: ENVIRONMENT ID PERSISTENCE & ORPHAN PREVENTION =====
+
+  /**
+   * Set the environment resource ID (sandbox ID, worktree path, container ID, etc.)
+   * and persist it to the server.
+   */
+  protected setEnvironmentResourceId(id: string): void {
+    this.state.environmentResourceId = id;
+
+    if (codebolt.ready) {
+      try {
+        (codebolt as any).sendMessage?.({
+          type: 'setResourceId',
+          resourceId: id,
+          providerId: this.state.providerId || this.state.environmentName || 'unknown',
+          environmentId: this.state.environmentId || this.state.environmentName || 'unknown',
+        });
+      } catch {
+        // Server may not support this message yet
+      }
+    }
+  }
+
+  /**
+   * Get a persisted resource ID from initVars (passed by server on spawn).
+   */
+  protected getPersistedResourceId(initVars: ProviderInitVars): string | undefined {
+    return (initVars as any).resourceId as string | undefined;
+  }
+
+  /**
+   * Wrap teardownEnvironment() with a timeout using config.timeouts.cleanup.
+   */
+  protected async teardownEnvironmentWithTimeout(): Promise<void> {
+    const timeout = this.config.timeouts?.cleanup ?? 15_000;
+    try {
+      await Promise.race([
+        this.teardownEnvironment(),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Teardown timed out')), timeout)
+        ),
+      ]);
+    } catch (error) {
+      // console.warn("[BaseProvider] Teardown timed out or failed:", error);
+    }
+  }
+
+  /**
+   * Hook called when environment recovery fails (e.g., can't reconnect to
+   * existing sandbox). Subclasses can override to clean up orphaned resources.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  protected async onEnvironmentRecoveryFailed(_oldResourceId: string): Promise<void> { }
+
+  // ===== PHASE 6: ENVIRONMENT HEALTH CHECK =====
+
+  /**
+   * Check if the environment is alive. Default returns true.
+   * Subclasses can override for actual health verification.
+   */
+  protected async checkEnvironmentHealth(): Promise<boolean> {
+    return true;
   }
 
   // ===== HEARTBEAT METHODS =====
@@ -350,11 +612,19 @@ export abstract class BaseProvider
 
   /**
    * Send an environment heartbeat to the main application.
+   * Includes environment health check result.
    */
-  protected sendEnvironmentHeartbeat(environmentId: string): void {
+  protected async sendEnvironmentHeartbeat(environmentId: string): Promise<void> {
     if (!codebolt.ready) {
       // console.warn('[BaseProvider] Cannot send environment heartbeat - Codebolt not ready');
       return;
+    }
+
+    let environmentAlive = true;
+    try {
+      environmentAlive = await this.checkEnvironmentHealth();
+    } catch {
+      environmentAlive = false;
     }
 
     try {
@@ -362,6 +632,7 @@ export abstract class BaseProvider
       (codebolt as any).sendEnvironmentHeartbeat({
         environmentId,
         providerId: this.state.providerId || this.state.environmentName || 'unknown',
+        environmentAlive,
       });
     } catch (error) {
       // console.error('[BaseProvider] Failed to send environment heartbeat:', error);
@@ -459,6 +730,10 @@ export abstract class BaseProvider
    * Reset mutable state prior to start.
    */
   protected resetState(): void {
+    this.cancelReconnect();
+    this.reconnectAttempts = 0;
+    this.clearPendingMessages();
+
     this.state = {
       initialized: false,
       environmentName: null,
@@ -494,6 +769,7 @@ export abstract class BaseProvider
         this.agentServer.wsConnection = ws;
         this.agentServer.isConnected = true;
         this.agentServer.metadata = { connectedAt: Date.now() };
+        this.reconnectAttempts = 0;
       });
 
       ws.on("message", (data) => {
@@ -521,11 +797,21 @@ export abstract class BaseProvider
 
       ws.on("close", () => {
         clearTimeout(registrationTimeout);
+        this.stopWsPing();
+        const wasConnected = this.agentServer.isConnected;
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { closedAt: Date.now() };
+
+        if (wasConnected) {
+          this.scheduleReconnect();
+        }
       });
     });
+
+    // Start keepalive ping and flush queued messages after successful connection
+    this.startWsPing();
+    await this.flushPendingMessages();
   }
 
   /**
@@ -565,5 +851,3 @@ export abstract class BaseProvider
     }
   }
 }
-
-
