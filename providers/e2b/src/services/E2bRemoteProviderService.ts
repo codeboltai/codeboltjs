@@ -216,16 +216,15 @@ export class E2bRemoteProviderService extends BaseProvider {
         } as any);
       }
 
-      // Send agent start message directly to sandbox CodeBolt server via the plugin WS.
-      // Wrap it so the plugin can forward it through the ExecutionGateway.
+      // Send user message to sandbox CodeBolt server via the plugin WS.
+      // The agentMessage has type: 'providerAgentStart' with the user message in .userMessage
+      // The plugin expects type: 'messageResponse' to forward via chat socket.
       if (this.agentServer.wsConnection && this.agentServer.isConnected) {
         const ws = this.agentServer.wsConnection;
-        ws.send(JSON.stringify({
-          // type: 'agentStart',
-          ...agentMessage,
-          timestamp: Date.now(),
-        }));
-        this.logger.log('Agent start message sent to plugin');
+        // Extract the user message and send as messageResponse (same format as local UI)
+        const userMessage = (agentMessage as any).userMessage || agentMessage;
+        ws.send(JSON.stringify(userMessage));
+        this.logger.log('Agent start message sent to plugin as messageResponse');
       } else {
         throw new Error('Plugin WS not connected. Cannot start agent.');
       }
@@ -403,9 +402,16 @@ export class E2bRemoteProviderService extends BaseProvider {
       }
 
       case 'executionNotification': {
-        const { type: _type, ...notificationPayload } = message;
-        this.logger.log('Received executionNotification');
-        super.handleTransportMessage(notificationPayload as any);
+        // Unwrap the notification — forward the result (or originalMessage) with the original type
+        // so the local server can route it properly (e.g. SendMessage → chat UI)
+        const result = message.result || message.originalMessage;
+        if (result) {
+          const unwrapped = { ...result, type: result.type || message.originalType };
+          this.logger.log('Forwarding executionNotification to local:', unwrapped.type);
+          super.handleTransportMessage(unwrapped as any);
+        } else {
+          this.logger.log('Received executionNotification with no result/originalMessage, skipping');
+        }
         break;
       }
 
@@ -760,6 +766,38 @@ export class E2bRemoteProviderService extends BaseProvider {
       await this.sandbox.commands.run(`rm -f ${remoteTmpArchive} /tmp/snapshot-archive-decoded.tar.gz`);
       this.logger.log('Snapshot files extracted to sandbox successfully');
     }
+
+    // Upload essential .codebolt config files to the sandbox so the
+    // ExecutionGateway can proxy requests (LLM, git, fs) back to local.
+    if (this.sandbox && this.baseProjectPath) {
+      const codeboltDir = path.join(this.baseProjectPath, '.codebolt');
+      const sandboxCodeboltDir = `${this.sandboxWorkspacePath}/.codebolt`;
+      await this.sandbox.commands.run(`mkdir -p ${sandboxCodeboltDir}`);
+
+      // List of project-level config files to upload
+      const configFiles = ['proxyExecution.json', 'projectState.json', 'gateway-thread-map.json'];
+      for (const fileName of configFiles) {
+        try {
+          const content = await fs.readFile(path.join(codeboltDir, fileName), 'utf-8');
+          await this.sandbox.files.write(`${sandboxCodeboltDir}/${fileName}`, content);
+          this.logger.log(`Uploaded .codebolt/${fileName} to sandbox`);
+        } catch {
+          // File doesn't exist locally — skip
+        }
+      }
+
+      // Upload global ~/.codebolt/settings.json (LLM keys, user prefs) to sandbox
+      const globalCodeboltDir = path.join(process.env.HOME || '/tmp', '.codebolt');
+      const globalSettingsPath = path.join(globalCodeboltDir, 'settings.json');
+      try {
+        const settingsContent = await fs.readFile(globalSettingsPath, 'utf-8');
+        await this.sandbox.commands.run('mkdir -p /home/user/.codebolt');
+        await this.sandbox.files.write('/home/user/.codebolt/settings.json', settingsContent);
+        this.logger.log('Uploaded global settings.json to sandbox');
+      } catch {
+        this.logger.log('No global settings.json found at:', globalSettingsPath);
+      }
+    }
   }
 
   protected async teardownEnvironment(): Promise<void> {
@@ -837,7 +875,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       // codebolt not installed in template — install it now as fallback
       this.logger.log('CodeBolt not found in sandbox, installing...');
       const installResult = await this.sandbox.commands.run(
-        'npm install -g --ignore-scripts codebolt',
+        'npm install -g --ignore-scripts codebolt@1.12.11',
         { user: 'root', timeoutMs: 300_000 },
       );
       if (installResult.exitCode !== 0) {
@@ -926,16 +964,62 @@ export class E2bRemoteProviderService extends BaseProvider {
     const pluginLocation = checkResult.stdout?.trim();
     this.logger.log('Plugin check result:', pluginLocation);
 
-    if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
-      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
-      return;
+    // Always upload local plugin dist to ensure latest version is used.
+    // Try multiple candidate paths to find the plugin dist on the host machine.
+    const candidatePaths = [
+      // From codeboltjs/providers/e2b/dist/services/ → CodeBolt/packages/plugins/...
+      path.resolve(__dirname, '..', '..', '..', '..', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin', 'dist', 'index.js'),
+      // From project path (e.g. /Users/.../cbtest/handicapped-crimson) → codeboltai tree
+      path.resolve(this.baseProjectPath || '', '..', '..', 'codeboltai', 'AiEditor', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin', 'dist', 'index.js'),
+      // Absolute well-known dev path
+      path.resolve(process.env.HOME || '/tmp', 'Documents', 'codeboltai', 'AiEditor', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin', 'dist', 'index.js'),
+      // cwd-based
+      path.resolve(process.cwd(), 'packages', 'plugins', 'remote-execution-plugin', 'dist', 'index.js'),
+    ];
+
+    let localPluginContent: string | null = null;
+    for (const candidatePath of candidatePaths) {
+      try {
+        localPluginContent = await fs.readFile(candidatePath, 'utf-8');
+        this.logger.log('Found local plugin dist at:', candidatePath);
+        break;
+      } catch {
+        // try next
+      }
+    }
+    if (!localPluginContent) {
+      this.logger.log('Local plugin dist not found, tried:', candidatePaths.join(', '));
     }
 
-    // Plugin not found — download from API and install to BOTH locations
-    // (builtin dir takes priority in discovery, so we must fix it there too)
-    this.logger.log('remote-execution-plugin not found, downloading from API...');
+    if (localPluginContent) {
+      // Upload local plugin directly to sandbox
+      this.logger.log('Uploading local plugin dist to sandbox...');
+      await this.sandbox.commands.run(`mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`, { user: 'root' });
+      await this.sandbox.files.write(`${builtinPluginDir}/dist/index.js`, localPluginContent);
+      await this.sandbox.files.write(`${globalPluginDir}/dist/index.js`, localPluginContent);
+    } else if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
+      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
+      // No local dist to upload, keep existing
+    } else {
+      // Plugin not found and no local dist — download from API as fallback
+      this.logger.log('remote-execution-plugin not found, downloading from API...');
+      const downloadCmd = [
+        `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
+        `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
+        `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
+        `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
+        `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/dist/`,
+        `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/dist/`,
+        `rm -f /tmp/plugin-dist.zip`,
+      ].join(' && ');
 
-    // Write package.json as a separate file write (avoids heredoc quoting issues)
+      const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
+      if (downloadResult.exitCode !== 0) {
+        throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
+      }
+    }
+
+    // Write package.json to both locations
     const pluginPkgJson = JSON.stringify({
       name: PLUGIN_ID,
       version: '1.0.0',
@@ -948,33 +1032,13 @@ export class E2bRemoteProviderService extends BaseProvider {
         },
       },
     });
-
-    // Download the plugin dist zip
-    const downloadCmd = [
-      `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
-      `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
-      `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
-      `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
-      // Extract to builtin dir (takes priority in CodeBolt discovery)
-      `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/dist/`,
-      // Also extract to global dir as fallback
-      `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/dist/`,
-      `rm -f /tmp/plugin-dist.zip`,
-    ].join(' && ');
-
-    const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
-    if (downloadResult.exitCode !== 0) {
-      throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
-    }
-
-    // Write package.json to both locations using sandbox files API (no heredoc issues)
     await this.sandbox.files.write(`${builtinPluginDir}/package.json`, pluginPkgJson);
     await this.sandbox.files.write(`${globalPluginDir}/package.json`, pluginPkgJson);
 
     // Fix ownership
     await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
 
-    this.logger.log('remote-execution-plugin downloaded and installed from API');
+    this.logger.log('remote-execution-plugin installed in sandbox');
   }
 
   private async waitForPluginReady(port: number): Promise<void> {
