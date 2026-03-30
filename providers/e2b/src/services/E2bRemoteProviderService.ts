@@ -8,48 +8,11 @@ import {
 import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 
-// The e2b SDK requires chalk@5 (ESM-only) which breaks in Electron's CJS runtime.
-// We intercept Module._resolveFilename to provide a CJS-compatible chalk stub
-// before loading the SDK. Chalk is only used for log coloring in e2b.
-const Module = require('module');
-const _origResolveFilename = Module._resolveFilename;
-function installChalkShim(): void {
-  Module._resolveFilename = function (request: string, parent: any, ...args: any[]) {
-    if (request === 'chalk' && parent?.filename?.includes('e2b')) {
-      // Provide a no-op chalk stub that passes strings through
-      const stubPath = '__e2b_chalk_stub__';
-      if (!require.cache[stubPath]) {
-        const identity = (s: string) => s;
-        const chalkStub: any = identity;
-        chalkStub.red = identity;
-        chalkStub.gray = identity;
-        chalkStub.dim = identity;
-        chalkStub.hex = () => identity;
-        chalkStub.default = chalkStub;
-        const stubModule: any = new Module(stubPath);
-        stubModule.exports = chalkStub;
-        stubModule.loaded = true;
-        require.cache[stubPath] = stubModule;
-      }
-      return stubPath;
-    }
-    return _origResolveFilename.apply(this, [request, parent, ...args]);
-  };
-}
-function removeChalkShim(): void {
-  Module._resolveFilename = _origResolveFilename;
-}
-
 let _SandboxClass: any = null;
 async function getE2bSandbox(): Promise<any> {
   if (!_SandboxClass) {
-    installChalkShim();
-    try {
-      const mod = require('@e2b/code-interpreter');
-      _SandboxClass = mod.Sandbox;
-    } finally {
-      removeChalkShim();
-    }
+    const mod = require('@e2b/code-interpreter');
+    _SandboxClass = mod.Sandbox;
   }
   return _SandboxClass;
 }
@@ -346,13 +309,23 @@ export class E2bRemoteProviderService extends BaseProvider {
    */
   private matchPendingExecutionRequest(message: any): string | null {
     // Match by message type to the originalType of pending requests
-    if (!message?.type) return null;
+    if (!message?.type) {
+      this.logger.log('matchPendingExecutionRequest: no message type, skipping');
+      return null;
+    }
+
+    this.logger.log(`matchPendingExecutionRequest: looking for match for type="${message.type}" requestId="${message.requestId || 'none'}", pending count=${this.pendingExecutionRequests.size}`);
 
     for (const [requestId, pending] of this.pendingExecutionRequests) {
-      if (pending.originalType === message.type || message.requestId === requestId) {
+      const matchByType = pending.originalType === message.type;
+      const matchByRequestId = message.requestId === requestId;
+      if (matchByType || matchByRequestId) {
+        this.logger.log(`matchPendingExecutionRequest: matched requestId="${requestId}" (byType=${matchByType}, byRequestId=${matchByRequestId}, originalType="${pending.originalType}")`);
         return requestId;
       }
     }
+
+    this.logger.log(`matchPendingExecutionRequest: no match found for type="${message.type}"`);
     return null;
   }
 
@@ -381,7 +354,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   private handlePluginMessage(message: any): void {
     switch (message.type) {
       case 'executionRequest': {
-        const { requestId, originalType, type: _type, ...payload } = message;
+        const { requestId, originalType, originalMessage } = message;
         this.logger.log(`Received executionRequest: ${requestId} (originalType: ${originalType})`);
 
         // Track this request so we can match the reply
@@ -391,13 +364,8 @@ export class E2bRemoteProviderService extends BaseProvider {
           timestamp: Date.now(),
         });
 
-        // Reconstruct the original message for the local CodeBolt platform
-        const platformMessage = {
-          type: originalType,
-          requestId,
-          ...payload,
-        };
-        super.handleTransportMessage(platformMessage as any);
+        // Forward the original message to the local CodeBolt platform
+        super.handleTransportMessage(originalMessage as any);
         break;
       }
 
