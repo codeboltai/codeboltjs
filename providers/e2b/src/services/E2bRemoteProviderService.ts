@@ -58,7 +58,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     this.providerConfig = {
       pluginPort: config.pluginPort ?? 3100,
-      e2bApiKey: "e2b_8f5c9dabc485e81a46769ecd1f31abef05938895",// config.e2bApiKey ?? process.env.E2B_API_KEY,
+      e2bApiKey:  config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate,
       autoStopInterval: config.autoStopInterval ?? 0,
       codeboltStartCommand: config.codeboltStartCommand,
