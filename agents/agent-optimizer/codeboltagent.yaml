@@ -1,0 +1,47 @@
+title: Agent Optimizer
+version: 1.0.0
+unique_id: agent-optimizer
+initial_message: |
+  I'm the Agent Optimizer. I analyze and improve other agents by modifying their source code
+  based on evaluation results. Provide me with an agent's code path and eval context to begin.
+description: A meta-agent that optimizes other Codebolt agents by analyzing their source code, eval scores, and iteration history, then applying targeted improvements.
+tags:
+  - optimization
+  - eval
+  - meta-agent
+longDescription: |
+  The Agent Optimizer is a specialized meta-agent that improves other agents iteratively.
+  It receives a target agent's code path and evaluation context (scores, history, targets),
+  reads the agent's source files, uses LLM reasoning to identify improvements, and writes
+  changes back to the agent's source. Designed to be invoked from the eval optimization loop.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: AO
+metadata:
+  agent_routing:
+    worksonblankcode: false
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+    supportedframeworks: []
+    supportRemix: false
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - claude-sonnet-4-20250514
+      - claude-3-5-sonnet-20241022
+      - gpt-4-turbo
+  llm_role:
+    - name: mainllm
+      description: Main LLM for agent analysis and optimization
+      strict: false
+      modelorder:
+        - claude-sonnet-4-20250514
+        - claude-3-5-sonnet-20241022
+actions:
+  - name: Optimize
+    description: Optimize an agent based on eval results
+    detailDescription: Analyze agent code and apply improvements based on evaluation feedback
+    actionPrompt: Optimize this agent
+supportRemix: false
+author: codebolt
