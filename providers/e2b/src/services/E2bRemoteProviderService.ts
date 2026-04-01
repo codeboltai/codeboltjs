@@ -1,7 +1,5 @@
 import * as path from 'path';
-import * as os from 'os';
 import * as fs from 'fs/promises';
-import { execSync } from 'child_process';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -61,7 +59,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.providerConfig = {
       pluginPort: config.pluginPort ?? 3100,
       e2bApiKey:  config.e2bApiKey ?? process.env.E2B_API_KEY,
-      sandboxTemplate: config.sandboxTemplate,
+      sandboxTemplate: config.sandboxTemplate ?? 'codebolt-remote-execution',
       autoStopInterval: config.autoStopInterval ?? 0,
       codeboltStartCommand: config.codeboltStartCommand,
       timeouts: {
@@ -818,8 +816,8 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.logger.log('CodeBolt binary search result:', codeboltBin);
 
     if (codeboltBin === 'NOT_FOUND') {
-      // codebolt not installed in template — install it now as fallback
-      this.logger.log('CodeBolt not found in sandbox, installing...');
+      // codebolt not pre-installed (no template or outdated template) — install at runtime as fallback
+      this.logger.log('CodeBolt not found in sandbox, installing at runtime...');
       const installResult = await this.sandbox.commands.run(
         'npm install -g --ignore-scripts codebolt@1.12.11',
         { user: 'root', timeoutMs: 300_000 },
@@ -834,13 +832,12 @@ export class E2bRemoteProviderService extends BaseProvider {
         'for p in /usr/local/bin/codebolt /usr/bin/codebolt; do test -f "$p" && echo "$p" && exit 0; done; echo "/usr/local/bin/codebolt"',
       );
       codeboltBin = resolvedPath.stdout?.trim() || '/usr/local/bin/codebolt';
+
+      // Plugin won't be in the template either — download from API
+      await this.ensurePluginInstalled(codeboltBin);
     }
 
     this.logger.log('Using codebolt binary:', codeboltBin);
-
-    // Ensure the remote-execution-plugin is installed in the sandbox.
-    // Download from the API if not already present (e.g. when codebolt npm package doesn't bundle it yet).
-    await this.ensurePluginInstalled(codeboltBin);
 
     // Ensure .codebolt dir is owned by user (may have been touched by root during install)
     await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
@@ -887,9 +884,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   /**
    * Ensure the remote-execution-plugin is installed in the sandbox.
-   * Creates a tar.gz template of the full plugin directory on the host,
-   * uploads it to the sandbox, and extracts it into both the codebolt
-   * built-in plugins dir and ~/.codebolt/plugins/.
+   * Downloads the plugin from the Codebolt API and extracts it into both
+   * the codebolt built-in plugins dir and ~/.codebolt/plugins/.
    */
   private async ensurePluginInstalled(codeboltBin: string): Promise<void> {
     if (!this.sandbox) return;
@@ -911,79 +907,26 @@ export class E2bRemoteProviderService extends BaseProvider {
     const pluginLocation = checkResult.stdout?.trim();
     this.logger.log('Plugin check result:', pluginLocation);
 
-    // Try to find the full plugin directory on the host machine.
-    const candidatePluginDirs = [
-      // From codeboltjs/providers/e2b/dist/services/ → CodeBolt/packages/plugins/...
-      path.resolve(__dirname, '..', '..', '..', '..', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin'),
-      // From project path (e.g. /Users/.../cbtest/handicapped-crimson) → codeboltai tree
-      path.resolve(this.baseProjectPath || '', '..', '..', 'codeboltai', 'AiEditor', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin'),
-      // Absolute well-known dev path
-      path.resolve(process.env.HOME || '/tmp', 'Documents', 'codeboltai', 'AiEditor', 'CodeBolt', 'packages', 'plugins', 'remote-execution-plugin'),
-      // cwd-based
-      path.resolve(process.cwd(), 'packages', 'plugins', 'remote-execution-plugin'),
-    ];
-
-    let localPluginDir: string | null = null;
-    for (const candidateDir of candidatePluginDirs) {
-      try {
-        const pkgPath = path.join(candidateDir, 'package.json');
-        await fs.access(pkgPath);
-        localPluginDir = candidateDir;
-        this.logger.log('Found local plugin directory at:', candidateDir);
-        break;
-      } catch {
-        // try next
-      }
+    if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
+      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
+      return;
     }
 
-    if (localPluginDir) {
-      // Create a tar.gz template of the full plugin directory on the host,
-      // excluding node_modules, src, and dotfiles that aren't needed at runtime.
-      const templateArchivePath = path.join(os.tmpdir(), `plugin-template-${Date.now()}.tar.gz`);
+    // Download plugin from API
+    this.logger.log('Downloading remote-execution-plugin from API...');
+    const downloadCmd = [
+      `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
+      `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
+      `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
+      `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
+      `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/`,
+      `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/`,
+      `rm -f /tmp/plugin-dist.zip`,
+    ].join(' && ');
 
-      this.logger.log('Creating plugin template archive from:', localPluginDir);
-      execSync(
-        `tar -czf "${templateArchivePath}" --exclude=node_modules --exclude=src --exclude=.DS_Store --exclude=tsconfig.json --exclude=build.mjs -C "${localPluginDir}" .`,
-      );
-
-      // Read the archive and upload to sandbox
-      const archiveBuffer = await fs.readFile(templateArchivePath);
-      const remoteArchivePath = '/tmp/plugin-template.tar.gz';
-      await this.sandbox.files.write(remoteArchivePath, archiveBuffer);
-
-      // Extract into both plugin locations
-      this.logger.log('Uploading and extracting full plugin to sandbox...');
-      await this.sandbox.commands.run(
-        `mkdir -p ${builtinPluginDir} ${globalPluginDir} && ` +
-        `tar -xzf ${remoteArchivePath} -C ${builtinPluginDir} && ` +
-        `tar -xzf ${remoteArchivePath} -C ${globalPluginDir} && ` +
-        `rm -f ${remoteArchivePath}`,
-        { user: 'root' },
-      );
-
-      // Cleanup local temp archive
-      await fs.unlink(templateArchivePath).catch(() => {});
-      this.logger.log('Full plugin extracted to sandbox successfully');
-    } else if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
-      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
-      // No local plugin to upload, keep existing
-    } else {
-      // Plugin not found locally — download from API as fallback
-      this.logger.log('remote-execution-plugin not found locally, downloading from API...');
-      const downloadCmd = [
-        `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
-        `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
-        `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
-        `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
-        `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/`,
-        `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/`,
-        `rm -f /tmp/plugin-dist.zip`,
-      ].join(' && ');
-
-      const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
-      if (downloadResult.exitCode !== 0) {
-        throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
-      }
+    const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
+    if (downloadResult.exitCode !== 0) {
+      throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
     }
 
     // Fix ownership

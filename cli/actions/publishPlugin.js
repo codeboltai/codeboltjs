@@ -40,7 +40,9 @@ const uploadFile = async (filePath, fileType, authToken) => {
             'https://api.codebolt.ai/api/upload/single',
             formData,
             {
-                headers: formData.getHeaders()
+                headers: formData.getHeaders(),
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity
             }
         );
         return response.data;
@@ -146,18 +148,19 @@ const publishPlugin = async (targetPath) => {
 
         // Read .gitignore for ignore patterns
         const gitignorePath = path.join(folder, '.gitignore');
-        const ignoreFiles = ['**/*.zip'];
+        const ignoreFiles = ['node_modules/**/*', '**/*.zip'];
 
         if (fs.existsSync(gitignorePath)) {
             const gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
             ignoreFiles.push(...gitignoreContent.split('\n').filter(line => line && !line.startsWith('#')));
         }
 
-        // Create dist build zip
+        // Create build zip with full project (package.json, dist, etc.)
         console.log(chalk.blue('Packaging distribution build...'));
         const distZipPath = `${folder}/build.zip`;
+        const distIgnoreFiles = ['node_modules/**/*', '**/*.zip', '.git/**/*'];
 
-        await createZipArchive(`${folder}/dist`, distZipPath, ['**/*.zip']);
+        await createZipArchive(folder, distZipPath, distIgnoreFiles);
         console.log(chalk.green('Distribution build packaging done.'));
 
         // Create source code zip

@@ -1,5 +1,6 @@
 name: e2b-remote-provider
-version: 2.0.0
+unique_id: e2b-remote-provider
+version: 2.0.1
 description: E2B Remote Provider for CodeBolt (plugin-based)
 type: provider
 entrypoint: dist/index.js
@@ -7,9 +8,6 @@ runtime: node
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: "26sv45vrb3u0dharhkyn"
+  sandboxTemplate: ""
   autoStopInterval: 0
-  timeouts:
-    codeboltStartup: 120000
-    wsConnection: 30000
-    cleanup: 15000
+

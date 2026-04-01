@@ -42,7 +42,9 @@ const uploadFile = async (filePath, fileType, authToken) => {
             'https://api.codebolt.ai/api/upload/single',
             formData,
             {
-                headers: formData.getHeaders()
+                headers: formData.getHeaders(),
+                maxBodyLength: Infinity,
+                maxContentLength: Infinity
             }
         );
         return response.data;

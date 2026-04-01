@@ -64,7 +64,12 @@
       "WebFetch(domain:api.github.com)",
       "Bash(gh api:*)",
       "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(t[''''path'''']\\) for t in data.get\\(''''tree'''',[]\\)]\")",
-      "Bash(codebolt-client:*)"
+      "Bash(codebolt-client:*)",
+      "Bash(git log:*)",
+      "Bash(npx tsx:*)",
+      "Read(//Users/ravirawat/.e2b/**)",
+      "Bash(npx esbuild:*)",
+      "Bash(find /Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src -type f \\\\\\(-name *optim* -o -name *eval* \\\\\\))"
     ],
     "deny": [],
     "ask": []
