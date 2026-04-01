@@ -4,6 +4,7 @@ import {
   ResponseExecutor,
   LoopDetectionService
 } from '@codebolt/agent/unified'
+import { CompressionCoordinator } from './CompressionCoordinator';
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
   EnvironmentContextModifier,
@@ -12,8 +13,7 @@ import {
   IdeContextModifier,
   AtFileProcessorModifier,
   ToolInjectionModifier,
-  ChatHistoryMessageModifier,
-  ConversationCompactorModifier
+  ChatHistoryMessageModifier
 } from '@codebolt/agent/processor-pieces';
 
 import { AgentStep } from '@codebolt/agent/unified';
@@ -400,6 +400,14 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     const coreSystemPromptModifier = new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt });
 
     const loopDetectionService = new LoopDetectionService({ debug: true });
+    const compressionCoordinator = new CompressionCoordinator({
+      proactiveThreshold: 0.7,
+      postToolThreshold: 0.5,
+      preserveThreshold: 0.3,
+      reactiveRetryLimit: 1,
+      compactStrategy: 'summarize',
+      enableLogging: true,
+    });
 
     let promptGenerator = new InitialPromptGenerator({
 
@@ -436,15 +444,9 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     // return;
     let completed = false;
     let executionResult: any;
-    const conversationCompactor = new ConversationCompactorModifier({
-      compactStrategy: 'summarize',
-      compressionTokenThreshold: 0.5,
-      preserveThreshold: 0.3,
-      enableLogging: true
-    });
     const responseExecutor = new ResponseExecutor({
       preToolCallProcessors: [],
-      postToolCallProcessors: [conversationCompactor],
+      postToolCallProcessors: [compressionCoordinator.getPostToolCallProcessor()],
       loopDetectionService: loopDetectionService
     });
     let loopIteration = 0;
@@ -461,10 +463,35 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
       console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
       let agent = new AgentStep({
-        preInferenceProcessors: [coreSystemPromptModifier, ideContextModifier],
+        preInferenceProcessors: [
+          compressionCoordinator.getPreInferenceProcessor(),
+          coreSystemPromptModifier,
+          ideContextModifier
+        ],
         postInferenceProcessors: []
       })
-      let result: AgentStepOutput = await agent.executeStep(reqMessage, prompt);
+
+      let result: AgentStepOutput;
+      try {
+        result = await agent.executeStep(reqMessage, prompt);
+        compressionCoordinator.resetReactiveRetries();
+      } catch (error) {
+        const recovery = await compressionCoordinator.recoverFromContextError(
+          reqMessage,
+          prompt,
+          error
+        );
+
+        if (!recovery.shouldRetry) {
+          throw error;
+        }
+
+        console.warn(
+          `[act-updated][Compression] ${recovery.reason}. Retrying with a compacted prompt.`,
+        );
+        prompt = recovery.recoveredMessage;
+        result = await agent.executeStep(reqMessage, prompt);
+      }
       console.log(`[act-updated][Loop] AgentStep completed`);
       prompt = result.nextMessage;
 
@@ -495,5 +522,3 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
 
 })
-
-

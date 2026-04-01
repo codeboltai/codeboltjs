@@ -46,6 +46,14 @@ export { AgentStep } from './base/agentStep'
 
 export { ResponseExecutor } from './base/responseExecutor'
 export { LoopDetectionService, LoopType } from './services/LoopDetectionService';
+export {
+    CompressionCoordinator,
+    type CompressionCoordinatorOptions,
+    type CompressionDecision,
+    type CompressionMetadata,
+    type CompressionRecoveryResult,
+    type CompressionStage,
+} from './services/CompressionCoordinator';
 
 // Agent framework components
 export { Agent } from './agent/agent';
@@ -104,5 +112,4 @@ export { type LLMConfig } from './types/libTypes';
 //     type OrchestratorExecutionStep,
 //     type OrchestratorMetrics
 // } from './orchestrator/orchestrator';
-
 

@@ -34,6 +34,18 @@ export interface ChatCompressionInfo {
   compressionStatus: CompressionStatus;
 }
 
+type CompressionStage = 'pre_inference' | 'post_tool' | 'reactive_force_compact';
+
+interface CompressionMetadata {
+    status: string;
+    stage: CompressionStage;
+    originalTokenCount: number;
+    newTokenCount: number;
+    timestamp: string;
+    strategy: 'summarize';
+    failedAttempts?: number;
+}
+
 export interface ChatCompressionOptions {
     contextPercentageThreshold?: number;
     enableCompression?: boolean;
@@ -99,15 +111,33 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
         };
     }
 
+    private buildCompressionMetadata(
+        compressionInfo: ChatCompressionInfo,
+        stage: CompressionStage,
+    ): CompressionMetadata {
+        return {
+            status: CompressionStatus[compressionInfo.compressionStatus] ?? 'NOOP',
+            stage,
+            originalTokenCount: compressionInfo.originalTokenCount,
+            newTokenCount: compressionInfo.newTokenCount,
+            timestamp: new Date().toISOString(),
+            strategy: 'summarize',
+            failedAttempts: this.hasFailedCompressionAttempt ? 1 : 0,
+        };
+    }
+
     async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
         try {
             // Check if ConversationCompactorModifier already compressed in the previous iteration.
             // If so, skip re-compression unless token count has grown past the threshold again.
             const compressionMeta = createdMessage.metadata?.['compression'] as
-                | { status?: string; newTokenCount?: number }
+                | { status?: string; stage?: CompressionStage; newTokenCount?: number }
                 | undefined;
 
-            if (compressionMeta?.status === 'COMPRESSED') {
+            if (
+                compressionMeta?.status === 'COMPRESSED' &&
+                compressionMeta.stage !== 'reactive_force_compact'
+            ) {
                 const modelTokenLimit = this.options.modelTokenLimit || DEFAULT_MODEL_TOKEN_LIMIT;
                 const threshold = (this.options.contextPercentageThreshold ?? COMPRESSION_TOKEN_THRESHOLD) * modelTokenLimit;
                 const currentTokens = compressionMeta.newTokenCount ?? 0;
@@ -118,7 +148,11 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
                         ...createdMessage,
                         metadata: {
                             ...createdMessage.metadata,
-                            compressionStatus: CompressionStatus.NOOP,
+                            compression: this.buildCompressionMetadata({
+                                originalTokenCount: currentTokens,
+                                newTokenCount: currentTokens,
+                                compressionStatus: CompressionStatus.NOOP,
+                            }, 'pre_inference'),
                             chatCompressionSkipped: true,
                             chatCompressionSkipReason: 'Already compressed by ConversationCompactorModifier'
                         }
@@ -139,11 +173,11 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
                     },
                     metadata: {
                         ...createdMessage.metadata,
+                        compression: this.buildCompressionMetadata(
+                            compressionResult,
+                            'pre_inference',
+                        ),
                         chatCompressed: true,
-                        compressionTimestamp: new Date().toISOString(),
-                        originalTokenCount: compressionResult.originalTokenCount,
-                        newTokenCount: compressionResult.newTokenCount,
-                        compressionStatus: compressionResult.compressionStatus
                     }
                 };
             }
@@ -152,9 +186,10 @@ export class ChatCompressionModifier extends BasePreInferenceProcessor {
                 ...createdMessage,
                 metadata: {
                     ...createdMessage.metadata,
-                    compressionStatus: compressionResult.compressionStatus,
-                    originalTokenCount: compressionResult.originalTokenCount,
-                    newTokenCount: compressionResult.newTokenCount
+                    compression: this.buildCompressionMetadata(
+                        compressionResult,
+                        'pre_inference',
+                    ),
                 }
             };
         } catch (error) {
