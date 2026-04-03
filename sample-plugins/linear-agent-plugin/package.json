@@ -9,7 +9,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/plugin-sdk": "file:../../../../CodeBolt/packages/codeboltPluginSdk",
+        "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltPluginSdk",
+
     "ws": "^8.18.0"
   },
   "devDependencies": {

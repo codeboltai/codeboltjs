@@ -100,16 +100,30 @@ export { type LLMConfig } from './types/libTypes';
 // Workflow step factories
 
 
-// Orchestrator system
-// export {
-//     UnifiedOrchestrator,
-//     createOrchestrator,
-//     createRuntimeContext,
-//     type OrchestratorConfig,
-//     type RuntimeContext,
-//     type OrchestratorResult,
-//     type OrchestratorDecision,
-//     type OrchestratorExecutionStep,
-//     type OrchestratorMetrics
-// } from './orchestrator/orchestrator';
+// Multi-layer compaction system
+export {
+    CompactionOrchestrator,
+    type CompactionPipelineResult,
+} from './services/compaction/compactionOrchestrator';
+
+export { SnipCompact, type SnipCompactOptions } from './services/compaction/snipCompact';
+
+export { MicroCompact, type MicroCompactOptions } from './services/compaction/microCompact';
+
+export { ContextCollapse, type ContextCollapseOptions } from './services/compaction/contextCollapse';
+
+export { AutoCompact, type AutoCompactOptions, type AutoCompactTracking } from './services/compaction/autoCompact';
+
+export { ReactiveCompact, type ReactiveCompactOptions, type ReactiveRecoveryResult } from './services/compaction/reactiveCompact';
+
+export { PostCompactCleanup, type PostCompactCleanupOptions } from './services/compaction/postCompactCleanup';
+
+export {
+    TokenEstimator,
+    type CompactionContext,
+    type CompactionLayer,
+    type CompactionLayerKind,
+    type CompactionBoundary,
+    type CompactionOrchestratorOptions,
+} from './services/compaction/types';
 

@@ -1,2 +1,3 @@
 Hello from CliTestAgent!
+Hello from CliTestAgent!
 Testing write_file tool.

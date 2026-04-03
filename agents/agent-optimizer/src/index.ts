@@ -1,29 +1,27 @@
-/**
- * Agent Optimizer — A meta-agent that optimizes other Codebolt agents.
- *
- * This agent is invoked from the eval optimization loop. It receives the target
- * agent's code path and eval context in the user message, reads the agent's
- * source files, reasons about improvements, applies changes via file tools,
- * and returns a structured JSON summary.
- */
-
 import codebolt from '@codebolt/codeboltjs';
 import {
-    InitialPromptGenerator,
-    ResponseExecutor,
-    AgentStep
-} from '@codebolt/agent/unified';
+  InitialPromptGenerator,
+  ResponseExecutor,
+  LoopDetectionService
+} from '@codebolt/agent/unified'
+import { CompressionCoordinator } from './CompressionCoordinator';
 import { FlatUserMessage } from "@codebolt/types/sdk";
 import {
-    CoreSystemPromptModifier,
-    ToolInjectionModifier,
-    ChatHistoryMessageModifier
+  EnvironmentContextModifier,
+  CoreSystemPromptModifier,
+  DirectoryContextModifier,
+  IdeContextModifier,
+  AtFileProcessorModifier,
+  ToolInjectionModifier,
+  ChatHistoryMessageModifier
 } from '@codebolt/agent/processor-pieces';
+
+import { AgentStep } from '@codebolt/agent/unified';
 import { AgentStepOutput, ProcessedMessage } from '@codebolt/types/agent';
 
-// ─── System Prompt ──────────────────────────────────────────────────────────
+const eventQueue = codebolt.agentEventQueue;
 
-const AGENT_OPTIMIZER_SYSTEM_PROMPT = `
+let systemPrompt =`
 You are the Agent Optimizer, a specialized meta-agent that improves other Codebolt agents by modifying their source code based on evaluation results.
 
 # Your Role
@@ -97,69 +95,201 @@ After making changes, output a JSON summary in this exact format:
 - If you cannot identify a meaningful improvement, explain why in the reasoning field and set description to "No modification — diminishing returns"
 `.trim();
 
-// ─── Main Agent Entry Point ─────────────────────────────────────────────────
+/**
+ * Process an external event (steering, agent queue, background completion)
+ * and inject it into the prompt so the LLM sees it on the next iteration.
+ */
+function processExternalEvent(event: any, prompt: ProcessedMessage): void {
+  console.log(`[act-updated][Event] Received external event:`, JSON.stringify(event, null, 2));
 
-codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<void> => {
-    try {
-        const promptGenerator = new InitialPromptGenerator({
-            processors: [
-                // 1. Chat History
-                new ChatHistoryMessageModifier({ enableChatHistory: true }),
+  if (!event) {
+    console.warn(`[act-updated][Event] Skipping null/undefined event`);
+    return;
+  }
+  if (!prompt?.message?.messages) {
+    console.warn(`[act-updated][Event] Skipping event - prompt.message.messages is not available`);
+    return;
+  }
 
-                // 2. Core System Prompt — optimizer instructions
-                // NOTE: No EnvironmentContextModifier or DirectoryContextModifier here.
-                // Those inject the active *project* context, but this agent operates
-                // on a *target agent's* code path (provided in the user message by
-                // agentOptimizerExecutor). The agent source files and eval context
-                // are already embedded in the prompt.
-                new CoreSystemPromptModifier({
-                    customSystemPrompt: AGENT_OPTIMIZER_SYSTEM_PROMPT
-                }),
+  const eventType = event.type || event.eventType;
+  const eventData = event.data || event;
+  console.log(`[act-updated][Event] eventType=${eventType}, eventData keys=${Object.keys(eventData || {}).join(',')}`);
 
-                // 3. Tools — needs file read/write/edit + bash for rebuilds
-                new ToolInjectionModifier({
-                    includeToolDescriptions: true
-                }),
-            ],
-            baseSystemPrompt: AGENT_OPTIMIZER_SYSTEM_PROMPT
-        });
+  if (eventType === 'agentQueueEvent') {
+    const payload = eventData?.payload || {};
+    console.log(`[act-updated][Event] agentQueueEvent payload:`, JSON.stringify(payload, null, 2));
 
-        // Process the initial message (contains optimization context from executor)
-        let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
-
-        // Agent loop — continue until the optimizer finishes its work
-        let completed = false;
-        do {
-            const agentStep = new AgentStep({
-                preInferenceProcessors: [],
-                postInferenceProcessors: []
-            });
-
-            const result: AgentStepOutput = await agentStep.executeStep(reqMessage, prompt);
-            prompt = result.nextMessage;
-
-            const responseExecutor = new ResponseExecutor({
-                preToolCallProcessors: [],
-                postToolCallProcessors: []
-            });
-
-            const executionResult = await responseExecutor.executeResponse({
-                initialUserMessage: reqMessage,
-                actualMessageSentToLLM: result.actualMessageSentToLLM,
-                rawLLMOutput: result.rawLLMResponse,
-                nextMessage: result.nextMessage
-            });
-
-            completed = executionResult.completed;
-            prompt = executionResult.nextMessage;
-
-            if (completed) {
-                break;
-            }
-        } while (!completed);
-
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        codebolt.chat.sendMessage(`Agent Optimizer Error: ${errorMessage}`);
+    // Handle steering events from the user
+    if (payload.type === 'steering' || eventData?.eventType === 'steering') {
+      const instruction = payload.instruction || payload.content || JSON.stringify(payload);
+      console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
+      const steeringMessage = {
+        role: "user" as const,
+        content: `<steering_message>
+<instruction>${instruction}</instruction>
+<context>The user has sent a steering message while you are working. Review the instruction and adjust your current approach accordingly. Prioritize this instruction for your next actions.</context>
+</steering_message>`
+      };
+      prompt.message.messages.push(steeringMessage);
+      console.log(`[act-updated][Steering] Prompt now has ${prompt.message.messages.length} messages after injection`);
+      return;
     }
-});
+
+    // Handle other agent queue events (inter-agent messages)
+    const content = payload.content || JSON.stringify(payload);
+    console.log(`[act-updated][Event] Injecting agent queue event from ${eventData.sourceAgentId || 'system'}`);
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<agent_event>
+<source>${eventData.sourceAgentId || 'system'}</source>
+<content>${content}</content>
+</agent_event>`
+    });
+  } else if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
+    console.log(`[act-updated][Event] Injecting background agent completion event`);
+    prompt.message.messages.push({
+      role: "assistant" as const,
+      content: `Background agent completed:\n${JSON.stringify(eventData, null, 2)}`
+    });
+  } else {
+    console.warn(`[act-updated][Event] Unknown event type: ${eventType}, skipping`);
+  }
+}
+
+codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+  console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
+
+  try {
+    // Instantiate modifiers that need state persistence
+    const ideContextModifier = new IdeContextModifier({
+      includeActiveFile: true,
+      includeOpenFiles: true,
+      includeCursorPosition: true,
+      includeSelectedText: true
+    });
+
+    const coreSystemPromptModifier = new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt });
+
+    const loopDetectionService = new LoopDetectionService({ debug: true });
+    const compressionCoordinator = new CompressionCoordinator({
+      proactiveThreshold: 0.7,
+      postToolThreshold: 0.5,
+      preserveThreshold: 0.3,
+      reactiveRetryLimit: 1,
+      compactStrategy: 'summarize',
+      enableLogging: true,
+    });
+
+    let promptGenerator = new InitialPromptGenerator({
+
+      processors: [
+        // 1. Chat History
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        // 2. Environment Context (date, OS)
+        new EnvironmentContextModifier({ enableFullContext: false }),
+        // 3. Directory Context (folder structure)  
+        new DirectoryContextModifier(),
+
+        // 4. IDE Context (active file, opened files) - Shared instance
+        ideContextModifier,
+        // 5. Core System Prompt (instructions)
+        new CoreSystemPromptModifier(
+          { customSystemPrompt: systemPrompt }
+        ),
+        // 6. Tools (function declarations)
+        new ToolInjectionModifier({
+          includeToolDescriptions: true
+        }),
+
+        // 7. At-file processing (@file mentions)
+        new AtFileProcessorModifier({
+          enableRecursiveSearch: true
+        })
+      ],
+      baseSystemPrompt: systemPrompt
+    });
+
+    let prompt: ProcessedMessage = await promptGenerator.processMessage(reqMessage);
+    // codebolt.chat.sendMessage(JSON.stringify(prompt.message), {})
+
+    // return;
+    let completed = false;
+    let executionResult: any;
+    const responseExecutor = new ResponseExecutor({
+      preToolCallProcessors: [],
+      postToolCallProcessors: [compressionCoordinator.getPostToolCallProcessor()],
+      loopDetectionService: loopDetectionService
+    });
+    let loopIteration = 0;
+    do {
+      loopIteration++;
+      console.log(`[act-updated][Loop] === Iteration ${loopIteration} ===`);
+
+      // Check for pending steering/external events before each LLM call
+      const pendingEvents = eventQueue.getPendingExternalEvents();
+      console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
+      for (const externalEvent of pendingEvents) {
+        processExternalEvent(externalEvent, prompt);
+      }
+
+      console.log(`[act-updated][Loop] Starting AgentStep (LLM call)...`);
+      let agent = new AgentStep({
+        preInferenceProcessors: [
+          compressionCoordinator.getPreInferenceProcessor(),
+          coreSystemPromptModifier,
+          ideContextModifier
+        ],
+        postInferenceProcessors: []
+      })
+
+      let result: AgentStepOutput;
+      try {
+        result = await agent.executeStep(reqMessage, prompt);
+        compressionCoordinator.resetReactiveRetries();
+      } catch (error) {
+        const recovery = await compressionCoordinator.recoverFromContextError(
+          reqMessage,
+          prompt,
+          error
+        );
+
+        if (!recovery.shouldRetry) {
+          throw error;
+        }
+
+        console.warn(
+          `[act-updated][Compression] ${recovery.reason}. Retrying with a compacted prompt.`,
+        );
+        prompt = recovery.recoveredMessage;
+        result = await agent.executeStep(reqMessage, prompt);
+      }
+      console.log(`[act-updated][Loop] AgentStep completed`);
+      prompt = result.nextMessage;
+
+      console.log(`[act-updated][Loop] Executing response...`);
+      executionResult = await responseExecutor.executeResponse({
+        initialUserMessage: reqMessage,
+        actualMessageSentToLLM: result.actualMessageSentToLLM,
+        rawLLMOutput: result.rawLLMResponse,
+        nextMessage: result.nextMessage,
+      });
+
+      completed = executionResult.completed;
+      prompt = executionResult.nextMessage;
+      console.log(`[act-updated][Loop] Iteration ${loopIteration} done, completed=${completed}`);
+
+      if (completed) {
+        break;
+      }
+
+    } while (!completed);
+
+    console.log(`[act-updated] Agent finished after ${loopIteration} iterations`);
+    return executionResult.finalMessage;
+
+  } catch (error) {
+    console.error(`[act-updated] Agent error:`, error);
+  }
+
+
+})

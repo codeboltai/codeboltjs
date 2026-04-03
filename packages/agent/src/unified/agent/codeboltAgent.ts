@@ -12,6 +12,8 @@ import { FlatUserMessage } from "@codebolt/types/sdk";
 import { InitialPromptGenerator } from "../base";
 import { ResponseExecutor } from "../base/responseExecutor";
 import { AgentStep } from "../base/agentStep";
+import { CompactionOrchestrator } from "../services/compaction/compactionOrchestrator";
+import type { CompactionOrchestratorOptions } from "../services/compaction/types";
 import {
     EnvironmentContextModifier,
     CoreSystemPromptModifier,
@@ -45,6 +47,12 @@ export interface CodeboltAgentConfig extends AgentConfig {
      * Example: ['readFile', 'writeFile', 'executeCommand']
      */
     allowedTools?: string[];
+
+    /**
+     * Loop-owned compaction settings.
+     * Applied before inference, after tool execution, and reactively on context errors.
+     */
+    compaction?: CompactionOrchestratorOptions;
 }
 
 /**
@@ -108,6 +116,7 @@ export class CodeboltAgent {
     private readonly baseSystemPrompt: string;
     private readonly context: ProcessedMessage | undefined;
     private readonly allowedTools: string[] | undefined;
+    private readonly compactionOrchestrator: CompactionOrchestrator;
 
     constructor(config: CodeboltAgentConfig) {
         this.config = { ...config };
@@ -125,6 +134,7 @@ export class CodeboltAgent {
         this.postInferenceProcessors = config.processors?.postInferenceProcessors || [];
         this.preToolCallProcessors = config.processors?.preToolCallProcessors || [];
         this.postToolCallProcessors = config.processors?.postToolCallProcessors || [];
+        this.compactionOrchestrator = new CompactionOrchestrator(config.compaction);
     }
 
     /**
@@ -218,12 +228,26 @@ export class CodeboltAgent {
             let completed = false;
 
             while (!completed) {
+                this.compactionOrchestrator.resetForTurn();
+                prompt = await this.applyCompaction(prompt);
+
                 const agentStep = new AgentStep({
                     preInferenceProcessors: this.preInferenceProcessors,
                     postInferenceProcessors: this.postInferenceProcessors
                 });
 
-                const stepResult: AgentStepOutput = await agentStep.executeStep(reqMessage, prompt);
+                let stepResult: AgentStepOutput;
+                try {
+                    stepResult = await agentStep.executeStep(reqMessage, prompt);
+                } catch (error) {
+                    const recoveredPrompt = await this.tryRecoverPrompt(prompt, error);
+                    if (!recoveredPrompt) {
+                        throw error;
+                    }
+
+                    prompt = recoveredPrompt;
+                    stepResult = await agentStep.executeStep(reqMessage, prompt);
+                }
                 prompt = stepResult.nextMessage;
 
                 const responseExecutor = new ResponseExecutor({
@@ -239,7 +263,7 @@ export class CodeboltAgent {
                 });
 
                 completed = executionResult.completed;
-                prompt = executionResult.nextMessage;
+                prompt = await this.applyCompaction(executionResult.nextMessage);
             }
 
             if (this.enableLogging) {
@@ -308,6 +332,67 @@ export class CodeboltAgent {
      */
     public getPostToolCallProcessors(): PostToolCallProcessor[] {
         return [...this.postToolCallProcessors];
+    }
+
+    private async applyCompaction(prompt: ProcessedMessage): Promise<ProcessedMessage> {
+        const result = await this.compactionOrchestrator.compact(prompt.message.messages);
+        if (!result.wasCompacted) {
+            return prompt;
+        }
+
+        return {
+            ...prompt,
+            message: {
+                ...prompt.message,
+                messages: result.messages,
+            },
+            metadata: {
+                ...prompt.metadata,
+                compaction: {
+                    totalTokensFreed: result.totalTokensFreed,
+                    layersApplied: result.layersApplied,
+                    boundaries: result.boundaries,
+                    timestamp: new Date().toISOString(),
+                },
+            },
+        };
+    }
+
+    private async tryRecoverPrompt(
+        prompt: ProcessedMessage,
+        error: unknown,
+    ): Promise<ProcessedMessage | null> {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (!this.compactionOrchestrator.getReactiveLayer().isRecoverableError(errorMessage)) {
+            return null;
+        }
+
+        const recovery = await this.compactionOrchestrator.recoverFromError(
+            prompt.message.messages,
+            error,
+        );
+
+        if (!recovery.wasCompacted) {
+            return null;
+        }
+
+        return {
+            ...prompt,
+            message: {
+                ...prompt.message,
+                messages: recovery.messages,
+            },
+            metadata: {
+                ...prompt.metadata,
+                reactiveCompaction: {
+                    totalTokensFreed: recovery.totalTokensFreed,
+                    layersApplied: recovery.layersApplied,
+                    boundaries: recovery.boundaries,
+                    timestamp: new Date().toISOString(),
+                    error: errorMessage,
+                },
+            },
+        };
     }
 }
 
