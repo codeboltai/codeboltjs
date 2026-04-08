@@ -25,16 +25,30 @@ async function main() {
   const PLUGIN_ID = '@codebolt/remote-execution-plugin';
   const API_URL = `https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}`;
 
+  // Resolve plugin version up-front so the install layer's command string
+  // changes whenever a new version is published — busting e2b's build cache.
+  const pluginMetaResp = await fetch(API_URL);
+  if (!pluginMetaResp.ok) {
+    throw new Error(`Failed to fetch plugin metadata: ${pluginMetaResp.status}`);
+  }
+  const pluginMeta: any = await pluginMetaResp.json();
+  const PLUGIN_VERSION = pluginMeta.version || 'unknown';
+  const PLUGIN_ZIP_URL = pluginMeta.zipFilePath;
+  if (!PLUGIN_ZIP_URL) {
+    throw new Error('Plugin metadata missing zipFilePath');
+  }
+  console.log(`Using ${PLUGIN_ID}@${PLUGIN_VERSION}`);
+
   const template = new TemplateBase()
     .fromNodeImage('20')
     .aptInstall(['curl', 'git', 'unzip', 'jq'])
     // Install codebolt globally
     .runCmd('npm install -g --ignore-scripts codebolt', { user: 'root' })
-    // Download and install remote-execution-plugin from API
+    // Download and install remote-execution-plugin (version pinned for cache busting)
     .runCmd(`mkdir -p ${PLUGIN_DIR}/dist`, { user: 'root' })
     .runCmd(
-      `PLUGIN_ZIP_URL=$(curl -sf "${API_URL}" | jq -r '.zipFilePath') && ` +
-      `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL" && ` +
+      `# plugin version: ${PLUGIN_VERSION}\n` +
+      `curl -sfL -o /tmp/plugin-dist.zip "${PLUGIN_ZIP_URL}" && ` +
       `unzip -o /tmp/plugin-dist.zip -d ${PLUGIN_DIR}/ && ` +
       `rm -f /tmp/plugin-dist.zip`,
       { user: 'root' },

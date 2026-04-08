@@ -35,19 +35,32 @@ const uploadFile = async (filePath, fileType, authToken) => {
     formData.append('file', fs.createReadStream(filePath));
     formData.append('filetype', fileType);
 
+    // Compute Content-Length so Cloudflare Workers can parse the multipart body
+    // (form-data otherwise sends chunked-encoded, which Workers' formData() may reject)
+    const contentLength = await new Promise((resolve, reject) => {
+        formData.getLength((err, length) => (err ? reject(err) : resolve(length)));
+    });
+
     try {
         const response = await axios.post(
             'https://api.codebolt.ai/api/upload/single',
             formData,
             {
-                headers: formData.getHeaders(),
+                headers: {
+                    ...formData.getHeaders(),
+                    'Content-Length': contentLength,
+                    'Authorization': `Bearer ${authToken}`
+                },
                 maxBodyLength: Infinity,
                 maxContentLength: Infinity
             }
         );
         return response.data;
     } catch (err) {
-        throw new Error(`Failed to upload ${fileType}: ${err.message}`);
+        const serverMsg = err.response?.data
+            ? (typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data))
+            : err.message;
+        throw new Error(`Failed to upload ${fileType}: ${serverMsg}`);
     }
 };
 

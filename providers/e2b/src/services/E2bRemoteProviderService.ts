@@ -42,6 +42,11 @@ export class E2bRemoteProviderService extends BaseProvider {
   private sandboxWorkspacePath: string = '/home/user';
   private setupInProgress = false;
   private backgroundCommand: any = null;
+  private pendingNarrativeRequests: Map<string, {
+    resolve: (value: any) => void;
+    reject: (err: Error) => void;
+    timeout: NodeJS.Timeout;
+  }> = new Map();
 
   private readonly providerConfig: E2bProviderConfig;
   private readonly logger: Logger;
@@ -129,6 +134,33 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     // 3. Connect WebSocket transport to plugin WS server
     await this.ensureTransportConnection(initVars);
+
+    // 4. Import narrative unified bundle into the in-sandbox unified server
+    // (delegated to the plugin so narrative semantics stay out of the provider).
+    const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
+    if (narrativeBundlePath && this.sandbox) {
+      try {
+        const remoteBundle = await this.uploadFileToSandbox(
+          narrativeBundlePath,
+          '/tmp/narrative-unified.tar.gz',
+        );
+        this.logger.log('Sending narrativeArchiveImport to plugin:', remoteBundle);
+        const ack = await this.sendNarrativeRequest('narrativeArchiveImport', {
+          bundlePath: remoteBundle,
+          environmentId: initVars.environmentName,
+          workspace: this.sandboxWorkspacePath,
+          snapshotId: (initVars as any).snapshotId,
+          narrativeContext: (initVars as any).narrativeContext,
+        });
+        this.logger.log(
+          `Narrative bundle imported: snapshots=${ack?.snapshot_ids?.length ?? 0} narrative_imported=${ack?.narrative_imported}`,
+        );
+        await this.sandbox.commands.run(`rm -f ${remoteBundle}`);
+      } catch (err: any) {
+        this.logger.error('Narrative bundle import failed:', err?.message ?? err);
+        throw new Error(`Narrative bundle import failed in sandbox: ${err?.message ?? err}`);
+      }
+    }
 
     this.state.initialized = true;
 
@@ -320,10 +352,88 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
   }
 
+  // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
+
+  /**
+   * Send a narrative-control message to the in-sandbox plugin and await its ack.
+   * The plugin handles `narrativeArchiveImport` / `narrativeArchiveExport` by
+   * calling the unified server's narrativePluginHandler in the same process.
+   */
+  private sendNarrativeRequest(
+    type: 'narrativeArchiveImport' | 'narrativeArchiveExport',
+    payload: Record<string, any>,
+    timeoutMs: number = 120_000,
+  ): Promise<any> {
+    const ws = this.agentServer.wsConnection;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error('Plugin WS not connected; cannot send narrative request'));
+    }
+    const requestId = `narr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pendingNarrativeRequests.delete(requestId);
+        reject(new Error(`Narrative request ${type} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+      this.pendingNarrativeRequests.set(requestId, { resolve, reject, timeout });
+      try {
+        ws.send(JSON.stringify({ type, requestId, ...payload }));
+      } catch (err: any) {
+        clearTimeout(timeout);
+        this.pendingNarrativeRequests.delete(requestId);
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Upload a local file into the sandbox at a known path. Mirrors the existing
+   * archive-upload pattern (base64 round-trip for transport safety).
+   * Returns the decoded path inside the sandbox.
+   */
+  private async uploadFileToSandbox(localPath: string, remoteBase: string): Promise<string> {
+    if (!this.sandbox) throw new Error('No sandbox available');
+    const buf = await fs.readFile(localPath);
+    const remoteB64 = `${remoteBase}.b64`;
+    await this.sandbox.files.write(remoteB64, buf.toString('base64'));
+    await this.sandbox.commands.run(`base64 -d ${remoteB64} > ${remoteBase} && rm -f ${remoteB64}`);
+    return remoteBase;
+  }
+
+  /**
+   * Read a file from the sandbox to a local path.
+   * sandbox.files.read returns a string; for binary content the caller must
+   * ensure the sandbox has produced something base64-safe, or read as bytes.
+   * Here we ask the sandbox to base64-encode the file first, then decode locally.
+   */
+  private async downloadFileFromSandbox(remotePath: string, localPath: string): Promise<void> {
+    if (!this.sandbox) throw new Error('No sandbox available');
+    const remoteB64 = `${remotePath}.b64`;
+    await this.sandbox.commands.run(`base64 ${remotePath} > ${remoteB64}`);
+    const b64 = await this.sandbox.files.read(remoteB64);
+    await this.sandbox.commands.run(`rm -f ${remoteB64}`);
+    await fs.writeFile(localPath, Buffer.from(b64, 'base64'));
+  }
+
   /**
    * Handle messages from the remote-execution-plugin WS server.
    */
   private handlePluginMessage(message: any): void {
+    // Narrative ack — resolve any pending narrative request
+    if ((message?.type === 'narrativeArchiveImportAck' || message?.type === 'narrativeArchiveExportAck')
+        && message.requestId) {
+      const pending = this.pendingNarrativeRequests.get(message.requestId);
+      if (pending) {
+        clearTimeout(pending.timeout);
+        this.pendingNarrativeRequests.delete(message.requestId);
+        if (message.success) {
+          pending.resolve(message);
+        } else {
+          pending.reject(new Error(message.error || 'narrative request failed'));
+        }
+      }
+      return;
+    }
+
     switch (message.type) {
       case 'executionRequest': {
         const { requestId, originalType, originalMessage } = message;
@@ -542,31 +652,59 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onSendPR(): Promise<any> {
-    this.logger.log('onSendPR — exporting workspace snapshot via E2B files API');
+    this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox plugin');
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
 
-    // Create a tar.gz of the workspace directly in the sandbox
-    const snapshotId = `snapshot-${Date.now()}`;
-    const archivePath = `/tmp/${snapshotId}.tar.gz`;
+    // Ask the plugin (which talks to the in-sandbox unified server) to create a
+    // unified bundle of the current workspace's narrative state. The plugin
+    // returns a path inside the sandbox; we then download those bytes locally.
+    const lastSnapshotId = (this.lastInitVars as any)?.snapshotId as string | undefined;
+    if (!lastSnapshotId) {
+      throw new Error('No snapshotId available on lastInitVars; cannot export narrative bundle');
+    }
 
-    await this.sandbox.commands.run(
-      `cd ${this.sandboxWorkspacePath} && tar -czf ${archivePath} .`,
+    const ack = await this.sendNarrativeRequest('narrativeArchiveExport', {
+      snapshotId: lastSnapshotId,
+      environmentId: this.state.environmentName,
+      workspace: this.sandboxWorkspacePath,
+      incremental: false,
+    });
+
+    const remoteBundlePath = ack?.bundlePath;
+    if (!remoteBundlePath) {
+      throw new Error('Plugin did not return a bundlePath in narrativeArchiveExportAck');
+    }
+
+    // Download the bundle to a local temp file
+    const localTmp = path.join(
+      process.env.TMPDIR || '/tmp',
+      `e2b-narrative-${Date.now()}.tar.gz`,
+    );
+    await this.downloadFileFromSandbox(remoteBundlePath, localTmp);
+
+    // Cleanup remote
+    try {
+      await this.sandbox.commands.run(`rm -f ${remoteBundlePath}`);
+    } catch { /* ignore */ }
+
+    // Read back as base64 for transport to parent (preserves existing wire shape)
+    const bundleBuffer = await fs.readFile(localTmp);
+    const bundleData = bundleBuffer.toString('base64');
+
+    this.logger.log(
+      `Narrative bundle exported from sandbox: snapshotId=${ack.snapshotId} bytes=${bundleBuffer.length}`,
     );
 
-    // Read the archive from sandbox as base64
-    const archiveContent = await this.sandbox.files.read(archivePath);
-
-    // Cleanup
-    await this.sandbox.commands.run(`rm -f ${archivePath}`);
-
-    this.logger.log('Snapshot exported:', snapshotId);
-
     return {
-      bundleData: archiveContent,
-      snapshot: { snapshot_id: snapshotId },
+      bundleData,
+      bundlePath: localTmp,
+      snapshot: { snapshot_id: ack.snapshotId },
+      snapshotId: ack.snapshotId,
+      baseSnapshotId: ack.baseSnapshotId,
+      narrativeSummary: ack.narrativeSummary,
     };
   }
 
