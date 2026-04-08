@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { execSync } from 'child_process';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -350,6 +351,157 @@ export class E2bRemoteProviderService extends BaseProvider {
         result: { error: 'Request timed out' },
       }));
     }
+  }
+
+  /**
+   * Run `npm pack` in a local package directory and return the absolute path
+   * to the resulting .tgz tarball.
+   */
+  private async packLocalDir(dir: string): Promise<string> {
+    // npm pack --json prints metadata for each tarball; capture it.
+    const out = execSync('npm pack --json --silent', {
+      cwd: dir,
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const parsed = JSON.parse(out);
+    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+    const filename = entry?.filename;
+    if (!filename) {
+      throw new Error(`npm pack in ${dir} did not produce a filename`);
+    }
+    return path.resolve(dir, filename);
+  }
+
+  /**
+   * Upload a local tarball to the sandbox and `npm install -g` it.
+   */
+  private async installLocalTarballInSandbox(localTarballPath: string): Promise<void> {
+    if (!this.sandbox) throw new Error('No sandbox available');
+    this.logger.log('[dev-install] Uploading local tarball:', localTarballPath);
+    const remoteTar = '/tmp/codebolt-local.tgz';
+    await this.uploadFileToSandbox(localTarballPath, remoteTar);
+    this.logger.log('[dev-install] Installing local tarball globally');
+    const result = await this.sandbox.commands.run(
+      `npm install -g --ignore-scripts ${remoteTar}`,
+      { user: 'root' as any },
+    );
+    if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
+      throw new Error(`npm install -g <tarball> failed: exit ${(result as any).exitCode}`);
+    }
+    await this.sandbox.commands.run(`rm -f ${remoteTar}`);
+  }
+
+  // --- Dev-mode installer (replicates e2b-template setup at runtime) ---
+
+  /**
+   * Mirror the e2b-template's setup steps so we can iterate on plugin / server
+   * code without rebuilding and republishing the template.
+   *
+   * All steps are skipped unless their env var is set, so this is a no-op in
+   * production runs that use a pre-baked template.
+   */
+  private async installLocalDevArtifacts(): Promise<void> {
+    if (!this.sandbox) return;
+
+    const installCodebolt = process.env.CODEBOLT_DEV_INSTALL_CODEBOLT === '1'
+      || process.env.CODEBOLT_DEV_INSTALL_CODEBOLT === 'true';
+    const serverTarball = process.env.CODEBOLT_DEV_SERVER_TARBALL;
+    const cliDir = process.env.CODEBOLT_DEV_CLI_DIR;
+    const pluginDir = process.env.CODEBOLT_DEV_PLUGIN_DIR
+      || '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/plugins/remote-execution-plugin';
+
+    if (!installCodebolt && !serverTarball && !cliDir && !pluginDir) {
+      return; // nothing to do — use whatever the template has baked in
+    }
+
+    this.logger.log('[dev-install] Starting local dev artifact installation');
+
+    // 1. Install codebolt globally from npm (only if requested or if missing)
+    if (installCodebolt) {
+      this.logger.log('[dev-install] Running: npm install -g --ignore-scripts codebolt');
+      const result = await this.sandbox.commands.run(
+        'npm install -g --ignore-scripts codebolt',
+        { user: 'root' as any },
+      );
+      if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
+        throw new Error(`npm install -g codebolt failed: exit ${(result as any).exitCode}`);
+      }
+    }
+
+    // 2a. Install codebolt from a LOCAL tarball (overrides whatever's there)
+    // Build the tarball locally with `npm pack` in packages/cli (or wherever
+    // your codebolt package lives) and point CODEBOLT_DEV_SERVER_TARBALL at it.
+    if (serverTarball) {
+      await this.installLocalTarballInSandbox(serverTarball);
+    }
+
+    // 2b. Pack a local cli dir on-the-fly and install — saves the manual
+    // `npm pack` step. Set CODEBOLT_DEV_CLI_DIR=/path/to/packages/cli.
+    if (cliDir) {
+      this.logger.log('[dev-install] Packing local cli dir:', cliDir);
+      const tarballPath = await this.packLocalDir(cliDir);
+      try {
+        await this.installLocalTarballInSandbox(tarballPath);
+      } finally {
+        // Clean up the local tarball npm pack just produced
+        try { await fs.unlink(tarballPath); } catch { /* ignore */ }
+      }
+    }
+
+    // 3. Upload local plugin dir (package.json + dist/index.js) to
+    //    ~/.codebolt/plugins/<plugin-name> so the unified server picks it up
+    //    on its next plugin scan.
+    if (pluginDir) {
+      this.logger.log('[dev-install] Uploading local plugin dir:', pluginDir);
+      const pkgJsonPath = path.join(pluginDir, 'package.json');
+      const distIndexPath = path.join(pluginDir, 'dist', 'index.js');
+
+      const pkgJsonRaw = await fs.readFile(pkgJsonPath, 'utf-8');
+      const pkgJson = JSON.parse(pkgJsonRaw);
+      const pluginName = (pkgJson.name || '').replace(/^@[^/]+\//, '');
+      if (!pluginName) {
+        throw new Error(`Could not derive plugin folder name from ${pkgJsonPath}`);
+      }
+      const remotePluginDir = `/home/user/.codebolt/plugins/${pluginName}`;
+      // Also overwrite the builtin plugin shipped with the codebolt npm package,
+      // since codebolt loads it by default and errors if its dist/index.js is missing.
+      const builtinPluginDir = `/usr/lib/node_modules/codebolt/dist/plugins/${pluginName}`;
+
+      const distMapPath = path.join(pluginDir, 'dist', 'index.js.map');
+      let hasMap = false;
+      try { await fs.access(distMapPath); hasMap = true; } catch { /* no map */ }
+
+      for (const targetDir of [remotePluginDir, builtinPluginDir]) {
+        // Wipe + recreate the plugin dir so stale files don't leak across runs.
+        // Chown to user so subsequent uploads (which run as user) can write into it.
+        await this.sandbox.commands.run(
+          `rm -rf ${targetDir} && mkdir -p ${targetDir}/dist && chown -R user:user ${targetDir}`,
+          { user: 'root' as any },
+        );
+
+        // Upload package.json
+        await this.sandbox.files.write(`${targetDir}/package.json`, pkgJsonRaw);
+
+        // Upload dist/index.js (binary-safe via base64 round-trip helper)
+        await this.uploadFileToSandbox(distIndexPath, `${targetDir}/dist/index.js`);
+
+        // Optional: upload sourcemap if present
+        if (hasMap) {
+          await this.uploadFileToSandbox(distMapPath, `${targetDir}/dist/index.js.map`);
+        }
+
+        this.logger.log(`[dev-install] Plugin uploaded to ${targetDir}`);
+      }
+
+      // Fix ownership so the user can read/execute the files
+      await this.sandbox.commands.run(
+        `chown -R user:user /home/user/.codebolt`,
+        { user: 'root' as any },
+      );
+    }
+
+    this.logger.log('[dev-install] Local dev artifact installation complete');
   }
 
   // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
@@ -806,6 +958,21 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.setEnvironmentResourceId(this.sandboxId);
     }
 
+    // Dev-mode installer: replicate template setup steps at runtime so we can
+    // iterate on plugin/server code without rebuilding the e2b template image.
+    // Controlled by env vars (all optional):
+    //   CODEBOLT_DEV_INSTALL_CODEBOLT=1     → npm install -g codebolt (or @latest)
+    //   CODEBOLT_DEV_SERVER_TARBALL=<path>  → upload local codebolt tarball + npm install -g it
+    //   CODEBOLT_DEV_PLUGIN_DIR=<path>      → upload local plugin (package.json + dist/) to ~/.codebolt/plugins/<name>
+    if (this.sandbox) {
+      try {
+        await this.installLocalDevArtifacts();
+      } catch (err: any) {
+        this.logger.error('Dev artifact install failed:', err?.message ?? err);
+        throw err;
+      }
+    }
+
     // Clone git repo if provided
     const gitUrl = initVars.gitUrl as string | undefined;
     if (gitUrl && this.sandbox) {
@@ -818,35 +985,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.logger.log('Repository cloned successfully');
     }
 
-    // Import snapshot archive if provided — upload to sandbox and extract
-    const archivePath = initVars.archivePath as string | undefined;
-    if (archivePath && this.sandbox) {
-      const remoteTmpArchive = '/tmp/snapshot-archive.tar.gz';
-      this.logger.log('Uploading snapshot archive to sandbox:', archivePath, '->', remoteTmpArchive);
-      const archiveBuffer = await fs.readFile(archivePath);
-      await this.sandbox.files.write(remoteTmpArchive, archiveBuffer.toString('base64'));
-
-      // Back up .codebolt (plugins, config) and globally installed binaries
-      // before extraction — the archive may overwrite /home/user
-      await this.sandbox.commands.run(
-        'cp -a /home/user/.codebolt /tmp/.codebolt-backup 2>/dev/null || true',
-      );
-
-      // Decode base64 and extract
-      this.logger.log('Extracting archive in sandbox to:', this.sandboxWorkspacePath);
+    // NOTE: snapshot/archive materialization is intentionally NOT done here.
+    // The in-sandbox remote-execution-plugin handles workspace + git + narrative
+    // state via narrative.importUnifiedBundle (see narrativeArchiveImport flow
+    // in onProviderStart). Extracting the archive here would bypass that path
+    // and silently mask import failures.
+    if (this.sandbox) {
       await this.sandbox.commands.run(`mkdir -p ${this.sandboxWorkspacePath}`);
-      await this.sandbox.commands.run(
-        `base64 -d ${remoteTmpArchive} > /tmp/snapshot-archive-decoded.tar.gz && tar -xzf /tmp/snapshot-archive-decoded.tar.gz -C ${this.sandboxWorkspacePath}`,
-      );
-
-      // Restore .codebolt (plugins etc.) that may have been overwritten and fix ownership
-      await this.sandbox.commands.run(
-        'mkdir -p /home/user/.codebolt && cp -a /tmp/.codebolt-backup/* /home/user/.codebolt/ 2>/dev/null; cp -a /tmp/.codebolt-backup/.* /home/user/.codebolt/ 2>/dev/null; rm -rf /tmp/.codebolt-backup; chown -R user:user /home/user/.codebolt || true',
-      );
-
-      // Cleanup
-      await this.sandbox.commands.run(`rm -f ${remoteTmpArchive} /tmp/snapshot-archive-decoded.tar.gz`);
-      this.logger.log('Snapshot files extracted to sandbox successfully');
     }
 
     // Upload essential .codebolt config files to the sandbox so the
@@ -957,7 +1102,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       // codebolt not pre-installed (no template or outdated template) — install at runtime as fallback
       this.logger.log('CodeBolt not found in sandbox, installing at runtime...');
       const installResult = await this.sandbox.commands.run(
-        'npm install -g --ignore-scripts codebolt@1.12.11',
+        'npm install -g --ignore-scripts codebolt@1.12.14',
         { user: 'root', timeoutMs: 300_000 },
       );
       if (installResult.exitCode !== 0) {
@@ -973,6 +1118,14 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       // Plugin won't be in the template either — download from API
       await this.ensurePluginInstalled(codeboltBin);
+
+      // Re-apply local dev plugin overrides — npm install -g codebolt may have
+      // overwritten the builtin plugin dir we populated earlier in installLocalDevArtifacts.
+      try {
+        await this.installLocalDevArtifacts();
+      } catch (err: any) {
+        this.logger.error('Re-applying local dev artifacts failed:', err?.message ?? err);
+      }
     }
 
     this.logger.log('Using codebolt binary:', codeboltBin);
