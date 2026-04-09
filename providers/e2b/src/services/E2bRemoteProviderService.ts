@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { execSync } from 'child_process';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -65,7 +64,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     this.providerConfig = {
       pluginPort: config.pluginPort ?? 3100,
-      e2bApiKey:  config.e2bApiKey ?? process.env.E2B_API_KEY,
+      e2bApiKey: config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate ?? 'codebolt-remote-execution',
       autoStopInterval: config.autoStopInterval ?? 0,
       codeboltStartCommand: config.codeboltStartCommand,
@@ -348,26 +347,33 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
-   * Send an executionReply back to the plugin for a completed request.
+   * Send an executionGateway.reply back to the sandbox codebolt server for a
+   * completed execution request. The `/plugins` endpoint delegates to
+   * executionGatewayHandler which expects `executionGateway.reply` (the old
+   * remote-execution-plugin used to translate from `executionReply` via its
+   * plugin SDK wrapper — we now do it directly).
    */
   private sendExecutionReply(requestId: string, result: any): void {
     this.resolveRequest(requestId);
     const ws = this.agentServer.wsConnection;
     if (ws && ws.readyState === WebSocket.OPEN) {
       const reply = JSON.stringify({
-        type: 'executionReply',
-        requestId,
+        type: 'executionGateway.reply',
+        requestId: `reply-${requestId}`,
+        replyRequestId: requestId,
+        success: !(result && result.error),
         result,
       });
       ws.send(reply);
-      this.logger.log('Sent executionReply for requestId:', requestId);
+      this.logger.log('Sent executionGateway.reply for requestId:', requestId);
     } else {
-      this.logger.warn('Cannot send executionReply, WS not open for requestId:', requestId);
+      this.logger.warn('Cannot send executionGateway.reply, WS not open for requestId:', requestId);
     }
   }
 
   /**
-   * Override onRequestTimeout to send error executionReply back to plugin.
+   * Override onRequestTimeout to send error executionGateway.reply back to
+   * the sandbox codebolt server.
    */
   protected onRequestTimeout(requestId: string): void {
     this.logger.warn(`Request ${requestId} timed out, sending error reply`);
@@ -375,8 +381,10 @@ export class E2bRemoteProviderService extends BaseProvider {
     const ws = this.agentServer.wsConnection;
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
-        type: 'executionReply',
-        requestId,
+        type: 'executionGateway.reply',
+        requestId: `reply-${requestId}`,
+        replyRequestId: requestId,
+        success: false,
         result: { error: 'Request timed out' },
       }));
     }
@@ -384,89 +392,86 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
 
-  // --- Dev-mode installer: pack local cli + plugin and install into sandbox ---
-
-  private async packLocalDir(dir: string): Promise<string> {
-    const out = execSync('npm pack --json --silent', {
-      cwd: dir,
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    const parsed = JSON.parse(out);
-    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-    const filename = entry?.filename;
-    if (!filename) throw new Error(`npm pack in ${dir} produced no filename`);
-    return path.resolve(dir, filename);
-  }
+  // --- Dev-mode installer: install codebolt cli from npm into sandbox ---
 
   /**
-   * Pack the local codebolt cli package and the local remote-execution-plugin
-   * and install them into the running sandbox. Intended for local development
-   * — avoids rebuilding the e2b template on every iteration.
+   * Install the pinned codebolt cli from the public npm registry into the
+   * running sandbox. We install from npm (not a local tarball) because npm
+   * will correctly resolve the platform-specific
+   * `@codebolt/narrative-linux-x64` optional dependency from the registry —
+   * something a local `npm pack` + `npm install -g tarball` flow silently
+   * skips, leaving the narrative engine binary missing.
+   *
+   * Also removes any pre-baked remote-execution-plugin from the sandbox:
+   * after the /plugins endpoint refactor the provider connects directly to
+   * the codebolt server and the plugin is no longer needed. Leaving it in
+   * place causes it to auto-start and crash with EADDRINUSE on port 3100.
    */
   private async installLocalDevArtifacts(): Promise<void> {
     if (!this.sandbox) return;
 
-    const cliDir = '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/cli';
-    const pluginDir = '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/plugins/remote-execution-plugin';
+    const cliVersion = '1.12.20';
+    this.logger.log(`[dev-install] Installing codebolt@${cliVersion} from npm`);
 
-    this.logger.log('[dev-install] Overlaying local cli + plugin onto sandbox');
-
-    // 1. Pack the local cli and install it globally, replacing whatever the
-    //    template has baked in.
-    this.logger.log('[dev-install] Packing local cli:', cliDir);
-    const cliTarball = await this.packLocalDir(cliDir);
-    try {
-      const remoteTar = '/tmp/codebolt-cli.tgz';
-      await this.uploadFileToSandbox(cliTarball, remoteTar);
-      const result = await this.sandbox.commands.run(
-        `npm install -g ${remoteTar}`,
-        { user: 'root' as any, timeoutMs: 300_000 },
+    const result = await this.sandbox.commands.run(
+      `npm install -g codebolt@${cliVersion}`,
+      { user: 'root' as any, timeoutMs: 300_000 },
+    );
+    if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
+      throw new Error(
+        `npm install -g codebolt@${cliVersion} failed: exit ${(result as any).exitCode} stderr=${(result as any).stderr}`,
       );
-      if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
-        throw new Error(`npm install -g codebolt cli failed: exit ${(result as any).exitCode} stderr=${(result as any).stderr}`);
+    }
+
+    // --- Diagnostics: where did codebolt land, and did the platform-specific
+    // narrative binary come along with it? ---
+    const diagCmds: Array<{ label: string; cmd: string }> = [
+      { label: 'npm root -g', cmd: 'npm root -g' },
+      { label: 'npm prefix -g', cmd: 'npm prefix -g' },
+      { label: 'which codebolt', cmd: 'which codebolt || echo NOT_ON_PATH' },
+      { label: 'codebolt --version', cmd: 'codebolt --version 2>&1 || echo FAILED' },
+      { label: 'global codebolt dir', cmd: 'ls -la $(npm root -g)/codebolt 2>&1 | head -30' },
+      { label: 'codebolt node_modules/@codebolt', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt 2>&1 | head -40' },
+      { label: 'narrative-linux-x64 dir', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64 2>&1' },
+      { label: 'narrative-linux-x64/bin', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin 2>&1' },
+      { label: 'narrative binary file info', cmd: 'file $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative 2>&1 || echo MISSING' },
+      { label: 'narrative binary ldd', cmd: 'ldd $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative 2>&1 || echo LDD_FAILED' },
+      // Spawn the binary directly for ~8s with stdin closed so it exits,
+      // and capture whatever it prints on stderr/stdout. This tells us
+      // whether it crashes, hangs, or emits the "ready" line.
+      {
+        label: 'narrative binary dry-run',
+        cmd:
+          'mkdir -p /home/user/young-olive && ' +
+          'timeout --preserve-status 8 ' +
+          '$(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative ' +
+          '--environment-id diag --workspace /home/user/young-olive --log-level debug ' +
+          '</dev/null 2>&1; echo "EXITCODE=$?"',
+      },
+    ];
+    for (const { label, cmd } of diagCmds) {
+      try {
+        const r = await this.sandbox.commands.run(cmd);
+        this.logger.log(`[dev-install][diag][${label}]\n${(r as any).stdout ?? ''}${(r as any).stderr ? `\nSTDERR: ${(r as any).stderr}` : ''}`);
+      } catch (e: any) {
+        this.logger.warn(`[dev-install][diag][${label}] command failed: ${e?.message ?? e}`);
       }
-      await this.sandbox.commands.run(`rm -f ${remoteTar}`);
-    } finally {
-      try { await fs.unlink(cliTarball); } catch { /* ignore */ }
     }
 
-    // 2. Upload the local plugin's package.json + dist files into both the
-    //    user plugin dir and the builtin plugin dir under the codebolt package.
-    const pkgJsonPath = path.join(pluginDir, 'package.json');
-    const distIndexPath = path.join(pluginDir, 'dist', 'index.js');
-    const distMapPath = path.join(pluginDir, 'dist', 'index.js.map');
-
-    const pkgJsonRaw = await fs.readFile(pkgJsonPath, 'utf-8');
-    const pkgJson = JSON.parse(pkgJsonRaw);
-    const pluginName = (pkgJson.name || '').replace(/^@[^/]+\//, '');
-    if (!pluginName) {
-      throw new Error(`Could not derive plugin folder name from ${pkgJsonPath}`);
-    }
-    const userPluginDir = `/home/user/.codebolt/plugins/${pluginName}`;
-    const builtinPluginDir = `/usr/local/lib/node_modules/codebolt/dist/plugins/${pluginName}`;
-
-    let hasMap = false;
-    try { await fs.access(distMapPath); hasMap = true; } catch { /* no map */ }
-
-    for (const targetDir of [userPluginDir, builtinPluginDir]) {
-      await this.sandbox.commands.run(
-        `rm -rf ${targetDir} && mkdir -p ${targetDir}/dist && chown -R user:user ${targetDir}`,
-        { user: 'root' as any },
-      );
-      await this.sandbox.files.write(`${targetDir}/package.json`, pkgJsonRaw);
-      await this.uploadFileToSandbox(distIndexPath, `${targetDir}/dist/index.js`);
-      if (hasMap) {
-        await this.uploadFileToSandbox(distMapPath, `${targetDir}/dist/index.js.map`);
-      }
-      this.logger.log(`[dev-install] Plugin uploaded to ${targetDir}`);
-    }
+    // Nuke any remote-execution-plugin that the published cli may still
+    // bake in. Not needed — provider talks to /plugins directly.
+    await this.sandbox.commands.run(
+      'rm -rf /home/user/.codebolt/plugins/remote-execution-plugin ' +
+      '/usr/local/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin',
+      { user: 'root' as any },
+    );
+    this.logger.log('[dev-install] Removed baked remote-execution-plugin');
 
     await this.sandbox.commands.run(
       'chown -R user:user /home/user/.codebolt',
       { user: 'root' as any },
     );
-    this.logger.log('[dev-install] Local dev artifacts installed');
+    this.logger.log(`[dev-install] codebolt@${cliVersion} installed`);
   }
 
   /**
@@ -562,9 +567,14 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     switch (message.type) {
-      case 'executionRequest': {
+      // `executionRequest` is the shape the old remote-execution-plugin
+      // forwarded through its own WS server. The server's
+      // executionGatewayHandler now sends us `executionGateway.request`
+      // directly on the /plugins socket, so we accept both.
+      case 'executionRequest':
+      case 'executionGateway.request': {
         const { requestId, originalType, originalMessage } = message;
-        this.logger.log(`Received executionRequest: ${requestId} (originalType: ${originalType})`);
+        this.logger.log(`Received ${message.type}: ${requestId} (originalType: ${originalType})`);
 
         // Track this request via base class (with timeout)
         this.trackRequest(requestId, originalType);
@@ -574,16 +584,19 @@ export class E2bRemoteProviderService extends BaseProvider {
         break;
       }
 
-      case 'executionNotification': {
+      // Same story for notifications — old wrapper sent `executionNotification`,
+      // server-direct sends `executionGateway.notification`.
+      case 'executionNotification':
+      case 'executionGateway.notification': {
         // Unwrap the notification — forward the result (or originalMessage) with the original type
         // so the local server can route it properly (e.g. SendMessage → chat UI)
         const result = message.result || message.originalMessage;
         if (result) {
           const unwrapped = { ...result, type: result.type || message.originalType };
-          this.logger.log('Forwarding executionNotification to local:', unwrapped.type);
+          this.logger.log(`Forwarding ${message.type} to local:`, unwrapped.type);
           super.handleTransportMessage(unwrapped as any);
         } else {
-          this.logger.log('Received executionNotification with no result/originalMessage, skipping');
+          this.logger.log(`Received ${message.type} with no result/originalMessage, skipping`);
         }
         break;
       }
@@ -1097,9 +1110,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     // Ensure .codebolt dir is owned by user (may have been touched by root during install)
     await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
 
-    // Override startCmd with the resolved path
+    // Override startCmd with the resolved path.
+    // We pass --port ${port} so the codebolt HTTP/WS server binds to the port
+    // the provider will connect to for the /plugins endpoint.
     const finalStartCmd = this.providerConfig.codeboltStartCommand
-      || `REMOTE_EXECUTION_PORT=${port} ${codeboltBin} --server --project ${this.sandboxWorkspacePath}`;
+      || `${codeboltBin} --server --port ${port} --project ${this.sandboxWorkspacePath}`;
 
     // Track if the process fails immediately (e.g. command not found)
     let startupError: string | null = null;
@@ -1259,7 +1274,9 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.wsConnection = ws;
         this.agentServer.isConnected = true;
         this.agentServer.metadata = { connectedAt: Date.now() };
-        this.logger.log('Connected to plugin WS server');
+        this.logger.log('Connected to codebolt /plugins endpoint');
+        // The /plugins endpoint auto-claims the ExecutionGateway on connect,
+        // so we do NOT need to send executionGateway.claim/subscribe here.
         resolve();
       });
 
@@ -1376,7 +1393,10 @@ export class E2bRemoteProviderService extends BaseProvider {
    */
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
     const providerId = `e2b-${initVars.environmentName}`;
-    return `${this.agentServer.serverUrl}?providerId=${encodeURIComponent(providerId)}`;
+    // Connect directly to the sandbox codebolt server's /plugins endpoint.
+    // This replaces the previous hop through the remote-execution-plugin WS
+    // server — the codebolt server now performs the bridging internally.
+    return `${this.agentServer.serverUrl}/plugins?providerId=${encodeURIComponent(providerId)}`;
   }
 
   /**
