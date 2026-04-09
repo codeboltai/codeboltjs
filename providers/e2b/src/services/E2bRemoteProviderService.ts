@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { execSync } from 'child_process';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -262,6 +263,15 @@ export class E2bRemoteProviderService extends BaseProvider {
       return;
     }
 
+    // Drop narrative.* messages coming from the local host. Narrative work is
+    // owned by the remote codebolt application; the local host is not a
+    // participant in this protocol, so any narrative.* message here is either
+    // a spurious echo or a loopback from its own handler.
+    if (typeof message?.type === 'string' && message.type.startsWith('narrative.')) {
+      this.logger.log(`Dropping local narrative message: ${message.type}`);
+      return;
+    }
+
     // Check if this is a reply to a pending execution request
     const pendingRequestId = this.matchPendingExecutionRequest(message);
     if (pendingRequestId) {
@@ -374,6 +384,91 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
 
+  // --- Dev-mode installer: pack local cli + plugin and install into sandbox ---
+
+  private async packLocalDir(dir: string): Promise<string> {
+    const out = execSync('npm pack --json --silent', {
+      cwd: dir,
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const parsed = JSON.parse(out);
+    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+    const filename = entry?.filename;
+    if (!filename) throw new Error(`npm pack in ${dir} produced no filename`);
+    return path.resolve(dir, filename);
+  }
+
+  /**
+   * Pack the local codebolt cli package and the local remote-execution-plugin
+   * and install them into the running sandbox. Intended for local development
+   * — avoids rebuilding the e2b template on every iteration.
+   */
+  private async installLocalDevArtifacts(): Promise<void> {
+    if (!this.sandbox) return;
+
+    const cliDir = '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/cli';
+    const pluginDir = '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/plugins/remote-execution-plugin';
+
+    this.logger.log('[dev-install] Overlaying local cli + plugin onto sandbox');
+
+    // 1. Pack the local cli and install it globally, replacing whatever the
+    //    template has baked in.
+    this.logger.log('[dev-install] Packing local cli:', cliDir);
+    const cliTarball = await this.packLocalDir(cliDir);
+    try {
+      const remoteTar = '/tmp/codebolt-cli.tgz';
+      await this.uploadFileToSandbox(cliTarball, remoteTar);
+      const result = await this.sandbox.commands.run(
+        `npm install -g ${remoteTar}`,
+        { user: 'root' as any, timeoutMs: 300_000 },
+      );
+      if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
+        throw new Error(`npm install -g codebolt cli failed: exit ${(result as any).exitCode} stderr=${(result as any).stderr}`);
+      }
+      await this.sandbox.commands.run(`rm -f ${remoteTar}`);
+    } finally {
+      try { await fs.unlink(cliTarball); } catch { /* ignore */ }
+    }
+
+    // 2. Upload the local plugin's package.json + dist files into both the
+    //    user plugin dir and the builtin plugin dir under the codebolt package.
+    const pkgJsonPath = path.join(pluginDir, 'package.json');
+    const distIndexPath = path.join(pluginDir, 'dist', 'index.js');
+    const distMapPath = path.join(pluginDir, 'dist', 'index.js.map');
+
+    const pkgJsonRaw = await fs.readFile(pkgJsonPath, 'utf-8');
+    const pkgJson = JSON.parse(pkgJsonRaw);
+    const pluginName = (pkgJson.name || '').replace(/^@[^/]+\//, '');
+    if (!pluginName) {
+      throw new Error(`Could not derive plugin folder name from ${pkgJsonPath}`);
+    }
+    const userPluginDir = `/home/user/.codebolt/plugins/${pluginName}`;
+    const builtinPluginDir = `/usr/local/lib/node_modules/codebolt/dist/plugins/${pluginName}`;
+
+    let hasMap = false;
+    try { await fs.access(distMapPath); hasMap = true; } catch { /* no map */ }
+
+    for (const targetDir of [userPluginDir, builtinPluginDir]) {
+      await this.sandbox.commands.run(
+        `rm -rf ${targetDir} && mkdir -p ${targetDir}/dist && chown -R user:user ${targetDir}`,
+        { user: 'root' as any },
+      );
+      await this.sandbox.files.write(`${targetDir}/package.json`, pkgJsonRaw);
+      await this.uploadFileToSandbox(distIndexPath, `${targetDir}/dist/index.js`);
+      if (hasMap) {
+        await this.uploadFileToSandbox(distMapPath, `${targetDir}/dist/index.js.map`);
+      }
+      this.logger.log(`[dev-install] Plugin uploaded to ${targetDir}`);
+    }
+
+    await this.sandbox.commands.run(
+      'chown -R user:user /home/user/.codebolt',
+      { user: 'root' as any },
+    );
+    this.logger.log('[dev-install] Local dev artifacts installed');
+  }
+
   /**
    * Send a `narrative.*` message through the in-sandbox remote-execution-plugin
    * (which acts as a transparent bridge) to the codebolt application's
@@ -445,21 +540,25 @@ export class E2bRemoteProviderService extends BaseProvider {
     // Narrative response — resolve any pending narrative request whose
     // expected responseType matches. The message comes straight from the
     // codebolt application (bridged through the plugin).
-    if (typeof message?.type === 'string'
-        && message.type.startsWith('narrative.')
-        && message.type.endsWith('Response')
-        && message.requestId) {
-      const pending = this.pendingNarrativeRequests.get(message.requestId);
-      if (pending && pending.responseType === message.type) {
-        clearTimeout(pending.timeout);
-        this.pendingNarrativeRequests.delete(message.requestId);
-        if (message.success) {
-          pending.resolve(message);
-        } else {
-          pending.reject(new Error(message.error || 'narrative request failed'));
+    if (typeof message?.type === 'string' && message.type.startsWith('narrative.')) {
+      if (message.type.endsWith('Response') && message.requestId) {
+        const pending = this.pendingNarrativeRequests.get(message.requestId);
+        if (pending && pending.responseType === message.type) {
+          clearTimeout(pending.timeout);
+          this.pendingNarrativeRequests.delete(message.requestId);
+          if (message.success) {
+            pending.resolve(message);
+          } else {
+            pending.reject(new Error(message.error || 'narrative request failed'));
+          }
+          return;
         }
-        return;
       }
+      // Swallow any unmatched narrative.* message — never forward it to the
+      // local host, which would misinterpret narrative.*Response as a request
+      // and loop it back as narrative.errorResponse.
+      this.logger.log(`Ignoring unmatched narrative message: ${message.type}`);
+      return;
     }
 
     switch (message.type) {
@@ -856,6 +955,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (this.sandboxId) {
       this.setEnvironmentResourceId(this.sandboxId);
     }
+
+    // Dev mode: overlay local cli + plugin so we don't need a fresh template
+    // build on every iteration. Always runs — this provider is currently used
+    // for local development against the monorepo.
+    await this.installLocalDevArtifacts();
 
     // Clone git repo if provided
     const gitUrl = initVars.gitUrl as string | undefined;
