@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { execSync } from 'child_process';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -47,6 +46,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     resolve: (value: any) => void;
     reject: (err: Error) => void;
     timeout: NodeJS.Timeout;
+    responseType: string;
   }> = new Map();
 
   private readonly providerConfig: E2bProviderConfig;
@@ -116,9 +116,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (initVars.e2bApiKey) {
       this.providerConfig.e2bApiKey = initVars.e2bApiKey as string;
     }
-    if (initVars.sandboxTemplate) {
-      this.providerConfig.sandboxTemplate = initVars.sandboxTemplate as string;
-    }
+    this.logger.log('Using E2B sandbox template:', this.providerConfig.sandboxTemplate);
 
     // Custom startup order: sandbox first, then CodeBolt + plugin, then transport.
     this.resetState();
@@ -136,8 +134,10 @@ export class E2bRemoteProviderService extends BaseProvider {
     // 3. Connect WebSocket transport to plugin WS server
     await this.ensureTransportConnection(initVars);
 
-    // 4. Import narrative unified bundle into the in-sandbox unified server
-    // (delegated to the plugin so narrative semantics stay out of the provider).
+    // 4. Import narrative unified bundle into the in-sandbox codebolt server.
+    //    The plugin acts as a transparent bridge — it does NOT interpret
+    //    narrative messages. The codebolt application in the remote sandbox
+    //    owns the narrative engine and performs the import + checkout.
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
     if (narrativeBundlePath && this.sandbox) {
       try {
@@ -145,17 +145,36 @@ export class E2bRemoteProviderService extends BaseProvider {
           narrativeBundlePath,
           '/tmp/narrative-unified.tar.gz',
         );
-        this.logger.log('Sending narrativeArchiveImport to plugin:', remoteBundle);
-        const ack = await this.sendNarrativeRequest('narrativeArchiveImport', {
+        this.logger.log('Sending narrative.importUnifiedBundle via plugin bridge:', remoteBundle);
+        const importResp = await this.sendNarrativeRequest('narrative.importUnifiedBundle', {
           bundlePath: remoteBundle,
           environmentId: initVars.environmentName,
           workspace: this.sandboxWorkspacePath,
-          snapshotId: (initVars as any).snapshotId,
-          narrativeContext: (initVars as any).narrativeContext,
         });
         this.logger.log(
-          `Narrative bundle imported: snapshots=${ack?.snapshot_ids?.length ?? 0} narrative_imported=${ack?.narrative_imported}`,
+          `Narrative bundle imported: snapshots=${importResp?.snapshot_ids?.length ?? 0} narrative_imported=${importResp?.narrative_imported}`,
         );
+
+        // Materialize the most recent snapshot's files into the workspace so
+        // the remote agent can see them. Without this the workspace is empty
+        // on a fresh sandbox — import only populates git refs + SQLite.
+        const latestSnapshotId = importResp?.snapshot_ids?.[importResp.snapshot_ids.length - 1];
+        if (latestSnapshotId) {
+          try {
+            const checkout = await this.sendNarrativeRequest('narrative.checkoutSnapshot', {
+              snapshotId: latestSnapshotId,
+              environmentId: initVars.environmentName,
+              workspace: this.sandboxWorkspacePath,
+              strategy: { type: 'revert' },
+            });
+            this.logger.log(
+              `Checked out snapshot ${latestSnapshotId} → tree ${checkout?.restored_tree_hash}`,
+            );
+          } catch (err: any) {
+            this.logger.error('narrative.checkoutSnapshot failed:', err?.message ?? err);
+          }
+        }
+
         await this.sandbox.commands.run(`rm -f ${remoteBundle}`);
       } catch (err: any) {
         this.logger.error('Narrative bundle import failed:', err?.message ?? err);
@@ -353,166 +372,18 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
   }
 
-  /**
-   * Run `npm pack` in a local package directory and return the absolute path
-   * to the resulting .tgz tarball.
-   */
-  private async packLocalDir(dir: string): Promise<string> {
-    // npm pack --json prints metadata for each tarball; capture it.
-    const out = execSync('npm pack --json --silent', {
-      cwd: dir,
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    const parsed = JSON.parse(out);
-    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-    const filename = entry?.filename;
-    if (!filename) {
-      throw new Error(`npm pack in ${dir} did not produce a filename`);
-    }
-    return path.resolve(dir, filename);
-  }
-
-  /**
-   * Upload a local tarball to the sandbox and `npm install -g` it.
-   */
-  private async installLocalTarballInSandbox(localTarballPath: string): Promise<void> {
-    if (!this.sandbox) throw new Error('No sandbox available');
-    this.logger.log('[dev-install] Uploading local tarball:', localTarballPath);
-    const remoteTar = '/tmp/codebolt-local.tgz';
-    await this.uploadFileToSandbox(localTarballPath, remoteTar);
-    this.logger.log('[dev-install] Installing local tarball globally');
-    const result = await this.sandbox.commands.run(
-      `npm install -g --ignore-scripts ${remoteTar}`,
-      { user: 'root' as any },
-    );
-    if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
-      throw new Error(`npm install -g <tarball> failed: exit ${(result as any).exitCode}`);
-    }
-    await this.sandbox.commands.run(`rm -f ${remoteTar}`);
-  }
-
-  // --- Dev-mode installer (replicates e2b-template setup at runtime) ---
-
-  /**
-   * Mirror the e2b-template's setup steps so we can iterate on plugin / server
-   * code without rebuilding and republishing the template.
-   *
-   * All steps are skipped unless their env var is set, so this is a no-op in
-   * production runs that use a pre-baked template.
-   */
-  private async installLocalDevArtifacts(): Promise<void> {
-    if (!this.sandbox) return;
-
-    const installCodebolt = process.env.CODEBOLT_DEV_INSTALL_CODEBOLT === '1'
-      || process.env.CODEBOLT_DEV_INSTALL_CODEBOLT === 'true';
-    const serverTarball = process.env.CODEBOLT_DEV_SERVER_TARBALL;
-    const cliDir = process.env.CODEBOLT_DEV_CLI_DIR;
-    const pluginDir = process.env.CODEBOLT_DEV_PLUGIN_DIR
-      || '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/plugins/remote-execution-plugin';
-
-    if (!installCodebolt && !serverTarball && !cliDir && !pluginDir) {
-      return; // nothing to do — use whatever the template has baked in
-    }
-
-    this.logger.log('[dev-install] Starting local dev artifact installation');
-
-    // 1. Install codebolt globally from npm (only if requested or if missing)
-    if (installCodebolt) {
-      this.logger.log('[dev-install] Running: npm install -g --ignore-scripts codebolt');
-      const result = await this.sandbox.commands.run(
-        'npm install -g --ignore-scripts codebolt',
-        { user: 'root' as any },
-      );
-      if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
-        throw new Error(`npm install -g codebolt failed: exit ${(result as any).exitCode}`);
-      }
-    }
-
-    // 2a. Install codebolt from a LOCAL tarball (overrides whatever's there)
-    // Build the tarball locally with `npm pack` in packages/cli (or wherever
-    // your codebolt package lives) and point CODEBOLT_DEV_SERVER_TARBALL at it.
-    if (serverTarball) {
-      await this.installLocalTarballInSandbox(serverTarball);
-    }
-
-    // 2b. Pack a local cli dir on-the-fly and install — saves the manual
-    // `npm pack` step. Set CODEBOLT_DEV_CLI_DIR=/path/to/packages/cli.
-    if (cliDir) {
-      this.logger.log('[dev-install] Packing local cli dir:', cliDir);
-      const tarballPath = await this.packLocalDir(cliDir);
-      try {
-        await this.installLocalTarballInSandbox(tarballPath);
-      } finally {
-        // Clean up the local tarball npm pack just produced
-        try { await fs.unlink(tarballPath); } catch { /* ignore */ }
-      }
-    }
-
-    // 3. Upload local plugin dir (package.json + dist/index.js) to
-    //    ~/.codebolt/plugins/<plugin-name> so the unified server picks it up
-    //    on its next plugin scan.
-    if (pluginDir) {
-      this.logger.log('[dev-install] Uploading local plugin dir:', pluginDir);
-      const pkgJsonPath = path.join(pluginDir, 'package.json');
-      const distIndexPath = path.join(pluginDir, 'dist', 'index.js');
-
-      const pkgJsonRaw = await fs.readFile(pkgJsonPath, 'utf-8');
-      const pkgJson = JSON.parse(pkgJsonRaw);
-      const pluginName = (pkgJson.name || '').replace(/^@[^/]+\//, '');
-      if (!pluginName) {
-        throw new Error(`Could not derive plugin folder name from ${pkgJsonPath}`);
-      }
-      const remotePluginDir = `/home/user/.codebolt/plugins/${pluginName}`;
-      // Also overwrite the builtin plugin shipped with the codebolt npm package,
-      // since codebolt loads it by default and errors if its dist/index.js is missing.
-      const builtinPluginDir = `/usr/lib/node_modules/codebolt/dist/plugins/${pluginName}`;
-
-      const distMapPath = path.join(pluginDir, 'dist', 'index.js.map');
-      let hasMap = false;
-      try { await fs.access(distMapPath); hasMap = true; } catch { /* no map */ }
-
-      for (const targetDir of [remotePluginDir, builtinPluginDir]) {
-        // Wipe + recreate the plugin dir so stale files don't leak across runs.
-        // Chown to user so subsequent uploads (which run as user) can write into it.
-        await this.sandbox.commands.run(
-          `rm -rf ${targetDir} && mkdir -p ${targetDir}/dist && chown -R user:user ${targetDir}`,
-          { user: 'root' as any },
-        );
-
-        // Upload package.json
-        await this.sandbox.files.write(`${targetDir}/package.json`, pkgJsonRaw);
-
-        // Upload dist/index.js (binary-safe via base64 round-trip helper)
-        await this.uploadFileToSandbox(distIndexPath, `${targetDir}/dist/index.js`);
-
-        // Optional: upload sourcemap if present
-        if (hasMap) {
-          await this.uploadFileToSandbox(distMapPath, `${targetDir}/dist/index.js.map`);
-        }
-
-        this.logger.log(`[dev-install] Plugin uploaded to ${targetDir}`);
-      }
-
-      // Fix ownership so the user can read/execute the files
-      await this.sandbox.commands.run(
-        `chown -R user:user /home/user/.codebolt`,
-        { user: 'root' as any },
-      );
-    }
-
-    this.logger.log('[dev-install] Local dev artifact installation complete');
-  }
-
   // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
 
   /**
-   * Send a narrative-control message to the in-sandbox plugin and await its ack.
-   * The plugin handles `narrativeArchiveImport` / `narrativeArchiveExport` by
-   * calling the unified server's narrativePluginHandler in the same process.
+   * Send a `narrative.*` message through the in-sandbox remote-execution-plugin
+   * (which acts as a transparent bridge) to the codebolt application's
+   * narrativePluginHandler. Awaits the corresponding `narrative.*Response`.
+   *
+   * The plugin does NOT interpret these messages — all narrative work is done
+   * by the codebolt application in the remote sandbox.
    */
   private sendNarrativeRequest(
-    type: 'narrativeArchiveImport' | 'narrativeArchiveExport',
+    type: string,
     payload: Record<string, any>,
     timeoutMs: number = 120_000,
   ): Promise<any> {
@@ -520,13 +391,14 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
       return Promise.reject(new Error('Plugin WS not connected; cannot send narrative request'));
     }
+    const responseType = `${type}Response`;
     const requestId = `narr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingNarrativeRequests.delete(requestId);
         reject(new Error(`Narrative request ${type} timed out after ${timeoutMs}ms`));
       }, timeoutMs);
-      this.pendingNarrativeRequests.set(requestId, { resolve, reject, timeout });
+      this.pendingNarrativeRequests.set(requestId, { resolve, reject, timeout, responseType });
       try {
         ws.send(JSON.stringify({ type, requestId, ...payload }));
       } catch (err: any) {
@@ -570,11 +442,15 @@ export class E2bRemoteProviderService extends BaseProvider {
    * Handle messages from the remote-execution-plugin WS server.
    */
   private handlePluginMessage(message: any): void {
-    // Narrative ack — resolve any pending narrative request
-    if ((message?.type === 'narrativeArchiveImportAck' || message?.type === 'narrativeArchiveExportAck')
+    // Narrative response — resolve any pending narrative request whose
+    // expected responseType matches. The message comes straight from the
+    // codebolt application (bridged through the plugin).
+    if (typeof message?.type === 'string'
+        && message.type.startsWith('narrative.')
+        && message.type.endsWith('Response')
         && message.requestId) {
       const pending = this.pendingNarrativeRequests.get(message.requestId);
-      if (pending) {
+      if (pending && pending.responseType === message.type) {
         clearTimeout(pending.timeout);
         this.pendingNarrativeRequests.delete(message.requestId);
         if (message.success) {
@@ -582,8 +458,8 @@ export class E2bRemoteProviderService extends BaseProvider {
         } else {
           pending.reject(new Error(message.error || 'narrative request failed'));
         }
+        return;
       }
-      return;
     }
 
     switch (message.type) {
@@ -822,22 +698,28 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   private async doSendPR(): Promise<any> {
-    this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox plugin');
+    this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox codebolt');
 
     if (!this.sandbox) {
       throw new Error('No sandbox available');
     }
 
-    // Ask the plugin (which talks to the in-sandbox unified server) to create a
-    // unified bundle of the current workspace's narrative state. The plugin
-    // returns a path inside the sandbox; we then download those bytes locally.
-    const lastSnapshotId = (this.lastInitVars as any)?.snapshotId as string | undefined;
-    if (!lastSnapshotId) {
-      throw new Error('No snapshotId available on lastInitVars; cannot export narrative bundle');
+    // Ask the in-sandbox codebolt application (bridged through the plugin) to
+    // snapshot the CURRENT workspace state and export a unified bundle. The
+    // plugin is a pure bridge — it does not interpret narrative messages.
+    const snap = await this.sendNarrativeRequest('narrative.createSnapshot', {
+      environmentId: this.state.environmentName,
+      workspace: this.sandboxWorkspacePath,
+      description: 'pre-export snapshot of current workspace',
+    });
+    const snapshotIdToExport = snap?.snapshot_id
+      ?? (this.lastInitVars as any)?.snapshotId;
+    if (!snapshotIdToExport) {
+      throw new Error('No snapshotId available to export narrative bundle');
     }
 
-    const ack = await this.sendNarrativeRequest('narrativeArchiveExport', {
-      snapshotId: lastSnapshotId,
+    const ack = await this.sendNarrativeRequest('narrative.exportUnifiedBundle', {
+      snapshotId: snapshotIdToExport,
       environmentId: this.state.environmentName,
       workspace: this.sandboxWorkspacePath,
       incremental: false,
@@ -845,7 +727,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     const remoteBundlePath = ack?.bundlePath;
     if (!remoteBundlePath) {
-      throw new Error('Plugin did not return a bundlePath in narrativeArchiveExportAck');
+      throw new Error('codebolt did not return a bundlePath in narrative.exportUnifiedBundleResponse');
     }
 
     // Download the bundle to a local temp file
@@ -957,16 +839,15 @@ export class E2bRemoteProviderService extends BaseProvider {
         },
       };
 
-      if (this.providerConfig.sandboxTemplate) {
-        createParams.template = this.providerConfig.sandboxTemplate;
-      }
-
       if (initVars.envVars && typeof initVars.envVars === 'object') {
         createParams.envs = initVars.envVars as Record<string, string>;
       }
 
       const SandboxCls = await getE2bSandbox();
-      this.sandbox = await SandboxCls.create(createParams);
+      // E2B SDK v2: template is a positional arg, NOT an opts field.
+      this.sandbox = this.providerConfig.sandboxTemplate
+        ? await SandboxCls.create(this.providerConfig.sandboxTemplate, createParams)
+        : await SandboxCls.create(createParams);
       this.sandboxId = this.sandbox.sandboxId || null;
       this.logger.log('Created new E2B sandbox:', this.sandboxId);
     }
@@ -974,21 +855,6 @@ export class E2bRemoteProviderService extends BaseProvider {
     // Persist sandbox ID for recovery across restarts
     if (this.sandboxId) {
       this.setEnvironmentResourceId(this.sandboxId);
-    }
-
-    // Dev-mode installer: replicate template setup steps at runtime so we can
-    // iterate on plugin/server code without rebuilding the e2b template image.
-    // Controlled by env vars (all optional):
-    //   CODEBOLT_DEV_INSTALL_CODEBOLT=1     → npm install -g codebolt (or @latest)
-    //   CODEBOLT_DEV_SERVER_TARBALL=<path>  → upload local codebolt tarball + npm install -g it
-    //   CODEBOLT_DEV_PLUGIN_DIR=<path>      → upload local plugin (package.json + dist/) to ~/.codebolt/plugins/<name>
-    if (this.sandbox) {
-      try {
-        await this.installLocalDevArtifacts();
-      } catch (err: any) {
-        this.logger.error('Dev artifact install failed:', err?.message ?? err);
-        throw err;
-      }
     }
 
     // Clone git repo if provided
@@ -1117,33 +983,9 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.logger.log('CodeBolt binary search result:', codeboltBin);
 
     if (codeboltBin === 'NOT_FOUND') {
-      // codebolt not pre-installed (no template or outdated template) — install at runtime as fallback
-      this.logger.log('CodeBolt not found in sandbox, installing at runtime...');
-      const installResult = await this.sandbox.commands.run(
-        'npm install -g --ignore-scripts codebolt@1.12.15',
-        { user: 'root', timeoutMs: 300_000 },
+      throw new Error(
+        'codebolt binary not found in sandbox. The e2b template must have codebolt + remote-execution-plugin pre-installed (see providers/e2b/e2b-template/build-template.ts).',
       );
-      if (installResult.exitCode !== 0) {
-        throw new Error(`Failed to install codebolt in sandbox: ${installResult.stderr}`);
-      }
-      this.logger.log('CodeBolt installed in sandbox');
-
-      // Re-resolve after install
-      const resolvedPath = await this.sandbox.commands.run(
-        'for p in /usr/local/bin/codebolt /usr/bin/codebolt; do test -f "$p" && echo "$p" && exit 0; done; echo "/usr/local/bin/codebolt"',
-      );
-      codeboltBin = resolvedPath.stdout?.trim() || '/usr/local/bin/codebolt';
-
-      // Plugin won't be in the template either — download from API
-      await this.ensurePluginInstalled(codeboltBin);
-
-      // Re-apply local dev plugin overrides — npm install -g codebolt may have
-      // overwritten the builtin plugin dir we populated earlier in installLocalDevArtifacts.
-      try {
-        await this.installLocalDevArtifacts();
-      } catch (err: any) {
-        this.logger.error('Re-applying local dev artifacts failed:', err?.message ?? err);
-      }
     }
 
     this.logger.log('Using codebolt binary:', codeboltBin);
@@ -1189,59 +1031,6 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.agentServer.serverUrl = wsUrl;
 
     this.logger.log('Plugin WS server accessible at:', wsUrl);
-  }
-
-  /**
-   * Ensure the remote-execution-plugin is installed in the sandbox.
-   * Downloads the plugin from the Codebolt API and extracts it into both
-   * the codebolt built-in plugins dir and ~/.codebolt/plugins/.
-   */
-  private async ensurePluginInstalled(codeboltBin: string): Promise<void> {
-    if (!this.sandbox) return;
-
-    const PLUGIN_ID = '@codebolt/remote-execution-plugin';
-
-    // Find the codebolt package root (e.g. /usr/lib/node_modules/codebolt)
-    const pkgRootResult = await this.sandbox.commands.run(
-      `node -e "console.log(require.resolve('codebolt/package.json').replace('/package.json',''))"  2>/dev/null || dirname $(dirname ${codeboltBin})`,
-    );
-    const codeboltRoot = pkgRootResult.stdout?.trim() || '/usr/lib/node_modules/codebolt';
-    const builtinPluginDir = `${codeboltRoot}/dist/plugins/remote-execution-plugin`;
-    const globalPluginDir = '/home/user/.codebolt/plugins/remote-execution-plugin';
-
-    // Check if plugin exists in either location
-    const checkResult = await this.sandbox.commands.run(
-      `test -f ${builtinPluginDir}/dist/index.js && echo "BUILTIN" || (test -f ${globalPluginDir}/dist/index.js && echo "GLOBAL" || echo "MISSING")`,
-    );
-    const pluginLocation = checkResult.stdout?.trim();
-    this.logger.log('Plugin check result:', pluginLocation);
-
-    if (pluginLocation === 'BUILTIN' || pluginLocation === 'GLOBAL') {
-      this.logger.log('remote-execution-plugin already installed at:', pluginLocation);
-      return;
-    }
-
-    // Download plugin from API
-    this.logger.log('Downloading remote-execution-plugin from API...');
-    const downloadCmd = [
-      `mkdir -p ${builtinPluginDir}/dist ${globalPluginDir}/dist`,
-      `PLUGIN_ZIP_URL=$(curl -sf "https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_ID)}" | jq -r '.zipFilePath' 2>/dev/null)`,
-      `echo "Plugin zip URL: $PLUGIN_ZIP_URL"`,
-      `curl -sfL -o /tmp/plugin-dist.zip "$PLUGIN_ZIP_URL"`,
-      `unzip -o /tmp/plugin-dist.zip -d ${builtinPluginDir}/`,
-      `unzip -o /tmp/plugin-dist.zip -d ${globalPluginDir}/`,
-      `rm -f /tmp/plugin-dist.zip`,
-    ].join(' && ');
-
-    const downloadResult = await this.sandbox.commands.run(downloadCmd, { user: 'root', timeoutMs: 60_000 });
-    if (downloadResult.exitCode !== 0) {
-      throw new Error(`Failed to download remote-execution-plugin: ${downloadResult.stderr}`);
-    }
-
-    // Fix ownership
-    await this.sandbox.commands.run('chown -R user:user /home/user/.codebolt 2>/dev/null || true', { user: 'root' });
-
-    this.logger.log('remote-execution-plugin installed in sandbox');
   }
 
   private async waitForPluginReady(port: number): Promise<void> {

@@ -1,5 +1,5 @@
 name: e2b-remote-provider
-version: 2.0.2
+version: 2.0.3
 unique_id: e2b-remote-provider
 description: E2B Remote Provider for CodeBolt (plugin-based)
 type: provider
@@ -9,6 +9,6 @@ author: ravi
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: "26sv45vrb3u0dharhkyn"
+  sandboxTemplate: "eqypbm5hkjcnnhtd5tjs"
   autoStopInterval: 0
 
