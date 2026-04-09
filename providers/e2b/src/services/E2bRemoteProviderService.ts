@@ -392,88 +392,6 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
 
-  // --- Dev-mode installer: install codebolt cli from npm into sandbox ---
-
-  /**
-   * Install the pinned codebolt cli from the public npm registry into the
-   * running sandbox. We install from npm (not a local tarball) because npm
-   * will correctly resolve the platform-specific
-   * `@codebolt/narrative-linux-x64` optional dependency from the registry —
-   * something a local `npm pack` + `npm install -g tarball` flow silently
-   * skips, leaving the narrative engine binary missing.
-   *
-   * Also removes any pre-baked remote-execution-plugin from the sandbox:
-   * after the /plugins endpoint refactor the provider connects directly to
-   * the codebolt server and the plugin is no longer needed. Leaving it in
-   * place causes it to auto-start and crash with EADDRINUSE on port 3100.
-   */
-  private async installLocalDevArtifacts(): Promise<void> {
-    if (!this.sandbox) return;
-
-    const cliVersion = '1.12.20';
-    this.logger.log(`[dev-install] Installing codebolt@${cliVersion} from npm`);
-
-    const result = await this.sandbox.commands.run(
-      `npm install -g codebolt@${cliVersion}`,
-      { user: 'root' as any, timeoutMs: 300_000 },
-    );
-    if ((result as any)?.exitCode && (result as any).exitCode !== 0) {
-      throw new Error(
-        `npm install -g codebolt@${cliVersion} failed: exit ${(result as any).exitCode} stderr=${(result as any).stderr}`,
-      );
-    }
-
-    // --- Diagnostics: where did codebolt land, and did the platform-specific
-    // narrative binary come along with it? ---
-    const diagCmds: Array<{ label: string; cmd: string }> = [
-      { label: 'npm root -g', cmd: 'npm root -g' },
-      { label: 'npm prefix -g', cmd: 'npm prefix -g' },
-      { label: 'which codebolt', cmd: 'which codebolt || echo NOT_ON_PATH' },
-      { label: 'codebolt --version', cmd: 'codebolt --version 2>&1 || echo FAILED' },
-      { label: 'global codebolt dir', cmd: 'ls -la $(npm root -g)/codebolt 2>&1 | head -30' },
-      { label: 'codebolt node_modules/@codebolt', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt 2>&1 | head -40' },
-      { label: 'narrative-linux-x64 dir', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64 2>&1' },
-      { label: 'narrative-linux-x64/bin', cmd: 'ls -la $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin 2>&1' },
-      { label: 'narrative binary file info', cmd: 'file $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative 2>&1 || echo MISSING' },
-      { label: 'narrative binary ldd', cmd: 'ldd $(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative 2>&1 || echo LDD_FAILED' },
-      // Spawn the binary directly for ~8s with stdin closed so it exits,
-      // and capture whatever it prints on stderr/stdout. This tells us
-      // whether it crashes, hangs, or emits the "ready" line.
-      {
-        label: 'narrative binary dry-run',
-        cmd:
-          'mkdir -p /home/user/young-olive && ' +
-          'timeout --preserve-status 8 ' +
-          '$(npm root -g)/codebolt/node_modules/@codebolt/narrative-linux-x64/bin/codebolt-narrative ' +
-          '--environment-id diag --workspace /home/user/young-olive --log-level debug ' +
-          '</dev/null 2>&1; echo "EXITCODE=$?"',
-      },
-    ];
-    for (const { label, cmd } of diagCmds) {
-      try {
-        const r = await this.sandbox.commands.run(cmd);
-        this.logger.log(`[dev-install][diag][${label}]\n${(r as any).stdout ?? ''}${(r as any).stderr ? `\nSTDERR: ${(r as any).stderr}` : ''}`);
-      } catch (e: any) {
-        this.logger.warn(`[dev-install][diag][${label}] command failed: ${e?.message ?? e}`);
-      }
-    }
-
-    // Nuke any remote-execution-plugin that the published cli may still
-    // bake in. Not needed — provider talks to /plugins directly.
-    await this.sandbox.commands.run(
-      'rm -rf /home/user/.codebolt/plugins/remote-execution-plugin ' +
-      '/usr/local/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin',
-      { user: 'root' as any },
-    );
-    this.logger.log('[dev-install] Removed baked remote-execution-plugin');
-
-    await this.sandbox.commands.run(
-      'chown -R user:user /home/user/.codebolt',
-      { user: 'root' as any },
-    );
-    this.logger.log(`[dev-install] codebolt@${cliVersion} installed`);
-  }
-
   /**
    * Send a `narrative.*` message through the in-sandbox remote-execution-plugin
    * (which acts as a transparent bridge) to the codebolt application's
@@ -968,11 +886,6 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (this.sandboxId) {
       this.setEnvironmentResourceId(this.sandboxId);
     }
-
-    // Dev mode: overlay local cli + plugin so we don't need a fresh template
-    // build on every iteration. Always runs — this provider is currently used
-    // for local development against the monorepo.
-    await this.installLocalDevArtifacts();
 
     // Clone git repo if provided
     const gitUrl = initVars.gitUrl as string | undefined;

@@ -1,14 +1,17 @@
 /**
- * E2B Template Builder — minimal base.
+ * E2B Template Builder.
  *
- * Builds a thin sandbox template: node:22-trixie + apt tooling, nothing else.
- * The provider installs codebolt cli + remote-execution-plugin from the local
- * monorepo at runtime via installLocalDevArtifacts — so this template does
- * NOT pre-bake either of them.
+ * Builds a sandbox template with codebolt cli pre-installed from npm, so the
+ * provider doesn't have to `npm install -g codebolt` on every cold start.
+ * The /plugins endpoint refactor means the remote-execution-plugin is no
+ * longer needed, so we do NOT pre-bake it.
  *
- * node:22-trixie is required because @codebolt/narrative-linux-x64 is linked
- * against glibc 2.39 (node:20/bookworm ships glibc 2.36 and fails with
- * `libc.so.6: version GLIBC_2.39 not found`).
+ * node:22-trixie is required because @codebolt/narrative-linux-x64 (glibc
+ * 2.35 after the ubuntu-22.04 build fix is still fine here) / historically
+ * was linked against newer glibc; trixie is a safe modern base.
+ *
+ * Bump CLI_VERSION here and in E2bRemoteProviderService.ts together when you
+ * want the sandbox to use a new published cli.
  *
  * Usage:
  *   npx tsx build-template.ts
@@ -19,12 +22,15 @@ import { config } from 'dotenv';
 
 config();
 
+const CLI_VERSION = '1.12.20';
+
 async function main() {
-  console.log('Building minimal E2B template (node:22-trixie + tooling)...\n');
+  console.log(`Building E2B template (node:22-trixie + codebolt@${CLI_VERSION})...\n`);
 
   const template = new TemplateBase()
     .fromImage('node:22-trixie')
-    .aptInstall(['curl', 'git', 'unzip', 'jq']);
+    .aptInstall(['curl', 'git', 'unzip', 'jq'])
+    .runCmd(`npm install -g codebolt@${CLI_VERSION}`, { user: 'root' });
 
   const buildInfo = await Template.build(template, 'codebolt-remote-execution', {
     cpuCount: 2,
