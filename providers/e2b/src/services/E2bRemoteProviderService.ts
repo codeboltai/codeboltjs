@@ -803,7 +803,25 @@ export class E2bRemoteProviderService extends BaseProvider {
     return '';
   }
 
+  // In-flight dedupe guard for onSendPR. Without this, the manual
+  // `providerSendPR` from the framework AND the auto `sendPROnAgentFinish`
+  // (triggered by processStopped) can both fire for the same agent finish,
+  // each producing a ReviewMergeRequest on the local server. Returning the
+  // same in-flight promise collapses concurrent calls into one.
+  private inFlightSendPR: Promise<any> | null = null;
+
   async onSendPR(): Promise<any> {
+    if (this.inFlightSendPR) {
+      this.logger.log('onSendPR — coalescing with in-flight request');
+      return this.inFlightSendPR;
+    }
+    this.inFlightSendPR = this.doSendPR().finally(() => {
+      this.inFlightSendPR = null;
+    });
+    return this.inFlightSendPR;
+  }
+
+  private async doSendPR(): Promise<any> {
     this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox plugin');
 
     if (!this.sandbox) {
@@ -1102,7 +1120,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       // codebolt not pre-installed (no template or outdated template) — install at runtime as fallback
       this.logger.log('CodeBolt not found in sandbox, installing at runtime...');
       const installResult = await this.sandbox.commands.run(
-        'npm install -g --ignore-scripts codebolt@1.12.14',
+        'npm install -g --ignore-scripts codebolt@1.12.15',
         { user: 'root', timeoutMs: 300_000 },
       );
       if (installResult.exitCode !== 0) {
@@ -1248,6 +1266,36 @@ export class E2bRemoteProviderService extends BaseProvider {
         // Not ready yet
       }
       await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    // Timeout — dump diagnostics from inside the sandbox before throwing
+    try {
+      this.logger.error(`[waitForPluginReady] Timeout reached. Collecting diagnostics from sandbox...`);
+
+      const diagCmds: Array<{ label: string; cmd: string }> = [
+        { label: 'listening sockets', cmd: `ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true` },
+        { label: `port ${port} check`, cmd: `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED` },
+        { label: 'plugin process', cmd: `ps -ef | grep -i remote-execution-plugin | grep -v grep || echo '<no plugin process>'` },
+        { label: 'all node processes', cmd: `ps -ef | grep -i node | grep -v grep || true` },
+        { label: 'plugin dir (global)', cmd: `ls -la /usr/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin 2>/dev/null || echo '<missing>'` },
+        { label: 'plugin ws dep (global)', cmd: `ls /usr/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin/node_modules/ws 2>/dev/null || echo '<ws missing in global plugin>'` },
+        { label: 'plugin dir (user)', cmd: `ls -la /home/user/.codebolt/plugins/remote-execution-plugin 2>/dev/null || echo '<missing>'` },
+        { label: 'plugin ws dep (user)', cmd: `ls /home/user/.codebolt/plugins/remote-execution-plugin/node_modules/ws 2>/dev/null || echo '<ws missing in user plugin>'` },
+        { label: 'codebolt log tail', cmd: `tail -n 200 /home/user/.codebolt/logs/*.log 2>/dev/null || echo '<no codebolt logs>'` },
+        { label: 'plugin log tail', cmd: `tail -n 200 /home/user/.codebolt/plugins/remote-execution-plugin/*.log 2>/dev/null || echo '<no plugin logs>'` },
+        { label: 'plugin trace file', cmd: `cat /tmp/remote-execution-plugin.trace.log 2>/dev/null || echo '<no trace file — onStart never reached fs.appendFileSync OR plugin not running this build>'` },
+      ];
+
+      for (const { label, cmd } of diagCmds) {
+        try {
+          const r = await this.sandbox!.commands.run(cmd);
+          this.logger.error(`[waitForPluginReady][${label}]\n${r.stdout ?? ''}${r.stderr ? `\nSTDERR: ${r.stderr}` : ''}`);
+        } catch (e: any) {
+          this.logger.error(`[waitForPluginReady][${label}] command failed: ${e?.message ?? e}`);
+        }
+      }
+    } catch (e: any) {
+      this.logger.error(`[waitForPluginReady] diagnostics collection failed: ${e?.message ?? e}`);
     }
 
     throw new Error(`CodeBolt plugin WS server failed to start within ${timeout}ms`);
