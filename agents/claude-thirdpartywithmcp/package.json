@@ -1,0 +1,38 @@
+{
+  "name": "@codebolt/claude-thirdpartywithmcp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Codebolt agent that runs Claude Code with Codebolt tools exposed via MCP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "npx webpack",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": ["ai", "agent", "claude", "mcp", "codebolt"],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.26.0",
+    "@codebolt/codeboltjs": "^5.1.29",
+    "@codebolt/thirdpartyagents": "workspace:*",
+    "@codebolt/mcp-server": "workspace:*",
+    "copy-webpack-plugin": "^12.0.2",
+    "node-loader": "^2.1.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@types/node": "^20.11.25",
+    "babel-loader": "^9.2.1",
+    "path-browserify": "^1.0.1",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "files": ["dist/**/*"]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@codebolt/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server that exposes Codebolt tools to third-party agents like Claude Code",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "codebolt",
+    "claude-code",
+    "ai-agent",
+    "tools"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.4.1"
+  },
+  "peerDependencies": {
+    "@codebolt/codeboltjs": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "private": true
+}
