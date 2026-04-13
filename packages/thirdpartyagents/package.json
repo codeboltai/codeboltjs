@@ -1,0 +1,53 @@
+{
+  "name": "@codebolt/thirdpartyagents",
+  "version": "1.0.0",
+  "description": "Third-party CLI agent adapters for Codebolt — run Claude Code, Codex, and other CLI agents with automatic Codebolt communication",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "claude",
+    "codex",
+    "codebolt",
+    "third-party",
+    "cli",
+    "typescript"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codeboltai/codeboltjs.git",
+    "directory": "packages/thirdpartyagents"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./claude": {
+      "types": "./dist/adapters/claude/index.d.ts",
+      "default": "./dist/adapters/claude/index.js"
+    }
+  }
+}
