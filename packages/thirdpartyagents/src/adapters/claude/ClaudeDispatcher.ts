@@ -11,34 +11,40 @@ export class ClaudeDispatcher extends BaseDispatcher {
     dispatch(message: CodeboltMessage, codebolt: CodeboltInstance): void {
         switch (message.type) {
             case 'init':
+                console.log(`[dispatcher] init → AgentInitNotify (model=${message.model}, sessionId=${message.sessionId})`);
                 codebolt.notify.system.AgentInitNotify();
                 break;
 
             case 'assistant_text':
                 if (message.text) {
+                    console.log(`[dispatcher] assistant_text → AgentTextResponseNotify ("${message.text.substring(0, 80)}")`);
                     codebolt.notify.chat.AgentTextResponseNotify(message.text);
                 }
                 break;
 
             case 'thinking':
-                // Thinking blocks are logged but not dispatched as chat messages
+                console.log(`[dispatcher] thinking (${(message.text || '').length} chars) — not dispatched`);
                 break;
 
             case 'tool_use':
+                console.log(`[dispatcher] tool_use → dispatchToolUse: ${message.toolName} (id=${message.toolUseId})`);
                 this.dispatchToolUse(message, codebolt);
                 break;
 
             case 'tool_result':
+                console.log(`[dispatcher] tool_result → dispatchToolResult (id=${message.toolUseId}, isError=${message.isError}, content="${(message.toolResultContent || '').substring(0, 80)}")`);
                 this.dispatchToolResult(message, codebolt);
                 break;
 
             case 'user_text':
+                console.log(`[dispatcher] user_text → UserMessageRequestNotify ("${(message.text || '').substring(0, 80)}")`);
                 if (message.text) {
                     codebolt.notify.chat.UserMessageRequestNotify(message.text);
                 }
                 break;
 
             case 'result':
+                console.log(`[dispatcher] result → AgentCompletionNotify ("${(message.text || '').substring(0, 80)}", cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
                 codebolt.notify.system.AgentCompletionNotify(
                     message.text || 'Task completed',
                     undefined,
@@ -47,14 +53,18 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'error':
+                console.log(`[dispatcher] error → AgentTextResponseNotify ("${(message.text || '').substring(0, 80)}")`);
                 if (message.text) {
                     codebolt.notify.chat.AgentTextResponseNotify(message.text, true);
                 }
                 break;
 
             case 'system':
+                console.log(`[dispatcher] system ("${(message.text || '').substring(0, 80)}") — not dispatched`);
+                break;
+
             case 'raw':
-                // Not dispatched — available in stream for custom handling
+                console.log(`[dispatcher] raw ("${(message.text || '').substring(0, 80)}") — not dispatched`);
                 break;
         }
     }
@@ -66,6 +76,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
 
         switch (name) {
             case 'Read':
+                console.log(`[dispatcher]   → fs.FileReadRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.FileReadRequestNotify(
                     input.file_path || input.path,
                     input.offset?.toString(),
@@ -75,6 +86,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Write':
+                console.log(`[dispatcher]   → fs.WriteToFileRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.WriteToFileRequestNotify(
                     input.file_path || input.path,
                     input.content || '',
@@ -83,6 +95,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Edit':
+                console.log(`[dispatcher]   → fs.FileEditRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.FileEditRequestNotify(
                     (input.file_path || input.path)?.split('/').pop() || 'file',
                     input.file_path || input.path,
@@ -92,6 +105,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'MultiEdit':
+                console.log(`[dispatcher]   → fs.FileEditRequestNotify (MultiEdit, ${input.edits?.length || 0} edits, toolId=${toolId})`);
                 if (input.edits && Array.isArray(input.edits)) {
                     input.edits.forEach((edit: any, i: number) => {
                         codebolt.notify.fs.FileEditRequestNotify(
@@ -105,10 +119,12 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'LS':
+                console.log(`[dispatcher]   → fs.ListDirectoryRequestNotify(path=${input.path || '.'}, toolId=${toolId})`);
                 codebolt.notify.fs.ListDirectoryRequestNotify(input.path || '.', toolId);
                 break;
 
             case 'Grep':
+                console.log(`[dispatcher]   → codeutils.GrepSearchRequestNotify(pattern=${input.pattern}, path=${input.path}, toolId=${toolId})`);
                 codebolt.notify.codeutils.GrepSearchRequestNotify(
                     input.pattern,
                     input.path,
@@ -120,6 +136,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Glob':
+                console.log(`[dispatcher]   → codeutils.GlobSearchRequestNotify(pattern=${input.pattern}, path=${input.path}, toolId=${toolId})`);
                 codebolt.notify.codeutils.GlobSearchRequestNotify(
                     input.pattern,
                     input.path,
@@ -130,6 +147,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Bash':
+                console.log(`[dispatcher]   → terminal.CommandExecutionRequestNotify(cmd="${(input.command || '').substring(0, 80)}", toolId=${toolId})`);
                 codebolt.notify.terminal.CommandExecutionRequestNotify(
                     input.command,
                     false,
@@ -139,6 +157,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Task':
+                console.log(`[dispatcher]   → todo.AddTodoRequestNotify(desc="${(input.description || input.prompt || '').substring(0, 60)}", toolId=${toolId})`);
                 codebolt.notify.todo.AddTodoRequestNotify(
                     input.description || input.prompt,
                     undefined,
@@ -161,12 +180,14 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'WebFetch':
+                console.log(`[dispatcher]   → browser.WebFetchRequestNotify(url=${input.url}, toolId=${toolId})`);
                 codebolt.notify.browser.WebFetchRequestNotify(
                     input.url, 'GET', undefined, undefined, undefined, toolId
                 );
                 break;
 
             case 'WebSearch':
+                console.log(`[dispatcher]   → browser.WebSearchRequestNotify(query=${input.query}, toolId=${toolId})`);
                 codebolt.notify.browser.WebSearchRequestNotify(
                     input.query, undefined, undefined, undefined, toolId
                 );
@@ -189,7 +210,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             default:
-                // Custom/MCP tool — send as text
+                console.log(`[dispatcher]   → chat.AgentTextResponseNotify (unknown tool: ${name}, toolId=${toolId})`);
                 codebolt.notify.chat.AgentTextResponseNotify(`Tool: ${name}`);
                 break;
         }
@@ -197,6 +218,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
 
     private dispatchToolResult(message: CodeboltMessage, codebolt: CodeboltInstance): void {
         const content = message.toolResultContent || '';
+        console.log(`[dispatcher]   → chat.AgentTextResponseNotify (toolResult, isError=${message.isError}, toolUseId=${message.toolUseId}, content="${content.substring(0, 80)}")`);
         codebolt.notify.chat.AgentTextResponseNotify(
             content,
             message.isError,

@@ -16,11 +16,17 @@ export async function* createMessageStream(
     codebolt: CodeboltInstance | null,
     prompt: string,
 ): AsyncGenerator<CodeboltMessage> {
+    console.log(`[message-stream] Starting stream for prompt: "${prompt.substring(0, 80)}"`);
+    let messageCount = 0;
+
     for await (const line of executor.execute(prompt)) {
         const ts = new Date().toISOString();
         const messages = formatter.parseLine(line, ts);
 
         for (const msg of messages) {
+            messageCount++;
+            console.log(`[message-stream] #${messageCount} type=${msg.type}${msg.toolName ? ` tool=${msg.toolName}` : ''}${msg.sessionId ? ` session=${msg.sessionId}` : ''}`);
+
             // Capture session ID from init messages
             if (msg.type === 'init' && msg.sessionId) {
                 executor.setSessionId?.(msg.sessionId);
@@ -34,4 +40,6 @@ export async function* createMessageStream(
             yield msg;
         }
     }
+
+    console.log(`[message-stream] Stream ended. Total messages: ${messageCount}`);
 }

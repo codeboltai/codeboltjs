@@ -89,6 +89,10 @@ export abstract class BaseExecutor implements IExecutor {
         const pid = this.process.pid;
         console.log(`[thirdpartyagents] Process started (PID: ${pid}), command: ${command}`);
 
+        // Close stdin immediately — prompt is passed as CLI arg, not via stdin.
+        // This prevents the "no stdin data received" warning from CLI agents.
+        this.process.stdin?.end();
+
         // Line-buffered stdout
         let stdoutBuffer = '';
         this.process.stdout?.on('data', (data: Buffer) => {
@@ -195,8 +199,10 @@ export abstract class BaseExecutor implements IExecutor {
     }
 
     sendInput(text: string): void {
-        if (this.process?.stdin) {
+        if (this.process?.stdin && !this.process.stdin.destroyed) {
             this.process.stdin.write(text + '\n');
+        } else {
+            console.log('[thirdpartyagents] Cannot send input — stdin is closed');
         }
     }
 

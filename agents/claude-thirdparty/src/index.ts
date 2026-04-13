@@ -54,11 +54,41 @@ codebolt.onMessage(async (userMessage: any) => {
 
         for await (const msg of currentHandle.execute()) {
             // Library already dispatched everything to codebolt.notify.*
-            // We can do additional logging/processing here
-            if (msg.type === 'tool_use') {
-                console.log(`[claude-thirdparty] Tool: ${msg.toolName}`);
-            } else if (msg.type === 'result') {
-                console.log(`[claude-thirdparty] Done. Cost: $${msg.usage?.costUsd?.toFixed(4) ?? '?'}`);
+            // Log every stream message for debugging
+            switch (msg.type) {
+                case 'init':
+                    console.log(`[stream] init: model=${msg.model} sessionId=${msg.sessionId}`);
+                    break;
+                case 'assistant_text':
+                    console.log(`[stream] assistant_text: "${(msg.text || '').substring(0, 120)}"`);
+                    break;
+                case 'thinking':
+                    console.log(`[stream] thinking: (${(msg.text || '').length} chars)`);
+                    break;
+                case 'tool_use':
+                    console.log(`[stream] tool_use: ${msg.toolName} id=${msg.toolUseId} input=${JSON.stringify(msg.toolInput).substring(0, 100)}`);
+                    break;
+                case 'tool_result':
+                    console.log(`[stream] tool_result: id=${msg.toolUseId} isError=${msg.isError} content="${(msg.toolResultContent || '').substring(0, 120)}"`);
+                    break;
+                case 'user_text':
+                    console.log(`[stream] user_text: "${(msg.text || '').substring(0, 120)}"`);
+                    break;
+                case 'result':
+                    console.log(`[stream] result: text="${(msg.text || '').substring(0, 80)}" cost=$${msg.usage?.costUsd?.toFixed(4) ?? '?'} tokens_in=${msg.usage?.inputTokens ?? '?'} tokens_out=${msg.usage?.outputTokens ?? '?'}`);
+                    break;
+                case 'error':
+                    console.log(`[stream] error: "${(msg.text || '').substring(0, 120)}"`);
+                    break;
+                case 'system':
+                    console.log(`[stream] system: "${(msg.text || '').substring(0, 120)}"`);
+                    break;
+                case 'raw':
+                    console.log(`[stream] raw: "${(msg.text || '').substring(0, 120)}"`);
+                    break;
+                default:
+                    console.log(`[stream] unknown type=${msg.type}: "${(msg.text || '').substring(0, 80)}"`);
+                    break;
             }
         }
 

@@ -69,7 +69,11 @@
       "Bash(npx tsx:*)",
       "Read(//Users/ravirawat/.e2b/**)",
       "Bash(npx esbuild:*)",
-      "Bash(find /Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src -type f \\\\\\(-name *optim* -o -name *eval* \\\\\\))"
+      "Bash(find /Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src -type f \\\\\\(-name *optim* -o -name *eval* \\\\\\))",
+      "Bash(python3 -m json.tool)",
+      "Bash(CODEBOLT_BASE=\"/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/node_modules/.pnpm/@codebolt+codeboltjs@5.1.30_bufferutil@4.0.9_utf-8-validate@6.0.5/node_modules/@codebolt/codeboltjs/dist/notificationfunctions\")",
+      "Read(//Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/$CODEBOLT_BASE/**)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []
