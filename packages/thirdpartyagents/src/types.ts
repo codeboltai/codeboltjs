@@ -14,6 +14,7 @@ export interface CodeboltInstance {
         };
         chat: {
             AgentTextResponseNotify(...args: any[]): void;
+            AgentThinkingNotify(...args: any[]): void;
             UserMessageRequestNotify(...args: any[]): void;
         };
         fs: {

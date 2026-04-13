@@ -23,7 +23,10 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'thinking':
-                console.log(`[dispatcher] thinking (${(message.text || '').length} chars) — not dispatched`);
+                if (message.text) {
+                    console.log(`[dispatcher] thinking → AgentThinkingNotify (${message.text.length} chars)`);
+                    codebolt.notify.chat.AgentThinkingNotify(message.text);
+                }
                 break;
 
             case 'tool_use':
