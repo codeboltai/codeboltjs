@@ -33,7 +33,7 @@ export class ClaudeDispatcher extends BaseDispatcher {
 
             case 'tool_result':
                 console.log(`[dispatcher] tool_result → dispatchToolResult (id=${message.toolUseId}, isError=${message.isError}, content="${(message.toolResultContent || '').substring(0, 80)}")`);
-                this.dispatchToolResult(message, codebolt);
+                // this.dispatchToolResult(message, codebolt);
                 break;
 
             case 'user_text':
