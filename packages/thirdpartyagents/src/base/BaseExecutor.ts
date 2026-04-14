@@ -34,6 +34,14 @@ export abstract class BaseExecutor implements IExecutor {
     /** Subclasses return the args array for the CLI */
     protected abstract buildArgs(prompt: string): string[];
 
+    /**
+     * Override to provide prompt text via stdin instead of CLI args.
+     * Return the string to write to stdin, or null to skip (default).
+     */
+    protected getStdinInput(_prompt: string): string | null {
+        return null;
+    }
+
     /** Called when a session ID is captured from output */
     public setSessionId(id: string): void {
         this._sessionId = id;
@@ -89,8 +97,12 @@ export abstract class BaseExecutor implements IExecutor {
         const pid = this.process.pid;
         console.log(`[thirdpartyagents] Process started (PID: ${pid}), command: ${command}`);
 
-        // Close stdin immediately — prompt is passed as CLI arg, not via stdin.
-        // This prevents the "no stdin data received" warning from CLI agents.
+        // Optionally write prompt to stdin (for CLIs that accept prompt via stdin)
+        const stdinInput = this.getStdinInput(prompt);
+        if (stdinInput !== null) {
+            this.process.stdin?.write(stdinInput);
+        }
+        // Close stdin — prompt is either in args or was just written above.
         this.process.stdin?.end();
 
         // Line-buffered stdout

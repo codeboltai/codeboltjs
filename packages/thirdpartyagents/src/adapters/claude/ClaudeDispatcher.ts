@@ -1,6 +1,9 @@
 import { BaseDispatcher } from '../../base/BaseDispatcher.js';
 import type { CodeboltMessage, CodeboltInstance } from '../../types.js';
 
+// Characters per chunk sent to AgentThinkingNotify
+const STREAM_CHUNK_SIZE = 12;
+
 /**
  * Dispatcher for Claude Code CLI messages.
  *
@@ -8,24 +11,58 @@ import type { CodeboltMessage, CodeboltInstance } from '../../types.js';
  * including tool-specific dispatching for tool_use messages.
  */
 export class ClaudeDispatcher extends BaseDispatcher {
+    // Stable stream ID per assistant turn — shared across text + thinking
+    private _currentStreamId: string | null = null;
+    private _streamIdCounter = 0;
+
+    private getOrCreateStreamId(): string {
+        if (!this._currentStreamId) {
+            this._currentStreamId = `stream_${Date.now()}_${++this._streamIdCounter}`;
+        }
+        return this._currentStreamId;
+    }
+
+    /**
+     * Sends text to the UI in small chunks via AgentThinkingNotify.
+     * The server-side batching (50ms interval) naturally spaces out UI updates.
+     */
+    private streamTextToUi(
+        text: string,
+        codebolt: CodeboltInstance,
+        field: 'content' | 'reasoning' = 'content'
+    ): void {
+        const streamId = this.getOrCreateStreamId();
+
+        for (let i = 0; i < text.length; i += STREAM_CHUNK_SIZE) {
+            const chunk = text.slice(i, i + STREAM_CHUNK_SIZE);
+            if (field === 'reasoning') {
+                codebolt.notify.chat.AgentThinkingNotify('', streamId, { reasoning: chunk });
+            } else {
+                codebolt.notify.chat.AgentThinkingNotify(chunk, streamId);
+            }
+        }
+    }
+
     dispatch(message: CodeboltMessage, codebolt: CodeboltInstance): void {
         switch (message.type) {
             case 'init':
                 console.log(`[dispatcher] init → AgentInitNotify (model=${message.model}, sessionId=${message.sessionId})`);
+                // Reset stream ID for new turn
+                this._currentStreamId = null;
                 codebolt.notify.system.AgentInitNotify();
                 break;
 
             case 'assistant_text':
                 if (message.text) {
-                    console.log(`[dispatcher] assistant_text → AgentTextResponseNotify ("${message.text.substring(0, 80)}")`);
-                    codebolt.notify.chat.AgentTextResponseNotify(message.text);
+                    console.log(`[dispatcher] assistant_text → streaming via AgentThinkingNotify (${message.text.length} chars)`);
+                    this.streamTextToUi(message.text, codebolt, 'content');
                 }
                 break;
 
             case 'thinking':
                 if (message.text) {
-                    console.log(`[dispatcher] thinking → AgentThinkingNotify (${message.text.length} chars)`);
-                    codebolt.notify.chat.AgentThinkingNotify(message.text);
+                    console.log(`[dispatcher] thinking → streaming reasoning via AgentThinkingNotify (${message.text.length} chars)`);
+                    this.streamTextToUi(message.text, codebolt, 'reasoning');
                 }
                 break;
 
@@ -48,6 +85,16 @@ export class ClaudeDispatcher extends BaseDispatcher {
 
             case 'result':
                 console.log(`[dispatcher] result → AgentCompletionNotify ("${(message.text || '').substring(0, 80)}", cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
+                // Send stream completion signal before finishing
+                if (this._currentStreamId) {
+                    const isError = message.isError === true;
+                    codebolt.notify.chat.AgentThinkingNotify(
+                        '',
+                        this._currentStreamId,
+                        { stateEvent: isError ? 'REQUEST_ERROR' : 'REQUEST_SUCCESS' }
+                    );
+                    this._currentStreamId = null;
+                }
                 codebolt.notify.system.AgentCompletionNotify(
                     message.text || 'Task completed',
                     undefined,

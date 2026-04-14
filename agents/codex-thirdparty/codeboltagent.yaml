@@ -1,0 +1,46 @@
+title: Codex Third-Party Agent
+version: 1.0.0
+unique_id: codex-thirdparty
+initial_message: |
+  I'm an OpenAI Codex agent powered by @codebolt/thirdpartyagents.
+  I run Codex CLI as a child process and stream results through Codebolt.
+  Tell me what you'd like to work on.
+description: Agent using @codebolt/thirdpartyagents to run OpenAI Codex CLI with automatic Codebolt communication.
+tags:
+  - coding
+  - cli
+  - codex
+  - openai
+  - thirdparty
+longDescription: |
+  This agent uses the @codebolt/thirdpartyagents library to run
+  OpenAI Codex CLI as a child process. The library automatically handles all
+  Codebolt communication (notifications, text streaming, etc.) while also
+  streaming messages for optional additional processing.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CX
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - gpt-5.3-codex
+      - o3
+      - o4-mini
+supportRemix: true
+author: codebolt

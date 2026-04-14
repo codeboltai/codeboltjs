@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.4.5"
   },
   "exports": {
@@ -49,5 +50,8 @@
       "types": "./dist/adapters/claude/index.d.ts",
       "default": "./dist/adapters/claude/index.js"
     }
+  },
+  "dependencies": {
+    "ws": "^8.20.0"
   }
 }

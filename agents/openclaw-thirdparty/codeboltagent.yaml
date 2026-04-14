@@ -1,0 +1,43 @@
+title: OpenClaw Third-Party Agent
+version: 1.0.0
+unique_id: openclaw-thirdparty
+initial_message: |
+  I'm an OpenClaw gateway agent powered by @codebolt/thirdpartyagents.
+  I connect to an OpenClaw gateway via WebSocket and stream results through Codebolt.
+  Set OPENCLAW_GATEWAY_URL environment variable to your gateway endpoint.
+description: Agent using @codebolt/thirdpartyagents to connect to OpenClaw Gateway via WebSocket.
+tags:
+  - coding
+  - gateway
+  - openclaw
+  - websocket
+  - thirdparty
+longDescription: |
+  This agent uses the @codebolt/thirdpartyagents library to connect
+  to an OpenClaw gateway via WebSocket. Unlike local CLI agents, this
+  communicates with a remote agent execution platform. Requires
+  OPENCLAW_GATEWAY_URL environment variable.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: OW
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder: []
+supportRemix: true
+author: codebolt
