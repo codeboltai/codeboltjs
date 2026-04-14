@@ -3156,8 +3156,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/codeboltjs':
-        specifier: ^5.1.31
-        version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+        specifier: ^5.1.32
+        version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
       '@codebolt/thirdpartyagents':
         specifier: workspace:*
         version: link:../../packages/thirdpartyagents
@@ -7056,6 +7056,9 @@ packages:
 
   '@codebolt/codeboltjs@5.1.31':
     resolution: {integrity: sha512-uaDc+4Qx+ogNRSwWEgq4BOyvn2AKPxrYLLyGLGdOWNSbyFZ2QwJY8XB/pygqWT6+cUNdNK8oqwJ0LbmDT3sUVA==}
+
+  '@codebolt/codeboltjs@5.1.32':
+    resolution: {integrity: sha512-YCn2c9YQvX2b6+fvhBbbqRUN7Mm4acWEkbVv3GvDP3DOClSEPoF0GYU5E/ySXnYkaPn8Jbu79X7MkvxB4WYOhA==}
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
@@ -22778,6 +22781,30 @@ snapshots:
       - utf-8-validate
       - zod
 
+  '@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)':
+    dependencies:
+      '@codebolt/types': 5.1.12
+      '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+      - zod
+
   '@codebolt/globby@1.0.1':
     dependencies:
       globby: 14.1.0
@@ -31684,7 +31711,7 @@ snapshots:
       '@next/eslint-plugin-next': 16.1.6
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.37.0(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.37.0(jiti@2.6.1))
@@ -31707,7 +31734,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -31722,14 +31749,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.37.0(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -31748,7 +31775,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.37.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1)))(eslint@9.37.0(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.37.0(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3

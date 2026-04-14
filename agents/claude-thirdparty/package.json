@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/codeboltjs": "^5.1.31",
+    "@codebolt/codeboltjs": "^5.1.32",
     "@codebolt/thirdpartyagents": "workspace:*",
     "copy-webpack-plugin": "^12.0.2",
     "node-loader": "^2.1.0"

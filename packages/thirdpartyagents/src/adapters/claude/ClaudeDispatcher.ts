@@ -53,16 +53,16 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'assistant_text':
+                // Streaming disabled — full text sent via AgentTextResponseNotify in 'result'
                 if (message.text) {
-                    console.log(`[dispatcher] assistant_text → streaming via AgentThinkingNotify (${message.text.length} chars)`);
-                    this.streamTextToUi(message.text, codebolt, 'content');
+                    console.log(`[dispatcher] assistant_text (${message.text.length} chars) — skipped (streaming disabled)`);
                 }
                 break;
 
             case 'thinking':
+                // Streaming disabled — reasoning not dispatched
                 if (message.text) {
-                    console.log(`[dispatcher] thinking → streaming reasoning via AgentThinkingNotify (${message.text.length} chars)`);
-                    this.streamTextToUi(message.text, codebolt, 'reasoning');
+                    console.log(`[dispatcher] thinking (${message.text.length} chars) — skipped (streaming disabled)`);
                 }
                 break;
 
@@ -84,17 +84,15 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'result':
-                console.log(`[dispatcher] result → AgentCompletionNotify ("${(message.text || '').substring(0, 80)}", cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
-                // Send stream completion signal before finishing
-                if (this._currentStreamId) {
-                    const isError = message.isError === true;
-                    codebolt.notify.chat.AgentThinkingNotify(
-                        '',
-                        this._currentStreamId,
-                        { stateEvent: isError ? 'REQUEST_ERROR' : 'REQUEST_SUCCESS' }
+                console.log(`[dispatcher] result → AgentTextResponseNotify + AgentCompletionNotify ("${(message.text || '').substring(0, 80)}", cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
+                // Send full response text as agent message
+                if (message.text) {
+                    codebolt.notify.chat.AgentTextResponseNotify(
+                        message.text,
+                        message.isError === true
                     );
-                    this._currentStreamId = null;
                 }
+                this._currentStreamId = null;
                 codebolt.notify.system.AgentCompletionNotify(
                     message.text || 'Task completed',
                     undefined,
