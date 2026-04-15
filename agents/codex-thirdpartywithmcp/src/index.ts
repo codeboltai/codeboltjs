@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import codebolt from '@codebolt/codeboltjs';
 import {
     CodexExecutor,
@@ -12,6 +12,9 @@ import type { CodexExecutorOptions } from '@codebolt/thirdpartyagents';
 import { startCodeboltMcpServer } from '@codebolt/mcp-server';
 
 const toolsModule = require('@codebolt/codeboltjs/tools').default;
+const execFileAsync = promisify(execFile);
+
+const MCP_SERVER_NAME = 'codebolt';
 
 async function startMcpServer() {
     const handle = await startCodeboltMcpServer({
@@ -23,43 +26,27 @@ async function startMcpServer() {
     return handle;
 }
 
-class CodexWithMcpExecutor extends CodexExecutor {
-    private mcpConfigPath: string;
-
-    constructor(options: CodexExecutorOptions, mcpConfigPath: string) {
-        super(options);
-        this.mcpConfigPath = mcpConfigPath;
-    }
-
-    protected override buildArgs(prompt: string): string[] {
-        const args = super.buildArgs(prompt);
-        // Codex args end with '-' (stdin marker). Insert --mcp-config before it.
-        const stdinMarker = args.pop()!;
-        args.push('--mcp-config', this.mcpConfigPath);
-        args.push(stdinMarker);
-        console.log('[codex-mcp-agent] Codex args:', JSON.stringify(args));
-        return args;
+async function registerMcpServer(sseUrl: string): Promise<void> {
+    try {
+        const { stdout, stderr } = await execFileAsync('codex', [
+            'mcp', 'add', MCP_SERVER_NAME, '--url', sseUrl,
+        ]);
+        if (stdout) console.log(`[codex-mcp-agent] MCP register stdout: ${stdout.trim()}`);
+        if (stderr) console.log(`[codex-mcp-agent] MCP register stderr: ${stderr.trim()}`);
+        console.log(`[codex-mcp-agent] MCP server "${MCP_SERVER_NAME}" registered with URL: ${sseUrl}`);
+    } catch (error) {
+        console.error(`[codex-mcp-agent] Failed to register MCP server: ${error}`);
+        throw error;
     }
 }
 
-function writeMcpConfig(sseUrl: string): string {
-    const config = {
-        mcpServers: {
-            codebolt: {
-                type: 'sse',
-                url: sseUrl,
-            },
-        },
-    };
-    const os = require('os');
-    const configDir = path.join(os.tmpdir(), 'codebolt-mcp');
-    if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true });
+async function unregisterMcpServer(): Promise<void> {
+    try {
+        await execFileAsync('codex', ['mcp', 'remove', MCP_SERVER_NAME]);
+        console.log(`[codex-mcp-agent] MCP server "${MCP_SERVER_NAME}" removed`);
+    } catch {
+        // Ignore errors on cleanup
     }
-    const configPath = path.join(configDir, `mcp-config-codex-${process.pid}.json`);
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
-    console.log(`[codex-mcp-agent] MCP config written to ${configPath}`);
-    return configPath;
 }
 
 type McpHandle = Awaited<ReturnType<typeof startMcpServer>>;
@@ -72,7 +59,6 @@ type AgentHandle = {
 };
 
 let mcpHandle: McpHandle | null = null;
-let mcpConfigPath: string | null = null;
 let currentHandle: AgentHandle | null = null;
 let steeringPollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -104,12 +90,10 @@ async function saveSessionId(sessionId: string): Promise<void> {
 function createAgentHandle(
     prompt: string,
     options: CodexExecutorOptions,
-    configPath: string,
     sessionId?: string | null,
 ): AgentHandle {
-    const executor = new CodexWithMcpExecutor(
+    const executor = new CodexExecutor(
         { ...options, sessionId: sessionId || undefined },
-        configPath,
     );
     const formatter = new CodexFormatter();
     const dispatcher = new CodexDispatcher();
@@ -195,14 +179,14 @@ codebolt.onMessage(async (userMessage: any) => {
         if (!mcpHandle) {
             console.log('[codex-mcp-agent] Starting MCP server...');
             mcpHandle = await startMcpServer();
-            mcpConfigPath = writeMcpConfig(mcpHandle.url);
+            await registerMcpServer(mcpHandle.url);
         }
 
         const savedSession = await getSavedSessionId();
 
         currentHandle = createAgentHandle(trimmed, {
             cwd,
-        }, mcpConfigPath!, savedSession);
+        }, savedSession);
 
         startSteeringPoll();
 
@@ -224,15 +208,25 @@ codebolt.onMessage(async (userMessage: any) => {
         if (currentHandle?.sessionId) {
             await saveSessionId(currentHandle.sessionId).catch(() => {});
         }
-        currentHandle = null;
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`[codex-mcp-agent] Error: ${error}`);
-        codebolt.notify.chat.AgentTextResponseNotify(
-            `Error: ${error instanceof Error ? error.message : String(error)}`,
-            true,
-        );
-        codebolt.notify.system.AgentCompletionNotify(
-            `Error: ${error instanceof Error ? error.message : String(error)}`,
-        );
+
+        // Suppress generic "Process exited with code N" errors — the actual error
+        // message (e.g. rate limit) was already dispatched via the message stream.
+        // Only surface genuinely unexpected errors to the user.
+        if (!/^Process exited with code \d+$/.test(errorMessage)) {
+            codebolt.notify.chat.AgentTextResponseNotify(
+                `Error: ${errorMessage}`,
+                true,
+            );
+            codebolt.notify.system.AgentCompletionNotify(
+                `Error: ${errorMessage}`,
+            );
+        } else {
+            // Process failed but the real error was already shown — just complete.
+            codebolt.notify.system.AgentCompletionNotify('');
+        }
+        currentHandle = null;
     }
 });
 
@@ -244,9 +238,7 @@ function cleanup() {
     if (mcpHandle) {
         mcpHandle.close().catch(() => { /* ignore */ });
     }
-    if (mcpConfigPath && fs.existsSync(mcpConfigPath)) {
-        try { fs.unlinkSync(mcpConfigPath); } catch { /* ignore */ }
-    }
+    unregisterMcpServer().catch(() => { /* ignore */ });
 }
 
 process.on('SIGTERM', () => { console.log('[codex-mcp-agent] SIGTERM'); cleanup(); process.exit(0); });

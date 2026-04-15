@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import codebolt from '@codebolt/codeboltjs';
 import {
     OpenCodeExecutor,
@@ -24,40 +22,70 @@ async function startMcpServer() {
 }
 
 class OpenCodeWithMcpExecutor extends OpenCodeExecutor {
-    private mcpConfigPath: string;
-
-    constructor(options: OpenCodeExecutorOptions, mcpConfigPath: string) {
-        super(options);
-        this.mcpConfigPath = mcpConfigPath;
+    constructor(options: OpenCodeExecutorOptions, mcpConfigContent: string) {
+        super({
+            ...options,
+            env: {
+                ...options.env,
+                OPENCODE_CONFIG_CONTENT: mergeOpenCodeConfigContent(
+                    options.env?.OPENCODE_CONFIG_CONTENT || process.env.OPENCODE_CONFIG_CONTENT,
+                    mcpConfigContent,
+                ),
+            },
+        });
     }
 
     protected override buildArgs(prompt: string): string[] {
         const args = super.buildArgs(prompt);
-        // OpenCode sends prompt via stdin, no prompt in args. Append --mcp-config.
-        args.push('--mcp-config', this.mcpConfigPath);
+        // OpenCode does not support --mcp-config. Inject MCP via OPENCODE_CONFIG_CONTENT.
         console.log('[opencode-mcp-agent] OpenCode args:', JSON.stringify(args));
         return args;
     }
 }
 
-function writeMcpConfig(sseUrl: string): string {
-    const config = {
-        mcpServers: {
+function buildMcpConfigContent(sseUrl: string): string {
+    return JSON.stringify({
+        mcp: {
             codebolt: {
-                type: 'sse',
+                type: 'remote',
                 url: sseUrl,
+                enabled: true,
             },
         },
-    };
-    const os = require('os');
-    const configDir = path.join(os.tmpdir(), 'codebolt-mcp');
-    if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true });
+    });
+}
+
+function mergeOpenCodeConfigContent(existingContent: string | undefined, mcpConfigContent: string): string {
+    if (!existingContent) {
+        return mcpConfigContent;
     }
-    const configPath = path.join(configDir, `mcp-config-opencode-${process.pid}.json`);
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
-    console.log(`[opencode-mcp-agent] MCP config written to ${configPath}`);
-    return configPath;
+
+    try {
+        const existingConfig = JSON.parse(existingContent);
+        const injectedConfig = JSON.parse(mcpConfigContent);
+        return JSON.stringify(deepMergeConfig(existingConfig, injectedConfig));
+    } catch (error) {
+        console.warn('[opencode-mcp-agent] Failed to merge existing OPENCODE_CONFIG_CONTENT, replacing it');
+        return mcpConfigContent;
+    }
+}
+
+function deepMergeConfig(base: unknown, injected: unknown): unknown {
+    if (!isPlainObject(base) || !isPlainObject(injected)) {
+        return injected;
+    }
+
+    const merged: Record<string, unknown> = { ...base };
+    for (const [key, value] of Object.entries(injected)) {
+        merged[key] = key in merged
+            ? deepMergeConfig(merged[key], value)
+            : value;
+    }
+    return merged;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 type McpHandle = Awaited<ReturnType<typeof startMcpServer>>;
@@ -70,7 +98,7 @@ type AgentHandle = {
 };
 
 let mcpHandle: McpHandle | null = null;
-let mcpConfigPath: string | null = null;
+let mcpConfigContent: string | null = null;
 let currentHandle: AgentHandle | null = null;
 let steeringPollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -102,12 +130,12 @@ async function saveSessionId(sessionId: string): Promise<void> {
 function createAgentHandle(
     prompt: string,
     options: OpenCodeExecutorOptions,
-    configPath: string,
+    configContent: string,
     sessionId?: string | null,
 ): AgentHandle {
     const executor = new OpenCodeWithMcpExecutor(
         { ...options, sessionId: sessionId || undefined },
-        configPath,
+        configContent,
     );
     const formatter = new OpenCodeFormatter();
     const dispatcher = new OpenCodeDispatcher();
@@ -193,14 +221,15 @@ codebolt.onMessage(async (userMessage: any) => {
         if (!mcpHandle) {
             console.log('[opencode-mcp-agent] Starting MCP server...');
             mcpHandle = await startMcpServer();
-            mcpConfigPath = writeMcpConfig(mcpHandle.url);
+            mcpConfigContent = buildMcpConfigContent(mcpHandle.url);
+            console.log('[opencode-mcp-agent] MCP config injected via OPENCODE_CONFIG_CONTENT');
         }
 
         const savedSession = await getSavedSessionId();
 
         currentHandle = createAgentHandle(trimmed, {
             cwd,
-        }, mcpConfigPath!, savedSession);
+        }, mcpConfigContent!, savedSession);
 
         startSteeringPoll();
 
@@ -241,9 +270,6 @@ function cleanup() {
     }
     if (mcpHandle) {
         mcpHandle.close().catch(() => { /* ignore */ });
-    }
-    if (mcpConfigPath && fs.existsSync(mcpConfigPath)) {
-        try { fs.unlinkSync(mcpConfigPath); } catch { /* ignore */ }
     }
 }
 

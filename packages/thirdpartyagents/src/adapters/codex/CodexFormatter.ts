@@ -15,6 +15,13 @@ import type { CodeboltMessage } from '../../types.js';
  * - error: { message } → error
  */
 export class CodexFormatter extends BaseFormatter {
+    /**
+     * Tracks the last error text to suppress consecutive duplicate errors.
+     * Codex CLI can emit both a `turn.failed` and a top-level `error` event
+     * with identical messages, causing the same error to display twice.
+     */
+    private lastErrorText: string | null = null;
+
     parseLine(line: string, timestamp: string): CodeboltMessage[] {
         const trimmed = line.trim();
         if (!trimmed) return [];
@@ -82,6 +89,11 @@ export class CodexFormatter extends BaseFormatter {
             const error = asRecord(parsed['error']);
             const msg = (error && typeof error['message'] === 'string')
                 ? error['message'] : 'Turn failed';
+            // Suppress duplicate consecutive errors (Codex emits both turn.failed + error)
+            if (this.lastErrorText === msg) {
+                return [];
+            }
+            this.lastErrorText = msg;
             return [{
                 type: 'error',
                 timestamp,
@@ -98,6 +110,11 @@ export class CodexFormatter extends BaseFormatter {
                 : typeof parsed['error'] === 'string'
                     ? parsed['error']
                     : 'Unknown error';
+            // Suppress duplicate consecutive errors (Codex emits both turn.failed + error)
+            if (this.lastErrorText === msg) {
+                return [];
+            }
+            this.lastErrorText = msg;
             return [{
                 type: 'error',
                 timestamp,

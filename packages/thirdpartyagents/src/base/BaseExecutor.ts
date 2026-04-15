@@ -58,7 +58,7 @@ export abstract class BaseExecutor implements IExecutor {
         const command = this.resolveCommand();
         const args = this.buildArgs(prompt);
         const cwd = this.options.cwd || process.cwd();
-        const env = { ...process.env, ...this.options.env, TERM: 'dumb' };
+        const env = { ...process.env, TERM: 'dumb', ...this.options.env };
 
         this._state = 'running';
 
