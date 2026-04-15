@@ -36,12 +36,18 @@ import type { ClaudeExecutorOptions } from '@codebolt/thirdpartyagents';
 // ============================================================================
 
 import { startCodeboltMcpServer } from '@codebolt/mcp-server';
-import { tools } from '@codebolt/codeboltjs';
+
+// NOTE: `import { tools } from '@codebolt/codeboltjs'` doesn't work because
+// codeboltjs's index.js does `module.exports = codebolt` which replaces the
+// entire exports object, wiping out the named `tools` re-export.
+// We import the tools submodule directly via a webpack alias (see webpack.config.js).
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const toolsModule = require('@codebolt/codeboltjs/tools').default;
 
 async function startMcpServer() {
     const handle = await startCodeboltMcpServer({
-        codebolt,
-        tools,
+        codebolt: codebolt as any,
+        tools: toolsModule,
         transport: 'sse',
     });
     console.log(`[mcp-agent] Option B: Standalone MCP server at ${handle.url}`);
@@ -68,8 +74,10 @@ class ClaudeWithMcpExecutor extends ClaudeExecutor {
         // Insert --mcp-config BEFORE the prompt (always last arg)
         const promptArg = args.pop()!;
         args.push('--mcp-config', this.mcpConfigPath);
-        args.push(promptArg);
+        // Pass prompt via -p flag to avoid positional arg ambiguity
+        args.push('-p', promptArg);
 
+        console.log('[mcp-agent] Claude args:', JSON.stringify(args));
         return args;
     }
 }
@@ -88,15 +96,25 @@ function writeMcpConfig(sseUrl: string, cwd: string): string {
         },
     };
 
-    const configDir = path.join(cwd, '.codebolt');
+    // Use os.tmpdir() for reliable write access, project dir may not be writable
+    const os = require('os');
+    const configDir = path.join(os.tmpdir(), 'codebolt-mcp');
     if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
     }
 
-    const configPath = path.join(configDir, 'mcp-config.json');
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+    const configPath = path.join(configDir, `mcp-config-${process.pid}.json`);
+    const content = JSON.stringify(config, null, 2);
+    fs.writeFileSync(configPath, content, 'utf-8');
 
-    console.log(`[mcp-agent] MCP config written to ${configPath}`);
+    // Verify the file was actually written
+    if (fs.existsSync(configPath)) {
+        console.log(`[mcp-agent] MCP config written to ${configPath}`);
+        console.log(`[mcp-agent] MCP config content: ${content}`);
+    } else {
+        console.error(`[mcp-agent] ERROR: MCP config file was NOT written to ${configPath}`);
+    }
+
     return configPath;
 }
 

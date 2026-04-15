@@ -1,118 +1,78 @@
 import { BaseDispatcher } from '../../base/BaseDispatcher.js';
 import type { CodeboltMessage, CodeboltInstance } from '../../types.js';
 
-// Characters per chunk sent to AgentThinkingNotify
-const STREAM_CHUNK_SIZE = 12;
-
 /**
  * Dispatcher for Claude Code CLI messages.
  *
- * Maps each CodeboltMessage type to the appropriate codebolt.notify.* call,
- * including tool-specific dispatching for tool_use messages.
+ * AgentInitNotify creates a ProcessStartedTemplate that stays as the last
+ * message in chat while the agent runs (showing "Processing your request").
+ * AgentCompletionNotify removes it when done.
+ *
+ * Content is delivered via AgentTextResponseNotify as it arrives.
  */
 export class ClaudeDispatcher extends BaseDispatcher {
-    // Stable stream ID per assistant turn — shared across text + thinking
-    private _currentStreamId: string | null = null;
-    private _streamIdCounter = 0;
-
-    private getOrCreateStreamId(): string {
-        if (!this._currentStreamId) {
-            this._currentStreamId = `stream_${Date.now()}_${++this._streamIdCounter}`;
-        }
-        return this._currentStreamId;
-    }
-
-    /**
-     * Sends text to the UI in small chunks via AgentThinkingNotify.
-     * The server-side batching (50ms interval) naturally spaces out UI updates.
-     */
-    private streamTextToUi(
-        text: string,
-        codebolt: CodeboltInstance,
-        field: 'content' | 'reasoning' = 'content'
-    ): void {
-        const streamId = this.getOrCreateStreamId();
-
-        for (let i = 0; i < text.length; i += STREAM_CHUNK_SIZE) {
-            const chunk = text.slice(i, i + STREAM_CHUNK_SIZE);
-            if (field === 'reasoning') {
-                codebolt.notify.chat.AgentThinkingNotify('', streamId, { reasoning: chunk });
-            } else {
-                codebolt.notify.chat.AgentThinkingNotify(chunk, streamId);
-            }
-        }
-    }
 
     dispatch(message: CodeboltMessage, codebolt: CodeboltInstance): void {
         switch (message.type) {
             case 'init':
                 console.log(`[dispatcher] init → AgentInitNotify (model=${message.model}, sessionId=${message.sessionId})`);
-                // Reset stream ID for new turn
-                this._currentStreamId = null;
                 codebolt.notify.system.AgentInitNotify();
                 break;
 
             case 'assistant_text':
-                // Streaming disabled — full text sent via AgentTextResponseNotify in 'result'
                 if (message.text) {
-                    console.log(`[dispatcher] assistant_text (${message.text.length} chars) — skipped (streaming disabled)`);
+                    console.log(`[dispatcher] assistant_text (${message.text.length} chars)`);
+                    codebolt.notify.chat.AgentTextResponseNotify(message.text);
                 }
                 break;
 
             case 'thinking':
-                // Streaming disabled — reasoning not dispatched
                 if (message.text) {
-                    console.log(`[dispatcher] thinking (${message.text.length} chars) — skipped (streaming disabled)`);
+                    console.log(`[dispatcher] thinking (${message.text.length} chars) → skipped`);
                 }
                 break;
 
             case 'tool_use':
-                console.log(`[dispatcher] tool_use → dispatchToolUse: ${message.toolName} (id=${message.toolUseId})`);
+                console.log(`[dispatcher] tool_use → ${message.toolName} (id=${message.toolUseId})`);
                 this.dispatchToolUse(message, codebolt);
                 break;
 
             case 'tool_result':
-                console.log(`[dispatcher] tool_result → dispatchToolResult (id=${message.toolUseId}, isError=${message.isError}, content="${(message.toolResultContent || '').substring(0, 80)}")`);
-                // this.dispatchToolResult(message, codebolt);
+                console.log(`[dispatcher] tool_result (id=${message.toolUseId}, isError=${message.isError})`);
                 break;
 
             case 'user_text':
-                console.log(`[dispatcher] user_text → UserMessageRequestNotify ("${(message.text || '').substring(0, 80)}")`);
                 if (message.text) {
                     codebolt.notify.chat.UserMessageRequestNotify(message.text);
                 }
                 break;
 
-            case 'result':
-                console.log(`[dispatcher] result → AgentTextResponseNotify + AgentCompletionNotify ("${(message.text || '').substring(0, 80)}", cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
-                // Send full response text as agent message
-                if (message.text) {
-                    codebolt.notify.chat.AgentTextResponseNotify(
-                        message.text,
-                        message.isError === true
-                    );
-                }
-                this._currentStreamId = null;
+            case 'result': {
+                console.log(`[dispatcher] result (cost=$${message.usage?.costUsd?.toFixed(4) ?? '?'})`);
+                const resultText = message.text || '';
+                const usageStr = message.usage ? `cost: $${message.usage.costUsd.toFixed(4)}` : '';
+
+                // Don't re-send resultText — already delivered via assistant_text.
                 codebolt.notify.system.AgentCompletionNotify(
-                    message.text || 'Task completed',
+                    resultText || 'Task completed',
                     undefined,
-                    message.usage ? `cost: $${message.usage.costUsd.toFixed(4)}` : ''
+                    usageStr
                 );
                 break;
+            }
 
             case 'error':
-                console.log(`[dispatcher] error → AgentTextResponseNotify ("${(message.text || '').substring(0, 80)}")`);
+                console.log(`[dispatcher] error ("${(message.text || '').substring(0, 80)}")`);
                 if (message.text) {
                     codebolt.notify.chat.AgentTextResponseNotify(message.text, true);
                 }
+                codebolt.notify.system.AgentCompletionNotify(
+                    message.text || 'Error occurred'
+                );
                 break;
 
             case 'system':
-                console.log(`[dispatcher] system ("${(message.text || '').substring(0, 80)}") — not dispatched`);
-                break;
-
             case 'raw':
-                console.log(`[dispatcher] raw ("${(message.text || '').substring(0, 80)}") — not dispatched`);
                 break;
         }
     }
@@ -124,7 +84,6 @@ export class ClaudeDispatcher extends BaseDispatcher {
 
         switch (name) {
             case 'Read':
-                console.log(`[dispatcher]   → fs.FileReadRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.FileReadRequestNotify(
                     input.file_path || input.path,
                     input.offset?.toString(),
@@ -134,7 +93,6 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Write':
-                console.log(`[dispatcher]   → fs.WriteToFileRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.WriteToFileRequestNotify(
                     input.file_path || input.path,
                     input.content || '',
@@ -143,7 +101,6 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'Edit':
-                console.log(`[dispatcher]   → fs.FileEditRequestNotify(path=${input.file_path || input.path}, toolId=${toolId})`);
                 codebolt.notify.fs.FileEditRequestNotify(
                     (input.file_path || input.path)?.split('/').pop() || 'file',
                     input.file_path || input.path,
@@ -153,7 +110,6 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'MultiEdit':
-                console.log(`[dispatcher]   → fs.FileEditRequestNotify (MultiEdit, ${input.edits?.length || 0} edits, toolId=${toolId})`);
                 if (input.edits && Array.isArray(input.edits)) {
                     input.edits.forEach((edit: any, i: number) => {
                         codebolt.notify.fs.FileEditRequestNotify(
@@ -167,51 +123,33 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'LS':
-                console.log(`[dispatcher]   → fs.ListDirectoryRequestNotify(path=${input.path || '.'}, toolId=${toolId})`);
                 codebolt.notify.fs.ListDirectoryRequestNotify(input.path || '.', toolId);
                 break;
 
             case 'Grep':
-                console.log(`[dispatcher]   → codeutils.GrepSearchRequestNotify(pattern=${input.pattern}, path=${input.path}, toolId=${toolId})`);
                 codebolt.notify.codeutils.GrepSearchRequestNotify(
-                    input.pattern,
-                    input.path,
-                    undefined,
-                    input['-i'],
-                    input.head_limit,
-                    toolId
+                    input.pattern, input.path, undefined,
+                    input['-i'], input.head_limit, toolId
                 );
                 break;
 
             case 'Glob':
-                console.log(`[dispatcher]   → codeutils.GlobSearchRequestNotify(pattern=${input.pattern}, path=${input.path}, toolId=${toolId})`);
                 codebolt.notify.codeutils.GlobSearchRequestNotify(
-                    input.pattern,
-                    input.path,
-                    undefined,
-                    undefined,
-                    toolId
+                    input.pattern, input.path, undefined, undefined, toolId
                 );
                 break;
 
             case 'Bash':
-                console.log(`[dispatcher]   → terminal.CommandExecutionRequestNotify(cmd="${(input.command || '').substring(0, 80)}", toolId=${toolId})`);
                 codebolt.notify.terminal.CommandExecutionRequestNotify(
-                    input.command,
-                    false,
-                    false,
-                    toolId
+                    input.command, false, false, toolId
                 );
                 break;
 
             case 'Task':
-                console.log(`[dispatcher]   → todo.AddTodoRequestNotify(desc="${(input.description || input.prompt || '').substring(0, 60)}", toolId=${toolId})`);
                 codebolt.notify.todo.AddTodoRequestNotify(
+                    input.description || input.prompt, undefined,
                     input.description || input.prompt,
-                    undefined,
-                    input.description || input.prompt,
-                    undefined, undefined, undefined, undefined,
-                    toolId
+                    undefined, undefined, undefined, undefined, toolId
                 );
                 break;
 
@@ -228,14 +166,12 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             case 'WebFetch':
-                console.log(`[dispatcher]   → browser.WebFetchRequestNotify(url=${input.url}, toolId=${toolId})`);
                 codebolt.notify.browser.WebFetchRequestNotify(
                     input.url, 'GET', undefined, undefined, undefined, toolId
                 );
                 break;
 
             case 'WebSearch':
-                console.log(`[dispatcher]   → browser.WebSearchRequestNotify(query=${input.query}, toolId=${toolId})`);
                 codebolt.notify.browser.WebSearchRequestNotify(
                     input.query, undefined, undefined, undefined, toolId
                 );
@@ -258,19 +194,8 @@ export class ClaudeDispatcher extends BaseDispatcher {
                 break;
 
             default:
-                console.log(`[dispatcher]   → chat.AgentTextResponseNotify (unknown tool: ${name}, toolId=${toolId})`);
                 codebolt.notify.chat.AgentTextResponseNotify(`Tool: ${name}`);
                 break;
         }
-    }
-
-    private dispatchToolResult(message: CodeboltMessage, codebolt: CodeboltInstance): void {
-        const content = message.toolResultContent || '';
-        console.log(`[dispatcher]   → chat.AgentTextResponseNotify (toolResult, isError=${message.isError}, toolUseId=${message.toolUseId}, content="${content.substring(0, 80)}")`);
-        codebolt.notify.chat.AgentTextResponseNotify(
-            content,
-            message.isError,
-            message.toolUseId
-        );
     }
 }

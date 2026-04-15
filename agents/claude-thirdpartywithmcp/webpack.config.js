@@ -29,6 +29,12 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.ts', '.js'],
+    alias: {
+      // codeboltjs's index.js does `module.exports = codebolt` which wipes
+      // the named `tools` re-export. This alias lets us import the tools
+      // submodule directly: require('@codebolt/codeboltjs/tools')
+      '@codebolt/codeboltjs/tools': path.resolve(__dirname, 'node_modules/@codebolt/codeboltjs/dist/tools/index.js'),
+    },
     fallback: {
       path: require.resolve('path-browserify'),
       fs: false,

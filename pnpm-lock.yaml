@@ -3205,8 +3205,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/codeboltjs':
-        specifier: ^5.1.29
-        version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        specifier: ^5.1.32
+        version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
       '@codebolt/mcp-server':
         specifier: workspace:*
         version: link:../../packages/mcp-server
