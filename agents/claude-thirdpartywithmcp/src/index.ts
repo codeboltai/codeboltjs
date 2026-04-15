@@ -134,6 +134,33 @@ type AgentHandle = {
 let mcpHandle: McpHandle | null = null;
 let mcpConfigPath: string | null = null;
 let currentHandle: AgentHandle | null = null;
+let steeringPollTimer: ReturnType<typeof setInterval> | null = null;
+
+const SESSION_KEY = 'claude_session_id';
+
+async function getSavedSessionId(): Promise<string | null> {
+    try {
+        const response = await (codebolt as any).cbstate.getAgentState();
+        // Server returns { type: 'getAgentStateResponse', payload: { ...state } }
+        const data = response?.payload || response;
+        if (data && typeof data === 'object' && data[SESSION_KEY]) {
+            console.log(`[mcp-agent] Resuming session: ${data[SESSION_KEY]}`);
+            return data[SESSION_KEY];
+        }
+    } catch (err) {
+        console.log('[mcp-agent] No saved session found');
+    }
+    return null;
+}
+
+async function saveSessionId(sessionId: string): Promise<void> {
+    try {
+        await (codebolt as any).cbstate.addToAgentState(SESSION_KEY, sessionId);
+        console.log(`[mcp-agent] Session saved: ${sessionId}`);
+    } catch (err) {
+        console.error('[mcp-agent] Failed to save session:', err);
+    }
+}
 
 /**
  * Create a Claude Code agent handle with MCP config injected.
@@ -144,8 +171,12 @@ function createAgentHandle(
     prompt: string,
     options: ClaudeExecutorOptions,
     configPath: string,
+    sessionId?: string | null,
 ): AgentHandle {
-    const executor = new ClaudeWithMcpExecutor(options, configPath);
+    const executor = new ClaudeWithMcpExecutor(
+        { ...options, sessionId: sessionId || undefined },
+        configPath,
+    );
     const formatter = new ClaudeFormatter();
     const dispatcher = new ClaudeDispatcher();
 
@@ -164,6 +195,41 @@ function createAgentHandle(
         get state() { return executor.state; },
         get sessionId() { return executor.sessionId; },
     };
+}
+
+// ============================================================================
+// Steering: poll for steering events and forward to Claude Code's stdin
+// ============================================================================
+
+const eventQueue = (codebolt as any).agentEventQueue;
+
+function startSteeringPoll() {
+    if (steeringPollTimer) return;
+    steeringPollTimer = setInterval(() => {
+        if (!currentHandle || currentHandle.state !== 'running') return;
+        if (!eventQueue || typeof eventQueue.getPendingExternalEvents !== 'function') return;
+
+        const pendingEvents = eventQueue.getPendingExternalEvents();
+        for (const event of pendingEvents) {
+            try {
+                const payload = event?.payload || event?.data?.payload || event;
+                if (payload?.type === 'steering' && payload?.instruction) {
+                    const instruction = payload.instruction;
+                    console.log(`[mcp-agent] Steering received: "${instruction.substring(0, 100)}"`);
+                    currentHandle.sendInput(instruction);
+                }
+            } catch (err) {
+                console.error('[mcp-agent] Error processing steering event:', err);
+            }
+        }
+    }, 500);
+}
+
+function stopSteeringPoll() {
+    if (steeringPollTimer) {
+        clearInterval(steeringPollTimer);
+        steeringPollTimer = null;
+    }
 }
 
 // ============================================================================
@@ -221,11 +287,17 @@ codebolt.onMessage(async (userMessage: any) => {
             prompt = trimmed.slice(9).trim();
         }
 
+        // Load saved session ID to resume previous conversation
+        const savedSession = await getSavedSessionId();
+
         // Create and run the agent with MCP config injected
         currentHandle = createAgentHandle(prompt, {
             cwd,
             permissionMode,
-        }, mcpConfigPath!);
+        }, mcpConfigPath!, savedSession);
+
+        // Start polling for steering events while Claude Code runs
+        startSteeringPoll();
 
         for await (const msg of currentHandle.execute()) {
             // ThirdPartyAgents library already dispatched to codebolt.notify.*
@@ -237,8 +309,18 @@ codebolt.onMessage(async (userMessage: any) => {
             }
         }
 
+        stopSteeringPoll();
+        // Save session ID for resuming next time
+        if (currentHandle?.sessionId) {
+            await saveSessionId(currentHandle.sessionId);
+        }
         currentHandle = null;
     } catch (error) {
+        stopSteeringPoll();
+        // Save session ID even on error for potential recovery
+        if (currentHandle?.sessionId) {
+            await saveSessionId(currentHandle.sessionId).catch(() => {});
+        }
         currentHandle = null;
         console.error(`[mcp-agent] Error: ${error}`);
         codebolt.notify.chat.AgentTextResponseNotify(
@@ -254,6 +336,7 @@ codebolt.onMessage(async (userMessage: any) => {
 // ── Cleanup on exit ──
 
 function cleanup() {
+    stopSteeringPoll();
     if (currentHandle) {
         try { currentHandle.stop(); } catch { /* ignore */ }
     }

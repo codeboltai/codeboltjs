@@ -1,0 +1,49 @@
+title: Gemini CLI
+version: 1.0.1
+unique_id: gemini-thirdpartywithmcp
+initial_message: |
+  I'm a Google Gemini agent with full access to Codebolt tools via MCP.
+  Gemini can use Codebolt's filesystem, terminal, git, browser,
+  memory, tasks, threads, and more - all routed through the Codebolt platform.
+  Tell me what you'd like to work on.
+description: Google Gemini CLI agent with Codebolt tools exposed via MCP server. Gemini gets access to all Codebolt platform capabilities.
+tags:
+  - coding
+  - cli
+  - gemini
+  - google
+  - mcp
+  - thirdparty
+longDescription: |
+  This agent starts a Codebolt MCP server in-process, then spawns Gemini CLI
+  with --mcp-config pointing to it. Gemini discovers all Codebolt tools
+  (filesystem, terminal, git, browser, memory, tasks, etc.) via MCP and can
+  use them during execution. All tool calls flow through the Codebolt platform
+  with UI confirmations and notifications.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: GM
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - gemini-2.5-pro
+      - gemini-2.5-flash
+      - gemini-2.0-flash
+supportRemix: true
+author: codebolt

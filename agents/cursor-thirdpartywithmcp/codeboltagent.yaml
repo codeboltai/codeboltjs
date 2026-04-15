@@ -1,26 +1,26 @@
-title: Claude Code
+title: Cursor Agent
 version: 1.0.1
-unique_id: claude-thirdpartywithmcp
+unique_id: cursor-thirdpartywithmcp
 initial_message: |
-  I'm a Claude Code agent with full access to Codebolt tools via MCP.
-  Claude Code can use Codebolt's filesystem, terminal, git, browser,
+  I'm a Cursor agent with full access to Codebolt tools via MCP.
+  Cursor can use Codebolt's filesystem, terminal, git, browser,
   memory, tasks, threads, and more - all routed through the Codebolt platform.
   Tell me what you'd like to work on.
-description: Claude Code agent with Codebolt tools exposed via MCP server. Claude Code gets access to all Codebolt platform capabilities.
+description: Cursor Agent with Codebolt tools exposed via MCP server. Cursor gets access to all Codebolt platform capabilities.
 tags:
   - coding
   - cli
-  - claude
+  - cursor
   - mcp
   - thirdparty
 longDescription: |
-  This agent starts a Codebolt MCP server in-process, then spawns Claude Code
-  with --mcp-config pointing to it. Claude Code discovers all Codebolt tools
+  This agent starts a Codebolt MCP server in-process, then spawns Cursor Agent CLI
+  with --mcp-config pointing to it. Cursor discovers all Codebolt tools
   (filesystem, terminal, git, browser, memory, tasks, etc.) via MCP and can
   use them during execution. All tool calls flow through the Codebolt platform
   with UI confirmations and notifications.
 avatarSrc: https://placehold.co/200x200
-avatarFallback: CM
+avatarFallback: CR
 metadata:
   agent_routing:
     worksonblankcode: true
@@ -41,16 +41,17 @@ metadata:
   defaultagentllm:
     strict: false
     modelorder:
-      - claude-sonnet-4-20250514
-      - claude-3-5-sonnet-20241022
+      - composer-1.5
+      - gpt-5.3-codex
+      - claude-sonnet-4-6
 actions:
   - name: Plan
     description: Enter plan mode
-    detailDescription: Run Claude in planning mode (no tool execution)
+    detailDescription: Run Cursor in planning mode
     actionPrompt: /plan
-  - name: Execute
-    description: Execute a task
-    detailDescription: Run Claude with full permissions and Codebolt MCP tools
-    actionPrompt: Let's build this
+  - name: Ask
+    description: Ask a question
+    detailDescription: Run Cursor in ask mode (no code changes)
+    actionPrompt: /ask
 supportRemix: true
 author: codebolt
