@@ -9,6 +9,5 @@ author: ravi
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: "eqypbm5hkjcnnhtd5tjs"
+  sandboxTemplate: "wd25ft42elqt66rlvd7j"
   autoStopInterval: 0
-
