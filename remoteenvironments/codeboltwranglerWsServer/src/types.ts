@@ -66,6 +66,7 @@ export type ProxyIncomingMessage =
   | GatewayForwardFromAgent
   | GatewayForwardFromApp
   | PingMessage
+  | { type: 'pong'; timestamp?: number }
   | RequestConnectionsMessage
   | RequestSyncMessage
   | RequestThreadMessagesMessage;

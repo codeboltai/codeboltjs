@@ -18,6 +18,13 @@ interface SocketMeta {
   userId?: string;
 }
 
+interface SocketAttachment {
+  role: SocketMeta['role'];
+  token: string;
+  userId?: string;
+  agentId?: string;
+}
+
 export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
   private readonly appSocketsByToken = new Map<string, WebSocket>();
@@ -35,7 +42,29 @@ export class ProxyHub {
   private readonly threadUpdates = new Map<string, { appToken: string; threadId: string }>(); // key → thread info
   private flushScheduled = false;
 
-  constructor(readonly state: DurableObjectState, private readonly env: Env) {}
+  constructor(readonly state: DurableObjectState, private readonly env: Env) {
+    // Enable auto-response for WebSocket pings so the DO auto-replies
+    // to ping messages even while hibernating.
+    this.state.setWebSocketAutoResponse(
+      new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
+    );
+  }
+
+  /**
+   * Restore monitoring sockets from hibernation tags.
+   * Role-based sockets (gateway/app/agent) are re-registered via their
+   * first message after wake-up (register_gateway / registered).
+   */
+  private restoreSocketsFromHibernation(): void {
+    const allSockets = this.state.getWebSockets();
+    for (const ws of allSockets) {
+      const tags = this.state.getTags(ws);
+      if (tags.includes('monitoring') && !this.monitoringSockets.has(ws)) {
+        this.monitoringSockets.add(ws);
+      }
+      this.restoreSocketMeta(ws);
+    }
+  }
 
   /**
    * Alarm handler — flushes buffered messages to KV.
@@ -53,9 +82,15 @@ export class ProxyHub {
     const pair = new WebSocketPair();
     const client = pair[0];
     const server = pair[1];
-    server.accept();
 
     const isMonitoringClient = request.headers.get('X-Monitoring-Client') === 'true';
+
+    // Use Hibernation API so the DO can sleep without dropping WebSockets.
+    // Tag the socket so webSocketMessage/webSocketClose can identify it.
+    const tags: string[] = [];
+    if (isMonitoringClient) tags.push('monitoring');
+    this.state.acceptWebSocket(server, tags);
+
     if (isMonitoringClient) {
       this.monitoringSockets.add(server);
       this.sendJson(server, {
@@ -67,37 +102,50 @@ export class ProxyHub {
       this.broadcastConnectionUpdate();
     }
 
-    server.addEventListener('message', async (event) => {
-      try {
-        const raw = event.data?.toString();
-        if (!raw) {
-          return;
-        }
-
-        const message = JSON.parse(raw) as ProxyIncomingMessage;
-        await this.handleMessage(server, message);
-      } catch (error) {
-        console.error('[ProxyHub] Failed to process message', error);
-      }
-    });
-
-    server.addEventListener('close', () => {
-      if (isMonitoringClient) {
-        this.monitoringSockets.delete(server);
-        this.broadcastConnectionUpdate();
-      }
-      this.removeSocket(server);
-    });
-
-    server.addEventListener('error', () => {
-      if (isMonitoringClient) {
-        this.monitoringSockets.delete(server);
-        this.broadcastConnectionUpdate();
-      }
-      this.removeSocket(server);
-    });
-
     return new Response(null, { status: 101, webSocket: client });
+  }
+
+  /**
+   * Hibernation API: called when a hibernatable WebSocket receives a message.
+   */
+  async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer): Promise<void> {
+    // Restore in-memory state if waking from hibernation
+    this.restoreSocketsFromHibernation();
+
+    try {
+      const raw = typeof data === 'string' ? data : new TextDecoder().decode(data);
+      if (!raw) return;
+      const message = JSON.parse(raw) as ProxyIncomingMessage;
+      await this.handleMessage(ws, message);
+    } catch (error) {
+      console.error('[ProxyHub] Failed to process message', error);
+    }
+  }
+
+  /**
+   * Hibernation API: called when a hibernatable WebSocket is closed.
+   */
+  async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
+    this.restoreSocketsFromHibernation();
+    const tags = this.state.getTags(ws);
+    if (tags.includes('monitoring')) {
+      this.monitoringSockets.delete(ws);
+      this.broadcastConnectionUpdate();
+    }
+    this.removeSocket(ws);
+  }
+
+  /**
+   * Hibernation API: called when a hibernatable WebSocket encounters an error.
+   */
+  async webSocketError(ws: WebSocket, _error: unknown): Promise<void> {
+    this.restoreSocketsFromHibernation();
+    const tags = this.state.getTags(ws);
+    if (tags.includes('monitoring')) {
+      this.monitoringSockets.delete(ws);
+      this.broadcastConnectionUpdate();
+    }
+    this.removeSocket(ws);
   }
 
   private async handleMessage(socket: WebSocket, message: ProxyIncomingMessage): Promise<void> {
@@ -119,6 +167,9 @@ export class ProxyHub {
         break;
       case 'ping':
         this.sendJson(socket, { type: 'pong', timestamp: Date.now() });
+        break;
+      case 'pong':
+        // Heartbeat acknowledgement. No routing needed.
         break;
       case 'request_connections':
         this.sendJson(socket, {
@@ -159,7 +210,7 @@ export class ProxyHub {
     }
 
     this.gatewaySocketsByToken.set(token, socket);
-    this.socketMeta.set(socket, { role: 'gateway', token, userId: message.userId });
+    this.persistSocketMeta(socket, { role: 'gateway', token, userId: message.userId });
 
     this.sendJson(socket, {
       type: 'registered',
@@ -210,7 +261,7 @@ export class ProxyHub {
    * If sender is app -> forward to gateway socket for that token
    */
   private async handleRawForward(socket: WebSocket, message: any): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) {
       console.warn('[ProxyHub] Unknown message type from unregistered socket:', message?.type);
       return;
@@ -312,7 +363,7 @@ export class ProxyHub {
    * Handle sync request -- return list of threads from KV.
    */
   private async handleRequestSync(socket: WebSocket): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) return;
 
     // Flush any buffered messages before responding
@@ -338,7 +389,7 @@ export class ProxyHub {
    * Handle request for thread messages -- return messages from KV.
    */
   private async handleRequestThreadMessages(socket: WebSocket, message: any): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) return;
 
     const threadId = message.threadId;
@@ -367,13 +418,13 @@ export class ProxyHub {
     if (message.actor === 'agent' && message.agentId) {
       this.agents.set(message.agentId, socket);
       const token = this.normalizeToken(message.appToken);
-      this.socketMeta.set(socket, { role: 'agent', token });
+      this.persistSocketMeta(socket, { role: 'agent', token, agentId: message.agentId });
       return { type: 'registered', actor: 'agent', agentId: message.agentId, appToken: token };
     }
 
     const token = this.normalizeToken(message.appToken);
     this.appSocketsByToken.set(token, socket);
-    this.socketMeta.set(socket, { role: 'app', token });
+    this.persistSocketMeta(socket, { role: 'app', token, userId: message.appId });
     return { type: 'registered', actor: 'app', appToken: token };
   }
 
@@ -547,6 +598,59 @@ export class ProxyHub {
         disconnectedActor
       );
     }
+  }
+
+  private persistSocketMeta(socket: WebSocket, meta: SocketAttachment): void {
+    this.socketMeta.set(socket, { role: meta.role, token: meta.token, userId: meta.userId });
+    const attachableSocket = socket as WebSocket & {
+      serializeAttachment?: (value: SocketAttachment) => void;
+    };
+
+    try {
+      attachableSocket.serializeAttachment?.(meta);
+    } catch (error) {
+      console.warn('[ProxyHub] Failed to persist socket metadata:', error);
+    }
+  }
+
+  private restoreSocketMeta(socket: WebSocket): SocketMeta | null {
+    const existing = this.socketMeta.get(socket);
+    if (existing) return existing;
+
+    const attachableSocket = socket as WebSocket & {
+      deserializeAttachment?: () => SocketAttachment | undefined;
+    };
+
+    try {
+      const attachment = attachableSocket.deserializeAttachment?.();
+      if (!attachment?.role || !attachment?.token) {
+        return null;
+      }
+
+      const meta: SocketMeta = {
+        role: attachment.role,
+        token: this.normalizeToken(attachment.token),
+        userId: attachment.userId,
+      };
+      this.socketMeta.set(socket, meta);
+
+      if (meta.role === 'app') {
+        this.appSocketsByToken.set(meta.token, socket);
+      } else if (meta.role === 'gateway') {
+        this.gatewaySocketsByToken.set(meta.token, socket);
+      } else if (meta.role === 'agent' && attachment.agentId) {
+        this.agents.set(attachment.agentId, socket);
+      }
+
+      return meta;
+    } catch (error) {
+      console.warn('[ProxyHub] Failed to restore socket metadata:', error);
+      return null;
+    }
+  }
+
+  private getSocketMeta(socket: WebSocket): SocketMeta | null {
+    return this.socketMeta.get(socket) || this.restoreSocketMeta(socket);
   }
 
   private normalizeToken(token?: string): string {
