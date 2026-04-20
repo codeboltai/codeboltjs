@@ -7,6 +7,10 @@ import type {
     ContextConstraints,
     MemoryContribution
 } from "@codebolt/types/lib";
+import {
+    appendSystemContextMessage,
+    appendUserContextMessage,
+} from "../../unified/base/promptContext";
 
 export interface ContextAssemblyModifierOptions {
     /** Scope variables to pass to the context assembly engine */
@@ -78,14 +82,12 @@ export class ContextAssemblyModifier extends BaseMessageModifier {
                 role: this.options.messageRole!,
                 content: contextContent,
             };
-
-            const messages = [...createdMessage.message.messages, contextMessage];
+            const updatedMessage = this.options.messageRole === 'user'
+                ? appendUserContextMessage(createdMessage, contextMessage)
+                : appendSystemContextMessage(createdMessage, contextMessage);
 
             return {
-                message: {
-                    ...createdMessage.message,
-                    messages,
-                },
+                ...updatedMessage,
                 metadata: {
                     ...createdMessage.metadata,
                     contextAssemblyAdded: true,

@@ -4,6 +4,7 @@ import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 import * as path from 'path';
 import * as fs from 'fs';
 import codebolt from "@codebolt/codeboltjs";
+import { appendUserContextMessage } from "../../unified/base/promptContext";
 
 export interface EnvironmentContextOptions {
     enableFullContext?: boolean;
@@ -101,15 +102,8 @@ ${directoryListing}
                 content: finalContent
             };
 
-            // Push the context message to the messages array
-            const messages = [...createdMessage.message.messages];
-            messages.push(contextMessage);
-
             return Promise.resolve({
-                message: {
-                    ...createdMessage.message,
-                    messages
-                },
+                ...appendUserContextMessage(createdMessage, contextMessage),
                 metadata: {
                     ...createdMessage.metadata,
                     environmentContextAdded: true,

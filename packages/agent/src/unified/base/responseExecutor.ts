@@ -1,447 +1,548 @@
-
-import { AgentResponseExecutor, PostToolCallProcessor, PreToolCallProcessor, ProcessedMessage, ResponseInput, ResponseOutput, ToolResult } from '@codebolt/types/agent';
+import {
+    AgentResponseExecutor,
+    PostToolCallProcessor,
+    PreToolCallProcessor,
+    ProcessedMessage,
+    ResponseInput,
+    ResponseOutput,
+    ToolResult
+} from '@codebolt/types/agent';
 import { LLMCompletion, MessageObject, ToolCall } from '@codebolt/types/sdk';
 import codebolt from '@codebolt/codeboltjs';
+
 import { LoopDetectionService } from '../services/LoopDetectionService';
+import {
+    appendTranscriptMessages,
+    getTranscriptMessages,
+    reconcileRuntimePromptContext,
+} from './promptContext';
+
+interface ParsedToolCall {
+    tool: ToolCall;
+    toolInput: Record<string, unknown>;
+    toolName: string;
+    toolUseId: string;
+    waitForPrevious: boolean;
+}
+
+interface ToolExecutionOutcome {
+    toolResults: ToolResult[];
+    followUpMessages: MessageObject[];
+    completed: boolean;
+    finalMessage: string | undefined;
+    hadToolCalls: boolean;
+}
+
+interface SingleToolExecutionResult {
+    toolResult: ToolResult;
+    followUpMessages: MessageObject[];
+    didUserReject: boolean;
+}
 
 export class ResponseExecutor implements AgentResponseExecutor {
 
-    private preToolCallProcessors: PreToolCallProcessor[] = []
-    private postToolCallProcessors: PostToolCallProcessor[] = []
-    private completed: boolean = false;
+    private preToolCallProcessors: PreToolCallProcessor[] = [];
+    private postToolCallProcessors: PostToolCallProcessor[] = [];
+    private completed = false;
     private finalMessage: string | undefined = undefined;
+    private loopDetectionService: LoopDetectionService | undefined;
 
     constructor(options: {
-        preToolCallProcessors: PreToolCallProcessor[]
-        postToolCallProcessors: PostToolCallProcessor[],
-        loopDetectionService?: LoopDetectionService
-
+        preToolCallProcessors: PreToolCallProcessor[];
+        postToolCallProcessors: PostToolCallProcessor[];
+        loopDetectionService?: LoopDetectionService;
     }) {
-
-        this.preToolCallProcessors = options.preToolCallProcessors
-        this.postToolCallProcessors = options.postToolCallProcessors
-        if (options.loopDetectionService) {
-            this.loopDetectionService = options.loopDetectionService;
-        }
-
+        this.preToolCallProcessors = options.preToolCallProcessors;
+        this.postToolCallProcessors = options.postToolCallProcessors;
+        this.loopDetectionService = options.loopDetectionService;
     }
-    private loopDetectionService?: LoopDetectionService;
+
     async executeResponse(input: ResponseInput): Promise<ResponseOutput> {
-        // Reset per-execution state so the executor can be reused across loop iterations
         this.completed = false;
         this.finalMessage = undefined;
 
-        let nextMessage: ProcessedMessage = input.nextMessage;
+        let nextMessage: ProcessedMessage = reconcileRuntimePromptContext(input.nextMessage);
 
         for (const preToolCallProcessor of this.preToolCallProcessors) {
             try {
-                // TODO: Extract required properties from input for PreToolCallProcessorInput
-                let { nextPrompt, shouldExit } = await preToolCallProcessor.modify({ llmMessageSent: input.actualMessageSentToLLM, rawLLMResponseMessage: input.rawLLMOutput, nextPrompt: input.nextMessage });
-                nextMessage = nextPrompt;
-                if (shouldExit) {
-                    this.completed = true
-                    Promise.resolve({
-                        nextPrompt,
-                        completed: this.completed
-                    })
-                }
-
-            } catch (error) {
-                console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
-                // Continue with other modifiers
-            }
-        }
-        //ToolCall here
-
-        let toolResults = await this.executeTools(input.rawLLMOutput);
-
-        // Inject runtime-discovered tools from tool_search results into the tool list
-        this.injectDiscoveredTools(input.rawLLMOutput, toolResults, nextMessage);
-
-        // INSERT_YOUR_CODE
-        if (nextMessage && toolResults && toolResults.length > 0 && nextMessage && nextMessage.message && Array.isArray(nextMessage.message.messages)) {
-            for (const toolResult of toolResults) {
-                const messageObject: MessageObject = {
-                    role: toolResult.role,
-                    content: typeof toolResult.content === 'string' ? toolResult.content : JSON.stringify(toolResult.content),
-                    tool_call_id: toolResult.tool_call_id
-                };
-                nextMessage.message.messages.push(messageObject);
-            }
-        }
-        else {
-            // this.completed=true;
-            nextMessage.message.messages.push({
-                role: "user",
-                content: [{
-                    type: "text",
-                    text: "If you have completed the user's task, use the attempt_completion tool. if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)"
-                }]
-            })
-        }
-
-        for (const postToolCallProcessor of this.postToolCallProcessors) {
-            try {
-                // Pass current nextMessage (with tool results) to the processor
-                let { nextPrompt, shouldExit } = await postToolCallProcessor.modify({
+                const { nextPrompt, shouldExit } = await preToolCallProcessor.modify({
                     llmMessageSent: input.actualMessageSentToLLM,
                     rawLLMResponseMessage: input.rawLLMOutput,
                     nextPrompt: nextMessage,
-                    toolResults: toolResults,
+                });
+
+                nextMessage = reconcileRuntimePromptContext(nextPrompt);
+                if (shouldExit) {
+                    this.completed = true;
+                    break;
+                }
+            } catch (error) {
+                console.error(`[ResponseExecutor] Error in pre tool call processor:`, error);
+            }
+        }
+
+        const toolExecution = await this.executeTools(input.rawLLMOutput);
+        this.completed = this.completed || toolExecution.completed;
+        this.finalMessage = toolExecution.finalMessage ?? this.finalMessage;
+
+        this.injectDiscoveredTools(
+            input.rawLLMOutput,
+            toolExecution.toolResults,
+            nextMessage,
+        );
+
+        if (toolExecution.toolResults.length > 0 || toolExecution.followUpMessages.length > 0) {
+            nextMessage = appendTranscriptMessages(nextMessage, [
+                ...toolExecution.toolResults.map((toolResult) => ({
+                    role: toolResult.role,
+                    content: typeof toolResult.content === 'string'
+                        ? toolResult.content
+                        : JSON.stringify(toolResult.content),
+                    tool_call_id: toolResult.tool_call_id,
+                })),
+                ...toolExecution.followUpMessages,
+            ]);
+        }
+
+        const transcriptLengthBeforePostToolProcessors = getTranscriptMessages(nextMessage).length;
+        for (const postToolCallProcessor of this.postToolCallProcessors) {
+            try {
+                const { nextPrompt, shouldExit } = await postToolCallProcessor.modify({
+                    llmMessageSent: input.actualMessageSentToLLM,
+                    rawLLMResponseMessage: input.rawLLMOutput,
+                    nextPrompt: nextMessage,
+                    toolResults: toolExecution.toolResults,
                     tokenLimit: input.rawLLMOutput?.tokenLimit,
                     maxOutputTokens: input.rawLLMOutput?.maxOutputTokens
                 });
 
-                // Update nextMessage with the (potentially compressed) result
-                nextMessage = nextPrompt;
+                nextMessage = reconcileRuntimePromptContext(nextPrompt);
 
                 if (shouldExit) {
-                    this.completed = true
-                    Promise.resolve({
-                        nextPrompt,
-                        completed: this.completed
-                    })
+                    this.completed = true;
+                    break;
                 }
             } catch (error) {
                 console.error(`[ResponseExecutor] Error in post tool call processor:`, error);
-                // Continue with other processors
             }
         }
+
+        const transcriptLengthAfterPostToolProcessors = getTranscriptMessages(nextMessage).length;
+        if (
+            !toolExecution.hadToolCalls &&
+            transcriptLengthAfterPostToolProcessors > transcriptLengthBeforePostToolProcessors
+        ) {
+            this.completed = false;
+            this.finalMessage = undefined;
+        }
+
         const output: ResponseOutput = {
             completed: this.completed,
-            nextMessage: nextMessage,
-            toolResults: toolResults
+            nextMessage,
+            toolResults: toolExecution.toolResults,
         };
         if (this.finalMessage !== undefined) {
             output.finalMessage = this.finalMessage;
         }
+
         return output;
-
     }
-    /**
-   * Extract tool details from tool call
-   */
-    private getToolDetail(tool: ToolCall) {
 
-        let toolInput: any = {};
+    private parseToolCall(tool: ToolCall): ParsedToolCall {
+        let toolInput: Record<string, unknown> = {};
         if (tool.function.arguments) {
             try {
-                toolInput = JSON.parse(tool.function.arguments);
+                const parsedArguments = JSON.parse(tool.function.arguments);
+                if (parsedArguments && typeof parsedArguments === 'object' && !Array.isArray(parsedArguments)) {
+                    toolInput = parsedArguments as Record<string, unknown>;
+                }
             } catch (parseError) {
                 throw new Error(`Failed to parse tool arguments: ${parseError}`);
             }
         }
+
         return {
+            tool,
+            toolInput,
             toolName: tool.function.name,
-            toolInput: toolInput,
-            toolUseId: tool.id
+            toolUseId: tool.id,
+            waitForPrevious: toolInput['waitForPreviousTools'] === true,
         };
+    }
+
+    private extractLastMessageContent(llmResponse: LLMCompletion): string | undefined {
+        for (const choice of llmResponse.choices ?? []) {
+            if (choice.message?.content) {
+                return choice.message.content;
+            }
+
+            const reasoningContent = (choice.message as MessageObject & {
+                reasoning_content?: string;
+            } | undefined)?.reasoning_content;
+            if (reasoningContent) {
+                return reasoningContent;
+            }
+        }
+
+        return undefined;
+    }
+
+    private getToolCalls(llmResponse: LLMCompletion): ToolCall[] {
+        const toolCallsById = new Map<string, ToolCall>();
+
+        for (const toolCall of llmResponse.tool_calls ?? []) {
+            if (toolCall?.id) {
+                toolCallsById.set(toolCall.id, toolCall);
+            }
+        }
+
+        for (const choice of llmResponse.choices ?? []) {
+            for (const toolCall of choice.message?.tool_calls ?? []) {
+                if (toolCall?.id && !toolCallsById.has(toolCall.id)) {
+                    toolCallsById.set(toolCall.id, toolCall);
+                }
+            }
+        }
+
+        return Array.from(toolCallsById.values());
     }
 
     private async executeTools(
         llmResponse: LLMCompletion
-    ): Promise<ToolResult[]> {
-        try {
-            let fallBackMessages: MessageObject[] = []
-            let lastMessageContent: string | undefined;
-            for (const contentBlock of llmResponse.choices || []) {
-                if (contentBlock.message) {
+    ): Promise<ToolExecutionOutcome> {
+        const lastMessageContent = this.extractLastMessageContent(llmResponse);
+        const toolCalls = this.getToolCalls(llmResponse);
 
-                    if (contentBlock.message.content != null) {
-                        lastMessageContent = contentBlock.message.content;
-                        // await codebolt.chat.sendMessage(contentBlock.message.content, {});
-                    }
-                    if ((contentBlock.message as any)["reasoning_content"] != null && (!lastMessageContent || lastMessageContent.trim() === '')) {
-                        lastMessageContent = (contentBlock.message as any)["reasoning_content"];
-                        // await codebolt.chat.sendMessage((contentBlock.message as any)["reasoning_content"], {});
-                    }
-                }
-            }
-            try {
-                let toolResults: ToolResult[] = [];
-                let taskCompletedBlock: any;
-                let userRejectedToolUse = false;
-                const contentBlock = llmResponse.choices?.[0];
-
-                if (contentBlock && contentBlock.message?.tool_calls) {
-                    const toolsToExecute: {
-                        tool: ToolCall,
-                        toolInput: any,
-                        toolName: string,
-                        toolUseId: string,
-                        waitForPrevious: boolean
-                    }[] = [];
-
-                    // First pass: Parse all tools and identify "attempt_completion"
-                    for (const tool of contentBlock.message.tool_calls) {
-                        const { toolInput, toolName, toolUseId } = this.getToolDetail(tool);
-                        if (toolName.includes("attempt_completion")) {
-                            taskCompletedBlock = tool;
-                            this.completed = true;
-                        } else {
-                            toolsToExecute.push({
-                                tool,
-                                toolInput,
-                                toolName,
-                                toolUseId,
-                                waitForPrevious: toolInput?.waitForPreviousTools === true
-                            });
-                        }
-                    }
-
-                    // Check for loops before execution
-                    if (this.loopDetectionService) {
-                        const toolCallsToCheck = toolsToExecute.map(t => ({ name: t.toolName, args: t.toolInput }));
-                        for (const toolCall of toolCallsToCheck) {
-                            const loopDetected = this.loopDetectionService.checkToolCallLoop(toolCall.name, toolCall.args);
-                            if (loopDetected) {
-                                this.completed = true;
-                                this.finalMessage = `Loop Detected: The agent is stuck in a loop of identical tool calls (${toolCall.name}). Execution stopped to prevent infinite recurrence.`;
-                                return [{
-                                    role: 'tool',
-                                    tool_call_id: 'system-loop-detection', // Virtual ID
-                                    content: JSON.stringify({ error: this.finalMessage })
-                                }];
-                            }
-                        }
-                    }
-
-                    // Second pass: Execute tools sequentially (one by one)
-                    for (const item of toolsToExecute) {
-                        try {
-                            if (!userRejectedToolUse) {
-                                let [serverName] = item.toolName.replace('--', ':').split(':');
-                                // codebolt.chat.sendMessage(`tool call ${serverName} ${item.toolName} ${item.toolInput}`, {});
-                                if (serverName == 'subagent') {
-                                    await codebolt.agent.startAgent(item.toolName.replace("subagent--", ''), item.toolInput.task);
-                                    const [didUserReject, result] = [false, "tool result is successful"];
-                                    let toolResult = this.parseToolResult(item.toolUseId, result)
-                                    // Handle side effects (fallback messages)
-                                    if (toolResult.userMessage) {
-                                        fallBackMessages.push({
-                                            role: "user",
-                                            content: toolResult.userMessage.toString()
-                                        })
-                                    }
-                                    if (didUserReject) {
-                                        userRejectedToolUse = true;
-                                    }
-                                    toolResults.push({
-                                        role: "tool",
-                                        tool_call_id: toolResult.tool_call_id,
-                                        content: toolResult.content,
-                                    });
-                                }
-                                else if (item.toolName == "codebolt--thread_management") {
-
-                                    const response = await codebolt.thread.createThreadInBackground({
-                                        title: item.toolInput.title || item.toolInput.task || 'Background Thread',
-                                        description: item.toolInput.description || item.toolInput.task || '',
-                                        userMessage: item.toolInput.task || item.toolInput.userMessage || '',
-                                        selectedAgent: item.toolInput.selectedAgent,
-                                        isGrouped: item.toolInput.isGrouped,
-                                        groupId: item.toolInput.groupId,
-                                    })
-
-                                    toolResults.push({
-                                        role: "tool",
-                                        tool_call_id: item.toolUseId,
-                                        content: JSON.stringify(response),
-                                    });
-                                }
-                                else {
-                                    const [didUserReject, result] = await this.executeTool(item.toolName, item.toolInput);
-                                    let toolResult = this.parseToolResult(item.toolUseId, result)
-
-                                    if (toolResult.userMessage) {
-                                        fallBackMessages.push({
-                                            role: "user",
-                                            content: toolResult.userMessage.toString()
-                                        })
-                                    }
-                                    if (didUserReject) {
-                                        userRejectedToolUse = true;
-                                    }
-                                    toolResults.push({
-                                        role: "tool",
-                                        tool_call_id: toolResult.tool_call_id,
-                                        content: toolResult.content,
-                                    });
-                                }
-                            } else {
-                                let toolResult = this.parseToolResult(item.toolUseId, "Skipping tool execution due to previous tool user rejection.")
-                                if (toolResult.userMessage) {
-                                    fallBackMessages.push({
-                                        role: "user",
-                                        content: toolResult.userMessage.toString()
-                                    })
-                                }
-                                toolResults.push({
-                                    role: "tool",
-                                    tool_call_id: toolResult.tool_call_id,
-                                    content: toolResult.content,
-                                });
-                            }
-                        } catch (error) {
-                            toolResults.push({
-                                role: "tool",
-                                tool_call_id: item.tool.id,
-                                content: String(error),
-                            });
-                        }
-                    }
-                }
-                else {
-                    this.completed = true
-                    // Set final message from agent's last text response when completing without tool calls
-                    if (lastMessageContent) {
-                        this.finalMessage = lastMessageContent;
-                    }
-                }
-
-                if (taskCompletedBlock) {
-                    const completionArgs = JSON.parse(taskCompletedBlock.function.arguments || "{}");
-                    // Capture the final message from attempt_completion
-                    if (completionArgs) {
-                        this.finalMessage = JSON.stringify(completionArgs);
-                    }
-
-                    let [_, result] = await this.executeTool(
-                        taskCompletedBlock.function.name,
-                        completionArgs
-                    );
-
-                    if (result === "") {
-                        // this.completed = true;
-                        result = "The user is satisfied with the result.";
-                    }
-                    let toolResult = this.parseToolResult(taskCompletedBlock.id, result)
-                    toolResults.push({
-                        role: "tool",
-                        tool_call_id: toolResult.tool_call_id,
-                        content: toolResult.content,
-
-                    });
-                    if (toolResult.userMessage) {
-                        fallBackMessages.push({
-                            role: "user",
-                            content: toolResult.userMessage.toString()
-                        })
-                    }
-
-                }
-
-
-                return toolResults
-            }
-            catch (error) {
-
-            }
-        } catch (error) {
-
+        if (toolCalls.length === 0) {
+            return {
+                toolResults: [],
+                followUpMessages: [],
+                completed: true,
+                finalMessage: lastMessageContent,
+                hadToolCalls: false,
+            };
         }
-        return [];
+
+        const parsedToolCalls = toolCalls.map((tool) => this.parseToolCall(tool));
+        const completionToolCalls = parsedToolCalls.filter((toolCall) =>
+            toolCall.toolName.includes('attempt_completion'),
+        );
+        const executionToolCalls = parsedToolCalls.filter((toolCall) =>
+            !toolCall.toolName.includes('attempt_completion'),
+        );
+
+        if (this.loopDetectionService) {
+            for (const toolCall of executionToolCalls) {
+                const loopDetected = this.loopDetectionService.checkToolCallLoop(
+                    toolCall.toolName,
+                    toolCall.toolInput,
+                );
+
+                if (loopDetected) {
+                    const loopMessage = `Loop detected while calling "${toolCall.toolName}". Execution stopped to prevent infinite recurrence.`;
+                    return {
+                        toolResults: [{
+                            role: 'tool',
+                            tool_call_id: 'system-loop-detection',
+                            content: JSON.stringify({ error: loopMessage }),
+                        }],
+                        followUpMessages: [],
+                        completed: true,
+                        finalMessage: loopMessage,
+                        hadToolCalls: true,
+                    };
+                }
+            }
+        }
+
+        const toolResults: ToolResult[] = [];
+        const followUpMessages: MessageObject[] = [];
+        let userRejectedToolUse = false;
+
+        let currentIndex = 0;
+        while (currentIndex < executionToolCalls.length) {
+            const currentToolCall = executionToolCalls[currentIndex];
+            if (!currentToolCall) {
+                currentIndex += 1;
+                continue;
+            }
+
+            if (userRejectedToolUse) {
+                const skippedResult = this.parseToolResult(
+                    currentToolCall.toolUseId,
+                    'Skipping tool execution due to previous tool user rejection.',
+                );
+                toolResults.push(skippedResult);
+                currentIndex += 1;
+                continue;
+            }
+
+            if (!this.isConcurrencySafe(currentToolCall)) {
+                const executionResult = await this.executeSingleToolCall(currentToolCall);
+                toolResults.push(executionResult.toolResult);
+                followUpMessages.push(...executionResult.followUpMessages);
+                userRejectedToolUse = executionResult.didUserReject;
+                currentIndex += 1;
+                continue;
+            }
+
+            const parallelBatch: ParsedToolCall[] = [];
+            while (currentIndex < executionToolCalls.length) {
+                const candidateToolCall = executionToolCalls[currentIndex];
+                if (
+                    !candidateToolCall ||
+                    candidateToolCall.waitForPrevious ||
+                    !this.isConcurrencySafe(candidateToolCall)
+                ) {
+                    break;
+                }
+
+                parallelBatch.push(candidateToolCall);
+                currentIndex += 1;
+            }
+
+            const batchResults = await Promise.all(
+                parallelBatch.map((toolCall) => this.executeSingleToolCall(toolCall)),
+            );
+
+            for (const batchResult of batchResults) {
+                toolResults.push(batchResult.toolResult);
+                followUpMessages.push(...batchResult.followUpMessages);
+                userRejectedToolUse = userRejectedToolUse || batchResult.didUserReject;
+            }
+        }
+
+        if (completionToolCalls.length > 0) {
+            const completionToolCall = completionToolCalls.at(-1);
+            if (completionToolCall) {
+                const completionArguments = completionToolCall.toolInput;
+                this.finalMessage = JSON.stringify(completionArguments);
+
+                const [, completionResult] = await this.executeTool(
+                    completionToolCall.toolName,
+                    completionArguments,
+                );
+                const parsedCompletionResult = this.parseToolResult(
+                    completionToolCall.toolUseId,
+                    completionResult === '' ? 'The user is satisfied with the result.' : completionResult,
+                );
+                toolResults.push(parsedCompletionResult);
+            }
+        }
+
+        return {
+            toolResults,
+            followUpMessages,
+            completed: completionToolCalls.length > 0,
+            finalMessage: this.finalMessage,
+            hadToolCalls: true,
+        };
     }
 
+    private isConcurrencySafe(toolCall: ParsedToolCall): boolean {
+        if (toolCall.waitForPrevious) {
+            return false;
+        }
 
-    /**
-     * Executes a tool with given name and input.
-     * 
-     * @param toolName - The name of the tool to execute
-     * @param toolInput - The input parameters for the tool
-     * @returns Promise with tuple [userRejected, result]
-     */
-    private async executeTool(toolName: string, toolInput: any): Promise<[boolean, any]> {
-        //codebolttools--readfile
-        // console.log("Executing tool: ", toolName, toolInput);
+        const normalizedToolName = toolCall.toolName.toLowerCase();
+        if (
+            normalizedToolName.startsWith('subagent--') ||
+            normalizedToolName.includes('thread_management')
+        ) {
+            return false;
+        }
+
+        const actualToolName = normalizedToolName.split('--').at(-1) ?? normalizedToolName;
+        const toolNameTokens = actualToolName
+            .split(/[^a-z0-9]+/)
+            .filter((token) => token.length > 0);
+
+        const mutatingKeywords = new Set([
+            'write',
+            'edit',
+            'create',
+            'delete',
+            'remove',
+            'rename',
+            'move',
+            'copy',
+            'apply',
+            'shell',
+            'command',
+            'run',
+            'exec',
+            'thread_management',
+            'attempt_completion',
+            'completion',
+            'todo',
+            'spawn',
+            'start',
+        ]);
+
+        if (toolNameTokens.some((token) => mutatingKeywords.has(token))) {
+            return false;
+        }
+
+        const readOnlyKeywords = new Set([
+            'read',
+            'search',
+            'list',
+            'find',
+            'glob',
+            'grep',
+            'view',
+            'stat',
+            'inspect',
+            'get',
+            'show',
+            'query',
+            'ls',
+            'cat',
+        ]);
+
+        return toolNameTokens.some((token) => readOnlyKeywords.has(token));
+    }
+
+    private async executeSingleToolCall(
+        toolCall: ParsedToolCall,
+    ): Promise<SingleToolExecutionResult> {
+        try {
+            let resultTuple: [boolean, unknown];
+            if (toolCall.toolName === 'codebolt--thread_management') {
+                resultTuple = [
+                    false,
+                    await codebolt.thread.createThreadInBackground({
+                        title: String(toolCall.toolInput['title'] || toolCall.toolInput['task'] || 'Background Thread'),
+                        description: String(toolCall.toolInput['description'] || toolCall.toolInput['task'] || ''),
+                        userMessage: String(toolCall.toolInput['task'] || toolCall.toolInput['userMessage'] || ''),
+                        selectedAgent: toolCall.toolInput['selectedAgent'],
+                        isGrouped: Boolean(toolCall.toolInput['isGrouped']),
+                        ...(typeof toolCall.toolInput['groupId'] === 'string'
+                            ? { groupId: toolCall.toolInput['groupId'] }
+                            : {}),
+                    })
+                ];
+            } else if (toolCall.toolName.startsWith('subagent--')) {
+                const task = toolCall.toolInput['task'];
+                await codebolt.agent.startAgent(
+                    toolCall.toolName.replace('subagent--', ''),
+                    typeof task === 'string' ? task : JSON.stringify(task),
+                );
+                resultTuple = [false, 'tool result is successful'];
+            } else {
+                resultTuple = await this.executeTool(
+                    toolCall.toolName,
+                    toolCall.toolInput as Record<string, unknown>,
+                );
+            }
+
+            const [didUserReject, result] = resultTuple;
+            const parsedResult = this.parseToolResult(toolCall.toolUseId, result);
+            return {
+                toolResult: parsedResult,
+                followUpMessages: parsedResult.userMessage ? [{
+                    role: 'user',
+                    content: parsedResult.userMessage.toString(),
+                }] : [],
+                didUserReject,
+            };
+        } catch (error) {
+            return {
+                toolResult: {
+                    role: 'tool',
+                    tool_call_id: toolCall.toolUseId,
+                    content: String(error),
+                },
+                followUpMessages: [],
+                didUserReject: false,
+            };
+        }
+    }
+
+    private async executeTool(toolName: string, toolInput: Record<string, unknown>): Promise<[boolean, unknown]> {
         const parts = toolName.split('--');
         const toolboxName = parts.length > 1 ? (parts[0] ?? '') : 'codebolt';
         const actualToolName = parts.length > 1 ? (parts[1] ?? '') : (parts[0] ?? '');
-        // console.log("Toolbox name: ", toolboxName, "Actual tool name: ", actualToolName);
 
         const { data } = await codebolt.mcp.executeTool(toolboxName, actualToolName, toolInput);
-        // console.log("Tool result: ", data);
 
-        // Handle the case where data is an array [didUserReject, content]
         if (Array.isArray(data) && data.length >= 2) {
             const [didUserReject, content] = data;
             return [Boolean(didUserReject), content];
         }
 
-        // If data is not in the expected array format, return it as-is
         return [false, data];
     }
 
-    /**
-     * Creates a tool result object from the tool execution response.
-     * 
-     * @param tool_call_id - The ID of the tool call
-     * @param content - The content returned by the tool
-     * @returns ToolResult object
-     */
-    private parseToolResult(tool_call_id: string, content: string): ToolResult {
-        let userMessage = undefined
+    private parseToolResult(tool_call_id: string, content: unknown): ToolResult {
+        let serializedContent = typeof content === 'string'
+            ? content
+            : JSON.stringify(content);
+        let userMessage: string | undefined;
+
         try {
-            let parsed = JSON.parse(content);
+            const parsedContent = typeof serializedContent === 'string'
+                ? JSON.parse(serializedContent)
+                : serializedContent;
 
-            // console.log("Parsed Content: ", parsed);
-            if (parsed.payload && parsed.payload.content) {
-                content = `The browser action has been executed. The  screenshot have been captured for your analysis. The tool response is provided in the next user message`
-                // this.apiConversationHistory.push()
-                userMessage = parsed.payload.content
+            if (
+                parsedContent &&
+                typeof parsedContent === 'object' &&
+                'payload' in parsedContent &&
+                parsedContent.payload &&
+                typeof parsedContent.payload === 'object' &&
+                'content' in parsedContent.payload &&
+                typeof parsedContent.payload.content === 'string'
+            ) {
+                serializedContent = 'The browser action has been executed. The screenshot has been captured for your analysis. The tool response is provided in the next user message.';
+                userMessage = parsedContent.payload.content;
             }
-        } catch (error) {
-
+        } catch {
+            // Preserve the raw tool result when it is not JSON.
         }
+
         return {
-            role: "tool",
+            role: 'tool',
             tool_call_id,
-            content,
-            userMessage
+            content: serializedContent,
+            userMessage,
         };
     }
 
-
-
-
     setPreToolCallProcessors(processors: PreToolCallProcessor[]): void {
-        this.preToolCallProcessors = processors
+        this.preToolCallProcessors = processors;
     }
+
     setPostToolCallProcessors(processors: PostToolCallProcessor[]): void {
-        this.postToolCallProcessors = processors
-
+        this.postToolCallProcessors = processors;
     }
+
     getPreToolCallProcessors(): PreToolCallProcessor[] {
-        return this.preToolCallProcessors
-    }
-    getPostToolCallProcessors(): PostToolCallProcessor[] {
-        return this.postToolCallProcessors
+        return this.preToolCallProcessors;
     }
 
-    /**
-     * After tool_search is called, parse the returned tool schemas from the tool result
-     * and inject them into nextMessage.message.tools so the LLM can call them on the next turn.
-     */
+    getPostToolCallProcessors(): PostToolCallProcessor[] {
+        return this.postToolCallProcessors;
+    }
+
     private injectDiscoveredTools(
         llmResponse: LLMCompletion,
         toolResults: ToolResult[],
         nextMessage: ProcessedMessage
     ): void {
         try {
-            const toolCalls = llmResponse?.choices?.[0]?.message?.tool_calls;
+            const toolCalls = this.getToolCalls(llmResponse);
             if (!toolCalls || !nextMessage?.message?.tools) return;
 
             for (const toolCall of toolCalls) {
                 if (!toolCall) continue;
                 const toolName = toolCall.function?.name || '';
-                // Match tool_search or codebolt--tool_search
                 const isToolSearch = toolName === 'tool_search' ||
                     toolName === 'codebolt--tool_search' ||
                     toolName.endsWith('--tool_search');
 
                 if (!isToolSearch) continue;
 
-                // Find the corresponding tool result by tool_call_id
                 const toolCallId = toolCall.id;
                 const toolResult = toolResults.find(r => r.tool_call_id === toolCallId);
                 if (!toolResult?.content) continue;
@@ -450,50 +551,43 @@ export class ResponseExecutor implements AgentResponseExecutor {
                     ? toolResult.content
                     : JSON.stringify(toolResult.content);
 
-                // Extract JSON array of tool schemas from the result
-                // The tool_search result format is: "Found N tool(s) matching ...\n\n[{...schemas...}]"
                 const jsonMatch = content.match(/\[[\s\S]*\]/);
                 if (!jsonMatch) continue;
 
-                let discoveredSchemas: any[];
+                let discoveredSchemas: Array<Record<string, unknown>>;
                 try {
-                    discoveredSchemas = JSON.parse(jsonMatch[0]);
+                    discoveredSchemas = JSON.parse(jsonMatch[0]) as Array<Record<string, unknown>>;
                 } catch {
                     continue;
                 }
 
                 if (!Array.isArray(discoveredSchemas)) continue;
 
-                // Get existing tool names to avoid duplicates
                 const existingToolNames = new Set(
-                    nextMessage.message.tools.map((t: any) => t.function?.name)
+                    nextMessage.message.tools.map((tool) => tool.function?.name)
                 );
 
                 for (const schema of discoveredSchemas) {
-                    // schema is in OpenAI tool format: { type: "function", function: { name, description, parameters } }
-                    const rawName = schema.function?.name;
+                    const schemaFunction = schema['function'] as { name?: string } | undefined;
+                    const rawName = schemaFunction?.name;
                     if (!rawName) continue;
 
-                    // Add codebolt-- prefix so executeTool routes to the correct MCP server
                     const prefixedName = rawName.startsWith('codebolt--') ? rawName : `codebolt--${rawName}`;
                     if (existingToolNames.has(prefixedName)) continue;
 
-                    // Clone schema with prefixed name
                     const prefixedSchema = {
                         ...schema,
                         function: {
-                            ...schema.function,
+                            ...schemaFunction,
                             name: prefixedName
                         }
                     };
-                    nextMessage.message.tools.push(prefixedSchema);
+                    nextMessage.message.tools.push(prefixedSchema as typeof nextMessage.message.tools[number]);
                     existingToolNames.add(prefixedName);
                 }
             }
         } catch (error) {
-            // Non-critical — if injection fails, the agent continues without the new tools
             console.error('[ResponseExecutor] Error injecting discovered tools:', error);
         }
     }
-
 }

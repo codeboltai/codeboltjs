@@ -1,6 +1,7 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
 import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { appendSystemContextMessage } from "../../unified/base/promptContext";
 
 export interface IdeContextOptions {
     includeOpenFiles?: boolean;
@@ -62,34 +63,13 @@ export class IdeContextModifier extends BaseMessageModifier {
                 content: contextParts.join('\n')
             };
 
-            // Find existing system message or add new one
-            const messages = [...createdMessage.message.messages];
-            const systemMessageIndex = messages.findIndex(msg => msg.role === 'system');
-
-            if (systemMessageIndex !== -1) {
-                // Append to existing system message
-                const existingMessage = messages[systemMessageIndex];
-                if (existingMessage) {
-                    messages[systemMessageIndex] = {
-                        role: existingMessage.role,
-                        content: `${existingMessage.content}\n\n${ideContextMessage.content}`
-                    };
-                }
-            } else {
-                // Add new system message
-                messages.unshift(ideContextMessage);
-            }
-
             if (newIdeContext) {
                 this.lastSentIdeContext = newIdeContext;
             }
             this.forceFullContext = false;
 
             return Promise.resolve({
-                message: {
-                    ...createdMessage.message,
-                    messages
-                },
+                ...appendSystemContextMessage(createdMessage, ideContextMessage),
                 metadata: {
                     ...createdMessage.metadata,
                     ideContextAdded: true,

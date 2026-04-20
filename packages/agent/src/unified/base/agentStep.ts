@@ -5,6 +5,12 @@ import codebolt from '@codebolt/codeboltjs';
 
 
 import { FlatUserMessage, LLMInferenceParams, LLMCompletion } from '@codebolt/types/sdk';
+import {
+    appendTranscriptMessages,
+    buildInferenceParams,
+    reconcileRuntimePromptContext,
+    syncProcessedMessageWithRuntimeContext,
+} from './promptContext';
 
 
 /**
@@ -33,46 +39,48 @@ export class AgentStep implements AgentStepInterface {
      */
     async executeStep(originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<AgentStepOutput> {
         try {
-          
+            let preparedMessage = syncProcessedMessageWithRuntimeContext(createdMessage);
+
             for (const preInferenceProcessor of this.preInferenceProcessors) {
                 try {
-                    // Each modifier returns a new ProcessedMessage
-                    createdMessage= await preInferenceProcessor.modify(originalRequest,createdMessage);
-
+                    preparedMessage = await preInferenceProcessor.modify(originalRequest, preparedMessage);
+                    preparedMessage = reconcileRuntimePromptContext(preparedMessage);
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
-                    // Continue with other modifiers
                 }
             }
 
-            // Generate LLM response
-            const rawLLMResponse:LLMCompletion = await this.generateResponse(createdMessage.message);
+            const actualMessageSentToLLM: ProcessedMessage = {
+                ...preparedMessage,
+                message: buildInferenceParams(preparedMessage),
+            };
 
-            // Deep copy so that pushing LLM response and tool results into modifiedMessage
-            // does not mutate createdMessage (used as actualMessageSentToLLM).
-            let modifiedMessage:ProcessedMessage= JSON.parse(JSON.stringify(createdMessage));
-            rawLLMResponse.choices?.forEach(contentBlock=>{
-                modifiedMessage.message.messages.push({
-                    ...contentBlock.message,
-                    role: contentBlock.message.role as 'user' | 'assistant' | 'tool' | 'system'
-                })
+            const rawLLMResponse:LLMCompletion = await this.generateResponse(actualMessageSentToLLM.message);
 
-            })
+            const assistantMessages = (rawLLMResponse.choices ?? []).map((contentBlock) => ({
+                ...contentBlock.message,
+                role: contentBlock.message.role as 'user' | 'assistant' | 'tool' | 'system'
+            }));
+
+            let modifiedMessage = appendTranscriptMessages(preparedMessage, assistantMessages);
 
             for (const postInferenceProcessor of this.postInferenceProcessors) {
                 try {
-                    // Each modifier returns a new ProcessedMessage
-                    modifiedMessage= await postInferenceProcessor.modify(createdMessage,rawLLMResponse,modifiedMessage);
-
+                    modifiedMessage = await postInferenceProcessor.modify(
+                        actualMessageSentToLLM,
+                        rawLLMResponse,
+                        modifiedMessage,
+                    );
+                    modifiedMessage = reconcileRuntimePromptContext(modifiedMessage);
                 } catch (error) {
                     console.error(`[InitialPromptGenerator] Error in message modifier:`, error);
-                    // Continue with other modifiers
                 }
             }
+
             const output: AgentStepOutput = {
                 rawLLMResponse:rawLLMResponse,
                 nextMessage:modifiedMessage,
-                actualMessageSentToLLM:createdMessage
+                actualMessageSentToLLM
             };
 
             return output;
@@ -144,4 +152,3 @@ export class AgentStep implements AgentStepInterface {
 
    
 }
-

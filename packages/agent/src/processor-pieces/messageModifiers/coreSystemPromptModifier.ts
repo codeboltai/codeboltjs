@@ -1,6 +1,7 @@
 import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
-import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
+import { FlatUserMessage } from "@codebolt/types/sdk";
+import { setSystemPrompt } from "../../unified/base/promptContext";
 
 export interface CoreSystemPromptOptions {
     customSystemPrompt?: string;
@@ -20,28 +21,8 @@ export class CoreSystemPromptModifier extends BaseMessageModifier {
         const userMemory = createdMessage.metadata?.['userMemory'] as string || this.options.userMemory;
         const systemPrompt = this.options.customSystemPrompt || this.getCoreSystemPrompt(userMemory);
 
-        const systemMessage: MessageObject = {
-            role: 'system',
-            content: systemPrompt
-        };
-
-        // Find existing system message or add new one
-        const messages = [...createdMessage.message.messages];
-        const systemMessageIndex = messages.findIndex(msg => msg.role === 'system');
-        
-        if (systemMessageIndex !== -1) {
-            // Replace existing system message
-            messages[systemMessageIndex] = systemMessage;
-        } else {
-            // Add new system message at the beginning
-            messages.unshift(systemMessage);
-        }
-
         return Promise.resolve({
-            message: {
-                ...createdMessage.message,
-                messages
-            },
+            ...setSystemPrompt(createdMessage, systemPrompt),
             metadata: {
                 ...createdMessage.metadata,
                 coreSystemPromptAdded: true,

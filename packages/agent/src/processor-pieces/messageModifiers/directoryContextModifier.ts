@@ -5,6 +5,7 @@ import * as fs from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import * as path from 'node:path';
 import codebolt from "@codebolt/codeboltjs";
+import { appendUserContextMessage } from "../../unified/base/promptContext";
 
 const MAX_ITEMS = 200;
 const TRUNCATION_INDICATOR = '...';
@@ -116,14 +117,8 @@ ${folderStructure}`;
                 content: directoryContext
             };
 
-            // Add as user message (like gemini-cli does)
-            const messages = [...createdMessage.message.messages, contextMessage];
-
             return Promise.resolve({
-                message: {
-                    ...createdMessage.message,
-                    messages
-                },
+                ...appendUserContextMessage(createdMessage, contextMessage),
                 metadata: {
                     ...createdMessage.metadata,
                     directoryContextAdded: true,

@@ -8,10 +8,14 @@ import {
     PreToolCallProcessor,
     ProcessedMessage
 } from "@codebolt/types/agent";
-import { FlatUserMessage } from "@codebolt/types/sdk";
+import { FlatUserMessage, LLMCompletion, Tool } from "@codebolt/types/sdk";
+import codebolt from "@codebolt/codeboltjs";
+
 import { InitialPromptGenerator } from "../base";
-import { ResponseExecutor } from "../base/responseExecutor";
 import { AgentStep } from "../base/agentStep";
+import { ResponseExecutor } from "../base/responseExecutor";
+import { getTranscriptMessages, replaceTranscriptMessages } from "../base/promptContext";
+import { LoopDetectionService } from "../services/LoopDetectionService";
 import { CompactionOrchestrator } from "../services/compaction/compactionOrchestrator";
 import type { CompactionOrchestratorOptions } from "../services/compaction/types";
 import {
@@ -24,87 +28,15 @@ import {
     ChatHistoryMessageModifier
 } from '../../processor-pieces';
 
-/**
- * Configuration options for CodeboltAgent
- */
 export interface CodeboltAgentConfig extends AgentConfig {
-    /**
-     * Enable logging for debugging purposes.
-     * Defaults to true.
-     */
     enableLogging?: boolean;
-
-    /**
-     * Agent context to continue from.
-     * When provided, the agent will skip initial prompt generation
-     * and continue from where the previous agent left off.
-     */
     context?: ProcessedMessage;
-
-    /**
-     * List of allowed tool names. If provided, only these tools will be available to the agent.
-     * If not provided, all tools will be available.
-     * Example: ['readFile', 'writeFile', 'executeCommand']
-     */
     allowedTools?: string[];
-
-    /**
-     * Loop-owned compaction settings.
-     * Applied before inference, after tool execution, and reactively on context errors.
-     */
     compaction?: CompactionOrchestratorOptions;
+    loopDetectionService?: LoopDetectionService;
+    maxTurns?: number;
 }
 
-/**
- * CodeboltAgent is a high-level agent class that:
- * - Uses InitialPromptGenerator with configurable processors/modifiers
- * - Runs an agent loop with AgentStep and ResponseExecutor
- * - Handles tool execution and conversation flow automatically
- * - Is triggered via processMessage (not via onMessage listener)
- * 
- * @example
- * ```typescript
- * import { CodeboltAgent } from '@codebolt/agent/unified';
- * import { 
- *     EnvironmentContextModifier,
- *     CoreSystemPromptModifier,
- *     DirectoryContextModifier,
- *     IdeContextModifier,
- *     AtFileProcessorModifier,
- *     ToolInjectionModifier,
- *     ChatHistoryMessageModifier
- * } from '@codebolt/agent/processor-pieces';
- * 
- * const systemPrompt = `You are an AI coding assistant...`;
- * 
- * const agent = new CodeboltAgent({
- *     instructions: systemPrompt,
- *     processors: {
- *         messageModifiers: [
- *             new ChatHistoryMessageModifier({ enableChatHistory: true }),
- *             new EnvironmentContextModifier({ enableFullContext: true }),
- *             new DirectoryContextModifier(),
- *             new IdeContextModifier({
- *                 includeActiveFile: true,
- *                 includeOpenFiles: true,
- *                 includeCursorPosition: true,
- *                 includeSelectedText: true
- *             }),
- *             new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
- *             new ToolInjectionModifier({ includeToolDescriptions: true }),
- *             new AtFileProcessorModifier({ enableRecursiveSearch: true })
- *         ],
- *         preInferenceProcessors: [],
- *         postInferenceProcessors: [],
- *         preToolCallProcessors: [],
- *         postToolCallProcessors: []
- *     }
- * });
- * 
- * // Process a message (triggered from graph node)
- * const result = await agent.processMessage(userMessage);
- * ```
- */
 export class CodeboltAgent {
     private readonly config: CodeboltAgentConfig;
     private readonly messageModifiers: MessageModifier[];
@@ -117,6 +49,8 @@ export class CodeboltAgent {
     private readonly context: ProcessedMessage | undefined;
     private readonly allowedTools: string[] | undefined;
     private readonly compactionOrchestrator: CompactionOrchestrator;
+    private readonly loopDetectionService: LoopDetectionService | undefined;
+    private readonly maxTurns: number;
 
     constructor(config: CodeboltAgentConfig) {
         this.config = { ...config };
@@ -125,7 +59,6 @@ export class CodeboltAgent {
         this.context = config.context;
         this.allowedTools = config.allowedTools;
 
-        // Use provided modifiers or default ones
         this.messageModifiers = config.processors?.messageModifiers?.length
             ? config.processors.messageModifiers
             : this.createDefaultMessageModifiers(this.baseSystemPrompt, this.allowedTools);
@@ -135,41 +68,30 @@ export class CodeboltAgent {
         this.preToolCallProcessors = config.processors?.preToolCallProcessors || [];
         this.postToolCallProcessors = config.processors?.postToolCallProcessors || [];
         this.compactionOrchestrator = new CompactionOrchestrator(config.compaction);
+        this.loopDetectionService = config.loopDetectionService;
+        this.maxTurns = config.maxTurns ?? 25;
     }
 
-    /**
-     * Creates default message modifiers when none are provided
-     */
     private createDefaultMessageModifiers(systemPrompt: string, allowedTools?: string[]): MessageModifier[] {
         return [
-            // 1. Chat History
             new ChatHistoryMessageModifier({ enableChatHistory: true }),
-            // 2. Environment Context (date, OS)
             new EnvironmentContextModifier({ enableFullContext: true }),
-            // 3. Directory Context (folder structure)
             new DirectoryContextModifier(),
-            // 4. IDE Context (active file, opened files)
             new IdeContextModifier({
                 includeActiveFile: true,
                 includeOpenFiles: true,
                 includeCursorPosition: true,
                 includeSelectedText: true
             }),
-            // 5. Core System Prompt (instructions)
             new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
-            // 6. Tools (function declarations)
             new ToolInjectionModifier({
                 includeToolDescriptions: true,
                 ...(allowedTools && { allowedTools })
             }),
-            // 7. At-file processing (@file mentions)
             new AtFileProcessorModifier({ enableRecursiveSearch: true })
         ];
     }
 
-    /**
-     * Creates a default FlatUserMessage from a string
-     */
     private createDefaultUserMessage(message: string): FlatUserMessage {
         return {
             userMessage: message,
@@ -188,33 +110,19 @@ export class CodeboltAgent {
         };
     }
 
-    /**
-     * Process a message through the agent pipeline.
-     * This is the main entry point - triggered from graph nodes.
-     * @param message - Either a string message or a FlatUserMessage object
-     * @param context - Optional context from a previous agent to continue from
-     */
     public async processMessage(
         message: string | FlatUserMessage,
         context?: ProcessedMessage
-    ): Promise<{ success: boolean; result: any; context: ProcessedMessage | null; error?: string }> {
+    ): Promise<{ success: boolean; result: any; context: ProcessedMessage | null; finalMessage?: string; error?: string }> {
         try {
-            if (this.enableLogging) {
-                console.log('[CodeboltAgent] Processing message');
-            }
-
             const reqMessage: FlatUserMessage = typeof message === 'string'
                 ? this.createDefaultUserMessage(message)
                 : message;
 
-            // Use provided context, config context, or generate new one
-            const contextToUse = context || this.context;
             let prompt: ProcessedMessage;
+            const contextToUse = context || this.context;
 
             if (contextToUse) {
-                if (this.enableLogging) {
-                    console.log('[CodeboltAgent] Continuing from previous context');
-                }
                 prompt = contextToUse;
             } else {
                 const promptGenerator = new InitialPromptGenerator({
@@ -226,33 +134,66 @@ export class CodeboltAgent {
             }
 
             let completed = false;
+            let turnNumber = 0;
+            let finalMessage: string | undefined;
 
             while (!completed) {
+                turnNumber += 1;
+                if (turnNumber > this.maxTurns) {
+                    throw new Error(`Agent exceeded the maximum turn limit of ${this.maxTurns}.`);
+                }
+
                 this.compactionOrchestrator.resetForTurn();
                 prompt = await this.applyCompaction(prompt);
+                prompt = await this.refreshAvailableTools(reqMessage, prompt);
 
                 const agentStep = new AgentStep({
                     preInferenceProcessors: this.preInferenceProcessors,
                     postInferenceProcessors: this.postInferenceProcessors
                 });
 
-                let stepResult: AgentStepOutput;
-                try {
-                    stepResult = await agentStep.executeStep(reqMessage, prompt);
-                } catch (error) {
-                    const recoveredPrompt = await this.tryRecoverPrompt(prompt, error);
-                    if (!recoveredPrompt) {
-                        throw error;
-                    }
+                let stepResult: AgentStepOutput | undefined;
+                while (!stepResult) {
+                    try {
+                        const nextStepResult = await agentStep.executeStep(reqMessage, prompt);
+                        const recoverableResponseError = this.getRecoverableResponseError(
+                            nextStepResult.rawLLMResponse,
+                        );
 
-                    prompt = recoveredPrompt;
-                    stepResult = await agentStep.executeStep(reqMessage, prompt);
+                        if (!recoverableResponseError) {
+                            stepResult = nextStepResult;
+                            break;
+                        }
+
+                        const recoveredPrompt = await this.tryRecoverPrompt(
+                            prompt,
+                            new Error(recoverableResponseError),
+                        );
+                        if (!recoveredPrompt) {
+                            throw new Error(recoverableResponseError);
+                        }
+
+                        prompt = recoveredPrompt;
+                    } catch (error) {
+                        const recoveredPrompt = await this.tryRecoverPrompt(prompt, error);
+                        if (!recoveredPrompt) {
+                            throw error;
+                        }
+
+                        prompt = recoveredPrompt;
+                    }
                 }
-                prompt = stepResult.nextMessage;
+
+                if (!stepResult) {
+                    throw new Error('Agent step did not produce a response.');
+                }
 
                 const responseExecutor = new ResponseExecutor({
                     preToolCallProcessors: this.preToolCallProcessors,
-                    postToolCallProcessors: this.postToolCallProcessors
+                    postToolCallProcessors: this.postToolCallProcessors,
+                    ...(this.loopDetectionService
+                        ? { loopDetectionService: this.loopDetectionService }
+                        : {}),
                 });
 
                 const executionResult = await responseExecutor.executeResponse({
@@ -263,17 +204,15 @@ export class CodeboltAgent {
                 });
 
                 completed = executionResult.completed;
-                prompt = await this.applyCompaction(executionResult.nextMessage);
-            }
-
-            if (this.enableLogging) {
-                console.log('[CodeboltAgent] Message processing completed');
+                prompt = executionResult.nextMessage;
+                finalMessage = executionResult.finalMessage;
             }
 
             return {
                 success: true,
                 result: prompt,
-                context: prompt
+                context: prompt,
+                ...(finalMessage !== undefined ? { finalMessage } : {}),
             };
 
         } catch (error) {
@@ -292,60 +231,38 @@ export class CodeboltAgent {
         }
     }
 
-    /**
-     * Get the current configuration
-     */
     public getConfig(): CodeboltAgentConfig {
         return { ...this.config };
     }
 
-    /**
-     * Get all message modifiers
-     */
     public getMessageModifiers(): MessageModifier[] {
         return [...this.messageModifiers];
     }
 
-    /**
-     * Get all pre-inference processors
-     */
     public getPreInferenceProcessors(): PreInferenceProcessor[] {
         return [...this.preInferenceProcessors];
     }
 
-    /**
-     * Get all post-inference processors
-     */
     public getPostInferenceProcessors(): PostInferenceProcessor[] {
         return [...this.postInferenceProcessors];
     }
 
-    /**
-     * Get all pre-tool-call processors
-     */
     public getPreToolCallProcessors(): PreToolCallProcessor[] {
         return [...this.preToolCallProcessors];
     }
 
-    /**
-     * Get all post-tool-call processors
-     */
     public getPostToolCallProcessors(): PostToolCallProcessor[] {
         return [...this.postToolCallProcessors];
     }
 
     private async applyCompaction(prompt: ProcessedMessage): Promise<ProcessedMessage> {
-        const result = await this.compactionOrchestrator.compact(prompt.message.messages);
+        const result = await this.compactionOrchestrator.compact(getTranscriptMessages(prompt));
         if (!result.wasCompacted) {
             return prompt;
         }
 
         return {
-            ...prompt,
-            message: {
-                ...prompt.message,
-                messages: result.messages,
-            },
+            ...replaceTranscriptMessages(prompt, result.messages),
             metadata: {
                 ...prompt.metadata,
                 compaction: {
@@ -368,7 +285,7 @@ export class CodeboltAgent {
         }
 
         const recovery = await this.compactionOrchestrator.recoverFromError(
-            prompt.message.messages,
+            getTranscriptMessages(prompt),
             error,
         );
 
@@ -377,11 +294,7 @@ export class CodeboltAgent {
         }
 
         return {
-            ...prompt,
-            message: {
-                ...prompt.message,
-                messages: recovery.messages,
-            },
+            ...replaceTranscriptMessages(prompt, recovery.messages),
             metadata: {
                 ...prompt.metadata,
                 reactiveCompaction: {
@@ -394,11 +307,154 @@ export class CodeboltAgent {
             },
         };
     }
+
+    private async refreshAvailableTools(
+        originalRequest: FlatUserMessage,
+        prompt: ProcessedMessage,
+    ): Promise<ProcessedMessage> {
+        if (
+            prompt.metadata?.['toolsInjected'] !== true ||
+            prompt.metadata?.['toolsLocation'] !== 'Tool'
+        ) {
+            return prompt;
+        }
+
+        const existingTools = Array.isArray(prompt.message.tools)
+            ? prompt.message.tools
+            : [];
+
+        try {
+            const toolsResponse: any = await codebolt.mcp.listMcpFromServers(['codebolt']);
+            let refreshedTools: Tool[] = toolsResponse?.data?.tools || toolsResponse?.data || [];
+            const mentionedMCPs = Array.isArray(originalRequest.mentionedMCPs)
+                ? originalRequest.mentionedMCPs
+                : [];
+
+            if (mentionedMCPs.length > 0) {
+                const { data: mentionedTools } = await (codebolt.mcp.getTools as any)(mentionedMCPs);
+                refreshedTools = [...refreshedTools, ...((mentionedTools || []) as unknown as Tool[])];
+            }
+
+            const allowedToolNames = this.getAllowedToolNames(prompt);
+            if (allowedToolNames && allowedToolNames.length > 0) {
+                const allowed = new Set(allowedToolNames);
+                refreshedTools = refreshedTools.filter(
+                    (tool) => !!tool.function?.name && allowed.has(tool.function.name),
+                );
+            }
+
+            const mergedTools = this.mergeTools(existingTools, refreshedTools);
+
+            return {
+                ...prompt,
+                message: {
+                    ...prompt.message,
+                    tools: mergedTools,
+                    ...(mergedTools.length > 0
+                        ? { tool_choice: prompt.message.tool_choice ?? 'auto' }
+                        : {}),
+                },
+                metadata: {
+                    ...prompt.metadata,
+                    toolsCount: mergedTools.length,
+                    toolsRefreshedAt: new Date().toISOString(),
+                },
+            };
+        } catch (error) {
+            if (this.enableLogging) {
+                console.error('[CodeboltAgent] Failed to refresh tools:', error);
+            }
+
+            return prompt;
+        }
+    }
+
+    private mergeTools(existingTools: Tool[], refreshedTools: Tool[]): Tool[] {
+        const mergedTools = new Map<string, Tool>();
+
+        for (const tool of refreshedTools) {
+            const toolName = tool.function?.name;
+            if (toolName) {
+                mergedTools.set(toolName, tool);
+            }
+        }
+
+        for (const tool of existingTools) {
+            const toolName = tool.function?.name;
+            if (toolName && !mergedTools.has(toolName)) {
+                mergedTools.set(toolName, tool);
+            }
+        }
+
+        return Array.from(mergedTools.values());
+    }
+
+    private getAllowedToolNames(prompt: ProcessedMessage): string[] | undefined {
+        const metadataAllowedTools = prompt.metadata?.['allowedTools'];
+        if (Array.isArray(metadataAllowedTools)) {
+            const allowedToolNames = metadataAllowedTools.filter(
+                (toolName): toolName is string => typeof toolName === 'string' && toolName.length > 0,
+            );
+
+            if (allowedToolNames.length > 0) {
+                return allowedToolNames;
+            }
+        }
+
+        return this.allowedTools;
+    }
+
+    private getRecoverableResponseError(response: LLMCompletion): string | null {
+        const reactiveLayer = this.compactionOrchestrator.getReactiveLayer();
+        const candidateMessages = this.collectResponseMessages(response);
+        const recoverableMessage = candidateMessages.find((message) =>
+            reactiveLayer.isRecoverableError(message),
+        );
+
+        if (recoverableMessage) {
+            return recoverableMessage;
+        }
+
+        const finishReasons = [
+            response.finish_reason,
+            ...(response.choices ?? []).map((choice) => choice.finish_reason),
+        ].filter((reason): reason is string => typeof reason === 'string');
+        const hasLengthFinishReason = finishReasons.some(
+            (reason) => reason.toLowerCase() === 'length',
+        );
+        const hasToolCalls =
+            (response.tool_calls?.length ?? 0) > 0 ||
+            (response.choices ?? []).some(
+                (choice) => (choice.message?.tool_calls?.length ?? 0) > 0,
+            );
+
+        if (hasLengthFinishReason && candidateMessages.length === 0 && !hasToolCalls) {
+            return 'Too many tokens or token limit reached before producing usable output.';
+        }
+
+        return null;
+    }
+
+    private collectResponseMessages(response: LLMCompletion): string[] {
+        const messages: string[] = [];
+
+        if (typeof response.content === 'string' && response.content.trim().length > 0) {
+            messages.push(response.content.trim());
+        }
+
+        for (const choice of response.choices ?? []) {
+            if (
+                typeof choice.message?.content === 'string' &&
+                choice.message.content.trim().length > 0
+            ) {
+                messages.push(choice.message.content.trim());
+            }
+        }
+
+        return messages;
+    }
 }
 
-/**
- * Factory function to create a CodeboltAgent with common defaults
- */
 export function createCodeboltAgent(options: {
     systemPrompt: string;
     messageModifiers?: MessageModifier[];
@@ -407,6 +463,9 @@ export function createCodeboltAgent(options: {
     preToolCallProcessors?: PreToolCallProcessor[];
     postToolCallProcessors?: PostToolCallProcessor[];
     enableLogging?: boolean;
+    compaction?: CompactionOrchestratorOptions;
+    loopDetectionService?: LoopDetectionService;
+    maxTurns?: number;
 }): CodeboltAgent {
     return new CodeboltAgent({
         instructions: options.systemPrompt,
@@ -417,6 +476,9 @@ export function createCodeboltAgent(options: {
             preToolCallProcessors: options.preToolCallProcessors || [],
             postToolCallProcessors: options.postToolCallProcessors || []
         },
-        enableLogging: options.enableLogging ?? true
+        enableLogging: options.enableLogging ?? true,
+        ...(options.compaction ? { compaction: options.compaction } : {}),
+        ...(options.loopDetectionService ? { loopDetectionService: options.loopDetectionService } : {}),
+        ...(options.maxTurns !== undefined ? { maxTurns: options.maxTurns } : {}),
     });
 }

@@ -133,7 +133,8 @@ export class ToolInjectionModifier extends BaseMessageModifier {
                 ...createdMessage.metadata,
                 toolsInjected: true,
                 toolsLocation: 'Tool',
-                toolsCount: tools.length
+                toolsCount: tools.length,
+                allowedTools: this.options.allowedTools
             }
         };
     }

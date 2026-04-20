@@ -2,6 +2,7 @@ import { ProcessedMessage } from "@codebolt/types/agent";
 import { BaseMessageModifier } from "../base";
 import { FlatUserMessage, MessageObject } from "@codebolt/types/sdk";
 import codebolt from '@codebolt/codeboltjs';
+import { prependTranscriptMessages } from "../../unified/base/promptContext";
 
 export interface ChatHistoryMessageModifierOptions {
     enableChatHistory?: boolean;
@@ -39,10 +40,7 @@ export class ChatHistoryMessageModifier extends BaseMessageModifier {
 
             // Directly use the chat history messages - they're already in MessageObject format
             return {
-                message: {
-                    ...createdMessage.message,
-                    messages: [...chatHistory, ...createdMessage.message.messages]
-                },
+                ...prependTranscriptMessages(createdMessage, chatHistory),
                 metadata: {
                     ...createdMessage.metadata,
                     chatHistoryAdded: true,
