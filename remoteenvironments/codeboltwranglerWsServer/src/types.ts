@@ -27,6 +27,8 @@ export interface GatewayRegisterMessage {
   runtimeId?: string;
   runtimeType?: 'local' | 'e2b' | 'docker' | 'custom';
   projectPath?: string;
+  projectName?: string;
+  gitRemoteUrl?: string;
 }
 
 export interface GatewayForwardFromAgent {
@@ -133,6 +135,8 @@ export interface RuntimeInfo {
   runtimeId: string;
   runtimeType: 'local' | 'e2b' | 'docker' | 'custom';
   projectPath?: string;
+  projectName?: string;
+  gitRemoteUrl?: string;
   connectedAt: number;
 }
 
@@ -141,6 +145,8 @@ export interface RuntimeConnectedMessage {
   runtimeId: string;
   runtimeType: 'local' | 'e2b' | 'docker' | 'custom';
   projectPath?: string;
+  projectName?: string;
+  gitRemoteUrl?: string;
   timestamp: number;
 }
 

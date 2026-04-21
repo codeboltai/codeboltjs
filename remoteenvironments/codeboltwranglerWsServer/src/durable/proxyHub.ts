@@ -242,6 +242,8 @@ export class ProxyHub {
     const runtimeId = message.runtimeId ?? message.serverId ?? 'default';
     const runtimeType = message.runtimeType ?? 'local';
     const projectPath = message.projectPath;
+    const projectName = message.projectName;
+    const gitRemoteUrl = message.gitRemoteUrl;
 
     // Ensure per-token maps exist
     if (!this.gatewaysByRuntime.has(token)) {
@@ -261,7 +263,7 @@ export class ProxyHub {
     }
 
     runtimeMap.set(runtimeId, socket);
-    metaMap.set(runtimeId, { runtimeId, runtimeType, projectPath, connectedAt: Date.now() });
+    metaMap.set(runtimeId, { runtimeId, runtimeType, projectPath, projectName, gitRemoteUrl, connectedAt: Date.now() });
 
     // Persist meta both in-memory and via hibernation attachment
     const meta: SocketMeta = { role: 'gateway', token, runtimeId, userId: message.userId };
@@ -284,6 +286,8 @@ export class ProxyHub {
       runtimeId,
       runtimeType,
       projectPath,
+      projectName,
+      gitRemoteUrl,
       timestamp: Date.now(),
     });
 
