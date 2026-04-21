@@ -1,5 +1,6 @@
 import {
   ForwardMessage,
+  ForwardToRuntimeMessage,
   GatewayForwardFromAgent,
   GatewayForwardFromApp,
   GatewayOutgoingMessage,
@@ -7,6 +8,8 @@ import {
   ProxyIncomingMessage,
   RegisterMessage,
   RegisteredMessage,
+  RuntimeInfo,
+  TaskEventMessage,
   Env,
 } from '../types';
 
@@ -16,12 +19,18 @@ interface SocketMeta {
   role: 'gateway' | 'app' | 'agent';
   token: string;
   userId?: string;
+  runtimeId?: string;
 }
 
 export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
   private readonly appSocketsByToken = new Map<string, WebSocket>();
-  private readonly gatewaySocketsByToken = new Map<string, WebSocket>();
+
+  // Multi-runtime: appToken → Map<runtimeId, WebSocket>
+  private readonly gatewaysByRuntime = new Map<string, Map<string, WebSocket>>();
+  // Runtime metadata: appToken → Map<runtimeId, RuntimeInfo>
+  private readonly runtimeMeta = new Map<string, Map<string, RuntimeInfo & { connectedAt: number }>>();
+
   private readonly monitoringSockets = new Set<WebSocket>();
 
   private readonly pendingAgentMessages = new Map<string, unknown[]>();
@@ -37,9 +46,6 @@ export class ProxyHub {
 
   constructor(readonly state: DurableObjectState, private readonly env: Env) {}
 
-  /**
-   * Alarm handler — flushes buffered messages to KV.
-   */
   async alarm(): Promise<void> {
     this.flushScheduled = false;
     await this.flushBufferToKV();
@@ -70,10 +76,7 @@ export class ProxyHub {
     server.addEventListener('message', async (event) => {
       try {
         const raw = event.data?.toString();
-        if (!raw) {
-          return;
-        }
-
+        if (!raw) return;
         const message = JSON.parse(raw) as ProxyIncomingMessage;
         await this.handleMessage(server, message);
       } catch (error) {
@@ -117,6 +120,12 @@ export class ProxyHub {
       case 'forward_from_app':
         this.handleForwardFromGatewayApp(message);
         break;
+      case 'forward_to_runtime':
+        this.handleForwardToRuntime(message);
+        break;
+      case 'taskEvent':
+        await this.handleTaskEvent(socket, message);
+        break;
       case 'ping':
         this.sendJson(socket, { type: 'pong', timestamp: Date.now() });
         break;
@@ -124,6 +133,7 @@ export class ProxyHub {
         this.sendJson(socket, {
           type: 'connections_snapshot',
           summary: this.getConnectionSummary(),
+          runtimes: this.getRuntimeList(this.socketMeta.get(socket)?.token ?? DEFAULT_TOKEN),
           timestamp: Date.now()
         });
         break;
@@ -134,7 +144,6 @@ export class ProxyHub {
         await this.handleRequestThreadMessages(socket, message);
         break;
       default:
-        // Raw forwarding: forward unknown message types between gateway and app sockets
         await this.handleRawForward(socket, message as any);
     }
   }
@@ -144,51 +153,66 @@ export class ProxyHub {
     this.sendJson(socket, ack);
     this.flushQueuesAfterRegister(message);
     this.broadcastConnectionUpdate();
-    this.logMessage(message.actor === 'agent' ? 'incoming' : 'incoming', message.actor, message.agentId, message, message);
+    this.logMessage('incoming', message.actor, message.agentId, message, message);
   }
 
   private handleGatewayRegistration(socket: WebSocket, message: GatewayRegisterMessage): void {
     const token = this.normalizeToken(message.appToken);
-    const existing = this.gatewaySocketsByToken.get(token);
-    if (existing && existing !== socket) {
-      try {
-        existing.close();
-      } catch (error) {
-        console.error('[ProxyHub] Failed to close previous gateway', error);
-      }
+    const runtimeId = message.runtimeId ?? message.serverId ?? 'default';
+    const runtimeType = message.runtimeType ?? 'local';
+    const projectPath = message.projectPath;
+
+    // Ensure per-token maps exist
+    if (!this.gatewaysByRuntime.has(token)) {
+      this.gatewaysByRuntime.set(token, new Map());
+    }
+    if (!this.runtimeMeta.has(token)) {
+      this.runtimeMeta.set(token, new Map());
     }
 
-    this.gatewaySocketsByToken.set(token, socket);
-    this.socketMeta.set(socket, { role: 'gateway', token, userId: message.userId });
+    const runtimeMap = this.gatewaysByRuntime.get(token)!;
+    const metaMap = this.runtimeMeta.get(token)!;
+
+    // Close existing socket for this specific runtimeId (same instance reconnecting)
+    const existing = runtimeMap.get(runtimeId);
+    if (existing && existing !== socket) {
+      try { existing.close(); } catch (_) {}
+    }
+
+    runtimeMap.set(runtimeId, socket);
+    metaMap.set(runtimeId, { runtimeId, runtimeType, projectPath, connectedAt: Date.now() });
+    this.socketMeta.set(socket, { role: 'gateway', token, runtimeId, userId: message.userId });
 
     this.sendJson(socket, {
       type: 'registered',
       actor: 'gateway',
-      serverId: message.serverId,
-      appToken: token
+      serverId: runtimeId,
+      appToken: token,
     });
+
     this.flushGatewayQueue(token);
     this.broadcastConnectionUpdate();
+
+    // Tell all portal app sockets that a new runtime came online
+    this.broadcastToAppSockets(token, {
+      type: 'runtime_connected',
+      runtimeId,
+      runtimeType,
+      projectPath,
+      timestamp: Date.now(),
+    });
+
     this.logMessage('incoming', 'system', undefined, message, message);
   }
 
   private handleForward(message: ForwardMessage, includeGateway: boolean): void {
     const token = this.normalizeToken(message.appToken);
     if (message.target === 'app') {
-      this.deliverToApps({
-        token,
-        payload: message.payload,
-        agentId: message.agentId
-      }, includeGateway);
+      this.deliverToApps({ token, payload: message.payload, agentId: message.agentId }, includeGateway);
       this.logMessage('outgoing', 'agent', message.agentId, message.payload, message);
       return;
     }
-
-    this.deliverToAgents({
-      token,
-      payload: message.payload,
-      agentId: message.agentId
-    }, includeGateway);
+    this.deliverToAgents({ token, payload: message.payload, agentId: message.agentId }, includeGateway);
     this.logMessage('outgoing', 'app', message.agentId, message.payload, message);
   }
 
@@ -204,11 +228,53 @@ export class ProxyHub {
     this.logMessage('incoming', 'app', message.agentId, message.payload, message);
   }
 
-  /**
-   * Handle raw forwarding for unknown message types.
-   * If sender is gateway -> forward to all app sockets for that token
-   * If sender is app -> forward to gateway socket for that token
-   */
+  // Route a message to one specific runtime by runtimeId
+  private handleForwardToRuntime(message: ForwardToRuntimeMessage): void {
+    const token = this.normalizeToken(message.appToken);
+    const runtimeMap = this.gatewaysByRuntime.get(token);
+    if (!runtimeMap) return;
+
+    const gatewaySocket = runtimeMap.get(message.runtimeId);
+    if (gatewaySocket && gatewaySocket.readyState === WebSocket.OPEN) {
+      this.sendJson(gatewaySocket, message.payload);
+    } else {
+      // Queue for when this runtime reconnects
+      const queue = this.pendingGatewayMessagesByToken.get(token) ?? [];
+      queue.push({ type: 'forward_to_agent', appToken: token, payload: message.payload });
+      this.pendingGatewayMessagesByToken.set(token, queue);
+    }
+  }
+
+  // Buffer task events to KV and broadcast to app sockets
+  private async handleTaskEvent(socket: WebSocket, message: TaskEventMessage): Promise<void> {
+    const meta = this.socketMeta.get(socket);
+    const token = this.normalizeToken(message.appToken ?? meta?.token);
+
+    if (this.env.CHAT_STORE && message.data?.task) {
+      const taskId = (message.data.task as any).taskId ?? (message.data.task as any).id;
+      if (taskId) {
+        const key = `task:${token}:${taskId}`;
+        await this.env.CHAT_STORE.put(key, JSON.stringify({
+          ...message.data.task,
+          _action: message.data.action,
+          _syncedAt: message.timestamp,
+        }));
+
+        // Update task index
+        const indexKey = `tasks:${token}`;
+        const raw = await this.env.CHAT_STORE.get(indexKey);
+        const index: string[] = raw ? JSON.parse(raw) : [];
+        if (!index.includes(taskId)) {
+          index.push(taskId);
+          await this.env.CHAT_STORE.put(indexKey, JSON.stringify(index));
+        }
+      }
+    }
+
+    // Broadcast to all portal app sockets for this token
+    this.broadcastToAppSockets(token, message);
+  }
+
   private async handleRawForward(socket: WebSocket, message: any): Promise<void> {
     const meta = this.socketMeta.get(socket);
     if (!meta) {
@@ -217,7 +283,7 @@ export class ProxyHub {
     }
 
     if (meta.role === 'gateway') {
-      // Gateway -> forward to all app sockets for this token
+      // Gateway → forward to app socket
       const appSocket = this.appSocketsByToken.get(meta.token);
       if (appSocket) {
         this.sendJson(appSocket, message);
@@ -234,18 +300,19 @@ export class ProxyHub {
 
       this.logMessage('outgoing', 'app', undefined, message, message);
     } else if (meta.role === 'app') {
-      // App -> forward to gateway socket for this token
-      const gatewaySocket = this.gatewaySocketsByToken.get(meta.token);
-      if (gatewaySocket) {
-        this.sendJson(gatewaySocket, message);
+      // App → forward to ALL gateways for this token (broadcast)
+      const runtimeMap = this.gatewaysByRuntime.get(meta.token);
+      if (runtimeMap) {
+        for (const gatewaySocket of runtimeMap.values()) {
+          if (gatewaySocket.readyState === WebSocket.OPEN) {
+            this.sendJson(gatewaySocket, message);
+          }
+        }
       }
       this.logMessage('outgoing', 'agent', undefined, message, message);
     }
   }
 
-  /**
-   * Buffer a chat message for batch KV write.
-   */
   private bufferChatMessage(appToken: string, messageData: any): void {
     const threadId = messageData.threadId;
     const key = `messages:${appToken}:${threadId}`;
@@ -255,32 +322,25 @@ export class ProxyHub {
     this.messageBuffer.set(key, buf);
     this.threadUpdates.set(`${appToken}:${threadId}`, { appToken, threadId });
 
-    // Schedule flush if not already scheduled
     if (!this.flushScheduled) {
       this.flushScheduled = true;
-      this.state.storage.setAlarm(Date.now() + 2000); // flush in 2s
+      this.state.storage.setAlarm(Date.now() + 2000);
     }
   }
 
-  /**
-   * Flush all buffered messages to KV in a single batch.
-   */
   private async flushBufferToKV(): Promise<void> {
     if (!this.env.CHAT_STORE || this.messageBuffer.size === 0) return;
 
     try {
-      // Flush message buffers
       for (const [key, newMessages] of this.messageBuffer) {
         const existingRaw = await this.env.CHAT_STORE.get(key);
         const existing: any[] = existingRaw ? JSON.parse(existingRaw) : [];
         existing.push(...newMessages);
-        // Cap at 1000 messages per thread
         while (existing.length > 1000) existing.shift();
         await this.env.CHAT_STORE.put(key, JSON.stringify(existing));
       }
       this.messageBuffer.clear();
 
-      // Flush thread list updates
       const threadsByToken = new Map<string, { threadId: string }[]>();
       for (const { appToken, threadId } of this.threadUpdates.values()) {
         const list = threadsByToken.get(appToken) || [];
@@ -308,14 +368,10 @@ export class ProxyHub {
     }
   }
 
-  /**
-   * Handle sync request -- return list of threads from KV.
-   */
   private async handleRequestSync(socket: WebSocket): Promise<void> {
     const meta = this.socketMeta.get(socket);
     if (!meta) return;
 
-    // Flush any buffered messages before responding
     await this.flushBufferToKV();
 
     if (!this.env.CHAT_STORE) {
@@ -334,9 +390,6 @@ export class ProxyHub {
     }
   }
 
-  /**
-   * Handle request for thread messages -- return messages from KV.
-   */
   private async handleRequestThreadMessages(socket: WebSocket, message: any): Promise<void> {
     const meta = this.socketMeta.get(socket);
     if (!meta) return;
@@ -344,7 +397,6 @@ export class ProxyHub {
     const threadId = message.threadId;
     if (!threadId) return;
 
-    // Flush any buffered messages before responding
     await this.flushBufferToKV();
 
     if (!this.env.CHAT_STORE) {
@@ -382,7 +434,6 @@ export class ProxyHub {
       this.flushAgentQueue(message.agentId);
       return;
     }
-
     if (message.actor === 'app') {
       const token = this.normalizeToken(message.appToken);
       this.flushAppQueue(token);
@@ -464,10 +515,14 @@ export class ProxyHub {
   }
 
   private enqueueGatewayMessage(token: string, message: GatewayOutgoingMessage): void {
-    const gatewaySocket = this.gatewaySocketsByToken.get(token);
-    if (gatewaySocket && gatewaySocket.readyState === WebSocket.OPEN) {
-      this.sendJson(gatewaySocket, message);
-      return;
+    const runtimeMap = this.gatewaysByRuntime.get(token);
+    if (runtimeMap?.size) {
+      for (const gatewaySocket of runtimeMap.values()) {
+        if (gatewaySocket.readyState === WebSocket.OPEN) {
+          this.sendJson(gatewaySocket, message);
+          return;
+        }
+      }
     }
 
     const queue = this.pendingGatewayMessagesByToken.get(token) ?? [];
@@ -476,24 +531,31 @@ export class ProxyHub {
   }
 
   private flushGatewayQueue(token: string): void {
-    const gatewaySocket = this.gatewaySocketsByToken.get(token);
-    if (!gatewaySocket || gatewaySocket.readyState !== WebSocket.OPEN) {
-      return;
-    }
+    const runtimeMap = this.gatewaysByRuntime.get(token);
+    if (!runtimeMap?.size) return;
 
     const queue = this.pendingGatewayMessagesByToken.get(token);
-    if (!queue?.length) {
-      return;
-    }
+    if (!queue?.length) return;
 
-    while (queue.length) {
-      const message = queue.shift();
-      if (message) {
-        this.sendJson(gatewaySocket, message);
+    // Send queued messages to all connected gateways for this token
+    for (const gatewaySocket of runtimeMap.values()) {
+      if (gatewaySocket.readyState === WebSocket.OPEN) {
+        while (queue.length) {
+          const msg = queue.shift();
+          if (msg) this.sendJson(gatewaySocket, msg);
+        }
+        break;
       }
     }
 
     this.pendingGatewayMessagesByToken.delete(token);
+  }
+
+  private broadcastToAppSockets(token: string, payload: unknown): void {
+    const appSocket = this.appSocketsByToken.get(token);
+    if (appSocket && appSocket.readyState === WebSocket.OPEN) {
+      this.sendJson(appSocket, payload);
+    }
   }
 
   private sendJson(socket: WebSocket, payload: unknown): void {
@@ -509,44 +571,48 @@ export class ProxyHub {
   private getConnectionSummary(): { agents: number; apps: number } {
     return {
       agents: this.agents.size,
-      apps: this.appSocketsByToken.size
+      apps: this.appSocketsByToken.size,
     };
   }
 
+  private getRuntimeList(token: string): RuntimeInfo[] {
+    const metaMap = this.runtimeMeta.get(token);
+    if (!metaMap) return [];
+    return Array.from(metaMap.values());
+  }
+
   private removeSocket(socket: WebSocket): void {
-    let disconnectedActor: { actor: string; id?: string } | null = null;
+    const meta = this.socketMeta.get(socket);
 
     for (const [agentId, ws] of this.agents.entries()) {
-      if (ws === socket) {
-        this.agents.delete(agentId);
-        disconnectedActor = { actor: 'agent', id: agentId };
-        break;
-      }
+      if (ws === socket) { this.agents.delete(agentId); break; }
     }
-
     for (const [token, ws] of this.appSocketsByToken.entries()) {
-      if (ws === socket) {
-        this.appSocketsByToken.delete(token);
-        disconnectedActor = { actor: 'app', id: token };
-        break;
-      }
+      if (ws === socket) { this.appSocketsByToken.delete(token); break; }
     }
 
-    for (const [token, ws] of this.gatewaySocketsByToken.entries()) {
-      if (ws === socket) {
-        this.gatewaySocketsByToken.delete(token);
-        disconnectedActor = { actor: 'gateway', id: token };
-        break;
+    // Remove from per-runtime gateway map
+    if (meta?.role === 'gateway' && meta.runtimeId) {
+      const runtimeMap = this.gatewaysByRuntime.get(meta.token);
+      if (runtimeMap) {
+        runtimeMap.delete(meta.runtimeId);
+        if (runtimeMap.size === 0) this.gatewaysByRuntime.delete(meta.token);
       }
+      const metaMap = this.runtimeMeta.get(meta.token);
+      if (metaMap) {
+        metaMap.delete(meta.runtimeId);
+        if (metaMap.size === 0) this.runtimeMeta.delete(meta.token);
+      }
+
+      // Notify portal that this runtime went offline
+      this.broadcastToAppSockets(meta.token, {
+        type: 'runtime_disconnected',
+        runtimeId: meta.runtimeId,
+        timestamp: Date.now(),
+      });
     }
 
-    if (disconnectedActor) {
-      this.broadcastConnectionUpdate();
-      this.logMessage('system', 'system', undefined,
-        { type: 'disconnection', actor: disconnectedActor.actor, id: disconnectedActor.id },
-        disconnectedActor
-      );
-    }
+    this.broadcastConnectionUpdate();
   }
 
   private normalizeToken(token?: string): string {
@@ -560,12 +626,9 @@ export class ProxyHub {
       actor: 'system',
       connectedAgents: Array.from(this.agents.keys()),
       connectedApps: Array.from(this.appSocketsByToken.keys()),
-      monitoringClients: this.monitoringSockets.size
+      monitoringClients: this.monitoringSockets.size,
     };
-
-    this.monitoringSockets.forEach(socket => {
-      this.sendJson(socket, update);
-    });
+    this.monitoringSockets.forEach((socket) => this.sendJson(socket, update));
   }
 
   private logMessage(
@@ -582,11 +645,8 @@ export class ProxyHub {
       actor,
       agentId,
       payload,
-      raw
+      raw,
     };
-
-    this.monitoringSockets.forEach(socket => {
-      this.sendJson(socket, logEntry);
-    });
+    this.monitoringSockets.forEach((socket) => this.sendJson(socket, logEntry));
   }
 }

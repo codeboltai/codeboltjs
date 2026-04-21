@@ -23,7 +23,10 @@ export interface GatewayRegisterMessage {
   serverId?: string;
   appToken?: string;
   userId?: string;
-  timestamp?: number;
+  timestamp?: number | string;
+  runtimeId?: string;
+  runtimeType?: 'local' | 'e2b' | 'docker' | 'custom';
+  projectPath?: string;
 }
 
 export interface GatewayForwardFromAgent {
@@ -59,6 +62,24 @@ export interface RequestThreadMessagesMessage {
   threadId: string;
 }
 
+export interface ForwardToRuntimeMessage {
+  type: 'forward_to_runtime';
+  appToken?: string;
+  runtimeId: string;
+  payload: unknown;
+}
+
+export interface TaskEventMessage {
+  type: 'taskEvent';
+  runtimeId: string;
+  appToken?: string;
+  data: {
+    action: 'created' | 'updated' | 'deleted';
+    task: Record<string, unknown>;
+  };
+  timestamp: string;
+}
+
 export type ProxyIncomingMessage =
   | RegisterMessage
   | ForwardMessage
@@ -68,7 +89,9 @@ export type ProxyIncomingMessage =
   | PingMessage
   | RequestConnectionsMessage
   | RequestSyncMessage
-  | RequestThreadMessagesMessage;
+  | RequestThreadMessagesMessage
+  | ForwardToRuntimeMessage
+  | TaskEventMessage;
 
 export interface RegisteredMessage {
   type: 'registered';
@@ -101,6 +124,28 @@ export interface GatewayConnectionsSnapshot {
     agents: number;
     apps: number;
   };
+  runtimes: RuntimeInfo[];
+  timestamp: number;
+}
+
+export interface RuntimeInfo {
+  runtimeId: string;
+  runtimeType: 'local' | 'e2b' | 'docker' | 'custom';
+  projectPath?: string;
+  connectedAt: number;
+}
+
+export interface RuntimeConnectedMessage {
+  type: 'runtime_connected';
+  runtimeId: string;
+  runtimeType: 'local' | 'e2b' | 'docker' | 'custom';
+  projectPath?: string;
+  timestamp: number;
+}
+
+export interface RuntimeDisconnectedMessage {
+  type: 'runtime_disconnected';
+  runtimeId: string;
   timestamp: number;
 }
 
@@ -114,7 +159,9 @@ export type GatewayOutgoingMessage =
   | GatewayForwardToApp
   | GatewayConnectionsSnapshot
   | PongMessage
-  | RegisteredMessage;
+  | RegisteredMessage
+  | RuntimeConnectedMessage
+  | RuntimeDisconnectedMessage;
 
 export interface Env {
   PROXY_HUB: DurableObjectNamespace;
