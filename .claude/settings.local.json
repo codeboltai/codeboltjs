@@ -73,7 +73,11 @@
       "Bash(python3 -m json.tool)",
       "Bash(CODEBOLT_BASE=\"/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/node_modules/.pnpm/@codebolt+codeboltjs@5.1.30_bufferutil@4.0.9_utf-8-validate@6.0.5/node_modules/@codebolt/codeboltjs/dist/notificationfunctions\")",
       "Read(//Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/$CODEBOLT_BASE/**)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(find /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/claude-thirdparty -type f \\\\\\(-name *.ts -o -name *.js -o -name *.json \\\\\\))",
+      "Bash(for d:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/**)"
     ],
     "deny": [],
     "ask": []

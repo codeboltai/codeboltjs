@@ -1,8 +1,8 @@
 {
-  "name": "@codebolt/claude-thirdpartywithmcp",
+  "name": "@codebolt/codex-thirdpartywithmcp",
   "private": true,
   "version": "1.0.0",
-  "description": "Codebolt agent that runs Claude Code with Codebolt tools exposed via MCP",
+  "description": "Codebolt agent that runs OpenAI Codex with Codebolt tools exposed via MCP",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -11,7 +11,7 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean"
   },
-  "keywords": ["ai", "agent", "claude", "mcp", "codebolt"],
+  "keywords": ["ai", "agent", "codex", "openai", "mcp", "codebolt"],
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {

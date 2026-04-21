@@ -1,0 +1,47 @@
+title: OpenClaw Gateway
+version: 1.0.1
+unique_id: openclaw-thirdpartywithmcp
+initial_message: |
+  I'm an OpenClaw gateway agent with full access to Codebolt tools via MCP.
+  OpenClaw can use Codebolt's filesystem, terminal, git, browser,
+  memory, tasks, threads, and more - all routed through the Codebolt platform.
+  Set OPENCLAW_GATEWAY_URL environment variable to your gateway endpoint.
+description: OpenClaw Gateway agent with Codebolt tools exposed via MCP server. OpenClaw gets access to all Codebolt platform capabilities.
+tags:
+  - coding
+  - gateway
+  - openclaw
+  - websocket
+  - mcp
+  - thirdparty
+longDescription: |
+  This agent starts a Codebolt MCP server in-process, then connects to an
+  OpenClaw gateway via WebSocket, passing the MCP server URL in the payload.
+  OpenClaw discovers all Codebolt tools (filesystem, terminal, git, browser,
+  memory, tasks, etc.) via MCP and can use them during execution. All tool
+  calls flow through the Codebolt platform with UI confirmations and notifications.
+  Requires OPENCLAW_GATEWAY_URL environment variable.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: OW
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder: []
+supportRemix: true
+author: codebolt

@@ -1,0 +1,48 @@
+title: OpenCode CLI
+version: 1.0.1
+unique_id: opencode-thirdpartywithmcp
+initial_message: |
+  I'm an OpenCode agent with full access to Codebolt tools via MCP.
+  OpenCode can use Codebolt's filesystem, terminal, git, browser,
+  memory, tasks, threads, and more - all routed through the Codebolt platform.
+  Tell me what you'd like to work on.
+description: OpenCode CLI agent with Codebolt tools exposed via MCP server. OpenCode gets access to all Codebolt platform capabilities.
+tags:
+  - coding
+  - cli
+  - opencode
+  - mcp
+  - thirdparty
+longDescription: |
+  This agent starts a Codebolt MCP server in-process, then spawns OpenCode CLI
+  with --mcp-config pointing to it. OpenCode discovers all Codebolt tools
+  (filesystem, terminal, git, browser, memory, tasks, etc.) via MCP and can
+  use them during execution. All tool calls flow through the Codebolt platform
+  with UI confirmations and notifications.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: OC
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - openai/gpt-5.2-codex
+      - openai/gpt-5.4
+      - openai/gpt-5.2
+supportRemix: true
+author: codebolt

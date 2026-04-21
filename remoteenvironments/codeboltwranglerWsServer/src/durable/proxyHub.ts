@@ -22,13 +22,22 @@ interface SocketMeta {
   runtimeId?: string;
 }
 
+// Persisted across DO hibernation via serializeAttachment/deserializeAttachment
+interface SocketAttachment {
+  role: SocketMeta['role'];
+  token: string;
+  userId?: string;
+  agentId?: string;
+  runtimeId?: string;
+}
+
 export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
   private readonly appSocketsByToken = new Map<string, WebSocket>();
 
   // Multi-runtime: appToken → Map<runtimeId, WebSocket>
   private readonly gatewaysByRuntime = new Map<string, Map<string, WebSocket>>();
-  // Runtime metadata: appToken → Map<runtimeId, RuntimeInfo>
+  // Runtime metadata: appToken → Map<runtimeId, RuntimeInfo & connectedAt>
   private readonly runtimeMeta = new Map<string, Map<string, RuntimeInfo & { connectedAt: number }>>();
 
   private readonly monitoringSockets = new Set<WebSocket>();
@@ -40,16 +49,42 @@ export class ProxyHub {
   private readonly socketMeta = new WeakMap<WebSocket, SocketMeta>();
 
   // Buffered KV writes — accumulate messages in memory, flush every 2s
-  private readonly messageBuffer = new Map<string, any[]>(); // key → messages to append
-  private readonly threadUpdates = new Map<string, { appToken: string; threadId: string }>(); // key → thread info
+  private readonly messageBuffer = new Map<string, any[]>();
+  private readonly threadUpdates = new Map<string, { appToken: string; threadId: string }>();
   private flushScheduled = false;
 
-  constructor(readonly state: DurableObjectState, private readonly env: Env) {}
+  constructor(readonly state: DurableObjectState, private readonly env: Env) {
+    // Auto-respond to JSON ping messages even while the DO is hibernating
+    this.state.setWebSocketAutoResponse(
+      new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}')
+    );
+  }
+
+  // ─── Hibernation helpers ───────────────────────────────────────────────────
+
+  /**
+   * Restore in-memory socket maps from hibernation attachment data.
+   * Called at the start of every hibernation-API handler.
+   */
+  private restoreSocketsFromHibernation(): void {
+    const allSockets = this.state.getWebSockets();
+    for (const ws of allSockets) {
+      const tags = this.state.getTags(ws);
+      if (tags.includes('monitoring') && !this.monitoringSockets.has(ws)) {
+        this.monitoringSockets.add(ws);
+      }
+      this.restoreSocketMeta(ws);
+    }
+  }
+
+  // ─── Alarm ────────────────────────────────────────────────────────────────
 
   async alarm(): Promise<void> {
     this.flushScheduled = false;
     await this.flushBufferToKV();
   }
+
+  // ─── fetch (new connections) ───────────────────────────────────────────────
 
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') {
@@ -59,20 +94,27 @@ export class ProxyHub {
     const pair = new WebSocketPair();
     const client = pair[0];
     const server = pair[1];
-    server.accept();
 
     const isMonitoringClient = request.headers.get('X-Monitoring-Client') === 'true';
+
+    // Hibernation API — tag monitoring sockets so close/error handlers can identify them
+    const tags: string[] = [];
+    if (isMonitoringClient) tags.push('monitoring');
+    this.state.acceptWebSocket(server, tags);
+
     if (isMonitoringClient) {
       this.monitoringSockets.add(server);
       this.sendJson(server, {
         type: 'connection_update',
         timestamp: Date.now(),
         actor: 'monitor',
-        connected: true
+        connected: true,
       });
       this.broadcastConnectionUpdate();
     }
 
+    // addEventListener listeners are kept for non-hibernated sockets;
+    // the webSocketMessage/Close/Error methods below handle hibernated ones.
     server.addEventListener('message', async (event) => {
       try {
         const raw = event.data?.toString();
@@ -103,6 +145,42 @@ export class ProxyHub {
     return new Response(null, { status: 101, webSocket: client });
   }
 
+  // ─── Hibernation API handlers ──────────────────────────────────────────────
+
+  async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer): Promise<void> {
+    this.restoreSocketsFromHibernation();
+    try {
+      const raw = typeof data === 'string' ? data : new TextDecoder().decode(data);
+      if (!raw) return;
+      const message = JSON.parse(raw) as ProxyIncomingMessage;
+      await this.handleMessage(ws, message);
+    } catch (error) {
+      console.error('[ProxyHub] Failed to process message', error);
+    }
+  }
+
+  async webSocketClose(ws: WebSocket, _code: number, _reason: string, _wasClean: boolean): Promise<void> {
+    this.restoreSocketsFromHibernation();
+    const tags = this.state.getTags(ws);
+    if (tags.includes('monitoring')) {
+      this.monitoringSockets.delete(ws);
+      this.broadcastConnectionUpdate();
+    }
+    this.removeSocket(ws);
+  }
+
+  async webSocketError(ws: WebSocket, _error: unknown): Promise<void> {
+    this.restoreSocketsFromHibernation();
+    const tags = this.state.getTags(ws);
+    if (tags.includes('monitoring')) {
+      this.monitoringSockets.delete(ws);
+      this.broadcastConnectionUpdate();
+    }
+    this.removeSocket(ws);
+  }
+
+  // ─── Message routing ───────────────────────────────────────────────────────
+
   private async handleMessage(socket: WebSocket, message: ProxyIncomingMessage): Promise<void> {
     switch (message.type) {
       case 'registered':
@@ -129,12 +207,15 @@ export class ProxyHub {
       case 'ping':
         this.sendJson(socket, { type: 'pong', timestamp: Date.now() });
         break;
+      case 'pong':
+        // Heartbeat acknowledgement — no routing needed
+        break;
       case 'request_connections':
         this.sendJson(socket, {
           type: 'connections_snapshot',
           summary: this.getConnectionSummary(),
-          runtimes: this.getRuntimeList(this.socketMeta.get(socket)?.token ?? DEFAULT_TOKEN),
-          timestamp: Date.now()
+          runtimes: this.getRuntimeList(this.getSocketMeta(socket)?.token ?? DEFAULT_TOKEN),
+          timestamp: Date.now(),
         });
         break;
       case 'requestSync':
@@ -181,7 +262,11 @@ export class ProxyHub {
 
     runtimeMap.set(runtimeId, socket);
     metaMap.set(runtimeId, { runtimeId, runtimeType, projectPath, connectedAt: Date.now() });
-    this.socketMeta.set(socket, { role: 'gateway', token, runtimeId, userId: message.userId });
+
+    // Persist meta both in-memory and via hibernation attachment
+    const meta: SocketMeta = { role: 'gateway', token, runtimeId, userId: message.userId };
+    this.socketMeta.set(socket, meta);
+    this.persistSocketMeta(socket, { role: 'gateway', token, runtimeId, userId: message.userId });
 
     this.sendJson(socket, {
       type: 'registered',
@@ -193,7 +278,7 @@ export class ProxyHub {
     this.flushGatewayQueue(token);
     this.broadcastConnectionUpdate();
 
-    // Tell all portal app sockets that a new runtime came online
+    // Notify all portal app sockets that a new runtime came online
     this.broadcastToAppSockets(token, {
       type: 'runtime_connected',
       runtimeId,
@@ -247,7 +332,7 @@ export class ProxyHub {
 
   // Buffer task events to KV and broadcast to app sockets
   private async handleTaskEvent(socket: WebSocket, message: TaskEventMessage): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     const token = this.normalizeToken(message.appToken ?? meta?.token);
 
     if (this.env.CHAT_STORE && message.data?.task) {
@@ -276,7 +361,7 @@ export class ProxyHub {
   }
 
   private async handleRawForward(socket: WebSocket, message: any): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) {
       console.warn('[ProxyHub] Unknown message type from unregistered socket:', message?.type);
       return;
@@ -300,7 +385,7 @@ export class ProxyHub {
 
       this.logMessage('outgoing', 'app', undefined, message, message);
     } else if (meta.role === 'app') {
-      // App → forward to ALL gateways for this token (broadcast)
+      // App → forward to ALL gateways for this token (broadcast to all runtimes)
       const runtimeMap = this.gatewaysByRuntime.get(meta.token);
       if (runtimeMap) {
         for (const gatewaySocket of runtimeMap.values()) {
@@ -312,6 +397,8 @@ export class ProxyHub {
       this.logMessage('outgoing', 'agent', undefined, message, message);
     }
   }
+
+  // ─── KV buffering ──────────────────────────────────────────────────────────
 
   private bufferChatMessage(appToken: string, messageData: any): void {
     const threadId = messageData.threadId;
@@ -368,8 +455,10 @@ export class ProxyHub {
     }
   }
 
+  // ─── Sync handlers ─────────────────────────────────────────────────────────
+
   private async handleRequestSync(socket: WebSocket): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) return;
 
     await this.flushBufferToKV();
@@ -391,7 +480,7 @@ export class ProxyHub {
   }
 
   private async handleRequestThreadMessages(socket: WebSocket, message: any): Promise<void> {
-    const meta = this.socketMeta.get(socket);
+    const meta = this.getSocketMeta(socket);
     if (!meta) return;
 
     const threadId = message.threadId;
@@ -415,16 +504,20 @@ export class ProxyHub {
     }
   }
 
+  // ─── Socket registration ───────────────────────────────────────────────────
+
   private registerSocket(socket: WebSocket, message: RegisterMessage): RegisteredMessage {
     if (message.actor === 'agent' && message.agentId) {
       this.agents.set(message.agentId, socket);
       const token = this.normalizeToken(message.appToken);
+      this.persistSocketMeta(socket, { role: 'agent', token, agentId: message.agentId });
       this.socketMeta.set(socket, { role: 'agent', token });
       return { type: 'registered', actor: 'agent', agentId: message.agentId, appToken: token };
     }
 
     const token = this.normalizeToken(message.appToken);
     this.appSocketsByToken.set(token, socket);
+    this.persistSocketMeta(socket, { role: 'app', token, userId: message.appId });
     this.socketMeta.set(socket, { role: 'app', token });
     return { type: 'registered', actor: 'app', appToken: token };
   }
@@ -439,6 +532,8 @@ export class ProxyHub {
       this.flushAppQueue(token);
     }
   }
+
+  // ─── Delivery helpers ──────────────────────────────────────────────────────
 
   private deliverToApps(
     params: { token: string; payload: unknown; agentId?: string },
@@ -459,7 +554,7 @@ export class ProxyHub {
         type: 'forward_to_app',
         appToken: params.token,
         agentId: params.agentId,
-        payload: params.payload
+        payload: params.payload,
       });
     }
   }
@@ -491,7 +586,7 @@ export class ProxyHub {
         type: 'forward_to_agent',
         appToken: params.token,
         agentId: params.agentId,
-        payload: params.payload
+        payload: params.payload,
       });
     }
   }
@@ -537,7 +632,6 @@ export class ProxyHub {
     const queue = this.pendingGatewayMessagesByToken.get(token);
     if (!queue?.length) return;
 
-    // Send queued messages to all connected gateways for this token
     for (const gatewaySocket of runtimeMap.values()) {
       if (gatewaySocket.readyState === WebSocket.OPEN) {
         while (queue.length) {
@@ -557,6 +651,107 @@ export class ProxyHub {
       this.sendJson(appSocket, payload);
     }
   }
+
+  // ─── Socket metadata (hibernation-safe) ───────────────────────────────────
+
+  /**
+   * Persist socket role/token/runtimeId via the DO hibernation attachment API
+   * so it survives DO sleep/wake cycles.
+   */
+  private persistSocketMeta(socket: WebSocket, meta: SocketAttachment): void {
+    const attachableSocket = socket as WebSocket & {
+      serializeAttachment?: (value: SocketAttachment) => void;
+    };
+    try {
+      attachableSocket.serializeAttachment?.(meta);
+    } catch (error) {
+      console.warn('[ProxyHub] Failed to persist socket metadata:', error);
+    }
+  }
+
+  /**
+   * Restore in-memory socket maps from the hibernation attachment after a DO wake.
+   * Also rebuilds `gatewaysByRuntime` for gateway sockets so routing works immediately.
+   */
+  private restoreSocketMeta(socket: WebSocket): SocketMeta | null {
+    const existing = this.socketMeta.get(socket);
+    if (existing) return existing;
+
+    const attachableSocket = socket as WebSocket & {
+      deserializeAttachment?: () => SocketAttachment | undefined;
+    };
+
+    try {
+      const attachment = attachableSocket.deserializeAttachment?.();
+      if (!attachment?.role || !attachment?.token) return null;
+
+      const meta: SocketMeta = {
+        role: attachment.role,
+        token: this.normalizeToken(attachment.token),
+        userId: attachment.userId,
+        runtimeId: attachment.runtimeId,
+      };
+      this.socketMeta.set(socket, meta);
+
+      if (meta.role === 'app') {
+        this.appSocketsByToken.set(meta.token, socket);
+      } else if (meta.role === 'gateway' && meta.runtimeId) {
+        // Restore into multi-runtime map
+        if (!this.gatewaysByRuntime.has(meta.token)) {
+          this.gatewaysByRuntime.set(meta.token, new Map());
+        }
+        this.gatewaysByRuntime.get(meta.token)!.set(meta.runtimeId, socket);
+      } else if (meta.role === 'agent' && attachment.agentId) {
+        this.agents.set(attachment.agentId, socket);
+      }
+
+      return meta;
+    } catch (error) {
+      console.warn('[ProxyHub] Failed to restore socket metadata:', error);
+      return null;
+    }
+  }
+
+  private getSocketMeta(socket: WebSocket): SocketMeta | null {
+    return this.socketMeta.get(socket) ?? this.restoreSocketMeta(socket);
+  }
+
+  // ─── Cleanup ───────────────────────────────────────────────────────────────
+
+  private removeSocket(socket: WebSocket): void {
+    const meta = this.getSocketMeta(socket);
+
+    for (const [agentId, ws] of this.agents.entries()) {
+      if (ws === socket) { this.agents.delete(agentId); break; }
+    }
+    for (const [token, ws] of this.appSocketsByToken.entries()) {
+      if (ws === socket) { this.appSocketsByToken.delete(token); break; }
+    }
+
+    // Remove from per-runtime gateway map and notify portal
+    if (meta?.role === 'gateway' && meta.runtimeId) {
+      const runtimeMap = this.gatewaysByRuntime.get(meta.token);
+      if (runtimeMap) {
+        runtimeMap.delete(meta.runtimeId);
+        if (runtimeMap.size === 0) this.gatewaysByRuntime.delete(meta.token);
+      }
+      const metaMap = this.runtimeMeta.get(meta.token);
+      if (metaMap) {
+        metaMap.delete(meta.runtimeId);
+        if (metaMap.size === 0) this.runtimeMeta.delete(meta.token);
+      }
+
+      this.broadcastToAppSockets(meta.token, {
+        type: 'runtime_disconnected',
+        runtimeId: meta.runtimeId,
+        timestamp: Date.now(),
+      });
+    }
+
+    this.broadcastConnectionUpdate();
+  }
+
+  // ─── Utilities ─────────────────────────────────────────────────────────────
 
   private sendJson(socket: WebSocket, payload: unknown): void {
     try {
@@ -579,40 +774,6 @@ export class ProxyHub {
     const metaMap = this.runtimeMeta.get(token);
     if (!metaMap) return [];
     return Array.from(metaMap.values());
-  }
-
-  private removeSocket(socket: WebSocket): void {
-    const meta = this.socketMeta.get(socket);
-
-    for (const [agentId, ws] of this.agents.entries()) {
-      if (ws === socket) { this.agents.delete(agentId); break; }
-    }
-    for (const [token, ws] of this.appSocketsByToken.entries()) {
-      if (ws === socket) { this.appSocketsByToken.delete(token); break; }
-    }
-
-    // Remove from per-runtime gateway map
-    if (meta?.role === 'gateway' && meta.runtimeId) {
-      const runtimeMap = this.gatewaysByRuntime.get(meta.token);
-      if (runtimeMap) {
-        runtimeMap.delete(meta.runtimeId);
-        if (runtimeMap.size === 0) this.gatewaysByRuntime.delete(meta.token);
-      }
-      const metaMap = this.runtimeMeta.get(meta.token);
-      if (metaMap) {
-        metaMap.delete(meta.runtimeId);
-        if (metaMap.size === 0) this.runtimeMeta.delete(meta.token);
-      }
-
-      // Notify portal that this runtime went offline
-      this.broadcastToAppSockets(meta.token, {
-        type: 'runtime_disconnected',
-        runtimeId: meta.runtimeId,
-        timestamp: Date.now(),
-      });
-    }
-
-    this.broadcastConnectionUpdate();
   }
 
   private normalizeToken(token?: string): string {

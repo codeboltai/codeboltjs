@@ -1,0 +1,49 @@
+title: Codex Code
+version: 1.0.1
+unique_id: codex-thirdpartywithmcp
+initial_message: |
+  I'm a Codex agent with full access to Codebolt tools via MCP.
+  Codex can use Codebolt's filesystem, terminal, git, browser,
+  memory, tasks, threads, and more - all routed through the Codebolt platform.
+  Tell me what you'd like to work on.
+description: OpenAI Codex agent with Codebolt tools exposed via MCP server. Codex gets access to all Codebolt platform capabilities.
+tags:
+  - coding
+  - cli
+  - codex
+  - openai
+  - mcp
+  - thirdparty
+longDescription: |
+  This agent starts a Codebolt MCP server in-process, then spawns Codex CLI
+  with --mcp-config pointing to it. Codex discovers all Codebolt tools
+  (filesystem, terminal, git, browser, memory, tasks, etc.) via MCP and can
+  use them during execution. All tool calls flow through the Codebolt platform
+  with UI confirmations and notifications.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CX
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - javascript
+      - typescript
+      - python
+      - go
+      - rust
+      - java
+    supportedframeworks:
+      - react
+      - node
+      - express
+      - nextjs
+    supportRemix: true
+  defaultagentllm:
+    strict: false
+    modelorder:
+      - gpt-5.3-codex
+      - o3
+      - o4-mini
+supportRemix: true
+author: codebolt

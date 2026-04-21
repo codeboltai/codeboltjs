@@ -48,6 +48,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     timeout: NodeJS.Timeout;
     responseType: string;
   }> = new Map();
+  private pendingProviderAppFsRequests: Map<string, {
+    resolve: (value: any) => void;
+    reject: (err: Error) => void;
+    timeout: NodeJS.Timeout;
+  }> = new Map();
 
   private readonly providerConfig: E2bProviderConfig;
   private readonly logger: Logger;
@@ -460,6 +465,20 @@ export class E2bRemoteProviderService extends BaseProvider {
    * Handle messages from the remote-execution-plugin WS server.
    */
   private handlePluginMessage(message: any): void {
+    if (message?.type === 'providerAppFsResponse' && message?.requestId) {
+      const pending = this.pendingProviderAppFsRequests.get(message.requestId);
+      if (pending) {
+        clearTimeout(pending.timeout);
+        this.pendingProviderAppFsRequests.delete(message.requestId);
+        if (message.success) {
+          pending.resolve(message.result);
+        } else {
+          pending.reject(new Error(message.error || 'provider app fs request failed'));
+        }
+        return;
+      }
+    }
+
     // Narrative response — resolve any pending narrative request whose
     // expected responseType matches. The message comes straight from the
     // codebolt application (bridged through the plugin).
@@ -529,15 +548,48 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   // --- File operation handlers ---
 
+  private sendProviderAppFsRequest(
+    action: 'readFile' | 'writeFile' | 'createFolder' | 'deleteFile' | 'deleteFolder' | 'renameItem',
+    message: Record<string, any>,
+    timeoutMs: number = 30_000,
+  ): Promise<any> {
+    const ws = this.agentServer.wsConnection;
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error('Plugin WS not connected; cannot send provider app fs request'));
+    }
+
+    const requestId = `provider-app-fs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pendingProviderAppFsRequests.delete(requestId);
+        reject(new Error(`provider app fs request ${action} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+
+      this.pendingProviderAppFsRequests.set(requestId, { resolve, reject, timeout });
+
+      try {
+        ws.send(JSON.stringify({
+          type: 'providerAppFs',
+          requestId,
+          action,
+          message,
+        }));
+      } catch (err: any) {
+        clearTimeout(timeout);
+        this.pendingProviderAppFsRequests.delete(requestId);
+        reject(err);
+      }
+    });
+  }
+
   async onReadFile(filePath: string): Promise<string> {
     this.logger.log('Reading file:', filePath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxPath = this.resolveSandboxPath(filePath);
-      const content = await this.sandbox.files.read(sandboxPath);
-      return content;
+      const response = await this.sendProviderAppFsRequest('readFile', {
+        filePath: sandboxPath,
+      });
+      return response?.payload?.data ?? '';
     } catch (error: any) {
       this.logger.error('Error reading file:', error);
       throw new Error(`Failed to read file: ${error.message}`);
@@ -547,17 +599,11 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onWriteFile(filePath: string, content: string): Promise<void> {
     this.logger.log('Writing file:', filePath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxPath = this.resolveSandboxPath(filePath);
-      const parentDir = path.dirname(sandboxPath);
-      try {
-        await this.sandbox.commands.run(`mkdir -p "${parentDir}"`);
-      } catch {
-        // Parent directory may already exist
-      }
-      await this.sandbox.files.write(sandboxPath, content);
+      await this.sendProviderAppFsRequest('writeFile', {
+        filePath: sandboxPath,
+        content,
+      });
     } catch (error: any) {
       this.logger.error('Error writing file:', error);
       throw new Error(`Failed to write file: ${error.message}`);
@@ -567,11 +613,10 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onDeleteFile(filePath: string): Promise<void> {
     this.logger.log('Deleting file:', filePath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxPath = this.resolveSandboxPath(filePath);
-      await this.sandbox.commands.run(`rm -f "${sandboxPath}"`);
+      await this.sendProviderAppFsRequest('deleteFile', {
+        filePath: sandboxPath,
+      });
     } catch (error: any) {
       this.logger.error('Error deleting file:', error);
       throw new Error(`Failed to delete file: ${error.message}`);
@@ -581,11 +626,10 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onDeleteFolder(folderPath: string): Promise<void> {
     this.logger.log('Deleting folder:', folderPath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxPath = this.resolveSandboxPath(folderPath);
-      await this.sandbox.commands.run(`rm -rf "${sandboxPath}"`);
+      await this.sendProviderAppFsRequest('deleteFolder', {
+        filePath: sandboxPath,
+      });
     } catch (error: any) {
       this.logger.error('Error deleting folder:', error);
       throw new Error(`Failed to delete folder: ${error.message}`);
@@ -595,12 +639,12 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onRenameItem(oldPath: string, newPath: string): Promise<void> {
     this.logger.log('Renaming item:', oldPath, '->', newPath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxOldPath = this.resolveSandboxPath(oldPath);
       const sandboxNewPath = this.resolveSandboxPath(newPath);
-      await this.sandbox.commands.run(`mv "${sandboxOldPath}" "${sandboxNewPath}"`);
+      await this.sendProviderAppFsRequest('renameItem', {
+        oldPath: sandboxOldPath,
+        newPath: sandboxNewPath,
+      });
     } catch (error: any) {
       this.logger.error('Error renaming item:', error);
       throw new Error(`Failed to rename item: ${error.message}`);
@@ -610,11 +654,10 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onCreateFolder(folderPath: string): Promise<void> {
     this.logger.log('Creating folder:', folderPath);
     try {
-      if (!this.sandbox) {
-        throw new Error('No sandbox available');
-      }
       const sandboxPath = this.resolveSandboxPath(folderPath);
-      await this.sandbox.commands.run(`mkdir -p "${sandboxPath}"`);
+      await this.sendProviderAppFsRequest('createFolder', {
+        filePath: sandboxPath,
+      });
     } catch (error: any) {
       this.logger.error('Error creating folder:', error);
       throw new Error(`Failed to create folder: ${error.message}`);

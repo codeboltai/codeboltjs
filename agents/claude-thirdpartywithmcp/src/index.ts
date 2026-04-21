@@ -36,12 +36,18 @@ import type { ClaudeExecutorOptions } from '@codebolt/thirdpartyagents';
 // ============================================================================
 
 import { startCodeboltMcpServer } from '@codebolt/mcp-server';
-import { tools } from '@codebolt/codeboltjs';
+
+// NOTE: `import { tools } from '@codebolt/codeboltjs'` doesn't work because
+// codeboltjs's index.js does `module.exports = codebolt` which replaces the
+// entire exports object, wiping out the named `tools` re-export.
+// We import the tools submodule directly via a webpack alias (see webpack.config.js).
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const toolsModule = require('@codebolt/codeboltjs/tools').default;
 
 async function startMcpServer() {
     const handle = await startCodeboltMcpServer({
-        codebolt,
-        tools,
+        codebolt: codebolt as any,
+        tools: toolsModule,
         transport: 'sse',
     });
     console.log(`[mcp-agent] Option B: Standalone MCP server at ${handle.url}`);
@@ -68,8 +74,10 @@ class ClaudeWithMcpExecutor extends ClaudeExecutor {
         // Insert --mcp-config BEFORE the prompt (always last arg)
         const promptArg = args.pop()!;
         args.push('--mcp-config', this.mcpConfigPath);
-        args.push(promptArg);
+        // Pass prompt via -p flag to avoid positional arg ambiguity
+        args.push('-p', promptArg);
 
+        console.log('[mcp-agent] Claude args:', JSON.stringify(args));
         return args;
     }
 }
@@ -88,15 +96,25 @@ function writeMcpConfig(sseUrl: string, cwd: string): string {
         },
     };
 
-    const configDir = path.join(cwd, '.codebolt');
+    // Use os.tmpdir() for reliable write access, project dir may not be writable
+    const os = require('os');
+    const configDir = path.join(os.tmpdir(), 'codebolt-mcp');
     if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
     }
 
-    const configPath = path.join(configDir, 'mcp-config.json');
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+    const configPath = path.join(configDir, `mcp-config-${process.pid}.json`);
+    const content = JSON.stringify(config, null, 2);
+    fs.writeFileSync(configPath, content, 'utf-8');
 
-    console.log(`[mcp-agent] MCP config written to ${configPath}`);
+    // Verify the file was actually written
+    if (fs.existsSync(configPath)) {
+        console.log(`[mcp-agent] MCP config written to ${configPath}`);
+        console.log(`[mcp-agent] MCP config content: ${content}`);
+    } else {
+        console.error(`[mcp-agent] ERROR: MCP config file was NOT written to ${configPath}`);
+    }
+
     return configPath;
 }
 
@@ -116,6 +134,33 @@ type AgentHandle = {
 let mcpHandle: McpHandle | null = null;
 let mcpConfigPath: string | null = null;
 let currentHandle: AgentHandle | null = null;
+let steeringPollTimer: ReturnType<typeof setInterval> | null = null;
+
+const SESSION_KEY = 'claude_session_id';
+
+async function getSavedSessionId(): Promise<string | null> {
+    try {
+        const response = await (codebolt as any).cbstate.getAgentState();
+        // Server returns { type: 'getAgentStateResponse', payload: { ...state } }
+        const data = response?.payload || response;
+        if (data && typeof data === 'object' && data[SESSION_KEY]) {
+            console.log(`[mcp-agent] Resuming session: ${data[SESSION_KEY]}`);
+            return data[SESSION_KEY];
+        }
+    } catch (err) {
+        console.log('[mcp-agent] No saved session found');
+    }
+    return null;
+}
+
+async function saveSessionId(sessionId: string): Promise<void> {
+    try {
+        await (codebolt as any).cbstate.addToAgentState(SESSION_KEY, sessionId);
+        console.log(`[mcp-agent] Session saved: ${sessionId}`);
+    } catch (err) {
+        console.error('[mcp-agent] Failed to save session:', err);
+    }
+}
 
 /**
  * Create a Claude Code agent handle with MCP config injected.
@@ -126,8 +171,12 @@ function createAgentHandle(
     prompt: string,
     options: ClaudeExecutorOptions,
     configPath: string,
+    sessionId?: string | null,
 ): AgentHandle {
-    const executor = new ClaudeWithMcpExecutor(options, configPath);
+    const executor = new ClaudeWithMcpExecutor(
+        { ...options, sessionId: sessionId || undefined },
+        configPath,
+    );
     const formatter = new ClaudeFormatter();
     const dispatcher = new ClaudeDispatcher();
 
@@ -146,6 +195,41 @@ function createAgentHandle(
         get state() { return executor.state; },
         get sessionId() { return executor.sessionId; },
     };
+}
+
+// ============================================================================
+// Steering: poll for steering events and forward to Claude Code's stdin
+// ============================================================================
+
+const eventQueue = (codebolt as any).agentEventQueue;
+
+function startSteeringPoll() {
+    if (steeringPollTimer) return;
+    steeringPollTimer = setInterval(() => {
+        if (!currentHandle || currentHandle.state !== 'running') return;
+        if (!eventQueue || typeof eventQueue.getPendingExternalEvents !== 'function') return;
+
+        const pendingEvents = eventQueue.getPendingExternalEvents();
+        for (const event of pendingEvents) {
+            try {
+                const payload = event?.payload || event?.data?.payload || event;
+                if (payload?.type === 'steering' && payload?.instruction) {
+                    const instruction = payload.instruction;
+                    console.log(`[mcp-agent] Steering received: "${instruction.substring(0, 100)}"`);
+                    currentHandle.sendInput(instruction);
+                }
+            } catch (err) {
+                console.error('[mcp-agent] Error processing steering event:', err);
+            }
+        }
+    }, 500);
+}
+
+function stopSteeringPoll() {
+    if (steeringPollTimer) {
+        clearInterval(steeringPollTimer);
+        steeringPollTimer = null;
+    }
 }
 
 // ============================================================================
@@ -203,11 +287,17 @@ codebolt.onMessage(async (userMessage: any) => {
             prompt = trimmed.slice(9).trim();
         }
 
+        // Load saved session ID to resume previous conversation
+        const savedSession = await getSavedSessionId();
+
         // Create and run the agent with MCP config injected
         currentHandle = createAgentHandle(prompt, {
             cwd,
             permissionMode,
-        }, mcpConfigPath!);
+        }, mcpConfigPath!, savedSession);
+
+        // Start polling for steering events while Claude Code runs
+        startSteeringPoll();
 
         for await (const msg of currentHandle.execute()) {
             // ThirdPartyAgents library already dispatched to codebolt.notify.*
@@ -219,8 +309,18 @@ codebolt.onMessage(async (userMessage: any) => {
             }
         }
 
+        stopSteeringPoll();
+        // Save session ID for resuming next time
+        if (currentHandle?.sessionId) {
+            await saveSessionId(currentHandle.sessionId);
+        }
         currentHandle = null;
     } catch (error) {
+        stopSteeringPoll();
+        // Save session ID even on error for potential recovery
+        if (currentHandle?.sessionId) {
+            await saveSessionId(currentHandle.sessionId).catch(() => {});
+        }
         currentHandle = null;
         console.error(`[mcp-agent] Error: ${error}`);
         codebolt.notify.chat.AgentTextResponseNotify(
@@ -236,6 +336,7 @@ codebolt.onMessage(async (userMessage: any) => {
 // ── Cleanup on exit ──
 
 function cleanup() {
+    stopSteeringPoll();
     if (currentHandle) {
         try { currentHandle.stop(); } catch { /* ignore */ }
     }
