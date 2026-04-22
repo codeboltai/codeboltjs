@@ -22,7 +22,7 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.27';
+const CLI_VERSION = '1.12.31';
 
 async function main() {
   console.log(`Building E2B template (node:22-trixie + codebolt@${CLI_VERSION})...\n`);

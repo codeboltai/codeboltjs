@@ -20,7 +20,7 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.29';
+const CLI_VERSION = '1.12.31';
 const PLUGIN_UNIQUE_ID = 'cloud-plugin';
 const PLUGIN_DETAIL_URL = `https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_UNIQUE_ID)}`;
 const CODEBOLT_PLUGIN_ROOT = '/home/user/.codebolt/plugins';
