@@ -20,7 +20,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agent": "workspace:*",
+    "@codebolt/agent": "latest",
+    "@codebolt/thirdpartyagents": "latest",
     "@codebolt/codeboltjs": "latest",
     "epoml": "workspace:*",
     "@swc/wasm": "^1.13.5"

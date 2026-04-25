@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/agent": "workspace:*",
+    "@codebolt/agent": "latest",
+    "@codebolt/thirdpartyagents": "latest",
     "@codebolt/codeboltjs": "latest",
     "@codebolt/types": "^5.1.12",
     "axios": "^1.10.0",

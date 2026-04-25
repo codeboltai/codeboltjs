@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@codebolt/codeboltjs": "latest",
-    "@codebolt/agent": "workspace:*",
+    "@codebolt/agent": "latest",
+    "@codebolt/thirdpartyagents": "latest",
     "@codebolt/types": "latest"
   },
   "devDependencies": {
