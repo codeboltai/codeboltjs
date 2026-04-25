@@ -38,27 +38,22 @@ plugin.onStart(async (ctx) => {
     // Panel ID matches the one registered by the /pluginui/:pluginId route
     const PANEL_ID = `plugin-ui-${ctx.pluginId}`;
     console.log(`[FeedbackFormPlugin] Listening on panel: ${PANEL_ID}`);
+    const router = plugin.dynamicPanel.router(PANEL_ID);
 
-    // Listen for messages from the plugin UI panel
-    plugin.dynamicPanel.onMessage(PANEL_ID, (data: any) => {
-        console.log('[FeedbackFormPlugin] Received panel message:', data);
+    router.post('/feedback', async (c) => {
+        const body = await c.req.json();
+        submissionCount += 1;
 
-        if (data.type === 'submit') {
-            submissionCount++;
-            console.log(`[FeedbackFormPlugin] Feedback from ${data.data.name}: [${data.data.category}] ${data.data.message}`);
+        console.log(
+            `[FeedbackFormPlugin] Feedback from ${body.name}: [${body.category}] ${body.message}`
+        );
 
-            // Send acknowledgment back to the panel
-            plugin.dynamicPanel.send(PANEL_ID, {
-                type: 'submission-ack',
-                message: `Thank you, ${data.data.name}! Your ${data.data.category} feedback has been received.`,
-            });
+        await c.emit('stats.updated', { count: submissionCount });
 
-            // Push updated stats
-            plugin.dynamicPanel.send(PANEL_ID, {
-                type: 'stats',
-                count: submissionCount,
-            });
-        }
+        return c.json({
+            success: true,
+            message: `Thank you, ${body.name}! Your ${body.category} feedback has been received.`,
+        });
     });
 });
 

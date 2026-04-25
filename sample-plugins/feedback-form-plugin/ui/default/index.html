@@ -118,26 +118,32 @@
     <div id="status" class="status"></div>
 
     <script>
-        document.getElementById('feedbackForm').addEventListener('submit', function (e) {
+        document.getElementById('feedbackForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const formData = Object.fromEntries(new FormData(e.target));
-            // Use the injected codeboltPlugin bridge
-            codeboltPlugin.sendMessage({ type: 'submit', data: formData });
+            const el = document.getElementById('status');
+            try {
+                const formData = Object.fromEntries(new FormData(e.target));
+                const response = await codeboltPlugin.fetch('/feedback', {
+                    method: 'POST',
+                    json: formData,
+                });
+                const payload = await response.json();
+                el.className = response.ok ? 'status success' : 'status info';
+                el.textContent = payload.message || 'Submission finished';
+
+                if (response.ok) {
+                    document.getElementById('feedbackForm').reset();
+                }
+            } catch (error) {
+                el.className = 'status info';
+                el.textContent = error && error.message ? error.message : 'Failed to submit feedback';
+            }
         });
 
-        // Use the injected codeboltPlugin bridge to receive messages
-        codeboltPlugin.onMessage(function (msg) {
-            if (msg.type === 'submission-ack') {
-                const el = document.getElementById('status');
-                el.className = 'status success';
-                el.textContent = msg.message;
-                document.getElementById('feedbackForm').reset();
-            }
-            if (msg.type === 'stats') {
-                const el = document.getElementById('status');
-                el.className = 'status info';
-                el.textContent = 'Total submissions this session: ' + msg.count;
-            }
+        codeboltPlugin.on('stats.updated', function (payload) {
+            const el = document.getElementById('status');
+            el.className = 'status info';
+            el.textContent = 'Total submissions this session: ' + payload.count;
         });
     </script>
 </body>
