@@ -174,8 +174,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -434,8 +434,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -567,8 +567,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -700,8 +700,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -833,8 +833,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -966,8 +966,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -1154,8 +1154,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -1287,8 +1287,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -1472,8 +1472,8 @@ importers:
   agentcreator/agent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/agent-shared-nodes':
         specifier: workspace:*
         version: link:../shared-nodes
@@ -1483,6 +1483,9 @@ importers:
       '@codebolt/litegraph':
         specifier: workspace:*
         version: link:../litegraphjs
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: latest
         version: 5.1.12
@@ -1747,11 +1750,14 @@ importers:
   agents/CliTestAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -1778,11 +1784,14 @@ importers:
   agents/Planner:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -1809,11 +1818,14 @@ importers:
   agents/SwarmFunctionTester:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -1840,11 +1852,14 @@ importers:
   agents/SwarmStarter:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -1873,9 +1888,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.4
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -1986,11 +2007,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2119,11 +2143,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.30
         version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2249,11 +2276,14 @@ importers:
   agents/actionBlockTester:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2283,11 +2313,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2404,11 +2437,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.30
         version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2537,11 +2573,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.30
         version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2667,11 +2706,14 @@ importers:
   agents/calenderTestingAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2698,11 +2740,14 @@ importers:
   agents/capabilityTesting:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.24
         version: 5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.11
         version: 5.1.12
@@ -2729,11 +2774,14 @@ importers:
   agents/chat-compactoer-testing:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: latest
         version: 5.1.12
@@ -2759,9 +2807,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.29
         version: 5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -2890,11 +2944,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3022,9 +3079,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.29
         version: 5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3155,6 +3218,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3162,8 +3228,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3213,9 +3279,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.29
         version: 5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3343,6 +3415,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3350,8 +3425,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3395,6 +3470,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3402,8 +3480,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3447,6 +3525,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3454,8 +3535,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3497,11 +3578,14 @@ importers:
   agents/geminiAgentTest:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3531,11 +3615,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.25
         version: 5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3661,11 +3748,14 @@ importers:
   agents/mainSwarmAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.30
         version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3692,11 +3782,14 @@ importers:
   agents/mainSwarmAgentbkp:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3723,11 +3816,14 @@ importers:
   agents/memoryTestAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3756,6 +3852,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3763,8 +3862,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3808,6 +3907,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3815,8 +3917,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3858,11 +3960,14 @@ importers:
   agents/orchestrator:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3889,11 +3994,14 @@ importers:
   agents/orchestrator-worker:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -3922,6 +4030,9 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.32
         version: 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -3929,8 +4040,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mcp-server
       '@codebolt/thirdpartyagents':
-        specifier: workspace:*
-        version: link:../../packages/thirdpartyagents
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -3972,11 +4083,14 @@ importers:
   agents/projectStructure_fileUpdateIntent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4003,11 +4117,14 @@ importers:
   agents/remote-task-agent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: latest
         version: 5.1.12
@@ -4031,11 +4148,14 @@ importers:
   agents/remoteepoml:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@swc/wasm':
         specifier: ^1.13.5
         version: 1.13.20
@@ -4062,11 +4182,14 @@ importers:
         specifier: ^7.26.0
         version: 7.28.6
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.19
         version: 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.11
         version: 5.1.11
@@ -4192,11 +4315,14 @@ importers:
   agents/reviewAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4223,11 +4349,14 @@ importers:
   agents/reviewer-agent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: latest
         version: 5.1.12
@@ -4251,11 +4380,14 @@ importers:
   agents/swarmAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4282,11 +4414,14 @@ importers:
   agents/swarmAgentbkp:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4313,11 +4448,14 @@ importers:
   agents/swarmTaskSpliterAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4344,11 +4482,14 @@ importers:
   agents/taskTestAgent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.12
         version: 5.1.12
@@ -4377,9 +4518,15 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.28.6
+      '@codebolt/agent':
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: latest
         version: 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       copy-webpack-plugin:
         specifier: ^12.0.2
         version: 12.0.2(webpack@5.104.1)
@@ -4427,11 +4574,14 @@ importers:
   agents/testingagent:
     dependencies:
       '@codebolt/agent':
-        specifier: workspace:*
-        version: link:../../packages/agent
+        specifier: latest
+        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
       '@codebolt/codeboltjs':
         specifier: ^5.1.30
         version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/thirdpartyagents':
+        specifier: latest
+        version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       '@codebolt/types':
         specifier: ^5.1.11
         version: 5.1.11
@@ -4540,43 +4690,6 @@ importers:
       '@docusaurus/types':
         specifier: 3.9.2
         version: 3.9.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      typedoc:
-        specifier: 0.28.16
-        version: 0.28.16(typescript@5.9.3)
-      typedoc-plugin-markdown:
-        specifier: 4.9.0
-        version: 4.9.0(typedoc@0.28.16(typescript@5.9.3))
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-
-  packages/agent:
-    dependencies:
-      '@codebolt/types':
-        specifier: ^5.1.11
-        version: 5.1.11
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.0
-      zod:
-        specifier: ^3.22.4
-        version: 3.25.76
-    devDependencies:
-      '@codebolt/codeboltjs':
-        specifier: ^5.1.30
-        version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^20.14.2
-        version: 20.19.19
-      '@types/uri-templates':
-        specifier: ^0.1.34
-        version: 0.1.34
-      '@types/ws':
-        specifier: ^8.5.10
-        version: 8.18.1
       typedoc:
         specifier: 0.28.16
         version: 0.28.16(typescript@5.9.3)
@@ -4711,22 +4824,6 @@ importers:
       jest:
         specifier: ^30.2.0
         version: 30.2.0(@types/node@20.19.19)(ts-node@10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3))
-      typescript:
-        specifier: ^5.4.5
-        version: 5.9.3
-
-  packages/thirdpartyagents:
-    dependencies:
-      ws:
-        specifier: ^8.20.0
-        version: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.2
-        version: 20.19.19
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
@@ -5038,8 +5135,8 @@ importers:
         version: 4.8.2
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20251008.0
-        version: 4.20251008.0
+        specifier: ^4.20260421.1
+        version: 4.20260425.1
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.19
@@ -5053,11 +5150,11 @@ importers:
         specifier: ^9.37.0
         version: 9.37.0(jiti@2.6.1)
       typescript:
-        specifier: ^5.0.0
+        specifier: ^5.9.3
         version: 5.9.3
       wrangler:
         specifier: ^4.42.1
-        version: 4.42.1(@cloudflare/workers-types@4.20251008.0)(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        version: 4.42.1(@cloudflare/workers-types@4.20260425.1)(bufferutil@4.0.9)(utf-8-validate@6.0.5)
 
   remoteenvironments/wranglercontainers:
     dependencies:
@@ -5076,7 +5173,7 @@ importers:
         version: 5.8.3
       wrangler:
         specifier: ^4.26.0
-        version: 4.42.1(@cloudflare/workers-types@4.20251008.0)(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        version: 4.42.1(@cloudflare/workers-types@4.20260425.1)(bufferutil@4.0.9)(utf-8-validate@6.0.5)
 
   remoteenvironments/wranglercontainers/container_src:
     dependencies:
@@ -7011,6 +7108,14 @@ packages:
   '@cloudflare/workers-types@4.20251008.0':
     resolution: {integrity: sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA==}
 
+  '@cloudflare/workers-types@4.20260425.1':
+    resolution: {integrity: sha512-f6dlo3SsA+TNqjveavPDN73nxRfCOOd0iMdf8iEosgR/RJtQlrGwfr5L5Vf7x/5cpeeguxScKevuaMmdjpOECw==}
+
+  '@codebolt/agent@6.0.1':
+    resolution: {integrity: sha512-QKdr3Yqe3MhmutHidVEdZf5Xqsm69Vl4A29BivmXntKcF7FgapopNoASCYq12bsVYO18Aqi+O2CDwsZ2NW4M1w==}
+    peerDependencies:
+      '@codebolt/codeboltjs': '*'
+
   '@codebolt/codeboltjs@5.1.19':
     resolution: {integrity: sha512-GmDQbKS+rf6trdM+MEfL+na7qNAx8S5uOwZ8wxdrLqZNb/imu+gCqXGhm2mm+K9IhzK7CIEibNa+mMy+B4lZvA==}
 
@@ -7063,6 +7168,9 @@ packages:
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
     engines: {node: '>=16.0.0'}
+
+  '@codebolt/thirdpartyagents@1.0.0':
+    resolution: {integrity: sha512-drp3KTXAKGHhLJeED1wxOdvHGwZ7ekHpDXSHXW0tL0GCmXy5ww7qqukxk8adbmxNHrP3F44KZUcYqtWLwpZCeg==}
 
   '@codebolt/types@5.1.11':
     resolution: {integrity: sha512-Ohdfw1f57MAl3LG9zTc+a7bnaNtyELxMHsGTC3EPnUJGLMMGP4CnFPUo0ey0DYHA2DPt6rLQslF4GOmEbRr4hA==}
@@ -22624,6 +22732,50 @@ snapshots:
 
   '@cloudflare/workers-types@4.20251008.0': {}
 
+  '@cloudflare/workers-types@4.20260425.1': {}
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.25(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.29(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.31(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
+  '@codebolt/agent@6.0.1(@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
   '@codebolt/codeboltjs@5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
     dependencies:
       '@codebolt/types': 5.1.11
@@ -22785,6 +22937,13 @@ snapshots:
       '@codebolt/narrative-darwin-arm64': 1.11.0
       '@codebolt/narrative-linux-x64': 1.11.0
       '@codebolt/narrative-win32-x64': 1.11.0
+
+  '@codebolt/thirdpartyagents@1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@codebolt/types@5.1.11':
     dependencies:
@@ -39005,7 +39164,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  wrangler@4.42.1(@cloudflare/workers-types@4.20251008.0)(bufferutil@4.0.9)(utf-8-validate@6.0.5):
+  wrangler@4.42.1(@cloudflare/workers-types@4.20260425.1)(bufferutil@4.0.9)(utf-8-validate@6.0.5):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.0
       '@cloudflare/unenv-preset': 2.7.7(unenv@2.0.0-rc.21)(workerd@1.20251004.0)
@@ -39016,7 +39175,7 @@ snapshots:
       unenv: 2.0.0-rc.21
       workerd: 1.20251004.0
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20251008.0
+      '@cloudflare/workers-types': 4.20260425.1
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil
