@@ -17,7 +17,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/agent": "workspace:*",
+    "@codebolt/agent": "latest",
+    "@codebolt/thirdpartyagents": "latest",
     "@codebolt/agent-shared-nodes": "workspace:*",
     "@codebolt/codeboltjs": "latest",
     "@codebolt/litegraph": "workspace:*",

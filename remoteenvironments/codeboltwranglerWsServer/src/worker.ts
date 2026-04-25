@@ -93,6 +93,30 @@ const worker = {
       }
     }
 
+    // Debug: delete KV key (must be before /debug/kv/ to avoid prefix match)
+    if (url.pathname.startsWith('/debug/kv-delete/')) {
+      const key = decodeURIComponent(url.pathname.slice('/debug/kv-delete/'.length));
+      try {
+        await env.CHAT_STORE.delete(key);
+        return new Response(`Deleted: ${key}`, { headers: { 'Content-Type': 'text/plain' } });
+      } catch (e: any) {
+        return new Response(`KV error: ${e.message}`, { status: 500 });
+      }
+    }
+
+    // Debug: put KV value (must be before /debug/kv/ to avoid prefix match)
+    if (url.pathname.startsWith('/debug/kv-put/')) {
+      const key = decodeURIComponent(url.pathname.slice('/debug/kv-put/'.length));
+      const value = url.searchParams.get('value');
+      if (!value) return new Response('Missing ?value= param', { status: 400 });
+      try {
+        await env.CHAT_STORE.put(key, value);
+        return new Response(`Put: ${key}`, { headers: { 'Content-Type': 'text/plain' } });
+      } catch (e: any) {
+        return new Response(`KV error: ${e.message}`, { status: 500 });
+      }
+    }
+
     // Debug: get KV value
     if (url.pathname.startsWith('/debug/kv/')) {
       const key = decodeURIComponent(url.pathname.slice('/debug/kv/'.length));

@@ -29,11 +29,17 @@ interface SocketAttachment {
   userId?: string;
   agentId?: string;
   runtimeId?: string;
+  // Gateway-only: runtime metadata (survives hibernation so connections_snapshot works)
+  runtimeType?: string;
+  projectPath?: string;
+  projectName?: string;
+  gitRemoteUrl?: string;
+  connectedAt?: number;
 }
 
 export class ProxyHub {
   private readonly agents = new Map<string, WebSocket>();
-  private readonly appSocketsByToken = new Map<string, WebSocket>();
+  private readonly appSocketsByToken = new Map<string, Set<WebSocket>>();
 
   // Multi-runtime: appToken → Map<runtimeId, WebSocket>
   private readonly gatewaysByRuntime = new Map<string, Map<string, WebSocket>>();
@@ -52,6 +58,14 @@ export class ProxyHub {
   private readonly messageBuffer = new Map<string, any[]>();
   private readonly threadUpdates = new Map<string, { appToken: string; threadId: string }>();
   private flushScheduled = false;
+
+  // KV key helpers for runtime persistence
+  private runtimeKVKey(token: string, runtimeId: string): string {
+    return `runtime:${token}:${runtimeId}`;
+  }
+  private runtimeIndexKey(token: string): string {
+    return `runtimes:${token}`;
+  }
 
   constructor(readonly state: DurableObjectState, private readonly env: Env) {
     // Auto-respond to JSON ping messages even while the DO is hibernating
@@ -210,14 +224,20 @@ export class ProxyHub {
       case 'pong':
         // Heartbeat acknowledgement — no routing needed
         break;
-      case 'request_connections':
+      case 'request_connections': {
+        const reqToken = this.getSocketMeta(socket)?.token ?? DEFAULT_TOKEN;
+        // Read from KV (persisted) and merge with live in-memory state
+        const kvRuntimes = await this.getRuntimeListFromKV(reqToken);
+        // Fall back to in-memory list if KV is empty (backwards compat)
+        const runtimes = kvRuntimes.length > 0 ? kvRuntimes : this.getRuntimeList(reqToken);
         this.sendJson(socket, {
           type: 'connections_snapshot',
           summary: this.getConnectionSummary(),
-          runtimes: this.getRuntimeList(this.getSocketMeta(socket)?.token ?? DEFAULT_TOKEN),
+          runtimes,
           timestamp: Date.now(),
         });
         break;
+      }
       case 'requestSync':
         await this.handleRequestSync(socket);
         break;
@@ -237,13 +257,14 @@ export class ProxyHub {
     this.logMessage('incoming', message.actor, message.agentId, message, message);
   }
 
-  private handleGatewayRegistration(socket: WebSocket, message: GatewayRegisterMessage): void {
+  private async handleGatewayRegistration(socket: WebSocket, message: GatewayRegisterMessage): Promise<void> {
     const token = this.normalizeToken(message.appToken);
-    const runtimeId = message.runtimeId ?? message.serverId ?? 'default';
+    const runtimeId = message.runtimeId ?? message.serverId ?? crypto.randomUUID();
     const runtimeType = message.runtimeType ?? 'local';
     const projectPath = message.projectPath;
     const projectName = message.projectName;
     const gitRemoteUrl = message.gitRemoteUrl;
+    const connectedAt = Date.now();
 
     // Ensure per-token maps exist
     if (!this.gatewaysByRuntime.has(token)) {
@@ -263,12 +284,19 @@ export class ProxyHub {
     }
 
     runtimeMap.set(runtimeId, socket);
-    metaMap.set(runtimeId, { runtimeId, runtimeType, projectPath, projectName, gitRemoteUrl, connectedAt: Date.now() });
+    const runtimeInfo = { runtimeId, runtimeType, projectPath, projectName, gitRemoteUrl, connectedAt };
+    metaMap.set(runtimeId, runtimeInfo);
+
+    // Persist to KV so runtimes survive DO hibernation and portal reopens
+    await this.saveRuntimeToKV(token, runtimeId, runtimeInfo);
 
     // Persist meta both in-memory and via hibernation attachment
     const meta: SocketMeta = { role: 'gateway', token, runtimeId, userId: message.userId };
     this.socketMeta.set(socket, meta);
-    this.persistSocketMeta(socket, { role: 'gateway', token, runtimeId, userId: message.userId });
+    this.persistSocketMeta(socket, {
+      role: 'gateway', token, runtimeId, userId: message.userId,
+      runtimeType, projectPath, projectName, gitRemoteUrl, connectedAt,
+    });
 
     this.sendJson(socket, {
       type: 'registered',
@@ -372,10 +400,10 @@ export class ProxyHub {
     }
 
     if (meta.role === 'gateway') {
-      // Gateway → forward to app socket
-      const appSocket = this.appSocketsByToken.get(meta.token);
-      if (appSocket) {
-        this.sendJson(appSocket, message);
+      // Gateway → forward to all app sockets
+      const appSockets = this.appSocketsByToken.get(meta.token);
+      if (appSockets) {
+        for (const s of appSockets) this.sendJson(s, message);
       }
 
       // Buffer chatEvent messages for batch KV write
@@ -520,7 +548,10 @@ export class ProxyHub {
     }
 
     const token = this.normalizeToken(message.appToken);
-    this.appSocketsByToken.set(token, socket);
+    if (!this.appSocketsByToken.has(token)) {
+      this.appSocketsByToken.set(token, new Set());
+    }
+    this.appSocketsByToken.get(token)!.add(socket);
     this.persistSocketMeta(socket, { role: 'app', token, userId: message.appId });
     this.socketMeta.set(socket, { role: 'app', token });
     return { type: 'registered', actor: 'app', appToken: token };
@@ -543,9 +574,9 @@ export class ProxyHub {
     params: { token: string; payload: unknown; agentId?: string },
     includeGateway: boolean
   ): void {
-    const socket = this.appSocketsByToken.get(params.token);
-    if (socket) {
-      this.sendJson(socket, params.payload);
+    const sockets = this.appSocketsByToken.get(params.token);
+    if (sockets?.size) {
+      for (const s of sockets) this.sendJson(s, params.payload);
       this.logMessage('outgoing', 'app', params.agentId, params.payload, { target: 'app', ...params });
     } else {
       const queue = this.pendingAppMessagesByToken.get(params.token) ?? [];
@@ -605,10 +636,14 @@ export class ProxyHub {
   }
 
   private flushAppQueue(token: string): void {
-    const socket = this.appSocketsByToken.get(token);
-    if (socket) {
+    const sockets = this.appSocketsByToken.get(token);
+    if (sockets?.size) {
       const queue = this.pendingAppMessagesByToken.get(token);
-      queue?.forEach((payload) => this.sendJson(socket, payload));
+      if (queue) {
+        for (const payload of queue) {
+          for (const s of sockets) this.sendJson(s, payload);
+        }
+      }
       this.pendingAppMessagesByToken.delete(token);
     }
   }
@@ -650,9 +685,11 @@ export class ProxyHub {
   }
 
   private broadcastToAppSockets(token: string, payload: unknown): void {
-    const appSocket = this.appSocketsByToken.get(token);
-    if (appSocket && appSocket.readyState === WebSocket.OPEN) {
-      this.sendJson(appSocket, payload);
+    const sockets = this.appSocketsByToken.get(token);
+    if (sockets) {
+      for (const s of sockets) {
+        if (s.readyState === WebSocket.OPEN) this.sendJson(s, payload);
+      }
     }
   }
 
@@ -698,13 +735,31 @@ export class ProxyHub {
       this.socketMeta.set(socket, meta);
 
       if (meta.role === 'app') {
-        this.appSocketsByToken.set(meta.token, socket);
+        if (!this.appSocketsByToken.has(meta.token)) {
+          this.appSocketsByToken.set(meta.token, new Set());
+        }
+        this.appSocketsByToken.get(meta.token)!.add(socket);
       } else if (meta.role === 'gateway' && meta.runtimeId) {
         // Restore into multi-runtime map
         if (!this.gatewaysByRuntime.has(meta.token)) {
           this.gatewaysByRuntime.set(meta.token, new Map());
         }
         this.gatewaysByRuntime.get(meta.token)!.set(meta.runtimeId, socket);
+
+        // Restore runtime metadata so connections_snapshot works after hibernation
+        if (attachment.runtimeType) {
+          if (!this.runtimeMeta.has(meta.token)) {
+            this.runtimeMeta.set(meta.token, new Map());
+          }
+          this.runtimeMeta.get(meta.token)!.set(meta.runtimeId, {
+            runtimeId: meta.runtimeId,
+            runtimeType: attachment.runtimeType as RuntimeInfo['runtimeType'],
+            projectPath: attachment.projectPath,
+            projectName: attachment.projectName,
+            gitRemoteUrl: attachment.gitRemoteUrl,
+            connectedAt: attachment.connectedAt ?? Date.now(),
+          });
+        }
       } else if (meta.role === 'agent' && attachment.agentId) {
         this.agents.set(attachment.agentId, socket);
       }
@@ -722,14 +777,18 @@ export class ProxyHub {
 
   // ─── Cleanup ───────────────────────────────────────────────────────────────
 
-  private removeSocket(socket: WebSocket): void {
+  private async removeSocket(socket: WebSocket): Promise<void> {
     const meta = this.getSocketMeta(socket);
 
     for (const [agentId, ws] of this.agents.entries()) {
       if (ws === socket) { this.agents.delete(agentId); break; }
     }
-    for (const [token, ws] of this.appSocketsByToken.entries()) {
-      if (ws === socket) { this.appSocketsByToken.delete(token); break; }
+    for (const [token, sockets] of this.appSocketsByToken.entries()) {
+      if (sockets.has(socket)) {
+        sockets.delete(socket);
+        if (sockets.size === 0) this.appSocketsByToken.delete(token);
+        break;
+      }
     }
 
     // Remove from per-runtime gateway map and notify portal
@@ -744,6 +803,9 @@ export class ProxyHub {
         metaMap.delete(meta.runtimeId);
         if (metaMap.size === 0) this.runtimeMeta.delete(meta.token);
       }
+
+      // Persist offline status to KV
+      await this.markRuntimeOfflineInKV(meta.token, meta.runtimeId);
 
       this.broadcastToAppSockets(meta.token, {
         type: 'runtime_disconnected',
@@ -778,6 +840,93 @@ export class ProxyHub {
     const metaMap = this.runtimeMeta.get(token);
     if (!metaMap) return [];
     return Array.from(metaMap.values());
+  }
+
+  // ─── KV runtime persistence ─────────────────────────────────────────────────
+
+  /** Save runtime record to KV on connect, update index */
+  private async saveRuntimeToKV(
+    token: string,
+    runtimeId: string,
+    info: RuntimeInfo & { connectedAt: number },
+  ): Promise<void> {
+    if (!this.env.CHAT_STORE) return;
+    try {
+      const record = { ...info, status: 'online', updatedAt: Date.now() };
+      await this.env.CHAT_STORE.put(this.runtimeKVKey(token, runtimeId), JSON.stringify(record));
+
+      // Update index
+      const indexRaw = await this.env.CHAT_STORE.get(this.runtimeIndexKey(token));
+      const index: string[] = indexRaw ? JSON.parse(indexRaw) : [];
+      if (!index.includes(runtimeId)) {
+        index.push(runtimeId);
+        await this.env.CHAT_STORE.put(this.runtimeIndexKey(token), JSON.stringify(index));
+      }
+    } catch (err) {
+      console.error('[ProxyHub] Failed to save runtime to KV:', err);
+    }
+  }
+
+  /** Remove runtime from KV on disconnect */
+  private async markRuntimeOfflineInKV(token: string, runtimeId: string): Promise<void> {
+    if (!this.env.CHAT_STORE) return;
+    try {
+      // Delete the runtime record
+      await this.env.CHAT_STORE.delete(this.runtimeKVKey(token, runtimeId));
+
+      // Remove from index
+      const indexRaw = await this.env.CHAT_STORE.get(this.runtimeIndexKey(token));
+      if (indexRaw) {
+        const index: string[] = JSON.parse(indexRaw);
+        const updated = index.filter((id) => id !== runtimeId);
+        if (updated.length > 0) {
+          await this.env.CHAT_STORE.put(this.runtimeIndexKey(token), JSON.stringify(updated));
+        } else {
+          await this.env.CHAT_STORE.delete(this.runtimeIndexKey(token));
+        }
+      }
+    } catch (err) {
+      console.error('[ProxyHub] Failed to remove runtime from KV:', err);
+    }
+  }
+
+  /** Read all persisted runtimes from KV, merge with live in-memory state. Only returns online runtimes. */
+  private async getRuntimeListFromKV(token: string): Promise<(RuntimeInfo & { status: string })[]> {
+    if (!this.env.CHAT_STORE) return [];
+    try {
+      const indexRaw = await this.env.CHAT_STORE.get(this.runtimeIndexKey(token));
+      if (!indexRaw) return [];
+      const index: string[] = JSON.parse(indexRaw);
+
+      const results: (RuntimeInfo & { status: string })[] = [];
+      for (const runtimeId of index) {
+        const raw = await this.env.CHAT_STORE.get(this.runtimeKVKey(token, runtimeId));
+        if (!raw) continue;
+        const record = JSON.parse(raw);
+
+        // Override status with live state if gateway is currently connected
+        const runtimeMap = this.gatewaysByRuntime.get(token);
+        const isLive = runtimeMap?.has(runtimeId) &&
+          runtimeMap.get(runtimeId)!.readyState === WebSocket.OPEN;
+
+        // Skip offline runtimes — only show currently connected ones
+        if (!isLive) continue;
+
+        results.push({
+          runtimeId: record.runtimeId,
+          runtimeType: record.runtimeType,
+          projectPath: record.projectPath,
+          projectName: record.projectName,
+          gitRemoteUrl: record.gitRemoteUrl,
+          connectedAt: record.connectedAt,
+          status: isLive ? 'online' : 'offline',
+        });
+      }
+      return results;
+    } catch (err) {
+      console.error('[ProxyHub] Failed to read runtimes from KV:', err);
+      return [];
+    }
   }
 
   private normalizeToken(token?: string): string {

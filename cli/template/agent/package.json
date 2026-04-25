@@ -21,6 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/agent": "latest",
+    "@codebolt/thirdpartyagents": "latest",
     "@codebolt/codeboltjs": "latest",
     "@codebolt/types": "latest",
     "zod": "^3.22.4"
