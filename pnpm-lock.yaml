@@ -2143,11 +2143,11 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: latest
-        version: 6.0.1(@codebolt/codeboltjs@5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5))
+        specifier: ^6.1.6
+        version: 6.1.6(@codebolt/codeboltjs@5.1.34(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
-        specifier: ^5.1.30
-        version: 5.1.30(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+        specifier: ^5.1.34
+        version: 5.1.34(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
       '@codebolt/thirdpartyagents':
         specifier: latest
         version: 1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -7116,6 +7116,11 @@ packages:
     peerDependencies:
       '@codebolt/codeboltjs': '*'
 
+  '@codebolt/agent@6.1.6':
+    resolution: {integrity: sha512-tMRv/+myFjTSJEm7ZqpjcCOYnkTFN5oreD4tUpcFRkohKdrQzNJGNVKWHnKKW6LZn7TXjN1+cm5qv6v8MzK2Mg==}
+    peerDependencies:
+      '@codebolt/codeboltjs': '*'
+
   '@codebolt/codeboltjs@5.1.19':
     resolution: {integrity: sha512-GmDQbKS+rf6trdM+MEfL+na7qNAx8S5uOwZ8wxdrLqZNb/imu+gCqXGhm2mm+K9IhzK7CIEibNa+mMy+B4lZvA==}
 
@@ -7133,6 +7138,9 @@ packages:
 
   '@codebolt/codeboltjs@5.1.32':
     resolution: {integrity: sha512-YCn2c9YQvX2b6+fvhBbbqRUN7Mm4acWEkbVv3GvDP3DOClSEPoF0GYU5E/ySXnYkaPn8Jbu79X7MkvxB4WYOhA==}
+
+  '@codebolt/codeboltjs@5.1.34':
+    resolution: {integrity: sha512-2cZ4TF+UmSLwlq2ciLfTIlX6YxJLDrMX55gv/V9pq8jIDn12+IRDYj6f/zWN+IxPpCxS5UyHqC0cbWMPuo9YeQ==}
 
   '@codebolt/globby@1.0.1':
     resolution: {integrity: sha512-XOA2fAPzP0FMB6E3EVdBZHdyLCXdbPwtgoU3u/pWuirZpE9AoV4CVqQzRDDsw548cseMI3q6mPeZQaY7h9TL7w==}
@@ -22776,6 +22784,13 @@ snapshots:
       js-yaml: 4.1.0
       zod: 3.25.76
 
+  '@codebolt/agent@6.1.6(@codebolt/codeboltjs@5.1.34(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.34(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
   '@codebolt/codeboltjs@5.1.19(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
     dependencies:
       '@codebolt/types': 5.1.11
@@ -22881,6 +22896,30 @@ snapshots:
       - zod
 
   '@codebolt/codeboltjs@5.1.32(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)':
+    dependencies:
+      '@codebolt/types': 5.1.12
+      '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
+      '@types/uuid': 10.0.0
+      buffer: 6.0.3
+      execa: 9.6.0
+      js-yaml: 4.1.0
+      minisearch: 7.2.0
+      os-browserify: 0.3.0
+      path-browserify: 1.0.1
+      stream-browserify: 3.0.0
+      timers: 0.1.1
+      util: 0.12.5
+      uuid: 11.1.0
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+      - zod
+
+  '@codebolt/codeboltjs@5.1.34(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)':
     dependencies:
       '@codebolt/types': 5.1.12
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
