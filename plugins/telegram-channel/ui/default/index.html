@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Telegram Channel Settings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #cba6f7;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #bac2de;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+    background: #313244;
+    color: #cdd6f4;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: #cba6f7;
+  }
+
+  .token-wrapper {
+    position: relative;
+  }
+
+  .token-wrapper input {
+    padding-right: 44px;
+  }
+
+  .token-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c7086;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px;
+  }
+
+  .token-toggle:hover {
+    color: #cba6f7;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  button {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s;
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-connect {
+    background: #a6e3a1;
+    color: #1e1e2e;
+  }
+
+  .btn-connect:hover:not(:disabled) {
+    background: #94e2d5;
+  }
+
+  .btn-disconnect {
+    background: #f38ba8;
+    color: #1e1e2e;
+  }
+
+  .btn-disconnect:hover:not(:disabled) {
+    background: #eba0ac;
+  }
+
+  .status-bar {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .status-disconnected {
+    background: #45475a;
+    color: #a6adc8;
+  }
+
+  .status-connected {
+    background: rgba(166, 227, 161, 0.15);
+    color: #a6e3a1;
+  }
+
+  .status-error {
+    background: rgba(243, 139, 168, 0.15);
+    color: #f38ba8;
+  }
+</style>
+</head>
+<body>
+
+<h2>Telegram Channel</h2>
+
+<div class="form-group">
+  <label for="botToken">Bot Token</label>
+  <div class="token-wrapper">
+    <input type="password" id="botToken" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11" />
+    <button type="button" class="token-toggle" id="tokenToggle" title="Show / Hide token">Show</button>
+  </div>
+</div>
+
+<div class="form-group">
+  <label for="agentId">Agent ID</label>
+  <input type="text" id="agentId" placeholder="Enter the agent ID to route messages to" />
+</div>
+
+<div class="form-group">
+  <label for="threadStrategy">Thread Strategy</label>
+  <select id="threadStrategy">
+    <option value="single">Single thread</option>
+    <option value="per-user" selected>Per user</option>
+    <option value="per-conversation">Per conversation</option>
+    <option value="per-message">Per message</option>
+  </select>
+</div>
+
+<div class="actions">
+  <button class="btn-connect" id="btnConnect">Connect</button>
+  <button class="btn-disconnect" id="btnDisconnect" disabled>Disconnect</button>
+</div>
+
+<div class="status-bar status-disconnected" id="statusBar">Disconnected</div>
+
+<script>
+  // --- Elements ---
+  const botTokenInput     = document.getElementById('botToken');
+  const agentIdInput      = document.getElementById('agentId');
+  const threadStrategySel = document.getElementById('threadStrategy');
+  const btnConnect        = document.getElementById('btnConnect');
+  const btnDisconnect     = document.getElementById('btnDisconnect');
+  const statusBar         = document.getElementById('statusBar');
+  const tokenToggle       = document.getElementById('tokenToggle');
+
+  let currentStatus = 'disconnected';
+
+  // --- Token show / hide ---
+  tokenToggle.addEventListener('click', () => {
+    const isPassword = botTokenInput.type === 'password';
+    botTokenInput.type = isPassword ? 'text' : 'password';
+    tokenToggle.textContent = isPassword ? 'Hide' : 'Show';
+  });
+
+  // --- Connect ---
+  btnConnect.addEventListener('click', () => {
+    const botToken = botTokenInput.value.trim();
+    const agentId = agentIdInput.value.trim();
+    const threadStrategy = threadStrategySel.value;
+
+    if (!botToken) {
+      setStatus('error', 'Bot token is required');
+      return;
+    }
+
+    codeboltPlugin.sendMessage({
+      type: 'connect',
+      config: {
+        credentials: { botToken },
+        agentId,
+        threadStrategy,
+      },
+    });
+
+    setStatus('disconnected', 'Connecting...');
+    btnConnect.disabled = true;
+  });
+
+  // --- Disconnect ---
+  btnDisconnect.addEventListener('click', () => {
+    codeboltPlugin.sendMessage({ type: 'disconnect' });
+    btnDisconnect.disabled = true;
+  });
+
+  // --- Receive status from plugin ---
+  codeboltPlugin.onMessage((message) => {
+    if (message.type === 'status') {
+      setStatus(message.status, message.message);
+      // Populate form fields from saved config when reconnected after restart
+      if (message.config) {
+        if (message.config.credentials?.botToken) {
+          botTokenInput.value = message.config.credentials.botToken;
+        }
+        if (message.config.agentId) {
+          agentIdInput.value = message.config.agentId;
+        }
+        if (message.config.threadStrategy) {
+          threadStrategySel.value = message.config.threadStrategy;
+        }
+      }
+    }
+  });
+
+  // --- Request current status on load (handles restart case) ---
+  codeboltPlugin.sendMessage({ type: 'getStatus' });
+
+  // --- Status display ---
+  function setStatus(status, message) {
+    currentStatus = status;
+    statusBar.className = 'status-bar status-' + status;
+
+    switch (status) {
+      case 'connected':
+        statusBar.textContent = 'Connected' + (message ? ' — ' + message : '');
+        btnConnect.disabled = true;
+        btnDisconnect.disabled = false;
+        break;
+      case 'disconnected':
+        statusBar.textContent = message || 'Disconnected';
+        btnConnect.disabled = false;
+        btnDisconnect.disabled = true;
+        break;
+      case 'error':
+        statusBar.textContent = 'Error' + (message ? ': ' + message : '');
+        btnConnect.disabled = false;
+        btnDisconnect.disabled = true;
+        break;
+    }
+  }
+</script>
+
+</body>
+</html>

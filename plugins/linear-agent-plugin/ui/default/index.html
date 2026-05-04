@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Linear Agent Settings</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e; color: #cdd6f4; font-family: system-ui, -apple-system, sans-serif;
+    padding: 24px; line-height: 1.5;
+  }
+  h2 { color: #89b4fa; margin-bottom: 20px; font-size: 1.3rem; }
+  h3 { color: #a6adc8; margin: 20px 0 12px; font-size: 1rem; border-bottom: 1px solid #313244; padding-bottom: 6px; }
+
+  .section { margin-bottom: 16px; }
+  label { display: block; color: #a6adc8; font-size: 0.85rem; margin-bottom: 4px; }
+  input[type="text"], input[type="url"] {
+    width: 100%; padding: 8px 12px; background: #313244; border: 1px solid #45475a;
+    border-radius: 6px; color: #cdd6f4; font-size: 0.9rem; outline: none;
+  }
+  input:focus { border-color: #89b4fa; }
+
+  .row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #89b4fa; }
+  .checkbox-row label { margin: 0; display: inline; }
+
+  button {
+    padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;
+    font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.85; }
+  .btn-primary { background: #89b4fa; color: #1e1e2e; }
+  .btn-secondary { background: #45475a; color: #cdd6f4; }
+  .btn-install { background: #5e6ad2; color: white; }
+  .btn-small { padding: 5px 12px; font-size: 0.8rem; }
+
+  .status {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.8rem; font-weight: 500;
+  }
+  .status-ok { background: #a6e3a1; color: #1e1e2e; }
+  .status-err { background: #f38ba8; color: #1e1e2e; }
+  .status-warn { background: #fab387; color: #1e1e2e; }
+  .status-info { background: #89b4fa; color: #1e1e2e; }
+
+  .msg { margin-top: 8px; font-size: 0.85rem; min-height: 1.3em; }
+  .msg-ok { color: #a6e3a1; }
+  .msg-err { color: #f38ba8; }
+
+  .hint { color: #6c7086; font-size: 0.78rem; margin-top: 3px; }
+
+  .empty { color: #6c7086; font-style: italic; font-size: 0.85rem; }
+
+  .install-section {
+    background: #313244; border-radius: 8px; padding: 16px; margin-top: 16px;
+    border-left: 3px solid #5e6ad2;
+  }
+  .install-section p { font-size: 0.85rem; margin-bottom: 10px; color: #a6adc8; }
+</style>
+</head>
+<body>
+
+<h2>Linear Agent</h2>
+
+<!-- Worker Connection -->
+<div class="section">
+  <label for="workerUrl">Worker URL</label>
+  <input type="url" id="workerUrl" placeholder="wss://linear-agent-worker.arrowai.workers.dev" />
+  <div class="hint">The Cloudflare Worker WebSocket URL</div>
+</div>
+
+<div class="section">
+  <label for="appToken">App Token</label>
+  <input type="text" id="appToken" placeholder="my-codebolt-instance" />
+  <div class="hint">Unique identifier for this plugin instance (any name you choose)</div>
+</div>
+
+<div class="row">
+  <button class="btn-secondary btn-small" id="testBtn">Test Connection</button>
+  <span id="connStatus"></span>
+</div>
+<div id="connMsg" class="msg"></div>
+
+<!-- Settings -->
+<h3>Settings</h3>
+<div class="checkbox-row">
+  <input type="checkbox" id="enabled" checked />
+  <label for="enabled">Enable connection</label>
+</div>
+
+<div class="row" style="margin-top: 16px;">
+  <button class="btn-primary" id="saveBtn">Save Settings</button>
+  <span id="saveStatus"></span>
+</div>
+<div id="saveMsg" class="msg"></div>
+
+<!-- Install Agent on Linear -->
+<div class="install-section">
+  <p>If the agent is not yet installed on your Linear workspace, click below to authorize it via OAuth.</p>
+  <button class="btn-install" id="installBtn">Install Agent on Linear</button>
+</div>
+
+<!-- Status -->
+<h3>Status</h3>
+<div id="sessionInfo" class="empty"></div>
+
+<script>
+  // Request current config on load
+  codeboltPlugin.sendMessage({ type: 'get-config' });
+
+  var workerUrlInput = document.getElementById('workerUrl');
+  var appTokenInput = document.getElementById('appToken');
+  var enabledInput = document.getElementById('enabled');
+  var connStatus = document.getElementById('connStatus');
+  var connMsg = document.getElementById('connMsg');
+  var saveMsg = document.getElementById('saveMsg');
+  var sessionInfo = document.getElementById('sessionInfo');
+
+  // Handle messages from plugin backend
+  codeboltPlugin.onMessage(function(msg) {
+    if (msg.type === 'config') {
+      workerUrlInput.value = msg.config.workerUrl || '';
+      appTokenInput.value = msg.config.appToken || '';
+      enabledInput.checked = msg.config.enabled !== false;
+      if (msg.isConnected) {
+        connStatus.innerHTML = '<span class="status status-ok">Connected</span>';
+        if (msg.activeSessions > 0) {
+          sessionInfo.textContent = msg.activeSessions + ' active session(s) being processed.';
+        } else {
+          sessionInfo.textContent = 'Connected. Waiting for sessions from Linear...';
+        }
+      } else if (msg.config.appToken) {
+        connStatus.innerHTML = '<span class="status status-warn">Disconnected</span>';
+        sessionInfo.textContent = 'Not connected to worker.';
+      } else {
+        connStatus.innerHTML = '<span class="status status-info">Not configured</span>';
+        sessionInfo.textContent = 'Enter an App Token and save to connect.';
+      }
+    }
+
+    if (msg.type === 'config-saved') {
+      if (msg.success) {
+        saveMsg.className = 'msg msg-ok';
+        saveMsg.textContent = 'Settings saved. Reconnecting...';
+      } else {
+        saveMsg.className = 'msg msg-err';
+        saveMsg.textContent = 'Failed to save settings.';
+      }
+      setTimeout(function() { saveMsg.textContent = ''; }, 3000);
+      codeboltPlugin.sendMessage({ type: 'get-config' });
+    }
+
+    if (msg.type === 'test-result') {
+      if (msg.valid) {
+        connMsg.className = 'msg msg-ok';
+        connMsg.textContent = 'Worker reachable: ' + (msg.name || 'OK');
+        connStatus.innerHTML = '<span class="status status-ok">Reachable</span>';
+      } else {
+        connMsg.className = 'msg msg-err';
+        connMsg.textContent = 'Connection failed: ' + (msg.error || 'Unknown error');
+        connStatus.innerHTML = '<span class="status status-err">Failed</span>';
+      }
+      setTimeout(function() { connMsg.textContent = ''; }, 5000);
+    }
+
+    if (msg.type === 'sessions') {
+      if (msg.info) {
+        sessionInfo.textContent = msg.info;
+      }
+      if (msg.activeSessions > 0) {
+        sessionInfo.textContent = msg.activeSessions + ' active session(s) being processed.';
+      }
+    }
+  });
+
+  // Button handlers
+  document.getElementById('testBtn').onclick = function() {
+    connMsg.className = 'msg';
+    connMsg.textContent = 'Testing...';
+    codeboltPlugin.sendMessage({ type: 'test-connection' });
+  };
+
+  document.getElementById('saveBtn').onclick = function() {
+    saveMsg.textContent = 'Saving...';
+    codeboltPlugin.sendMessage({
+      type: 'save-config',
+      workerUrl: workerUrlInput.value,
+      appToken: appTokenInput.value,
+      enabled: enabledInput.checked,
+    });
+  };
+
+  document.getElementById('installBtn').onclick = function() {
+    var baseUrl = workerUrlInput.value || 'wss://linear-agent-worker.arrowai.workers.dev';
+    var httpUrl = baseUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:');
+    var appToken = appTokenInput.value || '';
+    var installUrl = httpUrl + '/oauth/authorize';
+    if (appToken) {
+      installUrl += '?appToken=' + encodeURIComponent(appToken);
+    }
+    window.open(installUrl, '_blank');
+  };
+</script>
+</body>
+</html>

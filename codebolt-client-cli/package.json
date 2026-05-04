@@ -1,0 +1,34 @@
+{
+  "name": "codebolt-client-cli",
+  "version": "0.1.2",
+  "description": "CLI client for CodeBolt server using the client SDK",
+  "main": "dist/index.js",
+  "bin": {
+    "codebolt-client": "./bin/codebolt-client"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "npm run build:deps && webpack --config webpack.config.js",
+    "build:deps": "cd ../.. && npm run build --workspace=packages/types --if-present && npm run build --workspace=packages/clientsdk",
+    "build:local": "webpack --config webpack.config.js",
+    "build:tsc": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@codebolt/client-sdk": "*",
+    "commander": "^12.0.0",
+    "typescript": "^5.4.5",
+    "@types/node": "^20.17.27",
+    "ts-loader": "^9.0.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0"
+  }
+}

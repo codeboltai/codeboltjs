@@ -1,0 +1,33 @@
+{
+  "name": "linear-agent-plugin",
+  "version": "1.0.0",
+  "displayName": "Linear Agent",
+  "description": "Connects to the Linear Agent Cloudflare Worker via WebSocket to receive agent sessions and processes them via CodeBolt agents.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/codeboltjs": "^5.1.30",
+    "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltPluginSdk",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/ws": "^8.5.13",
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "triggers": [
+        {
+          "type": "manual"
+        }
+      ],
+      "ui": {
+        "path": "./ui/default/index.html"
+      }
+    }
+  }
+}
