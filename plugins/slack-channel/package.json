@@ -1,0 +1,25 @@
+{
+  "name": "slack-channel",
+  "version": "1.0.0",
+  "displayName": "Slack Channel",
+  "description": "Slack bot integration for CodeBolt — receives messages from Slack and routes them to agents via the gateway",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "*",
+    "@slack/bolt": "^3.17.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "channel",
+      "triggers": [{ "type": "manual" }],
+      "ui": { "path": "./ui/default/index.html" }
+    }
+  }
+}

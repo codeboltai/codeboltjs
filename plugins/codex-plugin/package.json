@@ -1,0 +1,28 @@
+{
+  "name": "codex-plugin",
+  "version": "1.0.1",
+  "description": "Registers OpenAI Codex as a custom LLM provider via the plugin SDK",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:types": "tsc --emitDeclarationOnly",
+    "dev": "tsc --watch"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "llmProvider",
+      "triggers": [
+        {
+          "type": "startup"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltPluginSdk"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "typescript": "^5.3.0"
+  }
+}

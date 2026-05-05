@@ -1,0 +1,31 @@
+{
+  "name": "telegram-channel",
+  "version": "1.0.0",
+  "displayName": "Telegram Channel",
+  "description": "Telegram bot integration for CodeBolt — receives messages from Telegram and routes them to agents via the gateway",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltPluginSdk",
+    "grammy": "^1.21.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "channel",
+      "triggers": [
+        {
+          "type": "manual"
+        }
+      ],
+      "ui": {
+        "path": "./ui/default/index.html"
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "discord-channel",
+  "version": "1.0.0",
+  "displayName": "Discord Channel",
+  "description": "Discord bot integration for CodeBolt — receives messages from Discord and routes them to agents via the gateway",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "*",
+    "discord.js": "^14.14.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "channel",
+      "triggers": [{ "type": "manual" }],
+      "ui": { "path": "./ui/default/index.html" }
+    }
+  }
+}

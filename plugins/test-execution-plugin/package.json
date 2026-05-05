@@ -1,0 +1,27 @@
+{
+  "name": "@codebolt/test-execution-plugin",
+  "version": "1.0.0",
+  "description": "Test plugin that claims ExecutionGateway and replies with dummy hello content",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "execution",
+      "gateway": {
+        "claimsExecutionGateway": true
+      },
+      "triggers": [
+        { "type": "startup" }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}
