@@ -22,21 +22,21 @@ export class AgentCompletionRequestNode extends BaseAgentCompletionRequestNode {
     }
 
     // Validate optional inputs
-    if (sessionId !== undefined && typeof sessionId !== 'string') {
+    if (sessionId != null && typeof sessionId !== 'string') {
       const errorMessage = 'Error: sessionId must be a string value';
       console.error('AgentCompletionRequestNode error:', errorMessage);
       this.setOutputData(1, false);
       return;
     }
 
-    if (duration !== undefined && typeof duration !== 'string') {
+    if (duration != null && typeof duration !== 'string') {
       const errorMessage = 'Error: duration must be a string value';
       console.error('AgentCompletionRequestNode error:', errorMessage);
       this.setOutputData(1, false);
       return;
     }
 
-    if (toolUseId !== undefined && typeof toolUseId !== 'string') {
+    if (toolUseId != null && typeof toolUseId !== 'string') {
       const errorMessage = 'Error: toolUseId must be a string value';
       console.error('AgentCompletionRequestNode error:', errorMessage);
       this.setOutputData(1, false);
@@ -51,6 +51,7 @@ export class AgentCompletionRequestNode extends BaseAgentCompletionRequestNode {
 
       // Trigger the requestSent event
       this.triggerSlot(0, null, null);
+      (globalThis as any).__agentFlowComplete?.();
 
     } catch (error) {
       const errorMessage = `Error: Failed to send agent completion request`;

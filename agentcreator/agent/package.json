@@ -17,12 +17,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@codebolt/agent": "latest",
+    "@codebolt/agent": "file:/Users/utkarshshukla/Arrowai/Production/CodeBolt/sdks/agent",
     "@codebolt/thirdpartyagents": "latest",
-    "@codebolt/agent-shared-nodes": "workspace:*",
-    "@codebolt/codeboltjs": "latest",
-    "@codebolt/litegraph": "workspace:*",
-    "@codebolt/types": "latest"
+    "@codebolt/agent-shared-nodes": "file:/Users/utkarshshukla/Codebolt/codeboltjs/agentcreator/shared-nodes",
+    "@codebolt/codeboltjs": "file:/Users/utkarshshukla/Arrowai/Production/CodeBolt/sdks/codeboltjs",
+    "@codebolt/litegraph": "file:/Users/utkarshshukla/Codebolt/codeboltjs/agentcreator/litegraphjs",
+    "@codebolt/types": "file:/Users/utkarshshukla/Arrowai/Production/CodeBolt/packages/types"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

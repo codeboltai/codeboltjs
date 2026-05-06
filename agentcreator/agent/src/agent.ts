@@ -24,6 +24,82 @@ import { LGraph } from '@codebolt/litegraph';
 import codebolt from '@codebolt/codeboltjs';
 // import codebolt from '@codebolt/codeboltjs';
 
+const AGENTFLOW_IDLE_TIMEOUT_MS = Number(process.env.AGENTFLOW_IDLE_TIMEOUT_MS ?? 300);
+const AGENTFLOW_MAX_WAIT_MS = Number(process.env.AGENTFLOW_MAX_WAIT_MS ?? 30000);
+
+function createFlowActivityMonitor(graph: any) {
+  let pending = 0;
+  let lastActivityAt = Date.now();
+  let completed = false;
+
+  (globalThis as any).__agentFlowComplete = () => {
+    completed = true;
+    lastActivityAt = Date.now();
+  };
+
+  const touch = () => {
+    lastActivityAt = Date.now();
+  };
+
+  for (const node of graph?._nodes || []) {
+    if (typeof node.onExecute === 'function') {
+      const originalOnExecute = node.onExecute.bind(node);
+      node.onExecute = (...args: any[]) => {
+        pending += 1;
+        touch();
+
+        let result: any;
+        try {
+          result = originalOnExecute(...args);
+        } catch (error) {
+          pending = Math.max(0, pending - 1);
+          touch();
+          throw error;
+        }
+
+        if (result && typeof result.then === 'function') {
+          return result.finally(() => {
+            pending = Math.max(0, pending - 1);
+            touch();
+          });
+        }
+
+        pending = Math.max(0, pending - 1);
+        touch();
+        return result;
+      };
+    }
+
+    if (typeof node.triggerSlot === 'function') {
+      const originalTriggerSlot = node.triggerSlot.bind(node);
+      node.triggerSlot = (...args: any[]) => {
+        touch();
+        return originalTriggerSlot(...args);
+      };
+    }
+  }
+
+  return {
+    wait: async () => {
+      const startedAt = Date.now();
+      while (!completed) {
+        const now = Date.now();
+        if (pending === 0 && now - lastActivityAt >= AGENTFLOW_IDLE_TIMEOUT_MS) {
+          break;
+        }
+        if (now - startedAt >= AGENTFLOW_MAX_WAIT_MS) {
+          console.warn(`[AgentFlow] Max wait reached with ${pending} pending node execution(s); exiting runtime`);
+          break;
+        }
+        await new Promise<void>((resolve) => setTimeout(resolve, 25));
+      }
+    },
+    dispose: () => {
+      delete (globalThis as any).__agentFlowComplete;
+    }
+  };
+}
+
 class AgentExecutor {
   private graph: any = null;
   private isRunning: boolean = false;
@@ -86,11 +162,14 @@ class AgentExecutor {
       // Configure the graph from the frontend data
       this.graph.configure(graphData);
       console.log('[DEBUG] Graph configured');
+      const activityMonitor = createFlowActivityMonitor(this.graph);
 
       // Execute the graph 
       console.log('[DEBUG] About to run graph.runStep()');
       this.graph.runStep(1, true);
       console.log('[DEBUG] graph.runStep() completed');
+      await activityMonitor.wait();
+      activityMonitor.dispose();
 
       // Collect outputs from AgentRun nodes and other output nodes
       const outputs = {};
@@ -179,7 +258,7 @@ class AgentExecutor {
     // codebolt.chat.sendMessage(result.message);
     process.stdout.write(JSON.stringify(result) + '\n');
 
-    // process.exit(0);
+    process.exit(result.success ? 0 : 1);
 
   } catch (error) {
     process.stdout.write(JSON.stringify({

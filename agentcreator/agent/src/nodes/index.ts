@@ -109,6 +109,10 @@ import {
   SendNotificationEventNode as BackendSendNotificationEventNode
 } from './BaseCodeboltApis/chat/index.js';
 import {
+  AgentInitRequestNode as BackendAgentInitRequestNode,
+  AgentCompletionRequestNode as BackendAgentCompletionRequestNode
+} from './BaseCodeboltNotifications/system/index.js';
+import {
   ReadFileNode as BackendReadFileNode,
   WriteToFileNode as BackendWriteToFileNode,
   CreateFileNode as BackendCreateFileNode,
@@ -413,6 +417,8 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendSendConfirmationRequestNode, BackendSendConfirmationRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAskQuestionNode, BackendAskQuestionNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSendNotificationEventNode, BackendSendNotificationEventNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentInitRequestNode, BackendAgentInitRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentCompletionRequestNode, BackendAgentCompletionRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitInitNode, BackendGitInitNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitPullNode, BackendGitPullNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitPushNode, BackendGitPushNode.metadata);
