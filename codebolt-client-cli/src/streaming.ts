@@ -103,7 +103,7 @@ export async function chatSend(opts: ChatOptions): Promise<void> {
             try {
               const resp = await fetch(`http://${opts.host}:${opts.port}/agent-debug/by-thread/${threadId}`);
               if (resp.ok) {
-                const instances = await resp.json();
+                const instances = await resp.json() as any[];
                 if (instances && instances.length > 0) {
                   agentDetails = instances[0];
                 }
@@ -298,7 +298,7 @@ export async function chatSendStreaming(opts: ChatOptions): Promise<void> {
             try {
               const resp = await fetch(`http://${opts.host}:${opts.port}/agent-debug/by-thread/${threadId}`);
               if (resp.ok) {
-                const instances = await resp.json();
+                const instances = await resp.json() as any[];
                 if (instances && instances.length > 0) {
                   agentDetails = instances[0];
                 }
