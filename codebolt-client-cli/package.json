@@ -1,10 +1,10 @@
 {
-  "name": "codebolt-client-cli",
-  "version": "0.1.2",
+  "name": "@codebolt/client-cli",
+  "version": "0.1.4",
   "description": "CLI client for CodeBolt server using the client SDK",
   "main": "dist/index.js",
   "bin": {
-    "codebolt-client": "./bin/codebolt-client"
+    "codebolt-client": "bin/codebolt-client"
   },
   "files": [
     "dist",
@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "npm run build:deps && webpack --config webpack.config.js",
-    "build:deps": "cd ../.. && npm run build --workspace=packages/types --if-present && npm run build --workspace=packages/clientsdk",
+    "build:deps": "npm --prefix ../../CodeBolt/packages/types run build --if-present && npm --prefix ../../CodeBolt/sdks/clientsdk run build",
     "build:local": "webpack --config webpack.config.js",
     "build:tsc": "tsc",
     "dev": "tsc --watch",
@@ -23,12 +23,15 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@codebolt/client-sdk": "*",
+    "@codebolt/client-sdk": "file:../../CodeBolt/sdks/clientsdk",
+    "@codebolt/types": "file:../../CodeBolt/packages/types",
     "commander": "^12.0.0",
     "typescript": "^5.4.5",
     "@types/node": "^20.17.27",
+    "@types/ws": "^8.5.12",
     "ts-loader": "^9.0.0",
     "webpack": "^5.0.0",
-    "webpack-cli": "^5.0.0"
+    "webpack-cli": "^5.0.0",
+    "ws": "^8.17.0"
   }
 }

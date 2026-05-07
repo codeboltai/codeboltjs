@@ -109,6 +109,10 @@ import {
   SendNotificationEventNode as BackendSendNotificationEventNode
 } from './BaseCodeboltApis/chat/index.js';
 import {
+  AgentInitRequestNode as BackendAgentInitRequestNode,
+  AgentCompletionRequestNode as BackendAgentCompletionRequestNode
+} from './BaseCodeboltNotifications/system/index.js';
+import {
   ReadFileNode as BackendReadFileNode,
   WriteToFileNode as BackendWriteToFileNode,
   CreateFileNode as BackendCreateFileNode,
@@ -378,7 +382,16 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendSelectorNode, BackendSelectorNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSequenceNode, BackendSequenceNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendBranchNode, BackendBranchNode.metadata);
-  // String nodes are registered via export * from './String' - they handle their own registration
+  // Register String nodes
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.ToStringNode, BackendStringNodes.ToStringNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.CompareNode, BackendStringNodes.CompareNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.ToUpperCaseNode, BackendStringNodes.ToUpperCaseNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.ContainsNode, BackendStringNodes.ContainsNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.ConcatenateNode, BackendStringNodes.ConcatenateNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.SplitNode, BackendStringNodes.SplitNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.StringToTableNode, BackendStringNodes.StringToTableNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendStringNodes.ToFixedNode, BackendStringNodes.ToFixedNode.metadata);
+
   registerNodeWithMetadata(LiteGraph, BackendGetStringVariableNode, BackendGetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSetStringVariableNode, BackendSetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendMarkdownNode, BackendMarkdownNode.metadata);
@@ -413,6 +426,8 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendSendConfirmationRequestNode, BackendSendConfirmationRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendAskQuestionNode, BackendAskQuestionNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSendNotificationEventNode, BackendSendNotificationEventNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentInitRequestNode, BackendAgentInitRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, BackendAgentCompletionRequestNode, BackendAgentCompletionRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitInitNode, BackendGitInitNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitPullNode, BackendGitPullNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendGitPushNode, BackendGitPushNode.metadata);

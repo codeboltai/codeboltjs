@@ -11,6 +11,7 @@ export class ProcessFinishedNode extends BaseProcessFinishedNode {
     try {
       await codebolt.chat.processFinished();
       emitChatSuccess(this, { finished: true });
+      (globalThis as any).__agentFlowComplete?.();
     } catch (error) {
       emitChatFailure(this, 'Failed to signal process finished', error);
     }

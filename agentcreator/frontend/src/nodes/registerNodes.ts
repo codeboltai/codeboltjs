@@ -94,6 +94,12 @@ import {
   WebSearchResponseNode
 } from './BaseCodeboltNotifications/index';
 
+// System Notification nodes
+import {
+  AgentInitRequestNode,
+  AgentCompletionRequestNode
+} from './BaseCodeboltNotifications/system/index.js';
+
 // LLM Notification nodes
 import {
   LLMInferenceRequestNode,
@@ -207,6 +213,7 @@ export {
   OnMessageNode, SendMessageNode, GetChatHistoryNode, WaitForReplyNode,
   ProcessStartedNode, StopProcessNode, ProcessFinishedNode,
   SendConfirmationRequestNode, AskQuestionNode, SendNotificationEventNode,
+  AgentInitRequestNode, AgentCompletionRequestNode,
   // File System nodes
   CreateFileNode, CreateFolderNode, ReadFileNode, UpdateFileNode,
   DeleteFileNode, DeleteFolderNode, ListFileNode, SearchFilesNode,
@@ -347,6 +354,8 @@ export const registerNodes = async () => {
   registerNodeWithMetadata(LiteGraph, SendConfirmationRequestNode, SendConfirmationRequestNode.metadata);
   registerNodeWithMetadata(LiteGraph, AskQuestionNode, AskQuestionNode.metadata);
   registerNodeWithMetadata(LiteGraph, SendNotificationEventNode, SendNotificationEventNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentInitRequestNode, AgentInitRequestNode.metadata);
+  registerNodeWithMetadata(LiteGraph, AgentCompletionRequestNode, AgentCompletionRequestNode.metadata);
 
   // File System nodes
   registerNodeWithMetadata(LiteGraph, CreateFileNode, CreateFileNode.metadata);

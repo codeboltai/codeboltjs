@@ -6,12 +6,6 @@ const workspacePackages = [
   '@codebolt/types',
 ];
 
-// Optional peer deps that libs try/catch but work without
-const optionalExternals = [
-  'bufferutil',
-  'utf-8-validate',
-];
-
 module.exports = {
   target: 'node',
   mode: 'production',
@@ -25,6 +19,10 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', '.json'],
     symlinks: true,
+    alias: {
+      bufferutil: false,
+      'utf-8-validate': false,
+    },
   },
   module: {
     rules: [
@@ -47,11 +45,6 @@ module.exports = {
       // Always bundle workspace packages
       if (workspacePackages.some(pkg => request === pkg || request.startsWith(pkg + '/'))) {
         return callback();
-      }
-
-      // Externalize optional peer deps
-      if (optionalExternals.some(pkg => request === pkg || request.startsWith(pkg + '/'))) {
-        return callback(null, 'commonjs ' + request);
       }
 
       // Bundle everything else (commander, axios, ws, socket.io-client — all pure JS)
