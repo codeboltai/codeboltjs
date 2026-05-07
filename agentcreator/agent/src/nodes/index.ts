@@ -41,6 +41,9 @@ export {
 // String nodes
 export * from './String/index.js';
 
+// Data nodes
+export * from './Data/index.js';
+
 // Variable nodes
 export {
   GetStringVariableNode,
@@ -91,6 +94,7 @@ import {
   BranchNode as BackendBranchNode
 } from './Logical/index.js';
 import * as BackendStringNodes from './String/index.js';
+import { GetPathNode as BackendGetPathNode } from './Data/index.js';
 import {
   GetStringVariableNode as BackendGetStringVariableNode,
   SetStringVariableNode as BackendSetStringVariableNode
@@ -391,6 +395,9 @@ export function registerBackendNodes() {
   registerNodeWithMetadata(LiteGraph, BackendStringNodes.SplitNode, BackendStringNodes.SplitNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendStringNodes.StringToTableNode, BackendStringNodes.StringToTableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendStringNodes.ToFixedNode, BackendStringNodes.ToFixedNode.metadata);
+
+  // Register Data nodes
+  registerNodeWithMetadata(LiteGraph, BackendGetPathNode, BackendGetPathNode.metadata);
 
   registerNodeWithMetadata(LiteGraph, BackendGetStringVariableNode, BackendGetStringVariableNode.metadata);
   registerNodeWithMetadata(LiteGraph, BackendSetStringVariableNode, BackendSetStringVariableNode.metadata);

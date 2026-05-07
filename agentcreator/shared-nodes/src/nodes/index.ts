@@ -10,3 +10,4 @@ export * from './String';
 export * from './Utility';
 export * from './Assets';
 export * from './Variables';
+export * from './Data';
