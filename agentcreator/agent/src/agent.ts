@@ -26,6 +26,63 @@ import codebolt from '@codebolt/codeboltjs';
 
 const AGENTFLOW_IDLE_TIMEOUT_MS = Number(process.env.AGENTFLOW_IDLE_TIMEOUT_MS ?? 300);
 const AGENTFLOW_MAX_WAIT_MS = Number(process.env.AGENTFLOW_MAX_WAIT_MS ?? 30000);
+const AGENTFLOW_CODEBOLT_READY_TIMEOUT_MS = Number(process.env.AGENTFLOW_CODEBOLT_READY_TIMEOUT_MS ?? 5000);
+const AGENTFLOW_PROCESS_STOP_FLUSH_MS = Number(process.env.AGENTFLOW_PROCESS_STOP_FLUSH_MS ?? 150);
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function shouldNotifyCodeboltProcessStopped() {
+  return Boolean(process.env.SOCKET_PORT || process.env.threadToken || process.env.agentId);
+}
+
+async function waitForCodeboltReady() {
+  const waitForReady = (codebolt as any).waitForReady;
+  if (typeof waitForReady !== 'function') {
+    return true;
+  }
+
+  try {
+    await Promise.race([
+      waitForReady.call(codebolt),
+      delay(AGENTFLOW_CODEBOLT_READY_TIMEOUT_MS).then(() => {
+        throw new Error(`Timed out after ${AGENTFLOW_CODEBOLT_READY_TIMEOUT_MS}ms`);
+      })
+    ]);
+    return true;
+  } catch (error) {
+    console.warn(`[AgentFlow] Skipping processStoped notification: ${getErrorMessage(error)}`);
+    return false;
+  }
+}
+
+async function notifyProcessStopped() {
+  if ((globalThis as any).__agentFlowProcessStopNotified) {
+    return;
+  }
+
+  if (!shouldNotifyCodeboltProcessStopped()) {
+    return;
+  }
+
+  const isReady = await waitForCodeboltReady();
+  if (!isReady) {
+    return;
+  }
+
+  try {
+    codebolt.chat.stopProcess();
+    (globalThis as any).__agentFlowProcessStopNotified = true;
+    await delay(AGENTFLOW_PROCESS_STOP_FLUSH_MS);
+  } catch (error) {
+    console.warn(`[AgentFlow] Failed to send processStoped notification: ${getErrorMessage(error)}`);
+  }
+}
 
 function createFlowActivityMonitor(graph: any) {
   let pending = 0;
@@ -257,15 +314,17 @@ class AgentExecutor {
     const result = await agent.executeGraph();
     // codebolt.chat.sendMessage(result.message);
     process.stdout.write(JSON.stringify(result) + '\n');
+    await notifyProcessStopped();
 
     process.exit(result.success ? 0 : 1);
 
   } catch (error) {
     process.stdout.write(JSON.stringify({
       success: false,
-      error: error.message,
+      error: getErrorMessage(error),
       message: 'Graph execution failed'
     }) + '\n');
+    await notifyProcessStopped();
     process.exit(1);
   }
 })();
