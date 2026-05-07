@@ -376,14 +376,23 @@ export async function refreshAccessToken(
 
 function openBrowser(url: string): void {
     try {
-        const cmd =
-            process.platform === 'darwin'
-                ? 'open'
-                : process.platform === 'win32'
-                    ? 'cmd'
-                    : 'xdg-open';
-        const args = process.platform === 'win32' ? ['/c', 'start', '""', url] : [url];
-        const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
+        let child;
+        if (process.platform === 'win32') {
+            // On Windows, cmd.exe interprets `&` as a command separator.
+            // OAuth URLs contain many `&` query-parameter delimiters, so we
+            // MUST wrap the URL in quotes so cmd.exe passes it verbatim to
+            // the `start` command. Without this, the browser only receives
+            // the URL up to the first `&`, causing OpenAI to return
+            // `missing_required_parameter` because most OAuth params are lost.
+            child = spawn('cmd.exe', ['/c', `start "" "${url}"`], {
+                stdio: 'ignore',
+                detached: true,
+                windowsVerbatimArguments: true,
+            });
+        } else {
+            const cmd = process.platform === 'darwin' ? 'open' : 'xdg-open';
+            child = spawn(cmd, [url], { stdio: 'ignore', detached: true });
+        }
         child.on('error', () => {});
         child.unref();
     } catch {
