@@ -14,11 +14,11 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'agent',
   roleName: 'CodeBolt custom agent generator mini-agent',
-  createLocation: '.codebolt/agents/<name> or codeboltjs/agents/<name>',
+  createLocation: '.codebolt/agents/<name>',
   loader: 'Agent discovery reads codeboltagent.yaml, installs package dependencies when needed, and starts the configured Node entry point.',
   runtimeUse: 'The application sends chat messages to the agent process through @codebolt/codeboltjs. A generated agent must register codebolt.onMessage and run an agent loop before returning.',
   sourceLanguage: 'TypeScript',
-  buildTool: 'webpack with ts-loader, matching the act-updated agent pattern',
+  buildTool: 'webpack with ts-loader, matching the embedded TypeScript agent-loop pattern',
   buildOutput: 'dist/index.js',
   npmDependencies: ['@codebolt/codeboltjs:^2.2.2', '@codebolt/agent:^1.2.1', '@codebolt/types:^5.1.12'],
   requiredFiles: ['codeboltagent.yaml', 'package.json', 'tsconfig.json', 'webpack.config.js', 'process-polyfill.js', 'src/index.ts', 'dist/index.js', 'README.md'],
@@ -29,13 +29,9 @@ const PLATFORM_CONTRACT = {
     'Agent package metadata is loaded from codeboltagent.yaml.',
     'The agent entry point is launched as a separate process for the selected agent.',
     'Incoming chat requests arrive through codebolt.onMessage.',
-    'The act-updated reference shows the full loop shape: prompt generation, repeated model/tool execution, verification, and completion.',
+    'The embedded agent-loop contract covers prompt generation, repeated model/tool execution, verification, and completion.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/mainOrchestrator',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -76,7 +72,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -114,11 +110,11 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the relevant reference files before choosing the structure.
+1. Use the embedded platform contract and inspect optional user-provided references before choosing the structure.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Use the SDK APIs listed in this contract.

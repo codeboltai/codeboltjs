@@ -14,11 +14,11 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'dynamic-panel',
   roleName: 'CodeBolt dynamic panel plugin generator mini-agent',
-  createLocation: '.codebolt/plugins/<name> or codeboltjs/plugins/<name>',
+  createLocation: '.codebolt/plugins/<name>',
   loader: 'Plugin metadata package.json#codebolt.plugin.ui.path exposes static UI at /plugins/:pluginId/ui, while plugin process handlers bridge panel messages.',
   runtimeUse: 'dynamicPanelService and plugin routes serve iframe UI and route messages between the custom panel and plugin.dynamicPanel handlers.',
   sourceLanguage: 'TypeScript',
-  buildTool: 'tsc with package.json main set to dist/index.js, matching linear-agent-plugin shape',
+  buildTool: 'tsc with package.json main set to dist/index.js',
   buildOutput: 'dist/index.js',
   npmDependencies: ['@codebolt/plugin-sdk:*', '@codebolt/codeboltjs:^2.2.2', 'typescript:^5.4.5'],
   requiredFiles: ['package.json', 'tsconfig.json', 'src/index.ts', 'dist/index.js', 'ui/default/index.html', 'README.md'],
@@ -30,13 +30,9 @@ const PLATFORM_CONTRACT = {
     'package.json codebolt.plugin.ui.path tells pluginRoutes where to serve the panel UI.',
     'The panel is rendered as dynamic UI inside the application.',
     'dynamicPanelService routes messages from iframe UI to plugin.dynamicPanel.onMessage.',
-    'The linear-agent-plugin reference shows dynamic panel UI and plugin bridge behavior.',
+    'The embedded dynamic-panel contract defines the UI and plugin bridge behavior.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/plugins/linear-agent-plugin',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src/routes/pluginRoutes.ts',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -77,7 +73,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -115,11 +111,11 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the plugin SDK, plugin routes, and linear-agent-plugin panel references.
+1. Use the embedded dynamic-panel contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, UI, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Implement plugin.dynamicPanel message handlers and a UI that can post messages to the plugin.

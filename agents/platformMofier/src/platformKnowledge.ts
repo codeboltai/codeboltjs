@@ -1,4 +1,4 @@
-const ACT_UPDATED_REFERENCE = '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated';
+const ACT_UPDATED_REFERENCE = 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified';
 
 const PLATFORM_KNOWLEDGE = `
 PlatformMofier creates CodeBolt platform artifacts by delegating each action to an internal ActionBlock.

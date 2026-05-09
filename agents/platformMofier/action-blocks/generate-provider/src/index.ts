@@ -14,11 +14,11 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'provider',
   roleName: 'CodeBolt environment provider generator mini-agent',
-  createLocation: '.codebolt/providers/<name> or codeboltjs/providers/<name>',
+  createLocation: '.codebolt/providers/<name>',
   loader: 'Environment provider discovery reads providers.yaml and starts the configured provider entry point.',
   runtimeUse: 'Environment services call provider lifecycle hooks and route environment, shell, filesystem, and agent execution operations through the provider process.',
   sourceLanguage: 'TypeScript',
-  buildTool: 'esbuild or tsc with package.json main set to dist/index.js, matching e2b provider shape',
+  buildTool: 'esbuild or tsc with package.json main set to dist/index.js',
   buildOutput: 'dist/index.js',
   npmDependencies: ['@codebolt/codeboltjs:^2.2.2', '@codebolt/types:^5.1.12', 'typescript:^5.4.5'],
   requiredFiles: ['providers.yaml', 'package.json', 'tsconfig.json', 'src/index.ts', 'dist/index.js', 'README.md'],
@@ -30,13 +30,10 @@ const PLATFORM_CONTRACT = {
   applicationUse: [
     'Provider metadata is loaded from providers.yaml.',
     'Environment services start the provider process and route provider lifecycle messages.',
-    'The e2b provider reference shows filesystem, command, and agent runtime integration shape.',
+    'The embedded provider contract covers filesystem, command, and agent runtime integration shape.',
     'Generated providers must document expected environment variables and runtime assumptions.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/providers/e2b',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -77,7 +74,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -115,11 +112,11 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the e2b provider and server environment references.
+1. Use the embedded provider contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Implement provider lifecycle hooks and a realistic provider surface.

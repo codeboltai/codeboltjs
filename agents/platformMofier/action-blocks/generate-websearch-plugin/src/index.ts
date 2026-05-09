@@ -14,9 +14,9 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'websearch-plugin',
   roleName: 'CodeBolt web search provider plugin generator mini-agent',
-  createLocation: '.codebolt/plugins/<name> or codeboltjs/plugins/<name>',
+  createLocation: '.codebolt/plugins/<name>',
   loader: 'The plugin service starts the plugin from package.json#codebolt.plugin, then webSearchProvider.register adds it to web search routing.',
-  runtimeUse: 'packages/server/src/services/webSearch/webSearchService.ts routes web search and login requests to registered web search provider plugins.',
+  runtimeUse: 'The server web search service routes web search and login requests to registered web search provider plugins.',
   sourceLanguage: 'TypeScript',
   buildTool: 'tsc or esbuild with package.json main set to dist/index.js',
   buildOutput: 'dist/index.js',
@@ -28,14 +28,11 @@ const PLATFORM_CONTRACT = {
   verificationMarkers: ['webSearchProvider.register', 'onSearchRequest'],
   applicationUse: [
     'The plugin registers a named web search provider.',
-    'webSearchService.ts selects registered providers for search requests.',
+    'The server web search service selects registered providers for search requests.',
     'Plugin CLI message handling routes webSearchProvider requests between server and plugin.',
     'Provider login and credential behavior should be documented in the generated README.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src/services/webSearch/webSearchService.ts',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -76,7 +73,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -114,15 +111,15 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the web search service and plugin SDK references.
+1. Use the embedded web search plugin contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Register the web search provider and implement the search request handler.
-5. Explain in README.md where this artifact should live, how CodeBolt loads it, and how webSearchService.ts uses it.
+5. Explain in README.md where this artifact should live, how CodeBolt loads it, and how the server web search service uses it.
 6. Verify files exist and syntax is valid.
 7. Call attempt_completion with JSON containing success, artifactPath, filesCreated, and notes.
 

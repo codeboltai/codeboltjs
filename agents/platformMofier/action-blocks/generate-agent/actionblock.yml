@@ -1,12 +1,12 @@
 name: platformMofier-generate-agent
-description: Generates a CodeBolt agent scaffold using the act-updated agentic loop reference.
+description: Generates a CodeBolt agent scaffold using the embedded agentic loop contract.
 version: 1.0.0
 entryPoint: dist/index.js
 metadata:
   executionModel: side-execution-mini-agent
   feature: agent
   agentLoop:
-    reference: /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated
+    reference: embedded-platform-mofier-mini-agent-loop
     steps:
       - plan
       - write

@@ -14,11 +14,11 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'llm-plugin',
   roleName: 'CodeBolt custom LLM provider plugin generator mini-agent',
-  createLocation: '.codebolt/plugins/<name> or codeboltjs/plugins/<name>',
+  createLocation: '.codebolt/plugins/<name>',
   loader: 'The plugin service starts the plugin from package.json#codebolt.plugin, then llmProvider.register adds its provider metadata to the LLM provider registry.',
-  runtimeUse: 'packages/server/src/services/llmService.ts routes completion, streaming, model listing, and login requests to registered LLM provider plugins.',
+  runtimeUse: 'The server LLM service routes completion, streaming, model listing, and login requests to registered LLM provider plugins.',
   sourceLanguage: 'TypeScript',
-  buildTool: 'esbuild or tsc with package.json main set to dist/index.js, matching codex-plugin shape',
+  buildTool: 'esbuild or tsc with package.json main set to dist/index.js',
   buildOutput: 'dist/index.js',
   npmDependencies: ['@codebolt/plugin-sdk:*', 'typescript:^5.4.5'],
   requiredFiles: ['package.json', 'tsconfig.json', 'src/index.ts', 'dist/index.js', 'README.md'],
@@ -28,15 +28,11 @@ const PLATFORM_CONTRACT = {
   verificationMarkers: ['llmProvider.register', 'onCompletionRequest', 'onStreamRequest'],
   applicationUse: [
     'The plugin process registers an LLM provider by name and capability.',
-    'llmService.ts selects registered providers for normal completion and streaming paths.',
+    'The server LLM service selects registered providers for normal completion and streaming paths.',
     'Plugin CLI message handling routes llmProvider requests between server and plugin.',
-    'The codex-plugin reference shows provider registration and request handler shape.',
+    'The embedded LLM plugin contract defines provider registration and request handler shape.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/plugins/codex-plugin',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src/services/llmService.ts',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -77,7 +73,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -115,15 +111,15 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the LLM service, plugin SDK, and codex-plugin references.
+1. Use the embedded LLM provider plugin contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Register the LLM provider and implement completion plus stream handlers.
-5. Explain in README.md where this artifact should live, how CodeBolt loads it, and how llmService.ts uses it.
+5. Explain in README.md where this artifact should live, how CodeBolt loads it, and how the server LLM service uses it.
 6. Verify files exist and syntax is valid.
 7. Call attempt_completion with JSON containing success, artifactPath, filesCreated, and notes.
 

@@ -14,7 +14,7 @@ import {
 const PLATFORM_CONTRACT = {
   artifactType: 'plugin',
   roleName: 'CodeBolt normal plugin generator mini-agent',
-  createLocation: '.codebolt/plugins/<name> or codeboltjs/plugins/<name>',
+  createLocation: '.codebolt/plugins/<name>',
   loader: 'The plugin service discovers package.json#codebolt.plugin metadata and starts the plugin entry point.',
   runtimeUse: 'Plugins connect through @codebolt/plugin-sdk, run plugin.onStart/plugin.onStop lifecycle handlers, and can register commands or providers.',
   sourceLanguage: 'TypeScript',
@@ -32,10 +32,7 @@ const PLATFORM_CONTRACT = {
     'The plugin SDK exposes lifecycle handlers and provider registrations.',
     'Normal plugins should stay small and declare exactly what triggers or capabilities they expose.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/plugins/codex-plugin',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -76,7 +73,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -114,11 +111,11 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the relevant plugin SDK and example plugin files.
+1. Use the embedded plugin contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Use package.json#codebolt.plugin metadata and the SDK APIs listed in this contract.

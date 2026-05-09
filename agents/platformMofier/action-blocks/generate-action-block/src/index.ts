@@ -33,12 +33,7 @@ const PLATFORM_CONTRACT = {
     'Parent agents can invoke an action block path through codebolt.sideExecution.startWithActionBlock.',
     'The action block itself should be a mini-agent when it needs planning, tool use, verification, and repair.',
   ],
-  referencePaths: [
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/platformMofier/src/index.ts',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src/services/actionBlockRegistry.ts',
-    '/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/server/src/managers/SideExecutionManager.ts',
-  ],
+  referencePaths: [],
 };
 
 function titleCase(value) {
@@ -79,7 +74,7 @@ function normalizeSpec(inputSpec) {
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
-      : '/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated',
+      : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
     referencePaths: Array.from(new Set([
       ...PLATFORM_CONTRACT.referencePaths,
       ...(Array.isArray(spec.referencePaths) ? spec.referencePaths : []),
@@ -117,11 +112,11 @@ Feature contract:
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
-Reference paths to inspect:
-${spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n')}
+Optional user-provided reference paths:
+${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${referencePath}`).join('\n') : '- None. Use the embedded platform contract and npm package APIs.'}
 
 Required workflow:
-1. Read the act-updated agent loop and ActionBlockRegistry/SideExecutionManager references.
+1. Use the embedded action-block contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
 3. Use src/index.ts as the source file and dist/index.js as the runtime file.
 4. Implement (codebolt as any).onActionBlockInvocation and return structured success/error results.

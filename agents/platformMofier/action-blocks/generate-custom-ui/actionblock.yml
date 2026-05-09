@@ -6,7 +6,7 @@ metadata:
   executionModel: side-execution-mini-agent
   feature: custom-ui
   agentLoop:
-    reference: /Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/agents/act-updated
+    reference: embedded-platform-mofier-mini-agent-loop
     steps:
       - plan
       - write
