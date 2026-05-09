@@ -11,6 +11,15 @@ import {
   AtFileProcessorModifier,
 } from "@codebolt/agent/processor-pieces";
 
+const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
+  `${path.sep}Users${path.sep}`,
+  ['Documents', 'codeboltai'].join(path.sep),
+  ['codeboltjs', 'agents'].join('/'),
+  ['codeboltjs', 'plugins'].join('/'),
+  ['codeboltjs', 'providers'].join('/'),
+  ['packages', 'server', 'src'].join('/'),
+];
+
 const PLATFORM_CONTRACT = {
   artifactType: 'action-block',
   roleName: 'CodeBolt ActionBlock generator mini-agent',
@@ -33,6 +42,65 @@ const PLATFORM_CONTRACT = {
     'Parent agents can invoke an action block path through codebolt.sideExecution.startWithActionBlock.',
     'The action block itself should be a mini-agent when it needs planning, tool use, verification, and repair.',
   ],
+  artifactShape: [
+    '<name>/actionblock.yml',
+    '<name>/package.json',
+    '<name>/tsconfig.json',
+    '<name>/src/index.ts',
+    '<name>/dist/index.js',
+    '<name>/README.md',
+  ],
+  manifestShape: [
+    'actionblock.yml: name, description, version, entryPoint: dist/index.js, inputs, outputs, and metadata.',
+    'package.json: main: dist/index.js, scripts.build, published dependencies, and TypeScript dev dependency.',
+  ],
+  sourceShape: [
+    'src/index.ts imports codebolt and any mini-agent APIs needed for the requested action.',
+    'src/index.ts registers (codebolt as any).onActionBlockInvocation((threadContext) => runActionBlock(...)).',
+    'src/index.ts returns structured success, result, verification, filesCreated, and error fields.',
+  ],
+  exampleSnippets: [
+    'actionblock.yml example shape: name, description, version, entryPoint: dist/index.js, inputs: [{ name: spec, type: object }], outputs: [{ name: success, type: boolean }].',
+    'src/index.ts example shape: (codebolt as any).onActionBlockInvocation(async (threadContext) => ({ success: true, result: { params: threadContext.params } }));',
+    'parent invocation example shape: codebolt.sideExecution.startWithActionBlock(actionBlockPath, { spec }, timeoutMs).',
+  ],
+  manifestExpectations: [
+    'actionblock.yml includes name, description, version, entryPoint set to dist/index.js, inputs, and outputs.',
+    'package.json main is dist/index.js and scripts.build compiles TypeScript from src/index.ts.',
+    'README documents invocation params, outputs, and how a parent agent calls the block.',
+  ],
+  runtimeFlow: [
+    'Register (codebolt as any).onActionBlockInvocation as the side-execution entry point.',
+    'Normalize threadContext.params into a clear spec object.',
+    'Run a bounded mini-agent loop for complex generation actions or a direct handler for simple deterministic actions.',
+    'Return structured success, artifactPath/filesCreated when relevant, verification, and error fields.',
+  ],
+  publishSafetyRules: [
+    'Use TypeScript source and ESM imports in src/index.ts.',
+    'Use published npm dependency versions only.',
+    'Do not write absolute local paths, development repo paths, or user-home paths into generated files.',
+    'Keep the action block self-contained and do not import PlatformMofier internals.',
+  ],
+  generationChecklist: [
+    'Create a self-contained action block package at the target directory.',
+    'Generate actionblock.yml, package metadata, TypeScript source, build config, runtime dist output, and README.',
+    'Define explicit inputs and outputs that match the requested action.',
+    'Include plan, write/execute, verify, and repair phases when the action performs generation.',
+  ],
+  verificationChecklist: [
+    'All required files exist.',
+    'onActionBlockInvocation appears in generated files.',
+    'actionblock.yml and package.json point to dist/index.js.',
+    'No local dependency specifiers or local filesystem references are present.',
+    'dist/index.js has valid JavaScript syntax.',
+  ],
+  commonFailureModes: [
+    'Creating an agent instead of an action block.',
+    'Missing actionblock.yml inputs and outputs.',
+    'Returning unstructured strings instead of structured invocation results.',
+    'Using CommonJS import/export syntax in src/index.ts.',
+  ],
+  forbiddenContentMarkers: FORBIDDEN_LOCAL_REFERENCE_MARKERS,
   referencePaths: [],
 };
 
@@ -72,6 +140,8 @@ function normalizeSpec(inputSpec) {
     targetDirectory,
     projectPath: spec.projectPath ? String(spec.projectPath) : process.cwd(),
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
+    callerConstraints: Array.isArray(spec.constraints) ? spec.constraints.map(String) : [],
+    generationContext: spec.generationContext && typeof spec.generationContext === 'object' ? spec.generationContext : {},
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
       : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
@@ -109,6 +179,33 @@ Feature contract:
 - Required files: ${contract.requiredFiles.join(', ')}
 - Key APIs: ${contract.keyApis.join(', ')}
 
+Expected artifact shape:
+${(contract.artifactShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest and source shape:
+${(contract.manifestShape || []).map((item) => `- ${item}`).join('\n')}
+${(contract.sourceShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest expectations:
+${(contract.manifestExpectations || []).map((item) => `- ${item}`).join('\n')}
+
+Minimal examples to mirror:
+${(contract.exampleSnippets || []).map((item) => `- ${item}`).join('\n')}
+
+Robust generation context:
+${(contract.runtimeFlow || []).map((item) => `- ${item}`).join('\n')}
+${(contract.publishSafetyRules || []).map((item) => `- ${item}`).join('\n')}
+${(spec.callerConstraints || []).map((item) => `- ${item}`).join('\n')}
+
+Generation checklist:
+${(contract.generationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Verification checklist:
+${(contract.verificationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Known failure modes to avoid:
+${(contract.commonFailureModes || []).map((item) => `- ${item}`).join('\n')}
+
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
@@ -140,6 +237,9 @@ ${spec.originalRequest || spec.description}
 
 Requested features:
 ${spec.features.length ? spec.features.map((feature) => `- ${feature}`).join('\n') : '- Standard buildable scaffold'}
+
+Caller generation context:
+${Object.keys(spec.generationContext || {}).length ? JSON.stringify(spec.generationContext, null, 2) : '{}'}
 
 Target directory:
 ${spec.targetDirectory}
@@ -217,6 +317,23 @@ function verifyArtifact(spec) {
     }
   }
 
+  for (const marker of contract.forbiddenContentMarkers || []) {
+    if (allContent.includes(marker)) {
+      errors.push(`Generated files must not contain local or development reference marker: ${marker}`);
+    }
+  }
+
+  const sourcePath = path.join(targetDirectory, 'src/index.ts');
+  if (fs.existsSync(sourcePath)) {
+    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+    if (new RegExp('\\b' + 'require' + '\\s*\\(').test(sourceContent)) {
+      errors.push('src/index.ts must use ESM import syntax, not CommonJS require calls.');
+    }
+    if (new RegExp(['module', 'exports'].join('\\.')).test(sourceContent)) {
+      errors.push('src/index.ts must use ESM exports, not CommonJS export assignments.');
+    }
+  }
+
   const packagePath = path.join(targetDirectory, 'package.json');
   if (fs.existsSync(packagePath)) {
     try {
@@ -235,7 +352,7 @@ function verifyArtifact(spec) {
       for (const section of dependencySections) {
         const dependencies = packageJson[section] || {};
         for (const [dependencyName, dependencyVersion] of Object.entries(dependencies)) {
-          if (/^(file:|workspace:)/.test(String(dependencyVersion))) {
+          if (/^(file:|workspace:|link:)/.test(String(dependencyVersion))) {
             errors.push(section + '.' + dependencyName + ' must use a published npm version, not ' + dependencyVersion);
           }
         }

@@ -17,7 +17,9 @@ Return the plan via attempt_completion only. The final message must be JSON:
       "artifactType": "agent|plugin|llm-plugin|websearch-plugin|provider|dynamic-panel|custom-ui|action-block",
       "name": "kebab-case-name",
       "description": "short description",
-      "features": ["feature"]
+      "features": ["feature"],
+      "referencePaths": [],
+      "constraints": []
     }
   ]
 }
@@ -32,6 +34,9 @@ Rules:
 - Use "action-block" for reusable side-execution blocks.
 - Use "agent" for CodeBolt agents.
 - If the request is ambiguous, choose the smallest reasonable artifact set.
+- Do not emit local machine paths or development repository paths.
+- Only include referencePaths when the user explicitly provided publish-safe paths to inspect.
+- Add constraints only when the user requested artifact-specific behavior that the action block must enforce.
 `.trim();
 
 export { PLANNER_SYSTEM_PROMPT };

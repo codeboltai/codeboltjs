@@ -11,6 +11,15 @@ import {
   AtFileProcessorModifier,
 } from "@codebolt/agent/processor-pieces";
 
+const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
+  `${path.sep}Users${path.sep}`,
+  ['Documents', 'codeboltai'].join(path.sep),
+  ['codeboltjs', 'agents'].join('/'),
+  ['codeboltjs', 'plugins'].join('/'),
+  ['codeboltjs', 'providers'].join('/'),
+  ['packages', 'server', 'src'].join('/'),
+];
+
 const PLATFORM_CONTRACT = {
   artifactType: 'agent',
   roleName: 'CodeBolt custom agent generator mini-agent',
@@ -31,6 +40,67 @@ const PLATFORM_CONTRACT = {
     'Incoming chat requests arrive through codebolt.onMessage.',
     'The embedded agent-loop contract covers prompt generation, repeated model/tool execution, verification, and completion.',
   ],
+  artifactShape: [
+    '<name>/codeboltagent.yaml',
+    '<name>/package.json',
+    '<name>/tsconfig.json',
+    '<name>/webpack.config.js',
+    '<name>/process-polyfill.js',
+    '<name>/src/index.ts',
+    '<name>/dist/index.js',
+    '<name>/README.md',
+  ],
+  manifestShape: [
+    'codeboltagent.yaml: name, description, version, entryPoint: dist/index.js.',
+    'package.json: main: dist/index.js, scripts.build, published dependencies, dev TypeScript/build dependencies.',
+  ],
+  sourceShape: [
+    'src/index.ts imports codebolt, InitialPromptGenerator, AgentStep, and ResponseExecutor.',
+    'src/index.ts registers codebolt.onMessage(async (reqMessage) => { plan, loop, execute tools, verify, return JSON }).',
+    'dist/index.js is generated runtime JavaScript that mirrors src/index.ts behavior.',
+  ],
+  exampleSnippets: [
+    'codeboltagent.yaml example shape: name: <name>, description: <description>, version: 1.0.0, entryPoint: dist/index.js.',
+    'src/index.ts example shape: import codebolt from "@codebolt/codeboltjs"; codebolt.onMessage(async (reqMessage) => { /* plan, agent loop, tools, verify */ return JSON.stringify({ success: true }); });',
+    'package.json example shape: main: dist/index.js, scripts.build compiles TypeScript, dependencies use published @codebolt packages.',
+  ],
+  manifestExpectations: [
+    'codeboltagent.yaml includes name, description, version, and entryPoint set to dist/index.js.',
+    'package.json main is dist/index.js and scripts.build compiles TypeScript from src/index.ts.',
+    'tsconfig.json and webpack.config.js are included so the artifact can rebuild after publishing.',
+  ],
+  runtimeFlow: [
+    'Register codebolt.onMessage as the only chat entry point.',
+    'Build the initial prompt with @codebolt/agent processors that match the requested features.',
+    'Run AgentStep and ResponseExecutor in a bounded loop until completed, with error handling and structured completion.',
+    'Send progress messages through codebolt.chat when useful and return JSON-safe results.',
+  ],
+  publishSafetyRules: [
+    'Use TypeScript source and ESM imports in src/index.ts.',
+    'Use published npm dependency versions only.',
+    'Do not write absolute local paths, development repo paths, or user-home paths into generated files.',
+    'Keep all generation logic inside the generated agent package; do not import PlatformMofier internals.',
+  ],
+  generationChecklist: [
+    'Create a self-contained agent package at the target directory.',
+    'Generate manifest, package metadata, TypeScript source, build config, runtime dist output, and README.',
+    'Document how CodeBolt discovers the agent and how a user runs/builds it.',
+    'Include feature-specific tools, prompts, and verification behavior requested by the user.',
+  ],
+  verificationChecklist: [
+    'All required files exist.',
+    'codebolt.onMessage appears in the generated source or runtime.',
+    'package.json uses dist/index.js and has a build script.',
+    'No local dependency specifiers or local filesystem references are present.',
+    'dist/index.js has valid JavaScript syntax.',
+  ],
+  commonFailureModes: [
+    'Creating JavaScript-only source instead of TypeScript.',
+    'Using CommonJS import/export syntax in src/index.ts.',
+    'Pointing manifests to src/index.ts instead of dist/index.js.',
+    'Depending on local monorepo packages or private filesystem paths.',
+  ],
+  forbiddenContentMarkers: FORBIDDEN_LOCAL_REFERENCE_MARKERS,
   referencePaths: [],
 };
 
@@ -70,6 +140,8 @@ function normalizeSpec(inputSpec) {
     targetDirectory,
     projectPath: spec.projectPath ? String(spec.projectPath) : process.cwd(),
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
+    callerConstraints: Array.isArray(spec.constraints) ? spec.constraints.map(String) : [],
+    generationContext: spec.generationContext && typeof spec.generationContext === 'object' ? spec.generationContext : {},
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
       : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
@@ -107,6 +179,33 @@ Feature contract:
 - Required files: ${contract.requiredFiles.join(', ')}
 - Key APIs: ${contract.keyApis.join(', ')}
 
+Expected artifact shape:
+${(contract.artifactShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest and source shape:
+${(contract.manifestShape || []).map((item) => `- ${item}`).join('\n')}
+${(contract.sourceShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest expectations:
+${(contract.manifestExpectations || []).map((item) => `- ${item}`).join('\n')}
+
+Minimal examples to mirror:
+${(contract.exampleSnippets || []).map((item) => `- ${item}`).join('\n')}
+
+Robust generation context:
+${(contract.runtimeFlow || []).map((item) => `- ${item}`).join('\n')}
+${(contract.publishSafetyRules || []).map((item) => `- ${item}`).join('\n')}
+${(spec.callerConstraints || []).map((item) => `- ${item}`).join('\n')}
+
+Generation checklist:
+${(contract.generationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Verification checklist:
+${(contract.verificationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Known failure modes to avoid:
+${(contract.commonFailureModes || []).map((item) => `- ${item}`).join('\n')}
+
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
@@ -139,6 +238,9 @@ ${spec.originalRequest || spec.description}
 
 Requested features:
 ${spec.features.length ? spec.features.map((feature) => `- ${feature}`).join('\n') : '- Standard buildable scaffold'}
+
+Caller generation context:
+${Object.keys(spec.generationContext || {}).length ? JSON.stringify(spec.generationContext, null, 2) : '{}'}
 
 Target directory:
 ${spec.targetDirectory}
@@ -218,6 +320,23 @@ function verifyArtifact(spec) {
     }
   }
 
+  for (const marker of contract.forbiddenContentMarkers || []) {
+    if (allContent.includes(marker)) {
+      errors.push(`Generated files must not contain local or development reference marker: ${marker}`);
+    }
+  }
+
+  const sourcePath = path.join(targetDirectory, 'src/index.ts');
+  if (fs.existsSync(sourcePath)) {
+    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+    if (new RegExp('\\b' + 'require' + '\\s*\\(').test(sourceContent)) {
+      errors.push('src/index.ts must use ESM import syntax, not CommonJS require calls.');
+    }
+    if (new RegExp(['module', 'exports'].join('\\.')).test(sourceContent)) {
+      errors.push('src/index.ts must use ESM exports, not CommonJS export assignments.');
+    }
+  }
+
   const packagePath = path.join(targetDirectory, 'package.json');
   if (fs.existsSync(packagePath)) {
     try {
@@ -236,7 +355,7 @@ function verifyArtifact(spec) {
       for (const section of dependencySections) {
         const dependencies = packageJson[section] || {};
         for (const [dependencyName, dependencyVersion] of Object.entries(dependencies)) {
-          if (/^(file:|workspace:)/.test(String(dependencyVersion))) {
+          if (/^(file:|workspace:|link:)/.test(String(dependencyVersion))) {
             errors.push(section + '.' + dependencyName + ' must use a published npm version, not ' + dependencyVersion);
           }
         }

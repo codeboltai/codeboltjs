@@ -11,6 +11,15 @@ import {
   AtFileProcessorModifier,
 } from "@codebolt/agent/processor-pieces";
 
+const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
+  `${path.sep}Users${path.sep}`,
+  ['Documents', 'codeboltai'].join(path.sep),
+  ['codeboltjs', 'agents'].join('/'),
+  ['codeboltjs', 'plugins'].join('/'),
+  ['codeboltjs', 'providers'].join('/'),
+  ['packages', 'server', 'src'].join('/'),
+];
+
 const PLATFORM_CONTRACT = {
   artifactType: 'provider',
   roleName: 'CodeBolt environment provider generator mini-agent',
@@ -33,6 +42,65 @@ const PLATFORM_CONTRACT = {
     'The embedded provider contract covers filesystem, command, and agent runtime integration shape.',
     'Generated providers must document expected environment variables and runtime assumptions.',
   ],
+  artifactShape: [
+    '<name>/providers.yaml',
+    '<name>/package.json',
+    '<name>/tsconfig.json',
+    '<name>/src/index.ts',
+    '<name>/dist/index.js',
+    '<name>/README.md',
+  ],
+  manifestShape: [
+    'providers.yaml: provider name, description, version, entryPoint: dist/index.js, and runtime metadata.',
+    'package.json: main: dist/index.js, scripts.build, published dependencies, and TypeScript dev dependency.',
+  ],
+  sourceShape: [
+    'src/index.ts imports codebolt from @codebolt/codeboltjs.',
+    'src/index.ts registers codebolt.onProviderStart, codebolt.onProviderAgentStart, and codebolt.onProviderStop.',
+    'src/index.ts implements requested provider operations with structured errors and cleanup.',
+  ],
+  exampleSnippets: [
+    'providers.yaml example shape: name: <name>, description: <description>, version: 1.0.0, entryPoint: dist/index.js.',
+    'src/index.ts example shape: codebolt.onProviderStart(async () => ({ success: true })); codebolt.onProviderAgentStart(async (context) => ({ success: true, context })); codebolt.onProviderStop(async () => ({ success: true }));',
+    'README example shape: provider capabilities, environment variables, startup flow, cleanup, and limitations.',
+  ],
+  manifestExpectations: [
+    'providers.yaml includes provider identity, description, version, and entryPoint set to dist/index.js.',
+    'package.json main is dist/index.js and scripts.build compiles TypeScript from src/index.ts.',
+    'README documents runtime prerequisites, environment variables, and supported provider operations.',
+  ],
+  runtimeFlow: [
+    'Import CodeBolt APIs from @codebolt/codeboltjs using ESM imports.',
+    'Register provider lifecycle hooks for start, agent start, and stop.',
+    'Initialize external runtime resources during provider start and clean them up during stop.',
+    'Return structured errors for unavailable runtime resources or unsupported operations.',
+  ],
+  publishSafetyRules: [
+    'Use TypeScript source and ESM imports in src/index.ts.',
+    'Use published npm dependency versions only.',
+    'Do not write absolute local paths, development repo paths, or user-home paths into generated files.',
+    'Keep provider code self-contained and do not import PlatformMofier internals.',
+  ],
+  generationChecklist: [
+    'Create a self-contained provider package at the target directory.',
+    'Generate providers.yaml, package metadata, TypeScript source, build config, runtime dist output, and README.',
+    'Implement realistic lifecycle behavior and feature-specific runtime operations requested by the user.',
+    'Document credentials, sandbox/runtime requirements, cleanup behavior, and limitations.',
+  ],
+  verificationChecklist: [
+    'All required files exist.',
+    'onProviderStart, onProviderAgentStart, and onProviderStop appear in generated files.',
+    'providers.yaml and package.json point to dist/index.js.',
+    'No local dependency specifiers or local filesystem references are present.',
+    'dist/index.js has valid JavaScript syntax.',
+  ],
+  commonFailureModes: [
+    'Creating a plugin instead of an environment provider.',
+    'Missing provider lifecycle hooks.',
+    'Hard-coding local sandbox paths or credentials.',
+    'Using CommonJS import/export syntax in src/index.ts.',
+  ],
+  forbiddenContentMarkers: FORBIDDEN_LOCAL_REFERENCE_MARKERS,
   referencePaths: [],
 };
 
@@ -72,6 +140,8 @@ function normalizeSpec(inputSpec) {
     targetDirectory,
     projectPath: spec.projectPath ? String(spec.projectPath) : process.cwd(),
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
+    callerConstraints: Array.isArray(spec.constraints) ? spec.constraints.map(String) : [],
+    generationContext: spec.generationContext && typeof spec.generationContext === 'object' ? spec.generationContext : {},
     agentLoopReference: spec.agentLoopReference
       ? String(spec.agentLoopReference)
       : 'Embedded PlatformMofier mini-agent loop using @codebolt/agent/unified',
@@ -109,6 +179,33 @@ Feature contract:
 - Required files: ${contract.requiredFiles.join(', ')}
 - Key APIs: ${contract.keyApis.join(', ')}
 
+Expected artifact shape:
+${(contract.artifactShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest and source shape:
+${(contract.manifestShape || []).map((item) => `- ${item}`).join('\n')}
+${(contract.sourceShape || []).map((item) => `- ${item}`).join('\n')}
+
+Manifest expectations:
+${(contract.manifestExpectations || []).map((item) => `- ${item}`).join('\n')}
+
+Minimal examples to mirror:
+${(contract.exampleSnippets || []).map((item) => `- ${item}`).join('\n')}
+
+Robust generation context:
+${(contract.runtimeFlow || []).map((item) => `- ${item}`).join('\n')}
+${(contract.publishSafetyRules || []).map((item) => `- ${item}`).join('\n')}
+${(spec.callerConstraints || []).map((item) => `- ${item}`).join('\n')}
+
+Generation checklist:
+${(contract.generationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Verification checklist:
+${(contract.verificationChecklist || []).map((item) => `- ${item}`).join('\n')}
+
+Known failure modes to avoid:
+${(contract.commonFailureModes || []).map((item) => `- ${item}`).join('\n')}
+
 Where the application uses this feature:
 ${contract.applicationUse.map((item) => `- ${item}`).join('\n')}
 
@@ -140,6 +237,9 @@ ${spec.originalRequest || spec.description}
 
 Requested features:
 ${spec.features.length ? spec.features.map((feature) => `- ${feature}`).join('\n') : '- Standard buildable scaffold'}
+
+Caller generation context:
+${Object.keys(spec.generationContext || {}).length ? JSON.stringify(spec.generationContext, null, 2) : '{}'}
 
 Target directory:
 ${spec.targetDirectory}
@@ -217,6 +317,23 @@ function verifyArtifact(spec) {
     }
   }
 
+  for (const marker of contract.forbiddenContentMarkers || []) {
+    if (allContent.includes(marker)) {
+      errors.push(`Generated files must not contain local or development reference marker: ${marker}`);
+    }
+  }
+
+  const sourcePath = path.join(targetDirectory, 'src/index.ts');
+  if (fs.existsSync(sourcePath)) {
+    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+    if (new RegExp('\\b' + 'require' + '\\s*\\(').test(sourceContent)) {
+      errors.push('src/index.ts must use ESM import syntax, not CommonJS require calls.');
+    }
+    if (new RegExp(['module', 'exports'].join('\\.')).test(sourceContent)) {
+      errors.push('src/index.ts must use ESM exports, not CommonJS export assignments.');
+    }
+  }
+
   const packagePath = path.join(targetDirectory, 'package.json');
   if (fs.existsSync(packagePath)) {
     try {
@@ -235,7 +352,7 @@ function verifyArtifact(spec) {
       for (const section of dependencySections) {
         const dependencies = packageJson[section] || {};
         for (const [dependencyName, dependencyVersion] of Object.entries(dependencies)) {
-          if (/^(file:|workspace:)/.test(String(dependencyVersion))) {
+          if (/^(file:|workspace:|link:)/.test(String(dependencyVersion))) {
             errors.push(section + '.' + dependencyName + ' must use a published npm version, not ' + dependencyVersion);
           }
         }

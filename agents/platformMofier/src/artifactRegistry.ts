@@ -111,6 +111,24 @@ function normalizeArtifact(rawArtifact, projectPath, userText) {
     projectPath,
     originalRequest: userText,
     agentLoopReference: ACT_UPDATED_REFERENCE,
+    referencePaths: Array.isArray(rawArtifact.referencePaths) ? rawArtifact.referencePaths : [],
+    constraints: [
+      'Generate TypeScript source in src/index.ts and runtime output in dist/index.js.',
+      'Use ESM import syntax in TypeScript source; compiled dist may be CommonJS.',
+      'Use published npm package versions only; never use file:, link:, workspace:, or absolute local dependencies.',
+      'Do not write machine-specific local paths, development repo paths, or user-home paths into generated source, manifests, package files, or README.',
+      'Keep every artifact self-contained; do not depend on centralized shared generator logic from PlatformMofier.',
+      ...(Array.isArray(rawArtifact.constraints) ? rawArtifact.constraints.map(String) : []),
+    ],
+    generationContext: {
+      publisherSafe: true,
+      sourceLanguage: 'TypeScript',
+      runtimeEntry: 'dist/index.js',
+      sourceEntry: 'src/index.ts',
+      dependencyPolicy: 'published npm packages only',
+      localReferencePolicy: 'no generated local filesystem or development repository references',
+      actionBlockModel: 'each ActionBlock is an independent mini-agent with plan, write, verify, and repair phases',
+    },
   };
 }
 
