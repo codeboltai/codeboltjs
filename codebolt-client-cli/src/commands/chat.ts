@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createClient, GlobalOptions } from '../client-factory';
 import { output, errorOutput } from '../output';
-import { chatSend, chatSendStreaming } from '../streaming';
+import { chatSend, chatSendStreaming, parseSelectedCapabilities } from '../streaming';
 
 export function registerChatCommands(program: Command): void {
   const chat = program.command('chat').description('Chat and thread operations');
@@ -12,14 +12,24 @@ export function registerChatCommands(program: Command): void {
     .requiredOption('-m, --message <text>', 'Message to send')
     .option('--agent <id>', 'Agent ID to use')
     .option('--thread <id>', 'Thread ID')
+    .option('--capability <name...>', 'Selected capability name. Repeat or pass comma-separated values.')
+    .option('--capabilities <names>', 'Comma-separated selected capability names')
+    .option('--command <name>', 'Selected command name')
     .option('--timeout <ms>', 'Timeout in milliseconds', '600000')
     .action(async (options: any, cmd: Command) => {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
+      const selectedCapabilities = parseSelectedCapabilities([
+        ...(options.capability || []),
+        ...(options.capabilities ? [options.capabilities] : []),
+      ]);
+
       try {
         await chatSend({
           message: options.message,
           agent: options.agent,
           thread: options.thread,
+          selectedCapabilities,
+          selectedCommand: options.command,
           timeout: options.timeout,
           json: globalOpts.json,
           host: globalOpts.host,
@@ -37,14 +47,24 @@ export function registerChatCommands(program: Command): void {
     .requiredOption('-m, --message <text>', 'Message to send')
     .option('--agent <id>', 'Agent ID to use')
     .option('--thread <id>', 'Thread ID')
+    .option('--capability <name...>', 'Selected capability name. Repeat or pass comma-separated values.')
+    .option('--capabilities <names>', 'Comma-separated selected capability names')
+    .option('--command <name>', 'Selected command name')
     .option('--timeout <ms>', 'Timeout in milliseconds', '600000')
     .action(async (options: any, cmd: Command) => {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
+      const selectedCapabilities = parseSelectedCapabilities([
+        ...(options.capability || []),
+        ...(options.capabilities ? [options.capabilities] : []),
+      ]);
+
       try {
         await chatSendStreaming({
           message: options.message,
           agent: options.agent,
           thread: options.thread,
+          selectedCapabilities,
+          selectedCommand: options.command,
           timeout: options.timeout,
           json: globalOpts.json,
           host: globalOpts.host,

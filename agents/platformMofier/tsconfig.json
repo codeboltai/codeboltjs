@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "allowJs": false,
+    "outDir": "dist"
+  },
+  "include": [
+    "src/**/*.ts",
+    "action-blocks/*/src/**/*.ts"
+  ]
+}

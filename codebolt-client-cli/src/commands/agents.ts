@@ -84,7 +84,7 @@ export function registerAgentCommands(program: Command): void {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
       try {
-        const result = await client.agents.installLocal({ path: options.path } as any);
+        const result = await client.agents.installLocal({ agentPath: options.path } as any);
         output(result, globalOpts);
       } catch (err: any) {
         errorOutput(err.message, globalOpts);
@@ -100,7 +100,9 @@ export function registerAgentCommands(program: Command): void {
       const globalOpts = cmd.optsWithGlobals() as GlobalOptions;
       const client = createClient(globalOpts);
       try {
-        const result = await client.agents.startAgent({ id: options.id, name: options.name } as any);
+        const result = await client.agents.startAgent({
+          agentName: options.name || options.id,
+        } as any);
         output(result, globalOpts);
       } catch (err: any) {
         errorOutput(err.message, globalOpts);
@@ -146,7 +148,7 @@ export function registerAgentCommands(program: Command): void {
       const client = createClient(globalOpts);
       try {
         const result = await client.agents.createCustomLocalAgent({
-          name: options.name,
+          agentName: options.name,
           description: options.description,
         } as any);
         output(result, globalOpts);

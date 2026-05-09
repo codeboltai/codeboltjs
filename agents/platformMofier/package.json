@@ -1,0 +1,23 @@
+{
+  "name": "platform-mofier",
+  "version": "1.0.0",
+  "description": "Platform-aware CodeBolt artifact generator that delegates creation work to internal ActionBlock mini-agents.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:agent": "node scripts/build-agent.js",
+    "build:actionblocks": "node scripts/build-actionblocks.js",
+    "clean": "rimraf dist action-blocks/*/dist"
+  },
+  "dependencies": {
+    "@codebolt/agent": "^1.2.1",
+    "@codebolt/codeboltjs": "^2.2.2",
+    "@codebolt/types": "^5.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.4.5"
+  },
+  "private": true
+}

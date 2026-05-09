@@ -1,4 +1,8 @@
-import WebSocket from 'ws';
+import type { Data as WebSocketData } from 'ws';
+
+process.env.WS_NO_BUFFER_UTIL = process.env.WS_NO_BUFFER_UTIL || '1';
+
+const WebSocket = require('ws') as typeof import('ws');
 
 const DEFAULT_AGENT = 'c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9';
 
@@ -6,10 +10,22 @@ export interface ChatOptions {
   message: string;
   agent?: string;
   thread?: string;
+  selectedCapabilities?: string[];
+  selectedCommand?: string;
   timeout?: string;
   json?: boolean;
   host: string;
   port: string;
+}
+
+export function parseSelectedCapabilities(value: unknown): string[] {
+  const rawValues = Array.isArray(value) ? value : value ? [value] : [];
+  const capabilityNames = rawValues
+    .flatMap((rawValue) => String(rawValue).split(','))
+    .map((capabilityName) => capabilityName.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(capabilityNames));
 }
 
 function buildMessagePayload(opts: ChatOptions) {
@@ -32,6 +48,8 @@ function buildMessagePayload(opts: ChatOptions) {
       controlFiles: [],
       currentFile: '',
       selection: null,
+      selectedCapabilities: opts.selectedCapabilities || [],
+      selectedCommand: opts.selectedCommand || '',
     },
   };
 }
@@ -69,7 +87,7 @@ export async function chatSend(opts: ChatOptions): Promise<void> {
       ws.send(JSON.stringify(payload));
     });
 
-    ws.on('message', async (data: WebSocket.Data) => {
+    ws.on('message', async (data: WebSocketData) => {
       if (completed) return;
       try {
         const msg = JSON.parse(data.toString());
@@ -226,9 +244,13 @@ export async function chatSendStreaming(opts: ChatOptions): Promise<void> {
         actionType: 'SendMessage',
         message: opts.message,
         threadId: threadId,
+        selectedCapabilities: opts.selectedCapabilities || [],
+        selectedCommand: opts.selectedCommand || '',
         metadata: {
           clientId: 'cli-client',
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          selectedCapabilities: opts.selectedCapabilities || [],
+          selectedCommand: opts.selectedCommand || '',
         }
       };
       
@@ -242,7 +264,7 @@ export async function chatSendStreaming(opts: ChatOptions): Promise<void> {
       }
     });
 
-    ws.on('message', async (data: WebSocket.Data) => {
+    ws.on('message', async (data: WebSocketData) => {
       if (completed) return;
       try {
         const msg = JSON.parse(data.toString());
