@@ -10,7 +10,7 @@
     "clean": "rimraf dist action-blocks/*/dist"
   },
   "dependencies": {
-    "@codebolt/agent": "^1.2.1",
+    "@codebolt/agent": "^6.1.10",
     "@codebolt/codeboltjs": "^2.2.2",
     "@codebolt/types": "^5.1.12"
   },

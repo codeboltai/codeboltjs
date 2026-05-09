@@ -19,8 +19,8 @@ import {
   normalizeArtifact,
 } from './artifactRegistry';
 
-const eventQueue = (codebolt as any).agentEventQueue;
-const agentTracker = (codebolt as any).backgroundChildThreads;
+const eventQueue = codebolt.agentEventQueue;
+const agentTracker = codebolt.backgroundChildThreads;
 
 function getUserText(message) {
   if (typeof message === 'string') {
@@ -156,7 +156,7 @@ async function runArtifact(spec) {
     targetDirectory: spec.targetDirectory,
   });
 
-  const result = await (codebolt as any).sideExecution.startWithActionBlock(
+  const result = await codebolt.sideExecution.startWithActionBlock(
     actionBlockPath,
     { spec },
     900000,
@@ -166,7 +166,9 @@ async function runArtifact(spec) {
     throw new Error((result && result.error) || `ActionBlock failed: ${blockName}`);
   }
 
-  return result.result || {};
+  return result.result && typeof result.result === 'object'
+    ? result.result as Record<string, unknown>
+    : {};
 }
 
 codebolt.onMessage(async (reqMessage) => {

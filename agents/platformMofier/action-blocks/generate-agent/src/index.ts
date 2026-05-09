@@ -1,15 +1,18 @@
 import fs from "fs";
 import path from "path";
 import codebolt from "@codebolt/codeboltjs";
-import { InitialPromptGenerator, AgentStep, ResponseExecutor } from "@codebolt/agent/unified";
+import { CodeboltAgent, LoopDetectionService } from "@codebolt/agent/unified";
 import {
   ChatHistoryMessageModifier,
   EnvironmentContextModifier,
   DirectoryContextModifier,
+  IdeContextModifier,
   CoreSystemPromptModifier,
   ToolInjectionModifier,
   AtFileProcessorModifier,
 } from "@codebolt/agent/processor-pieces";
+
+const eventQueue = codebolt.agentEventQueue;
 
 const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
   `${path.sep}Users${path.sep}`,
@@ -29,16 +32,16 @@ const PLATFORM_CONTRACT = {
   sourceLanguage: 'TypeScript',
   buildTool: 'webpack with ts-loader, matching the embedded TypeScript agent-loop pattern',
   buildOutput: 'dist/index.js',
-  npmDependencies: ['@codebolt/codeboltjs:^2.2.2', '@codebolt/agent:^1.2.1', '@codebolt/types:^5.1.12'],
+  npmDependencies: ['@codebolt/codeboltjs:^2.2.2', '@codebolt/agent:^6.1.10', '@codebolt/types:^5.1.12'],
   requiredFiles: ['codeboltagent.yaml', 'package.json', 'tsconfig.json', 'webpack.config.js', 'process-polyfill.js', 'src/index.ts', 'dist/index.js', 'README.md'],
   manifestFile: 'codeboltagent.yaml',
-  keyApis: ['codebolt.onMessage', 'InitialPromptGenerator', 'AgentStep', 'ResponseExecutor'],
+  keyApis: ['codebolt.onMessage', 'CodeboltAgent', 'LoopDetectionService'],
   verificationMarkers: ['codebolt.onMessage'],
   applicationUse: [
     'Agent package metadata is loaded from codeboltagent.yaml.',
     'The agent entry point is launched as a separate process for the selected agent.',
     'Incoming chat requests arrive through codebolt.onMessage.',
-    'The embedded agent-loop contract covers prompt generation, repeated model/tool execution, verification, and completion.',
+    'The embedded agent-loop contract covers prompt generation, CodeboltAgent processing, loop detection, compaction, external events, verification, and completion.',
   ],
   artifactShape: [
     '<name>/codeboltagent.yaml',
@@ -55,13 +58,13 @@ const PLATFORM_CONTRACT = {
     'package.json: main: dist/index.js, scripts.build, published dependencies, dev TypeScript/build dependencies.',
   ],
   sourceShape: [
-    'src/index.ts imports codebolt, InitialPromptGenerator, AgentStep, and ResponseExecutor.',
-    'src/index.ts registers codebolt.onMessage(async (reqMessage) => { plan, loop, execute tools, verify, return JSON }).',
+    'src/index.ts imports codebolt, CodeboltAgent, LoopDetectionService, and the required processor pieces.',
+    'src/index.ts registers codebolt.onMessage(async (reqMessage) => { create CodeboltAgent, process the message, verify, return JSON }).',
     'dist/index.js is generated runtime JavaScript that mirrors src/index.ts behavior.',
   ],
   exampleSnippets: [
     'codeboltagent.yaml example shape: name: <name>, description: <description>, version: 1.0.0, entryPoint: dist/index.js.',
-    'src/index.ts example shape: import codebolt from "@codebolt/codeboltjs"; codebolt.onMessage(async (reqMessage) => { /* plan, agent loop, tools, verify */ return JSON.stringify({ success: true }); });',
+    'src/index.ts example shape: import codebolt from "@codebolt/codeboltjs"; import { CodeboltAgent, LoopDetectionService } from "@codebolt/agent/unified"; codebolt.onMessage(async (reqMessage) => { const agent = new CodeboltAgent({ instructions, loopDetectionService, maxTurns: 30, compaction, processors }); const result = await agent.processMessage(reqMessage); return result.finalMessage; });',
     'package.json example shape: main: dist/index.js, scripts.build compiles TypeScript, dependencies use published @codebolt packages.',
   ],
   manifestExpectations: [
@@ -71,8 +74,8 @@ const PLATFORM_CONTRACT = {
   ],
   runtimeFlow: [
     'Register codebolt.onMessage as the only chat entry point.',
-    'Build the initial prompt with @codebolt/agent processors that match the requested features.',
-    'Run AgentStep and ResponseExecutor in a bounded loop until completed, with error handling and structured completion.',
+    'Build the agent with @codebolt/agent processors that match the requested features.',
+    'Run CodeboltAgent.processMessage in a bounded runtime with loop detection, compaction, event handling, error handling, and structured completion.',
     'Send progress messages through codebolt.chat when useful and return JSON-safe results.',
   ],
   publishSafetyRules: [
@@ -368,56 +371,133 @@ function verifyArtifact(spec) {
   return { passed: errors.length === 0, errors, warnings };
 }
 
-async function runAgentLoopForSpec(spec, repairErrors) {
 
+function appendPromptMessage(prompt, role, content) {
+  if (!prompt || !prompt.message || !Array.isArray(prompt.message.messages)) {
+    return prompt;
+  }
+
+  prompt.message.messages.push({ role, content });
+  return prompt;
+}
+
+function processExternalEvent(event, prompt) {
+  if (!event) {
+    return prompt;
+  }
+
+  const eventType = event.type || event.eventType;
+  const eventData = event.data || event;
+
+  if (eventType === 'agentQueueEvent') {
+    const payload = eventData && eventData.payload ? eventData.payload : {};
+    if (payload.type === 'steering' || eventData.eventType === 'steering') {
+      const instruction = payload.instruction || payload.content || JSON.stringify(payload);
+      return appendPromptMessage(
+        prompt,
+        'user',
+        '<steering_message>\n<instruction>' + instruction + '</instruction>\n<context>The user sent a steering message while this feature-specific ActionBlock mini-agent was running. Adjust the current plan and continue.</context>\n</steering_message>',
+      );
+    }
+
+    const content = payload.content || JSON.stringify(payload);
+    return appendPromptMessage(
+      prompt,
+      'user',
+      '<agent_event>\n<source>' + (eventData.sourceAgentId || 'system') + '</source>\n<content>' + content + '</content>\n</agent_event>',
+    );
+  }
+
+  if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
+    return appendPromptMessage(prompt, 'assistant', 'Background agent completed:\n' + JSON.stringify(eventData, null, 2));
+  }
+
+  return prompt;
+}
+
+const externalEventProcessor = {
+  async modify(_originalRequest, createdMessage) {
+    if (!eventQueue || !eventQueue.getPendingExternalEvents) {
+      return createdMessage;
+    }
+
+    let nextPrompt = createdMessage;
+    const pendingEvents = eventQueue.getPendingExternalEvents();
+    for (const externalEvent of pendingEvents) {
+      nextPrompt = processExternalEvent(externalEvent, nextPrompt);
+    }
+
+    return nextPrompt;
+  },
+};
+
+const externalEventPostToolProcessor = {
+  async modify({ nextPrompt }) {
+    if (!eventQueue || !eventQueue.getPendingExternalEvents) {
+      return { nextPrompt, shouldExit: false };
+    }
+
+    let updatedPrompt = nextPrompt;
+    const pendingEvents = eventQueue.getPendingExternalEvents();
+    for (const externalEvent of pendingEvents) {
+      updatedPrompt = processExternalEvent(externalEvent, updatedPrompt);
+    }
+
+    return { nextPrompt: updatedPrompt, shouldExit: false };
+  },
+};
+
+async function runAgentLoopForSpec(spec, repairErrors) {
   const systemPrompt = buildMiniAgentSystemPrompt(spec);
+  const messageTimestamp = Date.now();
   const reqMessage = {
     userMessage: buildMiniAgentUserMessage(spec, repairErrors),
-    messageId: `platform-mofier-agent-${Date.now()}`,
-    threadId: process.env.THREAD_ID || `platform-mofier-agent-${Date.now()}`,
+    messageId: `platform-mofier-${spec.artifactType}-${messageTimestamp}`,
+    threadId: process.env.THREAD_ID || `platform-mofier-${spec.artifactType}-${messageTimestamp}`,
     mentionedAgents: [],
     mentionedFiles: [],
     mentionedFullPaths: spec.referencePaths,
   };
 
-  const promptGenerator = new InitialPromptGenerator({
-    processors: [
-      new ChatHistoryMessageModifier({ enableChatHistory: true }),
-      new EnvironmentContextModifier({ enableFullContext: true }),
-      new DirectoryContextModifier(),
-      new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
-      new ToolInjectionModifier({ includeToolDescriptions: true }),
-      new AtFileProcessorModifier({ enableRecursiveSearch: true }),
-    ],
-    baseSystemPrompt: systemPrompt,
+  const ideContextModifier = new IdeContextModifier({
+    includeActiveFile: true,
+    includeOpenFiles: true,
+    includeCursorPosition: true,
+    includeSelectedText: true,
   });
 
-  let prompt = await promptGenerator.processMessage(reqMessage);
-  let completed = false;
-  let executionResult = null;
-  let turnCount = 0;
-  const maxTurns = 18;
+  const loopDetectionService = new LoopDetectionService({ debug: true });
+  const agent = new CodeboltAgent({
+    instructions: systemPrompt,
+    enableLogging: true,
+    loopDetectionService,
+    maxTurns: 30,
+    compaction: {
+      enableLogging: true,
+      autoCompactEnabled: true,
+      contextCollapseEnabled: false,
+    },
+    processors: {
+      messageModifiers: [
+        new ChatHistoryMessageModifier({ enableChatHistory: true }),
+        new EnvironmentContextModifier({ enableFullContext: true }),
+        new DirectoryContextModifier(),
+        ideContextModifier,
+        new CoreSystemPromptModifier({ customSystemPrompt: systemPrompt }),
+        new ToolInjectionModifier({ includeToolDescriptions: true }),
+        new AtFileProcessorModifier({ enableRecursiveSearch: true }),
+        externalEventProcessor,
+      ],
+      preInferenceProcessors: [],
+      postInferenceProcessors: [],
+      preToolCallProcessors: [],
+      postToolCallProcessors: [externalEventPostToolProcessor],
+    },
+  });
 
-  do {
-    turnCount += 1;
-    const agent = new AgentStep({ preInferenceProcessors: [], postInferenceProcessors: [] });
-    const result = await agent.executeStep(reqMessage, prompt);
-    prompt = result.nextMessage;
-
-    const responseExecutor = new ResponseExecutor({ preToolCallProcessors: [], postToolCallProcessors: [] });
-    executionResult = await responseExecutor.executeResponse({
-      initialUserMessage: reqMessage,
-      actualMessageSentToLLM: result.actualMessageSentToLLM,
-      rawLLMOutput: result.rawLLMResponse,
-      nextMessage: result.nextMessage,
-    });
-
-    completed = executionResult.completed;
-    prompt = executionResult.nextMessage;
-  } while (!completed && turnCount < maxTurns);
-
-  if (!completed) {
-    throw new Error(`Mini-agent loop reached ${maxTurns} turns without completion.`);
+  const executionResult = await agent.processMessage(reqMessage);
+  if (!executionResult || executionResult.success === false) {
+    throw new Error((executionResult && executionResult.error) || `Mini-agent failed while generating ${spec.artifactType}.`);
   }
 
   return executionResult;
@@ -428,8 +508,12 @@ async function runActionBlockMiniAgent(threadContext) {
   const spec = normalizeSpec(params.spec || params);
   const agentLoop = {
     reference: spec.agentLoopReference,
-    steps: ['understand', 'read-references', 'write-with-tools', 'verify', 'repair-if-needed'],
-    maxRepairPasses: 1,
+    steps: ['understand-feature-contract', 'gather-context', 'plan-artifact', 'write-with-tools', 'run-checks', 'verify-contract', 'repair-if-needed', 'attempt-completion'],
+    maxTurns: 30,
+    maxRepairPasses: 2,
+    loopDetection: true,
+    compaction: { autoCompactEnabled: true, contextCollapseEnabled: false },
+    externalEvents: true,
   };
 
   try {
@@ -441,11 +525,17 @@ async function runActionBlockMiniAgent(threadContext) {
     });
 
     const firstExecution = await runAgentLoopForSpec(spec, []);
+    let finalExecution = firstExecution;
     let verification = verifyArtifact(spec);
+    let repairPassCount = 0;
 
-    if (!verification.passed) {
-      await codebolt.chat.sendMessage('[agent] mini-agent repair loop started', verification);
-      await runAgentLoopForSpec(spec, verification.errors);
+    while (!verification.passed && repairPassCount < agentLoop.maxRepairPasses) {
+      repairPassCount += 1;
+      await codebolt.chat.sendMessage('[agent] mini-agent repair loop started', {
+        repairPass: repairPassCount,
+        verification,
+      });
+      finalExecution = await runAgentLoopForSpec(spec, verification.errors);
       verification = verifyArtifact(spec);
     }
 
@@ -456,7 +546,7 @@ async function runActionBlockMiniAgent(threadContext) {
       filesCreated,
       verification,
       agentLoop,
-      finalMessage: firstExecution && firstExecution.finalMessage,
+      finalMessage: finalExecution && finalExecution.finalMessage,
       error: verification.passed ? undefined : verification.errors.join('; '),
     };
   } catch (error) {
@@ -475,7 +565,7 @@ async function runActionBlockMiniAgent(threadContext) {
   }
 }
 
-(codebolt as any).onActionBlockInvocation((threadContext) => runActionBlockMiniAgent(threadContext));
+codebolt.onActionBlockInvocation((threadContext) => runActionBlockMiniAgent(threadContext));
 
 export { runActionBlockMiniAgent };
 

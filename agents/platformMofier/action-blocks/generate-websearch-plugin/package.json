@@ -7,7 +7,7 @@
     "build": "node ../../../scripts/build-single-actionblock.js ."
   },
   "dependencies": {
-    "@codebolt/agent": "^1.2.1",
+    "@codebolt/agent": "^6.1.10",
     "@codebolt/codeboltjs": "^2.2.2"
   },
   "devDependencies": {
