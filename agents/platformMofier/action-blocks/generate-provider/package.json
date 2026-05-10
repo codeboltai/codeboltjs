@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@codebolt/agent": "^6.1.10",
-    "@codebolt/codeboltjs": "^2.2.2"
+    "@codebolt/codeboltjs": "^5.1.36"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

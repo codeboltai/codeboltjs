@@ -36,6 +36,14 @@ function getActionBlockPath(blockName) {
   return path.join(getAgentRoot(), 'action-blocks', blockName);
 }
 
+function getActionBlockInvocationNames(blockName) {
+  return [
+    `platformMofier-${blockName}`,
+    `platform-${blockName}`,
+    blockName,
+  ];
+}
+
 function slugifyName(value, fallback) {
   const slug = String(value || '')
     .trim()
@@ -50,6 +58,12 @@ function slugifyName(value, fallback) {
 function inferArtifactsFromText(text) {
   const lower = text.toLowerCase();
   const artifacts = [];
+  const isAgentRequest = /\bagent\b/.test(lower);
+  const isFeatureAwarenessRequest = /\b(aware|awareness|knowledge|capability|capabilities|support|supports|understand|understands)\b/.test(lower);
+  const explicitlyRequestsDynamicPanel = /\b(dynamic panel|panel plugin)\b/.test(lower)
+    || (/\bdynamic ui\b/.test(lower) && (!isAgentRequest || /\b(plugin|artifact|panel)\b/.test(lower)));
+  const explicitlyRequestsCustomUi = /\b(custom ui|ui plugin|frontend plugin)\b/.test(lower)
+    || (/\bui\b/.test(lower) && /\b(plugin|artifact)\b/.test(lower) && !isFeatureAwarenessRequest);
 
   const add = (artifactType, fallbackName, description) => {
     if (!artifacts.some((artifact) => artifact.artifactType === artifactType)) {
@@ -66,10 +80,10 @@ function inferArtifactsFromText(text) {
   if (/\b(llm|model provider|custom model|completion provider)\b/.test(lower)) {
     add('llm-plugin', 'generated-llm-plugin', 'Custom LLM provider plugin');
   }
-  if (/\b(dynamic panel|panel plugin|dynamic ui)\b/.test(lower)) {
+  if (explicitlyRequestsDynamicPanel && !(isAgentRequest && isFeatureAwarenessRequest && !/\b(plugin|artifact|panel plugin)\b/.test(lower))) {
     add('dynamic-panel', 'generated-dynamic-panel', 'Dynamic panel plugin');
   }
-  if (/\b(custom ui|ui plugin|frontend plugin)\b/.test(lower)) {
+  if (explicitlyRequestsCustomUi && !(isAgentRequest && isFeatureAwarenessRequest && !/\b(plugin|artifact|ui plugin|frontend plugin)\b/.test(lower))) {
     add('custom-ui', 'generated-custom-ui', 'Custom UI plugin');
   }
   if (/\b(provider|remote environment|environment provider|e2b)\b/.test(lower) && !/\bllm|web\s*search|websearch\b/.test(lower)) {
@@ -82,9 +96,11 @@ function inferArtifactsFromText(text) {
     add('agent', 'generated-agent', 'CodeBolt agent');
   }
 
-  const namedMatch = text.match(/\b(?:named|called|name)\s+["'`]?([A-Za-z0-9_. -]{2,80})["'`]?/i);
-  if (namedMatch && artifacts.length === 1) {
-    artifacts[0].name = slugifyName(namedMatch[1], artifacts[0].name);
+  const quotedNameMatch = text.match(/\b(?:named|called|name)\s+["'`]([^"'`]{2,80})["'`]/i);
+  const unquotedNameMatch = text.match(/\b(?:named|called|name)\s+([A-Za-z0-9_.-]{2,80})/i);
+  const requestedName = quotedNameMatch ? quotedNameMatch[1] : unquotedNameMatch && unquotedNameMatch[1];
+  if (requestedName && artifacts.length === 1) {
+    artifacts[0].name = slugifyName(requestedName, artifacts[0].name);
   }
 
   return artifacts;
@@ -134,6 +150,7 @@ function normalizeArtifact(rawArtifact, projectPath, userText) {
 
 export {
   ARTIFACT_BLOCKS,
+  getActionBlockInvocationNames,
   getActionBlockPath,
   inferArtifactsFromText,
   normalizeArtifact,
