@@ -1,0 +1,18 @@
+{
+  "name": "@codebolt/sample-static-site-preview-provider",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone sample artifact preview provider for CodeBolt static-site artifacts.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@codebolt/preview-sdk": "file:../../CodeBolt/sdks/previewsdk",
+    "ws": "^8.18.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
