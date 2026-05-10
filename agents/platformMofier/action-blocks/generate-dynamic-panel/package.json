@@ -1,0 +1,17 @@
+{
+  "name": "@codebolt/platform-mofier-generate-dynamic-panel",
+  "version": "1.0.0",
+  "description": "Internal PlatformMofier mini-agent for generating dynamic panel plugins.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node ../../../scripts/build-single-actionblock.js ."
+  },
+  "dependencies": {
+    "@codebolt/agent": "^6.1.10",
+    "@codebolt/codeboltjs": "^2.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "private": true
+}

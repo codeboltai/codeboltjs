@@ -1,0 +1,25 @@
+name: platformMofier-generate-provider
+description: Generates a CodeBolt environment provider scaffold.
+version: 1.0.0
+entryPoint: dist/index.js
+metadata:
+  executionModel: side-execution-mini-agent
+  feature: provider
+  agentLoop:
+    reference: embedded-platform-mofier-mini-agent-loop
+    steps:
+      - plan
+      - write
+      - verify
+      - repair-if-needed
+  inputs:
+    - name: spec
+      type: object
+      required: true
+  outputs:
+    - name: success
+      type: boolean
+    - name: artifactPath
+      type: string
+    - name: filesCreated
+      type: array
