@@ -1,0 +1,30 @@
+{
+  "name": "@codebolt/windows-sandbox-preview-plugin",
+  "version": "0.1.0",
+  "description": "Local CodeBolt preview provider for running native Windows artifacts in Windows Sandbox.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "channel",
+      "triggers": [
+        {
+          "type": "startup"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@codebolt/plugin-sdk": "file:../../../CodeBolt/sdks/pluginSdk",
+    "@codebolt/types": "file:../../../CodeBolt/packages/types"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  }
+}
