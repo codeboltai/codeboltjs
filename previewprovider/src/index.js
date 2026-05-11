@@ -3,7 +3,7 @@ import {
   downloadArtifactFiles,
   getDownloadableArtifactFiles,
   serveDirectory,
-} from '@codebolt/preview-sdk'
+} from '@codebolt/cloud-sdk/preview'
 
 const DEFAULT_WS_BASE_URL = 'wss://codebolt-wrangler-ws.arrowai.workers.dev'
 const PROVIDER_ID = process.env.PROVIDER_ID || 'sample-static-site-preview-provider'

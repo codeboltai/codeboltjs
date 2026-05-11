@@ -2,7 +2,7 @@
 
 Standalone Node.js preview provider for CodeBolt artifact previews.
 
-This does not use `@codebolt/plugin-sdk`. It uses `@codebolt/preview-sdk`, which connects directly to the cloud PreviewHub websocket and registers this app as a provider for `static_site` artifacts.
+This does not use `@codebolt/plugin-sdk`. It uses `@codebolt/cloud-sdk/preview`, which connects directly to the cloud PreviewHub websocket and registers this app as a provider for `static_site` artifacts.
 
 ## Install
 
