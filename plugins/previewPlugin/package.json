@@ -1,12 +1,12 @@
 {
-  "name": "@codebolt/preview-plugin",
+  "name": "preview-plugin",
   "version": "0.1.0",
   "description": "CodeBolt artifact preview provider that serves artifact folders over a local HTTP server.",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "node build.mjs",
+    "build:types": "tsc --emitDeclarationOnly",
     "dev": "tsc --watch",
     "start": "node dist/index.js"
   },
@@ -21,9 +21,9 @@
     }
   },
   "dependencies": {
-    "@codebolt/cloud-sdk": "file:../../../CodeBolt/sdks/cloudsdk",
-    "@codebolt/plugin-sdk": "file:../../../CodeBolt/sdks/pluginSdk",
-    "@codebolt/types": "file:../../../CodeBolt/packages/types"
+    "@codebolt/cloud-sdk": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/cloudsdk",
+    "@codebolt/plugin-sdk": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/pluginSdk",
+    "@codebolt/types": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/types"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",

@@ -58,6 +58,8 @@ const ARTIFACT_TYPES = [
   'dynamic_site',
   'image',
   'video',
+  'native_application',
+  'terminal_application',
   'file',
   'url',
   'other',
@@ -97,7 +99,8 @@ async function main(): Promise<void> {
 
 async function loadPluginSdk(): Promise<PluginSdk> {
   const module = await import('@codebolt/plugin-sdk');
-  return ((module as any).default || module) as PluginSdk;
+  const imported = module as any;
+  return (imported.default?.default || imported.default || imported) as PluginSdk;
 }
 
 async function stopEverything(): Promise<void> {
