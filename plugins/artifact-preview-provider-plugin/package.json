@@ -1,0 +1,15 @@
+{
+  "name": "artifact-preview-provider-plugin",
+  "version": "1.0.0",
+  "description": "Artifact preview provider smoke-test plugin",
+  "main": "index.js",
+  "dependencies": {
+    "@codebolt/plugin-sdk": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/pluginSdk"
+  },
+  "codebolt": {
+    "plugin": {
+      "type": "utility",
+      "triggers": [ { "type": "startup" } ]
+    }
+  }
+}

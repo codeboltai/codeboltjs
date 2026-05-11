@@ -11,7 +11,8 @@ import {
   IdeContextModifier,
   AtFileProcessorModifier,
   ToolInjectionModifier,
-  ChatHistoryMessageModifier
+  ChatHistoryMessageModifier,
+  CapabilityContextModifier
 } from '@codebolt/agent/processor-pieces';
 
 import { ProcessedMessage } from '@codebolt/types/agent';
@@ -439,23 +440,25 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
         messageModifiers: [
         // 1. Chat History
         new ChatHistoryMessageModifier({ enableChatHistory: true }),
-        // 2. Environment Context (date, OS)
+        // 2. Selected capability context
+        new CapabilityContextModifier(),
+        // 3. Environment Context (date, OS)
         new EnvironmentContextModifier({ enableFullContext: false }),
-        // 3. Directory Context (folder structure)  
+        // 4. Directory Context (folder structure)  
         new DirectoryContextModifier(),
 
-        // 4. IDE Context (active file, opened files) - Shared instance
+        // 5. IDE Context (active file, opened files) - Shared instance
         ideContextModifier,
-        // 5. Core System Prompt (instructions)
+        // 6. Core System Prompt (instructions)
         new CoreSystemPromptModifier(
           { customSystemPrompt: systemPrompt }
         ),
-        // 6. Tools (function declarations)
+        // 7. Tools (function declarations)
         new ToolInjectionModifier({
           includeToolDescriptions: true
         }),
 
-        // 7. At-file processing (@file mentions)
+        // 8. At-file processing (@file mentions)
         new AtFileProcessorModifier({
           enableRecursiveSearch: true
         }),
