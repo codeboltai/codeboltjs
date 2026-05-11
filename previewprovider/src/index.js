@@ -3,7 +3,7 @@ import {
   downloadArtifactFiles,
   getDownloadableArtifactFiles,
   serveDirectory,
-} from '@codebolt/preview-sdk'
+} from '@codebolt/cloud-sdk/preview'
 
 const DEFAULT_WS_BASE_URL = 'wss://codebolt-wrangler-ws.arrowai.workers.dev'
 const PROVIDER_ID = process.env.PROVIDER_ID || 'sample-static-site-preview-provider'
@@ -80,6 +80,18 @@ provider.onPreviewRequest(async (request) => {
     label: request.artifact.title || 'Static Site Preview',
     message: `Serving ${downloadableFiles.length} downloaded artifact file(s).`,
   })
+})
+
+provider.onStopPreview(async (message) => {
+  const server = activeServers.get(message.previewId)
+  if (!server) {
+    console.log(`[preview-provider] stop request previewId=${message.previewId} no active server`)
+    return
+  }
+
+  console.log(`[preview-provider] stopping local preview ${server.url}`)
+  await server.close()
+  activeServers.delete(message.previewId)
 })
 
 await provider.start()

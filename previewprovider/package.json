@@ -9,7 +9,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "@codebolt/preview-sdk": "file:../../CodeBolt/sdks/previewsdk",
+    "@codebolt/cloud-sdk": "file:../../CodeBolt/sdks/cloudsdk",
     "ws": "^8.18.3"
   },
   "engines": {
