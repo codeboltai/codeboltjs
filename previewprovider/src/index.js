@@ -82,6 +82,18 @@ provider.onPreviewRequest(async (request) => {
   })
 })
 
+provider.onStopPreview(async (message) => {
+  const server = activeServers.get(message.previewId)
+  if (!server) {
+    console.log(`[preview-provider] stop request previewId=${message.previewId} no active server`)
+    return
+  }
+
+  console.log(`[preview-provider] stopping local preview ${server.url}`)
+  await server.close()
+  activeServers.delete(message.previewId)
+})
+
 await provider.start()
 
 function parseArgs(argv) {
