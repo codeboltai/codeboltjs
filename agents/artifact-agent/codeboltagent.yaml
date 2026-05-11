@@ -1,16 +1,18 @@
-title: Act
-version: 1.1.85
-unique_id: act
-initial_message: Codebolt Dev, is a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices
-description:  Codebolt Dev, is  a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
+title: Artifact Agent
+version: 1.0.0
+unique_id: artifact-agent
+initial_message: Artifact Agent creates static site artifacts for integration testing.
+description: Artifact Agent creates a small static site artifact through the Codebolt artifact API.
 tags:
+  - artifact
+  - static-site
+  - smoke-test
   - web
-  - code-generation
 longDescription: |
-  A basic agent designed for the Codebolt platform, offering a range of
-  functionalities to enhance interaction with the platform.
+  A smoke-test agent designed for the Codebolt platform. When invoked, it
+  creates a small static site artifact with an HTML entrypoint and README file.
 avatarSrc: https://placehold.co/200x200
-avatarFallback: CE
+avatarFallback: AA
 metadata:
   agent_routing:
     worksonblankcode: true
@@ -27,7 +29,7 @@ metadata:
   sdlc_steps_managed:
     - name: deployment
       example_instructions:
-        - create website
+        - create artifact
   llm_role:
     - name: documentationllm
       description: >-
@@ -67,12 +69,12 @@ metadata:
         - llama2-15b
         - group.actionmodels
 actions:
-  - name: Execute
-    description: Executes the given task.
-    detailDescription: more detailed description
-    actionPrompt: Please create website
+  - name: Create Artifact
+    description: Creates a static site artifact.
+    detailDescription: Creates a static site artifact through the Codebolt artifact API.
+    actionPrompt: Please create a static site artifact
 supportRemix: true
-author: ravi
+author: Codebolt Team
 
 # Pre-completion verification configuration
 # Inspired by patterns from Aider, SWE-agent, Gemini CLI, and Windsurf

@@ -1,0 +1,96 @@
+name: create-artifact
+description: Creates a Codebolt artifact from files, a source path, or an external URL so other agents can publish reusable outputs.
+version: 1.0.0
+entryPoint: dist/index.js
+metadata:
+  author: Codebolt Team
+  tags:
+    - artifact
+    - output
+    - static-site
+    - preview
+    - agent
+  dependencies:
+    - "@codebolt/codeboltjs"
+  inputs:
+    - name: type
+      type: string
+      required: true
+      description: "Artifact type: static_site, dynamic_site, image, video, native_application, terminal_application, url, file, or other"
+    - name: title
+      type: string
+      required: true
+      description: Artifact title shown in the UI
+    - name: description
+      type: string
+      required: false
+      description: Optional artifact description
+    - name: entrypoint
+      type: string
+      required: false
+      description: Relative entrypoint inside the artifact, such as index.html
+    - name: files
+      type: array
+      required: false
+      description: Inline files to write into the artifact
+    - name: sourcePath
+      type: string
+      required: false
+      description: Project-relative file or directory to copy into the artifact
+    - name: externalUrl
+      type: string
+      required: false
+      description: Absolute http or https URL for URL/external artifacts
+    - name: url
+      type: string
+      required: false
+      description: Alias for externalUrl
+    - name: externalProvider
+      type: string
+      required: false
+      description: Optional provider name for external artifacts
+    - name: externalResourceId
+      type: string
+      required: false
+      description: Optional provider resource ID for external artifacts
+    - name: runtime
+      type: object
+      required: false
+      description: Optional runtime command, args, cwd, port, or url for dynamic artifacts
+    - name: metadata
+      type: object
+      required: false
+      description: Optional artifact metadata
+    - name: reviewMergeRequestId
+      type: string
+      required: false
+      description: Optional review merge request ID to link this artifact to
+    - name: artifact
+      type: object
+      required: false
+      description: Optional nested artifact object; top-level inputs override nested values
+  outputs:
+    - name: success
+      type: boolean
+      description: Whether artifact creation succeeded
+    - name: artifactId
+      type: string
+      description: ID of the created artifact
+    - name: artifact
+      type: object
+      description: Full created artifact record
+    - name: previewUrl
+      type: string
+      description: URL the UI can use to preview the artifact
+    - name: externalUrl
+      type: string
+      description: External URL, when supplied or inferred
+    - name: files
+      type: array
+      description: Files stored in the created artifact
+    - name: totalFiles
+      type: number
+      description: Number of files stored in the artifact
+    - name: error
+      type: string
+      description: Error message when artifact creation fails
