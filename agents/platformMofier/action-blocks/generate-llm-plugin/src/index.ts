@@ -23,6 +23,68 @@ const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
   ['packages', 'server', 'src'].join('/'),
 ];
 
+const PLUGIN_SDK_EXPOSED_MODULES = [
+  'default plugin facade',
+  'llmProvider',
+  'pluginTools',
+  'gateway',
+  'executionGateway',
+  'chat',
+  'llm',
+  'dynamicPanel',
+  'environment',
+  'kvStore',
+  'project',
+  'artifact',
+  'notificationFunctions',
+];
+
+const PLUGIN_SDK_FEATURE_MODULES = {
+  lifecycle: ['plugin.onStart', 'plugin.onStop', 'plugin.waitForReady', 'plugin.pluginId', 'plugin.pluginDir', 'plugin.manifest'],
+  providerRegistration: ['llmProvider.register', 'llmProvider.unregister'],
+  completion: ['llmProvider.onCompletionRequest', 'llmProvider.sendReply', 'llmProvider.sendError'],
+  streaming: ['llmProvider.onStreamRequest', 'llmProvider.sendChunk', 'llmProvider.sendReply', 'llmProvider.sendError'],
+  loginAndConfig: ['llmProvider.onLoginRequest', 'providerConfig.apiKey', 'providerConfig.apiUrl', 'configFields'],
+  optionalUi: ['plugin.dynamicPanel.open', 'plugin.dynamicPanel.onMessage', 'plugin.dynamicPanel.send'],
+  optionalTools: ['pluginTools.registerTool', 'pluginTools.registerTools'],
+};
+
+const PLUGIN_SDK_API_CATALOG = [
+  {
+    module: 'imports',
+    purpose: 'Use the published plugin SDK entry point.',
+    calls: ['import plugin, { llmProvider } from "@codebolt/plugin-sdk"', 'import type { LlmCompletionRequest, LlmStreamRequest, LlmProviderManifest } from "@codebolt/plugin-sdk"'],
+  },
+  {
+    module: 'plugin lifecycle',
+    purpose: 'Initialize provider registration and cleanup.',
+    calls: ['plugin.onStart(async (context) => { ... })', 'plugin.onStop(async () => { ... })', 'await plugin.waitForReady()', 'plugin.pluginId', 'plugin.pluginDir'],
+  },
+  {
+    module: 'llmProvider',
+    purpose: 'Register a provider and handle completion, streaming, and login requests.',
+    calls: ['llmProvider.register(manifest)', 'llmProvider.onCompletionRequest(handler)', 'llmProvider.onStreamRequest(handler)', 'llmProvider.onLoginRequest(handler)', 'llmProvider.sendChunk(requestId, chunk)', 'llmProvider.sendReply(requestId, response, success)', 'llmProvider.sendError(requestId, error)', 'llmProvider.unregister(providerId)'],
+  },
+  {
+    module: 'provider manifest',
+    purpose: 'Describe provider identity, models, capabilities, credentials, and custom config fields.',
+    calls: ['providerId', 'name', 'models', 'capabilities', 'requiresKey', 'configFields'],
+  },
+  {
+    module: 'request handling',
+    purpose: 'Normalize incoming completion options and provider config before calling upstream services.',
+    calls: ['request.requestId', 'request.options', 'request.options.providerConfig', 'request.providerConfig'],
+  },
+];
+
+const PLUGIN_SDK_USAGE_RULES = [
+  'Register provider metadata before registering request handlers.',
+  'Use sendReply for final completion responses, sendChunk for stream chunks, and sendError for failures.',
+  'Read credentials from providerConfig and document configFields in README.',
+  'Do not import from local SDK source paths; depend on published @codebolt/plugin-sdk only.',
+  'For generated TypeScript, define narrow request, response, and SDK-result interfaces instead of unchecked type escapes.',
+];
+
 const PLATFORM_CONTRACT = {
   artifactType: 'llm-plugin',
   roleName: 'CodeBolt custom LLM provider plugin generator mini-agent',
@@ -32,11 +94,15 @@ const PLATFORM_CONTRACT = {
   sourceLanguage: 'TypeScript',
   buildTool: 'esbuild or tsc with package.json main set to dist/index.js',
   buildOutput: 'dist/index.js',
-  npmDependencies: ['@codebolt/plugin-sdk:*', 'typescript:^5.4.5'],
+  npmDependencies: ['@codebolt/plugin-sdk:^1.0.0', 'typescript:^5.4.5'],
   requiredFiles: ['package.json', 'tsconfig.json', 'src/index.ts', 'dist/index.js', 'README.md'],
   requiresPluginMetadata: true,
   requiresUiPath: false,
   keyApis: ['llmProvider.register', 'llmProvider.onCompletionRequest', 'llmProvider.onStreamRequest', 'package.json#codebolt.plugin'],
+  pluginSdkExposedModules: PLUGIN_SDK_EXPOSED_MODULES,
+  pluginSdkFeatureModules: PLUGIN_SDK_FEATURE_MODULES,
+  pluginSdkApiCatalog: PLUGIN_SDK_API_CATALOG,
+  pluginSdkUsageRules: PLUGIN_SDK_USAGE_RULES,
   verificationMarkers: ['llmProvider.register', 'onCompletionRequest', 'onStreamRequest'],
   applicationUse: [
     'The plugin process registers an LLM provider by name and capability.',
@@ -56,14 +122,14 @@ const PLATFORM_CONTRACT = {
     'codebolt.plugin: provider identity, display name, description, and LLM capability/configuration metadata.',
   ],
   sourceShape: [
-    'src/index.ts imports llmProvider from @codebolt/plugin-sdk.',
+    'src/index.ts imports plugin default and llmProvider named export from @codebolt/plugin-sdk.',
     'src/index.ts calls llmProvider.register(...) with provider metadata before request handlers.',
     'src/index.ts implements llmProvider.onCompletionRequest and llmProvider.onStreamRequest with normalized responses.',
   ],
   exampleSnippets: [
     'package.json example shape: main: dist/index.js, codebolt.plugin identifies the LLM provider plugin and runtime entry.',
-    'src/index.ts example shape: llmProvider.register({ id: "<name>", name: "<displayName>", models: [...] });',
-    'handler example shape: llmProvider.onCompletionRequest(async (request) => ({ text, model, usage, raw })); llmProvider.onStreamRequest(async (request) => { /* emit chunks */ });',
+    'src/index.ts example shape: import plugin, { llmProvider } from "@codebolt/plugin-sdk"; await llmProvider.register({ providerId: "<name>", name: "<displayName>", models: [...] });',
+    'handler example shape: llmProvider.onCompletionRequest(async (request) => llmProvider.sendReply(request.requestId, { text, model, usage, raw })); llmProvider.onStreamRequest(async (request) => { llmProvider.sendChunk(request.requestId, chunk); llmProvider.sendReply(request.requestId, finalResponse); });',
   ],
   manifestExpectations: [
     'package.json main is dist/index.js and includes codebolt.plugin metadata for discovery.',
@@ -71,7 +137,7 @@ const PLATFORM_CONTRACT = {
     'scripts.build compiles TypeScript from src/index.ts into dist/index.js.',
   ],
   runtimeFlow: [
-    'Import llmProvider APIs from @codebolt/plugin-sdk using ESM imports.',
+    'Import plugin default and llmProvider named export from @codebolt/plugin-sdk using ESM imports.',
     'Register provider metadata before handling requests.',
     'Implement completion and streaming request handlers with clear request parsing and error responses.',
     'Document API keys, base URLs, model mapping, and login/credential behavior in README.',
@@ -79,6 +145,9 @@ const PLATFORM_CONTRACT = {
   publishSafetyRules: [
     'Use TypeScript source and ESM imports in src/index.ts.',
     'Use published npm dependency versions only.',
+    'Use @codebolt/plugin-sdk ^1.0.0 for plugin runtime APIs.',
+    'Avoid untyped escape hatches in TypeScript source; define narrow interfaces and use guarded values.',
+    'Use @codebolt/codeboltjs ^5.1.36 and @codebolt/agent ^6.1.10 when those packages are needed.',
     'Do not write absolute local paths, development repo paths, or user-home paths into generated files.',
     'Keep provider code self-contained and do not import PlatformMofier internals.',
   ],
@@ -154,6 +223,24 @@ function normalizeSpec(inputSpec) {
   };
 }
 
+function formatPluginSdkFeatureModules(featureModules) {
+  return Object.keys(featureModules || {})
+    .map((featureName) => {
+      const modules = featureModules[featureName];
+      return `- ${featureName}: ${Array.isArray(modules) ? modules.join(', ') : String(modules || '')}`;
+    })
+    .join('\n');
+}
+
+function formatPluginSdkApiCatalog(catalog) {
+  return (catalog || [])
+    .map((entry) => [
+      `- ${entry.module}: ${entry.purpose}`,
+      `  Calls: ${(entry.calls || []).join('; ')}`,
+    ].join('\n'))
+    .join('\n');
+}
+
 function buildMiniAgentSystemPrompt(spec) {
   const contract = spec.platformAwareness;
   return `
@@ -179,6 +266,16 @@ Feature contract:
 - NPM dependencies: ${(contract.npmDependencies || []).join(', ')}
 - Required files: ${contract.requiredFiles.join(', ')}
 - Key APIs: ${contract.keyApis.join(', ')}
+- Exposed plugin SDK modules: ${(contract.pluginSdkExposedModules || []).join(', ')}
+
+Plugin SDK feature routing:
+${formatPluginSdkFeatureModules(contract.pluginSdkFeatureModules)}
+
+Plugin SDK API catalog:
+${formatPluginSdkApiCatalog(contract.pluginSdkApiCatalog)}
+
+Plugin SDK usage rules:
+${(contract.pluginSdkUsageRules || []).map((item) => `- ${item}`).join('\n')}
 
 Expected artifact shape:
 ${(contract.artifactShape || []).map((item) => `- ${item}`).join('\n')}
@@ -308,6 +405,22 @@ function verifyArtifact(spec) {
   }
 
   const allContent = readAllFiles(targetDirectory);
+  const typedFiles = collectFiles(targetDirectory).filter((filePath) => /\.(ts|tsx|d\.ts)$/.test(filePath));
+  const broadTypePattern = new RegExp('\\b' + 'a' + 'ny' + '\\b');
+  const castToBroadTypePattern = new RegExp('\\bas\\s+' + 'a' + 'ny' + '\\b');
+  const castToUncheckedPattern = new RegExp('\\bas\\s+unknown\\b');
+  for (const filePath of typedFiles) {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    if (castToBroadTypePattern.test(fileContent)) {
+      errors.push('TypeScript source must not cast to an unchecked broad type.');
+    }
+    if (castToUncheckedPattern.test(fileContent)) {
+      errors.push('TypeScript source must not cast through unchecked unknown; define a narrow interface or a checked conversion helper.');
+    }
+    if (broadTypePattern.test(fileContent)) {
+      errors.push('TypeScript source must not use the unchecked broad type keyword.');
+    }
+  }
   for (const marker of contract.verificationMarkers) {
     if (!allContent.includes(marker)) {
       errors.push(`Missing required API marker: ${marker}`);
@@ -354,8 +467,21 @@ function verifyArtifact(spec) {
       for (const section of dependencySections) {
         const dependencies = packageJson[section] || {};
         for (const [dependencyName, dependencyVersion] of Object.entries(dependencies)) {
-          if (/^(file:|workspace:|link:)/.test(String(dependencyVersion))) {
+          const normalizedVersion = String(dependencyVersion).trim();
+          if (/^(file:|workspace:|link:)/.test(normalizedVersion)) {
             errors.push(section + '.' + dependencyName + ' must use a published npm version, not ' + dependencyVersion);
+          }
+          if (normalizedVersion === '*') {
+            errors.push(section + '.' + dependencyName + ' must pin a published npm semver range instead of using a wildcard.');
+          }
+          if (dependencyName === '@codebolt/codeboltjs' && normalizedVersion !== '^5.1.36') {
+            errors.push(section + '.' + dependencyName + ' must use ^5.1.36.');
+          }
+          if (dependencyName === '@codebolt/agent' && normalizedVersion !== '^6.1.10') {
+            errors.push(section + '.' + dependencyName + ' must use ^6.1.10.');
+          }
+          if (dependencyName === '@codebolt/plugin-sdk' && normalizedVersion !== '^1.0.0') {
+            errors.push(section + '.' + dependencyName + ' must use ^1.0.0.');
           }
         }
       }

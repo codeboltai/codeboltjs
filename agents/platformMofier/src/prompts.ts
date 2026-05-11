@@ -26,10 +26,12 @@ Return the plan via attempt_completion only. The final message must be JSON:
 
 Rules:
 - Include one artifact for each requested platform artifact.
+- If the user asks for exactly one artifact, return exactly one artifact.
+- Treat feature-awareness wording as features of the requested artifact, not as extra artifacts. For example, an agent with plugin, provider, web search, dynamic UI, or action-block awareness is still one agent unless the user explicitly asks to create those artifacts too.
 - Use "llm-plugin" for custom LLM provider plugins.
 - Use "websearch-plugin" for custom web search provider plugins.
-- Use "dynamic-panel" for dynamic panel plugins.
-- Use "custom-ui" for UI-only plugins.
+- Use "dynamic-panel" only for a requested dynamic panel plugin/artifact.
+- Use "custom-ui" only for a requested UI-only plugin/artifact.
 - Use "provider" only for environment/runtime providers, not LLM or web search providers.
 - Use "action-block" for reusable side-execution blocks.
 - Use "agent" for CodeBolt agents.

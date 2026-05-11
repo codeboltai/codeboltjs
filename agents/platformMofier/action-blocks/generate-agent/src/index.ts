@@ -23,6 +23,182 @@ const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
   ['packages', 'server', 'src'].join('/'),
 ];
 
+const CODEBOLT_EXPOSED_MODULES = [
+  'actionBlock',
+  'actionPlan',
+  'agent',
+  'agentDeliberation',
+  'agentEventQueue',
+  'agentPortfolio',
+  'artifact',
+  'autoTesting',
+  'backgroundChildThreads',
+  'browser',
+  'calendar',
+  'capability',
+  'channel',
+  'chat',
+  'codebaseSearch',
+  'codemap',
+  'codeutils',
+  'contextAssembly',
+  'contextRuleEngine',
+  'crawler',
+  'dbmemory',
+  'debug',
+  'dynamicPanel',
+  'environment',
+  'episodicMemory',
+  'eval',
+  'eventLog',
+  'fileUpdateIntent',
+  'fs',
+  'git',
+  'groupFeedback',
+  'history',
+  'hook',
+  'job',
+  'knowledge',
+  'knowledgeGraph',
+  'kvStore',
+  'llm',
+  'mail',
+  'mcp',
+  'memory',
+  'memoryIngestion',
+  'orchestrator',
+  'outputparsers',
+  'persistentMemory',
+  'project',
+  'projectStructure',
+  'projectStructureUpdateRequest',
+  'rag',
+  'requirementPlan',
+  'reviewMergeRequest',
+  'roadmap',
+  'search',
+  'sideExecution',
+  'state',
+  'swarm',
+  'task',
+  'terminal',
+  'thread',
+  'todo',
+  'tokenizer',
+  'utils',
+  'vectordb',
+  'webFetch',
+  'webSearch',
+];
+
+const CODEBOLT_FEATURE_MODULES = {
+  agentEntrypoint: ['onMessage', 'chat', 'project'],
+  fileEditing: ['fs', 'project', 'chat'],
+  codeSearch: ['fs', 'codebaseSearch', 'codemap', 'projectStructure', 'chat'],
+  terminalWork: ['terminal', 'chat', 'project'],
+  webResearch: ['webSearch', 'webFetch', 'browser', 'chat'],
+  browserAutomation: ['browser', 'chat'],
+  gitWork: ['git', 'fs', 'chat'],
+  llmCalls: ['llm', 'tokenizer', 'outputparsers'],
+  memory: ['memory', 'persistentMemory', 'episodicMemory', 'dbmemory', 'knowledge', 'knowledgeGraph', 'rag', 'vectordb'],
+  planning: ['todo', 'task', 'actionPlan', 'roadmap', 'requirementPlan'],
+  subAgents: ['agent', 'thread', 'backgroundChildThreads', 'agentEventQueue', 'swarm', 'orchestrator'],
+  actionBlocks: ['actionBlock', 'sideExecution'],
+  dynamicUi: ['dynamicPanel', 'chat'],
+  externalTools: ['mcp', 'capability', 'hook'],
+  testingAndReview: ['autoTesting', 'eval', 'reviewMergeRequest', 'artifact'],
+  stateAndEvents: ['state', 'kvStore', 'eventLog', 'history', 'channel'],
+  providerAwareRuntime: ['environment', 'terminal', 'fs', 'sideExecution'],
+};
+
+const CODEBOLT_API_CATALOG = [
+  {
+    module: 'entry hooks',
+    purpose: 'Register process entry points for the generated artifact.',
+    calls: ['codebolt.onMessage(handler)', 'codebolt.onActionBlockInvocation(handler)', 'codebolt.onProviderStart(handler)', 'codebolt.onProviderAgentStart(handler)', 'codebolt.onProviderStop(handler)'],
+  },
+  {
+    module: 'chat',
+    purpose: 'Send progress, ask for user input, read thread history, and manage process status.',
+    calls: ['codebolt.chat.sendMessage(message, payload)', 'codebolt.chat.getChatHistory(threadId)', 'codebolt.chat.askQuestion(question, buttons)', 'codebolt.chat.sendConfirmationRequest(message, buttons)', 'codebolt.chat.processStarted()', 'codebolt.chat.processFinished()'],
+  },
+  {
+    module: 'project',
+    purpose: 'Resolve workspace path and project settings before reading or writing files.',
+    calls: ['codebolt.project.getProjectPath()', 'codebolt.project.getProjectSettings()', 'codebolt.project.getRepoMap(message)', 'codebolt.project.runProject()'],
+  },
+  {
+    module: 'fs',
+    purpose: 'Read, write, list, search, and patch project files through the platform filesystem layer.',
+    calls: ['codebolt.fs.readFile(filePath)', 'codebolt.fs.readManyFiles(params)', 'codebolt.fs.listDirectory(params)', 'codebolt.fs.grepSearch(path, query, includePattern, excludePattern, caseSensitive)', 'codebolt.fs.fileSearch(query)', 'codebolt.fs.writeToFile(relPath, content)', 'codebolt.fs.createFile(name, content, folder)', 'codebolt.fs.updateFile(name, filePath, content)', 'codebolt.fs.editFileWithDiff(targetFile, codeEdit, diffId, prompt)'],
+  },
+  {
+    module: 'terminal',
+    purpose: 'Run shell commands, stream long tasks, and interrupt running commands.',
+    calls: ['codebolt.terminal.executeCommand(command)', 'codebolt.terminal.executeCommandWithStream(command)', 'codebolt.terminal.executeCommandRunUntilError(command)', 'codebolt.terminal.executeCommandRunUntilInterrupt(command)', 'codebolt.terminal.sendManualInterrupt()'],
+  },
+  {
+    module: 'git',
+    purpose: 'Inspect and operate on the current repository through Git operations.',
+    calls: ['codebolt.git.status()', 'codebolt.git.diff(commitHash)', 'codebolt.git.logs(path)', 'codebolt.git.addAll()', 'codebolt.git.commit(message)', 'codebolt.git.checkout(branch)', 'codebolt.git.branch(branch)', 'codebolt.git.pull()', 'codebolt.git.push()', 'codebolt.git.clone(url, path)'],
+  },
+  {
+    module: 'llm',
+    purpose: 'Call configured model roles and inspect model configuration for feature-specific inference.',
+    calls: ['codebolt.llm.inference(params)', 'codebolt.llm.getModelConfig(modelId)'],
+  },
+  {
+    module: 'webSearch and webFetch',
+    purpose: 'Search the web and fetch selected URLs through server-side tools.',
+    calls: ['codebolt.webSearch.search({ query, count, provider, filters })', 'codebolt.webFetch.fetch({ url, prompt, maxChars, timeoutMs })'],
+  },
+  {
+    module: 'browser',
+    purpose: 'Open pages, collect snapshots, click, type, scroll, and extract page content.',
+    calls: ['codebolt.browser.newPage(options)', 'codebolt.browser.goToPage(url, options)', 'codebolt.browser.getMarkdown(options)', 'codebolt.browser.getSnapShot(options)', 'codebolt.browser.screenshot(options)', 'codebolt.browser.click(elementId, options)', 'codebolt.browser.type(elementId, text, options)', 'codebolt.browser.scroll(direction, pixels, options)'],
+  },
+  {
+    module: 'actionBlock and sideExecution',
+    purpose: 'Discover, invoke, and monitor action blocks from parent agents.',
+    calls: ['codebolt.actionBlock.list(filter)', 'codebolt.actionBlock.getDetail(name)', 'codebolt.actionBlock.start(name, params)', 'codebolt.sideExecution.startWithActionBlock(path, params, timeout)', 'codebolt.sideExecution.startWithCode(code, params, timeout)', 'codebolt.sideExecution.getStatus(id)', 'codebolt.sideExecution.stop(id)'],
+  },
+  {
+    module: 'agent orchestration',
+    purpose: 'Coordinate child agents, background threads, external events, deliberation, and swarms.',
+    calls: ['codebolt.agent.*', 'codebolt.thread.*', 'codebolt.backgroundChildThreads.*', 'codebolt.agentEventQueue.getPendingExternalEvents()', 'codebolt.agentDeliberation.*', 'codebolt.swarm.*', 'codebolt.orchestrator.*'],
+  },
+  {
+    module: 'dynamicPanel',
+    purpose: 'Open custom dynamic UI panels from an agent or action block and exchange messages with the iframe.',
+    calls: ['codebolt.dynamicPanel.open(panelId, title, html, options)', 'codebolt.dynamicPanel.update(panelId, html)', 'codebolt.dynamicPanel.send(panelId, data)', 'codebolt.dynamicPanel.onMessage(panelId, handler)', 'codebolt.dynamicPanel.close(panelId)', 'codebolt.dynamicPanel.list()'],
+  },
+  {
+    module: 'memory and knowledge',
+    purpose: 'Persist context, retrieve project knowledge, and support RAG flows.',
+    calls: ['codebolt.memory.*', 'codebolt.persistentMemory.*', 'codebolt.episodicMemory.*', 'codebolt.dbmemory.*', 'codebolt.knowledge.*', 'codebolt.knowledgeGraph.*', 'codebolt.rag.*', 'codebolt.vectordb.*'],
+  },
+  {
+    module: 'planning',
+    purpose: 'Manage tasks, todos, action plans, roadmaps, requirements, and project structure.',
+    calls: ['codebolt.todo.*', 'codebolt.task.*', 'codebolt.actionPlan.*', 'codebolt.roadmap.*', 'codebolt.requirementPlan.*', 'codebolt.projectStructure.*'],
+  },
+  {
+    module: 'mcp and capability',
+    purpose: 'Connect external tools, hooks, and platform capabilities.',
+    calls: ['codebolt.mcp.*', 'codebolt.capability.*', 'codebolt.hook.*'],
+  },
+];
+
+const CODEBOLT_API_USAGE_RULES = [
+  'Start from the requested features, choose matching modules from feature routing, then use catalog calls as the first source.',
+  'Use exposed module names exactly as listed; inspect package declarations or project examples before adding a method outside the catalog.',
+  'For workspace edits, resolve the project path first, read before writing, and prefer diff-based edits when preserving user work matters.',
+  'For web research, use webSearch to find candidates and webFetch to read selected pages; include source URLs in final user-facing output when research influenced the answer.',
+  'For dynamic UI, use dynamicPanel for agent-owned panels; plugin-owned panels require plugin SDK metadata, UI assets, and event handlers.',
+  'For child work, prefer sideExecution with action blocks when the feature is bounded and reusable; use background child threads for longer agent collaboration.',
+  'For generated TypeScript, define narrow request, response, and SDK-result interfaces instead of unchecked type escapes.',
+];
+
 const PLATFORM_CONTRACT = {
   artifactType: 'agent',
   roleName: 'CodeBolt custom agent generator mini-agent',
@@ -32,15 +208,34 @@ const PLATFORM_CONTRACT = {
   sourceLanguage: 'TypeScript',
   buildTool: 'webpack with ts-loader, matching the embedded TypeScript agent-loop pattern',
   buildOutput: 'dist/index.js',
-  npmDependencies: ['@codebolt/codeboltjs:^2.2.2', '@codebolt/agent:^6.1.10', '@codebolt/types:^5.1.12'],
+  npmDependencies: ['@codebolt/codeboltjs:^5.1.36', '@codebolt/agent:^6.1.10', '@codebolt/types:^5.1.12'],
   requiredFiles: ['codeboltagent.yaml', 'package.json', 'tsconfig.json', 'webpack.config.js', 'process-polyfill.js', 'src/index.ts', 'dist/index.js', 'README.md'],
   manifestFile: 'codeboltagent.yaml',
-  keyApis: ['codebolt.onMessage', 'CodeboltAgent', 'LoopDetectionService'],
-  verificationMarkers: ['codebolt.onMessage'],
+  keyApis: [
+    'codebolt.onMessage',
+    'CodeboltAgent',
+    'LoopDetectionService',
+    'ChatHistoryMessageModifier',
+    'EnvironmentContextModifier',
+    'DirectoryContextModifier',
+    'IdeContextModifier',
+    'CoreSystemPromptModifier',
+    'ToolInjectionModifier',
+    'AtFileProcessorModifier',
+    'processors.messageModifiers',
+  ],
+  codeboltExposedModules: CODEBOLT_EXPOSED_MODULES,
+  codeboltFeatureModules: CODEBOLT_FEATURE_MODULES,
+  codeboltApiCatalog: CODEBOLT_API_CATALOG,
+  codeboltApiUsageRules: CODEBOLT_API_USAGE_RULES,
+  verificationMarkers: ['codebolt.onMessage', 'CodeboltAgent', 'processors', 'messageModifiers', 'ChatHistoryMessageModifier'],
   applicationUse: [
     'Agent package metadata is loaded from codeboltagent.yaml.',
     'The agent entry point is launched as a separate process for the selected agent.',
     'Incoming chat requests arrive through codebolt.onMessage.',
+    'The generated agent should build a CodeboltAgent instance for each request or reusable runtime scope.',
+    'CodeboltAgent processors assemble platform context before inference and process tool results after tool calls.',
+    'Message modifiers should inject chat history, environment context, directory context, IDE context, system prompt, tool descriptions, and @file references.',
     'The embedded agent-loop contract covers prompt generation, CodeboltAgent processing, loop detection, compaction, external events, verification, and completion.',
   ],
   artifactShape: [
@@ -58,13 +253,30 @@ const PLATFORM_CONTRACT = {
     'package.json: main: dist/index.js, scripts.build, published dependencies, dev TypeScript/build dependencies.',
   ],
   sourceShape: [
-    'src/index.ts imports codebolt, CodeboltAgent, LoopDetectionService, and the required processor pieces.',
-    'src/index.ts registers codebolt.onMessage(async (reqMessage) => { create CodeboltAgent, process the message, verify, return JSON }).',
+    'src/index.ts imports codebolt from @codebolt/codeboltjs.',
+    'src/index.ts imports CodeboltAgent and LoopDetectionService from @codebolt/agent/unified.',
+    'src/index.ts imports ChatHistoryMessageModifier, EnvironmentContextModifier, DirectoryContextModifier, IdeContextModifier, CoreSystemPromptModifier, ToolInjectionModifier, and AtFileProcessorModifier from @codebolt/agent/processor-pieces.',
+    'src/index.ts defines narrow request/result interfaces and guarded helper functions instead of unchecked type escapes.',
+    'src/index.ts registers codebolt.onMessage(async (reqMessage) => { create CodeboltAgent with processors.messageModifiers, process the message, verify, return JSON }).',
     'dist/index.js is generated runtime JavaScript that mirrors src/index.ts behavior.',
+  ],
+  processorKnowledge: [
+    'CodeboltAgent accepts a processors object with messageModifiers, preInferenceProcessors, postInferenceProcessors, preToolCallProcessors, and postToolCallProcessors.',
+    'messageModifiers run before the model request and are the correct place to add chat history, environment data, workspace directory context, IDE context, core system prompt, tool descriptions, and @file expansion.',
+    'Use ChatHistoryMessageModifier({ enableChatHistory: true }) for thread history.',
+    'Use EnvironmentContextModifier({ enableFullContext: true }) for platform/runtime context.',
+    'Use DirectoryContextModifier() for project tree context.',
+    'Use IdeContextModifier({ includeActiveFile: true, includeOpenFiles: true, includeCursorPosition: true, includeSelectedText: true }) for editor state.',
+    'Use CoreSystemPromptModifier({ customSystemPrompt }) to bind the generated agent role and feature instructions.',
+    'Use ToolInjectionModifier({ includeToolDescriptions: true }) so tools are visible to the model.',
+    'Use AtFileProcessorModifier({ enableRecursiveSearch: true }) so @file references are expanded safely.',
+    'Keep pre/post processor arrays present even when empty, so future feature agents can add behavior without restructuring.',
   ],
   exampleSnippets: [
     'codeboltagent.yaml example shape: name: <name>, description: <description>, version: 1.0.0, entryPoint: dist/index.js.',
-    'src/index.ts example shape: import codebolt from "@codebolt/codeboltjs"; import { CodeboltAgent, LoopDetectionService } from "@codebolt/agent/unified"; codebolt.onMessage(async (reqMessage) => { const agent = new CodeboltAgent({ instructions, loopDetectionService, maxTurns: 30, compaction, processors }); const result = await agent.processMessage(reqMessage); return result.finalMessage; });',
+    'src/index.ts import example: import codebolt from "@codebolt/codeboltjs"; import { CodeboltAgent, LoopDetectionService } from "@codebolt/agent/unified"; import { ChatHistoryMessageModifier, EnvironmentContextModifier, DirectoryContextModifier, IdeContextModifier, CoreSystemPromptModifier, ToolInjectionModifier, AtFileProcessorModifier } from "@codebolt/agent/processor-pieces";',
+    'src/index.ts processor example: const processors = { messageModifiers: [new ChatHistoryMessageModifier({ enableChatHistory: true }), new EnvironmentContextModifier({ enableFullContext: true }), new DirectoryContextModifier(), new IdeContextModifier({ includeActiveFile: true, includeOpenFiles: true, includeCursorPosition: true, includeSelectedText: true }), new CoreSystemPromptModifier({ customSystemPrompt }), new ToolInjectionModifier({ includeToolDescriptions: true }), new AtFileProcessorModifier({ enableRecursiveSearch: true })], preInferenceProcessors: [], postInferenceProcessors: [], preToolCallProcessors: [], postToolCallProcessors: [] };',
+    'src/index.ts onMessage example: codebolt.onMessage(async (reqMessage: AgentRequest) => { const agent = new CodeboltAgent({ instructions: customSystemPrompt, loopDetectionService: new LoopDetectionService({ debug: false }), maxTurns: 30, compaction: { autoCompactEnabled: true, contextCollapseEnabled: false }, processors }); const result = await agent.processMessage(reqMessage); return JSON.stringify({ success: true, response: readFinalMessage(result) }); });',
     'package.json example shape: main: dist/index.js, scripts.build compiles TypeScript, dependencies use published @codebolt packages.',
   ],
   manifestExpectations: [
@@ -75,12 +287,16 @@ const PLATFORM_CONTRACT = {
   runtimeFlow: [
     'Register codebolt.onMessage as the only chat entry point.',
     'Build the agent with @codebolt/agent processors that match the requested features.',
+    'Always include a processors object with messageModifiers and all pre/post processor arrays.',
+    'Use messageModifiers for platform context assembly and reserve pre/post processors for model/tool lifecycle behavior.',
     'Run CodeboltAgent.processMessage in a bounded runtime with loop detection, compaction, event handling, error handling, and structured completion.',
     'Send progress messages through codebolt.chat when useful and return JSON-safe results.',
   ],
   publishSafetyRules: [
     'Use TypeScript source and ESM imports in src/index.ts.',
     'Use published npm dependency versions only.',
+    'Avoid untyped escape hatches in TypeScript source; define narrow interfaces and use guarded values.',
+    'Use @codebolt/codeboltjs ^5.1.36 and @codebolt/agent ^6.1.10 when those packages are needed.',
     'Do not write absolute local paths, development repo paths, or user-home paths into generated files.',
     'Keep all generation logic inside the generated agent package; do not import PlatformMofier internals.',
   ],
@@ -88,11 +304,13 @@ const PLATFORM_CONTRACT = {
     'Create a self-contained agent package at the target directory.',
     'Generate manifest, package metadata, TypeScript source, build config, runtime dist output, and README.',
     'Document how CodeBolt discovers the agent and how a user runs/builds it.',
+    'Document the processor pipeline and which message modifiers the generated agent uses.',
     'Include feature-specific tools, prompts, and verification behavior requested by the user.',
   ],
   verificationChecklist: [
     'All required files exist.',
     'codebolt.onMessage appears in the generated source or runtime.',
+    'CodeboltAgent, processors.messageModifiers, and ChatHistoryMessageModifier appear in the generated source or runtime.',
     'package.json uses dist/index.js and has a build script.',
     'No local dependency specifiers or local filesystem references are present.',
     'dist/index.js has valid JavaScript syntax.',
@@ -101,6 +319,8 @@ const PLATFORM_CONTRACT = {
     'Creating JavaScript-only source instead of TypeScript.',
     'Using CommonJS import/export syntax in src/index.ts.',
     'Pointing manifests to src/index.ts instead of dist/index.js.',
+    'Creating an onMessage handler that bypasses CodeboltAgent processors and message modifiers.',
+    'Casting request/result values through unchecked broad types instead of defining interfaces and guarded helpers.',
     'Depending on local monorepo packages or private filesystem paths.',
   ],
   forbiddenContentMarkers: FORBIDDEN_LOCAL_REFERENCE_MARKERS,
@@ -156,6 +376,24 @@ function normalizeSpec(inputSpec) {
   };
 }
 
+function formatCodeboltFeatureModules(featureModules) {
+  return Object.keys(featureModules || {})
+    .map((featureName) => {
+      const modules = featureModules[featureName];
+      return `- ${featureName}: ${Array.isArray(modules) ? modules.join(', ') : String(modules || '')}`;
+    })
+    .join('\n');
+}
+
+function formatCodeboltApiCatalog(catalog) {
+  return (catalog || [])
+    .map((entry) => [
+      `- ${entry.module}: ${entry.purpose}`,
+      `  Calls: ${(entry.calls || []).join('; ')}`,
+    ].join('\n'))
+    .join('\n');
+}
+
 function buildMiniAgentSystemPrompt(spec) {
   const contract = spec.platformAwareness;
   return `
@@ -181,6 +419,19 @@ Feature contract:
 - NPM dependencies: ${(contract.npmDependencies || []).join(', ')}
 - Required files: ${contract.requiredFiles.join(', ')}
 - Key APIs: ${contract.keyApis.join(', ')}
+- Exposed CodeBolt JS modules: ${(contract.codeboltExposedModules || []).join(', ')}
+
+CodeBolt JS feature routing:
+${formatCodeboltFeatureModules(contract.codeboltFeatureModules)}
+
+CodeBolt JS API catalog:
+${formatCodeboltApiCatalog(contract.codeboltApiCatalog)}
+
+CodeBolt JS usage rules:
+${(contract.codeboltApiUsageRules || []).map((item) => `- ${item}`).join('\n')}
+
+Processor and message modifier knowledge the generated agent must include:
+${(contract.processorKnowledge || []).map((item) => `- ${item}`).join('\n')}
 
 Expected artifact shape:
 ${(contract.artifactShape || []).map((item) => `- ${item}`).join('\n')}
@@ -317,6 +568,22 @@ function verifyArtifact(spec) {
   }
 
   const allContent = readAllFiles(targetDirectory);
+  const typedFiles = collectFiles(targetDirectory).filter((filePath) => /\.(ts|tsx|d\.ts)$/.test(filePath));
+  const broadTypePattern = new RegExp('\\b' + 'a' + 'ny' + '\\b');
+  const castToBroadTypePattern = new RegExp('\\bas\\s+' + 'a' + 'ny' + '\\b');
+  const castToUncheckedPattern = new RegExp('\\bas\\s+unknown\\b');
+  for (const filePath of typedFiles) {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    if (castToBroadTypePattern.test(fileContent)) {
+      errors.push('TypeScript source must not cast to an unchecked broad type.');
+    }
+    if (castToUncheckedPattern.test(fileContent)) {
+      errors.push('TypeScript source must not cast through unchecked unknown; define a narrow interface or a checked conversion helper.');
+    }
+    if (broadTypePattern.test(fileContent)) {
+      errors.push('TypeScript source must not use the unchecked broad type keyword.');
+    }
+  }
   for (const marker of contract.verificationMarkers) {
     if (!allContent.includes(marker)) {
       errors.push(`Missing required API marker: ${marker}`);
@@ -358,8 +625,18 @@ function verifyArtifact(spec) {
       for (const section of dependencySections) {
         const dependencies = packageJson[section] || {};
         for (const [dependencyName, dependencyVersion] of Object.entries(dependencies)) {
-          if (/^(file:|workspace:|link:)/.test(String(dependencyVersion))) {
+          const normalizedVersion = String(dependencyVersion).trim();
+          if (/^(file:|workspace:|link:)/.test(normalizedVersion)) {
             errors.push(section + '.' + dependencyName + ' must use a published npm version, not ' + dependencyVersion);
+          }
+          if (normalizedVersion === '*') {
+            errors.push(section + '.' + dependencyName + ' must pin a published npm semver range instead of using a wildcard.');
+          }
+          if (dependencyName === '@codebolt/codeboltjs' && normalizedVersion !== '^5.1.36') {
+            errors.push(section + '.' + dependencyName + ' must use ^5.1.36.');
+          }
+          if (dependencyName === '@codebolt/agent' && normalizedVersion !== '^6.1.10') {
+            errors.push(section + '.' + dependencyName + ' must use ^6.1.10.');
           }
         }
       }
