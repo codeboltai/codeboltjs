@@ -1,0 +1,78 @@
+# @codebolt/local-threadpool-worktree-provider
+
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [5506908]
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.3
+  - @codebolt/types@1.0.23
+  - @codebolt/provider@2.0.3
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.2
+  - @codebolt/provider@2.0.2
+
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.1
+  - @codebolt/provider@2.0.1
+
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/codeboltjs@5.0.0
+  - @codebolt/provider@2.0.0
+
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [0e9d5a9]
+- Updated dependencies
+  - @codebolt/types@1.0.22
+  - @codebolt/codeboltjs@4.0.3
+  - @codebolt/provider@1.0.5
+
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.21
+  - @codebolt/codeboltjs@4.0.2
+  - @codebolt/provider@1.0.4
+
+## 1.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.20
+  - @codebolt/provider@1.0.3
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @codebolt/types@1.0.19
+  - @codebolt/provider@1.0.2
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [38cd290]
+  - @codebolt/codeboltjs@2.2.5
+  - @codebolt/provider@1.0.1
