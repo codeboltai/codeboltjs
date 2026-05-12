@@ -8,15 +8,15 @@ packages:
   - remoteexecutor/*
   - remoteenvironments/*
   - remoteenvironments/wranglercontainers/container_src
-  - agentcreator/*
-  - agentcreator/customnodes/*
+  # - agentcreator/*
+  # - agentcreator/customnodes/*
   - actionBlocks/*
   - action-blocks/*
   - documentation/*
   - testcases/*
   - cli/*
   - multillm-node/*
-  - sample-plugins/*
+  # - sample-plugins/*
 
 ignoredBuiltDependencies:
   - esbuild

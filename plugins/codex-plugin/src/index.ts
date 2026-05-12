@@ -34,6 +34,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as sdkModule from '@codebolt/plugin-sdk';
 import {
+    beginLoginFlow,
     clearCredentials,
     getValidCredentials,
     loadCredentials,
@@ -955,6 +956,30 @@ plugin.onStart(async (ctx: any) => {
     llmProvider.onLoginRequest(async (req: any) => {
         console.log(`[CodexPlugin] loginRequest ${req.requestId}`);
         try {
+            const wantsAuthUrl = req.options?.returnAuthUrl === true;
+            if (wantsAuthUrl && !loadCredentials()) {
+                const flow = beginLoginFlow(console.log, notifyChat);
+                flow.completion
+                    .then(async () => {
+                        await registerProviderWithModels();
+                        console.log('[CodexPlugin] Login successful via UI URL');
+                    })
+                    .catch((error: any) => {
+                        console.error('[CodexPlugin] login error:', error?.message || error);
+                    });
+                llmProvider.sendReply(
+                    req.requestId,
+                    {
+                        authenticated: false,
+                        pending: true,
+                        authUrl: flow.authorizeUrl,
+                        redirectUri: flow.redirectUri,
+                    },
+                    true
+                );
+                return;
+            }
+
             const creds = await getValidCredentials(notifyChat);
             await registerProviderWithModels();
             console.log('[CodexPlugin] Login successful via UI trigger');

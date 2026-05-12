@@ -1,5 +1,5 @@
 name: git-worktree-production
-version: 1.0.0
+version: 1.0.1
 description: Production-ready Git Worktree Provider for CodeBolt
 entrypoint: dist/index.js
 config:

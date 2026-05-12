@@ -32,7 +32,7 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/codeboltjs": "latest",
+    "@codebolt/codeboltjs": "^5.1.38",
     "@codebolt/provider": "workspace:*",
     "@codebolt/types": "^5.1.12",
     "ws": "^8.18.0"
