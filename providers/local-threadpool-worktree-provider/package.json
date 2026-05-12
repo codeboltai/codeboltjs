@@ -33,7 +33,7 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/codeboltjs": "latest",
-    "@codebolt/provider": "workspace:*",
+    "@codebolt/provider": "file:../../packages/provider",
     "@codebolt/types": "^5.1.12",
     "ws": "^8.18.0"
   },

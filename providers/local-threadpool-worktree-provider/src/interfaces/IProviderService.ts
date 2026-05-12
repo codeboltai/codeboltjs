@@ -49,6 +49,7 @@ export interface ProviderConfig {
   agentServerPort?: number;
   agentServerHost?: string;
   cleanupEnvironmentPath?: boolean;
+  executionMode?: 'remote' | 'local_thread_pool';
   timeouts?: {
     agentServerStartup?: number;
     wsConnection?: number;

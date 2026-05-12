@@ -1,6 +1,8 @@
+import { execFile } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { promisify } from 'util';
 import WebSocket from 'ws';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
@@ -19,7 +21,10 @@ import {
   startAgentServer as startAgentServerUtil,
   stopAgentServer as stopAgentServerUtil,
   isAgentServerRunning as isAgentServerRunningUtil,
+  isPortInUse,
 } from '../utils/agentServer';
+
+const execFileAsync = promisify(execFile);
 
 export class GitWorktreeProviderService
   extends BaseProvider
@@ -62,6 +67,7 @@ export class GitWorktreeProviderService
       agentServerPort: config.agentServerPort ?? 3001,
       agentServerHost: config.agentServerHost ?? 'localhost',
       cleanupEnvironmentPath: config.cleanupEnvironmentPath ?? true,
+      executionMode: config.executionMode ?? this.getExecutionModeFromEnv(),
       timeouts: {
         agentServerStartup: config.timeouts?.agentServerStartup ?? 60_000,
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
@@ -90,7 +96,7 @@ export class GitWorktreeProviderService
 
       return {
         ...result,
-        worktreePath: this.state.workspacePath,
+        worktreePath: this.state.workspacePath ?? undefined,
       };
     } finally {
       this.isStartupCheck = false;
@@ -99,6 +105,11 @@ export class GitWorktreeProviderService
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
     this.logger.log('Agent start requested, forwarding to agent server:', agentMessage);
+    if (this.providerConfig.executionMode === 'local_thread_pool') {
+      this.logger.log('Local threadpool mode: agent execution is handled by the host thread pool.');
+      return;
+    }
+
     this.isStartupCheck = true;
     try {
       await this.ensureAgentServer();
@@ -382,6 +393,11 @@ export class GitWorktreeProviderService
   }
 
   async startAgentServer(): Promise<void> {
+    if (this.providerConfig.executionMode === 'local_thread_pool') {
+      this.logger.log('Local threadpool mode: skipping agent server startup');
+      return;
+    }
+
     this.logger.log('Starting agent server...');
 
     try {
@@ -418,6 +434,11 @@ export class GitWorktreeProviderService
   }
 
   async connectToAgentServer(environmentPath: string, environmentName: string): Promise<void> {
+    if (this.providerConfig.executionMode === 'local_thread_pool') {
+      this.logger.log(`Local threadpool mode: skipping agent server connection for ${environmentName} at ${environmentPath}`);
+      return;
+    }
+
     try {
       this.logger.log(`Connecting to local environment workspace: ${environmentPath} (environment=${environmentName})`);
       if (this.agentServer.isConnected) {
@@ -459,24 +480,26 @@ export class GitWorktreeProviderService
 
   async createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo> {
     try {
-      const normalizedPath = path.resolve(projectPath);
-      const existed = await fs
-        .stat(normalizedPath)
-        .then((stats) => stats.isDirectory())
-        .catch(() => false);
+      const basePath = path.resolve(projectPath);
+      await this.git(['rev-parse', '--is-inside-work-tree'], basePath);
 
-      if (!existed) {
-        await fs.mkdir(normalizedPath, { recursive: true });
-      }
+      const safeEnvironmentName = (environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+      const tag = `${safeEnvironmentName}-${Date.now()}`;
+      const worktreeRoot = path.join(basePath, '.codebolt', 'worktrees');
+      const worktreePath = path.join(worktreeRoot, tag);
+      const branchName = `codebolt/local-threadpool-${tag}`;
+
+      await fs.mkdir(worktreeRoot, { recursive: true });
+      await this.git(['worktree', 'add', '-b', branchName, worktreePath, 'HEAD'], basePath);
 
       return {
-        path: normalizedPath,
-        tag: environmentName,
-        isCreated: !existed,
+        path: worktreePath,
+        tag: branchName,
+        isCreated: true,
       };
     } catch (error: any) {
-      this.logger.error('Failed to initialize local environment:', error.message);
-      throw new Error(`Could not initialize local environment path: ${error.message}`);
+      this.logger.error('Failed to initialize git worktree environment:', error.message);
+      throw new Error(`Could not initialize git worktree environment: ${error.message}`);
     }
   }
 
@@ -488,7 +511,36 @@ export class GitWorktreeProviderService
         return true;
       }
 
-      await fs.rm(normalizedPath, { recursive: true, force: true });
+      let branchName = this.environmentInfo.tag || '';
+      try {
+        const { stdout } = await this.git(['rev-parse', '--abbrev-ref', 'HEAD'], normalizedPath);
+        branchName = stdout.trim() || branchName;
+      } catch {
+        // Best-effort cleanup continues below.
+      }
+
+      const basePath = this.baseProjectPath || path.resolve(normalizedPath, '..', '..', '..');
+      this.logger.log('Removing git worktree:', normalizedPath, 'from base repo:', basePath);
+      try {
+        await this.git(['worktree', 'remove', '--force', normalizedPath], basePath);
+      } catch (error: any) {
+        this.logger.warn('git worktree remove failed; falling back to filesystem cleanup:', error.stderr || error.message);
+        await fs.rm(normalizedPath, { recursive: true, force: true });
+        try {
+          await this.git(['worktree', 'prune'], basePath);
+        } catch (pruneError: any) {
+          this.logger.warn('git worktree prune failed after filesystem cleanup:', pruneError.stderr || pruneError.message);
+        }
+      }
+
+      if (branchName && branchName !== 'HEAD') {
+        try {
+          await this.git(['branch', '-D', branchName], basePath);
+        } catch (error: any) {
+          this.logger.warn('Unable to delete worktree branch; it may already be gone or checked out elsewhere:', error.stderr || error.message);
+        }
+      }
+
       return true;
     } catch (error: any) {
       this.logger.error('Error removing local environment path:', error);
@@ -523,6 +575,11 @@ export class GitWorktreeProviderService
   protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
     const environmentPath = (initVars as any).environmentPath as string | undefined;
     const projectPath = (initVars as any).projectPath as string | undefined;
+    const executionMode = (initVars as any).executionMode as ProviderConfig['executionMode'] | undefined;
+
+    if (executionMode) {
+      this.providerConfig.executionMode = executionMode;
+    }
 
     if (environmentPath) {
       this.state.projectPath = path.resolve(environmentPath);
@@ -534,9 +591,29 @@ export class GitWorktreeProviderService
 
     if (projectPath) {
       this.baseProjectPath = path.resolve(projectPath);
+    } else if (environmentPath) {
+      this.baseProjectPath = path.resolve(environmentPath);
     }
 
     this.environmentPath = this.state.projectPath;
+  }
+
+  protected async ensureAgentServer(): Promise<void> {
+    if (this.providerConfig.executionMode === 'local_thread_pool') {
+      this.logger.log('Local threadpool mode: no agent server required during provider start');
+      return;
+    }
+
+    await super.ensureAgentServer();
+  }
+
+  async ensureTransportConnection(initVars: ProviderInitVars): Promise<void> {
+    if (this.providerConfig.executionMode === 'local_thread_pool') {
+      this.logger.log('Local threadpool mode: no secondary transport required during provider start');
+      return;
+    }
+
+    await super.ensureTransportConnection(initVars);
   }
 
   protected async resolveWorkspacePath(initVars: ProviderInitVars): Promise<string> {
@@ -577,21 +654,6 @@ export class GitWorktreeProviderService
       await this.removeWorktree(workspacePath);
     } catch (error: any) {
       this.logger.error('Error tearing down environment:', error);
-    }
-  }
-
-  protected async ensureAgentServer(): Promise<void> {
-    try {
-      const isRunning = await this.isAgentServerRunning();
-      if (isRunning) {
-        this.logger.log('Agent server already running, skipping startup');
-        return;
-      }
-
-      await this.startAgentServer();
-    } catch (error: any) {
-      this.logger.error('Error ensuring agent server:', error);
-      throw new Error(`Failed to ensure agent server: ${error.message}`);
     }
   }
 
@@ -651,7 +713,23 @@ export class GitWorktreeProviderService
   }
 
   private async isPortAvailable(port: number): Promise<boolean> {
-    return isPortInUse({ port, host: '127.0.0.1' });
+    return !(await isPortInUse({ port, host: '127.0.0.1' }));
+  }
+
+  private async git(args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
+    return execFileAsync('git', args, {
+      cwd,
+      timeout: this.providerConfig.timeouts?.gitOperations ?? 30_000,
+    });
+  }
+
+  private getExecutionModeFromEnv(): ProviderConfig['executionMode'] {
+    try {
+      const envConfig = process.env.ENVIRONMENT_CONFIG ? JSON.parse(process.env.ENVIRONMENT_CONFIG) : {};
+      return envConfig.executionMode;
+    } catch {
+      return undefined;
+    }
   }
 
   private async findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
@@ -701,3 +779,4 @@ export class GitWorktreeProviderService
     }
   }
 }
+
