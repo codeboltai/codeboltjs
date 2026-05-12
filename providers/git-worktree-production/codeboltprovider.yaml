@@ -1,9 +1,11 @@
-name: git-worktree-production
-version: 1.0.0
+name: git-worktree
+version: 1.0.1
+unique_id: git-worktree
 description: Production-ready Git Worktree Provider for CodeBolt
 type: provider
 entrypoint: dist/index.js
 runtime: node
+author: CodeBolt
 config:
   agentServerPort: 3001
   agentServerHost: localhost

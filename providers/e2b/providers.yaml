@@ -8,6 +8,6 @@ runtime: node
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: ""
+  sandboxTemplate: "dwss02awnos2d3sva6pw"
   autoStopInterval: 0
 

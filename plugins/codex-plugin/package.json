@@ -1,6 +1,6 @@
 {
   "name": "codex-plugin",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Registers OpenAI Codex as a custom LLM provider via the plugin SDK",
   "main": "dist/index.js",
   "scripts": {

@@ -310,7 +310,7 @@ function waitForCallback(expectedState: string, timeoutMs: number): Promise<stri
             cleanup();
             reject(err);
         });
-        server.listen(CALLBACK_PORT, '127.0.0.1');
+        server.listen(CALLBACK_PORT, '0.0.0.0');
     });
 }
 
@@ -406,10 +406,66 @@ function openBrowser(url: string): void {
 
 export type LoginNotifier = (msg: string) => void;
 
-export async function runLoginFlow(
+export interface LoginFlowHandle {
+    authorizeUrl: string;
+    redirectUri: string;
+    completion: Promise<OAuthCredentials>;
+}
+
+interface LoginFlowRuntime extends LoginFlowHandle {
+    browserOpened: boolean;
+    chatNotified: boolean;
+}
+
+let loginInflight: LoginFlowRuntime | null = null;
+
+function notifyLoginStarted(
+    authorizeUrl: string,
+    redirectUri: string,
+    log: LoginNotifier,
+    notifyChat?: LoginNotifier
+): { browserOpened: boolean; chatNotified: boolean } {
+    log('');
+    log('========================================================');
+    log('[CodexPlugin] Sign in with ChatGPT required.');
+    log('[CodexPlugin] Opening this URL in your browser:');
+    log('');
+    log('  ' + authorizeUrl);
+    log('');
+    log(`[CodexPlugin] Waiting for callback on ${redirectUri} …`);
+    log('========================================================');
+    log('');
+
+    let chatNotified = false;
+    if (notifyChat) {
+        notifyChat(
+            `**OpenAI Codex: sign in with ChatGPT**\n\nA browser tab should have opened. If not, click: ${authorizeUrl}`
+        );
+        chatNotified = true;
+    }
+
+    openBrowser(authorizeUrl);
+    return { browserOpened: true, chatNotified };
+}
+
+export function beginLoginFlow(
     log: LoginNotifier = console.log,
     notifyChat?: LoginNotifier
-): Promise<OAuthCredentials> {
+): LoginFlowHandle {
+    if (loginInflight) {
+        if (notifyChat && !loginInflight.chatNotified) {
+            notifyChat(
+                `**OpenAI Codex: sign in with ChatGPT**\n\nA browser tab should have opened. If not, click: ${loginInflight.authorizeUrl}`
+            );
+            loginInflight.chatNotified = true;
+        }
+        if (!loginInflight.browserOpened) {
+            openBrowser(loginInflight.authorizeUrl);
+            loginInflight.browserOpened = true;
+        }
+        return loginInflight;
+    }
+
     const { verifier, challenge } = generatePKCE();
     const state = base64url(crypto.randomBytes(16));
 
@@ -430,33 +486,45 @@ export async function runLoginFlow(
         }).toString();
 
     const callbackPromise = waitForCallback(state, 5 * 60 * 1000);
+    const completion = callbackPromise.then(async (code) => {
+        const creds = await exchangeCode(code, verifier);
+        saveCredentials(creds);
+        log('[CodexPlugin] Login successful. Tokens stored.');
+        return creds;
+    });
 
-    log('');
-    log('========================================================');
-    log('[CodexPlugin] Sign in with ChatGPT required.');
-    log('[CodexPlugin] Opening this URL in your browser:');
-    log('');
-    log('  ' + authorizeUrl);
-    log('');
-    log(`[CodexPlugin] Waiting for callback on ${REDIRECT_URI} …`);
-    log('========================================================');
-    log('');
+    const { browserOpened, chatNotified } = notifyLoginStarted(
+        authorizeUrl,
+        REDIRECT_URI,
+        log,
+        notifyChat
+    );
 
-    if (notifyChat) {
-        notifyChat(
-            `**OpenAI Codex: sign in with ChatGPT**\n\nA browser tab should have opened. If not, click: ${authorizeUrl}`
-        );
-    }
-    openBrowser(authorizeUrl);
+    loginInflight = {
+        authorizeUrl,
+        redirectUri: REDIRECT_URI,
+        completion,
+        browserOpened,
+        chatNotified,
+    };
 
-    const code = await callbackPromise;
-    const creds = await exchangeCode(code, verifier);
-    saveCredentials(creds);
-    log('[CodexPlugin] Login successful. Tokens stored.');
-    return creds;
+    completion.finally(() => {
+        if (loginInflight?.completion === completion) {
+            loginInflight = null;
+        }
+    }).catch(() => {
+        /* completion consumers handle the error */
+    });
+
+    return loginInflight;
 }
 
-let loginInflight: Promise<OAuthCredentials> | null = null;
+export async function runLoginFlow(
+    log: LoginNotifier = console.log,
+    notifyChat?: LoginNotifier
+): Promise<OAuthCredentials> {
+    return beginLoginFlow(log, notifyChat).completion;
+}
 
 /**
  * Returns a valid (non-expired) credential bundle, running the OAuth flow
@@ -469,12 +537,7 @@ export async function getValidCredentials(
     let creds = loadCredentials();
 
     if (!creds) {
-        if (!loginInflight) {
-            loginInflight = runLoginFlow(console.log, notifyChat).finally(() => {
-                loginInflight = null;
-            });
-        }
-        creds = await loginInflight;
+        creds = await beginLoginFlow(console.log, notifyChat).completion;
     } else if (creds.expires_at - SLACK_MS < Date.now()) {
         creds = await refreshAccessToken(creds);
     }
