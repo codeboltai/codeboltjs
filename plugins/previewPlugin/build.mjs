@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const requireFromRepo = createRequire('/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/package.json');
+const requireFromRepo = createRequire(path.resolve(__dirname, '../../../CodeBolt/package.json'));
 const { build } = requireFromRepo('esbuild');
 
 await build({
