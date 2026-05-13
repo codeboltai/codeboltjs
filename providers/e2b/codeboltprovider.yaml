@@ -1,5 +1,5 @@
 name: e2b-remote-provider
-version: 2.0.8
+version: 2.0.9
 unique_id: e2b-remote-provider
 description: E2B Remote Provider for CodeBolt (plugin-based)
 type: provider

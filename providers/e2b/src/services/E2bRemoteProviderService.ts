@@ -146,6 +146,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     //    owns the narrative engine and performs the import + checkout.
     this.logger.log('initVars for narrative bundle import:', JSON.stringify(initVars, null, 2));
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
+    this.logger.log(`Pre-narrative WS state: wsConnection=${!!this.agentServer.wsConnection}, readyState=${this.agentServer.wsConnection?.readyState ?? 'N/A'}, isConnected=${this.agentServer.isConnected}`);
     if (narrativeBundlePath && this.sandbox) {
       try {
         this.logger.log(`Uploading narrative bundle from local path: ${narrativeBundlePath} to sandbox /tmp/narrative-unified.tar.gz`);
@@ -412,15 +413,36 @@ export class E2bRemoteProviderService extends BaseProvider {
    * The plugin does NOT interpret these messages — all narrative work is done
    * by the codebolt application in the remote sandbox.
    */
-  private sendNarrativeRequest(
+  private async sendNarrativeRequest(
     type: string,
     payload: Record<string, any>,
     timeoutMs: number = 120_000,
   ): Promise<any> {
-    const ws = this.agentServer.wsConnection;
+    // Wait for WS connection to become OPEN (up to 30s)
+    const wsWaitMs = 30_000;
+    const pollInterval = 500;
+    const wsWaitDeadline = Date.now() + wsWaitMs;
+
+    let ws = this.agentServer.wsConnection;
+    this.logger.log(`sendNarrativeRequest(${type}): wsConnection=${!!ws}, readyState=${ws?.readyState ?? 'N/A'} (OPEN=${WebSocket.OPEN}), isConnected=${this.agentServer.isConnected}`);
+
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      return Promise.reject(new Error('Plugin WS not connected; cannot send narrative request'));
+      this.logger.log(`sendNarrativeRequest(${type}): WS not open, waiting up to ${wsWaitMs}ms for connection...`);
+      while (Date.now() < wsWaitDeadline) {
+        await new Promise(r => setTimeout(r, pollInterval));
+        ws = this.agentServer.wsConnection;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          this.logger.log(`sendNarrativeRequest(${type}): WS became OPEN after waiting`);
+          break;
+        }
+      }
+      // Final check
+      ws = this.agentServer.wsConnection;
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        throw new Error(`Plugin WS not connected after waiting ${wsWaitMs}ms; cannot send narrative request (type=${type}, readyState=${ws?.readyState ?? 'null'})`);
+      }
     }
+
     const responseType = `${type}Response`;
     const requestId = `narr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     return new Promise((resolve, reject) => {
@@ -430,7 +452,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       }, timeoutMs);
       this.pendingNarrativeRequests.set(requestId, { resolve, reject, timeout, responseType });
       try {
-        ws.send(JSON.stringify({ type, requestId, ...payload }));
+        ws!.send(JSON.stringify({ type, requestId, ...payload }));
       } catch (err: any) {
         clearTimeout(timeout);
         this.pendingNarrativeRequests.delete(requestId);
