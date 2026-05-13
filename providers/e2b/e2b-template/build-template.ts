@@ -22,7 +22,8 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.31';
+const CLI_VERSION = '1.12.56';
+const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 async function main() {
   console.log(`Building E2B template (node:22-trixie + codebolt@${CLI_VERSION})...\n`);
@@ -34,7 +35,7 @@ async function main() {
 
   const buildInfo = await Template.build(template, 'codebolt-remote-execution', {
     cpuCount: 2,
-    memoryMB: 2048,
+    memoryMB: BUILD_MEMORY_MB,
     onBuildLogs: defaultBuildLogger(),
   });
 

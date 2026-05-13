@@ -102,6 +102,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
+    this.logger.log('onProviderStart initVars:', JSON.stringify(initVars, null, 2));
 
     const projectPath = initVars.projectPath as string | undefined;
     if (!projectPath) {
@@ -143,9 +144,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     //    The plugin acts as a transparent bridge — it does NOT interpret
     //    narrative messages. The codebolt application in the remote sandbox
     //    owns the narrative engine and performs the import + checkout.
+    this.logger.log('initVars for narrative bundle import:', JSON.stringify(initVars, null, 2));
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
     if (narrativeBundlePath && this.sandbox) {
       try {
+        this.logger.log(`Uploading narrative bundle from local path: ${narrativeBundlePath} to sandbox /tmp/narrative-unified.tar.gz`);
         const remoteBundle = await this.uploadFileToSandbox(
           narrativeBundlePath,
           '/tmp/narrative-unified.tar.gz',
@@ -185,6 +188,10 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.logger.error('Narrative bundle import failed:', err?.message ?? err);
         throw new Error(`Narrative bundle import failed in sandbox: ${err?.message ?? err}`);
       }
+    } else {
+      this.logger.log(
+        `Skipping narrative bundle import: narrativeBundlePath=${narrativeBundlePath ?? 'undefined'}, sandbox=${this.sandbox ? 'available' : 'null'}`,
+      );
     }
 
     this.state.initialized = true;

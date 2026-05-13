@@ -20,11 +20,12 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.31';
+const CLI_VERSION = '1.12.56';
 const PLUGIN_UNIQUE_ID = 'cloud-plugin';
 const PLUGIN_DETAIL_URL = `https://api.codebolt.ai/api/plugins/detailbyuid?unique_id=${encodeURIComponent(PLUGIN_UNIQUE_ID)}`;
 const CODEBOLT_PLUGIN_ROOT = '/home/user/.codebolt/plugins';
 const CODEBLOT_ROOT = '/home/user/.codeblot';
+const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 function buildPluginInstallCommand(): string {
   const cacheBuster = Date.now();
@@ -64,7 +65,7 @@ async function main() {
 
   const buildInfo = await Template.build(template, 'codebolt-remote-template-with-plugin', {
     cpuCount: 2,
-    memoryMB: 2048,
+    memoryMB: BUILD_MEMORY_MB,
     onBuildLogs: defaultBuildLogger(),
   });
 

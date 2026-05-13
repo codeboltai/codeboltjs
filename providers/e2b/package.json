@@ -1,6 +1,6 @@
 {
   "name": "@codebolt/e2b-remote-provider",
-  "version": "1.0.0",
+  "version": "2.0.8",
   "description": "E2B Remote Provider for CodeBolt - uses E2B sandbox infrastructure for remote execution",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

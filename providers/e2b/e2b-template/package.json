@@ -2,7 +2,9 @@
   "name": "e2b-template-builder",
   "private": true,
   "scripts": {
-    "build": "tsx build-template.ts"
+    "build": "tsx build-template-with-plugin.ts",
+    "build:base": "tsx build-template.ts",
+    "build:with-plugin": "tsx build-template-with-plugin.ts"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
