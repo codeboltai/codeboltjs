@@ -414,6 +414,7 @@ const externalEventPostToolProcessor = {
 };
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
+
   console.log(`[act-updated] Agent started, received message: "${(reqMessage.userMessage || '').substring(0, 100)}"`);
 
   try {
@@ -438,32 +439,32 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
       },
       processors: {
         messageModifiers: [
-        // 1. Chat History
-        new ChatHistoryMessageModifier({ enableChatHistory: true }),
-        // 2. Selected capability context
-        new CapabilityContextModifier(),
-        // 3. Environment Context (date, OS)
-        new EnvironmentContextModifier({ enableFullContext: false }),
-        // 4. Directory Context (folder structure)  
-        new DirectoryContextModifier(),
+          // 1. Chat History
+          new ChatHistoryMessageModifier({ enableChatHistory: true }),
+          // 2. Selected capability context
+          new CapabilityContextModifier(),
+          // 3. Environment Context (date, OS)
+          new EnvironmentContextModifier({ enableFullContext: false }),
+          // 4. Directory Context (folder structure)  
+          new DirectoryContextModifier(),
 
-        // 5. IDE Context (active file, opened files) - Shared instance
-        ideContextModifier,
-        // 6. Core System Prompt (instructions)
-        new CoreSystemPromptModifier(
-          { customSystemPrompt: systemPrompt }
-        ),
-        // 7. Tools (function declarations)
-        new ToolInjectionModifier({
-          includeToolDescriptions: true
-        }),
+          // 5. IDE Context (active file, opened files) - Shared instance
+          ideContextModifier,
+          // 6. Core System Prompt (instructions)
+          new CoreSystemPromptModifier(
+            { customSystemPrompt: systemPrompt }
+          ),
+          // 7. Tools (function declarations)
+          new ToolInjectionModifier({
+            includeToolDescriptions: true
+          }),
 
-        // 8. At-file processing (@file mentions)
-        new AtFileProcessorModifier({
-          enableRecursiveSearch: true
-        }),
-        externalEventProcessor
-      ],
+          // 8. At-file processing (@file mentions)
+          new AtFileProcessorModifier({
+            enableRecursiveSearch: true
+          }),
+          externalEventProcessor
+        ],
         preInferenceProcessors: [],
         postInferenceProcessors: [],
         preToolCallProcessors: [],

@@ -1,7 +1,7 @@
 {
   "name": "@codebolt/act",
   "private": true,
-  "version": "1.1.86",
+  "version": "1.1.87",
   "description": "This is a codebolt agent.",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/agent": "^6.1.12",
+    "@codebolt/agent": "^6.1.14",
     "@codebolt/thirdpartyagents": "latest",
     "@codebolt/codeboltjs": "^5.1.38",
     "@codebolt/types": "^5.1.12",
