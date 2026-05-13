@@ -1,13 +1,11 @@
 name: local-threadpool-worktree-provider
 version: 1.1.0
-description: Local threadpool environment provider that executes in a server-managed workspace
+description: Local threadpool worktree environment provider
 entrypoint: dist/index.js
 config:
-  agentServerPort: 3001
-  agentServerHost: localhost
+  executionMode: local_thread_pool
   cleanupEnvironmentPath: true
   timeouts:
-    agentServerStartup: 30000
     wsConnection: 10000
     gitOperations: 30000
     cleanup: 15000

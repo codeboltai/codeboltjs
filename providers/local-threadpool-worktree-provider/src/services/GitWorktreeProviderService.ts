@@ -1,10 +1,8 @@
 import { execFile } from 'child_process';
-import type { ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { promisify } from 'util';
-import WebSocket from 'ws';
-import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
+import type { ProviderInitVars } from '@codebolt/types/provider';
 import {
   BaseProvider,
   ProviderStartResult,
@@ -17,12 +15,6 @@ import {
 } from '../interfaces/IProviderService';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 import { getDiff } from '../utils/gitDiff';
-import {
-  startAgentServer as startAgentServerUtil,
-  stopAgentServer as stopAgentServerUtil,
-  isAgentServerRunning as isAgentServerRunningUtil,
-  isPortInUse,
-} from '../utils/agentServer';
 
 const execFileAsync = promisify(execFile);
 
@@ -32,8 +24,6 @@ export class GitWorktreeProviderService
   private logger: Logger;
   private environmentPath: string | null = null;
   private baseProjectPath: string | null = null;
-  private isStartupCheck = false;
-
   private readonly providerConfig: ProviderConfig;
 
   private readonly defaultEmptyDiffResult: DiffResult = {
@@ -55,8 +45,8 @@ export class GitWorktreeProviderService
 
   constructor(config: ProviderConfig = {}) {
     super({
-      agentServerPort: config.agentServerPort ?? 3001,
-      agentServerHost: config.agentServerHost ?? 'localhost',
+      agentServerPort: 0,
+      agentServerHost: 'localhost',
       wsRegistrationTimeout: config.timeouts?.wsConnection ?? 10_000,
       reconnectAttempts: 10,
       reconnectDelay: 1_000,
@@ -64,12 +54,9 @@ export class GitWorktreeProviderService
     });
 
     this.providerConfig = {
-      agentServerPort: config.agentServerPort ?? 3001,
-      agentServerHost: config.agentServerHost ?? 'localhost',
       cleanupEnvironmentPath: config.cleanupEnvironmentPath ?? true,
       executionMode: config.executionMode ?? this.getExecutionModeFromEnv(),
       timeouts: {
-        agentServerStartup: config.timeouts?.agentServerStartup ?? 60_000,
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
         gitOperations: config.timeouts?.gitOperations ?? 30_000,
         cleanup: config.timeouts?.cleanup ?? 15_000,
@@ -82,7 +69,6 @@ export class GitWorktreeProviderService
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
 
-    this.isStartupCheck = true;
     try {
       const result = await super.onProviderStart(initVars);
       this.logger.log('Started environment workspace:', this.state.workspacePath);
@@ -94,37 +80,15 @@ export class GitWorktreeProviderService
         this.startEnvironmentHeartbeat(initVars.environmentName);
       }
 
+      const { agentServerUrl, ...localResult } = result as ProviderStartResult & { agentServerUrl?: string };
+      void agentServerUrl;
+
       return {
-        ...result,
+        ...localResult,
         worktreePath: this.state.workspacePath ?? undefined,
-      };
+      } as ProviderStartResult & { worktreePath?: string };
     } finally {
-      this.isStartupCheck = false;
-    }
-  }
-
-  async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
-    this.logger.log('Agent start requested, forwarding to agent server:', agentMessage);
-    if (this.providerConfig.executionMode === 'local_thread_pool') {
-      this.logger.log('Local threadpool mode: agent execution is handled by the host thread pool.');
-      return;
-    }
-
-    this.isStartupCheck = true;
-    try {
-      await this.ensureAgentServer();
-
-      if (!this.agentServer.isConnected && this.state.environmentName) {
-        this.logger.log('Agent server not connected, attempting to reconnect transport...');
-        await this.ensureTransportConnection({
-          environmentName: this.state.environmentName,
-          projectPath: this.state.projectPath ?? undefined,
-        } as any);
-      }
-
-      await super.onProviderAgentStart(agentMessage);
-    } finally {
-      this.isStartupCheck = false;
+      // No secondary agent server is managed by this provider.
     }
   }
 
@@ -138,9 +102,8 @@ export class GitWorktreeProviderService
         this.unregisterConnectedEnvironment(initVars.environmentName);
       }
 
-      await this.stopAgentServer();
-      await this.disconnectTransport();
       await this.teardownEnvironment();
+      await this.disconnectTransport();
 
       this.state.initialized = false;
       this.state.workspacePath = null;
@@ -387,97 +350,6 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async onUserMessage(userMessage: RawMessageForAgent): Promise<void> {
-    this.logger.log('onUserMessage received:', userMessage?.messageId ?? 'unknown');
-    await super.onRawMessage(userMessage);
-  }
-
-  async startAgentServer(): Promise<void> {
-    if (this.providerConfig.executionMode === 'local_thread_pool') {
-      this.logger.log('Local threadpool mode: skipping agent server startup');
-      return;
-    }
-
-    this.logger.log('Starting agent server...');
-
-    try {
-      if (this.agentServer.process && !this.agentServer.process.killed) {
-        this.logger.log('Agent server process already exists, skipping startup');
-        return;
-      }
-
-      const preferredPort = this.providerConfig.agentServerPort!;
-      const availablePort = await this.findAvailablePort(preferredPort);
-
-      if (availablePort !== preferredPort) {
-        this.logger.log(`Using port ${availablePort} instead of configured port ${preferredPort}`);
-        this.providerConfig.agentServerPort = availablePort;
-      }
-
-      this.agentServer.serverUrl = this.buildAgentServerUrl();
-
-      this.agentServer.process = await startAgentServerUtil({
-        logger: this.logger,
-        port: availablePort,
-        projectPath: this.environmentPath ?? this.state.projectPath ?? undefined,
-      });
-
-      this.agentServer.process.on('exit', (code, signal) => {
-        this.logger.warn(`Agent server process exited unexpectedly with code ${code} and signal ${signal}`);
-        this.agentServer.process = null;
-        this.agentServer.isConnected = false;
-      });
-    } catch (error: any) {
-      this.logger.error('Error starting agent server:', error);
-      throw new Error(`Failed to start agent server: ${error.message}`);
-    }
-  }
-
-  async connectToAgentServer(environmentPath: string, environmentName: string): Promise<void> {
-    if (this.providerConfig.executionMode === 'local_thread_pool') {
-      this.logger.log(`Local threadpool mode: skipping agent server connection for ${environmentName} at ${environmentPath}`);
-      return;
-    }
-
-    try {
-      this.logger.log(`Connecting to local environment workspace: ${environmentPath} (environment=${environmentName})`);
-      if (this.agentServer.isConnected) {
-        return;
-      }
-
-      this.logger.log('Ensuring WebSocket connection to agent server...');
-      await this.ensureTransportConnection({ environmentName, type: 'local-threadpool' });
-    } catch (error: any) {
-      this.logger.error('Error connecting to agent server:', error);
-      throw new Error(`Failed to connect to agent server: ${error.message}`);
-    }
-  }
-
-  async sendMessageToAgent(message: RawMessageForAgent): Promise<boolean> {
-    try {
-      return await this.sendToAgentServer(message);
-    } catch (error: any) {
-      this.logger.error('Error sending message to agent:', error);
-      return false;
-    }
-  }
-
-  async stopAgentServer(): Promise<boolean> {
-    try {
-      const result = await stopAgentServerUtil({
-        logger: this.logger,
-        processRef: this.agentServer.process,
-      });
-
-      this.agentServer.process = null;
-
-      return result;
-    } catch (error: any) {
-      this.logger.error('Error stopping agent server:', error);
-      return false;
-    }
-  }
-
   async createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo> {
     try {
       const basePath = path.resolve(projectPath);
@@ -552,24 +424,8 @@ export class GitWorktreeProviderService
     return { ...this.environmentInfo };
   }
 
-  getAgentServerConnection(): {
-    process: ChildProcess | null;
-    wsConnection: WebSocket | null;
-    serverUrl: string;
-    isConnected: boolean;
-    metadata: Record<string, unknown>;
-  } {
-    return {
-      process: this.agentServer.process as ChildProcess | null,
-      wsConnection: this.agentServer.wsConnection as WebSocket | null,
-      serverUrl: this.agentServer.serverUrl,
-      isConnected: this.agentServer.isConnected,
-      metadata: this.agentServer.metadata,
-    };
-  }
-
   isInitialized(): boolean {
-    return this.state.initialized && this.agentServer.isConnected;
+    return this.state.initialized;
   }
 
   protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
@@ -658,12 +514,7 @@ export class GitWorktreeProviderService
   }
 
   protected async beforeClose(): Promise<void> {
-    try {
-      this.logger.log('Received close signal, initiating cleanup...');
-      await this.stopAgentServer();
-    } catch (error: any) {
-      this.logger.error('Error during beforeClose cleanup:', error);
-    }
+    this.logger.log('Received close signal; no secondary agent server cleanup is required.');
   }
 
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
@@ -678,42 +529,6 @@ export class GitWorktreeProviderService
     }
 
     return `${this.agentServer.serverUrl}?${query.toString()}`;
-  }
-
-  protected handleTransportMessage(message: RawMessageForAgent): void {
-    try {
-      if (message?.type) {
-        this.logger.log('WebSocket message received:', message.type);
-      }
-
-      switch (message.type) {
-        case 'agentStartResponse':
-          this.logger.log('Agent start response:', message.data ?? 'unknown');
-          if (message.data) {
-            this.logger.error('Agent start error:', message.data);
-          }
-          break;
-        case 'agentMessage':
-          this.logger.log('Agent message:', message.data ?? 'no message');
-          break;
-        case 'notification':
-          this.logger.log('Agent notification:', message.action, message.data);
-          break;
-        case 'error':
-          this.logger.error('Agent server error:', message.message ?? 'unknown error');
-          break;
-        default:
-          this.logger.log('Unhandled message type:', message.type);
-      }
-
-      super.handleTransportMessage(message);
-    } catch (error: any) {
-      this.logger.error('Error handling transport message:', error);
-    }
-  }
-
-  private async isPortAvailable(port: number): Promise<boolean> {
-    return !(await isPortInUse({ port, host: '127.0.0.1' }));
   }
 
   private async git(args: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
@@ -732,51 +547,16 @@ export class GitWorktreeProviderService
     }
   }
 
-  private async findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
-    let port = preferredPort;
-    for (let i = 0; i < maxAttempts; i++) {
-      if (await this.isPortAvailable(port)) {
-        return port;
-      }
-      this.logger.warn(`Port ${port} is in use, trying next port...`);
-      port++;
-    }
-    throw new Error(`Could not find an available port after ${maxAttempts} attempts starting from ${preferredPort}`);
-  }
-
-  private async isAgentServerRunning(): Promise<boolean> {
-    try {
-      if (process.env.NODE_ENV === 'test' && !this.isStartupCheck) {
-        return true;
-      }
-
-      if (!this.agentServer.serverUrl) {
-        this.agentServer.serverUrl = this.buildAgentServerUrl();
-      }
-
-      return await isAgentServerRunningUtil(
-        {
-          agentServerPort: this.providerConfig.agentServerPort,
-          agentServerHost: this.providerConfig.agentServerHost,
-          timeouts: this.providerConfig.timeouts,
-        },
-        this.logger,
-        this.agentServer.serverUrl,
-      );
-    } catch (error) {
-      this.logger.warn('Error checking if agent server is running:', error);
-      return false;
-    }
-  }
-
   async onCloseSignal(): Promise<void> {
     try {
       this.logger.log('Received close signal, initiating cleanup...');
-      await this.stopAgentServer();
       await this.teardownEnvironment();
     } catch (error: any) {
       this.logger.error('Error during onCloseSignal cleanup:', error);
     }
   }
 }
+
+
+
 

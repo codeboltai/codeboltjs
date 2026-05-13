@@ -4,7 +4,6 @@ import * as net from 'net';
 import WebSocket from 'ws';
 import * as path from 'path';
 
-import type { ProviderConfig } from '../interfaces/IProviderService';
 import type { Logger } from './logger';
 
 type StartAgentServerOptions = {
@@ -26,6 +25,11 @@ type IsPortInUseOptions = {
 type ServerHealthOptions = {
   logger: Logger;
   serverUrl: string;
+};
+
+type AgentServerConfig = {
+  agentServerPort?: number;
+  agentServerHost?: string;
 };
 
 export async function startAgentServer(options: StartAgentServerOptions): Promise<ChildProcess> {
@@ -175,7 +179,7 @@ export async function testServerHealth(options: ServerHealthOptions): Promise<bo
   }
 }
 
-export async function isAgentServerRunning(config: ProviderConfig, logger: Logger, serverUrl: string): Promise<boolean> {
+export async function isAgentServerRunning(config: AgentServerConfig, logger: Logger, serverUrl: string): Promise<boolean> {
   try {
     const portInUse = await isPortInUse({
       port: config.agentServerPort ?? 3001,
