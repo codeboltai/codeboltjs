@@ -1992,8 +1992,8 @@ importers:
         specifier: ^7.26.0
         version: 7.28.4
       '@codebolt/agent':
-        specifier: ^6.1.12
-        version: 6.1.12(@codebolt/codeboltjs@5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
+        specifier: ^6.1.14
+        version: 6.1.14(@codebolt/codeboltjs@5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))
       '@codebolt/codeboltjs':
         specifier: ^5.1.38
         version: 5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -5055,6 +5055,37 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  providers/local-threadpool-worktree-provider:
+    dependencies:
+      '@codebolt/codeboltjs':
+        specifier: latest
+        version: 5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/provider':
+        specifier: file:../../packages/provider
+        version: file:packages/provider(@codebolt/codeboltjs@5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      '@codebolt/types':
+        specifier: ^5.1.12
+        version: 5.1.12
+      ws:
+        specifier: ^8.18.0
+        version: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.19
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      esbuild:
+        specifier: ^0.20.0
+        version: 0.20.2
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@swc/core@1.13.20)(@swc/wasm@1.13.20)(@types/node@20.19.19)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   providers/narrative-snapshot-provider:
     dependencies:
       '@codebolt/codeboltjs':
@@ -6980,6 +7011,11 @@ packages:
     peerDependencies:
       '@codebolt/codeboltjs': '*'
 
+  '@codebolt/agent@6.1.14':
+    resolution: {integrity: sha512-+iVFn68gIXDN2MQCDzo97eRedxTgb1xszSLE79Ncem+MdXL5O0u9oQxq30GIkfyuF838SDpWpNS0iY9SRLD8xw==}
+    peerDependencies:
+      '@codebolt/codeboltjs': '*'
+
   '@codebolt/agent@file:../CodeBolt/sdks/agent':
     resolution: {directory: ../CodeBolt/sdks/agent, type: directory}
     peerDependencies:
@@ -7043,6 +7079,11 @@ packages:
   '@codebolt/narrative@file:../CodeBolt/packages/narrativejspackage':
     resolution: {directory: ../CodeBolt/packages/narrativejspackage, type: directory}
     engines: {node: '>=16.0.0'}
+
+  '@codebolt/provider@file:packages/provider':
+    resolution: {directory: packages/provider, type: directory}
+    peerDependencies:
+      '@codebolt/codeboltjs': ^5.1.38
 
   '@codebolt/thirdpartyagents@1.0.0':
     resolution: {integrity: sha512-drp3KTXAKGHhLJeED1wxOdvHGwZ7ekHpDXSHXW0tL0GCmXy5ww7qqukxk8adbmxNHrP3F44KZUcYqtWLwpZCeg==}
@@ -21213,6 +21254,13 @@ snapshots:
       js-yaml: 4.1.0
       zod: 3.25.76
 
+  '@codebolt/agent@6.1.14(@codebolt/codeboltjs@5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/types': 5.1.12
+      js-yaml: 4.1.0
+      zod: 3.25.76
+
   '@codebolt/agent@file:../CodeBolt/sdks/agent(@codebolt/codeboltjs@file:../CodeBolt/sdks/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))':
     dependencies:
       '@codebolt/codeboltjs': file:../CodeBolt/sdks/codeboltjs(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
@@ -21429,6 +21477,15 @@ snapshots:
       '@codebolt/narrative-darwin-arm64': 1.11.0
       '@codebolt/narrative-linux-x64': 1.11.0
       '@codebolt/narrative-win32-x64': 1.11.0
+
+  '@codebolt/provider@file:packages/provider(@codebolt/codeboltjs@5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76))(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
+    dependencies:
+      '@codebolt/codeboltjs': 5.1.38(bufferutil@4.0.9)(utf-8-validate@6.0.5)(zod@3.25.76)
+      '@codebolt/types': 5.1.12
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@codebolt/thirdpartyagents@1.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)':
     dependencies:
@@ -30837,7 +30894,7 @@ snapshots:
       type-fest: 4.41.0
       widest-line: 5.0.0
       wrap-ansi: 9.0.2
-      ws: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+      ws: 8.20.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       yoga-layout: 3.2.1
     optionalDependencies:
       '@types/react': 19.2.2

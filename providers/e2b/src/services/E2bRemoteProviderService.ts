@@ -137,7 +137,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     // 2. Start CodeBolt with remote-execution-plugin inside the sandbox
     await this.ensureAgentServer();
 
-    // 3. Connect WebSocket transport to plugin WS server
+    // 3. Connect WebSocket transport to direct execution gateway
     await this.ensureTransportConnection(initVars);
 
     // 4. Import narrative unified bundle into the in-sandbox codebolt server.
@@ -361,7 +361,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   /**
    * Send an executionGateway.reply back to the sandbox codebolt server for a
-   * completed execution request. The `/plugins` endpoint delegates to
+   * completed execution request. The `/direct-execution-gateway` endpoint delegates to
    * executionGatewayHandler which expects `executionGateway.reply` (the old
    * remote-execution-plugin used to translate from `executionReply` via its
    * plugin SDK wrapper — we now do it directly).
@@ -536,7 +536,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       // `executionRequest` is the shape the old remote-execution-plugin
       // forwarded through its own WS server. The server's
       // executionGatewayHandler now sends us `executionGateway.request`
-      // directly on the /plugins socket, so we accept both.
+      // directly on the /direct-execution-gateway socket, so we accept both.
       case 'executionRequest':
       case 'executionGateway.request': {
         const { requestId, originalType, originalMessage } = message;
@@ -1097,7 +1097,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     // Override startCmd with the resolved path.
     // We pass --port ${port} so the codebolt HTTP/WS server binds to the port
-    // the provider will connect to for the /plugins endpoint.
+    // the provider will connect to for the /direct-execution-gateway endpoint.
     const finalStartCmd = this.providerConfig.codeboltStartCommand
       || `${codeboltBin} --server --port ${port} --project ${this.sandboxWorkspacePath}`;
 
@@ -1221,10 +1221,10 @@ export class E2bRemoteProviderService extends BaseProvider {
     return true;
   }
 
-  // --- Transport connection to plugin WS server ---
+  // --- Transport connection to direct execution gateway ---
 
   /**
-   * Connect to the remote-execution-plugin's WebSocket server as a provider client.
+   * Connect to the CodeBolt direct execution gateway as a provider client.
    * The plugin does not send a "registered" handshake — connection itself means ready.
    */
   async ensureTransportConnection(initVars: ProviderInitVars): Promise<void> {
@@ -1233,7 +1233,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     const url = this.buildWebSocketUrl(initVars);
-    this.logger.log('Connecting to plugin WS server:', url);
+    this.logger.log('Connecting to direct execution gateway:', url);
 
     await new Promise<void>((resolve, reject) => {
       const wsOptions: any = {
@@ -1259,8 +1259,8 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.wsConnection = ws;
         this.agentServer.isConnected = true;
         this.agentServer.metadata = { connectedAt: Date.now() };
-        this.logger.log('Connected to codebolt /plugins endpoint');
-        // The /plugins endpoint auto-claims the ExecutionGateway on connect,
+        this.logger.log('Connected to codebolt /direct-execution-gateway endpoint');
+        // The /direct-execution-gateway endpoint auto-claims the ExecutionGateway on connect,
         // so we do NOT need to send executionGateway.claim/subscribe here.
         resolve();
       });
@@ -1373,15 +1373,15 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
-   * Build WebSocket URL for connecting to the remote-execution-plugin.
-   * Plugin expects `?providerId=xxx` query param.
+   * Build WebSocket URL for connecting to the direct execution gateway.
+   * The gateway expects `?providerId=xxx` query param.
    */
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
     const providerId = `e2b-${initVars.environmentName}`;
-    // Connect directly to the sandbox codebolt server's /plugins endpoint.
+    // Connect directly to the sandbox CodeBolt server's /direct-execution-gateway endpoint.
     // This replaces the previous hop through the remote-execution-plugin WS
     // server — the codebolt server now performs the bridging internally.
-    return `${this.agentServer.serverUrl}/plugins?providerId=${encodeURIComponent(providerId)}`;
+    return `${this.agentServer.serverUrl}/direct-execution-gateway?providerId=${encodeURIComponent(providerId)}`;
   }
 
   /**

@@ -5,10 +5,7 @@ import { FlatUserMessage } from "@codebolt/types/sdk";
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
 
-    let response = await codebolt.mcp.executeTool('codebolt', 'read_file', {
-        "absolute_path": "/Users/ravirawat/Documents/cbtest/handicapped-crimson/package.json",
-        "explanation": "Creating package.json for the WhatsApp clone backend with all required dependencies"
-    })
+    await codebolt.agent.startAgent("c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9", "run this app")
 
 
 
