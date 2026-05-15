@@ -293,8 +293,12 @@ async function runTerminalBuildTest(spec, steps) {
     return;
   }
 
+  const command = spec.artifactType === 'tool'
+    ? `cd ${shellQuote(spec.targetDirectory)} && test -f codebolttool.yaml && node --check index.js`
+    : `cd ${shellQuote(spec.targetDirectory)} && npm run build`;
+
   await runOptionalTestStep('Build generated artifact', 'terminal_execute_command', steps, () => (
-    runtime.terminal.executeCommand(`cd ${shellQuote(spec.targetDirectory)} && npm run build`)
+    runtime.terminal.executeCommand(command)
   ));
 }
 

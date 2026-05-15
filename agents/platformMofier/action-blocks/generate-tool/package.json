@@ -1,0 +1,17 @@
+{
+  "name": "@codebolt/platform-mofier-generate-tool",
+  "version": "1.0.0",
+  "description": "Internal PlatformMofier mini-agent for generating project-local CodeBolt MCP tools.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node ../../scripts/build-single-actionblock.js ."
+  },
+  "dependencies": {
+    "@codebolt/agent": "^6.1.10",
+    "@codebolt/codeboltjs": "^5.1.36"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "private": true
+}
