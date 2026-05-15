@@ -29,10 +29,17 @@ For platform generation:
   "intentSummary": "short summary",
   "artifacts": [
     {
-      "artifactType": "agent|plugin|llm-plugin|websearch-plugin|provider|dynamic-panel|custom-ui|action-block",
+      "artifactType": "agent|plugin|llm-plugin|websearch-plugin|provider|dynamic-panel|custom-ui|action-block|tool",
       "name": "kebab-case-name",
+      "fullName": "Meaningful Human-Readable Feature Name",
       "description": "short description",
-      "features": ["feature"],
+      "features": [
+        {
+          "name": "short-feature-id",
+          "fullName": "Meaningful Human-Readable Feature Name",
+          "description": "what this feature does"
+        }
+      ],
       "referencePaths": [],
       "constraints": []
     }
@@ -44,6 +51,8 @@ Rules:
 - Use "success" status only when one or more ActionBlocks should run.
 - Include one artifact for each requested platform artifact.
 - If the user asks for exactly one artifact, return exactly one artifact.
+- Always include fullName for every artifact. It must be a meaningful human-readable product or feature name, not just the kebab-case slug.
+- For every requested feature, include a meaningful fullName and a short description. Use the feature name to explain user-visible capability, not implementation jargon.
 - Treat feature-awareness wording as features of the requested artifact, not as extra artifacts. For example, an agent with plugin, provider, web search, dynamic UI, or action-block awareness is still one agent unless the user explicitly asks to create those artifacts too.
 - Route each artifact to the ActionBlock implied by its artifactType; do not mention ActionBlock names in the JSON unless the user asked for them.
 - Use "llm-plugin" for custom LLM provider plugins.
@@ -52,6 +61,7 @@ Rules:
 - Use "custom-ui" only for a requested UI-only plugin/artifact.
 - Use "provider" only for environment/runtime providers, not LLM or web search providers.
 - Use "action-block" for reusable side-execution blocks.
+- Use "tool" for project-local MCP tools that should live in .codebolt/tools and expose functions through codebolttool.yaml plus index.js.
 - Use "agent" for CodeBolt agents.
 - If the request is ambiguous, choose the smallest reasonable artifact set.
 - If the request is ambiguous between answering and generating, answer directly and ask a concise clarifying question.

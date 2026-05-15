@@ -17,6 +17,7 @@ Platform surfaces:
 - provider: providers.yaml plus TypeScript source at src/index.ts, built runtime output at dist/index.js, and provider lifecycle hooks such as onProviderStart and onProviderAgentStart.
 - dynamic-panel/custom-ui: TypeScript plugin process at src/index.ts, built runtime output at dist/index.js, package.json#codebolt.plugin.ui.path, and plugin.dynamicPanel communication where needed.
 - action-block: actionblock.yml plus TypeScript source at src/index.ts, built runtime output at dist/index.js, and codebolt.onActionBlockInvocation as a side-execution mini-agent.
+- tool: project-local MCP tool under .codebolt/tools/<name>, codebolttool.yaml metadata, index.js stdio MCP server entry point, and functions exposed through listTools/callTool.
 
 ActionBlock routing:
 - generate-agent: create or scaffold CodeBolt agents.
@@ -27,6 +28,7 @@ ActionBlock routing:
 - generate-dynamic-panel: create dynamic panel plugins or panel-backed UI artifacts.
 - generate-custom-ui: create UI-only or frontend plugin artifacts.
 - generate-action-block: create reusable side-execution ActionBlocks.
+- generate-tool: create project-local CodeBolt MCP tools.
 
 Routing rule:
 - Use an ActionBlock only when the user asks to create, generate, scaffold, build,
@@ -45,6 +47,10 @@ Generated artifact testing:
 - After generating any CodeBolt feature, the main agent must run post-generation
   validation with the CodeBolt JS tool family for that feature and include the
   test result in its returned JSON.
+- Every generated feature or artifact must have a meaningful human-readable
+  fullName/displayName in addition to its kebab-case name. Use the kebab-case
+  name for paths and registry lookup; use the full name in descriptions,
+  READMEs, and test records.
 - Use codebolt.terminal.executeCommand for artifact-local checks such as
   dependency install, npm run build, lint/typecheck scripts, and targeted smoke
   commands from the generated artifact directory.
@@ -56,6 +62,7 @@ Generated artifact testing:
   - action-block: actionBlock_list, actionBlock_getDetail, actionBlock_start,
     side_execution_list_action_blocks, side_execution_start_action_block,
     side_execution_get_status.
+  - tool: mcp_get_tools, mcp_execute_tool, getLocalToolBoxes, listToolsFromToolBoxes.
   - provider: environment_get_local_providers,
     environment_get_running_providers, environment_status,
     environment_start_agent, environment_send_message.

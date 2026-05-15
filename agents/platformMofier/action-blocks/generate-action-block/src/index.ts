@@ -303,7 +303,7 @@ const PLATFORM_CONTRACT = {
     '<name>/README.md',
   ],
   manifestShape: [
-    'actionblock.yml: name, description, version, entryPoint: dist/index.js, inputs, outputs, and metadata.',
+    'actionblock.yml: name, description, version, entryPoint: dist/index.js, inputs, outputs, and metadata.fullName or metadata.displayName containing the meaningful human-readable feature name.',
     'package.json: backup-compatible shape with main: index.js, scripts.build: npx webpack, scripts.dev: npx tsx src/index.ts, scripts.clean: rm -rf dist, scripts.prebuild: pnpm run clean, files: ["dist/**/*"], published dependencies, and no "type": "module" field.',
     'tsconfig.json: backup-compatible compiler settings using target ES2020, module Node16, moduleResolution node16, rootDir ./src, outDir ./dist, declaration/declarationMap/sourceMap enabled, noImplicitAny and strict null/function/return/fallthrough checks enabled.',
   ],
@@ -321,7 +321,7 @@ const PLATFORM_CONTRACT = {
     'ActionBlock side-execution test example shape: side_execution_start_action_block({ actionBlockPath: "<generated-path>", params: { ...validInputs }, timeout: 120000 }); then side_execution_get_status({ sideExecutionId }).',
   ],
   manifestExpectations: [
-    'actionblock.yml includes name, description, version, entryPoint set to dist/index.js, inputs, and outputs.',
+    'actionblock.yml includes name, description, version, entryPoint set to dist/index.js, inputs, outputs, and metadata.fullName or metadata.displayName.',
     'package.json follows the working backup format: main is index.js, no "type": "module", scripts.build is npx webpack, scripts.dev is npx tsx src/index.ts, scripts.clean removes dist, scripts.prebuild runs pnpm run clean, and files includes dist/**/*.',
     'tsconfig.json uses module Node16 and moduleResolution node16, while webpack.config.js emits the CommonJS2 runtime bundle and copies actionblock.yml to dist/actionblock.yml.',
     'README documents invocation params, outputs, how a parent agent calls the block, and concrete actionBlock_list/actionBlock_getDetail/actionBlock_start test examples.',
@@ -346,12 +346,14 @@ const PLATFORM_CONTRACT = {
     'Create a self-contained action block package at the target directory.',
     'Generate actionblock.yml, package metadata, TypeScript source, webpack.config.js, process-polyfill.js, runtime dist output, copied dist/actionblock.yml, and README.',
     'Define explicit inputs and outputs that match the requested action.',
+    'Preserve the meaningful fullName/displayName in actionblock.yml metadata and README.md while using the kebab-case name for registry lookup and paths.',
     'Include full mini-agent phases: context gathering, planning, tool execution, verification, repair, and completion.',
   ],
   verificationChecklist: [
     'All required files exist.',
     'onActionBlockInvocation appears in generated files.',
     'actionblock.yml entryPoint points to dist/index.js and package.json follows the backup format with main index.js.',
+    'actionblock.yml metadata includes fullName or displayName for the meaningful human-readable feature name.',
     'After the build, the created block is tested with actionBlock_list, actionBlock_getDetail, and actionBlock_start from @codebolt/codeboltjs/src/tools/actionBlock.',
     'No local dependency specifiers or local filesystem references are present.',
     'dist/index.js has valid JavaScript syntax.',
@@ -380,6 +382,50 @@ function titleCase(value) {
     .join(' ');
 }
 
+function normalizeFeature(feature) {
+  if (typeof feature === 'string') {
+    const name = slugifyName(feature, 'feature');
+    return {
+      name,
+      fullName: titleCase(feature),
+      description: String(feature),
+    };
+  }
+
+  if (feature && typeof feature === 'object') {
+    const featureRecord = feature;
+    const name = slugifyName(featureRecord.name || featureRecord.fullName || featureRecord.description, 'feature');
+    return {
+      name,
+      fullName: String(featureRecord.fullName || featureRecord.displayName || titleCase(name)),
+      description: String(featureRecord.description || featureRecord.fullName || featureRecord.name || titleCase(name)),
+    };
+  }
+
+  return {
+    name: 'feature',
+    fullName: 'Feature',
+    description: 'Feature',
+  };
+}
+
+function formatFeature(feature) {
+  if (typeof feature === 'string') {
+    return feature;
+  }
+
+  if (feature && typeof feature === 'object') {
+    const featureRecord = feature;
+    const parts = [
+      featureRecord.fullName || featureRecord.name || 'Feature',
+      featureRecord.description ? `- ${featureRecord.description}` : '',
+    ].filter(Boolean);
+    return parts.join(' ');
+  }
+
+  return String(feature || 'Feature');
+}
+
 function slugifyName(value, fallback) {
   const slug = String(value || '')
     .trim()
@@ -389,6 +435,63 @@ function slugifyName(value, fallback) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 72);
   return slug || fallback;
+}
+
+function isGenericActionBlockName(value) {
+  const slug = slugifyName(value, '');
+  return !slug || [
+    'action-block',
+    'actionblock',
+    'generated-action-block',
+    'generated-actionblock',
+    'new-action-block',
+    'custom-action-block',
+    'generic-action-block',
+    'reusable-action-block',
+    'codebolt-action-block',
+    'reusable-codebolt-action-block',
+    'reusable-codebolt-actionblock',
+    'codebolt-actionblock',
+  ].includes(slug);
+}
+
+function extractRequestedActionBlockName(text) {
+  const source = String(text || '');
+  const quotedNameMatch = source.match(/\b(?:named|called|name)\s+["'`]([^"'`]{2,80})["'`]/i);
+  const unquotedNameMatch = source.match(/\b(?:named|called|name)\s+([A-Za-z0-9_.-]{2,80})/i);
+  return quotedNameMatch ? quotedNameMatch[1] : unquotedNameMatch && unquotedNameMatch[1];
+}
+
+function deriveActionBlockNameFromRequest(text, fallback) {
+  const requestedName = extractRequestedActionBlockName(text);
+  if (requestedName) {
+    return slugifyName(requestedName, fallback);
+  }
+
+  const source = String(text || '').replace(/\s+/g, ' ').trim();
+  const afterSurface = source.match(/(?:action\s*block|actionblock)\s+(?:for|to|that|which|with|using|as)?\s*([^.!?\n]{3,180})/i);
+  const beforeSurface = source.match(/(?:create|generate|build|scaffold|implement|add|make|produce|prepare|write|setup|set\s+up|need|want)\s+([^.!?\n]{3,120}?)\s+(?:action\s*block|actionblock)/i);
+  const concept = (afterSurface && afterSurface[1]) || (beforeSurface && beforeSurface[1]) || source;
+  const stopWords = new Set([
+    'a', 'an', 'the', 'and', 'or', 'of', 'for', 'to', 'from', 'in', 'on', 'with', 'by', 'as',
+    'that', 'which', 'who', 'can', 'could', 'should', 'must', 'will', 'would', 'able',
+    'create', 'generate', 'build', 'scaffold', 'implement', 'add', 'make', 'produce',
+    'prepare', 'write', 'setup', 'set', 'up', 'need', 'want', 'please',
+    'codebolt', 'custom', 'reusable', 'generated', 'generic', 'new', 'side', 'execution', 'artifact', 'action', 'block',
+    'actionblock', 'user', 'requirement', 'requirements',
+  ]);
+  const words = concept
+    .replace(/["'`]/g, ' ')
+    .replace(/[^A-Za-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter((word) => {
+      const lower = word.toLowerCase();
+      return lower.length > 1 && !stopWords.has(lower);
+    })
+    .slice(0, 8);
+
+  return slugifyName(words.join(' '), fallback);
 }
 
 function formatTestingToolKnowledge(artifactType) {
@@ -402,7 +505,15 @@ function formatTestingToolKnowledge(artifactType) {
 function normalizeSpec(inputSpec) {
   const spec = inputSpec && typeof inputSpec === 'object' ? inputSpec : {};
   const artifactType = PLATFORM_CONTRACT.artifactType;
-  const name = slugifyName(spec.name || spec.displayName, `generated-${artifactType}`);
+  const fallbackName = `generated-${artifactType}`;
+  const suppliedName = slugifyName(spec.name || spec.displayName, '');
+  const name = suppliedName && !isGenericActionBlockName(suppliedName)
+    ? suppliedName
+    : deriveActionBlockNameFromRequest(spec.originalRequest || spec.description || spec.fullName || spec.displayName, fallbackName);
+  const suppliedDisplayName = spec.fullName || spec.displayName;
+  const displayName = suppliedDisplayName && !isGenericActionBlockName(suppliedDisplayName)
+    ? String(suppliedDisplayName)
+    : titleCase(name);
   const targetDirectory = spec.targetDirectory
     ? path.resolve(String(spec.targetDirectory))
     : path.resolve(process.cwd(), name);
@@ -410,9 +521,10 @@ function normalizeSpec(inputSpec) {
   return {
     artifactType,
     name,
-    displayName: spec.displayName ? String(spec.displayName) : titleCase(name),
+    fullName: displayName,
+    displayName,
     description: spec.description ? String(spec.description) : `Generated CodeBolt ${artifactType}`,
-    features: Array.isArray(spec.features) ? spec.features : [],
+    features: Array.isArray(spec.features) ? spec.features.map(normalizeFeature) : [],
     targetDirectory,
     projectPath: spec.projectPath ? String(spec.projectPath) : process.cwd(),
     originalRequest: spec.originalRequest ? String(spec.originalRequest) : '',
@@ -462,6 +574,7 @@ Feature contract:
 - Artifact type: ${spec.artifactType}
 - Name: ${spec.name}
 - Display name: ${spec.displayName}
+- Full name: ${spec.fullName}
 - Target directory: ${spec.targetDirectory}
 - Canonical create location: ${contract.createLocation}
 - Loader: ${contract.loader}
@@ -546,7 +659,7 @@ Original user request:
 ${spec.originalRequest || spec.description}
 
 Requested features:
-${spec.features.length ? spec.features.map((feature) => `- ${feature}`).join('\n') : '- Standard buildable scaffold'}
+${spec.features.length ? spec.features.map((feature) => `- ${formatFeature(feature)}`).join('\n') : '- Standard buildable scaffold'}
 
 Caller generation context:
 ${Object.keys(spec.generationContext || {}).length ? JSON.stringify(spec.generationContext, null, 2) : '{}'}
@@ -802,6 +915,12 @@ function verifyArtifact(spec) {
 
   const distActionblockPath = path.join(targetDirectory, 'dist/actionblock.yml');
   const rootActionblockPath = path.join(targetDirectory, 'actionblock.yml');
+  if (fs.existsSync(rootActionblockPath)) {
+    const rootActionblockContent = fs.readFileSync(rootActionblockPath, 'utf8');
+    if (!/(fullName|displayName)\s*:/.test(rootActionblockContent)) {
+      errors.push('actionblock.yml metadata must include fullName or displayName for the meaningful human-readable feature name.');
+    }
+  }
   if (fs.existsSync(distActionblockPath) && fs.existsSync(rootActionblockPath)) {
     if (fs.readFileSync(distActionblockPath, 'utf8') !== fs.readFileSync(rootActionblockPath, 'utf8')) {
       errors.push('dist/actionblock.yml must match the root actionblock.yml copied by webpack.');

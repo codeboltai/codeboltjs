@@ -1,7 +1,7 @@
 title: PlatformMofier
 version: 1.0.0
 unique_id: platformMofier
-description: Generic CodeBolt agent with platform-generation routing for custom agents, plugins, LLM providers, web search providers, environment providers, dynamic UI panels, and ActionBlocks.
+description: Generic CodeBolt agent with platform-generation routing for custom agents, plugins, tools, LLM providers, web search providers, environment providers, dynamic UI panels, and ActionBlocks.
 tags:
   - platform
   - generator
@@ -34,6 +34,7 @@ metadata:
         - create a web search provider plugin
         - create a dynamic panel plugin
         - create an ActionBlock
+        - create a project-local CodeBolt tool
 actions:
   - name: Generate Platform Artifact
     description: Answers directly or creates CodeBolt platform artifacts via internal ActionBlocks.

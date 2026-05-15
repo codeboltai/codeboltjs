@@ -238,6 +238,7 @@ function getTestingToolPlan(artifactType) {
     'dynamic-panel': ['debug_open_browser', 'browser_navigate', 'browser_get_html', 'browser_screenshot', 'crawler_start', 'crawler_go_to_page', 'crawler_click'],
     'custom-ui': ['debug_open_browser', 'browser_navigate', 'browser_get_html', 'browser_screenshot', 'crawler_start', 'crawler_go_to_page', 'crawler_click'],
     'action-block': ['actionBlock_list', 'actionBlock_getDetail', 'actionBlock_start', 'side_execution_list_action_blocks', 'side_execution_start_action_block', 'side_execution_get_status'],
+    tool: ['mcp_get_tools', 'mcp_execute_tool', 'getLocalToolBoxes', 'listToolsFromToolBoxes'],
   };
 
   return [...common, ...(plans[artifactType] || [])];
@@ -252,14 +253,15 @@ async function recordAutoTestingRun(spec, steps) {
   }
 
   await runOptionalTestStep('Record generated feature test run', 'autotesting_create_suite/autotesting_create_case/autotesting_create_run', steps, async () => {
+    const fullName = spec.fullName || spec.displayName || spec.name;
     const key = `platform-${spec.artifactType}-${String(spec.name || 'artifact').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
     const testCase = await autoTesting.createCase({
       key,
-      name: `Smoke test ${spec.artifactType}: ${spec.name}`,
-      description: `Post-generation validation for ${spec.artifactType} ${spec.name}`,
+      name: `Smoke test ${spec.artifactType}: ${fullName}`,
+      description: `Post-generation validation for ${spec.artifactType} ${fullName}`,
       steps: [
-        { content: `Build ${spec.name} with npm run build`, order: 1 },
-        { content: `Validate ${spec.name} with feature-specific CodeBolt JS tools: ${getTestingToolPlan(spec.artifactType).join(', ')}`, order: 2 },
+        { content: `Build ${fullName} (${spec.name}) with npm run build`, order: 1 },
+        { content: `Validate ${fullName} with feature-specific CodeBolt JS tools: ${getTestingToolPlan(spec.artifactType).join(', ')}`, order: 2 },
       ],
       labels: ['platform-mofier', spec.artifactType],
       priority: 'automated',
@@ -271,13 +273,13 @@ async function recordAutoTestingRun(spec, steps) {
         ? testCase.payload.testCase.id
         : undefined;
     const suite = await autoTesting.createSuite({
-      name: `PlatformMofier ${spec.artifactType} smoke: ${spec.name}`,
+      name: `PlatformMofier ${spec.artifactType} smoke: ${fullName}`,
       description: `Post-generation smoke suite for ${spec.targetDirectory}`,
       testCaseIds: testCaseId ? [testCaseId] : [],
     });
     const suiteId = suite && suite.payload && suite.payload.suite ? suite.payload.suite.id : undefined;
     const run = suiteId
-      ? await autoTesting.createRun({ testSuiteId: suiteId, name: `Post-generation run: ${spec.name}` })
+      ? await autoTesting.createRun({ testSuiteId: suiteId, name: `Post-generation run: ${fullName}` })
       : undefined;
 
     return { testCase, suite, run };
@@ -454,6 +456,8 @@ async function runPostGenerationTests(spec, result) {
     await runGenericPluginFeatureTests(spec, steps);
     await runUiFeatureTests(spec, result, steps);
   } else if (spec.artifactType === 'plugin') {
+    await runGenericPluginFeatureTests(spec, steps);
+  } else if (spec.artifactType === 'tool') {
     await runGenericPluginFeatureTests(spec, steps);
   }
 
@@ -661,6 +665,7 @@ codebolt.onMessage(async (reqMessage) => {
       results.push({
         artifactType: spec.artifactType,
         name: spec.name,
+        fullName: spec.fullName || spec.displayName || spec.name,
         targetDirectory: spec.targetDirectory,
         ...result,
         tests,
