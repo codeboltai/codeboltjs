@@ -23,6 +23,66 @@ const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
   ['packages', 'server', 'src'].join('/'),
 ];
 
+const CODEBOLT_TESTING_TOOL_KNOWLEDGE = [
+  'Use tool_search with category "testing" or "autoTesting" to discover the currently registered test-management tools before creating or running tests.',
+  'Use test_case_create or autotesting_create_case to record artifact-specific smoke and regression cases with explicit steps.',
+  'Use test_suite_create or autotesting_create_suite to group the generated artifact test cases.',
+  'Use test_run_create or autotesting_create_run to start a tracked test run for the suite.',
+  'Use test_run_update_status, autotesting_update_run_status, autotesting_update_run_case, and autotesting_update_run_step to record pass/fail status after manual or automated checks.',
+  'Use terminal tools for local build, typecheck, lint, and package script checks before marking a test run passed.',
+  'Document a Run section with dependency install, npm run build, and the CodeBolt load or restart step needed before runtime testing.',
+  'After generation, run the local build from the artifact directory and record exact smoke-test commands and expected results in README.md.',
+  'Use debug_open_browser plus browser or crawler tools for UI artifacts that need visual or interaction checks.',
+  'Use side_execution_list_action_blocks, side_execution_start_action_block, and side_execution_get_status to test ActionBlocks through the same side-execution path parent agents use.',
+];
+
+const ACTIONBLOCK_TEST_TOOL_EXAMPLES = [
+  'Dedicated ActionBlock tools live in @codebolt/codeboltjs/src/tools/actionBlock.',
+  'The available dedicated tools are exported as actionBlockTools: actionBlock_list, actionBlock_getDetail, and actionBlock_start.',
+  'Tool schemas: actionBlock_list accepts optional filterType and explanation; actionBlock_getDetail requires actionBlockName; actionBlock_start requires actionBlockName and accepts params plus explanation.',
+  'After npm run build succeeds, test the created ActionBlock with the dedicated tools before marking generation successful.',
+  'Use actionBlock_list with optional filterType "filesystem", "runtime", or "builtin" to confirm the generated ActionBlock is discoverable.',
+  'Use actionBlock_getDetail with { "actionBlockName": "<generated-action-block-name>" } to verify metadata, type, path, version, and entryPoint.',
+  'Use actionBlock_start with { "actionBlockName": "<generated-action-block-name>", "params": { ...validInputs } } to execute the generated ActionBlock by registered name.',
+  'Example registered-name test flow: actionBlock_list -> actionBlock_getDetail -> actionBlock_start.',
+  'Example side-execution test flow: side_execution_list_action_blocks -> side_execution_start_action_block with the generated ActionBlock path and params -> side_execution_get_status using the returned sideExecutionId.',
+  'README.md Testing section must include at least one concrete actionBlock_start example with valid params and one expected success response shape.',
+  'README.md Testing section must include one invalid-input actionBlock_start example and the expected structured error behavior.',
+];
+
+const CODEBOLT_ARTIFACT_TESTING = {
+  agent: [
+    'Agent run/test: install dependencies, run npm run build, verify codeboltagent.yaml points to dist/index.js, load or restart the agent in CodeBolt, send a representative chat request, and confirm codebolt.onMessage returns structured output.',
+    'For generated agents that invoke tools or ActionBlocks, create test cases that cover direct answer, tool use, ActionBlock routing, error handling, and completion reporting.',
+  ],
+  plugin: [
+    'Plugin run/test: install dependencies, run npm run build, verify package.json#codebolt.plugin metadata, load or restart the plugin in CodeBolt, and exercise lifecycle handlers or registered tools/providers.',
+    'For plugin-backed tools, create test cases for valid inputs, invalid inputs, startup failure, and clean shutdown.',
+  ],
+  'llm-plugin': [
+    'LLM provider plugin run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify provider registration, run completion and streaming smoke cases with test credentials or mocked upstream responses, and record credential failure behavior.',
+  ],
+  'websearch-plugin': [
+    'Web search plugin run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify provider registration, run a query smoke test, validate result shape, and record login, no-result, and upstream failure behavior.',
+  ],
+  provider: [
+    'Provider run/test: install dependencies, run npm run build, validate providers.yaml, load or restart the provider in CodeBolt, exercise startup, agent-start, filesystem, shell, environment, cleanup, and failure paths that the provider claims to support.',
+  ],
+  'dynamic-panel': [
+    'Dynamic panel run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify ui.path, open the panel with dynamicPanel/debug browser tooling, test iframe messaging, and capture basic visual/interaction checks.',
+  ],
+  'custom-ui': [
+    'Custom UI run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify ui.path, open the UI with debug_open_browser plus browser tools, and test the primary user workflow, asset loading, and error states.',
+  ],
+  'action-block': [
+    'ActionBlock run/test: install dependencies, run npm run build, verify actionblock.yml points to dist/index.js, load or restart ActionBlock discovery in CodeBolt, list the block with side_execution_list_action_blocks, invoke it with side_execution_start_action_block, and poll with side_execution_get_status.',
+    'ActionBlock dedicated tool tests must run after the build: use actionBlock_list, actionBlock_getDetail, and actionBlock_start from @codebolt/codeboltjs/src/tools/actionBlock to validate discovery, metadata, and execution by name.',
+    'README actionBlock_start example shape: actionBlock_start({ "actionBlockName": "<name>", "params": { ...validInputs }, "explanation": "Run the generated ActionBlock smoke test" }).',
+    'README actionBlock_getDetail example shape: actionBlock_getDetail({ "actionBlockName": "<name>", "explanation": "Verify generated ActionBlock metadata" }).',
+    'Create test cases for required params, missing or invalid params, successful output shape, timeout behavior, and idempotent repeated execution.',
+  ],
+};
+
 const CODEBOLT_EXPOSED_MODULES = [
   'actionBlock',
   'actionPlan',
@@ -119,8 +179,8 @@ const CODEBOLT_API_CATALOG = [
   },
   {
     module: 'chat',
-    purpose: 'Send progress, ask for user input, read thread history, and manage process status.',
-    calls: ['codebolt.chat.sendMessage(message, payload)', 'codebolt.chat.getChatHistory(threadId)', 'codebolt.chat.askQuestion(question, buttons)', 'codebolt.chat.sendConfirmationRequest(message, buttons)', 'codebolt.chat.processStarted()', 'codebolt.chat.processFinished()'],
+    purpose: 'Send progress, ask for user input, and read thread history.',
+    calls: ['codebolt.chat.sendMessage(message, payload)', 'codebolt.chat.getChatHistory(threadId)', 'codebolt.chat.askQuestion(question, buttons)', 'codebolt.chat.sendConfirmationRequest(message, buttons)'],
   },
   {
     module: 'project',
@@ -163,6 +223,11 @@ const CODEBOLT_API_CATALOG = [
     calls: ['codebolt.actionBlock.list(filter)', 'codebolt.actionBlock.getDetail(name)', 'codebolt.actionBlock.start(name, params)', 'codebolt.sideExecution.startWithActionBlock(path, params, timeout)', 'codebolt.sideExecution.startWithCode(code, params, timeout)', 'codebolt.sideExecution.getStatus(id)', 'codebolt.sideExecution.stop(id)'],
   },
   {
+    module: 'ActionBlock testing tools',
+    purpose: 'Run post-build registered-name smoke tests through the CodeBolt declarative tools exported from @codebolt/codeboltjs/src/tools/actionBlock.',
+    calls: ['actionBlock_list({ filterType?: "filesystem" | "runtime" | "builtin", explanation? })', 'actionBlock_getDetail({ actionBlockName, explanation? })', 'actionBlock_start({ actionBlockName, params?, explanation? })'],
+  },
+  {
     module: 'agent orchestration',
     purpose: 'Coordinate child agents, background threads, external events, deliberation, and swarms.',
     calls: ['codebolt.agent.*', 'codebolt.thread.*', 'codebolt.backgroundChildThreads.*', 'codebolt.agentEventQueue.getPendingExternalEvents()', 'codebolt.agentDeliberation.*', 'codebolt.swarm.*', 'codebolt.orchestrator.*'],
@@ -197,6 +262,7 @@ const CODEBOLT_API_USAGE_RULES = [
   'For dynamic UI, use dynamicPanel for action-block-owned panels; plugin-owned panels require plugin SDK metadata, UI assets, and event handlers.',
   'For child work, prefer sideExecution with action blocks when the feature is bounded and reusable; use background child threads for longer agent collaboration.',
   'For generated TypeScript, define narrow request, response, and SDK-result interfaces instead of unchecked type escapes.',
+  'For generated ActionBlocks, run npm run build first, then use actionBlock_list, actionBlock_getDetail, and actionBlock_start to test the built block through CodeBolt registration.',
 ];
 
 const PLATFORM_CONTRACT = {
@@ -206,10 +272,10 @@ const PLATFORM_CONTRACT = {
   loader: 'ActionBlockRegistry validates actionblock.yml and SideExecutionManager starts the configured entryPoint in side execution.',
   runtimeUse: 'Parent agents invoke ActionBlocks through codebolt.sideExecution.startWithActionBlock by path or action-block registry invocation by name.',
   sourceLanguage: 'TypeScript',
-  buildTool: 'tsc or webpack with package.json main and actionblock.yml entryPoint set to dist/index.js',
+  buildTool: 'webpack build matching the working ActionBlock backup format: package.json build runs npx webpack, actionblock.yml entryPoint is dist/index.js, webpack outputs a CommonJS2 bundle to dist/index.js and copies actionblock.yml to dist/actionblock.yml',
   buildOutput: 'dist/index.js',
-  npmDependencies: ['@codebolt/codeboltjs:^5.1.36', '@codebolt/agent:^6.1.10', '@codebolt/types:^5.1.12', 'typescript:^5.4.5'],
-  requiredFiles: ['actionblock.yml', 'package.json', 'tsconfig.json', 'src/index.ts', 'dist/index.js', 'README.md'],
+  npmDependencies: ['@codebolt/codeboltjs:latest or ^5.1.36', '@codebolt/agent:^6.1.10 when mini-agent planning is needed', '@codebolt/types:^5.1.12', 'typescript:^5.3.3 or newer', 'webpack:^5.103.0', 'webpack-cli:^5.1.4', 'ts-loader:^9.5.1', 'copy-webpack-plugin:^12.0.2', 'process:^0.11.10', 'buffer:^6.0.3', 'node-polyfill-webpack-plugin:^4.1.0'],
+  requiredFiles: ['actionblock.yml', 'package.json', 'tsconfig.json', 'webpack.config.js', 'process-polyfill.js', 'src/index.ts', 'dist/index.js', 'dist/actionblock.yml', 'README.md'],
   manifestFile: 'actionblock.yml',
   requiresPluginMetadata: false,
   requiresUiPath: false,
@@ -229,28 +295,36 @@ const PLATFORM_CONTRACT = {
     '<name>/actionblock.yml',
     '<name>/package.json',
     '<name>/tsconfig.json',
+    '<name>/webpack.config.js',
+    '<name>/process-polyfill.js',
     '<name>/src/index.ts',
     '<name>/dist/index.js',
+    '<name>/dist/actionblock.yml',
     '<name>/README.md',
   ],
   manifestShape: [
     'actionblock.yml: name, description, version, entryPoint: dist/index.js, inputs, outputs, and metadata.',
-    'package.json: main: dist/index.js, scripts.build, published dependencies, and TypeScript dev dependency.',
+    'package.json: backup-compatible shape with main: index.js, scripts.build: npx webpack, scripts.dev: npx tsx src/index.ts, scripts.clean: rm -rf dist, scripts.prebuild: pnpm run clean, files: ["dist/**/*"], published dependencies, and no "type": "module" field.',
+    'tsconfig.json: backup-compatible compiler settings using target ES2020, module Node16, moduleResolution node16, rootDir ./src, outDir ./dist, declaration/declarationMap/sourceMap enabled, noImplicitAny and strict null/function/return/fallthrough checks enabled.',
   ],
   sourceShape: [
     'src/index.ts imports codebolt, CodeboltAgent, LoopDetectionService, and processor pieces when the action needs agentic behavior.',
     'src/index.ts registers codebolt.onActionBlockInvocation((threadContext) => runActionBlock(...)).',
     'src/index.ts uses a bounded CodeboltAgent loop with verification and repair for generation actions, then returns structured success, result, verification, filesCreated, and error fields.',
+    'src/index.ts may use ESM TypeScript imports, but npm run build must emit a webpackBootstrap CommonJS2 dist/index.js bundle because SideExecutionManager starts dist/index.js through Electron utilityProcess.fork().',
   ],
   exampleSnippets: [
     'actionblock.yml example shape: name, description, version, entryPoint: dist/index.js, inputs: [{ name: spec, type: object }], outputs: [{ name: success, type: boolean }].',
     'src/index.ts example shape: codebolt.onActionBlockInvocation(async (threadContext) => { const agent = new CodeboltAgent({ instructions, loopDetectionService, maxTurns: 30, compaction, processors }); const result = await agent.processMessage(reqMessage); return { success: result.success, result: result.finalMessage }; });',
     'parent invocation example shape: codebolt.sideExecution.startWithActionBlock(actionBlockPath, { spec }, timeoutMs).',
+    'ActionBlock registered tool test example shape: actionBlock_list({ filterType: "filesystem" }); actionBlock_getDetail({ actionBlockName: "<name>" }); actionBlock_start({ actionBlockName: "<name>", params: { ...validInputs } });',
+    'ActionBlock side-execution test example shape: side_execution_start_action_block({ actionBlockPath: "<generated-path>", params: { ...validInputs }, timeout: 120000 }); then side_execution_get_status({ sideExecutionId }).',
   ],
   manifestExpectations: [
     'actionblock.yml includes name, description, version, entryPoint set to dist/index.js, inputs, and outputs.',
-    'package.json main is dist/index.js and scripts.build compiles TypeScript from src/index.ts.',
-    'README documents invocation params, outputs, and how a parent agent calls the block.',
+    'package.json follows the working backup format: main is index.js, no "type": "module", scripts.build is npx webpack, scripts.dev is npx tsx src/index.ts, scripts.clean removes dist, scripts.prebuild runs pnpm run clean, and files includes dist/**/*.',
+    'tsconfig.json uses module Node16 and moduleResolution node16, while webpack.config.js emits the CommonJS2 runtime bundle and copies actionblock.yml to dist/actionblock.yml.',
+    'README documents invocation params, outputs, how a parent agent calls the block, and concrete actionBlock_list/actionBlock_getDetail/actionBlock_start test examples.',
   ],
   runtimeFlow: [
     'Register codebolt.onActionBlockInvocation as the side-execution entry point.',
@@ -259,7 +333,9 @@ const PLATFORM_CONTRACT = {
     'Return structured success, artifactPath/filesCreated when relevant, verification, and error fields.',
   ],
   publishSafetyRules: [
-    'Use TypeScript source and ESM imports in src/index.ts.',
+    'Use TypeScript source and ESM imports in src/index.ts, but emit a webpack-bundled CommonJS2 dist/index.js runtime.',
+    'Do not set package.json "type" to "module" for generated ActionBlocks; Electron side execution launches dist/index.js through utilityProcess.fork().' ,
+    'Generate webpack.config.js from the working backup pattern: target node, entry ./src/index.ts, output dist/index.js, libraryTarget commonjs2, CopyWebpackPlugin copies actionblock.yml, ProvidePlugin supplies process-polyfill.js and Buffer, and optional native websocket dependencies are ignored.',
     'Use published npm dependency versions only.',
     'Avoid untyped escape hatches in TypeScript source; define narrow interfaces and use guarded values.',
     'Use @codebolt/codeboltjs ^5.1.36 and @codebolt/agent ^6.1.10 when those packages are needed.',
@@ -268,22 +344,29 @@ const PLATFORM_CONTRACT = {
   ],
   generationChecklist: [
     'Create a self-contained action block package at the target directory.',
-    'Generate actionblock.yml, package metadata, TypeScript source, build config, runtime dist output, and README.',
+    'Generate actionblock.yml, package metadata, TypeScript source, webpack.config.js, process-polyfill.js, runtime dist output, copied dist/actionblock.yml, and README.',
     'Define explicit inputs and outputs that match the requested action.',
     'Include full mini-agent phases: context gathering, planning, tool execution, verification, repair, and completion.',
   ],
   verificationChecklist: [
     'All required files exist.',
     'onActionBlockInvocation appears in generated files.',
-    'actionblock.yml and package.json point to dist/index.js.',
+    'actionblock.yml entryPoint points to dist/index.js and package.json follows the backup format with main index.js.',
+    'After the build, the created block is tested with actionBlock_list, actionBlock_getDetail, and actionBlock_start from @codebolt/codeboltjs/src/tools/actionBlock.',
     'No local dependency specifiers or local filesystem references are present.',
     'dist/index.js has valid JavaScript syntax.',
+    'dist/index.js is a webpackBootstrap CommonJS2 bundle and does not start with top-level ESM import syntax.',
+    'package.json does not set "type": "module".',
+    'tsconfig.json uses module Node16 and moduleResolution node16.' ,
+    'webpack.config.js exists and outputs libraryTarget commonjs2 to dist/index.js.' ,
+    'dist/actionblock.yml exists and matches the root actionblock.yml copy.',
   ],
   commonFailureModes: [
     'Creating an agent instead of an action block.',
     'Missing actionblock.yml inputs and outputs.',
     'Returning unstructured strings instead of structured invocation results.',
     'Using CommonJS import/export syntax in src/index.ts.',
+    'Emitting ESM runtime output, skipping the webpack CommonJS2 bundle, or setting package.json "type": "module", which prevents side execution from connecting and causes 30s connection timeouts.',
   ],
   forbiddenContentMarkers: FORBIDDEN_LOCAL_REFERENCE_MARKERS,
   referencePaths: [],
@@ -306,6 +389,14 @@ function slugifyName(value, fallback) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 72);
   return slug || fallback;
+}
+
+function formatTestingToolKnowledge(artifactType) {
+  const artifactTesting = CODEBOLT_ARTIFACT_TESTING[artifactType] || [];
+  const actionBlockToolExamples = artifactType === 'action-block' ? ACTIONBLOCK_TEST_TOOL_EXAMPLES : [];
+  return [...CODEBOLT_TESTING_TOOL_KNOWLEDGE, ...artifactTesting, ...actionBlockToolExamples]
+    .map((item) => `- ${item}`)
+    .join('\n');
 }
 
 function normalizeSpec(inputSpec) {
@@ -410,6 +501,9 @@ ${(contract.runtimeFlow || []).map((item) => `- ${item}`).join('\n')}
 ${(contract.publishSafetyRules || []).map((item) => `- ${item}`).join('\n')}
 ${(spec.callerConstraints || []).map((item) => `- ${item}`).join('\n')}
 
+Testing tool knowledge the generated README must include:
+${formatTestingToolKnowledge(spec.artifactType)}
+
 Generation checklist:
 ${(contract.generationChecklist || []).map((item) => `- ${item}`).join('\n')}
 
@@ -428,11 +522,14 @@ ${spec.referencePaths.length ? spec.referencePaths.map((referencePath) => `- ${r
 Required workflow:
 1. Use the embedded action-block contract and inspect optional user-provided references.
 2. Create the target directory and every required manifest, TypeScript source, build config, build output, and README file.
-3. Use src/index.ts as the source file and dist/index.js as the runtime file.
+3. Use the working backup ActionBlock format: src/index.ts source, webpack.config.js + process-polyfill.js build support, root actionblock.yml copied to dist/actionblock.yml, and webpack-bundled CommonJS2 dist/index.js runtime. package.json must not set "type": "module".
 4. Implement codebolt.onActionBlockInvocation and return structured success/error results.
 5. Explain in README.md where this artifact should live, how CodeBolt loads it, and how parent agents invoke it.
-6. Verify files exist and syntax is valid.
-7. Call attempt_completion with JSON containing success, artifactPath, filesCreated, and notes.
+6. Run the local build from the target directory with npm run build.
+7. After the build succeeds, test the created ActionBlock with actionBlock_list, actionBlock_getDetail, and actionBlock_start from @codebolt/codeboltjs/src/tools/actionBlock. Use valid params and confirm the success response shape.
+8. Also document or run the side-execution path with side_execution_list_action_blocks, side_execution_start_action_block, and side_execution_get_status.
+9. Verify files exist, syntax is valid, and README.md records the post-build test commands, expected results, and invalid-input behavior.
+10. Call attempt_completion with JSON containing success, artifactPath, filesCreated, verification, and notes.
 
 If verification errors are provided, repair exactly those issues and verify again.
 `.trim();
@@ -503,6 +600,60 @@ function checkJsSyntax(filePath, errors) {
   }
 }
 
+function verifyReadmeTestingKnowledge(targetDirectory, artifactType, errors) {
+  const readmePath = path.join(targetDirectory, 'README.md');
+  if (!fs.existsSync(readmePath)) {
+    return;
+  }
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf8');
+  if (!/testing|test plan|verification/i.test(readmeContent)) {
+    errors.push('README.md must include a Testing section for the generated artifact.');
+  }
+  if (!/(run|running|usage|build|installation)/i.test(readmeContent) || !/npm\s+(install|ci)/i.test(readmeContent) || !/npm\s+run\s+build/i.test(readmeContent)) {
+    errors.push('README.md must include Run or Usage instructions with dependency install and npm run build steps.');
+  }
+  if (!/(CodeBolt.{0,120}(load|reload|restart|start)|(?:load|reload|restart|start).{0,120}CodeBolt)/is.test(readmeContent)) {
+    errors.push('README.md must explain how to load, reload, restart, or start the generated artifact in CodeBolt before runtime testing.');
+  }
+  if (!/(tool_search|test_case_create|autotesting_create_case|test_suite_create|autotesting_create_suite|test_run_create|autotesting_create_run)/.test(readmeContent)) {
+    errors.push('README.md Testing section must name the CodeBolt testing tools to create cases, suites, and runs.');
+  }
+  if (artifactType === 'agent' && (!/codeboltagent\.yaml/.test(readmeContent) || !/(onMessage|chat request|representative chat|send.*message)/is.test(readmeContent))) {
+    errors.push('README.md Testing section for agents must document codeboltagent.yaml, starting the agent in CodeBolt, and sending a representative chat request.');
+  }
+  if ((artifactType === 'plugin' || artifactType === 'llm-plugin' || artifactType === 'websearch-plugin') && (!/codebolt\.plugin|package\.json#codebolt\.plugin/.test(readmeContent) || !/(plugin|provider).{0,120}(load|reload|restart|start)/is.test(readmeContent))) {
+    errors.push('README.md Testing section for plugins must document package.json#codebolt.plugin, loading or restarting the plugin, and exercising registered handlers.');
+  }
+  if (artifactType === 'provider' && (!/providers\.yaml/.test(readmeContent) || !/(onProviderStart|onProviderAgentStart|provider.{0,120}(load|reload|restart|start))/is.test(readmeContent))) {
+    errors.push('README.md Testing section for providers must document providers.yaml, loading or restarting the provider, and exercising provider lifecycle handlers.');
+  }
+  if (artifactType === 'action-block' && !/(side_execution_start_action_block|side_execution_get_status|side_execution_list_action_blocks)/.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must document side_execution_list_action_blocks, side_execution_start_action_block, and side_execution_get_status.');
+  }
+  if (artifactType === 'action-block' && !/(actionBlock_list|actionBlock_getDetail|actionBlock_start)/.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must document actionBlock_list, actionBlock_getDetail, and actionBlock_start from @codebolt/codeboltjs/src/tools/actionBlock.');
+  }
+  if (artifactType === 'action-block' && !/(after|post[-\s]?build|once.{0,80}build|npm\s+run\s+build[\s\S]{0,1000}actionBlock_(?:list|getDetail|start)|actionBlock_(?:list|getDetail|start)[\s\S]{0,1000}npm\s+run\s+build)/i.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must make the dedicated actionBlock_list/actionBlock_getDetail/actionBlock_start tests a post-build step.');
+  }
+  if (artifactType === 'action-block' && !/@codebolt\/codeboltjs\/src\/tools\/actionBlock/.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must reference the dedicated tool source @codebolt/codeboltjs/src/tools/actionBlock.');
+  }
+  if (artifactType === 'action-block' && !/actionBlock_start[\s\S]{0,500}(params|validInputs|required|input)/.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must include a concrete actionBlock_start example with valid params.');
+  }
+  if (artifactType === 'action-block' && !/actionBlock_start[\s\S]{0,800}(success|result|llmContent|returnDisplay)/i.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must include the expected successful actionBlock_start response shape.');
+  }
+  if (artifactType === 'action-block' && !/(invalid|missing|required).{0,120}(params|input|error)|actionBlock_start[\s\S]{0,500}(invalid|missing|required)/i.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must include an invalid-input actionBlock_start example and expected structured error behavior.');
+  }
+  if ((artifactType === 'custom-ui' || artifactType === 'dynamic-panel') && !/(debug_open_browser|browser|crawler)/.test(readmeContent)) {
+    errors.push('README.md Testing section for UI artifacts must document debug_open_browser plus browser or crawler checks.');
+  }
+}
+
 function verifyArtifact(spec) {
   const errors = [];
   const warnings = [];
@@ -567,14 +718,29 @@ function verifyArtifact(spec) {
   if (fs.existsSync(packagePath)) {
     try {
       const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-      if (packageJson.main !== 'dist/index.js') {
-        errors.push('package.json main must point to dist/index.js');
-      } else {
-        checkJsSyntax(path.join(targetDirectory, packageJson.main), errors);
+      if (packageJson.main !== 'index.js') {
+        errors.push('package.json main must be index.js to match the working backup ActionBlock package format.');
+      }
+      checkJsSyntax(path.join(targetDirectory, 'dist/index.js'), errors);
+
+      if (!packageJson.scripts || packageJson.scripts.build !== 'npx webpack') {
+        errors.push('package.json scripts.build must be "npx webpack" to produce the working backup webpack bundle format.');
+      }
+      if (!packageJson.scripts || packageJson.scripts.dev !== 'npx tsx src/index.ts') {
+        errors.push('package.json scripts.dev must be "npx tsx src/index.ts".');
+      }
+      if (!packageJson.scripts || packageJson.scripts.clean !== 'rm -rf dist') {
+        errors.push('package.json scripts.clean must be "rm -rf dist".');
+      }
+      if (!packageJson.scripts || packageJson.scripts.prebuild !== 'pnpm run clean') {
+        errors.push('package.json scripts.prebuild must be "pnpm run clean".');
+      }
+      if (!Array.isArray(packageJson.files) || !packageJson.files.includes('dist/**/*')) {
+        errors.push('package.json files must include "dist/**/*".');
       }
 
-      if (!packageJson.scripts || !packageJson.scripts.build) {
-        errors.push('package.json is missing a build script for TypeScript source');
+      if (packageJson.type === 'module') {
+        errors.push('package.json must not set "type": "module" for ActionBlocks; side execution launches dist/index.js through Electron utilityProcess.fork().');
       }
 
       const dependencySections = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
@@ -588,8 +754,8 @@ function verifyArtifact(spec) {
           if (normalizedVersion === '*') {
             errors.push(section + '.' + dependencyName + ' must pin a published npm semver range instead of using a wildcard.');
           }
-          if (dependencyName === '@codebolt/codeboltjs' && normalizedVersion !== '^5.1.36') {
-            errors.push(section + '.' + dependencyName + ' must use ^5.1.36.');
+          if (dependencyName === '@codebolt/codeboltjs' && normalizedVersion !== '^5.1.36' && normalizedVersion !== 'latest') {
+            errors.push(section + '.' + dependencyName + ' must use ^5.1.36 or latest.');
           }
           if (dependencyName === '@codebolt/agent' && normalizedVersion !== '^6.1.10') {
             errors.push(section + '.' + dependencyName + ' must use ^6.1.10.');
@@ -600,6 +766,60 @@ function verifyArtifact(spec) {
       errors.push(`Invalid package.json: ${error.message}`);
     }
   }
+
+  const tsconfigPath = path.join(targetDirectory, 'tsconfig.json');
+  if (fs.existsSync(tsconfigPath)) {
+    try {
+      const tsconfigJson = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
+      const compilerOptions = tsconfigJson.compilerOptions || {};
+      if (compilerOptions.module !== 'Node16') {
+        errors.push('tsconfig.json compilerOptions.module must be Node16 for ActionBlock side-execution compatibility.');
+      }
+      if (compilerOptions.moduleResolution !== 'node16') {
+        errors.push('tsconfig.json compilerOptions.moduleResolution must be node16 so @codebolt package exports resolve correctly.');
+      }
+    } catch (error) {
+      errors.push("Invalid tsconfig.json: " + error.message);
+    }
+  }
+
+  const webpackConfigPath = path.join(targetDirectory, 'webpack.config.js');
+  if (fs.existsSync(webpackConfigPath)) {
+    const webpackConfig = fs.readFileSync(webpackConfigPath, 'utf8');
+    if (!webpackConfig.includes("target: 'node'") && !webpackConfig.includes('target: "node"')) {
+      errors.push('webpack.config.js must set target: node.');
+    }
+    if (!webpackConfig.includes("libraryTarget: 'commonjs2'") && !webpackConfig.includes('libraryTarget: "commonjs2"')) {
+      errors.push('webpack.config.js must output libraryTarget: commonjs2.');
+    }
+    if (!webpackConfig.includes('CopyWebpackPlugin') || !webpackConfig.includes('actionblock.yml')) {
+      errors.push('webpack.config.js must copy actionblock.yml into dist using CopyWebpackPlugin.');
+    }
+    if (!webpackConfig.includes('process-polyfill.js')) {
+      errors.push('webpack.config.js must use process-polyfill.js in the working backup format.');
+    }
+  }
+
+  const distActionblockPath = path.join(targetDirectory, 'dist/actionblock.yml');
+  const rootActionblockPath = path.join(targetDirectory, 'actionblock.yml');
+  if (fs.existsSync(distActionblockPath) && fs.existsSync(rootActionblockPath)) {
+    if (fs.readFileSync(distActionblockPath, 'utf8') !== fs.readFileSync(rootActionblockPath, 'utf8')) {
+      errors.push('dist/actionblock.yml must match the root actionblock.yml copied by webpack.');
+    }
+  }
+
+  const distIndexPath = path.join(targetDirectory, 'dist/index.js');
+  if (fs.existsSync(distIndexPath)) {
+    const distContent = fs.readFileSync(distIndexPath, 'utf8');
+    if (/^\s*import\s/m.test(distContent)) {
+      errors.push('dist/index.js must be CommonJS-compatible and must not contain top-level ESM import syntax.');
+    }
+    if (!distContent.includes('webpackBootstrap')) {
+      errors.push('dist/index.js must be a webpack bundle matching the working backup ActionBlock format.');
+    }
+  }
+
+  verifyReadmeTestingKnowledge(targetDirectory, spec.artifactType, errors);
 
   return { passed: errors.length === 0, errors, warnings };
 }
@@ -750,13 +970,6 @@ async function runActionBlockMiniAgent(threadContext) {
   };
 
   try {
-    await codebolt.chat.sendMessage('[action-block] mini-agent loop started', {
-      targetDirectory: spec.targetDirectory,
-      platformAwareness: spec.platformAwareness,
-      referencePaths: spec.referencePaths,
-      agentLoop,
-    });
-
     const firstExecution = await runAgentLoopForSpec(spec, []);
     let finalExecution = firstExecution;
     let verification = verifyArtifact(spec);
@@ -764,10 +977,6 @@ async function runActionBlockMiniAgent(threadContext) {
 
     while (!verification.passed && repairPassCount < agentLoop.maxRepairPasses) {
       repairPassCount += 1;
-      await codebolt.chat.sendMessage('[action-block] mini-agent repair loop started', {
-        repairPass: repairPassCount,
-        verification,
-      });
       finalExecution = await runAgentLoopForSpec(spec, verification.errors);
       verification = verifyArtifact(spec);
     }

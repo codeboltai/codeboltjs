@@ -23,6 +23,49 @@ const FORBIDDEN_LOCAL_REFERENCE_MARKERS = [
   ['packages', 'server', 'src'].join('/'),
 ];
 
+const CODEBOLT_TESTING_TOOL_KNOWLEDGE = [
+  'Use tool_search with category "testing" or "autoTesting" to discover the currently registered test-management tools before creating or running tests.',
+  'Use test_case_create or autotesting_create_case to record artifact-specific smoke and regression cases with explicit steps.',
+  'Use test_suite_create or autotesting_create_suite to group the generated artifact test cases.',
+  'Use test_run_create or autotesting_create_run to start a tracked test run for the suite.',
+  'Use test_run_update_status, autotesting_update_run_status, autotesting_update_run_case, and autotesting_update_run_step to record pass/fail status after manual or automated checks.',
+  'Use terminal tools for local build, typecheck, lint, and package script checks before marking a test run passed.',
+  'Document a Run section with dependency install, npm run build, and the CodeBolt load or restart step needed before runtime testing.',
+  'After generation, run the local build from the artifact directory and record exact smoke-test commands and expected results in README.md.',
+  'Use debug_open_browser plus browser or crawler tools for UI artifacts that need visual or interaction checks.',
+  'Use side_execution_list_action_blocks, side_execution_start_action_block, and side_execution_get_status to test ActionBlocks through the same side-execution path parent agents use.',
+];
+
+const CODEBOLT_ARTIFACT_TESTING = {
+  agent: [
+    'Agent run/test: install dependencies, run npm run build, verify codeboltagent.yaml points to dist/index.js, load or restart the agent in CodeBolt, send a representative chat request, and confirm codebolt.onMessage returns structured output.',
+    'For generated agents that invoke tools or ActionBlocks, create test cases that cover direct answer, tool use, ActionBlock routing, error handling, and completion reporting.',
+  ],
+  plugin: [
+    'Plugin run/test: install dependencies, run npm run build, verify package.json#codebolt.plugin metadata, load or restart the plugin in CodeBolt, and exercise lifecycle handlers or registered tools/providers.',
+    'For plugin-backed tools, create test cases for valid inputs, invalid inputs, startup failure, and clean shutdown.',
+  ],
+  'llm-plugin': [
+    'LLM provider plugin run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify provider registration, run completion and streaming smoke cases with test credentials or mocked upstream responses, and record credential failure behavior.',
+  ],
+  'websearch-plugin': [
+    'Web search plugin run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify provider registration, run a query smoke test, validate result shape, and record login, no-result, and upstream failure behavior.',
+  ],
+  provider: [
+    'Provider run/test: install dependencies, run npm run build, validate providers.yaml, load or restart the provider in CodeBolt, exercise startup, agent-start, filesystem, shell, environment, cleanup, and failure paths that the provider claims to support.',
+  ],
+  'dynamic-panel': [
+    'Dynamic panel run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify ui.path, open the panel with dynamicPanel/debug browser tooling, test iframe messaging, and capture basic visual/interaction checks.',
+  ],
+  'custom-ui': [
+    'Custom UI run/test: install dependencies, run npm run build, load or restart the plugin in CodeBolt, verify ui.path, open the UI with debug_open_browser plus browser tools, and test the primary user workflow, asset loading, and error states.',
+  ],
+  'action-block': [
+    'ActionBlock run/test: install dependencies, run npm run build, verify actionblock.yml points to dist/index.js, load or restart ActionBlock discovery in CodeBolt, list the block with side_execution_list_action_blocks, invoke it with side_execution_start_action_block, and poll with side_execution_get_status.',
+    'Create test cases for required params, missing or invalid params, successful output shape, timeout behavior, and idempotent repeated execution.',
+  ],
+};
+
 const PLUGIN_SDK_EXPOSED_MODULES = [
   'default plugin facade',
   'PluginClient',
@@ -271,6 +314,13 @@ function slugifyName(value, fallback) {
   return slug || fallback;
 }
 
+function formatTestingToolKnowledge(artifactType) {
+  const artifactTesting = CODEBOLT_ARTIFACT_TESTING[artifactType] || [];
+  return [...CODEBOLT_TESTING_TOOL_KNOWLEDGE, ...artifactTesting]
+    .map((item) => `- ${item}`)
+    .join('\n');
+}
+
 function normalizeSpec(inputSpec) {
   const spec = inputSpec && typeof inputSpec === 'object' ? inputSpec : {};
   const artifactType = PLATFORM_CONTRACT.artifactType;
@@ -373,6 +423,9 @@ ${(contract.runtimeFlow || []).map((item) => `- ${item}`).join('\n')}
 ${(contract.publishSafetyRules || []).map((item) => `- ${item}`).join('\n')}
 ${(spec.callerConstraints || []).map((item) => `- ${item}`).join('\n')}
 
+Testing tool knowledge the generated README must include:
+${formatTestingToolKnowledge(spec.artifactType)}
+
 Generation checklist:
 ${(contract.generationChecklist || []).map((item) => `- ${item}`).join('\n')}
 
@@ -464,6 +517,42 @@ function checkJsSyntax(filePath, errors) {
     new Function(fs.readFileSync(filePath, 'utf8'));
   } catch (error) {
     errors.push(`Invalid runtime JavaScript syntax in ${filePath}: ${error.message}`);
+  }
+}
+
+function verifyReadmeTestingKnowledge(targetDirectory, artifactType, errors) {
+  const readmePath = path.join(targetDirectory, 'README.md');
+  if (!fs.existsSync(readmePath)) {
+    return;
+  }
+
+  const readmeContent = fs.readFileSync(readmePath, 'utf8');
+  if (!/testing|test plan|verification/i.test(readmeContent)) {
+    errors.push('README.md must include a Testing section for the generated artifact.');
+  }
+  if (!/(run|running|usage|build|installation)/i.test(readmeContent) || !/npm\s+(install|ci)/i.test(readmeContent) || !/npm\s+run\s+build/i.test(readmeContent)) {
+    errors.push('README.md must include Run or Usage instructions with dependency install and npm run build steps.');
+  }
+  if (!/(CodeBolt.{0,120}(load|reload|restart|start)|(?:load|reload|restart|start).{0,120}CodeBolt)/is.test(readmeContent)) {
+    errors.push('README.md must explain how to load, reload, restart, or start the generated artifact in CodeBolt before runtime testing.');
+  }
+  if (!/(tool_search|test_case_create|autotesting_create_case|test_suite_create|autotesting_create_suite|test_run_create|autotesting_create_run)/.test(readmeContent)) {
+    errors.push('README.md Testing section must name the CodeBolt testing tools to create cases, suites, and runs.');
+  }
+  if (artifactType === 'agent' && (!/codeboltagent\.yaml/.test(readmeContent) || !/(onMessage|chat request|representative chat|send.*message)/is.test(readmeContent))) {
+    errors.push('README.md Testing section for agents must document codeboltagent.yaml, starting the agent in CodeBolt, and sending a representative chat request.');
+  }
+  if ((artifactType === 'plugin' || artifactType === 'llm-plugin' || artifactType === 'websearch-plugin') && (!/codebolt\.plugin|package\.json#codebolt\.plugin/.test(readmeContent) || !/(plugin|provider).{0,120}(load|reload|restart|start)/is.test(readmeContent))) {
+    errors.push('README.md Testing section for plugins must document package.json#codebolt.plugin, loading or restarting the plugin, and exercising registered handlers.');
+  }
+  if (artifactType === 'provider' && (!/providers\.yaml/.test(readmeContent) || !/(onProviderStart|onProviderAgentStart|provider.{0,120}(load|reload|restart|start))/is.test(readmeContent))) {
+    errors.push('README.md Testing section for providers must document providers.yaml, loading or restarting the provider, and exercising provider lifecycle handlers.');
+  }
+  if (artifactType === 'action-block' && !/(side_execution_start_action_block|side_execution_get_status|side_execution_list_action_blocks)/.test(readmeContent)) {
+    errors.push('README.md Testing section for ActionBlocks must document side_execution_list_action_blocks, side_execution_start_action_block, and side_execution_get_status.');
+  }
+  if ((artifactType === 'custom-ui' || artifactType === 'dynamic-panel') && !/(debug_open_browser|browser|crawler)/.test(readmeContent)) {
+    errors.push('README.md Testing section for UI artifacts must document debug_open_browser plus browser or crawler checks.');
   }
 }
 
@@ -568,6 +657,8 @@ function verifyArtifact(spec) {
       errors.push(`Invalid package.json: ${error.message}`);
     }
   }
+
+  verifyReadmeTestingKnowledge(targetDirectory, spec.artifactType, errors);
 
   return { passed: errors.length === 0, errors, warnings };
 }
@@ -718,13 +809,6 @@ async function runActionBlockMiniAgent(threadContext) {
   };
 
   try {
-    await codebolt.chat.sendMessage('[plugin] mini-agent loop started', {
-      targetDirectory: spec.targetDirectory,
-      platformAwareness: spec.platformAwareness,
-      referencePaths: spec.referencePaths,
-      agentLoop,
-    });
-
     const firstExecution = await runAgentLoopForSpec(spec, []);
     let finalExecution = firstExecution;
     let verification = verifyArtifact(spec);
@@ -732,10 +816,6 @@ async function runActionBlockMiniAgent(threadContext) {
 
     while (!verification.passed && repairPassCount < agentLoop.maxRepairPasses) {
       repairPassCount += 1;
-      await codebolt.chat.sendMessage('[plugin] mini-agent repair loop started', {
-        repairPass: repairPassCount,
-        verification,
-      });
       finalExecution = await runAgentLoopForSpec(spec, verification.errors);
       verification = verifyArtifact(spec);
     }

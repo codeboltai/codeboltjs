@@ -1,8 +1,7 @@
 title: PlatformMofier
 version: 1.0.0
 unique_id: platformMofier
-initial_message: I create CodeBolt platform artifacts through internal ActionBlock mini-agents.
-description: Platform-aware generator for custom agents, plugins, LLM providers, web search providers, environment providers, dynamic UI panels, and ActionBlocks.
+description: Generic CodeBolt agent with platform-generation routing for custom agents, plugins, LLM providers, web search providers, environment providers, dynamic UI panels, and ActionBlocks.
 tags:
   - platform
   - generator
@@ -10,8 +9,9 @@ tags:
   - plugins
   - agents
 longDescription: |
-  PlatformMofier is a CodeBolt platform generator. It plans requests and delegates
-  every creation action to an internal ActionBlock side execution. The internal
+  PlatformMofier is a generic CodeBolt agent with an extra platform-generation
+  capability. It answers ordinary requests directly and delegates artifact
+  creation to the correct internal ActionBlock side execution. The internal
   ActionBlocks use feature-specific platform knowledge and an agentic
   plan/write/verify/repair loop.
 avatarSrc: https://placehold.co/200x200
@@ -33,9 +33,10 @@ metadata:
         - create a custom LLM provider plugin
         - create a web search provider plugin
         - create a dynamic panel plugin
+        - create an ActionBlock
 actions:
   - name: Generate Platform Artifact
-    description: Creates CodeBolt platform artifacts via internal ActionBlocks.
-    detailDescription: Parses the request, builds normalized specs, and invokes internal ActionBlock mini-agents by path.
-    actionPrompt: Create a CodeBolt platform artifact.
+    description: Answers directly or creates CodeBolt platform artifacts via internal ActionBlocks.
+    detailDescription: Decides whether to answer directly or build normalized specs and invoke the matching internal ActionBlock mini-agents by path.
+    actionPrompt: Answer directly unless the request needs a CodeBolt platform artifact; then route to the right ActionBlock.
 author: ravi

@@ -55,9 +55,20 @@ function slugifyName(value, fallback) {
   return slug || fallback;
 }
 
+function hasArtifactCreationIntent(text) {
+  const lower = String(text || '').toLowerCase();
+  const hasCreationVerb = /\b(create|generate|build|scaffold|implement|add|make|produce|prepare|write|setup|set up|need|want)\b/.test(lower);
+  const hasPlatformSurface = /\b(agent|plugin|extension|provider|dynamic panel|panel plugin|dynamic ui|custom ui|frontend plugin|action\s*block|actionblock|web\s*search|websearch|llm|model provider|custom model|completion provider|remote environment|environment provider|e2b)\b/.test(lower);
+  return hasCreationVerb && hasPlatformSurface;
+}
+
 function inferArtifactsFromText(text) {
   const lower = text.toLowerCase();
   const artifacts = [];
+  if (!hasArtifactCreationIntent(text)) {
+    return artifacts;
+  }
+
   const isAgentRequest = /\bagent\b/.test(lower);
   const isFeatureAwarenessRequest = /\b(aware|awareness|knowledge|capability|capabilities|support|supports|understand|understands)\b/.test(lower);
   const explicitlyRequestsDynamicPanel = /\b(dynamic panel|panel plugin)\b/.test(lower)
@@ -92,7 +103,7 @@ function inferArtifactsFromText(text) {
   if (/\b(plugin|extension)\b/.test(lower) && artifacts.length === 0) {
     add('plugin', 'generated-plugin', 'CodeBolt plugin');
   }
-  if (/\bagent\b/.test(lower) || artifacts.length === 0) {
+  if (/\bagent\b/.test(lower) || (artifacts.length === 0 && hasArtifactCreationIntent(text))) {
     add('agent', 'generated-agent', 'CodeBolt agent');
   }
 
@@ -134,6 +145,7 @@ function normalizeArtifact(rawArtifact, projectPath, userText) {
       'Use published npm package versions only; never use file:, link:, workspace:, or absolute local dependencies.',
       'Do not write machine-specific local paths, development repo paths, or user-home paths into generated source, manifests, package files, or README.',
       'Keep every artifact self-contained; do not depend on centralized shared generator logic from PlatformMofier.',
+      'README.md must include Run and Testing sections with dependency install/build commands, CodeBolt load or restart steps, the correct CodeBolt testing tools, and artifact-specific runtime smoke checks.',
       ...(Array.isArray(rawArtifact.constraints) ? rawArtifact.constraints.map(String) : []),
     ],
     generationContext: {
@@ -152,6 +164,7 @@ export {
   ARTIFACT_BLOCKS,
   getActionBlockInvocationNames,
   getActionBlockPath,
+  hasArtifactCreationIntent,
   inferArtifactsFromText,
   normalizeArtifact,
 };
