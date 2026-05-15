@@ -171,6 +171,131 @@ function isSuccessResponse(response) {
   return true;
 }
 
+function parseJsonLikeValue(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const clean = stripCodeFence(value);
+  if (!clean) {
+    return value;
+  }
+
+  if (clean === 'true') {
+    return { completion: true };
+  }
+
+  if (clean === 'false') {
+    return { completion: false };
+  }
+
+  try {
+    return JSON.parse(clean);
+  } catch (_error) {
+    const firstJsonObject = extractFirstJsonObject(clean);
+    if (!firstJsonObject) {
+      return value;
+    }
+
+    try {
+      return JSON.parse(firstJsonObject);
+    } catch (_innerError) {
+      return value;
+    }
+  }
+}
+
+function asRecord(value) {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function hasCompletionSuccess(record: Record<string, unknown>) {
+  return record.success === true
+    || record.completion === true
+    || record.completed === true
+    || record.status === 'success';
+}
+
+function hasCompletionFailure(record: Record<string, unknown>) {
+  return record.success === false
+    || record.completion === false
+    || record.completed === false
+    || record.status === 'error'
+    || record.status === 'failed'
+    || Boolean(record.error);
+}
+
+function getActionBlockError(record: Record<string, unknown> | null, fallback: string) {
+  if (!record) {
+    return fallback;
+  }
+
+  if (typeof record.error === 'string') {
+    return record.error;
+  }
+
+  if (typeof record.message === 'string' && hasCompletionFailure(record)) {
+    return record.message;
+  }
+
+  return fallback;
+}
+
+function getNestedCompletionPayload(record: Record<string, unknown>) {
+  for (const key of ['result', 'payload', 'data', 'output', 'finalMessage', 'response']) {
+    if (!(key in record)) {
+      continue;
+    }
+
+    const nested = parseJsonLikeValue(record[key]);
+    const nestedRecord = asRecord(nested);
+    if (nestedRecord) {
+      return nestedRecord;
+    }
+  }
+
+  return null;
+}
+
+function normalizeActionBlockResult(rawResult, blockName) {
+  const parsed = parseJsonLikeValue(rawResult);
+  const record = asRecord(parsed);
+  const fallbackError = `ActionBlock failed: ${blockName}`;
+
+  if (!record) {
+    return {
+      success: false,
+      error: fallbackError,
+      payload: {},
+      raw: rawResult,
+    };
+  }
+
+  const nestedPayload = getNestedCompletionPayload(record);
+  const nestedFailure = nestedPayload && hasCompletionFailure(nestedPayload);
+  const nestedSuccess = nestedPayload && hasCompletionSuccess(nestedPayload);
+  const success = hasCompletionSuccess(record) || Boolean(nestedSuccess);
+  const failure = hasCompletionFailure(record) || Boolean(nestedFailure);
+
+  if (!success || failure) {
+    return {
+      success: false,
+      error: getActionBlockError(nestedPayload, getActionBlockError(record, fallbackError)),
+      payload: nestedPayload || record,
+      raw: rawResult,
+    };
+  }
+
+  return {
+    success: true,
+    error: '',
+    payload: nestedPayload || record,
+    raw: rawResult,
+  };
+}
+
 function simplifyResult(value) {
   if (value === undefined) {
     return undefined;
@@ -593,15 +718,16 @@ async function runArtifact(spec) {
     const errors = [];
     for (const actionBlockName of invocationNames) {
       const attempt = await platformRuntime.actionBlock.start(actionBlockName, { spec });
-      if (attempt && attempt.success) {
-        result = attempt;
+      const normalizedAttempt = normalizeActionBlockResult(attempt, actionBlockName);
+      if (normalizedAttempt.success) {
+        result = normalizedAttempt;
         break;
       }
 
-      const errorMessage = attempt && attempt.error ? attempt.error : `ActionBlock failed: ${actionBlockName}`;
+      const errorMessage = normalizedAttempt.error || `ActionBlock failed: ${actionBlockName}`;
       errors.push(`${actionBlockName}: ${errorMessage}`);
       if (!isMissingActionBlockError(errorMessage)) {
-        result = attempt;
+        result = normalizedAttempt;
         break;
       }
     }
@@ -618,31 +744,33 @@ async function runArtifact(spec) {
       || (actionBlockModule.default && actionBlockModule.default.runActionBlockMiniAgent);
 
     if (runner) {
-      result = {
+      result = normalizeActionBlockResult({
         success: true,
         result: await runner({ params: { spec } }),
-      };
+      }, blockName);
     }
   }
 
   if (!result && platformRuntime.sideExecution && platformRuntime.sideExecution.startWithActionBlock) {
-    result = await platformRuntime.sideExecution.startWithActionBlock(
+    const sideExecutionResult = await platformRuntime.sideExecution.startWithActionBlock(
       actionBlockPath,
       { spec },
       ACTION_BLOCK_TIMEOUT_MS,
     );
+    result = normalizeActionBlockResult(sideExecutionResult, blockName);
   }
 
   if (!result) {
     throw new Error('No CodeBolt ActionBlock execution API is available in this runtime');
   }
 
-  if (!result || !result.success) {
-    throw new Error((result && result.error) || `ActionBlock failed: ${blockName}`);
+  const normalizedResult = normalizeActionBlockResult(result, blockName);
+  if (!normalizedResult.success) {
+    throw new Error(normalizedResult.error || `ActionBlock failed: ${blockName}`);
   }
 
-  return result.result && typeof result.result === 'object'
-    ? result.result as Record<string, unknown>
+  return normalizedResult.payload && typeof normalizedResult.payload === 'object'
+    ? normalizedResult.payload as Record<string, unknown>
     : {};
 }
 

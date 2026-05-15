@@ -43,14 +43,14 @@ const PLATFORM_CONTRACT = {
     "At the start of each tool call, if arguments.explanation is present, call codebolt.chat.sendMessage(arguments.explanation) before the tool behavior.",
     "Validate inputs before running tool behavior and return clear errors for invalid arguments.",
     "Keep the runtime self-contained and avoid development repo imports.",
+    "Must test tool after creation and ensure it works as expected."
   ],
   testingKnowledge: [
-    "Reload or restart CodeBolt so project-local tool discovery can rescan .codebolt/tools.",
-    "Use getLocalToolBoxes or listToolsFromToolBoxes with local/<uniqueName> to confirm discovery.",
+
     "First search for the newly created tool with tool_search using its name, uniqueName, description, or primary capability.",
-    "Use mcp_get_tools or mcp_execute_tool with local/<uniqueName>--<toolName> for a smoke call when available.",
+    "Do not skip tool_search: the required post-create runtime validation sequence is tool_search first, then execute the exact discovered local MCP tool.",
     "After tool_search returns the generated tool schema, execute the discovered tool with valid sample arguments.",
-    "Record tests with tool_search plus test_case_create/test_suite_create/test_run_create or autotesting equivalents.",
+    "Do not use terminal command to test the tool. Instead use the tools provided by the Codebolt platform."
   ],
 };
 
@@ -163,9 +163,10 @@ ${contract.testingKnowledge.map((item) => `- ${item}`).join("\n")}
 Required generated-tool test sequence:
 1. Reload or restart CodeBolt so .codebolt/tools is rescanned.
 2. Use tool_search to search for the new tool by name, uniqueName, description, or capability.
-3. Confirm the returned schema includes the expected local toolbox-qualified tool name.
-4. Execute the discovered tool with valid sample arguments.
-5. Record the search and execution results in the README Testing section.
+3. Confirm the returned schema includes the expected local toolbox-qualified tool name, usually local/<uniqueName>--<toolName> at execution time and local_<uniqueName>--<toolName> in model-facing normalized form.
+4. Execute the discovered tool with valid sample arguments through the available MCP execution path.
+5. If the tool is not found, report that CodeBolt must be reloaded or restarted before the tool can be called; do not claim runtime validation passed.
+6. Record the tool_search query, discovered name, execution call, sample arguments, and result in the README Testing section.
 
 CodeBolt tool schema and chat-message behavior:
 - CodeBolt BaseDeclarativeTool automatically adds an optional explanation parameter to every OpenAI tool schema.
@@ -186,9 +187,10 @@ Required workflow:
 2. Create codebolttool.yaml, root index.js, README.md, and optional package/build files only if useful.
 3. Ensure root index.js can run with node and starts the MCP stdio server.
 4. Add optional explanation support to the tool schema and send it through codebolt.chat.sendMessage when a call starts.
-5. Document how to reload CodeBolt, search for the tool with tool_search, list local/<uniqueName>, and execute the discovered tool.
-6. Verify required files, syntax, manifest fields, explanation handling, and README testing content.
-7. Call attempt_completion with JSON containing success, artifactPath, filesCreated, and notes.
+5. After creating the files, use tool_search to find the generated tool, then call the discovered tool with valid sample arguments when the runtime exposes it.
+6. Document how to reload CodeBolt, search for the tool with tool_search, list local/<uniqueName>, and execute the discovered tool.
+7. Verify required files, syntax, manifest fields, explanation handling, README testing content, and the tool_search-then-call validation notes.
+8. Call attempt_completion with JSON containing success, artifactPath, filesCreated, toolSearchQuery, discoveredToolName, executionResult or reloadRequired, and notes.
 
 If verification errors are provided, repair exactly those issues and verify again.
 `.trim();
@@ -280,6 +282,12 @@ function verifyReadme(targetDirectory, errors) {
   }
   if (!/(tool_search[\s\S]{0,800}(execute|mcp_execute_tool))|((execute|mcp_execute_tool)[\s\S]{0,800}tool_search)/i.test(content)) {
     errors.push("README.md Testing section must describe the sequence: tool_search first, then execute the discovered tool.");
+  }
+  if (!/(discovered tool|discovered name|discoveredToolName|local\/<uniqueName>|local_)/i.test(content)) {
+    errors.push("README.md Testing section must record the discovered local tool name returned after tool_search.");
+  }
+  if (!/(reload-required|reload required|restart required|not discoverable|not found)/i.test(content)) {
+    errors.push("README.md Testing section must document the reload-required fallback if tool_search cannot find the newly created local tool.");
   }
   if (!/(reload|restart|load).{0,120}CodeBolt|CodeBolt.{0,120}(reload|restart|load)/is.test(content)) {
     errors.push("README.md must explain reloading or restarting CodeBolt after generating the tool.");
