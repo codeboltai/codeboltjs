@@ -50,7 +50,10 @@ const PLATFORM_CONTRACT = {
     "First search for the newly created tool with tool_search using its name, uniqueName, description, or primary capability.",
     "Do not skip tool_search: the required post-create runtime validation sequence is tool_search first, then execute the exact discovered local MCP tool.",
     "After tool_search returns the generated tool schema, execute the discovered tool with valid sample arguments.",
-    "Do not use terminal command to test the tool. Instead use the tools provided by the Codebolt platform."
+    "Do not use terminal command to test the tool. Instead use the tools provided by the Codebolt platform.",
+    "Only mark generation successful after the discovered tool has actually been called through CodeBolt tooling and returned a result.",
+    "Send the generated tool execution result to the user with codebolt.chat.sendMessage before calling attempt_completion.",
+    "If the tool cannot be discovered or called, return success false with reloadRequired or executionBlocked instead of marking the task finished."
   ],
 };
 
@@ -165,8 +168,14 @@ Required generated-tool test sequence:
 2. Use tool_search to search for the new tool by name, uniqueName, description, or capability.
 3. Confirm the returned schema includes the expected local toolbox-qualified tool name, usually local/<uniqueName>--<toolName> at execution time and local_<uniqueName>--<toolName> in model-facing normalized form.
 4. Execute the discovered tool with valid sample arguments through the available MCP execution path.
-5. If the tool is not found, report that CodeBolt must be reloaded or restarted before the tool can be called; do not claim runtime validation passed.
-6. Record the tool_search query, discovered name, execution call, sample arguments, and result in the README Testing section.
+5. Send the execution result to the user with codebolt.chat.sendMessage so the user can see the generated tool output.
+6. If the tool is not found or cannot be called, report that CodeBolt must be reloaded or restarted before the tool can be called; do not claim runtime validation passed.
+7. Record the tool_search query, discovered name, execution call, sample arguments, user-visible result message, and result in the README Testing section.
+
+Completion gate:
+- Do not call attempt_completion with success true until tool_search has found the generated tool, the exact discovered tool has been called, and the tool result has been sent to the user.
+- attempt_completion success true JSON must include toolSearchQuery, discoveredToolName, executionResult, userResultMessage, and userResultMessageSent: true.
+- If runtime validation is blocked by discovery or reload state, call attempt_completion with success false and reloadRequired or executionBlocked details.
 
 CodeBolt tool schema and chat-message behavior:
 - CodeBolt BaseDeclarativeTool automatically adds an optional explanation parameter to every OpenAI tool schema.
@@ -188,9 +197,10 @@ Required workflow:
 3. Ensure root index.js can run with node and starts the MCP stdio server.
 4. Add optional explanation support to the tool schema and send it through codebolt.chat.sendMessage when a call starts.
 5. After creating the files, use tool_search to find the generated tool, then call the discovered tool with valid sample arguments when the runtime exposes it.
-6. Document how to reload CodeBolt, search for the tool with tool_search, list local/<uniqueName>, and execute the discovered tool.
-7. Verify required files, syntax, manifest fields, explanation handling, README testing content, and the tool_search-then-call validation notes.
-8. Call attempt_completion with JSON containing success, artifactPath, filesCreated, toolSearchQuery, discoveredToolName, executionResult or reloadRequired, and notes.
+6. Send the discovered tool execution result to the user with codebolt.chat.sendMessage before finishing.
+7. Document how to reload CodeBolt, search for the tool with tool_search, list local/<uniqueName>, execute the discovered tool, and send the result to the user.
+8. Verify required files, syntax, manifest fields, explanation handling, README testing content, tool_search-then-call validation notes, and user-visible result delivery.
+9. Call attempt_completion with JSON containing success, artifactPath, filesCreated, toolSearchQuery, discoveredToolName, executionResult, userResultMessage, userResultMessageSent, and notes.
 
 If verification errors are provided, repair exactly those issues and verify again.
 `.trim();
@@ -283,6 +293,12 @@ function verifyReadme(targetDirectory, errors) {
   if (!/(tool_search[\s\S]{0,800}(execute|mcp_execute_tool))|((execute|mcp_execute_tool)[\s\S]{0,800}tool_search)/i.test(content)) {
     errors.push("README.md Testing section must describe the sequence: tool_search first, then execute the discovered tool.");
   }
+  if (!/(only mark|mark.*success|finish|complete)[\s\S]{0,500}(call|execute)[\s\S]{0,300}(tool|discovered tool)/i.test(content)) {
+    errors.push("README.md Testing section must state that generation is only successful after the discovered tool is called.");
+  }
+  if (!/(send|show|return|message)[\s\S]{0,500}(tool result|execution result|result)[\s\S]{0,300}(user|chat|codebolt\.chat\.sendMessage)/i.test(content)) {
+    errors.push("README.md Testing section must state that the tool execution result is sent to the user.");
+  }
   if (!/(discovered tool|discovered name|discoveredToolName|local\/<uniqueName>|local_)/i.test(content)) {
     errors.push("README.md Testing section must record the discovered local tool name returned after tool_search.");
   }
@@ -350,6 +366,90 @@ function verifyExplanationBehavior(targetDirectory, errors) {
   }
 }
 
+function extractJsonObject(text) {
+  const source = String(text || "").trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  if (!source) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(source);
+  } catch (_error) {
+    const start = source.indexOf("{");
+    if (start < 0) {
+      return null;
+    }
+
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < source.length; index += 1) {
+      const character = source[index];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (character === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (character === "\"") {
+        inString = !inString;
+        continue;
+      }
+      if (inString) {
+        continue;
+      }
+      if (character === "{") {
+        depth += 1;
+      } else if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            return JSON.parse(source.slice(start, index + 1));
+          } catch (_innerError) {
+            return null;
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function verifyCompletionGate(finalExecution, errors) {
+  const finalMessage = finalExecution && finalExecution.finalMessage;
+  const completion = extractJsonObject(finalMessage);
+  if (!completion || typeof completion !== "object") {
+    errors.push("attempt_completion final message must be JSON so runtime validation can be verified.");
+    return;
+  }
+
+  if (completion.success !== true) {
+    return;
+  }
+
+  if (completion.reloadRequired || completion.executionBlocked) {
+    errors.push("attempt_completion cannot use success true when reloadRequired or executionBlocked is present.");
+  }
+  if (!completion.toolSearchQuery) {
+    errors.push("attempt_completion success true must include toolSearchQuery.");
+  }
+  if (!completion.discoveredToolName) {
+    errors.push("attempt_completion success true must include discoveredToolName from tool_search.");
+  }
+  if (!completion.executionResult) {
+    errors.push("attempt_completion success true must include executionResult from calling the discovered tool.");
+  }
+  if (!completion.userResultMessage) {
+    errors.push("attempt_completion success true must include userResultMessage containing the result sent to the user.");
+  }
+  if (completion.userResultMessageSent !== true) {
+    errors.push("attempt_completion success true must include userResultMessageSent: true after sending the tool result to the user.");
+  }
+}
+
 function verifyArtifact(spec) {
   const errors = [];
   const warnings = [];
@@ -388,6 +488,16 @@ function verifyArtifact(spec) {
   }
 
   return { passed: errors.length === 0, errors, warnings };
+}
+
+function verifyArtifactAndCompletion(spec, finalExecution) {
+  const verification = verifyArtifact(spec);
+  verifyCompletionGate(finalExecution, verification.errors);
+  return {
+    passed: verification.errors.length === 0,
+    errors: verification.errors,
+    warnings: verification.warnings,
+  };
 }
 
 function appendPromptMessage(prompt, role, content) {
@@ -509,13 +619,13 @@ async function runActionBlockMiniAgent(threadContext) {
   try {
     const firstExecution = await runAgentLoopForSpec(spec, []);
     let finalExecution = firstExecution;
-    let verification = verifyArtifact(spec);
+    let verification = verifyArtifactAndCompletion(spec, finalExecution);
     let repairPassCount = 0;
 
     while (!verification.passed && repairPassCount < agentLoop.maxRepairPasses) {
       repairPassCount += 1;
       finalExecution = await runAgentLoopForSpec(spec, verification.errors);
-      verification = verifyArtifact(spec);
+      verification = verifyArtifactAndCompletion(spec, finalExecution);
     }
 
     const filesCreated = collectFiles(spec.targetDirectory);
