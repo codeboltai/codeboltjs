@@ -1,0 +1,52 @@
+{
+  "name": "test-feature-bug-implemented-main-agent",
+  "private": true,
+  "version": "1.0.4",
+  "description": "A CodeBolt ActionBlock that launches Agentic TUI and tests a main-agent feature or bug fix through TUI interactions.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "npx webpack",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "pnpm run clean",
+    "prepare:agentic-tui:setup": "cd \"${CODEBOLT_BASE_PROJECT_PATH:?CODEBOLT_BASE_PROJECT_PATH is required}\" && npm install",
+    "prepare:agentic-tui:package": "cd \"${CODEBOLT_BASE_PROJECT_PATH:?CODEBOLT_BASE_PROJECT_PATH is required}\" && npm run build:all -w @codebolt/gotui && npm run build -w @arrowai/multillm && npm run build -w @codebolt/server && npm run build -w @codebolt/client-sdk && npm run build -w @codebolt/web && cd packages/cli && tsc"
+  },
+  "keywords": [
+    "codebolt",
+    "actionblock",
+    "testing",
+    "verification",
+    "mini-agent"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/codeboltjs": "file:file:../../../sdks/codeboltjs",
+    "@codebolt/agent": "file:file:../../../sdks/agent",
+    "@codebolt/types": "file:../../../packages/types",
+    "buffer": "^6.0.3",
+    "copy-webpack-plugin": "^12.0.2",
+    "node-polyfill-webpack-plugin": "^4.1.0",
+    "process": "^0.11.10",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "tsx": "^4.7.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@codebolt/types": "file:../../../packages/types",
+      "@codebolt/codeboltjs>@codebolt/types": "file:../../../packages/types",
+      "@codebolt/agent>@codebolt/types": "file:../../../packages/types"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
