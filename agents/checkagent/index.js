@@ -4,7 +4,6 @@ process.env.WS_NO_UTF_8_VALIDATE = "1";
 process.env.CODEBOLT_URL = process.env.CODEBOLT_URL || "ws://localhost:3000/codebolt";
 process.env.CODEBOLT_ID = process.env.CODEBOLT_ID || "checkagent";
 
-const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const codebolt = require("@codebolt/codeboltjs");
@@ -185,14 +184,20 @@ function resolvePlanPath(rawPath, projectRoot) {
   return path.resolve(projectRoot, normalized);
 }
 
-function readPlan(planPath) {
-  if (!fs.existsSync(planPath)) {
-    throw new Error(`Testing plan file does not exist: ${planPath}`);
+async function readPlan(planPath) {
+  const readResponse = await codebolt.fs.readFile(planPath);
+  const source = extractFileContent(readResponse);
+  if (!source) {
+    throw new Error(`Testing plan file could not be read through codebolt.fs: ${planPath}`);
   }
-  const source = fs.readFileSync(planPath, "utf8");
   const plan = YAML.parse(source);
   validatePlan(plan, planPath);
   return plan;
+}
+
+function extractFileContent(response) {
+  if (typeof response === "string") return response;
+  return firstString(response, ["content", "source", "text", "data", "fileContent", "value"]);
 }
 
 function validatePlan(plan, planPath) {
@@ -250,36 +255,62 @@ function interpolateString(value, runId, variables) {
   });
 }
 
-function makeArtifacts(projectRoot, runId) {
+async function makeArtifacts(projectRoot, runId) {
   const runDir = path.join(projectRoot, RESULT_DIR, "runs", runId);
-  fs.mkdirSync(runDir, { recursive: true });
+  await ensureCodeboltFolder(path.join(projectRoot, RESULT_DIR));
+  await ensureCodeboltFolder(path.join(projectRoot, RESULT_DIR, "runs"));
+  await ensureCodeboltFolder(runDir);
   return {
     runDir,
-    writeJson(name, value) {
-      fs.writeFileSync(path.join(runDir, name), `${JSON.stringify(value, null, 2)}\n`, "utf8");
-      return path.join(runDir, name);
+    async writeJson(name, value) {
+      return writeCodeboltFile(runDir, name, `${JSON.stringify(value, null, 2)}\n`);
     },
-    appendJsonl(name, value) {
-      fs.appendFileSync(path.join(runDir, name), `${JSON.stringify(value)}\n`, "utf8");
-      return path.join(runDir, name);
+    async appendJsonl(name, value) {
+      const filePath = path.join(runDir, name);
+      let existing = "";
+      const current = await safeCall(() => codebolt.fs.readFile(filePath));
+      if (current) {
+        existing = extractFileContent(current) || "";
+      }
+      return writeCodeboltFile(runDir, name, `${existing}${JSON.stringify(value)}\n`);
     },
-    writeText(name, value) {
-      fs.writeFileSync(path.join(runDir, name), String(value || ""), "utf8");
-      return path.join(runDir, name);
+    async writeText(name, value) {
+      return writeCodeboltFile(runDir, name, String(value || ""));
     },
-    writeBase64(name, base64) {
+    async writeBase64(name, base64) {
       const cleaned = String(base64).replace(/^data:image\/\w+;base64,/, "");
-      fs.writeFileSync(path.join(runDir, name), Buffer.from(cleaned, "base64"));
-      return path.join(runDir, name);
+      const artifactName = name.replace(/\.[^.]+$/, ".base64.txt");
+      return writeCodeboltFile(runDir, artifactName, cleaned);
     }
   };
+}
+
+async function ensureCodeboltFolder(folderPath) {
+  const parent = path.dirname(folderPath);
+  const name = path.basename(folderPath);
+  const response = await safeCall(() => codebolt.fs.createFolder(name, parent));
+  if (response?.success === false && !String(response?.message || response?.error || "").toLowerCase().includes("exist")) {
+    throw new Error(`codebolt.fs.createFolder failed for ${folderPath}: ${response?.message || response?.error || "unknown error"}`);
+  }
+}
+
+async function writeCodeboltFile(dirPath, fileName, content) {
+  const filePath = path.join(dirPath, fileName);
+  const response = await codebolt.fs.createFile(fileName, content, dirPath);
+  if (response?.success === false) {
+    const updateResponse = await codebolt.fs.updateFile(fileName, filePath, content);
+    if (updateResponse?.success === false) {
+      throw new Error(`codebolt.fs write failed for ${filePath}: ${updateResponse?.message || updateResponse?.error || response?.message || response?.error || "unknown error"}`);
+    }
+  }
+  return filePath;
 }
 
 async function runTestingPlan(inputPlan, options) {
   const runId = options.runId || stableRunId();
   const startedAt = nowIso();
   const { plan } = materializePlan(inputPlan, runId);
-  const artifacts = makeArtifacts(options.projectRoot, runId);
+  const artifacts = await makeArtifacts(options.projectRoot, runId);
   const resultArtifacts = [artifacts.runDir];
   const trace = [];
   const llmTrace = [];
@@ -304,9 +335,9 @@ async function runTestingPlan(inputPlan, options) {
       artifacts: resultArtifacts,
       suggestedRefinements
     };
-    artifacts.writeJson("trace.json", trace);
-    artifacts.writeJson("llm-trace.json", llmTrace);
-    artifacts.writeJson("result.json", result);
+    await artifacts.writeJson("trace.json", trace);
+    await artifacts.writeJson("llm-trace.json", llmTrace);
+    await artifacts.writeJson("result.json", result);
     return result;
   }
 
@@ -323,7 +354,7 @@ async function runTestingPlan(inputPlan, options) {
   for (const step of plan.flow) {
     send(`Check Agent: step ${step.id} - ${step.goal || step.operation?.type || "operation"}`);
     const stepResult = await runStep({ plan, step, provider, trace, llmTrace, suggestedRefinements });
-    artifacts.appendJsonl("trace.jsonl", {
+    await artifacts.appendJsonl("trace.jsonl", {
       stepId: step.id,
       status: stepResult.status,
       timestamp: nowIso()
@@ -547,7 +578,7 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
       const visibleText = lines(extractedText || markdown || htmlToText(html));
       const elements = normalizeElements(actionableRes).concat(extractElementsFromHtml(html)).slice(0, 120);
       const title = extractTitle(html) || "";
-      const htmlPath = html ? artifacts.writeText(`${step.id}-${Date.now()}.html`, html) : undefined;
+      const htmlPath = html ? await artifacts.writeText(`${step.id}-${Date.now()}.html`, html) : undefined;
       const observation = {
         providerId: this.id,
         timestamp: nowIso(),
@@ -565,7 +596,7 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
       const screenshot = await safeCall(() => codebolt.browser.screenshot({ fullPage: true, format: "png" }));
       const screenshotBase64 = firstString(screenshot, ["screenshot", "content", "data"]);
       if (screenshotBase64 && screenshotBase64.length > 100) {
-        const screenshotPath = artifacts.writeBase64(`${step.id}-${Date.now()}.png`, screenshotBase64);
+        const screenshotPath = await artifacts.writeBase64(`${step.id}-${Date.now()}.png`, screenshotBase64);
         observation.artifacts.push({ kind: "screenshot", path: screenshotPath, label: step.id });
         resultArtifacts.push(screenshotPath);
       }
@@ -1142,7 +1173,7 @@ codebolt.onMessage(async (reqMessage) => {
     const planPath = await extractPlanPathWithLlm(reqMessage);
     send(`Check Agent: loading plan ${planPath}`);
     const projectRoot = await getProjectRoot();
-    const plan = readPlan(planPath);
+    const plan = await readPlan(planPath);
     const result = await runTestingPlan(plan, { projectRoot });
     const resultPath = path.join(projectRoot, RESULT_DIR, "runs", result.runId, "result.json");
     if (result.status === "passed") {

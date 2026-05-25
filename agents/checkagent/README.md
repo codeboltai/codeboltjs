@@ -21,6 +21,7 @@ await codebolt.agent.startAgent(
 The agent uses:
 
 - `codebolt.llm.inference` to extract the plan path from the message.
+- `codebolt.fs` to read the plan file and write run artifacts.
 - `codebolt.browser.*` to run web plan steps.
 - `codebolt.llm.inference` to resolve semantic candidates, judge semantic
   assertions, classify failures, and suggest provider-neutral refinements.
