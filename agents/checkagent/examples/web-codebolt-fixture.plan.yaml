@@ -1,0 +1,99 @@
+specVersion: agent-check/v1
+kind: TestingPlan
+
+metadata:
+  id: codebolt-web-fixture
+  title: CodeBolt browser fixture plan
+  tags:
+    - web
+    - codebolt-browser
+    - semantic
+
+target:
+  appRef: local-web-fixture
+  surface: web
+  baseUrl: file:///D:/agentictest/examples/web-fixture.html
+  timeoutMs: 10000
+  viewport:
+    width: 1280
+    height: 800
+
+intent:
+  summary: Verify the fixture form using CodeBolt browser APIs.
+  acceptance:
+    - The page opens.
+    - The project name field is filled.
+    - The create button is activated.
+    - The created project message is visible.
+
+runtime:
+  resolutionOrder:
+    - semantic
+    - exact
+    - structural
+  allowRefinement: true
+  requireUserVisibleValidation: true
+
+variables:
+  PROJECT_NAME:
+    value: CodeBolt Check Agent {{ run.id }}
+
+flow:
+  - id: open_fixture
+    goal: Open the fixture website
+    operation:
+      type: navigate
+      target:
+        url: file:///D:/agentictest/examples/web-fixture.html
+    success:
+      any:
+        - exact:
+            titleContains: Agent Check Fixture
+
+  - id: fill_project_name
+    goal: Fill the project name field
+    operation:
+      type: input
+      intent: Enter the generated project name into the project name field.
+      value: "{{ PROJECT_NAME }}"
+      candidates:
+        - semantic:
+            instruction: Find the input where a user enters the project name.
+        - exact:
+            web:
+              stableId: project-name-input
+    success:
+      any:
+        - exact:
+            fieldValue:
+              target:
+                stableId: project-name-input
+              equals: "{{ PROJECT_NAME }}"
+
+  - id: submit_project
+    goal: Submit the project form
+    operation:
+      type: interact
+      intent: Activate the control that creates the project.
+      candidates:
+        - semantic:
+            instruction: Find the create project button.
+        - structural:
+            role: button
+            name: Create Project
+    success:
+      all:
+        - semantic:
+            intent: The page says that project "{{ PROJECT_NAME }}" was created.
+
+failurePolicy:
+  appBugWhen:
+    - The controls can be found but the expected visible result does not appear.
+  planUnclearWhen:
+    - The plan does not identify enough information to choose an action.
+  environmentIssueWhen:
+    - CodeBolt browser or LLM APIs are unavailable.
+
+refinement:
+  allowed: true
+  history: []

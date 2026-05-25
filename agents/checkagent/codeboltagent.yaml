@@ -1,0 +1,46 @@
+title: Check Agent
+version: 0.1.0
+unique_id: checkagent
+description: Runs provider-neutral testing plan YAML files through CodeBolt APIs.
+longDescription: |
+  Check Agent is a CodeBolt-native testing plan runner. It is intended to be
+  started by another agent with a user message that mentions a testing plan
+  file path. It extracts the plan path with codebolt.llm.inference, loads the
+  plan, executes web steps through codebolt.browser APIs, and uses
+  codebolt.llm.inference for semantic candidate resolution, semantic assertions,
+  failure classification, and refinement suggestions.
+tags:
+  - testing
+  - web
+  - agent-check
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CA
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - yaml
+      - javascript
+      - typescript
+    supportedframeworks:
+      - codebolt
+      - web
+  sdlc_steps_managed:
+    - name: testing
+      example_instructions:
+        - Run the testing plan at D:\path\to\plan.yaml
+  llm_role:
+    - name: testingllm
+      description: LLM used for semantic test execution and failure classification.
+      strict: false
+      modelorder:
+        - group.testingmodels
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+actions:
+  - name: Run Testing Plan
+    description: Runs a testing plan YAML file against the target app.
+    detailDescription: Extracts the plan file path from the message, validates the plan, executes steps, collects evidence, and reports a result.
+    actionPrompt: Run the testing plan file mentioned in the user message.
+author: codebolt

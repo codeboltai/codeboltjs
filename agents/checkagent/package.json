@@ -1,0 +1,22 @@
+{
+  "name": "checkagent",
+  "version": "0.1.0",
+  "description": "CodeBolt-native testing plan runner agent.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "check": "node --check index.js"
+  },
+  "keywords": [
+    "codebolt",
+    "testing",
+    "agent"
+  ],
+  "author": "codebolt",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@codebolt/codeboltjs": "^5.1.38",
+    "yaml": "^2.7.0"
+  }
+}
