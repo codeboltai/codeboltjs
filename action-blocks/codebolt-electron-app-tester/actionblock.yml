@@ -1,0 +1,33 @@
+name: codebolt-electron-app-tester
+description: Creates a temp project folder, installs, builds, and starts the CodeBolt Electron application against that temp project using deterministic scripts, then launches an agentic loop that tests a feature specified by the main agent.
+version: 1.0.0
+unique_id: codebolt-electron-app-tester
+entryPoint: dist/index.js
+auther: ravi
+inputs:
+  - name: spec
+    type: object
+    description: Optional verifier hints describing the feature to test, expected behavior, user workflow, acceptance criteria, and any feature-specific context. Command strings are sanitized and setup/build/start are handled by wrapper scripts.
+    required: false
+outputs:
+  - name: success
+    type: boolean
+    description: Whether the mini-agent verified the feature successfully through Electron app behavior.
+  - name: result
+    type: object
+    description: Structured verifier result with startup-message status, lifecycle steps, Electron temp-project session details, mini-agent report, issues, and recommendations.
+  - name: verification
+    type: object
+    description: Verification checks performed by the ActionBlock.
+  - name: filesCreated
+    type: array
+    description: Any test artifacts or report files created during execution.
+  - name: error
+    type: string
+    description: Structured error message when the ActionBlock fails.
+metadata:
+  displayName: Codebolt Electron App Tester
+  fullName: Codebolt Electron App Tester
+  category: testing
+  sourceLanguage: TypeScript
+  runtimeEntry: dist/index.js
