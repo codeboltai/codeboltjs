@@ -9,7 +9,7 @@ const crypto = require("crypto");
 const codebolt = require("@codebolt/codeboltjs");
 
 const PLAN_KIND = "TestingPlan";
-const RESULT_DIR = ".agent-check";
+const RESULT_DIR = ".codebolt/autotests";
 const WEB_SURFACE = "web";
 
 function loadYamlParser() {
@@ -34,6 +34,15 @@ function send(message, payload) {
   } catch {
     console.log(message, payload || "");
   }
+}
+
+function logStep(message, payload) {
+  const prefix = `[checkagent] ${nowIso()} ${message}`;
+  if (payload === undefined) {
+    console.log(prefix);
+    return;
+  }
+  console.log(prefix, payload);
 }
 
 function nowIso() {
@@ -104,7 +113,7 @@ async function inferJson(systemPrompt, userPrompt, options = {}) {
 async function getProjectRoot() {
   try {
     const response = await codebolt.project.getProjectPath();
-    return (
+    return normalizeProjectRoot(
       response?.projectPath ||
       response?.path ||
       response?.data?.projectPath ||
@@ -113,11 +122,22 @@ async function getProjectRoot() {
       process.cwd()
     );
   } catch {
-    return process.cwd();
+    return normalizeProjectRoot(process.cwd());
   }
 }
 
+function normalizeProjectRoot(rawPath) {
+  const normalized = String(rawPath || process.cwd())
+    .replace(/^file:\/\//i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  if (path.isAbsolute(normalized)) return path.normalize(normalized);
+  if (/^Users[\\/]/.test(normalized)) return path.normalize(`${path.sep}${normalized}`);
+  return path.resolve(process.cwd(), normalized);
+}
+
 async function extractPlanPathWithLlm(reqMessage) {
+  logStep("extract-plan-path:start");
   const projectRoot = await getProjectRoot();
   const userMessage = reqMessage?.userMessage || "";
   const mentionedFullPaths = reqMessage?.mentionedFullPaths || [];
@@ -155,15 +175,20 @@ Return JSON:
   );
 
   if (extraction?.planPath && typeof extraction.planPath === "string") {
-    return resolvePlanPath(extraction.planPath, projectRoot);
+    const resolvedPath = resolvePlanPath(extraction.planPath, projectRoot);
+    logStep("extract-plan-path:resolved-by-llm", { planPath: resolvedPath, confidence: extraction.confidence });
+    return resolvedPath;
   }
 
   const fallback = fallbackPathFromMessage(reqMessage);
   if (fallback) {
     send(`Check Agent: LLM did not return a usable path, using obvious path fallback: ${fallback}`);
-    return resolvePlanPath(fallback, projectRoot);
+    const resolvedPath = resolvePlanPath(fallback, projectRoot);
+    logStep("extract-plan-path:resolved-by-fallback", { planPath: resolvedPath });
+    return resolvedPath;
   }
 
+  logStep("extract-plan-path:failed", { reason: extraction?.reason || "" });
   throw new Error(`Could not extract a testing plan path from the message. ${extraction?.reason || ""}`.trim());
 }
 
@@ -184,7 +209,125 @@ function resolvePlanPath(rawPath, projectRoot) {
   return path.resolve(projectRoot, normalized);
 }
 
+function extractKeyedValueFromText(text, keys) {
+  const source = String(text || "");
+  for (const key of keys) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = source.match(new RegExp(`\\b${escaped}\\b\\s*[:=]\\s*["']?([A-Za-z0-9_.:-]+)`, "i"));
+    if (match?.[1]) return match[1].replace(/["',.;)]$/, "");
+  }
+  return undefined;
+}
+
+function extractAutoTestingReference(reqMessage) {
+  const userMessage = reqMessage?.userMessage || "";
+  const caseId = firstString(reqMessage, [
+    "testCaseId",
+    "caseId",
+    "autotestId",
+    "autoTestId",
+    "autoTestingCaseId",
+    "testingCaseId"
+  ]) || extractKeyedValueFromText(userMessage, [
+    "testCaseId",
+    "caseId",
+    "autotestId",
+    "autoTestId",
+    "autoTestingCaseId",
+    "testingCaseId"
+  ]);
+  const runId = firstString(reqMessage, ["runId", "testRunId", "autoTestingRunId"])
+    || extractKeyedValueFromText(userMessage, ["runId", "testRunId", "autoTestingRunId"]);
+  const suiteId = extractRequestedSuiteId(reqMessage)
+    || extractKeyedValueFromText(userMessage, ["testSuiteId", "suiteId", "autoTestingSuiteId"]);
+  const filter = firstString(reqMessage, ["filter"])
+    || extractKeyedValueFromText(userMessage, ["filter"]);
+  if (!caseId && !runId && !suiteId) return undefined;
+  return { caseId, runId, suiteId, filter };
+}
+
+function extractPlanFromTestCase(testCase, sourceLabel) {
+  const plan = testCase?.testingPlan;
+  validatePlan(plan, sourceLabel);
+  return {
+    plan,
+    caseId: testCase.id,
+    suiteId: undefined,
+    source: sourceLabel
+  };
+}
+
+function pickRunCase(run, reference) {
+  if (!Array.isArray(run?.testCases) || run.testCases.length === 0) {
+    throw new Error(`Run ${run?.id || reference.runId} does not contain any test cases.`);
+  }
+  if (reference.caseId) {
+    const requested = run.testCases.find((runCase) => runCase.testCaseId === reference.caseId);
+    if (requested) return requested;
+    throw new Error(`Case ${reference.caseId} was not found in run ${run.id}.`);
+  }
+  if (reference.filter === "failed") {
+    const failed = run.testCases.find((runCase) => {
+      return runCase.status === "failed" || runCase.steps?.some((step) => step.status === "failed");
+    });
+    if (failed) return failed;
+  }
+  return run.testCases[0];
+}
+
+async function loadPlanFromAutoTestingApi(reqMessage) {
+  const reference = extractAutoTestingReference(reqMessage);
+  if (!reference) return undefined;
+
+  logStep("load-autotest:start", reference);
+
+  if (reference.runId) {
+    const runPayload = payloadOf(await codebolt.autoTesting.getRun({ id: reference.runId }));
+    const run = runPayload.run;
+    if (!run?.id) throw new Error(`AutoTesting run ${reference.runId} could not be loaded.`);
+    const runCase = pickRunCase(run, reference);
+    const casePayload = payloadOf(await codebolt.autoTesting.getCase({ id: runCase.testCaseId }));
+    const testCase = casePayload.testCase;
+    if (!testCase?.id) throw new Error(`AutoTesting case ${runCase.testCaseId} could not be loaded for run ${run.id}.`);
+    const loaded = extractPlanFromTestCase(testCase, `autotesting run ${run.id} case ${testCase.id}`);
+    loaded.suiteId = run.testSuiteId;
+    loaded.runId = run.id;
+    logStep("load-autotest:loaded-from-run", { runId: run.id, caseId: testCase.id, suiteId: run.testSuiteId });
+    return [loaded];
+  }
+
+  if (reference.caseId) {
+    const casePayload = payloadOf(await codebolt.autoTesting.getCase({ id: reference.caseId }));
+    const testCase = casePayload.testCase;
+    if (!testCase?.id) throw new Error(`AutoTesting case ${reference.caseId} could not be loaded.`);
+    const loaded = extractPlanFromTestCase(testCase, `autotesting case ${testCase.id}`);
+    loaded.suiteId = reference.suiteId;
+    logStep("load-autotest:loaded-from-case", { caseId: testCase.id, suiteId: reference.suiteId });
+    return [loaded];
+  }
+
+  if (reference.suiteId) {
+    const suitePayload = payloadOf(await codebolt.autoTesting.getSuite({ id: reference.suiteId }));
+    const testCases = Array.isArray(suitePayload.testCases) ? suitePayload.testCases : [];
+    if (testCases.length === 0) throw new Error(`AutoTesting suite ${reference.suiteId} does not contain any test cases.`);
+    const loadedCases = testCases.map((testCase) => {
+      const loaded = extractPlanFromTestCase(testCase, `autotesting suite ${reference.suiteId} case ${testCase.id}`);
+      loaded.suiteId = reference.suiteId;
+      return loaded;
+    });
+    logStep("load-autotest:loaded-from-suite", {
+      suiteId: reference.suiteId,
+      caseCount: loadedCases.length,
+      caseIds: loadedCases.map((loaded) => loaded.caseId)
+    });
+    return loadedCases;
+  }
+
+  return undefined;
+}
+
 async function readPlan(planPath) {
+  logStep("read-plan:start", { planPath });
   const readResponse = await codebolt.fs.readFile(planPath);
   const source = extractFileContent(readResponse);
   if (!source) {
@@ -192,6 +335,7 @@ async function readPlan(planPath) {
   }
   const plan = YAML.parse(source);
   validatePlan(plan, planPath);
+  logStep("read-plan:complete", { planId: plan.metadata.id, steps: plan.flow.length });
   return plan;
 }
 
@@ -255,11 +399,16 @@ function interpolateString(value, runId, variables) {
   });
 }
 
-async function makeArtifacts(projectRoot, runId) {
-  const runDir = path.join(projectRoot, RESULT_DIR, "runs", runId);
+async function makeArtifacts(projectRoot, runId, artifactScope) {
+  const runDir = artifactScope
+    ? path.join(projectRoot, RESULT_DIR, "runs", runId, artifactScope)
+    : path.join(projectRoot, RESULT_DIR, "runs", runId);
+  logStep("artifacts:create:start", { runDir });
   await ensureCodeboltFolder(path.join(projectRoot, RESULT_DIR));
   await ensureCodeboltFolder(path.join(projectRoot, RESULT_DIR, "runs"));
+  await ensureCodeboltFolder(path.join(projectRoot, RESULT_DIR, "runs", runId));
   await ensureCodeboltFolder(runDir);
+  logStep("artifacts:create:complete", { runDir });
   return {
     runDir,
     async writeJson(name, value) {
@@ -306,20 +455,207 @@ async function writeCodeboltFile(dirPath, fileName, content) {
   return filePath;
 }
 
+function payloadOf(response) {
+  return response?.payload || response || {};
+}
+
+function runOf(response) {
+  const payload = payloadOf(response);
+  return payload.run
+    || response?.run
+    || payload.data?.run
+    || response?.data?.run
+    || payload.result?.run
+    || response?.result?.run
+    || payload.result?.payload?.run
+    || response?.result?.payload?.run
+    || payload.message?.run
+    || response?.message?.run;
+}
+
+function responseError(response) {
+  const payload = payloadOf(response);
+  return payload.error
+    || response?.error
+    || payload.message?.error
+    || response?.message?.error
+    || payload.data?.error
+    || response?.data?.error
+    || payload.result?.error
+    || response?.result?.error
+    || payload.result?.payload?.error
+    || response?.result?.payload?.error;
+}
+
+function extractRequestedSuiteId(reqMessage) {
+  return firstString(reqMessage, ["testSuiteId", "suiteId"]);
+}
+
+async function ensureAutoTestingSuite(reqMessage, preferredSuiteId) {
+  const requestedSuiteId = preferredSuiteId || extractRequestedSuiteId(reqMessage);
+  if (requestedSuiteId) return requestedSuiteId;
+
+  const listedPayload = payloadOf(await codebolt.autoTesting.listSuites({}));
+  const suites = Array.isArray(listedPayload.suites) ? listedPayload.suites : [];
+  const existing = suites.find((suite) => suite?.name === "Check Agent Runs");
+  if (existing?.id) return existing.id;
+
+  const createdPayload = payloadOf(await codebolt.autoTesting.createSuite({
+    name: "Check Agent Runs",
+    description: "Runs created by checkagent."
+  }));
+  const suite = createdPayload.suite;
+  if (!suite?.id) throw new Error("Auto testing suite could not be created.");
+  return suite.id;
+}
+
+async function ensureAutoTestingCase(plan, suiteId, preferredCaseId) {
+  const key = plan.metadata.id;
+  if (preferredCaseId) {
+    const existingPayload = payloadOf(await codebolt.autoTesting.getCase({ id: preferredCaseId }));
+    const existingCase = existingPayload.testCase;
+    if (!existingCase?.id) throw new Error(`Auto testing case ${preferredCaseId} could not be loaded.`);
+    const updatedPayload = payloadOf(await codebolt.autoTesting.updateCase({
+      id: existingCase.id,
+      key,
+      name: plan.metadata.title || key,
+      testingPlan: plan,
+      labels: plan.metadata.tags,
+      caseType: plan.target.surface
+    }));
+    await codebolt.autoTesting.addCaseToSuite({ suiteId, caseId: existingCase.id });
+    return updatedPayload.testCase || existingCase;
+  }
+
+  const listedPayload = payloadOf(await codebolt.autoTesting.listCases({}));
+  const cases = Array.isArray(listedPayload.cases) ? listedPayload.cases : [];
+  const existing = cases.find((testCase) => {
+    return testCase?.key === key || testCase?.testingPlan?.metadata?.id === key;
+  });
+  const casePayload = {
+    key,
+    name: plan.metadata.title || key,
+    testingPlan: plan,
+    labels: plan.metadata.tags,
+    caseType: plan.target.surface
+  };
+
+  if (existing?.id) {
+    const updatedPayload = payloadOf(await codebolt.autoTesting.updateCase({ id: existing.id, ...casePayload }));
+    await codebolt.autoTesting.addCaseToSuite({ suiteId, caseId: existing.id });
+    return updatedPayload.testCase || existing;
+  }
+
+  const createdPayload = payloadOf(await codebolt.autoTesting.createCase({ suiteId, ...casePayload }));
+  const testCase = createdPayload.testCase || createdPayload.case;
+  if (!testCase?.id) throw new Error("Auto testing case could not be created.");
+  return testCase;
+}
+
+async function createAutoTestingRun(plan, options) {
+  if (options.autoTesting) return options.autoTesting;
+
+  const suiteId = await ensureAutoTestingSuite(options.requestMessage, options.suiteId);
+  const testCase = await ensureAutoTestingCase(plan, suiteId, options.caseId);
+  const createRunResponse = await codebolt.autoTesting.createRun({
+    testSuiteId: suiteId,
+    name: `${plan.metadata.id} ${new Date().toLocaleString()}`
+  });
+  const run = runOf(createRunResponse);
+  if (!run?.id) {
+    logStep("autotesting:create-run:unexpected-response", createRunResponse);
+    throw new Error(`Auto testing run could not be created.${responseError(createRunResponse) ? ` ${responseError(createRunResponse)}` : ""}`);
+  }
+  for (const runCase of run.testCases || []) {
+    if (runCase.testCaseId !== testCase.id) {
+      await safeAutoTestingCall("autotesting:skip-non-target-case", () => codebolt.autoTesting.updateRunCaseStatus({
+        runId: run.id,
+        caseId: runCase.testCaseId,
+        status: "skipped"
+      }));
+    }
+  }
+  return { suiteId, caseId: testCase.id, run };
+}
+
+async function createSuiteAutoTestingRun(loadedPlans, reqMessage) {
+  const suiteId = loadedPlans.find((loaded) => loaded.suiteId)?.suiteId
+    || await ensureAutoTestingSuite(reqMessage);
+  const createRunResponse = await codebolt.autoTesting.createRun({
+    testSuiteId: suiteId,
+    name: `Suite run ${new Date().toLocaleString()}`
+  });
+  const run = runOf(createRunResponse);
+  if (!run?.id) {
+    logStep("autotesting:create-suite-run:unexpected-response", createRunResponse);
+    throw new Error(`Auto testing suite run could not be created.${responseError(createRunResponse) ? ` ${responseError(createRunResponse)}` : ""}`);
+  }
+  return { suiteId, run };
+}
+
+async function safeAutoTestingCall(label, fn) {
+  try {
+    return await fn();
+  } catch (error) {
+    logStep(`${label}:failed`, { message: error instanceof Error ? error.message : String(error) });
+    return undefined;
+  }
+}
+
+async function updateAutoTestingRunStatus(autoTesting, status) {
+  if (!autoTesting?.run?.id) return;
+  await safeAutoTestingCall("autotesting:update-run-status", () => codebolt.autoTesting.updateRunStatus({
+    runId: autoTesting.run.id,
+    status
+  }));
+}
+
+async function updateAutoTestingCaseStatus(autoTesting, status, userOverride) {
+  if (!autoTesting?.run?.id || !autoTesting?.caseId) return;
+  await safeAutoTestingCall("autotesting:update-run-case", () => codebolt.autoTesting.updateRunCaseStatus({
+    runId: autoTesting.run.id,
+    caseId: autoTesting.caseId,
+    status,
+    userOverride
+  }));
+}
+
+async function updateAutoTestingStepStatus(autoTesting, stepId, status, logs, userOverride) {
+  if (!autoTesting?.run?.id || !autoTesting?.caseId || !stepId) return;
+  await safeAutoTestingCall("autotesting:update-run-step", () => codebolt.autoTesting.updateRunStepStatus({
+    runId: autoTesting.run.id,
+    caseId: autoTesting.caseId,
+    stepId,
+    status,
+    logs,
+    userOverride
+  }));
+}
+
 async function runTestingPlan(inputPlan, options) {
-  const runId = options.runId || stableRunId();
   const startedAt = nowIso();
+  const autoTesting = await createAutoTestingRun(inputPlan, options);
+  const runId = autoTesting.run.id;
+  logStep("run-plan:start", { runId, planId: inputPlan.metadata?.id });
   const { plan } = materializePlan(inputPlan, runId);
-  const artifacts = await makeArtifacts(options.projectRoot, runId);
+  const artifacts = await makeArtifacts(options.projectRoot, runId, options.artifactScope);
   const resultArtifacts = [artifacts.runDir];
   const trace = [];
   const llmTrace = [];
   const suggestedRefinements = [];
   const provider = createCodeboltWebProvider({ artifacts, resultArtifacts });
 
+  await updateAutoTestingRunStatus(autoTesting, "running");
   send(`Check Agent: running ${plan.metadata.id} (${plan.flow.length} steps).`);
 
   async function finish(partial) {
+    logStep("run-plan:finish", {
+      runId,
+      planId: plan.metadata.id,
+      status: partial.status,
+      failedStep: partial.failedStep,
+      failureClass: partial.failureClass
+    });
     const result = {
       status: partial.status,
       planId: plan.metadata.id,
@@ -335,43 +671,69 @@ async function runTestingPlan(inputPlan, options) {
       artifacts: resultArtifacts,
       suggestedRefinements
     };
+    if (partial.status === "failed") {
+      await updateAutoTestingStepStatus(autoTesting, partial.failedStep, "failed", partial.message);
+      await updateAutoTestingCaseStatus(autoTesting, "failed");
+    } else if (partial.status === "passed") {
+      await updateAutoTestingCaseStatus(autoTesting, "passed");
+    }
+    await provider.cleanup();
+    if (options.completeRunOnFinish !== false) {
+      await updateAutoTestingRunStatus(autoTesting, "completed");
+    }
     await artifacts.writeJson("trace.json", trace);
     await artifacts.writeJson("llm-trace.json", llmTrace);
     await artifacts.writeJson("result.json", result);
     return result;
   }
 
-  if (plan.target.surface !== WEB_SURFACE) {
-    return finish({
-      status: "failed",
-      failedStep: plan.flow[0]?.id,
-      failureClass: "environment",
-      failureConfidence: 1,
-      message: `This CodeBolt check agent currently implements the web provider only. Plan surface was ${plan.target.surface}.`
-    });
-  }
-
-  for (const step of plan.flow) {
-    send(`Check Agent: step ${step.id} - ${step.goal || step.operation?.type || "operation"}`);
-    const stepResult = await runStep({ plan, step, provider, trace, llmTrace, suggestedRefinements });
-    await artifacts.appendJsonl("trace.jsonl", {
-      stepId: step.id,
-      status: stepResult.status,
-      timestamp: nowIso()
-    });
-    if (stepResult.status === "failed") {
-      const classification = await classifyFailure({ plan, step, trace, llmTrace, fallbackMessage: stepResult.message });
+  try {
+    if (plan.target.surface !== WEB_SURFACE) {
+      logStep("run-plan:unsupported-surface", { surface: plan.target.surface });
       return finish({
         status: "failed",
-        failedStep: step.id,
-        failureClass: classification.failureClass,
-        failureConfidence: classification.confidence,
-        message: classification.message
+        failedStep: plan.flow[0]?.id,
+        failureClass: "environment",
+        failureConfidence: 1,
+        message: `This CodeBolt check agent currently implements the web provider only. Plan surface was ${plan.target.surface}.`
       });
     }
-  }
 
-  return finish({ status: "passed" });
+    for (const step of plan.flow) {
+      logStep("step:start", { stepId: step.id, goal: step.goal, operationType: step.operation?.type });
+      send(`Check Agent: step ${step.id} - ${step.goal || step.operation?.type || "operation"}`);
+      await updateAutoTestingStepStatus(autoTesting, step.id, "running");
+      const stepResult = await runStep({ plan, step, provider, trace, llmTrace, suggestedRefinements });
+      logStep("step:complete", { stepId: step.id, status: stepResult.status, message: stepResult.message });
+      await artifacts.appendJsonl("trace.jsonl", {
+        stepId: step.id,
+        status: stepResult.status,
+        timestamp: nowIso()
+      });
+      if (stepResult.status === "failed") {
+        logStep("step:classify-failure:start", { stepId: step.id });
+        const classification = await classifyFailure({ plan, step, trace, llmTrace, fallbackMessage: stepResult.message });
+        logStep("step:classify-failure:complete", {
+          stepId: step.id,
+          failureClass: classification.failureClass,
+          confidence: classification.confidence
+        });
+        return finish({
+          status: "failed",
+          failedStep: step.id,
+          failureClass: classification.failureClass,
+          failureConfidence: classification.confidence,
+          message: classification.message
+        });
+      }
+      await updateAutoTestingStepStatus(autoTesting, step.id, "passed", stepResult.message);
+    }
+
+    return finish({ status: "passed" });
+  } catch (error) {
+    await provider.cleanup();
+    throw error;
+  }
 }
 
 async function runStep(input) {
@@ -380,10 +742,17 @@ async function runStep(input) {
     step.operation?.candidates?.length ? step.operation.candidates : [{ intent: { instruction: step.operation?.intent || step.goal } }],
     plan.runtime?.resolutionOrder || ["exact", "structural", "semantic", "visual", "intent", "task", "providerHint"]
   );
+  logStep("run-step:candidates", { stepId: step.id, candidateCount: candidates.length });
   let lastMessage = "No candidate could be executed.";
 
   for (const sourceCandidate of candidates) {
+    logStep("run-step:observe-before:start", { stepId: step.id, candidateLevel: candidateLevel(sourceCandidate) });
     const observationBefore = await provider.observe({ plan, step, candidate: sourceCandidate });
+    logStep("run-step:observe-before:complete", {
+      stepId: step.id,
+      candidateLevel: candidateLevel(sourceCandidate),
+      url: observationBefore?.url
+    });
     const attempts = await resolveCandidateAttempts({
       plan,
       step,
@@ -392,13 +761,18 @@ async function runStep(input) {
       llmTrace,
       suggestedRefinements
     });
+    logStep("run-step:attempts-resolved", { stepId: step.id, attemptCount: attempts.length });
 
     for (const attempt of attempts) {
       const candidate = attempt.candidate;
       try {
+        logStep("run-step:execute:start", { stepId: step.id, candidateLevel: candidateLevel(candidate) });
         const executed = await provider.execute({ plan, step, candidate });
+        logStep("run-step:execute:complete", { stepId: step.id, message: executed.message });
         const observationAfter = executed.observation || (await provider.observe({ plan, step, candidate }));
+        logStep("run-step:verify:start", { stepId: step.id });
         const verified = await verifySuccess({ plan, step, provider, candidate, observation: observationAfter, llmTrace });
+        logStep("run-step:verify:complete", { stepId: step.id, passed: verified.passed, message: verified.message });
         trace.push({
           stepId: step.id,
           providerId: provider.id,
@@ -413,11 +787,13 @@ async function runStep(input) {
           artifacts: collectArtifactPaths(observationBefore).concat(collectArtifactPaths(observationAfter))
         });
         if (verified.passed) {
+          logStep("run-step:passed", { stepId: step.id });
           return { status: "passed" };
         }
         lastMessage = verified.message || "Step verification failed.";
       } catch (error) {
         lastMessage = error instanceof Error ? error.message : String(error);
+        logStep("run-step:attempt-failed", { stepId: step.id, message: lastMessage });
         trace.push({
           stepId: step.id,
           providerId: provider.id,
@@ -541,13 +917,15 @@ ${JSON.stringify(compactObservation(input.observation), null, 2)}`,
 
 function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
   let browserStarted = false;
+  let browserInstanceId;
   return {
     id: "codebolt-browser",
 
     async ensure(plan) {
       if (browserStarted) return;
       if (typeof codebolt.browser.openNewBrowserInstance === "function") {
-        await codebolt.browser.openNewBrowserInstance({ setActive: true });
+        const opened = await codebolt.browser.openNewBrowserInstance({ setActive: true });
+        browserInstanceId = opened?.instanceId;
       } else {
         await codebolt.browser.newPage();
       }
@@ -655,6 +1033,24 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
       }
 
       throw new Error(`Unsupported web operation type: ${operation.type}`);
+    },
+
+    async cleanup() {
+      if (!browserStarted) return;
+      logStep("browser:cleanup:start", { instanceId: browserInstanceId });
+      const closed = browserInstanceId && typeof codebolt.browser.closeBrowserInstance === "function"
+        ? await safeCall(() => codebolt.browser.closeBrowserInstance(browserInstanceId))
+        : undefined;
+      if (!closed && typeof codebolt.browser.close === "function") {
+        if (browserInstanceId) {
+          await safeCall(() => codebolt.browser.close({ instanceId: browserInstanceId }));
+        } else {
+          await safeCall(() => codebolt.browser.close());
+        }
+      }
+      browserStarted = false;
+      browserInstanceId = undefined;
+      logStep("browser:cleanup:complete");
     }
   };
 }
@@ -1169,19 +1565,70 @@ function numberOr(value, fallback) {
 
 codebolt.onMessage(async (reqMessage) => {
   try {
-    send("Check Agent: extracting testing plan path with codebolt.llm.inference.");
-    const planPath = await extractPlanPathWithLlm(reqMessage);
-    send(`Check Agent: loading plan ${planPath}`);
     const projectRoot = await getProjectRoot();
-    const plan = await readPlan(planPath);
-    const result = await runTestingPlan(plan, { projectRoot });
-    const resultPath = path.join(projectRoot, RESULT_DIR, "runs", result.runId, "result.json");
-    if (result.status === "passed") {
-      send(`Check Agent: passed ${plan.metadata.id}. Result: ${resultPath}`);
+    let loadedPlans = await loadPlanFromAutoTestingApi(reqMessage);
+    if (loadedPlans) {
+      send(`Check Agent: loaded ${loadedPlans.length} testing plan${loadedPlans.length === 1 ? "" : "s"} from AutoTesting.`);
     } else {
-      send(`Check Agent: failed ${plan.metadata.id} at ${result.failedStep}. Class: ${result.failureClass}. Result: ${resultPath}`);
+      send("Check Agent: no autotest id found, extracting testing plan path with codebolt.llm.inference.");
+      const planPath = await extractPlanPathWithLlm(reqMessage);
+      send(`Check Agent: loading plan ${planPath}`);
+      const plan = await readPlan(planPath);
+      loadedPlans = [{ plan, source: planPath }];
     }
-    return JSON.stringify(result, null, 2);
+
+    const results = [];
+    const suiteAutoTesting = loadedPlans.length > 1
+      ? await createSuiteAutoTestingRun(loadedPlans, reqMessage)
+      : undefined;
+    if (suiteAutoTesting) {
+      await updateAutoTestingRunStatus(suiteAutoTesting, "running");
+    }
+
+    for (let index = 0; index < loadedPlans.length; index += 1) {
+      const loaded = loadedPlans[index];
+      send(`Check Agent: running plan ${index + 1}/${loadedPlans.length} from ${loaded.source}.`);
+      const autoTesting = suiteAutoTesting
+        ? { suiteId: suiteAutoTesting.suiteId, caseId: loaded.caseId, run: suiteAutoTesting.run }
+        : undefined;
+      const result = await runTestingPlan(loaded.plan, {
+        projectRoot,
+        requestMessage: reqMessage,
+        suiteId: loaded.suiteId,
+        caseId: loaded.caseId,
+        autoTesting,
+        artifactScope: suiteAutoTesting ? loaded.caseId : undefined,
+        completeRunOnFinish: !suiteAutoTesting
+      });
+      const resultPath = path.join(result.artifacts?.[0] || path.join(projectRoot, RESULT_DIR, "runs", result.runId), "result.json");
+      results.push({ ...result, source: loaded.source, caseId: loaded.caseId, resultPath });
+      if (result.status === "passed") {
+        send(`Check Agent: passed ${loaded.plan.metadata.id}. Result: ${resultPath}`);
+      } else {
+        send(`Check Agent: failed ${loaded.plan.metadata.id} at ${result.failedStep}. Class: ${result.failureClass}. Result: ${resultPath}`);
+      }
+    }
+
+    if (results.length === 1) return JSON.stringify(results[0], null, 2);
+
+    const summary = {
+      status: results.some((result) => result.status === "failed") ? "failed" : "passed",
+      total: results.length,
+      passed: results.filter((result) => result.status === "passed").length,
+      failed: results.filter((result) => result.status === "failed").length,
+      runId: suiteAutoTesting?.run?.id,
+      results
+    };
+    if (suiteAutoTesting) {
+      await updateAutoTestingRunStatus(suiteAutoTesting, "completed");
+      await writeCodeboltFile(
+        path.join(projectRoot, RESULT_DIR, "runs", suiteAutoTesting.run.id),
+        "suite-result.json",
+        `${JSON.stringify(summary, null, 2)}\n`
+      );
+    }
+    send(`Check Agent: suite complete. Passed ${summary.passed}/${summary.total}, failed ${summary.failed}/${summary.total}.`);
+    return JSON.stringify(summary, null, 2);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     send(`Check Agent: error - ${message}`);

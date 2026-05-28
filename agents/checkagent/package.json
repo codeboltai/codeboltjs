@@ -16,7 +16,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@codebolt/codeboltjs": "^5.1.38",
+     "@codebolt/codeboltjs": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/codeboltjs",
     "yaml": "^2.7.0"
   }
 }
