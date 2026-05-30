@@ -1,0 +1,54 @@
+name: create-pr
+description: |
+  Creates a GitHub pull request from the current local git worktree branch to a remote/base branch. The action block uses CodeBoltJS terminal APIs for worktree git commands, CodeBolt LLM for PR titles, MCP execution, and chat progress.
+version: 1.0.3
+unique_id: create-pr
+entryPoint: dist/index.js
+auther: ravi
+inputs:
+  - name: cwd
+    type: string
+    description: Current working directory or git worktree path to use when creating the pull request.
+  - name: baseBranch
+    type: string
+    description: Base branch for the pull request. Defaults to the tracked branch or main.
+  - name: commitMessage
+    type: string
+    description: Commit message for uncommitted agent changes.
+  - name: prTitle
+    type: string
+    description: Explicit GitHub pull request title. If omitted, the ActionBlock asks the configured CodeBolt LLM for a meaningful title.
+  - name: generatePrTitle
+    type: boolean
+    description: Set false to disable LLM PR title generation and use a deterministic fallback.
+  - name: prTitleLlmRole
+    type: string
+    description: Optional CodeBolt LLM role to use for PR title generation.
+  - name: prBody
+    type: string
+    description: GitHub pull request body.
+  - name: repository
+    type: string
+    description: GitHub repository in owner/repo form. If omitted, origin remote is inspected through CodeBolt terminal API.
+  - name: githubToolbox
+    type: string
+    description: Optional CodeBolt MCP toolbox name for the GitHub MCP server.
+  - name: githubToolName
+    type: string
+    description: Optional GitHub MCP tool name for creating pull requests.
+outputs:
+  - name: success
+    type: boolean
+    description: Whether a GitHub PR was created or a compare URL was prepared.
+  - name: pullRequest
+    type: object
+    description: Pull request creation details, including URL or compare URL.
+  - name: branchName
+    type: string
+    description: Branch used for the PR.
+metadata:
+  displayName: Create PR
+  fullName: Create PR
+  category: git
+  sourceLanguage: TypeScript
+  runtimeEntry: dist/index.js

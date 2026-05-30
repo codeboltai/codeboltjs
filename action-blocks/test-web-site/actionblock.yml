@@ -1,0 +1,37 @@
+name: test-web-site
+description: Install, build, start the current website with npm run dev, and verify it through an agentic loop that records agent-browser testing and publishes the video artifact.
+version: 1.0.1
+unique_id: test-web-site
+entryPoint: dist/index.js
+auther: ravi
+inputs:
+  - name: spec
+    type: object
+    description: Optional verifier hints from the main agent. The ActionBlock installs dependencies, builds the static website, starts the website with npm run dev, then the mini-agent records agent-browser UI testing and publishes the video artifact.
+    required: false
+  - name: cwd
+    type: string
+    description: Optional absolute path to the website root. Defaults to the active CodeBolt project path.
+    required: false
+outputs:
+  - name: success
+    type: boolean
+    description: Whether the agent-browser mini-agent recorded and verified the website successfully.
+  - name: result
+    type: object
+    description: Structured website verification result with install/build status, app server details, recording artifact status, mini-agent report, issues, and recommendations.
+  - name: verification
+    type: object
+    description: Verification checks performed by the ActionBlock.
+  - name: filesCreated
+    type: array
+    description: Any test artifacts or report files created during execution.
+  - name: error
+    type: string
+    description: Structured error message when the ActionBlock fails.
+metadata:
+  displayName: Test Web Site
+  fullName: Test Web Site
+  category: testing
+  sourceLanguage: TypeScript
+  runtimeEntry: dist/index.js
