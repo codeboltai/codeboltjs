@@ -2,6 +2,11 @@ name: local-threadpool-worktree-provider
 version: 1.1.3
 description: Local threadpool worktree environment provider
 entrypoint: dist/index.js
+supportedSyncModes:
+  - git
+  - workspace_sync
+  - none
+defaultSyncMode: git
 config:
   executionMode: local_thread_pool
   cleanupEnvironmentPath: true

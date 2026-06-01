@@ -35,6 +35,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     private nfsServerProcess: ChildProcess | null = null;
     private overlayName: string | null = null;
     private currentNfsPort: number = 11111;
+    private baseProjectPath: string | null = null;
 
     constructor(config: ProviderConfig = {}) {
         super({
@@ -100,6 +101,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         if (!projectPath) {
             throw new Error('Project path is not available in initVars');
         }
+        this.baseProjectPath = projectPath;
 
         // Use environment name as overlay name
         this.overlayName = initVars.environmentName;
@@ -180,6 +182,62 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         return {
             ...result,
             worktreePath: this.projectPath!,
+            resolvedPath: this.projectPath!,
+            environmentPath: this.projectPath!,
+            requestedPath: undefined,
+            pathSource: 'provider_proposed',
+            syncMode: 'workspace_sync',
+            mergeStrategy: 'workspace_sync',
+            parentPath: this.baseProjectPath,
+            syncPolicy: this.getSyncPolicy(),
+            defaultSyncMode: 'workspace_sync',
+            supportedSyncModes: ['workspace_sync'],
+            supportedMergeStrategies: ['workspace_sync'],
+        };
+    }
+
+    getProspectivePath(request: Record<string, any>): Record<string, any> {
+        const environmentName = String(request.environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+        const parentPath = String(request.projectPath || request.parentProjectPath || request.parentPath || this.baseProjectPath || '').trim() || undefined;
+        const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
+        const defaultPath = path.join(os.homedir(), 'Desktop', '.codebolt', 'agentfs_mounts', environmentName);
+        const resolvedPath = requestedPath
+            ? (path.isAbsolute(requestedPath) ? path.resolve(requestedPath) : path.resolve(parentPath || process.cwd(), requestedPath))
+            : defaultPath;
+        return {
+            path: resolvedPath,
+            projectPath: resolvedPath,
+            resolvedPath,
+            environmentPath: resolvedPath,
+            requestedPath: requestedPath || undefined,
+            pathSource: requestedPath ? 'user_override' : 'provider_proposed',
+            source: requestedPath ? 'user_override' : 'provider_proposed',
+            syncMode: 'workspace_sync',
+            mergeStrategy: 'workspace_sync',
+            parentPath,
+            parentProjectPath: parentPath,
+            editable: true,
+            syncPolicy: this.getSyncPolicy(),
+            defaultSyncMode: 'workspace_sync',
+            supportedSyncModes: ['workspace_sync'],
+            supportedMergeStrategies: ['workspace_sync'],
+        };
+    }
+
+    getSyncPolicy(): Record<string, any> {
+        return {
+            defaultSyncMode: 'workspace_sync',
+            modes: [
+                {
+                    value: 'workspace_sync',
+                    label: 'Workspace sync',
+                    description: 'Mount an AgentFS workspace backed by the parent project.',
+                    pathFolder: 'agentfs_mounts',
+                    createsGitWorktree: false,
+                    usesWorkspaceSync: true,
+                    cleanup: 'filesystem',
+                },
+            ],
         };
     }
 

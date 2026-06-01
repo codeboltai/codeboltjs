@@ -6,6 +6,11 @@ description: Local threadpool environment provider that executes in a server-man
 type: provider
 entrypoint: dist/index.js
 runtime: node
+supportedSyncModes:
+  - git
+  - workspace_sync
+  - none
+defaultSyncMode: git
 config:
   agentServerPort: 3001
   agentServerHost: localhost

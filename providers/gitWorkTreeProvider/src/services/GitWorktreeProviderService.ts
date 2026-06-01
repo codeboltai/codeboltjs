@@ -80,6 +80,17 @@ export class GitWorktreeProviderService
     return {
       ...result,
       worktreePath: this.worktreeInfo.path ?? result.workspacePath,
+      resolvedPath: this.worktreeInfo.path ?? result.workspacePath,
+      environmentPath: this.worktreeInfo.path ?? result.workspacePath,
+      requestedPath: undefined,
+      pathSource: 'provider_proposed',
+      syncMode: 'git',
+      mergeStrategy: 'git',
+      parentPath: this.state.projectPath ?? undefined,
+      syncPolicy: this.getSyncPolicy(),
+      defaultSyncMode: 'git',
+      supportedSyncModes: ['git'],
+      supportedMergeStrategies: ['git'],
     };
   }
 
@@ -175,11 +186,12 @@ export class GitWorktreeProviderService
     return result;
   }
 
-  async createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo> {
+  async createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo> {
     try {
       const worktreeInfo = await createWorktreeUtil({
         projectPath,
         environmentName,
+        targetPath,
         providerConfig: this.providerConfig,
         logger: this.logger,
       });
@@ -209,6 +221,50 @@ export class GitWorktreeProviderService
 
   getWorktreeInfo(): WorktreeInfo {
     return { ...this.worktreeInfo };
+  }
+
+  getProspectivePath(request: Record<string, any>): Record<string, any> {
+    const parentPath = path.resolve(String(request.projectPath || request.parentProjectPath || request.parentPath || this.state.projectPath || process.cwd()));
+    const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
+    const environmentName = String(request.environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+    const resolvedPath = requestedPath
+      ? (path.isAbsolute(requestedPath) ? path.resolve(requestedPath) : path.resolve(parentPath, requestedPath))
+      : path.join(parentPath, this.providerConfig.worktreeBaseDir!, environmentName);
+    return {
+      path: resolvedPath,
+      projectPath: resolvedPath,
+      resolvedPath,
+      environmentPath: resolvedPath,
+      requestedPath: requestedPath || undefined,
+      pathSource: requestedPath ? 'user_override' : 'provider_proposed',
+      source: requestedPath ? 'user_override' : 'provider_proposed',
+      syncMode: 'git',
+      mergeStrategy: 'git',
+      parentPath,
+      parentProjectPath: parentPath,
+      editable: true,
+      syncPolicy: this.getSyncPolicy(),
+      defaultSyncMode: 'git',
+      supportedSyncModes: ['git'],
+      supportedMergeStrategies: ['git'],
+    };
+  }
+
+  getSyncPolicy(): Record<string, any> {
+    return {
+      defaultSyncMode: 'git',
+      modes: [
+        {
+          value: 'git',
+          label: 'Git',
+          description: 'Create a Git worktree for the environment and clean it up through Git.',
+          pathFolder: this.providerConfig.worktreeBaseDir,
+          createsGitWorktree: true,
+          usesWorkspaceSync: false,
+          cleanup: 'git_worktree',
+        },
+      ],
+    };
   }
 
   getAgentServerConnection(): {
@@ -245,7 +301,10 @@ export class GitWorktreeProviderService
       throw new Error('Project path is undefined in provider state');
     }
 
-    return path.join(this.state.projectPath, this.providerConfig.worktreeBaseDir!, initVars.environmentName);
+    return this.getProspectivePath({
+      ...initVars,
+      projectPath: this.state.projectPath,
+    }).resolvedPath;
   }
 
   protected async setupEnvironment(initVars: ProviderInitVars): Promise<void> {
@@ -253,7 +312,11 @@ export class GitWorktreeProviderService
       throw new Error('Project path is not available');
     }
 
-    const worktreeInfo = await this.createWorktree(this.state.projectPath, initVars.environmentName);
+    const worktreeInfo = await this.createWorktree(
+      this.state.projectPath,
+      initVars.environmentName,
+      this.getProspectivePath({ ...initVars, projectPath: this.state.projectPath }).resolvedPath,
+    );
     this.worktreeInfo = worktreeInfo;
     this.state.workspacePath = worktreeInfo.path;
   }

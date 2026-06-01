@@ -11,6 +11,7 @@ const execAsync = promisify(exec);
 type WorktreeOptions = {
   projectPath: string;
   environmentName: string;
+  targetPath?: string;
   providerConfig: ProviderConfig;
   logger: Logger;
 };
@@ -52,7 +53,7 @@ export async function createWorktree(options: WorktreeOptions): Promise<Worktree
 
   try {
     const worktreeBaseDir = await ensureWorktreeBaseDir(options);
-    const worktreePath = path.join(worktreeBaseDir, environmentName);
+    const worktreePath = options.targetPath ? path.resolve(options.targetPath) : path.join(worktreeBaseDir, environmentName);
 
     logger.log('Creating worktree at:', worktreePath);
     await verifyGitRepository(projectPath);

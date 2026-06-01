@@ -111,7 +111,21 @@ async function main() {
       isDev: config.isDev,
       serverUrl: config.serverUrl,
       socketPort: config.socketPort,
-      IS_REMOTE_PROVIDER: true
+      IS_REMOTE_PROVIDER: true,
+      syncPolicy: {
+        defaultSyncMode: 'workspace_sync',
+        modes: [{
+          value: 'workspace_sync',
+          label: 'Workspace sync',
+          description: 'Use the remote server workspace mount for initial data sync and cleanup.',
+          createsGitWorktree: false,
+          usesWorkspaceSync: true,
+          cleanup: 'runtime_provider',
+        }],
+      },
+      defaultSyncMode: 'workspace_sync',
+      supportedSyncModes: ['workspace_sync'],
+      supportedMergeStrategies: ['workspace_sync'],
     });
 
     console.log('🎉 Docker Provider is ready!');

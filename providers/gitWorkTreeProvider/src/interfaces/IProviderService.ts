@@ -71,7 +71,7 @@ export interface IProviderService {
   connectToAgentServer(worktreePath: string, environmentName: string): Promise<void>;
   stopAgentServer(): Promise<boolean>;
   sendMessageToAgent(message: RawMessageForAgent | AgentStartMessage): Promise<boolean>;
-  createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo>;
+  createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo>;
   removeWorktree(projectPath: string): Promise<boolean>;
   getWorktreeInfo(): WorktreeInfo;
   getAgentServerConnection(): AgentServerConnection;

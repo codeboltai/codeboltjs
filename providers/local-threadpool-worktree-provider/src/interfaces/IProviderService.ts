@@ -1,7 +1,55 @@
 import type { ProviderStartResult } from '@codebolt/provider';
-import { ProviderInitVars } from '@codebolt/types/provider';
+import type { ProviderInitVars } from '@codebolt/types/provider';
 
 export type { ProviderStartResult } from '@codebolt/provider';
+
+export type LocalThreadpoolSyncMode = 'git' | 'workspace_sync' | 'none';
+export type LocalThreadpoolPathSource = 'provider_proposed' | 'user_override' | 'existing' | 'auto_default';
+
+export interface LocalThreadpoolSyncPolicyMode {
+  value: LocalThreadpoolSyncMode;
+  label: string;
+  description: string;
+  pathFolder?: string;
+  createsGitWorktree?: boolean;
+  usesWorkspaceSync?: boolean;
+  cleanup: 'none' | 'git_worktree' | 'filesystem' | 'runtime_provider';
+}
+
+export interface LocalThreadpoolSyncPolicy {
+  defaultSyncMode: LocalThreadpoolSyncMode;
+  modes: LocalThreadpoolSyncPolicyMode[];
+}
+
+export interface LocalThreadpoolProspectivePathRequest {
+  environmentName?: string;
+  projectPath?: string;
+  parentPath?: string;
+  parentProjectPath?: string;
+  parentBasePath?: string;
+  environmentPath?: string;
+  requestedPath?: string;
+  resolvedPath?: string;
+  path?: string;
+  syncMode?: LocalThreadpoolSyncMode | string;
+  sync_mode?: LocalThreadpoolSyncMode | string;
+  mergeStrategy?: LocalThreadpoolSyncMode | string;
+  merge_strategy?: LocalThreadpoolSyncMode | string;
+  [key: string]: unknown;
+}
+
+export interface LocalThreadpoolProspectivePathResponse {
+  resolvedPath: string;
+  environmentPath: string;
+  requestedPath?: string;
+  pathSource: LocalThreadpoolPathSource;
+  syncMode: LocalThreadpoolSyncMode;
+  mergeStrategy: LocalThreadpoolSyncMode;
+  parentPath?: string;
+  syncPolicy: LocalThreadpoolSyncPolicy;
+  supportedSyncModes: LocalThreadpoolSyncMode[];
+  defaultSyncMode: LocalThreadpoolSyncMode;
+}
 
 export interface DiffFile {
   path: string;
@@ -29,6 +77,7 @@ export interface LocalEnvironmentInfo {
   path: string | null;
   tag: string | null;
   isCreated: boolean;
+  syncMode?: LocalThreadpoolSyncMode;
 }
 
 export type WorktreeInfo = LocalEnvironmentInfo;
@@ -59,8 +108,9 @@ export interface IProviderService {
   onSendPR(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
-  createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo>;
+  createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo>;
   removeWorktree(projectPath: string): Promise<boolean>;
+  getProspectivePath(request: LocalThreadpoolProspectivePathRequest): LocalThreadpoolProspectivePathResponse;
   getWorktreeInfo(): WorktreeInfo;
   isInitialized(): boolean;
 }

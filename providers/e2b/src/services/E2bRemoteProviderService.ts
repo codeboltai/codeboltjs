@@ -98,6 +98,66 @@ export class E2bRemoteProviderService extends BaseProvider {
     return path.join(this.sandboxWorkspacePath, inputPath);
   }
 
+  private getProjectNameFromRequest(request: Record<string, any>): string {
+    const raw = String(request.projectName || request.gitUrl || request.projectPath || 'codebolt-project')
+      .replace(/\.git$/i, '')
+      .split(/[\\/]/)
+      .filter(Boolean)
+      .pop() || 'codebolt-project';
+    return raw
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 55) || 'codebolt-project';
+  }
+
+  getProspectivePath(request: Record<string, any>): Record<string, any> {
+    const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
+    const resolvedPath = requestedPath || `/home/user/${this.getProjectNameFromRequest(request)}`;
+    return {
+      path: resolvedPath,
+      projectPath: resolvedPath,
+      resolvedPath,
+      environmentPath: resolvedPath,
+      requestedPath: requestedPath || undefined,
+      pathSource: requestedPath ? 'user_override' : 'provider_proposed',
+      source: requestedPath ? 'user_override' : 'provider_proposed',
+      syncMode: request.syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      mergeStrategy: request.syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      parentPath: request.parentProjectPath || request.projectPath || this.baseProjectPath || undefined,
+      parentProjectPath: request.parentProjectPath || request.projectPath || this.baseProjectPath || undefined,
+      editable: true,
+      syncPolicy: this.getSyncPolicy(),
+      defaultSyncMode: 'git',
+      supportedSyncModes: ['git', 'workspace_sync'],
+      supportedMergeStrategies: ['git', 'workspace_sync'],
+    };
+  }
+
+  getSyncPolicy(): Record<string, any> {
+    return {
+      defaultSyncMode: 'git',
+      modes: [
+        {
+          value: 'git',
+          label: 'Git',
+          description: 'Use Git for initial data sync and cleanup in the E2B sandbox.',
+          createsGitWorktree: false,
+          usesWorkspaceSync: false,
+          cleanup: 'runtime_provider',
+        },
+        {
+          value: 'workspace_sync',
+          label: 'Workspace sync',
+          description: 'Use workspace sync to populate the E2B sandbox workspace.',
+          createsGitWorktree: false,
+          usesWorkspaceSync: true,
+          cleanup: 'runtime_provider',
+        },
+      ],
+    };
+  }
+
   // --- Lifecycle overrides ---
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
@@ -112,8 +172,12 @@ export class E2bRemoteProviderService extends BaseProvider {
     this.lastInitVars = initVars;
 
     // Set sandbox workspace path using project name so code goes into a subdirectory
+    const requestedSandboxPath = (initVars as any).resolvedPath || (initVars as any).requestedPath || (initVars as any).environmentPath;
     const projectName = (initVars as any).projectName || path.basename(projectPath);
-    if (projectName) {
+    if (requestedSandboxPath) {
+      this.sandboxWorkspacePath = requestedSandboxPath;
+      this.logger.log('Sandbox workspace path set from provider request:', this.sandboxWorkspacePath);
+    } else if (projectName) {
       this.sandboxWorkspacePath = `/home/user/${projectName}`;
       this.logger.log('Sandbox workspace path set to:', this.sandboxWorkspacePath);
     }
@@ -197,13 +261,24 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     this.state.initialized = true;
 
-    const startResult: ProviderStartResult = {
+    const startResult = {
       success: true,
       environmentName: initVars.environmentName,
       agentServerUrl: this.agentServer.serverUrl,
       workspacePath: this.state.workspacePath!,
       transport: this.config.transport,
-    };
+      resolvedPath: this.state.workspacePath!,
+      environmentPath: this.state.workspacePath!,
+      requestedPath: (initVars as any).requestedPath,
+      pathSource: (initVars as any).requestedPath || (initVars as any).resolvedPath ? 'user_override' : 'provider_proposed',
+      syncMode: (initVars as any).syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      mergeStrategy: (initVars as any).syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      parentPath: this.baseProjectPath || undefined,
+      syncPolicy: this.getSyncPolicy(),
+      defaultSyncMode: 'git',
+      supportedSyncModes: ['git', 'workspace_sync'],
+      supportedMergeStrategies: ['git', 'workspace_sync'],
+    } as ProviderStartResult & Record<string, any>;
 
     await this.afterConnected(startResult);
 

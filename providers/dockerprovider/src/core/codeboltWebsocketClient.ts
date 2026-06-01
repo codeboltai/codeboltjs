@@ -69,6 +69,10 @@ export class CodeboltWebSocketClient {
       this.websocket.on('message', (data) => {
         try {
           const message = JSON.parse(data.toString());
+          if (message?.type === 'providerProspectivePath' || message?.action === 'providerProspectivePath') {
+            this.sendProspectivePathResponse(message);
+            return;
+          }
           this.messageHandler.handleMessage(message);
         } catch (error) {
           console.error('[CodeboltWS] Message parse error:', error);
@@ -95,6 +99,51 @@ export class CodeboltWebSocketClient {
    */
   public sendFromDockerServer(message: Record<string, unknown>): void {
     this.sendMessage(message);
+  }
+
+  private sendProspectivePathResponse(message: Record<string, any>): void {
+    const requestedPath = String(message.environmentPath || message.requestedPath || message.resolvedPath || message.path || '').trim();
+    const projectName = String(message.projectName || 'codebolt-project').replace(/[^a-zA-Z0-9_.-]/g, '-');
+    const resolvedPath = requestedPath || `/workspace/${projectName || 'codebolt-project'}`;
+    const syncPolicy = this.getSyncPolicy();
+    this.sendMessage({
+      type: 'remoteProviderEvent',
+      action: 'providerProspectivePathResponse',
+      requestId: message.requestId,
+      status: true,
+      data: {
+        path: resolvedPath,
+        projectPath: resolvedPath,
+        resolvedPath,
+        environmentPath: resolvedPath,
+        requestedPath: requestedPath || undefined,
+        pathSource: requestedPath ? 'user_override' : 'provider_proposed',
+        source: requestedPath ? 'user_override' : 'provider_proposed',
+        syncMode: 'workspace_sync',
+        mergeStrategy: 'workspace_sync',
+        editable: true,
+        syncPolicy,
+        defaultSyncMode: syncPolicy.defaultSyncMode,
+        supportedSyncModes: ['workspace_sync'],
+        supportedMergeStrategies: ['workspace_sync'],
+      },
+    });
+  }
+
+  private getSyncPolicy(): Record<string, any> {
+    return {
+      defaultSyncMode: 'workspace_sync',
+      modes: [
+        {
+          value: 'workspace_sync',
+          label: 'Workspace sync',
+          description: 'Use the Docker workspace mount for initial data sync and cleanup.',
+          createsGitWorktree: false,
+          usesWorkspaceSync: true,
+          cleanup: 'runtime_provider',
+        },
+      ],
+    };
   }
 
   /**

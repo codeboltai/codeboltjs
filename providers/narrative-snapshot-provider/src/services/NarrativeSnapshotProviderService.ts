@@ -58,6 +58,50 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
     this.logger = createPrefixedLogger('[Narrative Snapshot Provider]');
   }
 
+  getProspectivePath(request: Record<string, any>): Record<string, any> {
+    const parentPath = path.resolve(String(request.projectPath || request.parentProjectPath || request.parentPath || this.baseProjectPath || process.cwd()));
+    const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
+    const environmentName = String(request.environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+    const resolvedPath = requestedPath
+      ? (path.isAbsolute(requestedPath) ? path.resolve(requestedPath) : path.resolve(parentPath, requestedPath))
+      : path.join(parentPath, '.codebolt', 'remote-envs', environmentName);
+    return {
+      path: resolvedPath,
+      projectPath: resolvedPath,
+      resolvedPath,
+      environmentPath: resolvedPath,
+      requestedPath: requestedPath || undefined,
+      pathSource: requestedPath ? 'user_override' : 'provider_proposed',
+      source: requestedPath ? 'user_override' : 'provider_proposed',
+      syncMode: 'workspace_sync',
+      mergeStrategy: 'workspace_sync',
+      parentPath,
+      parentProjectPath: parentPath,
+      editable: true,
+      syncPolicy: this.getSyncPolicy(),
+      defaultSyncMode: 'workspace_sync',
+      supportedSyncModes: ['workspace_sync'],
+      supportedMergeStrategies: ['workspace_sync'],
+    };
+  }
+
+  getSyncPolicy(): Record<string, any> {
+    return {
+      defaultSyncMode: 'workspace_sync',
+      modes: [
+        {
+          value: 'workspace_sync',
+          label: 'Workspace sync',
+          description: 'Materialize a narrative snapshot into a provider-managed workspace.',
+          pathFolder: 'remote-envs',
+          createsGitWorktree: false,
+          usesWorkspaceSync: true,
+          cleanup: 'filesystem',
+        },
+      ],
+    };
+  }
+
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
 
@@ -81,7 +125,20 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
         this.startEnvironmentHeartbeat(initVars.environmentName);
       }
 
-      return result;
+      return {
+        ...result,
+        resolvedPath: result.workspacePath,
+        environmentPath: result.workspacePath,
+        requestedPath: (initVars as any).requestedPath,
+        pathSource: (initVars as any).requestedPath || (initVars as any).resolvedPath ? 'user_override' : 'provider_proposed',
+        syncMode: 'workspace_sync',
+        mergeStrategy: 'workspace_sync',
+        parentPath: this.baseProjectPath || undefined,
+        syncPolicy: this.getSyncPolicy(),
+        defaultSyncMode: 'workspace_sync',
+        supportedSyncModes: ['workspace_sync'],
+        supportedMergeStrategies: ['workspace_sync'],
+      } as ProviderStartResult & Record<string, any>;
     } finally {
       this.isStartupCheck = false;
     }
@@ -317,15 +374,7 @@ export class NarrativeSnapshotProviderService extends BaseProvider {
       throw new Error('Base project path is not available');
     }
 
-    // Create workspace under .codebolt/remote-envs/{environmentName}/
-    const workspacePath = path.join(
-      this.baseProjectPath,
-      '.codebolt',
-      'remote-envs',
-      initVars.environmentName,
-    );
-
-    this.state.projectPath = workspacePath;
+    this.state.projectPath = this.getProspectivePath(initVars as Record<string, any>).resolvedPath;
   }
 
   protected async resolveWorkspacePath(_initVars: ProviderInitVars): Promise<string> {

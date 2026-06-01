@@ -1,6 +1,7 @@
 import { execFile } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import { promisify } from 'util';
 import type { ProviderInitVars } from '@codebolt/types/provider';
 import {
@@ -12,6 +13,11 @@ import {
   DiffResult,
   WorktreeInfo,
   ProviderConfig,
+  LocalThreadpoolProspectivePathRequest,
+  LocalThreadpoolProspectivePathResponse,
+  LocalThreadpoolSyncMode,
+  LocalThreadpoolPathSource,
+  LocalThreadpoolSyncPolicy,
 } from '../interfaces/IProviderService';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 import { getDiff } from '../utils/gitDiff';
@@ -25,6 +31,42 @@ export class GitWorktreeProviderService
   private environmentPath: string | null = null;
   private baseProjectPath: string | null = null;
   private readonly providerConfig: ProviderConfig;
+  private readonly syncPolicy: LocalThreadpoolSyncPolicy = {
+    defaultSyncMode: 'git',
+    modes: [
+      {
+        value: 'git',
+        label: 'Git',
+        description: 'Create a Git worktree for the environment and clean it up through Git.',
+        pathFolder: 'worktrees',
+        createsGitWorktree: true,
+        usesWorkspaceSync: false,
+        cleanup: 'git_worktree',
+      },
+      {
+        value: 'workspace_sync',
+        label: 'Workspace sync',
+        description: 'Create a provider-managed folder and let workspace sync populate it.',
+        pathFolder: 'environments',
+        createsGitWorktree: false,
+        usesWorkspaceSync: true,
+        cleanup: 'filesystem',
+      },
+      {
+        value: 'none',
+        label: 'None',
+        description: 'Create an empty provider-managed folder without initial sync.',
+        pathFolder: 'environments',
+        createsGitWorktree: false,
+        usesWorkspaceSync: false,
+        cleanup: 'filesystem',
+      },
+    ],
+  };
+  private readonly supportedSyncModes: LocalThreadpoolSyncMode[] = this.syncPolicy.modes.map((mode) => mode.value);
+  private currentSyncMode: LocalThreadpoolSyncMode = 'git';
+  private currentPathSource: LocalThreadpoolPathSource = 'provider_proposed';
+  private requestedPath: string | undefined;
 
   private readonly defaultEmptyDiffResult: DiffResult = {
     files: [],
@@ -80,12 +122,19 @@ export class GitWorktreeProviderService
         this.startEnvironmentHeartbeat(initVars.environmentName);
       }
 
-      const { agentServerUrl, ...localResult } = result as ProviderStartResult & { agentServerUrl?: string };
-      void agentServerUrl;
-
       return {
-        ...localResult,
+        ...result,
         worktreePath: this.state.workspacePath ?? undefined,
+        resolvedPath: this.environmentPath ?? this.state.workspacePath ?? undefined,
+        environmentPath: this.environmentPath ?? this.state.workspacePath ?? undefined,
+        requestedPath: this.requestedPath,
+        pathSource: this.currentPathSource,
+        syncMode: this.currentSyncMode,
+        mergeStrategy: this.currentSyncMode,
+        parentPath: this.baseProjectPath ?? undefined,
+        syncPolicy: this.syncPolicy,
+        defaultSyncMode: this.syncPolicy.defaultSyncMode,
+        supportedSyncModes: this.supportedSyncModes,
       } as ProviderStartResult & { worktreePath?: string };
     } finally {
       // No secondary agent server is managed by this provider.
@@ -114,6 +163,9 @@ export class GitWorktreeProviderService
         tag: null,
         isCreated: false,
       };
+      this.currentSyncMode = 'git';
+      this.currentPathSource = 'provider_proposed';
+      this.requestedPath = undefined;
 
       this.resetState();
 
@@ -144,6 +196,98 @@ export class GitWorktreeProviderService
         rawDiff: '',
       };
     }
+  }
+
+  getProspectivePath(request: LocalThreadpoolProspectivePathRequest): LocalThreadpoolProspectivePathResponse {
+    return this.resolveLaunchPaths(request);
+  }
+
+  private resolveLaunchPaths(request: LocalThreadpoolProspectivePathRequest): LocalThreadpoolProspectivePathResponse {
+    const syncMode = this.normalizeSyncMode(
+      this.getString(request, 'syncMode') ??
+      this.getString(request, 'sync_mode') ??
+      this.getString(request, 'mergeStrategy') ??
+      this.getString(request, 'merge_strategy')
+    );
+    const environmentName = this.getString(request, 'environmentName') || 'environment';
+    const parentPath = this.resolveOptionalPath(
+      this.getString(request, 'projectPath') ??
+      this.getString(request, 'parentPath') ??
+      this.getString(request, 'parentProjectPath') ??
+      this.getString(request, 'parentBasePath'),
+      undefined
+    );
+    const requestedPath =
+      this.getString(request, 'environmentPath') ??
+      this.getString(request, 'requestedPath') ??
+      this.getString(request, 'resolvedPath') ??
+      this.getString(request, 'path');
+
+    const pathSource: LocalThreadpoolPathSource = requestedPath ? 'user_override' : 'provider_proposed';
+    const resolvedPath = requestedPath
+      ? this.resolvePathInput(requestedPath, parentPath)
+      : this.getDefaultEnvironmentPath(parentPath, environmentName, syncMode);
+
+    return {
+      resolvedPath,
+      environmentPath: resolvedPath,
+      requestedPath,
+      pathSource,
+      syncMode,
+      mergeStrategy: syncMode,
+      parentPath,
+      syncPolicy: this.syncPolicy,
+      supportedSyncModes: this.supportedSyncModes,
+      defaultSyncMode: this.syncPolicy.defaultSyncMode,
+    };
+  }
+
+  private normalizeSyncMode(value: string | undefined): LocalThreadpoolSyncMode {
+    if (value && this.supportedSyncModes.includes(value as LocalThreadpoolSyncMode)) {
+      return value as LocalThreadpoolSyncMode;
+    }
+
+    return this.syncPolicy.defaultSyncMode;
+  }
+
+  private getString(source: Record<string, unknown>, key: string): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  }
+
+  private safeEnvironmentName(environmentName: string): string {
+    return (environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+  }
+
+  private resolveOptionalPath(inputPath: string | undefined, basePath: string | undefined): string | undefined {
+    return inputPath ? this.resolvePathInput(inputPath, basePath) : undefined;
+  }
+
+  private resolvePathInput(inputPath: string, basePath: string | undefined): string {
+    if (inputPath === '~') {
+      return os.homedir();
+    }
+
+    if (inputPath.startsWith(`~${path.sep}`) || inputPath.startsWith('~/')) {
+      return path.resolve(os.homedir(), inputPath.slice(2));
+    }
+
+    if (path.isAbsolute(inputPath)) {
+      return path.resolve(inputPath);
+    }
+
+    return path.resolve(basePath || process.cwd(), inputPath);
+  }
+
+  private getDefaultEnvironmentPath(
+    parentPath: string | undefined,
+    environmentName: string,
+    syncMode: LocalThreadpoolSyncMode
+  ): string {
+    const basePath = parentPath || this.baseProjectPath || process.cwd();
+    const safeName = this.safeEnvironmentName(environmentName);
+    const folder = syncMode === 'git' ? 'worktrees' : 'environments';
+    return path.join(basePath, '.codebolt', folder, safeName);
   }
 
   private isSamePath(targetPath: string): boolean {
@@ -350,15 +494,17 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async createWorktree(projectPath: string, environmentName: string): Promise<WorktreeInfo> {
+  async createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo> {
     try {
       const basePath = path.resolve(projectPath);
       await this.git(['rev-parse', '--is-inside-work-tree'], basePath);
 
-      const safeEnvironmentName = (environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+      const safeEnvironmentName = this.safeEnvironmentName(environmentName);
       const tag = `${safeEnvironmentName}-${Date.now()}`;
-      const worktreeRoot = path.join(basePath, '.codebolt', 'worktrees');
-      const worktreePath = path.join(worktreeRoot, tag);
+      const worktreePath = targetPath
+        ? path.resolve(targetPath)
+        : this.getDefaultEnvironmentPath(basePath, environmentName, 'git');
+      const worktreeRoot = path.dirname(worktreePath);
       const branchName = `codebolt/local-threadpool-${tag}`;
 
       await fs.mkdir(worktreeRoot, { recursive: true });
@@ -368,6 +514,7 @@ export class GitWorktreeProviderService
         path: worktreePath,
         tag: branchName,
         isCreated: true,
+        syncMode: 'git',
       };
     } catch (error: any) {
       this.logger.error('Failed to initialize git worktree environment:', error.message);
@@ -384,6 +531,12 @@ export class GitWorktreeProviderService
       }
 
       let branchName = this.environmentInfo.tag || '';
+      if (this.environmentInfo.syncMode && this.environmentInfo.syncMode !== 'git') {
+        this.logger.log('Removing local environment workspace:', normalizedPath);
+        await fs.rm(normalizedPath, { recursive: true, force: true });
+        return true;
+      }
+
       try {
         const { stdout } = await this.git(['rev-parse', '--abbrev-ref', 'HEAD'], normalizedPath);
         branchName = stdout.trim() || branchName;
@@ -429,7 +582,7 @@ export class GitWorktreeProviderService
   }
 
   protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
-    const environmentPath = (initVars as any).environmentPath as string | undefined;
+    const launch = this.resolveLaunchPaths(initVars as LocalThreadpoolProspectivePathRequest);
     const projectPath = (initVars as any).projectPath as string | undefined;
     const executionMode = (initVars as any).executionMode as ProviderConfig['executionMode'] | undefined;
 
@@ -437,21 +590,20 @@ export class GitWorktreeProviderService
       this.providerConfig.executionMode = executionMode;
     }
 
-    if (environmentPath) {
-      this.state.projectPath = path.resolve(environmentPath);
-    } else if (projectPath) {
-      this.state.projectPath = path.resolve(projectPath);
-    } else {
-      throw new Error('Neither environmentPath nor projectPath is available in provider start vars');
-    }
+    this.currentSyncMode = launch.syncMode;
+    this.currentPathSource = launch.pathSource;
+    this.requestedPath = launch.requestedPath;
+    this.state.projectPath = launch.resolvedPath;
 
     if (projectPath) {
       this.baseProjectPath = path.resolve(projectPath);
-    } else if (environmentPath) {
-      this.baseProjectPath = path.resolve(environmentPath);
+    } else if (launch.parentPath) {
+      this.baseProjectPath = launch.parentPath;
+    } else {
+      this.baseProjectPath = path.resolve(launch.resolvedPath, '..', '..', '..');
     }
 
-    this.environmentPath = this.state.projectPath;
+    this.environmentPath = launch.resolvedPath;
   }
 
   protected async ensureAgentServer(): Promise<void> {
@@ -487,13 +639,27 @@ export class GitWorktreeProviderService
         throw new Error('Project path is not available');
       }
 
+      if (this.currentSyncMode === 'git') {
+        const basePath = this.baseProjectPath || workspacePath;
+        const createdInfo = await this.createWorktree(basePath, initVars.environmentName, workspacePath);
+        this.environmentInfo = createdInfo;
+        this.state.workspacePath = createdInfo.path;
+        this.state.projectPath = createdInfo.path;
+        this.environmentPath = createdInfo.path;
+        return;
+      }
+
       await fs.mkdir(workspacePath, { recursive: true });
 
-      const createdInfo = await this.createWorktree(workspacePath, initVars.environmentName);
-      this.environmentInfo = createdInfo;
-      this.state.workspacePath = createdInfo.path;
-      this.state.projectPath = createdInfo.path;
-      this.environmentPath = createdInfo.path;
+      this.environmentInfo = {
+        path: workspacePath,
+        tag: null,
+        isCreated: true,
+        syncMode: this.currentSyncMode,
+      };
+      this.state.workspacePath = workspacePath;
+      this.state.projectPath = workspacePath;
+      this.environmentPath = workspacePath;
     } catch (error: any) {
       this.logger.error('Error setting up environment:', error);
       throw new Error(`Failed to setup environment: ${error.message}`);
@@ -556,7 +722,3 @@ export class GitWorktreeProviderService
     }
   }
 }
-
-
-
-

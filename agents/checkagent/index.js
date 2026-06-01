@@ -487,6 +487,171 @@ function responseError(response) {
     || response?.result?.payload?.error;
 }
 
+function artifactOf(response) {
+  const payload = payloadOf(response);
+  return payload.artifact
+    || response?.artifact
+    || payload.data?.artifact
+    || response?.data?.artifact
+    || payload.result?.artifact
+    || response?.result?.artifact
+    || payload.result?.payload?.artifact
+    || response?.result?.payload?.artifact;
+}
+
+function artifactError(response) {
+  const error = responseError(response) || response?.message || payloadOf(response)?.message;
+  if (error === undefined || error === null) return undefined;
+  return typeof error === "string" ? error : JSON.stringify(error);
+}
+
+function findStringDeep(value, keys) {
+  if (!value || typeof value !== "object") return undefined;
+  for (const key of keys) {
+    const item = value[key];
+    if (typeof item === "string" && item.trim()) return item;
+  }
+  for (const item of Object.values(value)) {
+    if (item && typeof item === "object") {
+      const found = findStringDeep(item, keys);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function cleanBase64Data(value) {
+  const text = typeof value === "string" ? value.trim() : "";
+  if (!text) return undefined;
+  return text.replace(/^data:[^;]+;base64,/, "");
+}
+
+function buildBrowserEvidenceArtifactInput({ sourcePath, planId, runId, status, startedAt, finishedAt, autoTesting, evidence, scope }) {
+  const metadata = {
+    source: "checkagent",
+    scope: scope || "run",
+    runId,
+    suiteId: autoTesting?.suiteId,
+    caseId: autoTesting?.caseId,
+    planId,
+    status,
+    startedAt,
+    finishedAt,
+    evidenceType: "browser",
+    sourcePath
+  };
+  const recordResponse = evidence?.recording?.stopResponse;
+  const recordingUrl = findStringDeep(recordResponse, ["externalUrl", "external_url", "previewUrl", "preview_url", "url"]);
+  const recordingPath = findStringDeep(recordResponse, ["sourcePath", "source_path", "filePath", "filepath", "path", "storagePath", "storage_path"]);
+  const recordingBase64 = cleanBase64Data(findStringDeep(recordResponse, ["videoBase64", "video_base64", "video", "recording", "data", "content"]));
+
+  if (recordingUrl) {
+    return {
+      type: "video",
+      title: `Check Agent Browser Recording - ${planId} ${runId}`,
+      description: `Browser recording for Check Agent ${scope === "suite" ? "suite" : "run"} ${planId}.`,
+      externalUrl: recordingUrl,
+      metadata: { ...metadata, evidenceKind: "video", source: "checkagent", recordingSource: "url" }
+    };
+  }
+
+  if (recordingPath) {
+    return {
+      type: "video",
+      title: `Check Agent Browser Recording - ${planId} ${runId}`,
+      description: `Browser recording for Check Agent ${scope === "suite" ? "suite" : "run"} ${planId}.`,
+      sourcePath: recordingPath,
+      metadata: { ...metadata, evidenceKind: "video", recordingSource: "path", recordingPath }
+    };
+  }
+
+  if (recordingBase64 && recordingBase64.length > 100) {
+    return {
+      type: "video",
+      title: `Check Agent Browser Recording - ${planId} ${runId}`,
+      description: `Browser recording for Check Agent ${scope === "suite" ? "suite" : "run"} ${planId}.`,
+      files: [{ path: "recording.webm", content: recordingBase64, encoding: "base64" }],
+      metadata: { ...metadata, evidenceKind: "video", recordingSource: "base64" }
+    };
+  }
+
+  const screenshot = evidence?.screenshots?.[evidence.screenshots.length - 1];
+  if (screenshot?.base64) {
+    return {
+      type: "image",
+      title: `Check Agent Browser Snapshot - ${planId} ${runId}`,
+      description: `Latest browser screenshot for Check Agent ${scope === "suite" ? "suite" : "run"} ${planId}.`,
+      files: [{ path: "snapshot.png", content: screenshot.base64, encoding: "base64" }],
+      metadata: { ...metadata, evidenceKind: "snapshot", snapshotPath: screenshot.path, stepId: screenshot.stepId }
+    };
+  }
+
+  const snapshot = evidence?.snapshots?.[evidence.snapshots.length - 1];
+  if (snapshot?.content) {
+    return {
+      type: "file",
+      title: `Check Agent Browser Snapshot - ${planId} ${runId}`,
+      description: `Latest browser snapshot for Check Agent ${scope === "suite" ? "suite" : "run"} ${planId}.`,
+      files: [{ path: "snapshot.json", content: snapshot.content, encoding: "utf8" }],
+      metadata: { ...metadata, evidenceKind: "snapshot", snapshotPath: snapshot.path, stepId: snapshot.stepId }
+    };
+  }
+
+  return undefined;
+}
+
+async function createBrowserEvidenceArtifact({ sourcePath, planId, runId, autoTesting, status, startedAt, finishedAt, scope, evidence }) {
+  const artifactInput = buildBrowserEvidenceArtifactInput({
+    sourcePath,
+    planId,
+    runId,
+    status,
+    startedAt,
+    finishedAt,
+    autoTesting,
+    evidence,
+    scope
+  });
+
+  if (!artifactInput) {
+    const error = "No browser video, screenshot, or snapshot evidence was captured for this test.";
+    logStep("artifact-publish:no-browser-evidence", { sourcePath, runId, planId, scope, error });
+    send(`Check Agent: browser evidence artifact was not created for ${planId}: ${error}`);
+    return { success: false, sourcePath, evidenceKind: "none", error };
+  }
+
+  logStep("artifact-publish:start", { sourcePath, runId, planId, scope, type: artifactInput.type, evidenceKind: artifactInput.metadata?.evidenceKind });
+  try {
+    const response = await codebolt.artifact.create(artifactInput);
+    const artifact = artifactOf(response);
+    if (!artifact?.id) {
+      const error = artifactError(response) || "Artifact creation response did not include an artifact id.";
+      logStep("artifact-publish:missing-artifact", { runId, planId, error, response });
+      send(`Check Agent: evidence artifact was not created for ${planId}: ${error}`);
+      return { success: false, sourcePath, error };
+    }
+
+    const published = {
+      success: true,
+      artifactId: artifact.id,
+      title: artifact.title,
+      type: artifact.type || artifactInput.type,
+      evidenceKind: artifactInput.metadata?.evidenceKind,
+      previewUrl: artifact.previewUrl,
+      externalUrl: artifact.externalUrl,
+      sourcePath: artifactInput.sourcePath || sourcePath
+    };
+    logStep("artifact-publish:complete", published);
+    send(`Check Agent: evidence artifact created for ${planId}: ${artifact.id}`);
+    return published;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logStep("artifact-publish:failed", { runId, planId, sourcePath, message });
+    send(`Check Agent: evidence artifact creation failed for ${planId}: ${message}`);
+    return { success: false, sourcePath, error: message };
+  }
+}
+
 function extractRequestedSuiteId(reqMessage) {
   return firstString(reqMessage, ["testSuiteId", "suiteId"]);
 }
@@ -684,6 +849,20 @@ async function runTestingPlan(inputPlan, options) {
     await artifacts.writeJson("trace.json", trace);
     await artifacts.writeJson("llm-trace.json", llmTrace);
     await artifacts.writeJson("result.json", result);
+    if (options.publishArtifact !== false) {
+      result.publishedArtifact = await createBrowserEvidenceArtifact({
+        sourcePath: artifacts.runDir,
+        planId: plan.metadata.id,
+        runId,
+        autoTesting,
+        status: result.status,
+        startedAt,
+        finishedAt: result.finishedAt,
+        scope: "run",
+        evidence: provider.evidence
+      });
+      await artifacts.writeJson("result.json", result);
+    }
     return result;
   }
 
@@ -918,8 +1097,18 @@ ${JSON.stringify(compactObservation(input.observation), null, 2)}`,
 function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
   let browserStarted = false;
   let browserInstanceId;
+  const evidence = {
+    recording: {
+      started: false,
+      startResponse: undefined,
+      stopResponse: undefined
+    },
+    screenshots: [],
+    snapshots: []
+  };
   return {
     id: "codebolt-browser",
+    evidence,
 
     async ensure(plan) {
       if (browserStarted) return;
@@ -937,16 +1126,29 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
       if (plan.target?.baseUrl) {
         await codebolt.browser.goToPage(plan.target.baseUrl);
       }
+      if (typeof codebolt.browser.record === "function") {
+        const recordStart = await safeCall(() => codebolt.browser.record("start", { intervalMs: 500, maxFrames: 600 }));
+        if (recordStart) {
+          evidence.recording.started = true;
+          evidence.recording.startResponse = recordStart;
+          logStep("browser-record:start", { instanceId: browserInstanceId });
+        } else {
+          logStep("browser-record:start-unavailable", { instanceId: browserInstanceId });
+        }
+      }
     },
 
     async observe({ plan, step }) {
       await this.ensure(plan);
-      const [urlRes, markdownRes, textRes, htmlRes, actionableRes] = await Promise.all([
+      const [urlRes, markdownRes, textRes, htmlRes, actionableRes, snapshotRes] = await Promise.all([
         safeCall(() => codebolt.browser.getUrl()),
         safeCall(() => codebolt.browser.getMarkdown()),
         safeCall(() => codebolt.browser.extractText()),
         safeCall(() => codebolt.browser.getHTML()),
-        safeCall(() => codebolt.browser.getActionableElements())
+        safeCall(() => codebolt.browser.getActionableElements()),
+        typeof codebolt.browser.getSnapShot === "function"
+          ? safeCall(() => codebolt.browser.getSnapShot())
+          : undefined
       ]);
 
       const url = firstString(urlRes, ["url", "currentUrl", "content"]);
@@ -974,9 +1176,28 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
       const screenshot = await safeCall(() => codebolt.browser.screenshot({ fullPage: true, format: "png" }));
       const screenshotBase64 = firstString(screenshot, ["screenshot", "content", "data"]);
       if (screenshotBase64 && screenshotBase64.length > 100) {
-        const screenshotPath = await artifacts.writeBase64(`${step.id}-${Date.now()}.png`, screenshotBase64);
+        const cleanedScreenshot = cleanBase64Data(screenshotBase64);
+        const screenshotPath = await artifacts.writeBase64(`${step.id}-${Date.now()}.png`, cleanedScreenshot);
         observation.artifacts.push({ kind: "screenshot", path: screenshotPath, label: step.id });
         resultArtifacts.push(screenshotPath);
+        evidence.screenshots.push({
+          stepId: step.id,
+          path: screenshotPath,
+          base64: cleanedScreenshot,
+          timestamp: nowIso()
+        });
+      }
+      if (snapshotRes) {
+        const snapshotContent = JSON.stringify(payloadOf(snapshotRes), null, 2);
+        const snapshotPath = await artifacts.writeText(`${step.id}-${Date.now()}-snapshot.json`, `${snapshotContent}\n`);
+        observation.artifacts.push({ kind: "snapshot", path: snapshotPath, label: `${step.id} browser snapshot` });
+        resultArtifacts.push(snapshotPath);
+        evidence.snapshots.push({
+          stepId: step.id,
+          path: snapshotPath,
+          content: snapshotContent,
+          timestamp: nowIso()
+        });
       }
       if (htmlPath) resultArtifacts.push(htmlPath);
       return observation;
@@ -1038,6 +1259,10 @@ function createCodeboltWebProvider({ artifacts, resultArtifacts }) {
     async cleanup() {
       if (!browserStarted) return;
       logStep("browser:cleanup:start", { instanceId: browserInstanceId });
+      if (evidence.recording.started && typeof codebolt.browser.record === "function") {
+        evidence.recording.stopResponse = await safeCall(() => codebolt.browser.record("stop"));
+        logStep("browser-record:stop", { instanceId: browserInstanceId, stopped: Boolean(evidence.recording.stopResponse) });
+      }
       const closed = browserInstanceId && typeof codebolt.browser.closeBrowserInstance === "function"
         ? await safeCall(() => codebolt.browser.closeBrowserInstance(browserInstanceId))
         : undefined;
@@ -1577,6 +1802,7 @@ codebolt.onMessage(async (reqMessage) => {
       loadedPlans = [{ plan, source: planPath }];
     }
 
+    const suiteStartedAt = nowIso();
     const results = [];
     const suiteAutoTesting = loadedPlans.length > 1
       ? await createSuiteAutoTestingRun(loadedPlans, reqMessage)
@@ -1598,7 +1824,8 @@ codebolt.onMessage(async (reqMessage) => {
         caseId: loaded.caseId,
         autoTesting,
         artifactScope: suiteAutoTesting ? loaded.caseId : undefined,
-        completeRunOnFinish: !suiteAutoTesting
+        completeRunOnFinish: !suiteAutoTesting,
+        publishArtifact: true
       });
       const resultPath = path.join(result.artifacts?.[0] || path.join(projectRoot, RESULT_DIR, "runs", result.runId), "result.json");
       results.push({ ...result, source: loaded.source, caseId: loaded.caseId, resultPath });
@@ -1617,12 +1844,16 @@ codebolt.onMessage(async (reqMessage) => {
       passed: results.filter((result) => result.status === "passed").length,
       failed: results.filter((result) => result.status === "failed").length,
       runId: suiteAutoTesting?.run?.id,
+      startedAt: suiteStartedAt,
+      finishedAt: nowIso(),
+      publishedArtifacts: results.map((result) => result.publishedArtifact).filter(Boolean),
       results
     };
     if (suiteAutoTesting) {
       await updateAutoTestingRunStatus(suiteAutoTesting, "completed");
+      const suiteRunDir = path.join(projectRoot, RESULT_DIR, "runs", suiteAutoTesting.run.id);
       await writeCodeboltFile(
-        path.join(projectRoot, RESULT_DIR, "runs", suiteAutoTesting.run.id),
+        suiteRunDir,
         "suite-result.json",
         `${JSON.stringify(summary, null, 2)}\n`
       );
