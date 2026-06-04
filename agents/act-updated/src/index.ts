@@ -434,7 +434,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
       maxTurns: 30,
       compaction: {
         enableLogging: true,
-        autoCompactEnabled: true,
+        autoCompactEnabled: false,
         contextCollapseEnabled: false,
       },
       processors: {
