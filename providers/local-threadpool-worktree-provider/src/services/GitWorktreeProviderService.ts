@@ -34,15 +34,14 @@ export class GitWorktreeProviderService
   private readonly syncPolicy: LocalThreadpoolSyncPolicy = {
     defaultSyncMode: 'git',
     modes: [
-
       {
-        value: 'none',
-        label: 'None',
-        description: 'Create an empty provider-managed folder without initial sync.',
-        pathFolder: 'environments',
-        createsGitWorktree: false,
+        value: 'git',
+        label: 'Git',
+        description: 'Create a Git worktree for the environment and clean it up through Git.',
+        pathFolder: 'worktree',
+        createsGitWorktree: true,
         usesWorkspaceSync: false,
-        cleanup: 'filesystem',
+        cleanup: 'git_worktree',
       },
     ],
   };
@@ -192,12 +191,7 @@ export class GitWorktreeProviderService
   }
 
   private resolveLaunchPaths(request: LocalThreadpoolProspectivePathRequest): LocalThreadpoolProspectivePathResponse {
-    const syncMode = this.normalizeSyncMode(
-      this.getString(request, 'syncMode') ??
-      this.getString(request, 'sync_mode') ??
-      this.getString(request, 'mergeStrategy') ??
-      this.getString(request, 'merge_strategy')
-    );
+    const syncMode = this.syncPolicy.defaultSyncMode;
     const environmentName = this.getString(request, 'environmentName') || 'environment';
     const parentPath = this.resolveOptionalPath(
       this.getString(request, 'projectPath') ??
@@ -229,14 +223,6 @@ export class GitWorktreeProviderService
       supportedSyncModes: this.supportedSyncModes,
       defaultSyncMode: this.syncPolicy.defaultSyncMode,
     };
-  }
-
-  private normalizeSyncMode(value: string | undefined): LocalThreadpoolSyncMode {
-    if (value && this.supportedSyncModes.includes(value as LocalThreadpoolSyncMode)) {
-      return value as LocalThreadpoolSyncMode;
-    }
-
-    return this.syncPolicy.defaultSyncMode;
   }
 
   private getString(source: Record<string, unknown>, key: string): string | undefined {
