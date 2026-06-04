@@ -1,16 +1,14 @@
 name: local-threadpool-worktree-provider
 unique_id: local-threadpool-worktree-provider
 author: ravi
-version: 1.1.4
+version: 1.1.6
 description: Local threadpool environment provider that executes in a server-managed workspace
 type: provider
 entrypoint: dist/index.js
 runtime: node
 supportedSyncModes:
-  - git
-  - workspace_sync
   - none
-defaultSyncMode: git
+defaultSyncMode: none
 config:
   agentServerPort: 3001
   agentServerHost: localhost

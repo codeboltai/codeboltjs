@@ -34,24 +34,7 @@ export class GitWorktreeProviderService
   private readonly syncPolicy: LocalThreadpoolSyncPolicy = {
     defaultSyncMode: 'git',
     modes: [
-      {
-        value: 'git',
-        label: 'Git',
-        description: 'Create a Git worktree for the environment and clean it up through Git.',
-        pathFolder: 'worktree',
-        createsGitWorktree: true,
-        usesWorkspaceSync: false,
-        cleanup: 'git_worktree',
-      },
-      {
-        value: 'workspace_sync',
-        label: 'Workspace sync',
-        description: 'Create a provider-managed folder and let workspace sync populate it.',
-        pathFolder: 'environments',
-        createsGitWorktree: false,
-        usesWorkspaceSync: true,
-        cleanup: 'filesystem',
-      },
+
       {
         value: 'none',
         label: 'None',
