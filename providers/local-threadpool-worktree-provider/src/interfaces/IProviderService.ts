@@ -85,6 +85,7 @@ export type WorktreeInfo = LocalEnvironmentInfo;
 export interface ProviderConfig {
   cleanupEnvironmentPath?: boolean;
   executionMode?: 'local_thread_pool';
+  workspaceSyncExcludes?: string[];
   timeouts?: {
     wsConnection?: number;
     gitOperations?: number;

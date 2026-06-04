@@ -38,7 +38,7 @@ export class GitWorktreeProviderService
         value: 'git',
         label: 'Git',
         description: 'Create a Git worktree for the environment and clean it up through Git.',
-        pathFolder: 'worktrees',
+        pathFolder: 'worktree',
         createsGitWorktree: true,
         usesWorkspaceSync: false,
         cleanup: 'git_worktree',
@@ -98,6 +98,12 @@ export class GitWorktreeProviderService
     this.providerConfig = {
       cleanupEnvironmentPath: config.cleanupEnvironmentPath ?? true,
       executionMode: config.executionMode ?? this.getExecutionModeFromEnv(),
+      workspaceSyncExcludes: config.workspaceSyncExcludes ?? [
+        '.git',
+        path.join('.codebolt', 'environments'),
+        path.join('.codebolt', 'worktree'),
+        path.join('.codebolt', 'worktrees'),
+      ],
       timeouts: {
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
         gitOperations: config.timeouts?.gitOperations ?? 30_000,
@@ -286,7 +292,7 @@ export class GitWorktreeProviderService
   ): string {
     const basePath = parentPath || this.baseProjectPath || process.cwd();
     const safeName = this.safeEnvironmentName(environmentName);
-    const folder = syncMode === 'git' ? 'worktrees' : 'environments';
+    const folder = syncMode === 'git' ? 'worktree' : 'environments';
     return path.join(basePath, '.codebolt', folder, safeName);
   }
 
@@ -306,6 +312,47 @@ export class GitWorktreeProviderService
     }
 
     return !this.isSamePath(targetPath);
+  }
+
+  private shouldCopyWorkspaceEntry(sourcePath: string, basePath: string, targetPath: string): boolean {
+    const normalizedSource = path.resolve(sourcePath);
+    const normalizedBase = path.resolve(basePath);
+    const normalizedTarget = path.resolve(targetPath);
+
+    if (normalizedSource === normalizedTarget || normalizedSource.startsWith(`${normalizedTarget}${path.sep}`)) {
+      return false;
+    }
+
+    const relativePath = path.relative(normalizedBase, normalizedSource);
+    if (!relativePath || relativePath === '.') {
+      return true;
+    }
+
+    const excludes = this.providerConfig.workspaceSyncExcludes || [];
+    return !excludes.some((excludePattern) => {
+      const normalizedExclude = path.normalize(excludePattern);
+      return relativePath === normalizedExclude || relativePath.startsWith(`${normalizedExclude}${path.sep}`);
+    });
+  }
+
+  private async syncWorkspaceFromParent(parentPath: string, targetPath: string): Promise<void> {
+    const normalizedParent = path.resolve(parentPath);
+    const normalizedTarget = path.resolve(targetPath);
+
+    if (normalizedParent === normalizedTarget) {
+      this.logger.log('Workspace sync target is the parent project path; skipping copy:', normalizedTarget);
+      return;
+    }
+
+    await fs.mkdir(normalizedTarget, { recursive: true });
+    this.logger.log('Syncing workspace data from parent project:', normalizedParent, 'to:', normalizedTarget);
+
+    await fs.cp(normalizedParent, normalizedTarget, {
+      recursive: true,
+      force: true,
+      errorOnExist: false,
+      filter: (sourcePath) => this.shouldCopyWorkspaceEntry(sourcePath, normalizedParent, normalizedTarget),
+    });
   }
 
   private normalizeRelativePath(inputPath: string): string {
@@ -650,6 +697,10 @@ export class GitWorktreeProviderService
       }
 
       await fs.mkdir(workspacePath, { recursive: true });
+
+      if (this.currentSyncMode === 'workspace_sync' && this.baseProjectPath) {
+        await this.syncWorkspaceFromParent(this.baseProjectPath, workspacePath);
+      }
 
       this.environmentInfo = {
         path: workspacePath,
