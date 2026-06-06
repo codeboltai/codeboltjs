@@ -22,7 +22,7 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.56';
+const CLI_VERSION = '1.12.60';
 const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 async function main() {

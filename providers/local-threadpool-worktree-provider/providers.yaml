@@ -1,5 +1,5 @@
 name: local-threadpool-worktree-provider
-version: 1.1.7
+version: 1.1.9
 description: Local threadpool worktree environment provider
 entrypoint: dist/index.js
 supportedSyncModes:
