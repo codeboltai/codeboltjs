@@ -131,6 +131,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
       supportedMergeStrategies: ['git', 'workspace_sync'],
+      supportedRmrSourceTypes: ['workspace_sync'],
+      defaultRmrSourceType: 'workspace_sync',
+      rmrPolicy: {
+        defaultSourceType: 'workspace_sync',
+        sourceTypes: ['workspace_sync'],
+        createsExternalPullRequest: false,
+      },
     };
   }
 
@@ -278,6 +285,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
       supportedMergeStrategies: ['git', 'workspace_sync'],
+      supportedRmrSourceTypes: ['workspace_sync'],
+      defaultRmrSourceType: 'workspace_sync',
+      rmrPolicy: {
+        defaultSourceType: 'workspace_sync',
+        sourceTypes: ['workspace_sync'],
+        createsExternalPullRequest: false,
+      },
     } as ProviderStartResult & Record<string, any>;
 
     await this.afterConnected(startResult);
@@ -928,12 +942,28 @@ export class E2bRemoteProviderService extends BaseProvider {
     );
 
     return {
+      sourceType: 'workspace_sync',
+      rmrSourceType: 'workspace_sync',
       bundleData,
       bundlePath: localTmp,
       snapshot: { snapshot_id: ack.snapshotId },
       snapshotId: ack.snapshotId,
       baseSnapshotId: ack.baseSnapshotId,
       narrativeSummary: ack.narrativeSummary,
+      mergeConfig: {
+        strategy: 'workspace_sync',
+        sourceType: 'workspace_sync',
+        workspaceSync: {
+          environmentId: this.state.environmentName,
+          snapshotId: ack.snapshotId,
+          baseSnapshotId: ack.baseSnapshotId,
+        },
+        narrativeMerge: {
+          environmentId: this.state.environmentName,
+          snapshotId: ack.snapshotId,
+          baseSnapshotId: ack.baseSnapshotId,
+        },
+      },
     };
   }
 

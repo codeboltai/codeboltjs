@@ -11,3 +11,13 @@ config:
   e2bApiKey: ""
   sandboxTemplate: "dwss02awnos2d3sva6pw"
   autoStopInterval: 0
+capabilities:
+  syncModes:
+    - git
+    - workspace_sync
+  mergeStrategies:
+    - git
+    - workspace_sync
+  rmrSourceTypes:
+    - workspace_sync
+  defaultRmrSourceType: workspace_sync
