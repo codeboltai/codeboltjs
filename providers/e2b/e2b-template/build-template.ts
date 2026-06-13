@@ -3,8 +3,7 @@
  *
  * Builds a sandbox template with codebolt cli pre-installed from npm, so the
  * provider doesn't have to `npm install -g codebolt` on every cold start.
- * The /plugins endpoint refactor means the remote-execution-plugin is no
- * longer needed, so we do NOT pre-bake it.
+ * The direct execution gateway path means no bridge plugin is pre-baked.
  *
  * node:22-trixie is required because @codebolt/narrative-linux-x64 (glibc
  * 2.35 after the ubuntu-22.04 build fix is still fine here) / historically
