@@ -20,8 +20,7 @@ async function getE2bSandbox(): Promise<any> {
 interface E2bProviderConfig {
   pluginPort?: number;
   e2bApiKey?: string;
-  /** E2B sandbox template ID. The template should have codebolt and the
-   *  remote-execution-plugin pre-installed (see E2B template docs).
+  /** E2B sandbox template ID. The template should have codebolt pre-installed.
    *  This is the recommended approach — avoids runtime installs. */
   sandboxTemplate?: string;
   autoStopInterval?: number;
@@ -111,9 +110,80 @@ export class E2bRemoteProviderService extends BaseProvider {
       .slice(0, 55) || 'codebolt-project';
   }
 
+  private getRequestedRmrSourceType(request: Record<string, any>): 'git' | 'workspace_sync' {
+    return request.syncMode === 'workspace_sync' || request.rmrSourceType === 'workspace_sync'
+      ? 'workspace_sync'
+      : 'git';
+  }
+
+  private getRmrPolicy(request: Record<string, any>): Record<string, any> {
+    const defaultSourceType = this.getRequestedRmrSourceType(request);
+    return {
+      defaultSourceType,
+      sourceTypes: ['git', 'workspace_sync'],
+      createsExternalPullRequest: defaultSourceType === 'git',
+      externalProviders: ['github'],
+    };
+  }
+
+  private currentRuntimeId(): string | undefined {
+    return String(
+      (this.state as any).runtimeId ||
+      (this.state as any).cloudRuntimeId ||
+      (this.state as any).serverId ||
+      this.sandboxId ||
+      '',
+    ).trim() || undefined;
+  }
+
+  private currentEnvironmentId(): string | undefined {
+    return String(
+      (this.state as any).environmentId ||
+      (this.state as any).environmentName ||
+      '',
+    ).trim() || undefined;
+  }
+
+  private routePathFrom(message: Record<string, any>, currentRuntimeId?: string): string[] {
+    const rawPath = message.routePath || message.route_path;
+    const path = Array.isArray(rawPath)
+      ? rawPath.map((entry) => String(entry || '').trim()).filter(Boolean)
+      : typeof rawPath === 'string'
+        ? rawPath.split(/[>,]/).map((entry) => entry.trim()).filter(Boolean)
+        : [];
+
+    if (currentRuntimeId && !path.includes(currentRuntimeId)) {
+      path.push(currentRuntimeId);
+    }
+    return path;
+  }
+
+  private enrichForwardedRuntimeTreeMessage<T extends Record<string, any>>(message: T): T {
+    if (!message || typeof message !== 'object' || message.sourceScope === 'cloud_directory') {
+      return message;
+    }
+
+    const currentRuntimeId = this.currentRuntimeId();
+    const currentEnvironmentId = this.currentEnvironmentId();
+    const routePath = this.routePathFrom(message, currentRuntimeId);
+    const parentRuntimeId = message.parentRuntimeId || message.parent_runtime_id || currentRuntimeId;
+    const parentEnvironmentId = message.parentEnvironmentId || message.parent_environment_id || currentEnvironmentId;
+
+    return {
+      ...message,
+      sourceScope: message.sourceScope || 'runtime_tree',
+      originRuntimeId: message.originRuntimeId || message.origin_runtime_id || message.runtimeId || message.runtime_id || currentRuntimeId,
+      originEnvironmentId: message.originEnvironmentId || message.origin_environment_id || message.environmentId || message.environment_id || currentEnvironmentId,
+      parentRuntimeId,
+      parentEnvironmentId,
+      routePath,
+    };
+  }
+
   getProspectivePath(request: Record<string, any>): Record<string, any> {
     const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
     const resolvedPath = requestedPath || `/home/user/${this.getProjectNameFromRequest(request)}`;
+    const rmrSourceType = this.getRequestedRmrSourceType(request);
     return {
       path: resolvedPath,
       projectPath: resolvedPath,
@@ -131,6 +201,11 @@ export class E2bRemoteProviderService extends BaseProvider {
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
       supportedMergeStrategies: ['git', 'workspace_sync'],
+      supportedRmrSourceTypes: ['git', 'workspace_sync'],
+      defaultRmrSourceType: rmrSourceType,
+      rmrSourceType,
+      gitTransport: rmrSourceType === 'git' ? 'github_pr' : undefined,
+      rmrPolicy: this.getRmrPolicy(request),
     };
   }
 
@@ -187,27 +262,31 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.providerConfig.e2bApiKey = initVars.e2bApiKey as string;
     }
     this.logger.log('Using E2B sandbox template:', this.providerConfig.sandboxTemplate);
+    const rmrSourceType = this.getRequestedRmrSourceType(initVars as any);
 
-    // Custom startup order: sandbox first, then CodeBolt + plugin, then transport.
+    // Custom startup order: sandbox first, then CodeBolt, then transport.
     this.resetState();
     this.state.environmentName = initVars.environmentName;
+    (this.state as any).environmentId = initVars.environmentName;
 
     await this.resolveProjectContext(initVars);
     this.state.workspacePath = await this.resolveWorkspacePath(initVars);
 
     // 1. Create sandbox and copy code
     await this.setupEnvironment(initVars);
+    (this.state as any).runtimeId = this.sandboxId || initVars.environmentName;
+    (this.state as any).cloudRuntimeId = this.sandboxId || initVars.environmentName;
 
-    // 2. Start CodeBolt with remote-execution-plugin inside the sandbox
+    // 2. Start CodeBolt inside the sandbox.
     await this.ensureAgentServer();
 
     // 3. Connect WebSocket transport to direct execution gateway
     await this.ensureTransportConnection(initVars);
 
     // 4. Import narrative unified bundle into the in-sandbox codebolt server.
-    //    The plugin acts as a transparent bridge — it does NOT interpret
-    //    narrative messages. The codebolt application in the remote sandbox
-    //    owns the narrative engine and performs the import + checkout.
+    //    The direct execution gateway acts as a transparent bridge. The
+    //    codebolt application in the remote sandbox owns the narrative engine
+    //    and performs the import + checkout.
     this.logger.log('initVars for narrative bundle import:', JSON.stringify(initVars, null, 2));
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
     this.logger.log(`Pre-narrative WS state: wsConnection=${!!this.agentServer.wsConnection}, readyState=${this.agentServer.wsConnection?.readyState ?? 'N/A'}, isConnected=${this.agentServer.isConnected}`);
@@ -264,6 +343,13 @@ export class E2bRemoteProviderService extends BaseProvider {
     const startResult = {
       success: true,
       environmentName: initVars.environmentName,
+      environmentId: initVars.environmentName,
+      runtimeId: this.sandboxId || initVars.environmentName,
+      cloudRuntimeId: this.sandboxId || initVars.environmentName,
+      runtimeType: 'e2b',
+      runtimeProviderId: 'e2b-remote',
+      parentRuntimeId: (initVars as any).parentRuntimeId,
+      parentEnvironmentId: (initVars as any).parentEnvironmentId,
       agentServerUrl: this.agentServer.serverUrl,
       workspacePath: this.state.workspacePath!,
       transport: this.config.transport,
@@ -278,6 +364,14 @@ export class E2bRemoteProviderService extends BaseProvider {
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
       supportedMergeStrategies: ['git', 'workspace_sync'],
+      supportedRmrSourceTypes: ['git', 'workspace_sync'],
+      defaultRmrSourceType: rmrSourceType,
+      rmrSourceType,
+      gitTransport: rmrSourceType === 'git' ? 'github_pr' : undefined,
+      gitBaseRef: (initVars as any).gitBaseRef || (initVars as any).gitBranch,
+      gitHeadRef: (initVars as any).gitHeadRef,
+      gitProvider: rmrSourceType === 'git' ? 'github' : undefined,
+      rmrPolicy: this.getRmrPolicy(initVars as any),
     } as ProviderStartResult & Record<string, any>;
 
     await this.afterConnected(startResult);
@@ -300,21 +394,21 @@ export class E2bRemoteProviderService extends BaseProvider {
       await this.ensureAgentServer();
 
       if (!this.agentServer.isConnected && this.state.environmentName) {
-        this.logger.log('Plugin not connected, attempting to reconnect transport...');
+        this.logger.log('Gateway not connected, attempting to reconnect transport...');
         await this.ensureTransportConnection({
           environmentName: this.state.environmentName,
           projectPath: this.state.projectPath ?? undefined,
         } as any);
       }
 
-      // Send user message to sandbox CodeBolt server via the plugin WS.
+      // Send user message to sandbox CodeBolt server via the direct gateway WS.
       if (this.agentServer.wsConnection && this.agentServer.isConnected) {
         const ws = this.agentServer.wsConnection;
         const userMessage = (agentMessage as any).userMessage || agentMessage;
         ws.send(JSON.stringify(userMessage));
-        this.logger.log('Agent start message sent to plugin as messageResponse');
+        this.logger.log('Agent start message sent to CodeBolt gateway as messageResponse');
       } else {
-        throw new Error('Plugin WS not connected. Cannot start agent.');
+        throw new Error('CodeBolt gateway WS not connected. Cannot start agent.');
       }
     } catch (error) {
       throw error;
@@ -437,9 +531,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   /**
    * Send an executionGateway.reply back to the sandbox codebolt server for a
    * completed execution request. The `/direct-execution-gateway` endpoint delegates to
-   * executionGatewayHandler which expects `executionGateway.reply` (the old
-   * remote-execution-plugin used to translate from `executionReply` via its
-   * plugin SDK wrapper — we now do it directly).
+   * executionGatewayHandler which expects `executionGateway.reply`.
    */
   private sendExecutionReply(requestId: string, result: any): void {
     this.resolveRequest(requestId);
@@ -478,14 +570,14 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
   }
 
-  // --- Narrative bundle round-trip (delegated to in-sandbox plugin) ---
+  // --- Narrative bundle round-trip (delegated to in-sandbox CodeBolt) ---
 
   /**
-   * Send a `narrative.*` message through the in-sandbox remote-execution-plugin
-   * (which acts as a transparent bridge) to the codebolt application's
-   * narrativePluginHandler. Awaits the corresponding `narrative.*Response`.
+   * Send a `narrative.*` message through the direct execution gateway to the
+   * codebolt application's narrativePluginHandler. Awaits the corresponding
+   * `narrative.*Response`.
    *
-   * The plugin does NOT interpret these messages — all narrative work is done
+   * The provider does not interpret these messages. All narrative work is done
    * by the codebolt application in the remote sandbox.
    */
   private async sendNarrativeRequest(
@@ -514,7 +606,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       // Final check
       ws = this.agentServer.wsConnection;
       if (!ws || ws.readyState !== WebSocket.OPEN) {
-        throw new Error(`Plugin WS not connected after waiting ${wsWaitMs}ms; cannot send narrative request (type=${type}, readyState=${ws?.readyState ?? 'null'})`);
+        throw new Error(`CodeBolt gateway WS not connected after waiting ${wsWaitMs}ms; cannot send narrative request (type=${type}, readyState=${ws?.readyState ?? 'null'})`);
       }
     }
 
@@ -566,7 +658,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
-   * Handle messages from the remote-execution-plugin WS server.
+   * Handle messages from the sandbox CodeBolt direct execution gateway.
    */
   private handlePluginMessage(message: any): void {
     if (message?.type === 'providerAppFsResponse' && message?.requestId) {
@@ -583,9 +675,9 @@ export class E2bRemoteProviderService extends BaseProvider {
       }
     }
 
-    // Narrative response — resolve any pending narrative request whose
+    // Narrative response: resolve any pending narrative request whose
     // expected responseType matches. The message comes straight from the
-    // codebolt application (bridged through the plugin).
+    // codebolt application through the direct gateway.
     if (typeof message?.type === 'string' && message.type.startsWith('narrative.')) {
       if (message.type.endsWith('Response') && message.requestId) {
         const pending = this.pendingNarrativeRequests.get(message.requestId);
@@ -608,10 +700,8 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     switch (message.type) {
-      // `executionRequest` is the shape the old remote-execution-plugin
-      // forwarded through its own WS server. The server's
-      // executionGatewayHandler now sends us `executionGateway.request`
-      // directly on the /direct-execution-gateway socket, so we accept both.
+      // Accept both the legacy executionRequest envelope and the server-direct
+      // executionGateway.request envelope from /direct-execution-gateway.
       case 'executionRequest':
       case 'executionGateway.request': {
         const { requestId, originalType, originalMessage } = message;
@@ -621,7 +711,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.trackRequest(requestId, originalType);
 
         // Forward the original message to the local CodeBolt platform
-        super.handleTransportMessage(originalMessage as any);
+        super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(originalMessage as any) as any);
         break;
       }
 
@@ -635,7 +725,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         if (result) {
           const unwrapped = { ...result, type: result.type || message.originalType };
           this.logger.log(`Forwarding ${message.type} to local:`, unwrapped.type);
-          super.handleTransportMessage(unwrapped as any);
+          super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(unwrapped as any) as any);
         } else {
           this.logger.log(`Received ${message.type} with no result/originalMessage, skipping`);
         }
@@ -644,8 +734,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       default:
         // Forward any other message types to the platform as-is
-        this.logger.log('Received plugin message:', message.type);
-        super.handleTransportMessage(message as any);
+        this.logger.log('Received gateway message:', message.type);
+        super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(message as any) as any);
         break;
     }
   }
@@ -659,7 +749,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   ): Promise<any> {
     const ws = this.agentServer.wsConnection;
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      return Promise.reject(new Error('Plugin WS not connected; cannot send provider app fs request'));
+      return Promise.reject(new Error('CodeBolt gateway WS not connected; cannot send provider app fs request'));
     }
 
     const requestId = `provider-app-fs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -875,6 +965,11 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   private async doSendPR(): Promise<any> {
+    const rmrSourceType = this.getRequestedRmrSourceType((this.lastInitVars as any) || {});
+    if (rmrSourceType === 'git') {
+      return this.doSendGitHubPR();
+    }
+
     this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox codebolt');
 
     if (!this.sandbox) {
@@ -928,12 +1023,312 @@ export class E2bRemoteProviderService extends BaseProvider {
     );
 
     return {
+      sourceType: 'workspace_sync',
+      rmrSourceType: 'workspace_sync',
       bundleData,
       bundlePath: localTmp,
       snapshot: { snapshot_id: ack.snapshotId },
       snapshotId: ack.snapshotId,
       baseSnapshotId: ack.baseSnapshotId,
       narrativeSummary: ack.narrativeSummary,
+      mergeConfig: {
+        strategy: 'workspace_sync',
+        sourceType: 'workspace_sync',
+        workspaceSync: {
+          environmentId: this.state.environmentName,
+          snapshotId: ack.snapshotId,
+          baseSnapshotId: ack.baseSnapshotId,
+        },
+        narrativeMerge: {
+          environmentId: this.state.environmentName,
+          snapshotId: ack.snapshotId,
+          baseSnapshotId: ack.baseSnapshotId,
+        },
+      },
+    };
+  }
+
+  private shellQuote(value: string): string {
+    return `'${String(value).replace(/'/g, `'\\''`)}'`;
+  }
+
+  private async runSandboxGit(args: string[], allowFailure = false): Promise<{ stdout: string; stderr: string; code: number }> {
+    if (!this.sandbox) throw new Error('No sandbox available');
+    const command = `cd ${this.shellQuote(this.sandboxWorkspacePath)} && git ${args.map((arg) => this.shellQuote(arg)).join(' ')}`;
+    const result = await this.sandbox.commands.run(command);
+    const code = Number(result.exitCode ?? result.code ?? 0);
+    const stdout = String(result.stdout || '');
+    const stderr = String(result.stderr || '');
+    if (code !== 0 && !allowFailure) {
+      throw new Error(`git ${args.join(' ')} failed: ${stderr || stdout || `exit ${code}`}`);
+    }
+    return { stdout, stderr, code };
+  }
+
+  private parseGitHubRemote(remoteUrl: string): { owner: string; repo: string } | null {
+    const trimmed = String(remoteUrl || '').trim();
+    const sshMatch = trimmed.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
+    if (sshMatch) return { owner: sshMatch[1], repo: sshMatch[2].replace(/\.git$/i, '') };
+    try {
+      const url = new URL(trimmed);
+      if (url.hostname.toLowerCase() !== 'github.com') return null;
+      const [owner, repo] = url.pathname.replace(/^\/+/, '').replace(/\.git$/i, '').split('/');
+      return owner && repo ? { owner, repo } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private sanitizeBranchSegment(value: unknown, fallback: string): string {
+    const raw = String(value || fallback).trim() || fallback;
+    return raw
+      .replace(/^refs\/heads\//, '')
+      .replace(/[^a-zA-Z0-9._/-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 160) || fallback;
+  }
+
+  private getExplicitGitHubToken(): string {
+    const initVars = (this.lastInitVars as any) || {};
+    return String(
+      initVars.githubToken
+      || initVars.github_token
+      || initVars.gitToken
+      || initVars.git_token
+      || '',
+    ).trim();
+  }
+
+  private getGitHubEnvToken(): string {
+    return String(
+      process.env.CODEBOLT_GITHUB_TOKEN
+      || process.env.GITHUB_TOKEN
+      || process.env.GH_TOKEN
+      || '',
+    ).trim();
+  }
+
+  private cloudHttpUrlFromConfig(): string {
+    const initVars = (this.lastInitVars as any) || {};
+    const explicit = String(
+      initVars.wranglerBaseUrl
+      || initVars.cloudflareWorkerUrl
+      || initVars.cloudHttpUrl
+      || process.env.CODEBOLT_CLOUD_HTTP_URL
+      || '',
+    ).trim();
+    if (explicit) return explicit.replace(/\/+$/, '');
+
+    const cloudUrl = String(
+      initVars.cloudUrl
+      || initVars.cloudWsUrl
+      || process.env.CODEBOLT_CLOUD_WS_URL
+      || process.env.CLOUD_WS_URL
+      || '',
+    ).trim();
+    if (!cloudUrl) return '';
+
+    return cloudUrl
+      .replace(/^wss:/i, 'https:')
+      .replace(/^ws:/i, 'http:')
+      .replace(/\/proxy\/.*$/i, '')
+      .replace(/\/+$/, '');
+  }
+
+  private async resolveGitHubTokenForRepo(repo: { owner: string; repo: string }, remoteUrl: string): Promise<string> {
+    const initVars = (this.lastInitVars as any) || {};
+    const explicitToken = this.getExplicitGitHubToken();
+    if (explicitToken) return explicitToken;
+
+    const appToken = String(
+      initVars.cloudAuthToken
+      || initVars.authToken
+      || initVars.appToken
+      || initVars.loginToken
+      || process.env.CODEBOLT_AUTH_TOKEN
+      || process.env.APP_TOKEN
+      || process.env.CODEBOLT_APP_TOKEN
+      || '',
+    ).trim();
+    const wranglerBaseUrl = this.cloudHttpUrlFromConfig();
+
+    if (wranglerBaseUrl && appToken) {
+      try {
+        const workspaceId = initVars.workspaceId || initVars.workspace_id || process.env.CODEBOLT_CLOUD_WORKSPACE_ID;
+        const workspaceType = initVars.workspaceType || initVars.workspace_type || process.env.CODEBOLT_CLOUD_WORKSPACE_TYPE;
+        const payload = await this.githubApi<any>(
+          `/github/app-token/${encodeURIComponent(appToken)}`,
+          '',
+          {
+            absoluteUrl: `${wranglerBaseUrl}/github/app-token/${encodeURIComponent(appToken)}`,
+            method: 'POST',
+            headers: {
+              'x-codebolt-workspace-id': workspaceId,
+              'x-codebolt-workspace-type': workspaceType,
+            },
+            body: JSON.stringify({
+              owner: repo.owner,
+              repo: repo.repo,
+              repositoryUrl: remoteUrl,
+              installationId: initVars.githubInstallationId || initVars.github_installation_id || initVars.installationId,
+              workspaceId,
+              workspaceType,
+            }),
+          },
+        );
+        const token = payload?.data?.token || payload?.token;
+        if (typeof token === 'string' && token.trim()) return token.trim();
+        throw new Error(payload?.error || payload?.message || 'missing token in GitHub App token response');
+      } catch (error: any) {
+        const fallback = this.getGitHubEnvToken();
+        if (fallback) {
+          this.logger.warn('Falling back to explicit GitHub token after GitHub App token resolution failed:', error?.message || error);
+          return fallback;
+        }
+        throw new Error(`Could not get GitHub App installation token from wrangler: ${error?.message || error}`);
+      }
+    }
+
+    const fallback = this.getGitHubEnvToken();
+    if (fallback) return fallback;
+
+    throw new Error('Cannot create upstream GitHub PR without GitHub App token route config (wranglerBaseUrl/cloudUrl + authToken/appToken/loginToken) or githubToken/gitToken/CODEBOLT_GITHUB_TOKEN/GITHUB_TOKEN/GH_TOKEN');
+  }
+
+  private authedGitHubRemote(remoteUrl: string, token: string): string {
+    const repo = this.parseGitHubRemote(remoteUrl);
+    if (!repo) return remoteUrl;
+    return `https://x-access-token:${encodeURIComponent(token)}@github.com/${repo.owner}/${repo.repo}.git`;
+  }
+
+  private async githubApi<T>(pathName: string, token: string, init: any = {}): Promise<T> {
+    const fetchFn = (globalThis as any).fetch;
+    if (typeof fetchFn !== 'function') {
+      throw new Error('GitHub PR creation requires a runtime with global fetch support');
+    }
+    const url = init.absoluteUrl || `https://api.github.com${pathName}`;
+    const { absoluteUrl: _absoluteUrl, ...requestInit } = init;
+    const response = await fetchFn(url, {
+      ...requestInit,
+      headers: {
+        accept: 'application/vnd.github+json',
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+        ...(init.body ? { 'content-type': 'application/json' } : {}),
+        'x-github-api-version': '2022-11-28',
+        ...(init.headers || {}),
+      },
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`GitHub API ${pathName} failed (${response.status}): ${text || response.statusText}`);
+    }
+    return response.json() as Promise<T>;
+  }
+
+  private async doSendGitHubPR(): Promise<any> {
+    this.logger.log('onSendPR — creating upstream GitHub PR from E2B git workspace');
+
+    if (!this.sandbox) {
+      throw new Error('No sandbox available');
+    }
+
+    const initVars = (this.lastInitVars as any) || {};
+    const remoteUrl = String(initVars.gitUrl || (await this.runSandboxGit(['config', '--get', 'remote.origin.url'])).stdout.trim());
+    if (!remoteUrl) throw new Error('Cannot create git RMR without a git remote URL');
+
+    const repo = this.parseGitHubRemote(remoteUrl);
+    if (!repo) throw new Error(`E2B git RMR currently supports GitHub remotes only: ${remoteUrl}`);
+
+    const token = await this.resolveGitHubTokenForRepo(repo, remoteUrl);
+
+    const status = await this.runSandboxGit(['status', '--porcelain']);
+    if (!status.stdout.trim()) {
+      throw new Error('No committable changes detected in E2B sandbox');
+    }
+
+    const currentBranch = (await this.runSandboxGit(['rev-parse', '--abbrev-ref', 'HEAD'], true)).stdout.trim();
+    const baseRef = this.sanitizeBranchSegment(initVars.gitBaseRef || initVars.gitBranch || currentBranch, 'main');
+    const headRef = this.sanitizeBranchSegment(
+      initVars.gitHeadRef,
+      `codebolt/e2b/${this.state.environmentName || this.sandboxId || 'sandbox'}/${Date.now()}`,
+    );
+    const title = String(initVars.prTitle || initVars.title || `CodeBolt E2B changes from ${this.state.environmentName || this.sandboxId || 'sandbox'}`);
+    const description = String(initVars.prDescription || initVars.description || `Created by CodeBolt E2B provider for ${this.state.environmentName || this.sandboxId || 'sandbox'}.`);
+
+    await this.runSandboxGit(['checkout', '-B', headRef]);
+    await this.runSandboxGit(['add', '-A']);
+    const commit = await this.runSandboxGit(['commit', '-m', title], true);
+    if (commit.code !== 0) {
+      const combined = `${commit.stdout}\n${commit.stderr}`.toLowerCase();
+      if (combined.includes('nothing to commit') || combined.includes('no changes added')) {
+        throw new Error('No committable changes detected in E2B sandbox');
+      }
+      throw new Error(`git commit failed: ${commit.stderr || commit.stdout}`);
+    }
+
+    await this.runSandboxGit(['push', this.authedGitHubRemote(remoteUrl, token), `HEAD:refs/heads/${headRef}`]);
+
+    const headSha = (await this.runSandboxGit(['rev-parse', 'HEAD'])).stdout.trim();
+    const changedFilesRaw = (await this.runSandboxGit(['diff', '--name-only', `${baseRef}...HEAD`], true)).stdout
+      || (await this.runSandboxGit(['show', '--name-only', '--format=', 'HEAD'], true)).stdout;
+    const changedFiles = changedFilesRaw
+      .split(/\r?\n/)
+      .map((file) => file.trim())
+      .filter(Boolean);
+
+    const existingPrs = await this.githubApi<any[]>(
+      `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/pulls?state=open&head=${encodeURIComponent(`${repo.owner}:${headRef}`)}&base=${encodeURIComponent(baseRef)}`,
+      token,
+    );
+    const pr = existingPrs[0] || await this.githubApi<any>(
+      `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/pulls`,
+      token,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          body: [
+            description,
+            '',
+            `Environment: ${this.state.environmentName || 'unknown'}`,
+            `Sandbox: ${this.sandboxId || 'unknown'}`,
+            `Files changed: ${changedFiles.length}`,
+          ].join('\n'),
+          head: headRef,
+          base: baseRef,
+          maintainer_can_modify: true,
+        }),
+      },
+    );
+
+    const diffPatch = (await this.runSandboxGit(['show', '--name-status', '--format=medium', 'HEAD'], true)).stdout || status.stdout;
+
+    return {
+      sourceType: 'git',
+      rmrSourceType: 'git',
+      externalPrUrl: pr.html_url,
+      externalPrNumber: pr.number,
+      gitTransport: 'github_pr',
+      title,
+      description: `${description}\n\nGitHub PR: ${pr.html_url}`,
+      majorFilesChanged: changedFiles,
+      diffPatch,
+      mergeConfig: {
+        strategy: 'git',
+        sourceType: 'git',
+        git: {
+          provider: 'github',
+          transport: 'github_pr',
+          repositoryPath: this.sandboxWorkspacePath,
+          repositoryUrl: `https://github.com/${repo.owner}/${repo.repo}.git`,
+          baseRef,
+          headRef,
+          headSha,
+          externalPrUrl: pr.html_url,
+          externalPrNumber: pr.number,
+          externalProvider: 'github',
+        },
+      },
     };
   }
 
@@ -1047,10 +1442,10 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     // NOTE: snapshot/archive materialization is intentionally NOT done here.
-    // The in-sandbox remote-execution-plugin handles workspace + git + narrative
-    // state via narrative.importUnifiedBundle (see narrativeArchiveImport flow
-    // in onProviderStart). Extracting the archive here would bypass that path
-    // and silently mask import failures.
+    // The in-sandbox CodeBolt server handles workspace + git + narrative state
+    // via narrative.importUnifiedBundle (see narrativeArchiveImport flow in
+    // onProviderStart). Extracting the archive here would bypass that path and
+    // silently mask import failures.
     if (this.sandbox) {
       await this.sandbox.commands.run(`mkdir -p ${this.sandboxWorkspacePath}`);
     }
@@ -1102,7 +1497,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
-   * Ensure CodeBolt with remote-execution-plugin is running in the sandbox.
+   * Ensure CodeBolt is running in the sandbox and exposing the direct gateway.
    * Overrides BaseProvider.ensureAgentServer().
    */
   protected async ensureAgentServer(): Promise<void> {
@@ -1113,13 +1508,13 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     const port = this.providerConfig.pluginPort!;
 
-    // Check if plugin WS server is already running (TCP port check)
+    // Check if the CodeBolt gateway port is already running (TCP port check).
     try {
       const check = await this.sandbox.commands.run(
         `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED`,
       );
       if (check.stdout?.includes('OPEN')) {
-        this.logger.log('remote-execution-plugin already running in sandbox');
+        this.logger.log('CodeBolt direct gateway already running in sandbox');
         return;
       }
     } catch {
@@ -1138,12 +1533,11 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
   }
 
-  // --- CodeBolt + Plugin management in sandbox ---
+  // --- CodeBolt management in sandbox ---
 
   /**
    * Start CodeBolt in the sandbox.
-   * The sandbox template should have codebolt + remote-execution-plugin pre-installed.
-   * This just starts the codebolt process which auto-discovers and starts the plugin.
+   * The sandbox template should have codebolt pre-installed.
    */
   private async startCodeBoltInSandbox(): Promise<void> {
     if (!this.sandbox) {
@@ -1161,7 +1555,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     if (codeboltBin === 'NOT_FOUND') {
       throw new Error(
-        'codebolt binary not found in sandbox. The e2b template must have codebolt + remote-execution-plugin pre-installed (see providers/e2b/e2b-template/build-template.ts).',
+        'codebolt binary not found in sandbox. The e2b template must have codebolt pre-installed (see providers/e2b/e2b-template/build-template.ts).',
       );
     }
 
@@ -1201,33 +1595,33 @@ export class E2bRemoteProviderService extends BaseProvider {
       throw new Error(`CodeBolt failed to start in sandbox: ${startupError}`);
     }
 
-    // Wait for the plugin WS server to be ready
-    await this.waitForPluginReady(port);
+    // Wait for the CodeBolt direct execution gateway to be ready.
+    await this.waitForCodeBoltGatewayReady(port);
 
     // Build the WebSocket URL using E2B's getHost
     const host = this.sandbox.getHost(port);
     const wsUrl = `wss://${host}`;
     this.agentServer.serverUrl = wsUrl;
 
-    this.logger.log('Plugin WS server accessible at:', wsUrl);
+    this.logger.log('CodeBolt gateway WS server accessible at:', wsUrl);
   }
 
-  private async waitForPluginReady(port: number): Promise<void> {
+  private async waitForCodeBoltGatewayReady(port: number): Promise<void> {
     const timeout = this.providerConfig.timeouts?.codeboltStartup ?? 120_000;
     const pollInterval = 2_000;
     const startTime = Date.now();
 
-    this.logger.log(`Waiting for plugin WS server on port ${port} (timeout: ${timeout}ms)...`);
+    this.logger.log(`Waiting for CodeBolt direct gateway on port ${port} (timeout: ${timeout}ms)...`);
 
     while (Date.now() - startTime < timeout) {
       try {
-        // Use TCP port check since the plugin runs a raw WebSocket server
+        // Use TCP port check since the gateway is reached over WebSocket
         // (not an HTTP server), so curl/HTTP won't get a 200
         const result = await this.sandbox!.commands.run(
           `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED`,
         );
         if (result.stdout?.includes('OPEN')) {
-          this.logger.log('Plugin WS server is ready (port is open)');
+          this.logger.log('CodeBolt direct gateway is ready (port is open)');
           return;
         }
       } catch {
@@ -1238,35 +1632,29 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     // Timeout — dump diagnostics from inside the sandbox before throwing
     try {
-      this.logger.error(`[waitForPluginReady] Timeout reached. Collecting diagnostics from sandbox...`);
+      this.logger.error(`[waitForCodeBoltGatewayReady] Timeout reached. Collecting diagnostics from sandbox...`);
 
       const diagCmds: Array<{ label: string; cmd: string }> = [
         { label: 'listening sockets', cmd: `ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true` },
         { label: `port ${port} check`, cmd: `(echo > /dev/tcp/localhost/${port}) 2>/dev/null && echo OPEN || echo CLOSED` },
-        { label: 'plugin process', cmd: `ps -ef | grep -i remote-execution-plugin | grep -v grep || echo '<no plugin process>'` },
+        { label: 'codebolt process', cmd: `ps -ef | grep -i codebolt | grep -v grep || echo '<no codebolt process>'` },
         { label: 'all node processes', cmd: `ps -ef | grep -i node | grep -v grep || true` },
-        { label: 'plugin dir (global)', cmd: `ls -la /usr/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin 2>/dev/null || echo '<missing>'` },
-        { label: 'plugin ws dep (global)', cmd: `ls /usr/lib/node_modules/codebolt/dist/plugins/remote-execution-plugin/node_modules/ws 2>/dev/null || echo '<ws missing in global plugin>'` },
-        { label: 'plugin dir (user)', cmd: `ls -la /home/user/.codebolt/plugins/remote-execution-plugin 2>/dev/null || echo '<missing>'` },
-        { label: 'plugin ws dep (user)', cmd: `ls /home/user/.codebolt/plugins/remote-execution-plugin/node_modules/ws 2>/dev/null || echo '<ws missing in user plugin>'` },
         { label: 'codebolt log tail', cmd: `tail -n 200 /home/user/.codebolt/logs/*.log 2>/dev/null || echo '<no codebolt logs>'` },
-        { label: 'plugin log tail', cmd: `tail -n 200 /home/user/.codebolt/plugins/remote-execution-plugin/*.log 2>/dev/null || echo '<no plugin logs>'` },
-        { label: 'plugin trace file', cmd: `cat /tmp/remote-execution-plugin.trace.log 2>/dev/null || echo '<no trace file — onStart never reached fs.appendFileSync OR plugin not running this build>'` },
       ];
 
       for (const { label, cmd } of diagCmds) {
         try {
           const r = await this.sandbox!.commands.run(cmd);
-          this.logger.error(`[waitForPluginReady][${label}]\n${r.stdout ?? ''}${r.stderr ? `\nSTDERR: ${r.stderr}` : ''}`);
+          this.logger.error(`[waitForCodeBoltGatewayReady][${label}]\n${r.stdout ?? ''}${r.stderr ? `\nSTDERR: ${r.stderr}` : ''}`);
         } catch (e: any) {
-          this.logger.error(`[waitForPluginReady][${label}] command failed: ${e?.message ?? e}`);
+          this.logger.error(`[waitForCodeBoltGatewayReady][${label}] command failed: ${e?.message ?? e}`);
         }
       }
     } catch (e: any) {
-      this.logger.error(`[waitForPluginReady] diagnostics collection failed: ${e?.message ?? e}`);
+      this.logger.error(`[waitForCodeBoltGatewayReady] diagnostics collection failed: ${e?.message ?? e}`);
     }
 
-    throw new Error(`CodeBolt plugin WS server failed to start within ${timeout}ms`);
+    throw new Error(`CodeBolt direct gateway failed to start within ${timeout}ms`);
   }
 
   private async stopCodeBoltInSandbox(): Promise<boolean> {
@@ -1300,7 +1688,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   /**
    * Connect to the CodeBolt direct execution gateway as a provider client.
-   * The plugin does not send a "registered" handshake — connection itself means ready.
+   * The direct gateway does not send a "registered" handshake. Connection
+   * itself means ready.
    */
   async ensureTransportConnection(initVars: ProviderInitVars): Promise<void> {
     if (this.agentServer.wsConnection && this.agentServer.isConnected) {
@@ -1326,7 +1715,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
       const connectionTimeout = setTimeout(() => {
         ws.close();
-        reject(new Error('Plugin WS connection timeout'));
+        reject(new Error('CodeBolt gateway WS connection timeout'));
       }, this.config.wsRegistrationTimeout);
 
       ws.on('open', () => {
@@ -1345,7 +1734,7 @@ export class E2bRemoteProviderService extends BaseProvider {
           const message = JSON.parse(data.toString());
           this.handlePluginMessage(message);
         } catch (error) {
-          this.logger.error('Failed to parse plugin WS message', error);
+          this.logger.error('Failed to parse CodeBolt gateway WS message', error);
         }
       });
 
@@ -1354,14 +1743,14 @@ export class E2bRemoteProviderService extends BaseProvider {
         res.on('data', (chunk: any) => { body += chunk; });
         res.on('end', () => {
           this.logger.error(
-            `Plugin WS upgrade rejected: ${res.statusCode}`,
+            `CodeBolt gateway WS upgrade rejected: ${res.statusCode}`,
             'headers:', JSON.stringify(res.headers),
             'body:', body,
           );
           clearTimeout(connectionTimeout);
           this.agentServer.isConnected = false;
           this.agentServer.wsConnection = null;
-          reject(new Error(`Plugin WS upgrade rejected with status ${res.statusCode}: ${body}`));
+          reject(new Error(`CodeBolt gateway WS upgrade rejected with status ${res.statusCode}: ${body}`));
         });
       });
 
@@ -1370,7 +1759,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { lastError: error };
-        this.logger.error('Plugin WS error:', error.message || error);
+        this.logger.error('CodeBolt gateway WS error:', error.message || error);
         reject(error);
       });
 
@@ -1381,13 +1770,13 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.agentServer.isConnected = false;
         this.agentServer.wsConnection = null;
         this.agentServer.metadata = { closedAt: Date.now() };
-        this.logger.log('Plugin WS connection closed');
+        this.logger.log('CodeBolt gateway WS connection closed');
 
         if (wasConnected) {
           // Use base class exponential backoff reconnect
           this.scheduleReconnect();
         } else {
-          reject(new Error('Plugin WS closed before connection established'));
+          reject(new Error('CodeBolt gateway WS closed before connection established'));
         }
       });
     });
@@ -1397,7 +1786,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   /**
-   * Pre-reconnect hook: check if sandbox plugin port is still open.
+   * Pre-reconnect hook: check if sandbox gateway port is still open.
    * If not, restart CodeBolt in the sandbox before attempting WS reconnect.
    */
   protected async onReconnectAttempt(): Promise<void> {
@@ -1454,8 +1843,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   protected buildWebSocketUrl(initVars: ProviderInitVars): string {
     const providerId = `e2b-${initVars.environmentName}`;
     // Connect directly to the sandbox CodeBolt server's /direct-execution-gateway endpoint.
-    // This replaces the previous hop through the remote-execution-plugin WS
-    // server — the codebolt server now performs the bridging internally.
+    // The codebolt server performs the bridging internally.
     return `${this.agentServer.serverUrl}/direct-execution-gateway?providerId=${encodeURIComponent(providerId)}`;
   }
 
@@ -1469,7 +1857,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         this.sendPROnAgentFinish(message);
         return;
       }
-      super.handleTransportMessage(message);
+      super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(message as any) as any);
     } catch (error) {
       this.logger.error('Error handling transport message:', error);
     }
@@ -1500,7 +1888,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         error: error instanceof Error ? error.message : 'Failed to send PR on agent finish',
       } as any);
     } finally {
-      super.handleTransportMessage(originalMessage);
+      super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(originalMessage as any) as any);
     }
   }
 
