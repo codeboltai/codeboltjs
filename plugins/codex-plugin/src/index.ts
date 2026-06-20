@@ -47,6 +47,27 @@ import {
 // Debug file logger — one file per request under ~/.codebolt/plugins/codex-plugin/logs
 // =============================================================================
 
+function redactDebugData(value: any): any {
+    if (typeof value === 'string') {
+        if (value.startsWith('data:image/')) {
+            return '[base64 image data omitted from debug log]';
+        }
+        return value;
+    }
+
+    if (Array.isArray(value)) return value.map(redactDebugData);
+
+    if (value && typeof value === 'object') {
+        const redacted: any = {};
+        for (const [key, nestedValue] of Object.entries(value)) {
+            redacted[key] = redactDebugData(nestedValue);
+        }
+        return redacted;
+    }
+
+    return value;
+}
+
 function openDebugLog(requestId: string): {
     write: (label: string, data?: any) => void;
     close: () => void;
@@ -74,7 +95,7 @@ function openDebugLog(requestId: string): {
         try {
             const line =
                 `[${new Date().toISOString()}] ${label}` +
-                (data !== undefined ? ' ' + JSON.stringify(data) : '') +
+                (data !== undefined ? ' ' + JSON.stringify(redactDebugData(data)) : '') +
                 '\n';
             fs.writeSync(handle, line);
         } catch {
@@ -175,19 +196,84 @@ function notifyChat(message: string): void {
  *   { role: 'tool',           input: [{ type: 'function_call_output',
  *     tool_call_id, content }           call_id, output }]
  */
+function buildDataImageUrl(mediaType: unknown, data: unknown): string | null {
+    if (typeof data !== 'string' || !data.trim()) return null;
+    const normalizedData = data.trim();
+    if (normalizedData.startsWith('data:image/')) return normalizedData;
+
+    const normalizedMediaType =
+        typeof mediaType === 'string' && mediaType.trim()
+            ? mediaType.trim()
+            : 'image/png';
+    return `data:${normalizedMediaType};base64,${normalizedData}`;
+}
+
+function toResponsesImagePart(part: any): any | null {
+    if (!part || typeof part !== 'object') return null;
+
+    if (part.type === 'image_url') {
+        const imageUrl =
+            typeof part.image_url === 'string'
+                ? part.image_url
+                : part.image_url?.url;
+        if (typeof imageUrl === 'string' && imageUrl.trim()) {
+            return { type: 'input_image', image_url: imageUrl };
+        }
+    }
+
+    if (part.type === 'image') {
+        if (typeof part.image === 'string' && part.image.trim()) {
+            return { type: 'input_image', image_url: part.image };
+        }
+
+        if (part.source?.type === 'base64') {
+            const imageUrl = buildDataImageUrl(part.source.media_type, part.source.data);
+            if (imageUrl) return { type: 'input_image', image_url: imageUrl };
+        }
+
+        const imageUrl = buildDataImageUrl(part.media_type, part.data);
+        if (imageUrl) return { type: 'input_image', image_url: imageUrl };
+    }
+
+    return null;
+}
+
+function extractText(content: any): string {
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+        return content
+            .map((part: any) => (typeof part === 'string' ? part : part?.text ?? ''))
+            .join('');
+    }
+    return '';
+}
+
+function toResponsesUserContent(content: any): any[] {
+    if (typeof content === 'string') return [{ type: 'input_text', text: content }];
+    if (!Array.isArray(content)) return [{ type: 'input_text', text: extractText(content) }];
+
+    const responseParts: any[] = [];
+    for (const part of content) {
+        if (typeof part === 'string') {
+            if (part) responseParts.push({ type: 'input_text', text: part });
+            continue;
+        }
+
+        if (part?.type === 'text' && typeof part.text === 'string') {
+            responseParts.push({ type: 'input_text', text: part.text });
+            continue;
+        }
+
+        const imagePart = toResponsesImagePart(part);
+        if (imagePart) responseParts.push(imagePart);
+    }
+
+    return responseParts.length > 0 ? responseParts : [{ type: 'input_text', text: '' }];
+}
+
 function toResponsesInput(messages: any[]): { instructions: string; input: any[] } {
     let instructions = '';
     const input: any[] = [];
-
-    const extractText = (content: any): string => {
-        if (typeof content === 'string') return content;
-        if (Array.isArray(content)) {
-            return content
-                .map((p: any) => (typeof p === 'string' ? p : p?.text ?? ''))
-                .join('');
-        }
-        return '';
-    };
 
     for (const msg of messages ?? []) {
         if (!msg) continue;
@@ -201,7 +287,7 @@ function toResponsesInput(messages: any[]): { instructions: string; input: any[]
         if (msg.role === 'user') {
             input.push({
                 role: 'user',
-                content: [{ type: 'input_text', text: extractText(msg.content) }],
+                content: toResponsesUserContent(msg.content),
             });
             continue;
         }
