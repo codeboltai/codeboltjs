@@ -323,7 +323,7 @@ Specific markdown rules:
 `.trim();
 
 /**
- * Process an external event (steering, agent queue, background completion)
+ * Process a normalized backend queue event
  * and inject it into the prompt so the LLM sees it on the next iteration.
  */
 function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMessage {
@@ -337,47 +337,60 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     prompt.message.input = [];
   }
 
-  const eventType = event.type || event.eventType;
-  const eventData = event.data || event;
+  const eventType = event.type;
+  const eventData = event.data || {};
   console.log(`[act-updated][Event] eventType=${eventType}, eventData keys=${Object.keys(eventData || {}).join(',')}`);
 
-  if (eventType === 'agentQueueEvent') {
-    const payload = eventData?.payload || {};
-    console.log(`[act-updated][Event] agentQueueEvent payload:`, JSON.stringify(payload, null, 2));
-
-    // Handle steering events from the user
-    if (payload.type === 'steering' || eventData?.eventType === 'steering') {
-      const instruction = payload.instruction || payload.content || JSON.stringify(payload);
-      console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
-      prompt.message.input.push({
-        type: "message",
-        role: "user" as const,
-        content: `<steering_message>
+  if (eventType === 'steering') {
+    const instruction = eventData.instruction || JSON.stringify(eventData);
+    console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<steering_message>
 <instruction>${instruction}</instruction>
 <context>The user has sent a steering message while you are working. Review the instruction and adjust your current approach accordingly. Prioritize this instruction for your next actions.</context>
 </steering_message>`
-      });
-      return prompt;
-    }
-
-    // Handle other agent queue events (inter-agent messages)
-    const content = payload.content || JSON.stringify(payload);
-    console.log(`[act-updated][Event] Injecting agent queue event from ${eventData.sourceAgentId || 'system'}`);
-    prompt.message.input.push({
-      type: "message",
+    });
+    return prompt;
+  } else if (eventType === 'threadCompletion') {
+    console.log(`[act-updated][Event] Injecting thread completion event`);
+    prompt.message.messages.push({
+      role: "assistant" as const,
+      content: `Background thread completed:\n${JSON.stringify(eventData, null, 2)}`
+    });
+    return prompt;
+  } else if (eventType === 'backgroundCommandCompletion') {
+    console.log(`[act-updated][Event] Injecting background command completion event`);
+    prompt.message.messages.push({
+      role: "assistant" as const,
+      content: `Background command completed:\n${JSON.stringify(eventData, null, 2)}`
+    });
+    return prompt;
+  } else if (eventType === 'forceStopCleanup') {
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<force_stop_cleanup>
+${JSON.stringify(eventData, null, 2)}
+</force_stop_cleanup>`
+    });
+    return prompt;
+  } else if (eventType === 'agentMessage') {
+    prompt.message.messages.push({
       role: "user" as const,
       content: `<agent_event>
-<source>${eventData.sourceAgentId || 'system'}</source>
-<content>${content}</content>
+<source>${event.metadata?.sourceAgentId || 'system'}</source>
+<content>${eventData.content || JSON.stringify(eventData)}</content>
 </agent_event>`
     });
     return prompt;
-  } else if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
-    console.log(`[act-updated][Event] Injecting background agent completion event`);
-    prompt.message.input.push({
-      type: "message",
-      role: "assistant" as const,
-      content: `Background agent completed:\n${JSON.stringify(eventData, null, 2)}`
+  } else if (eventType === 'calendarUpdate' || eventType === 'taskUpdate' || eventType === 'systemNotification' || eventType === 'custom') {
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<agent_event>
+<type>${eventType}</type>
+<source>${event.metadata?.sourceAgentId || 'system'}</source>
+<content>${JSON.stringify(eventData, null, 2)}</content>
+</agent_event>`
     });
     return prompt;
   } else {
@@ -389,7 +402,7 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
 const externalEventProcessor = {
   async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
     let nextPrompt = createdMessage;
-    const pendingEvents = eventQueue.getPendingExternalEvents();
+    const pendingEvents = await eventQueue.getPendingEvents();
     console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
     for (const externalEvent of pendingEvents) {
       nextPrompt = processExternalEvent(externalEvent, nextPrompt);
@@ -401,7 +414,7 @@ const externalEventProcessor = {
 const externalEventPostToolProcessor = {
   async modify({ nextPrompt }: { nextPrompt: ProcessedMessage }) {
     let updatedPrompt = nextPrompt;
-    const pendingEvents = eventQueue.getPendingExternalEvents();
+    const pendingEvents = await eventQueue.getPendingEvents();
     console.log(`[act-updated][Loop] Pending post-tool external events: ${pendingEvents.length}`);
 
     for (const externalEvent of pendingEvents) {
