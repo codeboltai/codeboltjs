@@ -20,9 +20,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/agent": "latest",
+    "@codebolt/agent": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/agent",
     "@codebolt/thirdpartyagents": "latest",
-    "@codebolt/codeboltjs": "^5.1.30",
+    "@codebolt/codeboltjs": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/codeboltjs",
     "@codebolt/types": "^5.1.11",
     "zod": "^3.22.4"
   },

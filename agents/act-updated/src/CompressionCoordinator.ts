@@ -88,7 +88,7 @@ export class CompressionCoordinator {
     this.reactiveRetryCount++;
 
     const proactiveCompression = await this.chatCompression.tryCompressChat(
-      prompt.message.messages,
+      prompt.message.input,
       true,
     );
 
@@ -102,7 +102,7 @@ export class CompressionCoordinator {
             ...prompt,
             message: {
               ...prompt.message,
-              messages: proactiveCompression.compressedMessages,
+              input: proactiveCompression.compressedMessages,
             },
           },
           {
@@ -122,23 +122,23 @@ export class CompressionCoordinator {
     }
 
     const forceCompressed = await this.conversationCompactor.forceCompress(
-      prompt.message.messages,
+      prompt.message.input,
     );
 
     return {
       recoveredMessage: this.withCompressionMetadata(
         {
           ...prompt,
-          message: {
-            ...prompt.message,
-            messages: forceCompressed.messages,
-          },
+            message: {
+              ...prompt.message,
+              input: forceCompressed.input,
+            },
         },
         {
           status: 'COMPRESSED',
           stage: 'reactive_force_compact',
-          originalTokenCount: this.countMessageTokens(prompt.message.messages),
-          newTokenCount: this.countMessageTokens(forceCompressed.messages),
+          originalTokenCount: this.countMessageTokens(prompt.message.input),
+          newTokenCount: this.countMessageTokens(forceCompressed.input),
           timestamp: new Date().toISOString(),
           strategy: this.options.compactStrategy,
           ...(forceCompressed.metadata.messagesCompressed !== undefined && {

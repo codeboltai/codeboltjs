@@ -1,6 +1,6 @@
 import codebolt from '@codebolt/codeboltjs';
 import {
-  CodeboltAgent,
+  Agent as CodeboltAgent,
   LoopDetectionService,
 } from '@codebolt/agent/unified';
 import { FlatUserMessage } from "@codebolt/types/sdk";
@@ -333,9 +333,8 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     console.warn(`[act-updated][Event] Skipping null/undefined event`);
     return prompt;
   }
-  if (!prompt?.message?.messages) {
-    console.warn(`[act-updated][Event] Skipping event - prompt.message.messages is not available`);
-    return prompt;
+  if (!prompt?.message?.input) {
+    prompt.message.input = [];
   }
 
   const eventType = event.type || event.eventType;
@@ -350,7 +349,8 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     if (payload.type === 'steering' || eventData?.eventType === 'steering') {
       const instruction = payload.instruction || payload.content || JSON.stringify(payload);
       console.log(`[act-updated][Steering] Injecting steering instruction into prompt: "${instruction.substring(0, 200)}"`);
-      prompt.message.messages.push({
+      prompt.message.input.push({
+        type: "message",
         role: "user" as const,
         content: `<steering_message>
 <instruction>${instruction}</instruction>
@@ -363,7 +363,8 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     // Handle other agent queue events (inter-agent messages)
     const content = payload.content || JSON.stringify(payload);
     console.log(`[act-updated][Event] Injecting agent queue event from ${eventData.sourceAgentId || 'system'}`);
-    prompt.message.messages.push({
+    prompt.message.input.push({
+      type: "message",
       role: "user" as const,
       content: `<agent_event>
 <source>${eventData.sourceAgentId || 'system'}</source>
@@ -373,7 +374,8 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     return prompt;
   } else if (eventType === 'backgroundAgentCompletion' || eventType === 'backgroundGroupedAgentCompletion') {
     console.log(`[act-updated][Event] Injecting background agent completion event`);
-    prompt.message.messages.push({
+    prompt.message.input.push({
+      type: "message",
       role: "assistant" as const,
       content: `Background agent completed:\n${JSON.stringify(eventData, null, 2)}`
     });

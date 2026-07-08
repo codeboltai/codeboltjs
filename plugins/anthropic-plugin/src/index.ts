@@ -157,9 +157,26 @@ const CLAUDE_CODE_SYSTEM =
 function extractText(content: any): string {
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
-        return content.map((p: any) => (typeof p === 'string' ? p : p?.text ?? '')).join('');
+        return content
+            .map((p: any) => {
+                if (typeof p === 'string') return p;
+                if (typeof p?.text === 'string') return p.text;
+                if (typeof p?.content === 'string') return p.content;
+                return '';
+            })
+            .join('');
     }
     return '';
+}
+
+function stringifyValue(value: unknown): string {
+    if (typeof value === 'string') return value;
+    if (value === null || value === undefined) return '';
+    try {
+        return JSON.stringify(value);
+    } catch {
+        return String(value);
+    }
 }
 
 /**
@@ -173,6 +190,7 @@ function toAnthropicMessages(
 ): { system: any[]; messages: any[] } {
     let systemText = '';
     const out: any[] = [];
+    const seenToolUseIds = new Set<string>();
 
     const pushUser = (blocks: any[]) => {
         if (blocks.length === 0) return;
@@ -206,6 +224,7 @@ function toAnthropicMessages(
                 } catch {
                     input = {};
                 }
+                if (tc.id) seenToolUseIds.add(tc.id);
                 blocks.push({
                     type: 'tool_use',
                     id: tc.id,
@@ -218,6 +237,13 @@ function toAnthropicMessages(
         }
 
         if (msg.role === 'tool') {
+            if (!seenToolUseIds.has(msg.tool_call_id)) {
+                pushUser([{
+                    type: 'text',
+                    text: `Tool result for ${msg.tool_call_id}:\n${extractText(msg.content)}`,
+                }]);
+                continue;
+            }
             // Merge consecutive tool results into one user turn
             const toolBlocks: any[] = [
                 {
@@ -262,6 +288,162 @@ function toAnthropicMessages(
     }
 
     // tools param is consumed by the caller; unused here
+    void tools;
+    return { system, messages: out };
+}
+
+function toAnthropicMessagesFromOptions(
+    options: any,
+    tools: any[] | undefined
+): { system: any[]; messages: any[] } {
+    const hasInputItems = Array.isArray(options?.input) && options.input.length > 0;
+    if (!hasInputItems) {
+        const result = toAnthropicMessages(options?.messages ?? [], tools);
+        if (options?.instructions) {
+            result.system.push({
+                type: 'text',
+                text: String(options.instructions),
+                cache_control: { type: 'ephemeral' },
+            });
+        }
+        return result;
+    }
+
+    let systemText = String(options?.instructions || '');
+    const out: any[] = [];
+    const seenToolUseIds = new Set<string>();
+
+    const appendSystem = (text: string) => {
+        if (!text.trim()) return;
+        systemText = systemText ? `${systemText}\n\n${text}` : text;
+    };
+
+    const pushUser = (blocks: any[]) => {
+        if (blocks.length > 0) out.push({ role: 'user', content: blocks });
+    };
+
+    for (const item of options.input ?? []) {
+        if (!item) continue;
+
+        if (!item.type || item.type === 'message') {
+            const role = item.role === 'developer' ? 'system' : item.role;
+            if (role === 'system') {
+                appendSystem(extractText(item.content));
+                continue;
+            }
+            if (role === 'user') {
+                const text = extractText(item.content);
+                if (text.trim()) pushUser([{ type: 'text', text }]);
+                continue;
+            }
+            if (role === 'assistant') {
+                const text = extractText(item.content);
+                if (text.trim()) out.push({ role: 'assistant', content: [{ type: 'text', text }] });
+                continue;
+            }
+            if (role === 'tool') {
+                if (!seenToolUseIds.has(item.tool_call_id)) {
+                    pushUser([{
+                        type: 'text',
+                        text: `Tool result for ${item.tool_call_id}:\n${extractText(item.content)}`,
+                    }]);
+                    continue;
+                }
+                pushUser([{
+                    type: 'tool_result',
+                    tool_use_id: item.tool_call_id,
+                    content: extractText(item.content),
+                }]);
+                continue;
+            }
+        }
+
+        if (item.type === 'function_call' || item.type === 'tool_search_call') {
+            const toolUseId = item.call_id || item.id;
+            if (toolUseId) seenToolUseIds.add(toolUseId);
+            let input: any = {};
+            try {
+                input = typeof item.arguments === 'string'
+                    ? JSON.parse(item.arguments || '{}')
+                    : item.arguments || {};
+            } catch {
+                input = {};
+            }
+            out.push({
+                role: 'assistant',
+                content: [{
+                    type: 'tool_use',
+                    id: toolUseId,
+                    name: toClaudeCodeName(item.type === 'tool_search_call' ? 'tool_search' : item.name),
+                    input,
+                }],
+            });
+            continue;
+        }
+
+        if (item.type === 'function_call_output') {
+            if (!seenToolUseIds.has(item.call_id)) {
+                pushUser([{
+                    type: 'text',
+                    text: `Tool result for ${item.call_id}:\n${stringifyValue(item.output)}`,
+                }]);
+                continue;
+            }
+            pushUser([{
+                type: 'tool_result',
+                tool_use_id: item.call_id,
+                content: stringifyValue(item.output),
+            }]);
+            continue;
+        }
+
+        if (item.type === 'tool_search_output') {
+            if (!seenToolUseIds.has(item.call_id || item.id)) {
+                pushUser([{
+                    type: 'text',
+                    text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue({
+                        status: item.status,
+                        execution: item.execution,
+                        tools: item.tools,
+                    })}`,
+                }]);
+                continue;
+            }
+            pushUser([{
+                type: 'tool_result',
+                tool_use_id: item.call_id || item.id,
+                content: stringifyValue({
+                    status: item.status,
+                    execution: item.execution,
+                    tools: item.tools,
+                }),
+            }]);
+            continue;
+        }
+
+        if (item.type === 'additional_tools' && Array.isArray(item.tools)) {
+            appendSystem(`Additional tools available:\n${stringifyValue(item.tools)}`);
+        }
+    }
+
+    const system: any[] = [
+        { type: 'text', text: CLAUDE_CODE_SYSTEM, cache_control: { type: 'ephemeral' } },
+    ];
+    if (systemText.trim()) {
+        system.push({
+            type: 'text',
+            text: systemText,
+            cache_control: { type: 'ephemeral' },
+        });
+    }
+
+    if (out.length > 0) {
+        const last = out[out.length - 1];
+        if (last.role === 'user' && Array.isArray(last.content) && last.content.length > 0) {
+            last.content[last.content.length - 1].cache_control = { type: 'ephemeral' };
+        }
+    }
+
     void tools;
     return { system, messages: out };
 }
@@ -336,7 +518,7 @@ function getProviderManifest(models: ModelMetadata[]) {
 }
 
 function buildMessagesBody(options: any): any {
-    const { system, messages } = toAnthropicMessages(options?.messages ?? [], options?.tools);
+    const { system, messages } = toAnthropicMessagesFromOptions(options, options?.tools);
     const body: any = {
         model: normalizeModelId(options?.model),
         system,
@@ -400,6 +582,97 @@ function ccChunk(agg: Aggregator, delta: any, finish: string | null = null): any
     };
 }
 
+function chatCompletionContentToText(content: any): string {
+    if (typeof content === 'string') return content;
+    if (content === null || content === undefined) return '';
+    if (!Array.isArray(content)) {
+        try {
+            return JSON.stringify(content);
+        } catch {
+            return String(content);
+        }
+    }
+
+    return content
+        .map((part: any) => {
+            if (!part || typeof part !== 'object') return String(part || '');
+            if (part.type === 'text') return typeof part.text === 'string' ? part.text : '';
+            if (typeof part.text === 'string') return part.text;
+            return '';
+        })
+        .filter(Boolean)
+        .join('');
+}
+
+function normalizeFinalResponseForCodeBolt(response: any): any {
+    if (!response || typeof response !== 'object') return response;
+
+    const existingItems = Array.isArray(response.items) ? response.items : null;
+    if (existingItems) {
+        return {
+            ...response,
+            formatVersion: 'codebolt.llm.v2',
+            output_text:
+                typeof response.output_text === 'string'
+                    ? response.output_text
+                    : existingItems
+                        .filter((item: any) => item?.type === 'message' && item?.role === 'assistant')
+                        .map((item: any) => chatCompletionContentToText(item.content))
+                        .filter(Boolean)
+                        .join('\n'),
+            provider_response: response.provider_response ?? response,
+        };
+    }
+
+    const assistantMessage = response.choices?.[0]?.message;
+    if (!assistantMessage) {
+        return {
+            ...response,
+            formatVersion: 'codebolt.llm.v2',
+            items: [],
+            output_text: typeof response.output_text === 'string' ? response.output_text : '',
+            provider_response: response.provider_response ?? response,
+        };
+    }
+
+    const outputText = chatCompletionContentToText(assistantMessage.content);
+    const items: any[] = [];
+
+    if (outputText || assistantMessage.content !== null) {
+        items.push({
+            type: 'message',
+            role: 'assistant',
+            content: assistantMessage.content,
+        });
+    }
+
+    if (assistantMessage.reasoning?.thinking) {
+        items.push({
+            type: 'reasoning',
+            content: assistantMessage.reasoning.thinking,
+            summary: assistantMessage.reasoning.thinking,
+        });
+    }
+
+    for (const toolCall of assistantMessage.tool_calls || []) {
+        if (toolCall?.type !== 'function') continue;
+        items.push({
+            type: 'function_call',
+            call_id: toolCall.id,
+            name: toolCall.function?.name || '',
+            arguments: toolCall.function?.arguments || '',
+        });
+    }
+
+    return {
+        ...response,
+        formatVersion: 'codebolt.llm.v2',
+        items,
+        output_text: outputText,
+        provider_response: response.provider_response ?? response,
+    };
+}
+
 function makeFinalResponse(agg: Aggregator): any {
     const modelMetadata = getModelMetadata(agg.model);
     const toolCalls = Array.from(agg.toolCalls.values())
@@ -417,7 +690,7 @@ function makeFinalResponse(agg: Aggregator): any {
         message.tool_calls = toolCalls;
         if (agg.finish === 'stop') agg.finish = 'tool_calls';
     }
-    return {
+    return normalizeFinalResponseForCodeBolt({
         id: agg.id || `anthropic-${Date.now()}`,
         object: 'chat.completion',
         created: agg.created || Math.floor(Date.now() / 1000),
@@ -426,7 +699,7 @@ function makeFinalResponse(agg: Aggregator): any {
         maxOutputTokens: modelMetadata.maxOutputTokens,
         choices: [{ index: 0, message, finish_reason: agg.finish }],
         usage: agg.usage,
-    };
+    });
 }
 
 function mapAnthropicStopReason(r: string | undefined): string {

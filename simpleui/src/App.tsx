@@ -26,7 +26,7 @@ const Approvals = React.lazy(() => import('@/pages/Approvals'));
 const Usage = React.lazy(() => import('@/pages/Usage'));
 const Settings = React.lazy(() => import('@/pages/Settings'));
 const Integrations = React.lazy(() => import('@/pages/Integrations'));
-const Logs = React.lazy(() => import('@/pages/Logs'));
+const Logs = React.lazy(() => import('@/pages/SystemLogs'));
 
 const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center h-full">

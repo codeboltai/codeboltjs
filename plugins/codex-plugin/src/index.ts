@@ -242,7 +242,12 @@ function extractText(content: any): string {
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
         return content
-            .map((part: any) => (typeof part === 'string' ? part : part?.text ?? ''))
+            .map((part: any) => {
+                if (typeof part === 'string') return part;
+                if (typeof part?.text === 'string') return part.text;
+                if (typeof part?.content === 'string') return part.content;
+                return '';
+            })
             .join('');
     }
     return '';
@@ -264,6 +269,11 @@ function toResponsesUserContent(content: any): any[] {
             continue;
         }
 
+        if (part?.type === 'input_text' && typeof part.text === 'string') {
+            responseParts.push({ type: 'input_text', text: part.text });
+            continue;
+        }
+
         const imagePart = toResponsesImagePart(part);
         if (imagePart) responseParts.push(imagePart);
     }
@@ -271,9 +281,20 @@ function toResponsesUserContent(content: any): any[] {
     return responseParts.length > 0 ? responseParts : [{ type: 'input_text', text: '' }];
 }
 
+function stringifyValue(value: unknown): string {
+    if (typeof value === 'string') return value;
+    if (value === null || value === undefined) return '';
+    try {
+        return JSON.stringify(value);
+    } catch {
+        return String(value);
+    }
+}
+
 function toResponsesInput(messages: any[]): { instructions: string; input: any[] } {
     let instructions = '';
     const input: any[] = [];
+    const seenFunctionCallIds = new Set<string>();
 
     for (const msg of messages ?? []) {
         if (!msg) continue;
@@ -301,6 +322,7 @@ function toResponsesInput(messages: any[]): { instructions: string; input: any[]
                 });
             }
             for (const tc of msg.tool_calls ?? []) {
+                if (tc.id) seenFunctionCallIds.add(tc.id);
                 input.push({
                     type: 'function_call',
                     call_id: tc.id,
@@ -312,12 +334,149 @@ function toResponsesInput(messages: any[]): { instructions: string; input: any[]
         }
 
         if (msg.role === 'tool') {
+            if (!seenFunctionCallIds.has(msg.tool_call_id)) {
+                input.push({
+                    role: 'user',
+                    content: [{
+                        type: 'input_text',
+                        text: `Tool result for ${msg.tool_call_id}:\n${extractText(msg.content)}`,
+                    }],
+                });
+                continue;
+            }
             input.push({
                 type: 'function_call_output',
                 call_id: msg.tool_call_id,
                 output: extractText(msg.content),
             });
             continue;
+        }
+    }
+
+    return { instructions, input };
+}
+
+function toResponsesInputFromOptions(options: any): { instructions: string; input: any[] } {
+    const hasInputItems = Array.isArray(options?.input) && options.input.length > 0;
+    if (!hasInputItems) {
+        const result = toResponsesInput(options?.messages ?? []);
+        if (options?.instructions) {
+            result.instructions = result.instructions
+                ? `${options.instructions}\n\n${result.instructions}`
+                : String(options.instructions);
+        }
+        return result;
+    }
+
+    let instructions = String(options?.instructions || '');
+    const input: any[] = [];
+    const seenFunctionCallIds = new Set<string>();
+
+    const appendInstruction = (text: string) => {
+        if (!text.trim()) return;
+        instructions = instructions ? `${instructions}\n\n${text}` : text;
+    };
+
+    for (const item of options.input ?? []) {
+        if (!item) continue;
+
+        if (!item.type || item.type === 'message') {
+            const role = item.role === 'developer' ? 'system' : item.role;
+            if (role === 'system') {
+                appendInstruction(extractText(item.content));
+                continue;
+            }
+            if (role === 'user') {
+                input.push({ role: 'user', content: toResponsesUserContent(item.content) });
+                continue;
+            }
+            if (role === 'assistant') {
+                const text = extractText(item.content);
+                if (text) {
+                    input.push({ role: 'assistant', content: [{ type: 'output_text', text }] });
+                }
+                continue;
+            }
+            if (role === 'tool') {
+                if (!seenFunctionCallIds.has(item.tool_call_id)) {
+                    input.push({
+                        role: 'user',
+                        content: [{
+                            type: 'input_text',
+                            text: `Tool result for ${item.tool_call_id}:\n${extractText(item.content)}`,
+                        }],
+                    });
+                    continue;
+                }
+                input.push({
+                    type: 'function_call_output',
+                    call_id: item.tool_call_id,
+                    output: extractText(item.content),
+                });
+                continue;
+            }
+        }
+
+        if (item.type === 'function_call' || item.type === 'tool_search_call') {
+            const callId = item.call_id || item.id;
+            if (callId) seenFunctionCallIds.add(callId);
+            input.push({
+                type: 'function_call',
+                call_id: callId,
+                name: item.type === 'tool_search_call' ? 'tool_search' : item.name,
+                arguments: stringifyValue(item.arguments || {}),
+            });
+            continue;
+        }
+
+        if (item.type === 'function_call_output') {
+            if (!seenFunctionCallIds.has(item.call_id)) {
+                input.push({
+                    role: 'user',
+                    content: [{
+                        type: 'input_text',
+                        text: `Tool result for ${item.call_id}:\n${stringifyValue(item.output)}`,
+                    }],
+                });
+                continue;
+            }
+            input.push({
+                type: 'function_call_output',
+                call_id: item.call_id,
+                output: stringifyValue(item.output),
+            });
+            continue;
+        }
+
+        if (item.type === 'tool_search_output') {
+            if (!seenFunctionCallIds.has(item.call_id || item.id)) {
+                input.push({
+                    role: 'user',
+                    content: [{
+                        type: 'input_text',
+                        text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue({
+                            status: item.status,
+                            execution: item.execution,
+                            tools: item.tools,
+                        })}`,
+                    }],
+                });
+                continue;
+            }
+            input.push({
+                type: 'function_call_output',
+                call_id: item.call_id || item.id,
+                output: stringifyValue({
+                    status: item.status,
+                    execution: item.execution,
+                    tools: item.tools,
+                }),
+            });
+            continue;
+        }
+
+        if (item.type === 'additional_tools' && Array.isArray(item.tools)) {
+            appendInstruction(`Additional tools available:\n${stringifyValue(item.tools)}`);
         }
     }
 
@@ -354,18 +513,70 @@ function sanitizeJsonSchema(schema: any): any {
 
 function toResponsesTools(tools: any[] | undefined): any[] | undefined {
     if (!Array.isArray(tools) || tools.length === 0) return undefined;
-    return tools.map((t) => {
+    const mapped: any[] = [];
+    for (const t of tools) {
         if (t?.type === 'function' && t.function) {
-            return {
+            mapped.push({
                 type: 'function',
                 name: t.function.name,
                 description: t.function.description,
                 parameters: sanitizeJsonSchema(t.function.parameters),
                 strict: false,
-            };
+            });
+            continue;
         }
-        return t;
-    });
+
+        if (t?.type === 'function' && t.name) {
+            mapped.push({
+                type: 'function',
+                name: t.name,
+                description: t.description,
+                parameters: sanitizeJsonSchema(t.parameters ?? { type: 'object', properties: {} }),
+                strict: false,
+            });
+            continue;
+        }
+
+        if (t?.type === 'namespace' && Array.isArray(t.tools)) {
+            const nestedTools = toResponsesTools(t.tools);
+            if (nestedTools) mapped.push(...nestedTools);
+            continue;
+        }
+
+        if (t?.type === 'tool_search') {
+            mapped.push({
+                type: 'function',
+                name: 'tool_search',
+                description: t.description || 'Search for available tools and resources.',
+                parameters: sanitizeJsonSchema(
+                    t.parameters ?? {
+                        type: 'object',
+                        properties: {
+                            query: { type: 'string' },
+                            limit: { type: 'number' },
+                        },
+                        required: ['query'],
+                    }
+                ),
+                strict: false,
+            });
+            continue;
+        }
+
+        if (t?.type === 'provider_tool' && t.definition?.type === 'function') {
+            const fn = t.definition.function ?? t.definition;
+            if (fn?.name) {
+                mapped.push({
+                    type: 'function',
+                    name: fn.name,
+                    description: fn.description,
+                    parameters: sanitizeJsonSchema(fn.parameters ?? { type: 'object', properties: {} }),
+                    strict: false,
+                });
+            }
+        }
+    }
+    return mapped.length > 0 ? mapped : undefined;
 }
 
 /**
@@ -416,7 +627,7 @@ function getProviderManifest(models: ModelMetadata[]) {
 }
 
 function buildResponsesBody(options: any): any {
-    const { instructions, input } = toResponsesInput(options?.messages ?? []);
+    const { instructions, input } = toResponsesInputFromOptions(options);
     const body: any = {
         model: normalizeModelId(options?.model),
         store: false,
@@ -621,6 +832,97 @@ function aggregateStreamChunks(
     return { id, content, toolCalls, finishReason, usage };
 }
 
+function chatCompletionContentToText(content: any): string {
+    if (typeof content === 'string') return content;
+    if (content === null || content === undefined) return '';
+    if (!Array.isArray(content)) {
+        try {
+            return JSON.stringify(content);
+        } catch {
+            return String(content);
+        }
+    }
+
+    return content
+        .map((part: any) => {
+            if (!part || typeof part !== 'object') return String(part || '');
+            if (part.type === 'text') return typeof part.text === 'string' ? part.text : '';
+            if (typeof part.text === 'string') return part.text;
+            return '';
+        })
+        .filter(Boolean)
+        .join('');
+}
+
+function normalizeFinalResponseForCodeBolt(response: any): any {
+    if (!response || typeof response !== 'object') return response;
+
+    const existingItems = Array.isArray(response.items) ? response.items : null;
+    if (existingItems) {
+        return {
+            ...response,
+            formatVersion: 'codebolt.llm.v2',
+            output_text:
+                typeof response.output_text === 'string'
+                    ? response.output_text
+                    : existingItems
+                        .filter((item: any) => item?.type === 'message' && item?.role === 'assistant')
+                        .map((item: any) => chatCompletionContentToText(item.content))
+                        .filter(Boolean)
+                        .join('\n'),
+            provider_response: response.provider_response ?? response,
+        };
+    }
+
+    const assistantMessage = response.choices?.[0]?.message;
+    if (!assistantMessage) {
+        return {
+            ...response,
+            formatVersion: 'codebolt.llm.v2',
+            items: [],
+            output_text: typeof response.output_text === 'string' ? response.output_text : '',
+            provider_response: response.provider_response ?? response,
+        };
+    }
+
+    const outputText = chatCompletionContentToText(assistantMessage.content);
+    const items: any[] = [];
+
+    if (outputText || assistantMessage.content !== null) {
+        items.push({
+            type: 'message',
+            role: 'assistant',
+            content: assistantMessage.content,
+        });
+    }
+
+    if (assistantMessage.reasoning?.thinking) {
+        items.push({
+            type: 'reasoning',
+            content: assistantMessage.reasoning.thinking,
+            summary: assistantMessage.reasoning.thinking,
+        });
+    }
+
+    for (const toolCall of assistantMessage.tool_calls || []) {
+        if (toolCall?.type !== 'function') continue;
+        items.push({
+            type: 'function_call',
+            call_id: toolCall.id,
+            name: toolCall.function?.name || '',
+            arguments: toolCall.function?.arguments || '',
+        });
+    }
+
+    return {
+        ...response,
+        formatVersion: 'codebolt.llm.v2',
+        items,
+        output_text: outputText,
+        provider_response: response.provider_response ?? response,
+    };
+}
+
 /** Build the final ChatCompletionResponse in the EXACT shape zai uses
  *  (packages/multillm/providers/zai/index.ts:372-397). */
 function makeFinalResponse(agg: Aggregator, modelName: string): any {
@@ -631,7 +933,7 @@ function makeFinalResponse(agg: Aggregator, modelName: string): any {
     // output_item.done, use that instead.
     const content = aggregated.content || agg.fallbackText || null;
 
-    return {
+    return normalizeFinalResponseForCodeBolt({
         id: aggregated.id,
         object: 'chat.completion',
         created: agg.created || Math.floor(Date.now() / 1000),
@@ -653,7 +955,7 @@ function makeFinalResponse(agg: Aggregator, modelName: string): any {
             },
         ],
         usage: aggregated.usage,
-    };
+    });
 }
 
 /**

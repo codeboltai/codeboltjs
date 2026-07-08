@@ -19,7 +19,7 @@
     }
   },
   "dependencies": {
-    "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/packages/codeboltPluginSdk"
+    "@codebolt/plugin-sdk": "file:///Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/pluginSdk"
   },
   "devDependencies": {
     "esbuild": "^0.28.0",

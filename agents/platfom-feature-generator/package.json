@@ -1,0 +1,28 @@
+{
+  "name": "platform-mofier",
+  "version": "1.0.0",
+  "description": "Generic CodeBolt agent that answers directly and delegates platform artifact generation to internal ActionBlock mini-agents.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "tsc && cp codeboltagent.yaml dist/codeboltagent.yaml",
+    "dev": "npx tsx src/index.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "dependencies": {
+    "@codebolt/agent": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/agent",
+    "@codebolt/codeboltjs": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/codeboltjs",
+    "@codebolt/types": "^5.1.12",
+    "copy-webpack-plugin": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.4.5",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "private": true
+}
