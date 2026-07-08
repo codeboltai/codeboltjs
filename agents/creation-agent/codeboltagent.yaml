@@ -1,0 +1,54 @@
+title: Creation Agent
+version: 0.1.0
+unique_id: creation-agent
+initial_message: Tell me what CodeBolt agent you want to create. I will design it, use the API docs index to choose the right SDK calls, generate the files, and validate the result.
+description: Creates custom CodeBolt agents using the generated CodeBolt API docs index and local CodeBolt tools.
+tags:
+  - code-generation
+  - agent-creation
+  - codebolt
+longDescription: |
+  Creation Agent is a CodeBolt custom-agent authoring assistant. It searches the generated CodeBolt API docs index, selects the right SDK calls, creates an agent blueprint, writes a runnable agent package, and validates the generated agent with build/typecheck steps when available.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CA
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportedframeworks:
+      - codebolt-agent
+    supportRemix: true
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - gpt-4.1
+      - gpt-4-turbo
+      - claude-3.5-sonnet
+      - group.codingmodels
+  sdlc_steps_managed:
+    - name: implementation
+      example_instructions:
+        - create an agent that reviews pull requests
+        - create an agent that reads files and writes summaries
+        - create an agent that runs tests and reports failures
+actions:
+  - name: Create Agent
+    description: Creates a custom CodeBolt agent from a natural-language request.
+    detailDescription: Designs, writes, and validates a CodeBolt agent package using API docs index retrieval.
+    actionPrompt: Describe the CodeBolt agent you want to create.
+supportRemix: true
+author: CodeBolt
+verification:
+  enabled: true
+  checks:
+    lint: true
+    test: true
+    build: true
+    typecheck: true
+  timeout: 60000
+  skipOnNoConfig: true
+  skipForNonCodeTasks: false
+  maxRetries: -1

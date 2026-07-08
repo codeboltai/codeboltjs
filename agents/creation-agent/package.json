@@ -1,0 +1,50 @@
+{
+  "name": "@codebolt/creation-agent",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CodeBolt agent that creates custom CodeBolt agents using the generated API docs index.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "npx tsx src/index.ts",
+    "build": "npx webpack",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "codebolt",
+    "agent",
+    "creator",
+    "api-docs"
+  ],
+  "author": "CodeBolt",
+  "license": "MIT",
+  "dependencies": {
+    "@codebolt/agent": "file:D:/Codeboltapps/CodeBolt/sdks/agent",
+    "@codebolt/api-docs-index": "file:D:/Codeboltapps/CodeBolt/sdks/api-docs-index",
+    "@codebolt/codeboltjs": "file:D:/Codeboltapps/CodeBolt/sdks/codeboltjs",
+    "@codebolt/types": "file:D:/Codeboltapps/CodeBolt/packages/types",
+    "copy-webpack-plugin": "^12.0.2",
+    "node-loader": "^2.1.0",
+    "utf-8-validate": "^6.0.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@types/node": "^20.14.2",
+    "assert": "^2.1.0",
+    "babel-loader": "^9.2.1",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
+    "rimraf": "^5.0.10",
+    "ts-loader": "^9.5.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
