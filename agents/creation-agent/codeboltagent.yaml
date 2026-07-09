@@ -1,0 +1,60 @@
+title: Creation Agent
+version: 0.1.0
+unique_id: creation-agent
+initial_message: Tell me what CodeBolt agent you want to create or update. I will show you a plan for confirmation, resolve the right SDK calls, generate the files, and validate the result.
+description: Creates and updates custom CodeBolt agents through a phased workflow - plan (with user confirmation), API resolution, code generation with scoped type declarations, and verification.
+tags:
+  - code-generation
+  - agent-creation
+  - codebolt
+longDescription: |
+  Creation Agent is a CodeBolt custom-agent authoring assistant built as an orchestrator
+  over phase tools. It plans the requested agent at capability level and shows the plan
+  (with a mermaid flow) for user confirmation, resolves every capability to concrete SDK
+  APIs using the module manifest and module-granular spec lookups, writes the agent with
+  scoped TypeScript declarations and a reference example in context, and verifies the
+  result (manifest validation, API-usage validation, typecheck, and plan-drift check).
+  It can also inspect and update existing agents.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CA
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportedframeworks:
+      - codebolt-agent
+    supportRemix: true
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - gpt-4.1
+      - gpt-4-turbo
+      - claude-3.5-sonnet
+      - group.codingmodels
+  sdlc_steps_managed:
+    - name: implementation
+      example_instructions:
+        - create an agent that reviews pull requests
+        - create an agent that reads files and writes summaries
+        - create an agent that runs tests and reports failures
+actions:
+  - name: Create Agent
+    description: Creates a custom CodeBolt agent from a natural-language request.
+    detailDescription: Designs, writes, and validates a CodeBolt agent package using API docs index retrieval.
+    actionPrompt: Describe the CodeBolt agent you want to create.
+supportRemix: true
+author: CodeBolt
+verification:
+  enabled: true
+  checks:
+    lint: true
+    test: true
+    build: true
+    typecheck: true
+  timeout: 60000
+  skipOnNoConfig: true
+  skipForNonCodeTasks: false
+  maxRetries: -1
