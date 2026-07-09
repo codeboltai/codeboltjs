@@ -1,14 +1,20 @@
 title: Creation Agent
 version: 0.1.0
 unique_id: creation-agent
-initial_message: Tell me what CodeBolt agent you want to create. I will design it, use the API docs index to choose the right SDK calls, generate the files, and validate the result.
-description: Creates custom CodeBolt agents using the generated CodeBolt API docs index and local CodeBolt tools.
+initial_message: Tell me what CodeBolt agent you want to create or update. I will show you a plan for confirmation, resolve the right SDK calls, generate the files, and validate the result.
+description: Creates and updates custom CodeBolt agents through a phased workflow - plan (with user confirmation), API resolution, code generation with scoped type declarations, and verification.
 tags:
   - code-generation
   - agent-creation
   - codebolt
 longDescription: |
-  Creation Agent is a CodeBolt custom-agent authoring assistant. It searches the generated CodeBolt API docs index, selects the right SDK calls, creates an agent blueprint, writes a runnable agent package, and validates the generated agent with build/typecheck steps when available.
+  Creation Agent is a CodeBolt custom-agent authoring assistant built as an orchestrator
+  over phase tools. It plans the requested agent at capability level and shows the plan
+  (with a mermaid flow) for user confirmation, resolves every capability to concrete SDK
+  APIs using the module manifest and module-granular spec lookups, writes the agent with
+  scoped TypeScript declarations and a reference example in context, and verifies the
+  result (manifest validation, API-usage validation, typecheck, and plan-drift check).
+  It can also inspect and update existing agents.
 avatarSrc: https://placehold.co/200x200
 avatarFallback: CA
 metadata:
