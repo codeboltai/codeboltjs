@@ -1,0 +1,1539 @@
+{
+  "model": "claude-sonnet-5",
+  "system": [
+    {
+      "type": "text",
+      "text": "You are Claude Code, Anthropic's official CLI for Claude.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    },
+    {
+      "type": "text",
+      "text": "You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.\n\n## Communication\n\n- Always en\n...[truncated 300 chars for context budget]",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "hi"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Hi! How can I help you today? I have access to file operations, terminal commands, git, code search, and more within your CodeBolt environment. What would you like to work on?"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "--- End of previous conversation history ---\n\nThe above messages are from a previous conversation. Any incomplete tool calls have been marked as not executed\n...[truncated 10 chars for context budget]"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Thursday, 9 July 2026 (formatted according to the user's locale).\nOperating \n...[truncated 300 chars for context budget]"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "hello",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 8192,
+  "stream": false,
+  "cache_control": {
+    "type": "ephemeral"
+  },
+  "tools": [
+    {
+      "name": "codebolt_agent--find",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "maxResult": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_browser--codebolt--browser_action",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "launch",
+              "go_to_url",
+              "go_back",
+              "go_forward",
+              "refresh",
+              "click",
+              "click_element",
+              "input_text",
+              "type",
+              "send_keys",
+              "scroll_down",
+              "scroll_up",
+              "scroll",
+              "scroll_to_text",
+              "wait",
+              "extract_content",
+              "get_current_state",
+              "getActionableElements",
+              "screenshot",
+              "getSnapShot",
+              "getBrowserInfo",
+              "getHtml",
+              "getHTML",
+              "getContent",
+              "getMarkdown",
+              "extractText",
+              "browserEnter",
+              "getPdf",
+              "getUrl",
+              "close"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "coordinate": {
+            "type": "string",
+            "pattern": "^\\d+,\\d+$"
+          },
+          "text": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right",
+              "top",
+              "bottom"
+            ]
+          },
+          "pixels": {
+            "type": "string"
+          },
+          "index": {
+            "type": "integer"
+          },
+          "keys": {
+            "type": "string"
+          },
+          "seconds": {
+            "type": "integer"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "fullPage": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "dependencies": {
+          "launch": [
+            "url"
+          ],
+          "go_to_url": [
+            "url"
+          ],
+          "click": [
+            "coordinate"
+          ],
+          "click_element": [
+            "index"
+          ],
+          "input_text": [
+            "index",
+            "text"
+          ],
+          "type": [
+            "text"
+          ],
+          "send_keys": [
+            "keys"
+          ],
+          "scroll": [
+            "direction",
+            "pixels"
+          ],
+          "scroll_to_text": [
+            "text"
+          ],
+          "extract_content": [
+            "goal"
+          ],
+          "wait": [
+            "seconds"
+          ]
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt_chat--get_chat_history",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "threadId"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_chat--send_chat_message",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_code--analyze_code",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "analysisType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_code--format_code",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_codebase--codebase_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_codebase--search_mcp_tool",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_config--configure_mcp",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "serverName": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "serverName",
+          "config"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_crawler--crawler_crawl",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "number"
+          },
+          "includePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludePatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_debug--debug_add_log",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_debug--debug_open_browser",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "codebolt_fs--edit_file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "diff": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "diff"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--file_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--grep_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "includePattern": {
+            "type": "string"
+          },
+          "excludePattern": {
+            "type": "string"
+          },
+          "caseSensitive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--list_code_definitions",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--list_files",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "recursive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--read_file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--search_files",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "filePattern": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "pattern"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_fs--write_file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_git--git_add",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_branch",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_git--git_checkout",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string"
+          },
+          "create": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "branch"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_git--git_clone",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_git--git_commit",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_git--git_diff",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "commitHash": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_init",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_logs",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_pull",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "remote": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_push",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "remote": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_git--git_status",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "codebolt_memory--memory_get",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_memory--memory_set",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_message--attempt_completion",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_message--send_message",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_notification--send_notification",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_problem--problem_matcher_get_detail",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "matcherId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "matcherId"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_problem--problem_matcher_get_list",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "codebolt_problem--problem_matcher_match",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_state--state_add_agent",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string"
+          },
+          "agentData": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "agentId",
+          "agentData"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_state--state_get",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_state--state_get_agent",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "agentId"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_state--state_remove_agent",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "agentId"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_state--state_update_project",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "updates": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "updates"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_task--codebolt_task--task_create",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "priority": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ]
+          },
+          "phase": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "agentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_task--codebolt_task--task_list",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "agentId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "codebolt_task--codebolt_task--task_update",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "updates": {
+            "type": "object",
+            "properties": {
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "Low",
+                  "Medium",
+                  "High"
+                ]
+              },
+              "phase": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "completed": {
+                "type": "boolean"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "agentId": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "taskId",
+          "updates"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_terminal--terminal_execute_command",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "workingDirectory": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_tokenizer--count_tokens",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_tokenizer--tokenize",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_vector--vector_add",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "codebolt_vector--vector_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "codebolt--agent_event_emit",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--attempt_completion",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--edit",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "absolute_path": {
+            "type": "string"
+          },
+          "old_string": {
+            "type": "string"
+          },
+          "new_string": {
+            "type": "string"
+          },
+          "expected_occurrences": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "absolute_path",
+          "old_string",
+          "new_string"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--execute_command",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "command_lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "execution_mode": {
+            "type": "string",
+            "enum": [
+              "foreground_scoped",
+              "auto_scoped",
+              "background_scoped",
+              "background_detached"
+            ]
+          },
+          "wait_ms": {
+            "type": "number"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--glob",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--grep",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "include": {
+            "type": "string"
+          },
+          "exclude": {
+            "type": "string"
+          },
+          "case_sensitive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "pattern"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--read_file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "absolute_path": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "absolute_path"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--read_many_files",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recursive": {
+            "type": "boolean"
+          },
+          "use_default_excludes": {
+            "type": "boolean"
+          },
+          "max_files": {
+            "type": "number"
+          },
+          "max_total_size": {
+            "type": "number"
+          },
+          "include_metadata": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--search_get_first_link",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--search_web",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_get_command_status",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "process_id": {
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "process_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_list_commands",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_read_command_output",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "process_id": {
+            "type": "number"
+          },
+          "lines": {
+            "type": "number"
+          },
+          "tail_bytes": {
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "process_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_stop_command",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "process_id": {
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "process_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_tui",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--terminal_wait_command",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "process_id": {
+            "type": "number"
+          },
+          "timeout_ms": {
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "process_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--tool_search",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "searchScope": {
+            "type": "string",
+            "enum": [
+              "tools",
+              "tools+actionBlock"
+            ]
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--web_fetch",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "summarize_by_llm": {
+            "type": "boolean"
+          },
+          "max_chars": {
+            "type": "number"
+          },
+          "timeout_ms": {
+            "type": "number"
+          },
+          "allow_private_network": {
+            "type": "boolean"
+          },
+          "follow_redirects": {
+            "type": "boolean"
+          },
+          "upgrade_http": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "url",
+          "prompt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "codebolt--write_file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "absolute_path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "absolute_path",
+          "content"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

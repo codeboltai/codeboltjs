@@ -179,6 +179,18 @@ function stringifyValue(value: unknown): string {
     }
 }
 
+function toToolSearchOutputPayload(item: any): Record<string, unknown> {
+    const toolCount = Array.isArray(item.tools) ? item.tools.length : 0;
+    const resources = Array.isArray(item.resources) ? item.resources : [];
+
+    return {
+        searchResult: {
+            summary: `found ${toolCount} tool${toolCount === 1 ? '' : 's'} and ${resources.length} resource${resources.length === 1 ? '' : 's'}`,
+            resources,
+        },
+    };
+}
+
 /**
  * Translate chat-completions messages into Anthropic's {system, messages[]}
  * shape. Consecutive tool-result messages are merged into a single user turn
@@ -401,22 +413,14 @@ function toAnthropicMessagesFromOptions(
             if (!seenToolUseIds.has(item.call_id || item.id)) {
                 pushUser([{
                     type: 'text',
-                    text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue({
-                        status: item.status,
-                        execution: item.execution,
-                        tools: item.tools,
-                    })}`,
+                    text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue(toToolSearchOutputPayload(item))}`,
                 }]);
                 continue;
             }
             pushUser([{
                 type: 'tool_result',
                 tool_use_id: item.call_id || item.id,
-                content: stringifyValue({
-                    status: item.status,
-                    execution: item.execution,
-                    tools: item.tools,
-                }),
+                content: stringifyValue(toToolSearchOutputPayload(item)),
             }]);
             continue;
         }
@@ -462,18 +466,58 @@ function sanitizeJsonSchema(schema: any): any {
     return out;
 }
 
-function toAnthropicTools(tools: any[] | undefined): any[] | undefined {
+function getRequestToolName(tool: any): string {
+    const fn = tool?.function ?? tool;
+    return typeof fn?.name === 'string' ? fn.name.trim() : '';
+}
+
+function normalizeRequestTools(tools: any[] | undefined): any[] | undefined {
     if (!Array.isArray(tools) || tools.length === 0) return undefined;
-    return tools.map((t) => {
-        const fn = t?.function ?? t;
+
+    const toolsByName = new Map<string, any>();
+    for (const tool of tools) {
+        const toolName = getRequestToolName(tool);
+        if (!toolName || toolsByName.has(toolName)) continue;
+        toolsByName.set(toolName, tool);
+    }
+
+    const normalizedTools = Array.from(toolsByName.entries())
+        .sort(([leftName], [rightName]) => leftName.localeCompare(rightName))
+        .map(([, tool]) => tool);
+
+    return normalizedTools.length > 0 ? normalizedTools : undefined;
+}
+
+function toAnthropicTools(tools: any[] | undefined): any[] | undefined {
+    const normalizedTools = normalizeRequestTools(tools);
+    if (!normalizedTools) return undefined;
+
+    return normalizedTools.map((tool) => {
+        const fn = tool?.function ?? tool;
         return {
-            name: toClaudeCodeName(fn.name ?? ''),
+            name: toClaudeCodeName(getRequestToolName(tool)),
             description: fn.description,
             input_schema: sanitizeJsonSchema(
                 fn.parameters ?? { type: 'object', properties: {} }
             ),
         };
     });
+}
+
+function collectRequestTools(options: any): any[] | undefined {
+    const tools: any[] = Array.isArray(options?.tools) ? [...options.tools] : [];
+    const input = Array.isArray(options?.input) ? options.input : [];
+
+    for (let index = input.length - 1; index >= 0; index -= 1) {
+        const item = input[index];
+        if (!item) continue;
+        if (item.type !== 'tool_search_output') break;
+        if (Array.isArray(item.tools)) {
+            tools.unshift(...item.tools);
+        }
+    }
+
+    return normalizeRequestTools(tools);
 }
 
 function normalizeModelId(raw: unknown): string {
@@ -525,9 +569,10 @@ function buildMessagesBody(options: any): any {
         messages,
         max_tokens: options?.max_tokens ?? 8192,
         stream: true,
+        cache_control: { type: 'ephemeral' },
     };
     if (options?.temperature !== undefined) body.temperature = options.temperature;
-    const tools = toAnthropicTools(options?.tools);
+    const tools = toAnthropicTools(collectRequestTools(options));
     if (tools) body.tools = tools;
     return body;
 }
@@ -550,6 +595,7 @@ interface Aggregator {
     finish: string;
     usage?: any;
     callerTools?: any[];
+    rawLLMRequest?: any;
 }
 
 function newAggregator(model: string, callerTools?: any[]): Aggregator {
@@ -563,6 +609,7 @@ function newAggregator(model: string, callerTools?: any[]): Aggregator {
         finish: 'stop',
         usage: undefined,
         callerTools,
+        rawLLMRequest: undefined,
     };
 }
 
@@ -699,6 +746,7 @@ function makeFinalResponse(agg: Aggregator): any {
         maxOutputTokens: modelMetadata.maxOutputTokens,
         choices: [{ index: 0, message, finish_reason: agg.finish }],
         usage: agg.usage,
+        rawLLMRequest: agg.rawLLMRequest,
     });
 }
 
@@ -717,6 +765,46 @@ function mapAnthropicStopReason(r: string | undefined): string {
     }
 }
 
+function normalizeAnthropicUsage(usage: any): any {
+    if (!usage || typeof usage !== 'object') {
+        return usage;
+    }
+
+    const rawInputTokens = usage.input_tokens ?? usage.prompt_tokens ?? 0;
+    const completionTokens = usage.output_tokens ?? usage.completion_tokens ?? 0;
+    const cachedTokens = usage.cache_read_input_tokens ?? usage.cached_tokens;
+    const cacheCreationTokens = usage.cache_creation_input_tokens ?? usage.cache_creation_tokens;
+    const cacheInputTokens = (cachedTokens ?? 0) + (cacheCreationTokens ?? 0);
+    const promptTokens = cacheInputTokens > 0 && rawInputTokens < cacheInputTokens
+        ? rawInputTokens + cacheInputTokens
+        : rawInputTokens;
+
+    const computedTotalTokens = promptTokens + completionTokens;
+    const rawTotalTokens = usage.total_tokens;
+    const totalTokens = cacheInputTokens > 0 &&
+        typeof rawTotalTokens === 'number' &&
+        rawTotalTokens < computedTotalTokens
+        ? computedTotalTokens
+        : rawTotalTokens ?? computedTotalTokens;
+
+    return {
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+        input_tokens: promptTokens,
+        output_tokens: completionTokens,
+        ...(cachedTokens !== undefined ? { cached_tokens: cachedTokens } : {}),
+        ...(cacheCreationTokens !== undefined ? { cache_creation_tokens: cacheCreationTokens } : {}),
+        ...(cachedTokens !== undefined ? { cache_read_input_tokens: cachedTokens } : {}),
+        ...(cacheCreationTokens !== undefined ? { cache_creation_input_tokens: cacheCreationTokens } : {}),
+        prompt_tokens_details: {
+            ...(cachedTokens !== undefined ? { cached_tokens: cachedTokens } : {}),
+        },
+        completion_tokens_details: {},
+        provider_usage: usage,
+    };
+}
+
 /** Dispatch a single Anthropic SSE event, mutating agg and emitting chunks. */
 function handleAnthropicEvent(
     ev: any,
@@ -729,13 +817,7 @@ function handleAnthropicEvent(
         if (ev.message?.id && !agg.id) agg.id = ev.message.id;
         if (ev.message?.model) agg.model = ev.message.model;
         if (ev.message?.usage) {
-            agg.usage = {
-                prompt_tokens: ev.message.usage.input_tokens ?? 0,
-                completion_tokens: ev.message.usage.output_tokens ?? 0,
-                total_tokens:
-                    (ev.message.usage.input_tokens ?? 0) +
-                    (ev.message.usage.output_tokens ?? 0),
-            };
+            agg.usage = normalizeAnthropicUsage(ev.message.usage);
         }
         return;
     }
@@ -813,16 +895,11 @@ function handleAnthropicEvent(
         const reason: string | undefined = ev.delta?.stop_reason;
         if (reason) agg.finish = mapAnthropicStopReason(reason);
         if (ev.usage) {
-            agg.usage = agg.usage ?? {
-                prompt_tokens: 0,
-                completion_tokens: 0,
-                total_tokens: 0,
+            const providerUsage = {
+                ...(agg.usage?.provider_usage || {}),
+                ...ev.usage,
             };
-            if (typeof ev.usage.output_tokens === 'number') {
-                agg.usage.completion_tokens = ev.usage.output_tokens;
-                agg.usage.total_tokens =
-                    agg.usage.prompt_tokens + agg.usage.completion_tokens;
-            }
+            agg.usage = normalizeAnthropicUsage(providerUsage);
         }
         return;
     }
@@ -975,6 +1052,7 @@ async function callAnthropic(
     }
 
     const agg = newAggregator(normalizeModelId(options?.model), options?.tools);
+    agg.rawLLMRequest = body;
     const reader = (res.body as any).getReader();
     const decoder = new TextDecoder();
     let buffer = '';

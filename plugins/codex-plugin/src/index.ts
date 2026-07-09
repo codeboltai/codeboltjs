@@ -116,6 +116,16 @@ function openDebugLog(requestId: string): {
     return { write, close, path: file };
 }
 
+function logOutgoingLLMRequest(body: any): void {
+    try {
+        console.log(
+            `[CodexPlugin] outgoing LLM request JSON:\n${JSON.stringify(redactDebugData(body), null, 2)}`
+        );
+    } catch (error: any) {
+        console.warn('[CodexPlugin] Failed to stringify outgoing LLM request:', error?.message || error);
+    }
+}
+
 const plugin: any = (sdkModule as any).default ?? sdkModule;
 const llmProvider: any =
     (sdkModule as any).llmProvider ?? (sdkModule as any).default?.llmProvider;
@@ -291,6 +301,19 @@ function stringifyValue(value: unknown): string {
     }
 }
 
+function toToolSearchOutputPayload(item: any): Record<string, unknown> {
+    const toolCount = Array.isArray(item.tools) ? item.tools.length : 0;
+    const resources = Array.isArray(item.resources) ? item.resources : [];
+
+    return {
+        searchResult: {
+            summary: `found ${toolCount} tool${toolCount === 1 ? '' : 's'} and ${resources.length} resource${resources.length === 1 ? '' : 's'}`,
+            tools: Array.isArray(item.tools) ? item.tools : [],
+            resources,
+        },
+    };
+}
+
 function toResponsesInput(messages: any[]): { instructions: string; input: any[] } {
     let instructions = '';
     const input: any[] = [];
@@ -454,11 +477,7 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
                     role: 'user',
                     content: [{
                         type: 'input_text',
-                        text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue({
-                            status: item.status,
-                            execution: item.execution,
-                            tools: item.tools,
-                        })}`,
+                        text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue(toToolSearchOutputPayload(item))}`,
                     }],
                 });
                 continue;
@@ -466,11 +485,7 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
             input.push({
                 type: 'function_call_output',
                 call_id: item.call_id || item.id,
-                output: stringifyValue({
-                    status: item.status,
-                    execution: item.execution,
-                    tools: item.tools,
-                }),
+                output: stringifyValue(toToolSearchOutputPayload(item)),
             });
             continue;
         }
@@ -642,6 +657,9 @@ function buildResponsesBody(options: any): any {
     const tools = toResponsesTools(options?.tools);
     if (tools) body.tools = tools;
     if (options?.temperature !== undefined) body.temperature = options.temperature;
+    if (options?.cache?.prompt_cache_key) {
+        body.prompt_cache_key = options.cache.prompt_cache_key;
+    }
     return body;
 }
 
@@ -923,6 +941,42 @@ function normalizeFinalResponseForCodeBolt(response: any): any {
     };
 }
 
+function normalizeResponsesUsage(usage: any): any {
+    if (!usage || typeof usage !== 'object') {
+        return usage;
+    }
+
+    const promptTokens = usage.input_tokens ?? usage.prompt_tokens ?? 0;
+    const completionTokens = usage.output_tokens ?? usage.completion_tokens ?? 0;
+    const cachedTokens = usage.input_tokens_details?.cached_tokens
+        ?? usage.prompt_tokens_details?.cached_tokens
+        ?? usage.cached_tokens;
+    const reasoningTokens = usage.output_tokens_details?.reasoning_tokens
+        ?? usage.completion_tokens_details?.reasoning_tokens
+        ?? usage.reasoning_tokens;
+
+    return {
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: usage.total_tokens ?? promptTokens + completionTokens,
+        input_tokens: promptTokens,
+        output_tokens: completionTokens,
+        ...(cachedTokens !== undefined ? { cached_tokens: cachedTokens } : {}),
+        ...(reasoningTokens !== undefined ? { reasoning_tokens: reasoningTokens } : {}),
+        input_tokens_details: usage.input_tokens_details,
+        output_tokens_details: usage.output_tokens_details,
+        prompt_tokens_details: {
+            ...(usage.prompt_tokens_details || {}),
+            ...(cachedTokens !== undefined ? { cached_tokens: cachedTokens } : {}),
+        },
+        completion_tokens_details: {
+            ...(usage.completion_tokens_details || {}),
+            ...(reasoningTokens !== undefined ? { reasoning_tokens: reasoningTokens } : {}),
+        },
+        provider_usage: usage,
+    };
+}
+
 /** Build the final ChatCompletionResponse in the EXACT shape zai uses
  *  (packages/multillm/providers/zai/index.ts:372-397). */
 function makeFinalResponse(agg: Aggregator, modelName: string): any {
@@ -1065,12 +1119,7 @@ function handleResponsesEvent(
         else if (agg.toolCalls.size > 0) finishReason = 'tool_calls';
 
         if (ev.response?.usage) {
-            const u = ev.response.usage;
-            agg.usage = {
-                prompt_tokens: u.input_tokens ?? 0,
-                completion_tokens: u.output_tokens ?? 0,
-                total_tokens: u.total_tokens ?? 0,
-            };
+            agg.usage = normalizeResponsesUsage(ev.response.usage);
         }
 
         // Terminal chunk carrying finish_reason + usage.
@@ -1202,6 +1251,7 @@ async function callCodex(
         let creds = await getValidCredentials(notifyChat);
         const body = buildResponsesBody(options);
         log.write('REQUEST_BODY', body);
+        logOutgoingLLMRequest(body);
         log.write('REQUEST_HEADERS', {
             ...buildHeaders(creds.access_token, creds.account_id),
             Authorization: 'Bearer <redacted>',
@@ -1278,6 +1328,7 @@ async function callCodex(
 
         const modelName = normalizeModelId(options?.model);
         const finalResponse = makeFinalResponse(agg, modelName);
+        finalResponse.rawLLMRequest = redactDebugData(body);
         log.write('FINAL_RESPONSE', finalResponse);
 
         const toolSummary =
