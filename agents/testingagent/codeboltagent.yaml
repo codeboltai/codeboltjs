@@ -1,6 +1,8 @@
-title: Act
-version: 1.2.10
-unique_id: act
+
+
+title: testingagent
+version: 1.2.6
+unique_id: testingagent
 initial_message: Codebolt Dev, is a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices
 description:  Codebolt Dev, is  a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 tags:
@@ -29,7 +31,7 @@ metadata:
       example_instructions:
         - create website
   llm_role:
-    - name: documentationllm
+    - name: my-testing-role
       description: >-
         LLM to be used for advanced Documentation. Please select a model that
         excels in documentation tasks.
@@ -42,30 +44,9 @@ metadata:
         - llama2-70b
         - llama2-15b
         - group.documentationmodels
-    - name: testingllm
-      description: >-
-        LLM to be used for advanced Testing. Please select a model that excels
-        in testing tasks.
-      strict: true
-      modelorder:
-        - gpt-4-turbo
-        - gpt-3.5-turbo
-        - mistral7b.perplexity
-        - mistral7b.any
-        - llama2-70b
-        - llama2-15b
-        - group.testingmodels
-    - name: actionllm
-      description: LLM to be used for executing advanced actions.
-      strict: true
-      modelorder:
-        - gpt-4-turbo
-        - gpt-3.5-turbo
-        - mistral7b.perplexity
-        - mistral7b.any
-        - llama2-70b
-        - llama2-15b
-        - group.actionmodels
+  system_llm_roles_used:
+    - codebolt.standard.default
+    - codebolt.standard.text.fast
 actions:
   - name: Execute
     description: Executes the given task.
@@ -92,3 +73,20 @@ verification:
   skipForNonCodeTasks: true
   # Maximum retries not limited (-1 = keep retrying until fixed)
   maxRetries: -1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

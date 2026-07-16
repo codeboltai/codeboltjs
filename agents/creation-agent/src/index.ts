@@ -129,7 +129,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<string> => {
       name: 'creation-agent',
       instructions: ORCHESTRATOR_SYSTEM_PROMPT.replace('{{MANIFEST}}', getModuleManifest({ includeMethods: false })) + actionBlocksSection,
       tools: [planAgentTool, resolveApisTool, writeAgentCodeTool, inspectAgentTool, verifyAgentTool],
-      maxTurns: 15,
+      maxTurns: 200,
       includeDefaultModifiers: true,
       includeDefaultProcessors: true,
       enableLogging: true,
