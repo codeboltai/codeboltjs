@@ -1,10 +1,12 @@
 {
   "name": "@codebolt/mcp",
   "version": "1.2.1",
-  "description": "Model Context Protocol (MCP) server implementation for Codebolt",
+  "description": "Deprecated legacy MCP server framework for Codebolt. Use fastmcp or @modelcontextprotocol/sdk for new MCP servers.",
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "deprecated",
+    "legacy",
     "server",
     "tools",
     "ai",
