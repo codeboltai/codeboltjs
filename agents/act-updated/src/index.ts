@@ -333,6 +333,12 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     console.warn(`[act-updated][Event] Skipping null/undefined event`);
     return prompt;
   }
+  if (!prompt.message) {
+    prompt.message = {} as any;
+  }
+  if (!Array.isArray((prompt.message as any).messages)) {
+    (prompt.message as any).messages = [];
+  }
   if (!prompt?.message?.input) {
     prompt.message.input = [];
   }

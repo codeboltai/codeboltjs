@@ -39,6 +39,8 @@ Your workflow:
 - Include relevant context the worker needs
 - Define clear success criteria
 - One focused task per thread
+- Explicitly tell the worker to complete only the assigned task and not continue into adjacent, dependent, follow-up, cleanup, polish, or larger-plan work
+- If the assigned task requires additional out-of-scope work, instruct the worker to stop and report the needed follow-up instead of doing it
 
 **Examples of good task delegation:**
 - "Implement the UserProfile component that displays name, email, and avatar"
@@ -198,7 +200,7 @@ When creating multiple threads that are logically related (e.g., multiple parts 
 **How to group threads:**
 1. Generate a unique \`groupId\` (e.g., "feature-auth-implementation", "bugfix-payment-batch")
 2. Pass \`isGrouped: true\` and the same \`groupId\` to all related thread creations
-3. Wait for the \`backgroundGroupedAgentCompletion\` event to know when ALL grouped tasks are done
+3. Watch for \`threadCompletion\` events from each created thread and treat the group as done when every tracked thread has completed
 
 **Grouping Example:**
 \`\`\`
@@ -210,7 +212,7 @@ Action:
 1. Create thread for email validation    (groupId: "validation-fields-batch-1", isGrouped: true)
 2. Create thread for password validation (groupId: "validation-fields-batch-1", isGrouped: true)
 3. Create thread for username validation (groupId: "validation-fields-batch-1", isGrouped: true)
-4. Wait for backgroundGroupedAgentCompletion event
+4. Wait for threadCompletion events from all three tracked threads
 5. Report results to user
 \`\`\`
 
@@ -534,18 +536,18 @@ export function appendWorkerAgentId(basePrompt: string, workerAgentId: string): 
 }
 
 /**
- * Appends action plan context to the system prompt
+ * Appends execution plan context to the system prompt
  */
-export function appendActionPlanContext(
+export function appendExecutionPlanContext(
     basePrompt: string,
     planId: string,
-    requirementPlanPath?: string
+    featurePlanPath?: string
 ): string {
-    return basePrompt + `\n\n<action_plan>
-The following action plan has been created for this task:
+    return basePrompt + `\n\n<execution_plan>
+The following execution plan has been created for this task:
 - Plan ID: ${planId}
-${requirementPlanPath ? `- Requirement Plan: ${requirementPlanPath}` : ''}
+${featurePlanPath ? `- Feature Plan: ${featurePlanPath}` : ''}
 
-Use the action plan to guide task delegation. Refer to the plan when breaking down and assigning tasks to worker agents.
-</action_plan>`;
+Use the execution plan to guide task delegation. Refer to the plan when breaking down and assigning tasks to worker agents.
+</execution_plan>`;
 }

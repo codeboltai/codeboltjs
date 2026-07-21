@@ -22,7 +22,7 @@
   "dependencies": {
     "@codebolt/agent": "latest",
     "@codebolt/thirdpartyagents": "latest",
-    "@codebolt/codeboltjs": "latest",
+    "@codebolt/codeboltjs": "file:../../../CodeBolt/sdks/codeboltjs",
     "@codebolt/types": "^5.1.12",
     "zod": "^3.22.4"
   },

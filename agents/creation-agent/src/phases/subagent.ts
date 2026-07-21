@@ -24,12 +24,12 @@ export interface SubAgentPhaseOptions<T> {
  * validation error appended to the task.
  */
 export async function runSubAgentPhase<T>(options: SubAgentPhaseOptions<T>): Promise<T> {
-  const jsonInstruction = "\n\nEnd your final message with the artifact as a single fenced ```json code block matching the required schema exactly. No trailing commentary after the block.";
+  const jsonInstruction = "\n\nEnd your final message with the artifact as a single fenced ```json code block matching the required schema exactly. No prose before it and no trailing commentary after it.";
 
   let task = options.task;
   let lastError = "";
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
     const subAgent = createAgent({
       name: `creation-${options.phaseName}`,
       instructions: options.instructions + jsonInstruction,
@@ -51,7 +51,7 @@ export async function runSubAgentPhase<T>(options: SubAgentPhaseOptions<T>): Pro
     }
 
     lastError = parsed.error || "unknown artifact error";
-    task = `${options.task}\n\nYour previous response did not contain a valid artifact. Error: ${lastError}\nRespond again with ONLY the corrected \`\`\`json artifact block.`;
+    task = `${options.task}\n\nYour previous response did not contain a valid artifact. Error: ${lastError}\nRespond again with ONLY one fenced \`\`\`json artifact block. Use the exact field names and types requested in the phase instructions. Do not add aliases, extra manifest fields, explanatory prose, or a second JSON block.`;
   }
 
   throw new Error(`${options.phaseName} phase produced no valid artifact after retry: ${lastError}`);

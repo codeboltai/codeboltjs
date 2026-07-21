@@ -19,15 +19,16 @@ export async function breakdownTask(
         );
 
         // Call LLM for breakdown
+        const input = [
+            { type: 'message', role: 'system', content: TASK_BREAKDOWN_SYSTEM_PROMPT },
+            { type: 'message', role: 'user', content: userPrompt }
+        ];
         const { completion } = await codebolt.llm.inference({
-            messages: [
-                { role: 'system', content: TASK_BREAKDOWN_SYSTEM_PROMPT },
-                { role: 'user', content: userPrompt }
-            ]
+            input
         });
 
         // Parse the response
-        const content = completion?.choices?.[0]?.message?.content || '';
+        const content = completion?.content || completion?.output_text || '';
         const parsed = parseBreakdownResponse(content);
 
         if (parsed.subJobs && parsed.subJobs.length > 0) {
@@ -92,7 +93,7 @@ function validateAndNormalizeSubJobs(
         .filter(job => job.name && job.description)
         .map((job, index) => ({
             name: job.name || `${task.name} - Step ${index + 1}`,
-            description: job.description || '',
+            description: withScopeBoundary(job.description || '', task.name),
             type: (validTypes.includes(job.type || '') ? job.type : 'task') as SubJobDefinition['type'],
             priority: (typeof job.priority === 'number' && job.priority >= 1 && job.priority <= 4
                 ? job.priority
@@ -115,7 +116,7 @@ function createFallbackSubJobs(task: TaskToBreakdown): SubJobDefinition[] {
     return [
         {
             name: `Implement: ${task.name}`,
-            description: task.description,
+            description: withScopeBoundary(task.description, task.name),
             type: 'task',
             priority,
             estimatedEffort: 'medium',
@@ -124,6 +125,24 @@ function createFallbackSubJobs(task: TaskToBreakdown): SubJobDefinition[] {
             labels: []
         }
     ];
+}
+
+function withScopeBoundary(description: string, taskName: string): string {
+    const trimmedDescription = description.trim();
+    const boundary = [
+        '',
+        'Scope boundary:',
+        `- Complete only this assigned job for "${taskName}".`,
+        '- Do not implement adjacent, dependent, follow-up, polish, or larger-plan work.',
+        '- Do not modify unrelated files or refactor outside this job.',
+        '- If additional work is required outside this job, report it as follow-up instead of doing it.'
+    ].join('\n');
+
+    if (trimmedDescription.includes('Scope boundary:')) {
+        return trimmedDescription;
+    }
+
+    return `${trimmedDescription}${boundary}`;
 }
 
 /**

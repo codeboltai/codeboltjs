@@ -36,11 +36,15 @@ metadata:
 
     - name: planId
       type: string
-      description: The ID of the created action plan
+      description: The ID of the created execution plan
+
+    - name: featurePlanPath
+      type: string
+      description: The path to the created feature plan document
 
     - name: requirementPlanPath
       type: string
-      description: The path to the created requirement plan document
+      description: Deprecated alias for featurePlanPath
 
     - name: error
       type: string

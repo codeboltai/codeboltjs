@@ -24,14 +24,16 @@ export function parseJson<T>(response: string): T | null {
 }
 
 export async function llm(systemPrompt: string, userPrompt: string): Promise<string> {
+    const input = [
+        { type: 'message', role: 'system', content: systemPrompt },
+        { type: 'message', role: 'user', content: userPrompt },
+    ];
+
     const res = await codebolt.llm.inference({
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-        ],
+        input,
         llmrole: 'default',
     });
-    return res.completion?.choices?.[0]?.message?.content || '';
+    return res.completion?.content || res.completion?.output_text || '';
 }
 
 /**

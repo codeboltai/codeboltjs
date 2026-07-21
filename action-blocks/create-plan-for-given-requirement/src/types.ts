@@ -5,6 +5,7 @@
 export interface PlanResult {
     success: boolean;
     planId?: string;
+    featurePlanPath?: string;
     requirementPlanPath?: string;
     error?: string;
 }

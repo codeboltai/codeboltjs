@@ -4,8 +4,10 @@ import { ProcessedMessage } from '@codebolt/types/agent';
  * External event types that can be received from the event queue
  */
 export type ExternalEventType =
-    | 'backgroundAgentCompletion'
-    | 'backgroundGroupedAgentCompletion'
+    | 'threadCompletion'
+    | 'backgroundCommandCompletion'
+    | 'agentMessage'
+    | 'steering'
     | 'agentQueueEvent';
 
 export interface ExternalEvent {
@@ -17,10 +19,29 @@ export interface AgentQueueEventData {
     sourceAgentId?: string;
     sourceThreadId?: string;
     eventType?: string;
+    content?: string;
     payload?: {
         content?: string;
         [key: string]: any;
     };
+}
+
+export function handleSteeringEvent(
+    prompt: ProcessedMessage,
+    steeringData: any
+): void {
+    const instruction = steeringData?.instruction || JSON.stringify(steeringData);
+    const steeringMessage = {
+        role: "user" as const,
+        content: `<steering_message>
+<instruction>${instruction}</instruction>
+<context>The user sent this steering message while work was running. Adjust the current approach before continuing.</context>
+</steering_message>`
+    };
+
+    if (prompt?.message?.messages) {
+        prompt.message.messages.push(steeringMessage);
+    }
 }
 
 /**
@@ -40,16 +61,16 @@ export interface JobCompletionEventData {
 }
 
 /**
- * Handles background agent completion events
+ * Handles thread completion events
  * Adds completion data to the prompt messages
  */
-export function handleBackgroundAgentCompletion(
+export function handleThreadCompletion(
     prompt: ProcessedMessage,
     completionData: any
 ): void {
     const agentMessage = {
         role: "assistant" as const,
-        content: `Background agent completed:\n${JSON.stringify(completionData, null, 2)}`
+        content: `Background thread completed:\n${JSON.stringify(completionData, null, 2)}`
     };
 
     if (prompt?.message?.messages) {
@@ -70,7 +91,7 @@ export function handleAgentQueueEvent(
 <source_thread>${agentEvent.sourceThreadId || 'unknown'}</source_thread>
 <event_type>${agentEvent.eventType || 'agentMessage'}</event_type>
 <content>
-${agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
+${agentEvent.content || agentEvent.payload?.content || JSON.stringify(agentEvent.payload)}
 </content>
 <context>This message is from a child worker agent. Review the content and take appropriate action - you may need to delegate further tasks, provide feedback, or synthesize results.</context>
 <reply_instructions>To reply to this agent, use the eventqueue_send_message tool with targetAgentId set to "${agentEvent.sourceAgentId}" and your response in the content parameter.</reply_instructions>
@@ -98,16 +119,31 @@ export function processExternalEvent(
     if (event && typeof event === 'object') {
         const eventType = event.type || event.eventType;
         const eventData = event.data || event;
+        const eventMetadata = event.metadata || {};
 
         switch (eventType) {
-            case 'backgroundAgentCompletion':
-            case 'backgroundGroupedAgentCompletion':
-                handleBackgroundAgentCompletion(prompt, eventData);
+            case 'threadCompletion':
+            case 'backgroundCommandCompletion':
+                handleThreadCompletion(prompt, eventData);
                 break;
 
-            case 'agentQueueEvent':
-                handleAgentQueueEvent(prompt, eventData);
+            case 'steering':
+                handleSteeringEvent(prompt, eventData);
                 break;
+
+            case 'agentMessage':
+            case 'agentQueueEvent': {
+                const agentEventData = eventData && typeof eventData === 'object'
+                    ? eventData
+                    : { content: String(eventData) };
+                handleAgentQueueEvent(prompt, {
+                    ...agentEventData,
+                    sourceAgentId: agentEventData.sourceAgentId || eventMetadata.sourceAgentId,
+                    sourceThreadId: agentEventData.sourceThreadId || eventMetadata.sourceThreadId,
+                    eventType
+                });
+                break;
+            }
 
             default:
                 // Try to handle as a generic agent event
@@ -129,8 +165,7 @@ export function extractJobCompletionInfo(event: any): JobCompletionEventData | n
     const eventType = event.type || event.eventType;
     const eventData = event.data || event;
 
-    if (eventType === 'backgroundAgentCompletion' ||
-        eventType === 'backgroundGroupedAgentCompletion') {
+    if (eventType === 'threadCompletion') {
 
         const metadata = eventData?.metadata || {};
         const jobId = metadata.jobId || eventData.jobId;
@@ -138,8 +173,8 @@ export function extractJobCompletionInfo(event: any): JobCompletionEventData | n
         if (jobId) {
             return {
                 jobId,
-                threadId: eventData.threadId,
-                success: eventData.success !== false,
+                threadId: eventData.threadId || eventData.targetThreadId,
+                success: eventData.success !== false && eventData.status !== 'failed' && !eventData.error,
                 result: eventData.result,
                 error: eventData.error,
                 metadata

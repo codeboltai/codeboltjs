@@ -1,20 +1,20 @@
 title: Creation Agent
 version: 0.1.0
 unique_id: creation-agent
-initial_message: Tell me what CodeBolt agent you want to create or update. I will show you a plan for confirmation, resolve the right SDK calls, generate the files, and validate the result.
-description: Creates and updates custom CodeBolt agents through a phased workflow - plan (with user confirmation), API resolution, code generation with scoped type declarations, and verification.
+initial_message: Tell me what CodeBolt extension you want to create or update: agent, plugin, dynamic plugin, provider, or ActionBlock. I will show you a plan for confirmation, resolve the right SDK calls and platform contracts, generate the files, and validate the result.
+description: Creates and updates CodeBolt agents, plugins, dynamic plugins, providers, and ActionBlocks through a phased workflow - plan confirmation, API/contract resolution, target-specific code generation, and validation.
 tags:
   - code-generation
-  - agent-creation
+  - extension-creation
   - codebolt
 longDescription: |
-  Creation Agent is a CodeBolt custom-agent authoring assistant built as an orchestrator
-  over phase tools. It plans the requested agent at capability level and shows the plan
-  (with a mermaid flow) for user confirmation, resolves every capability to concrete SDK
-  APIs using the module manifest and module-granular spec lookups, writes the agent with
-  scoped TypeScript declarations and a reference example in context, and verifies the
-  result (manifest validation, API-usage validation, typecheck, and plan-drift check).
-  It can also inspect and update existing agents.
+  Creation Agent is a CodeBolt extension-authoring assistant built as an orchestrator
+  over phase tools. It plans the requested agent, plugin, dynamic plugin, provider,
+  or ActionBlock at capability level and shows the plan for user confirmation, resolves
+  every capability to concrete SDK APIs and target-specific platform contracts, then
+  routes to the matching writer tool. Agent projects still use deterministic scaffolding
+  and final verify_agent checks; other extension targets use target-aware writers with
+  scoped TypeScript declarations, API-usage checks, and validation reporting.
 avatarSrc: https://placehold.co/200x200
 avatarFallback: CA
 metadata:
@@ -38,13 +38,15 @@ metadata:
     - name: implementation
       example_instructions:
         - create an agent that reviews pull requests
-        - create an agent that reads files and writes summaries
-        - create an agent that runs tests and reports failures
+        - create a plugin that registers a workspace command
+        - create a dynamic plugin that discovers tools at runtime
+        - create a provider that implements an LLM streaming contract
+        - create an ActionBlock that validates input and returns structured output
 actions:
-  - name: Create Agent
-    description: Creates a custom CodeBolt agent from a natural-language request.
-    detailDescription: Designs, writes, and validates a CodeBolt agent package using API docs index retrieval.
-    actionPrompt: Describe the CodeBolt agent you want to create.
+  - name: Create Extension
+    description: Creates a CodeBolt agent, plugin, dynamic plugin, provider, or ActionBlock from a natural-language request.
+    detailDescription: Designs, writes, and validates a target-specific CodeBolt extension package using API docs index retrieval.
+    actionPrompt: Describe the CodeBolt extension you want to create.
 supportRemix: true
 author: CodeBolt
 verification:

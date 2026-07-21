@@ -15,16 +15,20 @@ import { ProcessedMessage } from '@codebolt/types/agent';
 import {
     ORCHESTRATOR_SYSTEM_PROMPT,
     appendWorkerAgentId,
-    appendActionPlanContext
+    appendExecutionPlanContext
 } from './prompts';
 import { runWhileLoop } from './agentLoop';
 import { processExternalEvent } from './eventHandlers';
-import { processActionPlanTasks } from './taskProcessor';
+import { processExecutionPlanTasks } from './taskProcessor';
 
 // Use agentEventQueue for centralized event handling
 const eventQueue = codebolt.agentEventQueue;
-// Use backgroundChildThreads for tracking running agent count
-const agentTracker = codebolt.backgroundChildThreads;
+
+function unwrapPlanResult(planResult: any): any {
+    return planResult?.result?.planId || planResult?.result?.error
+        ? planResult.result
+        : planResult?.result?.result || planResult?.result?.output || planResult?.data || planResult?.result;
+}
 
 /**
  * Orchestrator Agent
@@ -32,11 +36,11 @@ const agentTracker = codebolt.backgroundChildThreads;
  * Flow:
  * 1. Requirement Analysis & Planning
  *    - Uses 'create-plan-for-given-task' action block to analyze requirements
- *    - Generates a specification from user requirements
- *    - Creates an action plan with tasks
+ *    - Generates a planning note and feature plan from user requirements
+ *    - Creates an execution plan with tasks
  *
  * 2. Task & Job Execution
- *    - Retrieves task items from the action plan
+ *    - Retrieves task items from the execution plan
  *    - Breaks each task into multiple jobs using LLM
  *    - Creates jobs with proper dependencies
  *    - Assigns jobs to sub-agents
@@ -73,22 +77,24 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         // 1.1 - 1.3: Create detailed plan using action block
         // This action block:
         // - Analyzes user requirements
-        // - Generates a specification
-        // - Creates an action plan with tasks
+        // - Generates a planning note and feature plan
+        // - Creates an execution plan with tasks
         const planResult = await codebolt.actionBlock.start('create-plan-for-given-task', {
             userMessage: reqMessage
         });
 
         if (planResult.success && planResult.result) {
-            const { planId, requirementPlanPath } = planResult.result;
-            codebolt.chat.sendMessage(`Plan created successfully. Plan ID: ${planId}`);
+            const actionBlockResult = unwrapPlanResult(planResult);
+            const { planId } = actionBlockResult || {};
+            const featurePlanPath = actionBlockResult?.featurePlanPath || actionBlockResult?.requirementPlanPath;
 
             if (planId) {
+                codebolt.chat.sendMessage(`Plan created successfully. Plan ID: ${planId}`);
                 // Update system prompt with plan context
-                sessionSystemPrompt = appendActionPlanContext(
+                sessionSystemPrompt = appendExecutionPlanContext(
                     sessionSystemPrompt,
                     planId,
-                    requirementPlanPath
+                    featurePlanPath
                 );
 
                 // ================================
@@ -104,15 +110,15 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                 codebolt.chat.sendMessage(`Starting task and job execution with worker agent: ${defaultWorkerAgentId}`);
 
-                // 2.1 - 2.6: Process action plan tasks
+                // 2.1 - 2.6: Process execution plan tasks
                 // This will:
-                // - Retrieve task items from the action plan
+                // - Retrieve task items from the execution plan
                 // - Break each task into jobs using LLM
                 // - Create jobs with dependencies
                 // - Execute jobs via sub-agents
                 // - Listen for completion events
                 // - Execute next jobs when dependencies are met
-                const jobsResult = await processActionPlanTasks(planId, defaultWorkerAgentId);
+                const jobsResult = await processExecutionPlanTasks(planId, defaultWorkerAgentId);
 
                 if (jobsResult.success) {
                     codebolt.chat.sendMessage(
@@ -126,6 +132,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
                 return;
             }
+
+            codebolt.chat.sendMessage(`Plan creation failed: ${actionBlockResult?.error || 'No plan ID returned'}`);
         } else {
             codebolt.chat.sendMessage("Plan creation skipped or failed, proceeding with direct orchestration...");
         }
@@ -179,14 +187,10 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
         prompt = result.prompt;
 
         // Check for async events from child agents
-        const runningCount = agentTracker.getRunningAgentCount();
-        const pendingEventCount = eventQueue.getPendingExternalEventCount();
+        const events = await eventQueue.getPendingEvents();
 
-        if (runningCount > 0 || pendingEventCount > 0) {
+        if (events.length > 0) {
             continueLoop = true;
-
-            // Get all pending events
-            const events = await eventQueue.getPendingQueueEvents();
 
             // Process each event
             for (const event of events) {
