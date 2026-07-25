@@ -7,6 +7,59 @@ const { getModuleManifest } = require("@codebolt/api-docs-index") as typeof impo
 
 const codebolt = require("@codebolt/codeboltjs");
 
+interface ConfirmationResponseEnvelope {
+  answer?: unknown;
+  feedback?: unknown;
+  userMessage?: unknown;
+  message?: unknown;
+  value?: unknown;
+  label?: unknown;
+  data?: {
+    answer?: unknown;
+    feedback?: unknown;
+    value?: unknown;
+    label?: unknown;
+  };
+}
+
+const APPROVAL_RESPONSES = new Set(["proceed", "process", "approve", "approved", "confirm", "confirmed", "yes"]);
+
+function stringFromUnknown(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeConfirmationResponse(response: unknown): string {
+  if (typeof response === "string") {
+    return response.trim();
+  }
+
+  if (!response || typeof response !== "object") {
+    return "";
+  }
+
+  const confirmation = response as ConfirmationResponseEnvelope;
+  return (
+    stringFromUnknown(confirmation.answer) ||
+    stringFromUnknown(confirmation.feedback) ||
+    stringFromUnknown(confirmation.userMessage) ||
+    stringFromUnknown(confirmation.message) ||
+    stringFromUnknown(confirmation.value) ||
+    stringFromUnknown(confirmation.label) ||
+    stringFromUnknown(confirmation.data?.answer) ||
+    stringFromUnknown(confirmation.data?.feedback) ||
+    stringFromUnknown(confirmation.data?.value) ||
+    stringFromUnknown(confirmation.data?.label)
+  );
+}
+
+function isPlanApproved(response: unknown): boolean {
+  const normalized = normalizeConfirmationResponse(response).toLowerCase();
+  if (!normalized) return false;
+
+  const firstWord = normalized.split(/\s+/, 1)[0];
+  return APPROVAL_RESPONSES.has(firstWord);
+}
+
 const PLAN_INSTRUCTIONS = `You are the planning phase of the CodeBolt Creation Agent.
 
 Produce a user-facing plan for the requested CodeBolt agent. The plan is written at CAPABILITY level:
@@ -192,10 +245,11 @@ export const planAgentTool = createTool({
       true,
     );
 
-    const approved = typeof decision === "string" && decision.trim().toLowerCase().startsWith("proceed");
+    const userResponse = normalizeConfirmationResponse(decision);
+    const approved = isPlanApproved(decision);
     return {
       approved,
-      userResponse: decision,
+      userResponse,
       plan,
     };
   },
@@ -234,10 +288,11 @@ export const planCreationTool = createTool({
       true,
     );
 
-    const approved = typeof decision === "string" && decision.trim().toLowerCase().startsWith("proceed");
+    const userResponse = normalizeConfirmationResponse(decision);
+    const approved = isPlanApproved(decision);
     return {
       approved,
-      userResponse: decision,
+      userResponse,
       plan,
     };
   },
