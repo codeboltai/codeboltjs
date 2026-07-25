@@ -15,4 +15,5 @@ Pinned version: `nitro@3.0.260610-beta`
 
 External Nitro preset registration is intentionally not used. Nitro v3 recommends
 built-in presets, and `standard` already emits the required fetch contract. The
-CodeBolt local preset package is a configuration adapter around that built-in preset.
+CodeBolt `resolveTarget()` helper is a configuration adapter around those built-in
+presets.
