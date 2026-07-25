@@ -1,4 +1,4 @@
-import { defineCollection } from "@codebolt/miniapp-sdk";
+import { defineCollection } from "@codebolt/miniapp";
 
 export default defineCollection({
   name: "employees",
@@ -13,3 +13,4 @@ export default defineCollection({
     },
   },
 });
+

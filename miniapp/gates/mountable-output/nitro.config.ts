@@ -1,5 +1,5 @@
 import { defineConfig } from "nitro";
-import { resolveTarget } from "../../packages/nitro-module/src/index";
+import { resolveTarget } from "../../packages/miniapp/src/nitro";
 
 export default defineConfig({
   ...resolveTarget("local"),

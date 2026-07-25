@@ -363,7 +363,7 @@ function validate11(data, { instancePath = "", parentData, parentDataProperty, r
 }
 const validators = /* @__PURE__ */ new Map([["add-lead", tool0], ["create-task-for-lead", tool1]]);
 //#endregion
-//#region ../../packages/nitro-module/src/runtime/tool-handler.ts
+//#region ../../packages/miniapp/src/runtime/tool-handler.ts
 async function readJsonBody(event) {
 	const text = await event.req.text();
 	if (!text) return void 0;

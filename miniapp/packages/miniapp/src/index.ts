@@ -146,15 +146,13 @@ function remoteBridge(event: MiniAppEvent): RuntimeBridge {
     }
   ).__env__;
   const cloudUrl =
-    processEnvironment?.CODEBOLT_CLOUD_URL ??
-    workerEnvironment?.CODEBOLT_CLOUD_URL;
+    processEnvironment?.CODEBOLT_CLOUD_URL ?? workerEnvironment?.CODEBOLT_CLOUD_URL;
   if (!token || !cloudUrl) {
     throw new Error("Remote MiniApp execution context is unavailable.");
   }
   const claims = decodeClaims(token);
   const principal =
-    claims.principal ??
-    {
+    claims.principal ?? {
       userId: claims.userId,
       roles: claims.roles ?? [],
     };

@@ -1,4 +1,4 @@
-import { useMiniApp } from "@codebolt/miniapp-sdk";
+import { useMiniApp } from "@codebolt/miniapp";
 import { defineHandler, getQuery } from "nitro/h3";
 
 export default defineHandler(async (event) => {
@@ -14,3 +14,4 @@ export default defineHandler(async (event) => {
     content: new TextDecoder().decode(blob.data),
   };
 });
+

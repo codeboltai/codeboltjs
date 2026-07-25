@@ -1,5 +1,5 @@
 import { defineConfig } from "nitro";
-import { codeboltMiniApp, resolveTarget } from "@codebolt/miniapp-nitro";
+import { codeboltMiniApp, resolveTarget } from "@codebolt/miniapp/nitro";
 
 export default defineConfig({
   ...resolveTarget(),
@@ -13,3 +13,4 @@ export default defineConfig({
     }),
   ],
 });
+

@@ -1,4 +1,4 @@
-//#region ../../packages/sdk/src/index.ts
+//#region ../../packages/miniapp/src/index.ts
 function defineTool(definition) {
 	return {
 		kind: "tool",

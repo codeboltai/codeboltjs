@@ -1,4 +1,4 @@
-import { defineTool } from "@codebolt/miniapp-sdk";
+import { defineTool } from "@codebolt/miniapp";
 
 export default defineTool<{ employeeId: string; step: string }>({
   name: "complete-step",
@@ -19,3 +19,4 @@ export default defineTool<{ employeeId: string; step: string }>({
     return context.db.set("employees", input.employeeId, { ...employee, completed });
   },
 });
+

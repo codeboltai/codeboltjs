@@ -1,5 +1,5 @@
 import { defineHandler, getRouterParam } from "nitro/h3";
-import { useMiniApp } from "@codebolt/miniapp-sdk";
+import { useMiniApp } from "../index";
 import { tools } from "#codebolt/miniapp-tools";
 import { validators } from "#codebolt/miniapp-tool-validators";
 

@@ -20,24 +20,18 @@ importers:
 
   examples/leads:
     dependencies:
-      '@codebolt/miniapp-nitro':
+      '@codebolt/miniapp':
         specifier: workspace:*
-        version: link:../../packages/nitro-module
-      '@codebolt/miniapp-sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
+        version: link:../../packages/miniapp
       nitro:
         specifier: 3.0.260610-beta
         version: 3.0.260610-beta(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.2)
 
   examples/onboarding:
     dependencies:
-      '@codebolt/miniapp-nitro':
+      '@codebolt/miniapp':
         specifier: workspace:*
-        version: link:../../packages/nitro-module
-      '@codebolt/miniapp-sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
+        version: link:../../packages/miniapp
       nitro:
         specifier: 3.0.260610-beta
         version: 3.0.260610-beta(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.2)
@@ -48,19 +42,14 @@ importers:
         specifier: ^1.17.4
         version: 1.17.5(db0@0.3.4)
 
-  packages/nitro-module:
+  packages/miniapp:
     dependencies:
-      '@codebolt/miniapp-sdk':
-        specifier: workspace:*
-        version: link:../sdk
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
       jiti:
         specifier: ^2.6.1
         version: 2.7.0
-
-  packages/sdk: {}
 
 packages:
 

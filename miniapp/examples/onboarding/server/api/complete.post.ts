@@ -1,4 +1,4 @@
-import { useMiniApp } from "@codebolt/miniapp-sdk";
+import { useMiniApp } from "@codebolt/miniapp";
 import { defineHandler, readBody } from "nitro/h3";
 
 export default defineHandler(async (event) => {
@@ -9,3 +9,4 @@ export default defineHandler(async (event) => {
   const completed = [...new Set([...(employee.completed as string[]), input.step])];
   return context.db.set("employees", input.employeeId, { ...employee, completed });
 });
+

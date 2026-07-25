@@ -9,7 +9,7 @@ import type {
   CollectionDefinition,
   ToolDefinition,
   ViewDefinition,
-} from "@codebolt/miniapp-sdk";
+} from "./index";
 
 export interface MiniAppModuleOptions {
   id: string;
@@ -224,3 +224,4 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
     },
   };
 }
+

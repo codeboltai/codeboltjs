@@ -1,4 +1,4 @@
-import { defineTool } from "@codebolt/miniapp-sdk";
+import { defineTool } from "@codebolt/miniapp";
 
 export default defineTool<{
   id: string;
@@ -23,3 +23,4 @@ export default defineTool<{
     return context.db.set("leads", input.id, input);
   },
 });
+

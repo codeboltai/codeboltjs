@@ -1,4 +1,4 @@
-import { defineTool } from "@codebolt/miniapp-sdk";
+import { defineTool } from "@codebolt/miniapp";
 
 export default defineTool<{ leadId: string; title: string }>({
   name: "create-task-for-lead",
@@ -24,3 +24,4 @@ export default defineTool<{ leadId: string; title: string }>({
     });
   },
 });
+

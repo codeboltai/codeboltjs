@@ -1,4 +1,4 @@
-import { defineTool } from "@codebolt/miniapp-sdk";
+import { defineTool } from "@codebolt/miniapp";
 
 export default defineTool<{ id: string; name: string; role: string }>({
   name: "add-employee",
@@ -16,3 +16,4 @@ export default defineTool<{ id: string; name: string; role: string }>({
   handler: (context, input) =>
     context.db.set("employees", input.id, { ...input, completed: [] }),
 });
+
