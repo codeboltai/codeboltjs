@@ -1,0 +1,31 @@
+{
+  "name": "codebolt-miniapp-prototype",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "build:leads": "nitro build examples/leads",
+    "build:onboarding": "nitro build examples/onboarding",
+    "build:examples": "pnpm build:leads && pnpm build:onboarding",
+    "build:remote-node": "node scripts/build-target.mjs node",
+    "build:remote-cloudflare": "node scripts/build-target.mjs cloudflare",
+    "gate:build": "nitro build gates/mountable-output && node gates/mountable-output/generate-assets.mjs",
+    "gate:mount": "node gates/mountable-output/verify.mjs",
+    "gate:worker": "node gates/worker-transport/verify.mjs",
+    "gates": "pnpm gate:build && pnpm gate:mount && pnpm gate:worker",
+    "start": "node packages/host/src/cli.mjs",
+    "test:capabilities": "node --test tests/capabilities.test.mjs",
+    "test:integration": "node --test tests/integration.test.mjs",
+    "test:remote-cloudflare": "node --test tests/remote-cloudflare.test.mjs",
+    "test:remote-node": "node --test tests/remote-node.test.mjs",
+    "test": "pnpm gates && pnpm build:examples && pnpm test:capabilities && pnpm test:integration && pnpm build:remote-node && pnpm test:remote-node && pnpm build:remote-cloudflare && pnpm test:remote-cloudflare"
+  },
+  "devDependencies": {
+    "jiti": "^2.6.1",
+    "nitro": "3.0.260610-beta",
+    "typescript": "^5.9.2"
+  }
+}

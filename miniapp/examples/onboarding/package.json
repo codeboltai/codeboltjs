@@ -1,0 +1,10 @@
+{
+  "name": "@codebolt/example-onboarding-miniapp",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codebolt/miniapp-nitro": "workspace:*",
+    "@codebolt/miniapp-sdk": "workspace:*",
+    "nitro": "3.0.260610-beta"
+  }
+}

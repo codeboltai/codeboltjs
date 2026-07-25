@@ -1,0 +1,11 @@
+{
+  "name": "@codebolt/miniapp-host",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "dependencies": {
+    "unstorage": "^1.17.4"
+  }
+}

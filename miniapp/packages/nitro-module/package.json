@@ -1,0 +1,13 @@
+{
+  "name": "@codebolt/miniapp-nitro",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@codebolt/miniapp-sdk": "workspace:*",
+    "ajv": "^8.17.1",
+    "jiti": "^2.6.1"
+  }
+}

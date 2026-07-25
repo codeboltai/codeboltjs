@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "leads",
+  "title": "Lead Depository",
+  "version": "0.1.0",
+  "runtime": {
+    "handler": "server/index.mjs",
+    "publicDir": "public"
+  },
+  "tools": [
+    {
+      "name": "add-lead",
+      "qualifiedName": "leads.add-lead",
+      "description": "Store a discovered lead in the shared lead depository.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "create-task-for-lead",
+      "qualifiedName": "leads.create-task-for-lead",
+      "description": "Create a CodeBolt task associated with a lead.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "leadId",
+          "title"
+        ],
+        "properties": {
+          "leadId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "collections": [
+    {
+      "name": "leads",
+      "schema": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "name": "lead-list",
+      "title": "Leads",
+      "route": "/"
+    }
+  ],
+  "staticAssets": [
+    {
+      "path": "index.html",
+      "size": 2695
+    }
+  ]
+}
