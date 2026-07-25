@@ -1,6 +1,12 @@
 # @codebolt/codeboltjs-mcp
 
-Model Context Protocol (MCP) server implementation for Codebolt.
+> Deprecated legacy MCP authoring framework.
+>
+> Do not use `@codebolt/mcp` for new MCP servers. CodeBolt now recommends writing standard MCP servers with `fastmcp` or the official `@modelcontextprotocol/sdk`, then registering them with CodeBolt through normal MCP configuration or the project-local `.codebolt/tools/<name>/codebolttool.yaml` discovery convention.
+>
+> This package remains available only for existing projects that already depend on its legacy `MCPServer` / `FastMCPSession` API.
+
+Legacy Model Context Protocol (MCP) server implementation for Codebolt.
 
 ## Features
 
@@ -13,14 +19,30 @@ Model Context Protocol (MCP) server implementation for Codebolt.
 
 ## Installation
 
+For new projects, prefer:
+
 ```bash
-npm install @codebolt/codeboltjs-mcp
+npm install fastmcp zod
+```
+
+or:
+
+```bash
+npm install @modelcontextprotocol/sdk zod
+```
+
+Install this package only for legacy compatibility:
+
+```bash
+npm install @codebolt/mcp
 ```
 
 ## Usage
 
+The following example is legacy-only. New CodeBolt local tools should expose a standard MCP stdio server from `.codebolt/tools/<name>/index.js`.
+
 ```typescript
-import { MCPServer, imageContent } from '@codebolt/codeboltjs-mcp';
+import { MCPServer, imageContent } from '@codebolt/mcp';
 
 // Create a new MCP server
 const server = new MCPServer({
