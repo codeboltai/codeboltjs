@@ -333,6 +333,12 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     console.warn(`[act-updated][Event] Skipping null/undefined event`);
     return prompt;
   }
+  if (!prompt.message) {
+    prompt.message = {} as any;
+  }
+  if (!Array.isArray((prompt.message as any).messages)) {
+    (prompt.message as any).messages = [];
+  }
   if (!prompt?.message?.input) {
     prompt.message.input = [];
   }
@@ -381,6 +387,26 @@ ${JSON.stringify(eventData, null, 2)}
 <source>${event.metadata?.sourceAgentId || 'system'}</source>
 <content>${eventData.content || JSON.stringify(eventData)}</content>
 </agent_event>`
+    });
+    return prompt;
+  } else if (eventType === 'mailNotification') {
+    const messageId = eventData.messageId || eventData.toolInput?.messageId || 'unknown';
+    const mailMessage = typeof eventData.message === 'string'
+      ? eventData.message
+      : typeof eventData.body === 'string'
+        ? eventData.body
+        : '';
+    const contentLines = [
+      'You have received a mail notification. To get the mail details, call the mail_get_message tool with parameter: { "messageId": "' + messageId + '" }. If mail_get_message is not in your available tools, use tool search to find it.'
+    ];
+
+    if (mailMessage.trim()) {
+      contentLines.push('', 'Message:', mailMessage);
+    }
+
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: contentLines.join('\n')
     });
     return prompt;
   } else if (eventType === 'calendarUpdate' || eventType === 'taskUpdate' || eventType === 'systemNotification' || eventType === 'custom') {

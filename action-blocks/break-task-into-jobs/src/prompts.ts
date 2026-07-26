@@ -58,6 +58,7 @@ Your goal is to analyze a task and divide it into jobs. Each job will be assigne
    - Something worth assigning a dedicated agent to
    - Self-contained with clear deliverables
    - NOT a single file creation or tiny step
+   - Strictly limited to the parent task; do not include adjacent or follow-up plan tasks
 
 4. **Job Types**:
    - 'task': General implementation work
@@ -87,6 +88,8 @@ Your goal is to analyze a task and divide it into jobs. Each job will be assigne
    - Ask yourself: "Is this really worth a separate agent?" before creating a job
    - One comprehensive job is better than multiple tiny ones
    - Each job description should be detailed enough for an agent to work independently
+   - Each job description must explicitly say what is in scope and that the worker must not continue into other tasks from the larger plan
+   - If completing a job requires out-of-scope work, the worker should report the needed follow-up instead of doing it
 
 ## Output Format
 
@@ -95,7 +98,7 @@ Return a JSON object with:
   "subJobs": [
     {
       "name": "Short descriptive name",
-      "description": "Detailed description of what needs to be implemented",
+      "description": "Detailed description of what needs to be implemented, including explicit scope boundaries and out-of-scope instructions",
       "type": "task|feature|bug|chore|epic",
       "priority": 1-4,
       "estimatedEffort": "small|medium|large",
@@ -134,6 +137,8 @@ ${existingJobsList}
 
 Break this task into jobs. Create both PARALLEL and SEQUENTIAL jobs as needed.
 
+Every job MUST remain within this task only. Do not include work from other plan tasks, dependent future tasks, adjacent features, cleanup/polish tasks, or broader project work unless it is explicitly part of this task description.
+
 **Two types of jobs:**
 1. **PARALLEL** - Jobs with no dependencies (internalDependencies: []) run simultaneously
 2. **SEQUENTIAL** - Jobs with dependencies (internalDependencies: ["other job"]) wait for dependencies
@@ -150,6 +155,11 @@ Break this task into jobs. Create both PARALLEL and SEQUENTIAL jobs as needed.
 **Do NOT create micro-tasks like:**
 - "Create package.json" - include in the main implementation job
 - "Set up project" - include in the job that needs it
+
+**Scope boundary requirement for every job description:**
+- State that the worker must complete only this assigned job.
+- State that the worker must not implement adjacent, dependent, follow-up, polish, or larger-plan work.
+- State that if additional work is required outside this job, the worker should report it as follow-up instead of doing it.
 
 **Dependency syntax:**
 - No dependency (PARALLEL): "internalDependencies": []

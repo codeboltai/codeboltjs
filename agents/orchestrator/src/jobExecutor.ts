@@ -32,6 +32,137 @@ export interface JobExecutionResult {
     error?: string;
 }
 
+type CompletionEvent = {
+    type?: string;
+    data?: any;
+    metadata?: any;
+    target?: any;
+};
+
+const THREAD_COMPLETION_EVENT = 'threadCompletion';
+type GetPendingEventsParams = NonNullable<Parameters<typeof codebolt.agentEventQueue.getPendingEvents>[0]>;
+
+type SequencedCompletionEvent = {
+    sequence: number;
+    event: CompletionEvent;
+};
+
+const completionEventHistory: SequencedCompletionEvent[] = [];
+const completionEventWaiters = new Set<(entry: SequencedCompletionEvent) => void>();
+let completionEventSequence = 0;
+let completionEventPollerRunning = false;
+
+function getCompletionEventCursor(): number {
+    return completionEventSequence;
+}
+
+function publishCompletionEvent(event: CompletionEvent): void {
+    const entry = {
+        sequence: ++completionEventSequence,
+        event
+    };
+
+    completionEventHistory.push(entry);
+    if (completionEventHistory.length > 200) {
+        completionEventHistory.shift();
+    }
+
+    for (const waiter of Array.from(completionEventWaiters)) {
+        waiter(entry);
+    }
+}
+
+function waitForCompletionEventAfter(sequence: number): Promise<SequencedCompletionEvent> {
+    const existing = completionEventHistory.find((entry) => entry.sequence > sequence);
+    if (existing) {
+        return Promise.resolve(existing);
+    }
+
+    return new Promise((resolve) => {
+        const waiter = (entry: SequencedCompletionEvent) => {
+            if (entry.sequence <= sequence) {
+                return;
+            }
+            completionEventWaiters.delete(waiter);
+            resolve(entry);
+        };
+
+        completionEventWaiters.add(waiter);
+        ensureCompletionEventPoller();
+    });
+}
+
+function ensureCompletionEventPoller(): void {
+    if (completionEventPollerRunning) {
+        return;
+    }
+
+    completionEventPollerRunning = true;
+
+    void (async () => {
+        while (completionEventWaiters.size > 0) {
+            try {
+                const events = await codebolt.agentEventQueue.getPendingEvents({
+                    eventTypes: [THREAD_COMPLETION_EVENT] as unknown as GetPendingEventsParams['eventTypes']
+                });
+
+                for (const event of events) {
+                    const completionEvent = event as CompletionEvent;
+                    if (completionEvent?.type === THREAD_COMPLETION_EVENT) {
+                        publishCompletionEvent(completionEvent);
+                    }
+                }
+
+                if (events.length === 0) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+            } catch (error) {
+                console.error('[JobExecutor] Error polling completion event:', error);
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+        }
+
+        completionEventPollerRunning = false;
+        if (completionEventWaiters.size > 0) {
+            ensureCompletionEventPoller();
+        }
+    })();
+}
+
+function getCompletionDataItems(event: CompletionEvent): any[] {
+    return [event.data || event];
+}
+
+function getCompletionThreadId(completionData: any, event: CompletionEvent): string | undefined {
+    return completionData?.threadId ||
+        completionData?.targetThreadId ||
+        completionData?.metadata?.threadId ||
+        event.metadata?.threadId ||
+        event.target?.threadId;
+}
+
+function getCompletionJobId(completionData: any, threadId: string | undefined, threadToJobMap: Map<string, string>): string | undefined {
+    const jobId = completionData?.metadata?.jobId ||
+        completionData?.jobId ||
+        completionData?.threadMetadata?.jobId;
+
+    if (jobId) {
+        return jobId;
+    }
+
+    if (threadId && threadToJobMap.has(threadId)) {
+        return threadToJobMap.get(threadId);
+    }
+
+    return undefined;
+}
+
+function isCompletionSuccess(completionData: any): boolean {
+    return completionData?.success !== false &&
+        completionData?.status !== 'failed' &&
+        !completionData?.error;
+}
+
 // ================================
 // JOB DEPENDENCY TRACKER
 // ================================
@@ -171,8 +302,29 @@ export async function startJob(
 
         ctx.onJobStart?.(job.jobId);
 
-        // Create the user message for the worker agent
-        const userMessage = `## Task: ${job.name}\n\n${job.description}`;
+        // Create a tightly scoped user message for the worker agent.
+        const userMessage = `## Assigned Task
+${job.name}
+
+## Task Details
+${job.description}
+
+## Scope Boundary
+You are a worker agent. Complete ONLY the assigned task above.
+
+Do not:
+- Start or implement any other task from the larger plan.
+- Continue into follow-up, dependent, adjacent, or "nice to have" work.
+- Modify files that are unrelated to this assigned task.
+- Refactor, redesign, or clean up outside this task's direct requirements.
+- Create extra features, pages, APIs, tests, or polish work unless explicitly required by this task.
+
+If this task appears to require work outside its scope, stop and report what additional task should be delegated instead of doing it yourself.
+
+## Completion Requirements
+- Make the smallest complete change needed for this assigned task.
+- Verify only what is necessary for this assigned task.
+- In your final response, summarize exactly what you changed for this task and mention any follow-up work separately.`;
 
         // Create thread in background with the configured worker agent
         const threadResult = await codebolt.thread.createThreadInBackground({
@@ -182,6 +334,7 @@ export async function startJob(
             selectedAgent: { id: ctx.workerAgentId },
             isGrouped: true,
             groupId: ctx.groupId,
+            policyProfileName: 'allow-all',
            
         });
 
@@ -356,8 +509,7 @@ export async function executeJobsWithDependencies(
     ctx: JobExecutionContext
 ): Promise<JobExecutionResult> {
     const tracker = new JobDependencyTracker();
-    const eventQueue = codebolt.agentEventQueue;
-    const agentTracker = codebolt.backgroundChildThreads;
+    let lastCompletionEventSequence = getCompletionEventCursor();
 
     // Map threadId to jobId for tracking completions
     const threadToJobMap = new Map<string, string>();
@@ -397,14 +549,12 @@ export async function executeJobsWithDependencies(
 
     // Main event loop - wait for job completions
     while (!tracker.isAllDone()) {
-        const runningCount = agentTracker.getRunningAgentCount();
-        const pendingEvents = eventQueue.getPendingExternalEventCount();
+        const stats = tracker.getStats();
 
-        console.log(`[JobExecutor] Running agents: ${runningCount}, Pending events: ${pendingEvents}`);
+        console.log(`[JobExecutor] Running jobs: ${stats.running}, Pending jobs: ${stats.pending}`);
 
-        if (runningCount === 0 && pendingEvents === 0) {
+        if (stats.running === 0) {
             // No running agents and no pending events - check if we have stuck jobs
-            const stats = tracker.getStats();
             if (stats.pending > 0) {
                 console.warn(`[JobExecutor] ${stats.pending} jobs pending but no running agents`);
                 // Check for next jobs to run
@@ -421,31 +571,19 @@ export async function executeJobsWithDependencies(
             }
         }
 
-        // Wait for next event
+        // Wait for next normalized thread completion event.
         try {
-            const event = await eventQueue.waitForAnyExternalEvent();
+            const completionEntry = await waitForCompletionEventAfter(lastCompletionEventSequence);
+            lastCompletionEventSequence = completionEntry.sequence;
+            const event = completionEntry.event;
 
             console.log(`[JobExecutor] Received event:`, JSON.stringify(event, null, 2));
 
-            if (event.type === 'backgroundAgentCompletion' ||
-                event.type === 'backgroundGroupedAgentCompletion') {
-
-                const completionData = event.data || event;
-
-                // Try to extract jobId from multiple possible locations
-                let jobId = completionData?.metadata?.jobId ||
-                            completionData?.jobId ||
-                            completionData?.threadMetadata?.jobId;
-
-                // If no jobId found, try to look up by threadId
-                const threadId = completionData?.threadId || completionData?.metadata?.threadId;
-                if (!jobId && threadId && threadToJobMap.has(threadId)) {
-                    jobId = threadToJobMap.get(threadId);
-                    console.log(`[JobExecutor] Found jobId ${jobId} from threadId ${threadId} mapping`);
-                }
-
-                const success = completionData?.success !== false;
-
+            const completionItems = getCompletionDataItems(event);
+            for (const completionData of completionItems) {
+                const threadId = getCompletionThreadId(completionData, event);
+                const jobId = getCompletionJobId(completionData, threadId, threadToJobMap);
+                const success = isCompletionSuccess(completionData);
                 console.log(`[JobExecutor] Completion event - jobId: ${jobId}, threadId: ${threadId}, success: ${success}`);
 
                 if (jobId && tracker.getJob(jobId)) {

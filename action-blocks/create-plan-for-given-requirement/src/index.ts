@@ -44,35 +44,50 @@ function isGroupItem(item: TaskItem): boolean {
            item.type === 'waitUntilGroup';
 }
 
-async function findLatestSpecsFile(): Promise<string | null> {
+function extractPlanId(response: any): string | undefined {
+    return response?.planId ||
+        response?.executionPlan?.planId ||
+        response?.plan?.planId ||
+        response?.data?.planId ||
+        response?.data?.executionPlan?.planId ||
+        response?.data?.plan?.planId ||
+        response?.response?.planId ||
+        response?.response?.executionPlan?.planId ||
+        response?.response?.plan?.planId ||
+        response?.response?.data?.planId ||
+        response?.response?.data?.executionPlan?.planId ||
+        response?.response?.data?.plan?.planId;
+}
+
+async function findLatestNoteFile(): Promise<string | null> {
     const { projectPath } = await codebolt.project.getProjectPath();
-    const specsDir = `${projectPath}/specs`;
+    const notesDir = `${projectPath}/notes`;
 
     try {
-        const result = await codebolt.fs.listDirectory({ path: specsDir });
+        const result = await codebolt.fs.listDirectory({ path: notesDir });
         const entries = result.entries || [];
 
         if (entries.length === 0) {
             return null;
         }
 
-        // Filter for .specs files
-        const specsFiles = entries
+        // Filter for .note files
+        const noteFiles = entries
             .filter((entry: any) => {
                 const name = entry.name || entry;
-                return name?.endsWith('.specs');
+                return name?.endsWith('.note');
             })
             .map((entry: any) => entry.name || entry);
 
-        if (specsFiles.length === 0) {
+        if (noteFiles.length === 0) {
             return null;
         }
 
-        // Return the latest specs file (last in list)
-        const latestSpecsFile = specsFiles[specsFiles.length - 1];
-        return `${specsDir}/${latestSpecsFile}`;
+        // Return the latest note file (last in list)
+        const latestNoteFile = noteFiles[noteFiles.length - 1];
+        return `${notesDir}/${latestNoteFile}`;
     } catch (error) {
-        console.error('Error finding specs files:', error);
+        console.error('Error finding note files:', error);
         return null;
     }
 }
@@ -137,100 +152,107 @@ async function runDetailPlanner(reqMessage: FlatUserMessage): Promise<boolean> {
 // TASK PLANNER
 // ================================
 
-async function runTaskPlanner(specsFilePath: string): Promise<PlanResult> {
-    const { content } = await codebolt.fs.readFile(specsFilePath);
+async function runTaskPlanner(noteFilePath: string): Promise<PlanResult> {
+    const { content } = await codebolt.fs.readFile(noteFilePath);
 
     if (!content) {
-        return { success: false, error: `No specs file found at ${specsFilePath}` };
+        return { success: false, error: `No note file found at ${noteFilePath}` };
     }
 
     const systemPrompt = TASK_PLANNER_SYSTEM_PROMPT.replace('{{PLAN_CONTENT}}', content);
-    codebolt.chat.sendMessage("Creating task plan from specification...")
+    codebolt.chat.sendMessage("Creating feature plan from notes...")
 
+    const input = [
+        { type: 'message', role: 'system', content: systemPrompt },
+        { type: 'message', role: 'user', content: 'create task list for given plan' }
+    ];
     const { completion } = await codebolt.llm.inference({
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: 'create task list for given plan' }
-        ],
+        input,
         full: true,
         tools: []
     });
 
-    if (!completion || !completion.choices) {
+    const llmContent = completion?.content || completion?.output_text;
+    if (!llmContent) {
         return { success: false, error: 'LLM inference failed' };
     }
 
-    const llmContent = completion.choices[0].message.content;
     const taskPlan = parseJsonContent(llmContent);
 
     if (!taskPlan) {
         return { success: false, error: 'Failed to parse task plan JSON' };
     }
 
-    // Create action plan
-    const { response } = await codebolt.actionPlan.createActionPlan({
+    // Create execution plan
+    const createResponse = await codebolt.executionPlan.create({
         name: taskPlan.plan.name,
         description: taskPlan.plan.description
     });
 
-    const planId = response.data.actionPlan.planId;
+    const planId = extractPlanId(createResponse);
 
-    // Add tasks to action plan
+    if (!planId) {
+        console.error('Failed to extract execution plan ID from response:', JSON.stringify(createResponse, null, 2));
+        return { success: false, error: 'Failed to create execution plan' };
+    }
+
+    // Add tasks to execution plan
     for (const item of taskPlan.tasks) {
         if (isGroupItem(item)) {
-            await codebolt.actionPlan.addGroupToActionPlan(planId, item as any);
+            await codebolt.executionPlan.addGroup(planId, item as any);
         } else {
-            await codebolt.actionPlan.addTaskToActionPlan(planId, item as any);
+            await codebolt.executionPlan.addTask(planId, item as any);
         }
     }
 
-    // Create requirement plan document
-    let requirementPlanPath: string | undefined;
+    // Create feature plan document
+    let featurePlanPath: string | undefined;
     try {
         const planName = taskPlan.plan.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-        const createResult: any = await codebolt.requirementPlan.create(planName);
+        const createResult: any = await codebolt.featurePlan.create(planName);
 
         if (createResult.success && createResult.data) {
             const filePath = createResult.data.filePath as string;
-            requirementPlanPath = filePath;
+            featurePlanPath = filePath;
 
            
 
          
 
-            // Add action plan link section
-            await codebolt.requirementPlan.addSection(filePath, {
-                type: 'actionplan-link',
-                title: 'Action Plan',
+            // Add execution plan link section
+            await codebolt.featurePlan.addSection(filePath, {
+                type: 'execution-plan-link',
+                title: 'Execution Plan',
                 linkedFile: planId
             });
 
-               // Add spec link section
-               await codebolt.requirementPlan.addSection(filePath, {
-                type: 'specs-link',
-                title: 'Specification',
-                linkedFile: specsFilePath
+               // Add note link section
+               await codebolt.featurePlan.addSection(filePath, {
+                type: 'note-link',
+                title: 'Planning Note',
+                linkedFile: noteFilePath
             });
 
              // Add overview section
-             await codebolt.requirementPlan.addSection(filePath, {
+             await codebolt.featurePlan.addSection(filePath, {
               type: 'markdown',
               title: 'Overview',
               content: `# ${taskPlan.plan.name}\n\n${taskPlan.plan.description}`
           });
-            // codebolt.chat.sendMessage(`Created requirement plan: ${filePath}`, {});
+            // codebolt.chat.sendMessage(`Created feature plan: ${filePath}`, {});
 
             // Request review for the plan
-            await codebolt.requirementPlan.review(filePath);
+            await codebolt.featurePlan.review(filePath);
         }
-    } catch (reqPlanError) {
-        console.error('Failed to create requirement plan:', reqPlanError);
+    } catch (featurePlanError) {
+        console.error('Failed to create feature plan:', featurePlanError);
     }
 
     return {
         success: true,
         planId,
-        requirementPlanPath
+        featurePlanPath,
+        requirementPlanPath: featurePlanPath
     };
 }
 
@@ -256,14 +278,14 @@ codebolt.onActionBlockInvocation(async (threadContext, _metadata): Promise<PlanR
             codebolt.chat.sendMessage(error);
         }
 
-        // Find the specs file created by detail planner
-        const specsFilePath = await findLatestSpecsFile();
-        if (!specsFilePath) {
-            return { success: false, error: 'No specs file was created by the detail planner' };
+        // Find the note file created by detail planner
+        const noteFilePath = await findLatestNoteFile();
+        if (!noteFilePath) {
+            return { success: false, error: 'No note file was created by the detail planner' };
         }
 
         // Phase 2: Run Task Planner
-        const result = await runTaskPlanner(specsFilePath);
+        const result = await runTaskPlanner(noteFilePath);
 
         if (result.success) {
             codebolt.chat.sendMessage("Plan creation completed successfully", {});

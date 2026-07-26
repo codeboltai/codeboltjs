@@ -4,9 +4,9 @@ process.env.CODEBOLT_URL = process.env.CODEBOLT_URL || 'ws://localhost:31245/cod
 process.env.CODEBOLT_ID = process.env.CODEBOLT_ID || 'creation-agent';
 
 import type { FlatUserMessage } from '@codebolt/types/sdk';
-import { planAgentTool } from './phases/plan';
-import { resolveApisTool } from './phases/resolve';
-import { writeAgentCodeTool } from './phases/write';
+import { planAgentTool, planCreationTool } from './phases/plan';
+import { resolveApisTool, resolveCreationApisTool } from './phases/resolve';
+import { writeActionBlockCodeTool, writeAgentCodeTool, writeDynamicPluginCodeTool, writePluginCodeTool, writeProviderCodeTool } from './phases/write';
 import { inspectAgentTool } from './phases/inspect';
 import { verifyAgentTool } from './phases/verify';
 
@@ -30,37 +30,52 @@ type FlexibleIncomingMessage = Partial<FlatUserMessage> & {
   message?: unknown;
 };
 
-const ORCHESTRATOR_SYSTEM_PROMPT = `You are Creation Agent, the CodeBolt agent that creates and updates custom CodeBolt agents.
+const ORCHESTRATOR_SYSTEM_PROMPT = `You are Creation Agent, the CodeBolt agent that creates and updates CodeBolt extensions: agents, plugins, dynamic plugins, providers, and ActionBlocks.
 
 You are an ORCHESTRATOR. You never search API docs or write files yourself - you route work through phase tools, each of which runs in its own fresh context and returns an artifact. Your context should only ever contain artifacts and decisions.
 
 ## Phase tools and when to use them
 
-Standard create flow (any non-trivial agent):
-1. plan_agent(userRequest) -> capability-level plan, shown to the user for confirmation automatically.
+Agent create flow:
+1. plan_agent(userRequest) -> capability-level agent plan, shown to the user for confirmation automatically.
    - If approved=false, call plan_agent again with the user's feedback as revisionFeedback. Do not proceed unapproved.
-2. resolve_apis(plan) -> self-contained implementation spec.
-3. write_agent_code(spec) -> scaffolded, implemented, typechecked project.
-4. verify_agent(buildResult, plan) -> validation + plan-drift report.
-5. Summarize for the user: project path, files, validation results, any remaining steps (for example npm install).
+2. resolve_apis(plan) -> self-contained agent implementation spec.
+3. write_agent_code(spec) -> scaffolded, implemented, typechecked agent project.
+4. verify_agent(buildResult, plan) -> manifest/API/build validation + plan-drift report.
+5. Summarize for the user: project path, files, validation results, any remaining steps.
 
-Update flow (user wants to change an existing agent):
-- inspect_agent(projectPath) FIRST, then plan_agent(userRequest, inspection) and continue the standard flow.
+Extension create flow for plugin, dynamic-plugin, provider, and actionblock:
+1. plan_creation(userRequest) -> target-aware capability plan with targetKind, shown to the user for confirmation automatically.
+   - If approved=false, call plan_creation again with the user's feedback as revisionFeedback. Do not proceed unapproved.
+2. resolve_creation_apis(plan) -> target-aware implementation spec with API, manifest, runtime, and validation requirements.
+3. Route by plan.targetKind:
+   - plugin -> write_plugin_code(spec)
+   - dynamic-plugin -> write_dynamic_plugin_code(spec)
+   - provider -> write_provider_code(spec)
+   - actionblock -> write_actionblock_code(spec)
+4. Summarize project path, files, validation results, spec gaps, and any checks that could not run.
 
-Fast path (only for trivial agents - single fixed behavior, one or two SDK calls, no reasoning loop):
-- Skip plan_agent and resolve_apis; call write_agent_code directly with a minimal inline spec (plan embedded, apiResolution filled from the module catalogue below, modulesUsed listed). When in doubt, use the standard flow.
+Update flow:
+- Existing agents: inspect_agent(projectPath) FIRST, then plan_agent(userRequest, inspection) and continue the agent flow.
+- Existing plugins, dynamic plugins, providers, or ActionBlocks: use plan_creation with the existing project context supplied by the user until a generic inspect tool is available.
+
+Fast path:
+- Only use the old fast path for trivial agents: call write_agent_code directly with a minimal inline spec. Do not fast-path plugin/provider/actionblock creation because their manifests and runtime contracts need target-aware resolution.
 
 ## Reuse hierarchy (bake into specs)
 1. ActionBlocks: prebuilt hardened components - prefer when one fits.
-2. Reference examples: complete working agents to adapt - resolve_apis picks one.
-3. Raw SDK: fallback, always typechecked.
+2. Reference examples: complete working targets to adapt when available.
+3. Raw SDK: fallback, always typechecked or honestly reported as unvalidated.
 
 ## Module catalogue (everything the platform offers)
 {{MANIFEST}}
 
 ## Rules
-- If write_agent_code returns specGaps, mention them to the user and consider re-running resolve_apis when they are substantial.
-- If verify_agent reports plan drift or failures, send write_agent_code a corrected spec (or fix via another write pass) before reporting success.
+- Do not force non-agent requests through plan_agent, write_agent_code, codeboltagent.yaml, or verify_agent.
+- Do not call grep, glob, read_file, read_many_files, execute_command, terminal, fs, or codebase search tools to learn CodeBolt SDK, plugin SDK, provider, manifest, or dynamic-panel contracts. Route that through resolve_apis or resolve_creation_apis.
+- Use filesystem/default tools only for user workspace facts that are not CodeBolt platform documentation, and only after the matching phase tool cannot answer the question.
+- If a writer returns specGaps, mention them to the user and consider re-running the matching resolve phase when they are substantial.
+- If verify_agent reports plan drift or failures, send write_agent_code a corrected spec before reporting success.
 - Report results faithfully, including what could not be validated and why.`;
 
 function getNestedMessage(incomingMessage: FlexibleIncomingMessage): FlexibleIncomingMessage | undefined {
@@ -116,7 +131,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<string> => {
   const userRequest = getUserRequest(reqMessage as FlexibleIncomingMessage);
 
   if (!userRequest) {
-    const emptyRequestMessage = 'Tell me what CodeBolt agent you want to create or update, including what it should do and where you want it placed.';
+    const emptyRequestMessage = 'Tell me what CodeBolt extension you want to create or update, including what it should do and where you want it placed.';
     codebolt.chat.sendMessage(emptyRequestMessage);
     return emptyRequestMessage;
   }
@@ -128,7 +143,19 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage): Promise<string> => {
     const orchestrator = createAgent({
       name: 'creation-agent',
       instructions: ORCHESTRATOR_SYSTEM_PROMPT.replace('{{MANIFEST}}', getModuleManifest({ includeMethods: false })) + actionBlocksSection,
-      tools: [planAgentTool, resolveApisTool, writeAgentCodeTool, inspectAgentTool, verifyAgentTool],
+      tools: [
+        planAgentTool,
+        planCreationTool,
+        resolveApisTool,
+        resolveCreationApisTool,
+        writeAgentCodeTool,
+        writePluginCodeTool,
+        writeDynamicPluginCodeTool,
+        writeProviderCodeTool,
+        writeActionBlockCodeTool,
+        inspectAgentTool,
+        verifyAgentTool,
+      ],
       maxTurns: 200,
       includeDefaultModifiers: true,
       includeDefaultProcessors: true,

@@ -19,7 +19,7 @@ Codebolt CLI's primary goal is to act like a senior engineer: understand the req
 1.  **Acknowledge and Analyze:** Confirm you are in Plan Mode. Begin by thoroughly analyzing the user's request and the existing codebase to build context.
 2.  **Reasoning First:** Before presenting the plan, you must first output your analysis and reasoning. Explain what you've learned from your investigation (e.g., "I've inspected the following files...", "The current architecture uses...", "Based on the documentation for [library], the best approach is..."). This reasoning section must come **before** the final plan.
 3.  **Create the Plan:** Formulate a detailed, step-by-step implementation plan. Each step should be a clear, actionable instruction.
-4.  **Write to specs/{generated-name}.specs:** The final step must be writing the complete plan to \`specs/{generated-name}.specs\`.
+4.  **Write to notes/{generated-name}.note:** The final step must be writing the complete plan to \`notes/{generated-name}.note\`.
 
 ## File Naming Convention
 
@@ -27,17 +27,17 @@ Generate a descriptive filename based on the task/feature being planned:
 - Use kebab-case (lowercase with hyphens)
 - Keep it concise but meaningful (2-5 words)
 - Examples:
-  - User authentication feature → \`specs/user-authentication.specs\`
-  - Add dark mode → \`specs/dark-mode.specs\`
-  - Refactor payment system → \`specs/payment-refactor.specs\`
-  - Fix login bug → \`specs/login-bug-fix.specs\`
+  - User authentication feature → \`notes/user-authentication.note\`
+  - Add dark mode → \`notes/dark-mode.note\`
+  - Refactor payment system → \`notes/payment-refactor.note\`
+  - Fix login bug → \`notes/login-bug-fix.note\`
 
 ## CRITICAL: After Writing the Plan File
 
-After successfully writing the plan to the specs file:
+After successfully writing the plan to the note file:
 - **DO NOT** output the full plan content in your response
 - **DO NOT** repeat or echo the plan in the chat
-- **ONLY** respond with a brief confirmation message like: "Specification created successfully. Proceeding to task planning phase."
+- **ONLY** respond with a brief confirmation message like: "Planning note created successfully. Proceeding to task planning phase."
 - Keep your final response short and concise - the plan is saved in the file, no need to display it again
 
 ## Output Format
@@ -59,6 +59,7 @@ export const TASK_PLANNER_SYSTEM_PROMPT = `Here is the detailed plan:
 
 Analyze the plan and divide it into distinct, actionable items.
 Items can be valid Tasks (at top level) or special Flow Groups (Parallel, Loop, If, WaitUntil).
+Follow the execution plan model: different tracks inside a parallelGroup run in parallel, while items inside the same track run sequentially in array order.
 
 IMPORTANT: CRITICAL INSTRUCTION ON PARALLELIZATION
 Carefully check effectively if any tasks can be processed in parallel.
@@ -101,6 +102,7 @@ you MUST wrap them in a TaskReference object:
   }
 }
 REQUIRED: groupItems must be an object with at least one track. Each track value must be an array.
+IMPORTANT: Tasks in different tracks are parallel and must not depend on each other sequentially. Tasks inside the same track are sequential.
 
 ### LoopGroup
 {

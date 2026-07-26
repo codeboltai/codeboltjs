@@ -52,7 +52,7 @@ interface WaitUntilGroup {
 type StepGroup = ParallelGroup | LoopGroup | IfGroup | WaitUntilGroup;
 type PlanItem = TopLevelTask | TaskReference | StepGroup;
 
-interface ActionPlan {
+interface ExecutionPlan {
     planId: string;
     name: string;
     description: string;
@@ -82,7 +82,7 @@ interface SubJobDefinition {
 
 // Processing context
 interface ProcessingContext {
-    plan: ActionPlan;
+    plan: ExecutionPlan;
     rootGroupId: string;
     taskIndexRef: { value: number };
     workerAgentId?: string;
@@ -99,7 +99,7 @@ interface TaskExecutionResult {
     error?: string;
 }
 
-interface ProcessActionPlanResult {
+interface ProcessExecutionPlanResult {
     success: boolean;
     groupId?: string;
     tasksProcessed: number;
@@ -403,8 +403,8 @@ async function processAndExecuteSingleTask(
 // ================================
 
 /**
- * Processes a parallel group - executes each track's tasks sequentially
- * (within each track, tasks are processed one at a time)
+ * Processes a parallel group - executes tracks in parallel.
+ * Within each track, items are processed sequentially in array order.
  */
 async function processParallelGroup(
     group: ParallelGroup,
@@ -416,16 +416,20 @@ async function processParallelGroup(
     const allResults: TaskExecutionResult[] = [];
     const trackNames = Object.keys(group.groupItems);
 
-    // For now, process tracks sequentially (can be parallelized later if needed)
-    for (const trackName of trackNames) {
+    const trackResults = await Promise.all(trackNames.map(async (trackName) => {
         const trackItems = group.groupItems[trackName];
         codebolt.chat.sendMessage(`Processing track: ${trackName}`);
+        const results: TaskExecutionResult[] = [];
 
         for (const item of trackItems) {
-            const results = await processItem(item, ctx);
-            allResults.push(...results);
+            const itemResults = await processItem(item, ctx);
+            results.push(...itemResults);
         }
-    }
+
+        return results;
+    }));
+
+    allResults.push(...trackResults.flat());
 
     return allResults;
 }
@@ -530,42 +534,45 @@ async function processItem(
 // ================================
 
 /**
- * Processes action plan tasks ONE AT A TIME:
+ * Processes execution plan tasks ONE AT A TIME:
  * 1. Get first task
  * 2. Break it into jobs
  * 3. Execute all jobs and wait for completion
  * 4. Move to next task
  * 5. Repeat until all tasks are done
  */
-export async function processActionPlanTasks(
+export async function processExecutionPlanTasks(
     planId: string,
     workerAgentId?: string
-): Promise<ProcessActionPlanResult> {
+): Promise<ProcessExecutionPlanResult> {
     try {
         // ================================
         // Fetch plan details
         // ================================
 
         codebolt.chat.sendMessage(`Fetching plan details for ${planId}...`);
-        const planResponse = await codebolt.actionPlan.getActionPlanDetail(planId);
+        const planResponse = await codebolt.executionPlan.getDetail(planId);
 
-        if (!planResponse?.actionPlan) {
+        const executionPlanData = planResponse?.executionPlan ||
+            planResponse?.data?.executionPlan ||
+            planResponse?.response?.data?.executionPlan;
+
+        if (!executionPlanData) {
             return {
                 success: false,
                 tasksProcessed: 0,
                 tasksSucceeded: 0,
                 tasksFailed: 0,
                 totalJobs: 0,
-                error: `Failed to fetch action plan: ${planId}`
+                error: `Failed to fetch execution plan: ${planId}`
             };
         }
 
-        const actionPlanData = planResponse.actionPlan;
-        const plan: ActionPlan = {
-            planId: actionPlanData.planId || planId,
-            name: actionPlanData.name || 'Unnamed Plan',
-            description: actionPlanData.description || '',
-            tasks: actionPlanData.items || []
+        const plan: ExecutionPlan = {
+            planId: executionPlanData.planId || planId,
+            name: executionPlanData.name || 'Unnamed Plan',
+            description: executionPlanData.description || '',
+            tasks: executionPlanData.items || []
         };
 
         codebolt.chat.sendMessage(`Plan loaded: "${plan.name}" with ${plan.tasks.length} top-level items`);
@@ -661,7 +668,7 @@ export async function processActionPlanTasks(
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        codebolt.chat.sendMessage(`Error processing action plan: ${errorMessage}`);
+        codebolt.chat.sendMessage(`Error processing execution plan: ${errorMessage}`);
         return {
             success: false,
             tasksProcessed: 0,
