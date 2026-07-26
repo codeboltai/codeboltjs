@@ -422,7 +422,7 @@ function getAsset(id) {
 	return public_assets_data_default[id];
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/static.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/static.mjs
 const METHODS = /* @__PURE__ */ new Set(["HEAD", "GET"]);
 const EncodingMap = {
 	gzip: ".gz",
@@ -555,7 +555,7 @@ const findRoute = /* @__PURE__ */ (() => {
 })();
 const globalMiddleware = [toEventHandler(static_default)].filter(Boolean);
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/error/prod.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/error/prod.mjs
 const errorHandler = (error, event) => {
 	const res = defaultHandler(error, event);
 	return new NodeResponse(typeof res.body === "string" ? res.body : JSON.stringify(res.body, null, 2), res);
@@ -635,7 +635,7 @@ function createH3App(config) {
 	return h3App;
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/app.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/app.mjs
 const APP_ID = "default";
 function useNitroApp() {
 	let instance = useNitroApp._instance;
@@ -646,7 +646,7 @@ function useNitroApp() {
 	return instance;
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/error/hooks.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/error/hooks.mjs
 function _captureError(error, type) {
 	console.error(`[${type}]`, error);
 	useNitroApp().captureError?.(error, { tags: [type] });
@@ -659,7 +659,7 @@ function trapUnhandledErrors() {
 //#region #nitro/virtual/tracing
 const tracingSrvxPlugins = [];
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/presets/node/runtime/node-server.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/presets/node/runtime/node-server.mjs
 const _parsedPort = Number.parseInt(process.env.NITRO_PORT ?? process.env.PORT ?? "");
 const port = Number.isNaN(_parsedPort) ? 3e3 : _parsedPort;
 const host = process.env.NITRO_HOST || process.env.HOST;

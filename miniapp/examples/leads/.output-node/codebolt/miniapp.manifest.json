@@ -3,6 +3,10 @@
   "id": "leads",
   "title": "Lead Depository",
   "version": "0.1.0",
+  "ui": {
+    "title": "Lead Depository",
+    "route": "/"
+  },
   "runtime": {
     "handler": "server/index.mjs",
     "publicDir": "public"
@@ -88,13 +92,6 @@
           }
         }
       }
-    }
-  ],
-  "views": [
-    {
-      "name": "lead-list",
-      "title": "Leads",
-      "route": "/"
     }
   ],
   "staticAssets": [

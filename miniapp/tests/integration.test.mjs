@@ -47,12 +47,20 @@ test.after(async () => {
 
 test("one port serves static UIs without workers", async () => {
   assert.equal(new URL(urls.leads).port, new URL(urls.onboarding).port);
+  assert.deepEqual(host.apps.get("leads").manifest.ui, {
+    title: "Lead Depository",
+    route: "/",
+  });
+  assert.equal("views" in host.apps.get("leads").manifest, false);
   const response = await appFetch("leads", "/");
   assert.equal(response.status, 200);
   assert.match(await response.text(), /Lead Depository/);
+  const reactResponse = await appFetch("lead-react", "/");
+  assert.equal(reactResponse.status, 200);
+  assert.match(await reactResponse.text(), /React Leads/);
   assert.deepEqual(
     (await status()).apps.map((app) => app.active),
-    [false, false],
+    [false, false, false],
   );
 });
 
@@ -64,13 +72,14 @@ test("cached discovery lists tools without starting workers", async () => {
     [
       "leads.add-lead",
       "leads.create-task-for-lead",
+      "lead-react.add-lead",
       "onboarding.add-employee",
       "onboarding.complete-step",
     ],
   );
   assert.deepEqual(
     (await status()).apps.map((app) => app.active),
-    [false, false],
+    [false, false, false],
   );
 });
 
@@ -87,6 +96,7 @@ test("tool validation and lazy routing target one worker", async () => {
   assert.equal(valid.status, 200);
   const apps = (await status()).apps;
   assert.equal(apps.find((app) => app.id === "leads").active, true);
+  assert.equal(apps.find((app) => app.id === "lead-react").active, false);
   assert.equal(apps.find((app) => app.id === "onboarding").active, false);
 });
 
@@ -115,6 +125,26 @@ test("storage and tools remain isolated between MiniApps", async () => {
   ).then((response) => response.json());
   assert.equal(employeesAfter.documents.length, 1);
   assert.equal((await appFetch("leads", "/api/leads").then((r) => r.json())).documents.length, 1);
+});
+
+test("app-local tool routes accept unqualified tool names", async () => {
+  const created = await appFetch("lead-react", "/__codebolt/tools/add-lead", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      id: "react-lead-1",
+      name: "Riley Chen",
+      company: "Atlas",
+      email: "riley@example.test",
+    }),
+  });
+  assert.equal(created.status, 200);
+
+  const leads = await appFetch("lead-react", "/api/leads").then((response) =>
+    response.json(),
+  );
+  assert.equal(leads.documents.length, 1);
+  assert.equal(leads.documents[0].name, "Riley Chen");
 });
 
 test("task capability supports filtered count without N+1 calls", async () => {

@@ -19,7 +19,6 @@ Use the root export from MiniApp code. Use the `./nitro` export only from
 import {
   defineTool,
   defineCollection,
-  defineView,
   useMiniApp,
 } from "@codebolt/miniapp";
 ```
@@ -76,20 +75,6 @@ export default defineCollection({
       email: { type: "string" },
     },
   },
-});
-```
-
-### `defineView()`
-
-Declares a visible MiniApp view for manifest/catalog metadata.
-
-```ts
-import { defineView } from "@codebolt/miniapp";
-
-export default defineView({
-  name: "lead-list",
-  title: "Leads",
-  route: "/",
 });
 ```
 
@@ -162,6 +147,7 @@ export default defineConfig({
       id: "leads",
       title: "Lead Depository",
       version: "0.1.0",
+      route: "/",
     }),
   ],
 });
@@ -169,11 +155,15 @@ export default defineConfig({
 
 During `nitro build`, `codeboltMiniApp()`:
 
-- scans `server/tools`, `server/collections`, and `server/views`
+- scans `server/tools` and `server/collections`
 - loads default-exported MiniApp definitions
 - creates virtual modules for tool lookup and validation
 - registers `POST /__codebolt/tools/:name`
 - emits `.output/codebolt/miniapp.manifest.json`
+
+Input validators are compiled during the build and emitted as standalone
+functions. Do not move Ajv compilation back into the request path; Cloudflare
+Workers reject runtime string-based code generation.
 
 Without `codeboltMiniApp()`, Nitro can still bundle imports from
 `@codebolt/miniapp`, but CodeBolt tool files will not be discovered, tool routes
@@ -189,8 +179,6 @@ server/
     add-lead.ts
   collections/
     leads.ts
-  views/
-    lead-list.ts
 public/
   index.html
 nitro.config.ts
@@ -199,7 +187,7 @@ package.json
 
 Nitro owns normal API route handling under `server/api`. CodeBolt-specific
 definition scanning is limited to `server/tools`, `server/collections`, and
-`server/views`.
+the single UI entry declared in `codeboltMiniApp({ title, route })`.
 
 ## Package Boundary
 
@@ -210,3 +198,11 @@ This package intentionally keeps two concepts separate:
 
 That allows app code to stay framework-neutral while keeping the current Nitro
 integration explicit and easy to customize in `nitro.config.ts`.
+
+## Related Docs
+
+- `../../packages/host/README.md`: local host and worker runtime.
+- `../../examples/leads/README.md`: lead depository example.
+- `../../examples/onboarding/README.md`: onboarding example.
+- `../../skills/create-miniapp/SKILL.md`: agent instructions for authoring new
+  MiniApps.

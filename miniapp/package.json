@@ -8,8 +8,9 @@
   },
   "scripts": {
     "build:leads": "nitro build examples/leads",
+    "build:lead-react": "pnpm --dir examples/lead-react build",
     "build:onboarding": "nitro build examples/onboarding",
-    "build:examples": "pnpm build:leads && pnpm build:onboarding",
+    "build:examples": "pnpm build:leads && pnpm build:lead-react && pnpm build:onboarding",
     "build:remote-node": "node scripts/build-target.mjs node",
     "build:remote-cloudflare": "node scripts/build-target.mjs cloudflare",
     "gate:build": "nitro build gates/mountable-output && node gates/mountable-output/generate-assets.mjs",

@@ -10,6 +10,7 @@ const urls = await host.listen();
 
 console.log(`MiniApp host listening on one port: ${urls.port}`);
 console.log(`Leads: ${urls.leads}`);
+console.log(`React Leads: ${urls.leadReact}`);
 console.log(`Onboarding: ${urls.onboarding}`);
 
 for (const signal of ["SIGINT", "SIGTERM"]) {

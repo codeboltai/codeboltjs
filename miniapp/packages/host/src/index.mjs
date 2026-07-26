@@ -131,7 +131,7 @@ export async function createMiniAppHost({
   logger = console,
 } = {}) {
   const apps = new Map();
-  for (const id of ["leads", "onboarding"]) {
+  for (const id of ["leads", "lead-react", "onboarding"]) {
     const app = await loadApp(rootDir, id);
     apps.set(id, app);
   }
@@ -167,26 +167,28 @@ export async function createMiniAppHost({
       const toolMatch = url.pathname.match(/^\/__codebolt\/tools\/(.+)$/);
       if (request.method === "POST" && toolMatch) {
         const qualifiedName = decodeURIComponent(toolMatch[1]);
-        const tool = tools.find((candidate) => candidate.qualifiedName === qualifiedName);
-        if (!tool) {
-          await writeWebResponse(json({ error: "TOOL_NOT_FOUND" }, 404), nodeResponse, () => {});
+        if (qualifiedName.includes(".")) {
+          const tool = tools.find((candidate) => candidate.qualifiedName === qualifiedName);
+          if (!tool) {
+            await writeWebResponse(json({ error: "TOOL_NOT_FOUND" }, 404), nodeResponse, () => {});
+            return;
+          }
+          const appId = qualifiedName.slice(0, qualifiedName.indexOf("."));
+          const runtime = runtimes.get(appId);
+          const input = await toWebRequest(request, url.origin).text();
+          const response = await runtime.fetch(
+            new Request(
+              `http://${appId}.localhost/__codebolt/tools/${encodeURIComponent(tool.name)}`,
+              {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: input,
+              },
+            ),
+          );
+          await writeWebResponse(response, nodeResponse, () => {});
           return;
         }
-        const appId = qualifiedName.slice(0, qualifiedName.indexOf("."));
-        const runtime = runtimes.get(appId);
-        const input = await toWebRequest(request, url.origin).text();
-        const response = await runtime.fetch(
-          new Request(
-            `http://${appId}.localhost/__codebolt/tools/${encodeURIComponent(tool.name)}`,
-            {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: input,
-            },
-          ),
-        );
-        await writeWebResponse(response, nodeResponse, () => {});
-        return;
       }
 
       const reloadMatch = url.pathname.match(/^\/__codebolt\/reload\/([^/]+)$/);
@@ -248,12 +250,15 @@ export async function createMiniAppHost({
       return {
         port: address.port,
         leads: `http://leads.localhost:${address.port}`,
+        leadReact: `http://lead-react.localhost:${address.port}`,
         onboarding: `http://onboarding.localhost:${address.port}`,
       };
     },
     async close() {
       await Promise.all([...runtimes.values()].map((runtime) => runtime.stop()));
       if (server.listening) {
+        server.closeIdleConnections?.();
+        server.closeAllConnections?.();
         await new Promise((resolvePromise, reject) =>
           server.close((error) => (error ? reject(error) : resolvePromise())),
         );

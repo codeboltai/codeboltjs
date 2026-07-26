@@ -15,7 +15,7 @@ modify the parent `codeboltjs` workspace.
 - One CodeBolt host can serve multiple MiniApps on one local port.
 - Static assets and cached tool metadata can be read without starting app workers.
 - Each MiniApp can run in its own Worker Thread for runtime isolation.
-- MiniApps can expose CodeBolt tools, collections, views, and API routes from a
+- MiniApps can expose CodeBolt tools, collections, one UI entry, and API routes from a
   simple file structure.
 - The same MiniApp source can build for local CodeBolt hosting, a Node server,
   and Cloudflare Workers.
@@ -34,11 +34,26 @@ miniapp/
     host/                 # Local host process and worker runtime
   examples/
     leads/                # Lead depository MiniApp
+    lead-react/           # Simple Vite React lead tracker MiniApp
     onboarding/           # Employee onboarding MiniApp
   gates/                  # Focused compatibility checks
   scripts/                # Build helpers for target-specific output
   tests/                  # Runtime, capability, and remote-target tests
+  skills/                 # Agent-facing guidance for creating MiniApps
 ```
+
+## Documentation Map
+
+- `packages/miniapp/README.md`: SDK and Nitro adapter reference.
+- `packages/host/README.md`: local host, worker lifecycle, capabilities, and
+  routing behavior.
+- `examples/leads/README.md`: lead depository example.
+- `examples/onboarding/README.md`: employee onboarding example.
+- `gates/README.md`: feasibility gates and what they prove.
+- `tests/README.md`: test suite breakdown.
+- `scripts/README.md`: helper scripts.
+- `skills/create-miniapp/SKILL.md`: instructions another agent can use to
+  create or extend MiniApps.
 
 ## Packages
 
@@ -50,7 +65,6 @@ The root export is the app-author/runtime API:
 import {
   defineTool,
   defineCollection,
-  defineView,
   useMiniApp,
 } from "@codebolt/miniapp";
 ```
@@ -59,7 +73,6 @@ It provides:
 
 - `defineTool()` for declaring tool metadata and handlers
 - `defineCollection()` for declaring persisted collection schemas
-- `defineView()` for declaring visible MiniApp views
 - `useMiniApp()` for accessing runtime capabilities such as `db`, `blob`, and
   `codebolt.tasks`
 
@@ -85,7 +98,6 @@ It provides:
 ```text
 server/tools
 server/collections
-server/views
 ```
 
 It then:
@@ -128,6 +140,7 @@ export default defineConfig({
       id: "leads",
       title: "Lead Depository",
       version: "0.1.0",
+      route: "/",
     }),
   ],
 });
@@ -174,11 +187,16 @@ export default defineHandler((event) => useMiniApp(event).db.list("leads"));
 | Target | Command | Nitro preset | Output |
 | --- | --- | --- | --- |
 | Local CodeBolt host | `pnpm build:leads` | `standard` | `examples/leads/.output` |
+| Local React example | `pnpm build:lead-react` | `standard` | `examples/lead-react/.output` |
 | Node server | `pnpm build:remote-node` | `node-server` | `examples/leads/.output-node` |
 | Cloudflare Worker | `pnpm build:remote-cloudflare` | `cloudflare-module` | `examples/leads/.output-cloudflare` |
 
 The local target uses Nitro's built-in `standard` preset with `serveStatic:
 false`, because the CodeBolt host serves static assets itself.
+
+Tool validators are generated during the Nitro build. This is required for
+Cloudflare Workers because the runtime disallows string-based code generation
+such as request-time Ajv compilation.
 
 ## Manifest
 
@@ -192,11 +210,11 @@ The manifest is the contract between the build step and the host runtime. It
 contains:
 
 - MiniApp identity: `id`, `title`, `version`
+- UI entry metadata: `ui.title`, `ui.route`
 - runtime entrypoint: `runtime.handler`
 - static asset directory: `runtime.publicDir`
 - tool catalog with qualified names and JSON schemas
 - collection metadata
-- view metadata
 - static asset list and sizes
 
 The local host reads this manifest before starting workers, so tool discovery and
@@ -225,6 +243,7 @@ pnpm start
 The local applications are available at:
 
 - `http://leads.localhost:4310`
+- `http://lead-react.localhost:4310`
 - `http://onboarding.localhost:4310`
 
 Host endpoints:
@@ -237,6 +256,7 @@ Example qualified tool names:
 
 - `leads.add-lead`
 - `leads.create-task-for-lead`
+- `lead-react.add-lead`
 - `onboarding.add-employee`
 - `onboarding.complete-step`
 
@@ -282,8 +302,8 @@ how they are verified.
 
 - This is a prototype, not a hardened production runtime.
 - Worker Threads are crash/runtime isolation, not a hostile-code sandbox.
-- The local host currently mounts the two example app ids explicitly:
-  `leads` and `onboarding`.
+- The local host currently mounts the example app ids explicitly:
+  `leads`, `lead-react`, and `onboarding`.
 - Local capabilities are backed by filesystem storage for testing and demo use.
 - The Cloudflare and Node remote tests use a mock CodeBolt Cloud capability
   endpoint.

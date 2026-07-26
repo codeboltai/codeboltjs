@@ -10,7 +10,7 @@ Pinned version: `nitro@3.0.260610-beta`
 | `nitro.options.virtual` | Documented configuration | Generated tool registry | Tool invocation test |
 | `nitro.options.handlers` | Documented configuration | Internal generated tool route | Tool invocation test |
 | `compiled` hook | Public typed hook | Emit `miniapp.manifest.json` | Manifest discovery test |
-| `serverDir` | Documented | Scan `tools`, `collections`, and `views` | Example manifests |
+| `serverDir` | Documented | Scan `tools` and `collections` | Example manifests |
 | `nitro/h3` handlers | Documented | Example APIs and generated tool handler | Integration tests |
 
 External Nitro preset registration is intentionally not used. Nitro v3 recommends

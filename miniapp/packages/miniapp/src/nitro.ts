@@ -8,16 +8,16 @@ import type { Nitro, NitroConfig, NitroModule } from "nitro/types";
 import type {
   CollectionDefinition,
   ToolDefinition,
-  ViewDefinition,
 } from "./index";
 
 export interface MiniAppModuleOptions {
   id: string;
   title: string;
   version?: string;
+  route?: string;
 }
 
-type Definition = ToolDefinition | CollectionDefinition | ViewDefinition;
+type Definition = ToolDefinition | CollectionDefinition;
 
 function localTarget(): NitroConfig {
   return {
@@ -89,7 +89,7 @@ async function allFiles(directory: string): Promise<string[]> {
 async function readDefinition(path: string): Promise<Definition> {
   const jiti = createJiti(import.meta.url, { interopDefault: true });
   const definition = await jiti.import(path, { default: true }) as Definition;
-  if (!definition || !["tool", "collection", "view"].includes(definition.kind)) {
+  if (!definition || !["tool", "collection"].includes(definition.kind)) {
     throw new TypeError(`${path} does not default-export a MiniApp definition.`);
   }
   return definition;
@@ -120,13 +120,11 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
       const serverDir = String(nitro.options.serverDir);
       const toolFiles = await definitionFiles(resolve(serverDir, "tools"));
       const collectionFiles = await definitionFiles(resolve(serverDir, "collections"));
-      const viewFiles = await definitionFiles(resolve(serverDir, "views"));
 
       const tools = await Promise.all(toolFiles.map(readDefinition)) as ToolDefinition[];
       const collections = await Promise.all(
         collectionFiles.map(readDefinition),
       ) as CollectionDefinition[];
-      const views = await Promise.all(viewFiles.map(readDefinition)) as ViewDefinition[];
 
       const names = new Set<string>();
       for (const tool of tools) {
@@ -195,6 +193,10 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
           id: options.id,
           title: options.title,
           version: options.version ?? "0.0.0",
+          ui: {
+            title: options.title,
+            route: options.route ?? "/",
+          },
           runtime: {
             handler: relative(
               nitro.options.output.dir,
@@ -213,7 +215,6 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
             outputSchema: tool.outputSchema,
           })),
           collections: collections.map(({ name, schema }) => ({ name, schema })),
-          views: views.map(({ name, title, route }) => ({ name, title, route })),
           staticAssets: staticAssets.sort((a, b) => a.path.localeCompare(b.path)),
         };
         await writeFile(

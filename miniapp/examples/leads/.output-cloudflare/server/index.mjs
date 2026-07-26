@@ -495,7 +495,7 @@ const findRoute = /* @__PURE__ */ (() => {
 })();
 [].filter(Boolean);
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/error/prod.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/error/prod.mjs
 const errorHandler = (error, event) => {
 	const res = defaultHandler(error, event);
 	return new FastResponse(typeof res.body === "string" ? res.body : JSON.stringify(res.body, null, 2), res);
@@ -574,7 +574,7 @@ function createH3App(config) {
 	return h3App;
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/runtime/internal/app.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/runtime/internal/app.mjs
 const APP_ID = "default";
 function useNitroApp() {
 	let instance = useNitroApp._instance;
@@ -591,7 +591,7 @@ function useNitroHooks() {
 	return nitroApp.hooks = new HookableCore();
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/presets/cloudflare/runtime/_module-handler.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/presets/cloudflare/runtime/_module-handler.mjs
 function createHandler(hooks) {
 	const nitroApp = useNitroApp();
 	const nitroHooks = useNitroHooks();
@@ -665,7 +665,7 @@ function augmentReq(cfReq, ctx) {
 	req.waitUntil = ctx.context?.waitUntil.bind(ctx.context);
 }
 //#endregion
-//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_3a6f9388cbede0b398fffd1f4bb852c0/node_modules/nitro/dist/presets/cloudflare/runtime/cloudflare-module.mjs
+//#region ../../node_modules/.pnpm/nitro@3.0.260610-beta_choki_fd8c0cdcd6696a03f99d65408a4a3a5b/node_modules/nitro/dist/presets/cloudflare/runtime/cloudflare-module.mjs
 var cloudflare_module_default = createHandler({ fetch(cfRequest, env, context, url) {
 	if (env.ASSETS && isPublicAssetURL(url.pathname)) return env.ASSETS.fetch(cfRequest);
 } });

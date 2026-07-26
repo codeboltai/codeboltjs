@@ -1,0 +1,19 @@
+{
+  "name": "@codebolt/example-lead-react-miniapp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build && nitro build"
+  },
+  "dependencies": {
+    "@codebolt/miniapp": "workspace:*",
+    "@vitejs/plugin-react": "^4.3.4",
+    "nitro": "3.0.260610-beta",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

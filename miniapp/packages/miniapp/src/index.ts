@@ -84,13 +84,6 @@ export interface CollectionDefinition {
   schema: JsonSchema;
 }
 
-export interface ViewDefinition {
-  kind: "view";
-  name: string;
-  title: string;
-  route: string;
-}
-
 export function defineTool<TInput = unknown, TOutput = unknown>(
   definition: Omit<ToolDefinition<TInput, TOutput>, "kind">,
 ): ToolDefinition<TInput, TOutput> {
@@ -101,12 +94,6 @@ export function defineCollection(
   definition: Omit<CollectionDefinition, "kind">,
 ): CollectionDefinition {
   return { kind: "collection", ...definition };
-}
-
-export function defineView(
-  definition: Omit<ViewDefinition, "kind">,
-): ViewDefinition {
-  return { kind: "view", ...definition };
 }
 
 interface RuntimeBridge {
