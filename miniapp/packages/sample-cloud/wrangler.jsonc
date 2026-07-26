@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "codebolt-miniapp-sample-cloud",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": true,
+  "kv_namespaces": [
+    {
+      "binding": "SAMPLE_CLOUD_STORE",
+      "id": "35a6f9058b21499e9118f79894d15f2a"
+    }
+  ]
+}

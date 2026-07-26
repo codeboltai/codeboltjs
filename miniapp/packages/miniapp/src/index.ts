@@ -133,6 +133,8 @@ function remoteBridge(event: MiniAppEvent): RuntimeBridge {
     }
   ).__env__;
   const cloudUrl =
+    event.req.headers.get("x-codebolt-cloud-url") ??
+    event.req.headers.get("x-codebolt-capability-url") ??
     processEnvironment?.CODEBOLT_CLOUD_URL ?? workerEnvironment?.CODEBOLT_CLOUD_URL;
   if (!token || !cloudUrl) {
     throw new Error("Remote MiniApp execution context is unavailable.");

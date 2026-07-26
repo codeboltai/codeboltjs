@@ -18,9 +18,9 @@ function usage() {
     "  --site-id <id>              Optional: reuse an existing Netlify site",
     "  --site-name <name>          Optional: override Netlify name; defaults to MiniApp id",
     "  --account-slug <slug>       Optional: create new Netlify site under this team",
-    "  --app <slug-or-id>          Deno app slug/id, or DENO_APP / DENO_APP_ID / DENO_APP_SLUG",
-    "  --team-id <id>              Vercel team id, or VERCEL_TEAM_ID / VERCEL_ORG_ID",
-    "  --project <name-or-id>      Vercel project name/id, or VERCEL_PROJECT / VERCEL_PROJECT_ID",
+    "  --app <slug-or-id>          Optional Deno app override; defaults to MiniApp manifest id",
+    "  --team-id <id>              Optional Vercel team id, or VERCEL_TEAM_ID / VERCEL_ORG_ID",
+    "  --project <name-or-id>      Optional Vercel existing-project override",
     "",
     "Deploy options:",
     "  --prod                      Deploy to production when provider supports it",
@@ -34,7 +34,7 @@ function usage() {
     "Examples:",
     "  codebolt-miniapp deploy examples/lead-react --target vercel --dry-run",
     "  codebolt-miniapp deploy examples/leads --target netlify --token nfp_...",
-    "  codebolt-miniapp deploy examples/leads --target deno --app leads --deno-token ddo_...",
+    "  codebolt-miniapp deploy examples/lead-react --target deno --deno-token ddo_...",
   ].join("\n");
 }
 

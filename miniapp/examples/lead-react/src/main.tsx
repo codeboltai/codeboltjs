@@ -27,16 +27,12 @@ function App() {
     setSaving(true);
     const form = event.currentTarget;
     const input = Object.fromEntries(new FormData(form)) as Omit<Lead, "id">;
-    await fetch("/__codebolt/tools/add-lead", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        id: crypto.randomUUID(),
-        ...input,
-      }),
-    });
+    const lead = {
+      id: crypto.randomUUID(),
+      ...input,
+    };
+    setLeads((current) => [lead, ...current]);
     form.reset();
-    await refresh();
     setSaving(false);
   }
 

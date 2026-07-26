@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeBolt MiniApp Router Review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #647087;
+      --line: #d9deea;
+      --accent: #0f766e;
+      --accent-soft: #dff7f4;
+      --warn: #9a5800;
+      --warn-soft: #fff3d6;
+      --bad: #b42318;
+      --bad-soft: #fee4e2;
+      --code: #101828;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 22px 56px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 10px; }
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    li { margin: 4px 0; }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 16px 0;
+      padding: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    code, pre {
+      color: var(--code);
+      font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+      font-size: 13px;
+    }
+
+    code {
+      background: #eef1f7;
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+
+    pre {
+      background: #f3f5f9;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 10px 0 0;
+      padding: 12px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .muted { color: var(--muted); }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .ok { background: var(--accent-soft); color: var(--accent); }
+    .warn { background: var(--warn-soft); color: var(--warn); }
+    .bad { background: var(--bad-soft); color: var(--bad); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcff;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fbfcff;
+      min-height: 92px;
+    }
+
+    .step strong { display: block; margin-bottom: 4px; }
+
+    @media (max-width: 850px) {
+      .grid, .flow { grid-template-columns: 1fr; }
+      main { padding: 24px 14px 42px; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>CodeBolt MiniApp Router Review</h1>
+      <p class="muted">Review artifact for the <code>codebolt.app</code> MiniApp routing, auth handoff, sample capability cloud, and lead-react deploy changes.</p>
+      <p>
+        <span class="pill ok">Router deployed</span>
+        <span class="pill ok">Sample cloud deployed</span>
+        <span class="pill ok">Edge auth deployed</span>
+        <span class="pill ok">Portal deployed</span>
+        <span class="pill warn">sample-cloud is test-only</span>
+      </p>
+    </header>
+
+    <section>
+      <h2>Executive Summary</h2>
+      <p>
+        This change introduces a Cloudflare Worker router for <code>codebolt.app</code> so one deployed MiniApp version can serve many install subdomains without exposing execution tokens to the browser.
+      </p>
+      <p>
+        The router resolves an install record from KV, performs app-domain auth when required, mints a scoped execution token through the sample capability cloud, injects that token only into the upstream server request, and proxies to the provider deployment such as Netlify.
+      </p>
+      <div class="grid">
+        <div class="box">
+          <h3>Public Surface</h3>
+          <p><code>codebolt.app</code> handles health and auth paths. <code>&lt;installId&gt;.codebolt.app</code> handles installed MiniApps.</p>
+        </div>
+        <div class="box">
+          <h3>Auth Boundary</h3>
+          <p>Browser gets a signed <code>cb_app_session</code> cookie. Browser never gets the MiniApp execution token.</p>
+        </div>
+        <div class="box">
+          <h3>Capability Boundary</h3>
+          <p><code>sample-cloud</code> provides test <code>db</code>, <code>blob</code>, and <code>tasks</code> capabilities until this moves into the real API.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Runtime Flow</h2>
+      <div class="flow">
+        <div class="step">
+          <strong>1. Browser Opens App</strong>
+          <code>https://leadreact.codebolt.app/</code>
+          <p>Cloudflare route invokes the MiniApp router Worker.</p>
+        </div>
+        <div class="step">
+          <strong>2. Router Resolves Install</strong>
+          <code>MINIAPP_INSTALLS: install:leadreact</code>
+          <p>The record gives upstream URL, capability URL, workspace, access mode, and app id.</p>
+        </div>
+        <div class="step">
+          <strong>3. Auth Runs If Needed</strong>
+          <code>access: authenticated/private</code>
+          <p>Unauthenticated users redirect through portal and edge-api login-code redemption.</p>
+        </div>
+        <div class="step">
+          <strong>4. Router Proxies</strong>
+          <code>x-codebolt-execution-token</code>
+          <p>The upstream MiniApp receives server-only execution headers and calls sample-cloud capabilities.</p>
+        </div>
+      </div>
+      <pre>Browser
+  -> leadreact.codebolt.app
+  -> codebolt-miniapp-router Worker
+  -> MINIAPP_INSTALLS KV
+  -> optional codebolt.app/auth/start -> portal.codebolt.ai/miniapp-auth -> edge-api login code -> codebolt.app/auth/callback
+  -> sample-cloud /token
+  -> lead-react.netlify.app
+  -> sample-cloud /capabilities/db.list</pre>
+    </section>
+
+    <section>
+      <h2>What Changed</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Change</th>
+            <th>Why It Matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MiniApp router Worker</td>
+            <td>Added <code>packages/miniapp-router-worker</code> with route parsing, signed cookies, KV install lookup, auth start/callback/logout, token minting, and request proxying.</td>
+            <td>Creates the app-domain control plane for <code>*.codebolt.app</code>.</td>
+          </tr>
+          <tr>
+            <td>Router access model</td>
+            <td>Supports <code>public</code>, <code>authenticated</code>, and private owner/allow-list install modes.</td>
+            <td>Lets test installs force login without requiring per-user deployments.</td>
+          </tr>
+          <tr>
+            <td>Router proxy headers</td>
+            <td>Strips incoming browser <code>cookie</code>, <code>authorization</code>, and token headers; injects <code>authorization</code>, <code>x-codebolt-execution-token</code>, and <code>x-codebolt-cloud-url</code>.</td>
+            <td>Keeps execution token server-side while letting deployed MiniApp functions locate the capability cloud.</td>
+          </tr>
+          <tr>
+            <td><code>@codebolt/miniapp</code></td>
+            <td><code>useMiniApp(event)</code> now reads <code>x-codebolt-cloud-url</code> or <code>x-codebolt-capability-url</code> before env vars.</td>
+            <td>Allows one provider deployment to serve many install records with different capability backends.</td>
+          </tr>
+          <tr>
+            <td>Sample cloud</td>
+            <td>Refactored into runtime-neutral core, Node CLI server, and Cloudflare Worker entrypoint with KV storage.</td>
+            <td>Provides a deployed test capability server for <code>db</code>, <code>blob</code>, and <code>tasks</code>.</td>
+          </tr>
+          <tr>
+            <td>Edge API auth</td>
+            <td>Added MiniApp login-code create/redeem handlers and D1 migration <code>006_miniapp_login_codes.sql</code>.</td>
+            <td>Gives the app-domain router a real CodeBolt account handoff without reading portal cookies/localStorage.</td>
+          </tr>
+          <tr>
+            <td>Portal</td>
+            <td>Added protected <code>/miniapp-auth</code> route and fixed protected-route redirect query preservation.</td>
+            <td>Lets signed-in portal users mint a one-time MiniApp login code and return to <code>codebolt.app</code>.</td>
+          </tr>
+          <tr>
+            <td>Lead React example</td>
+            <td>Rebuilt/redeployed the Netlify MiniApp after the SDK/router header fix.</td>
+            <td>Fixes the live <code>/api/leads</code> 500 and the frontend <code>documents.length</code> crash path.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Changed Files</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Repo</th>
+            <th>Files</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>miniapp</code></td>
+            <td>
+              <code>packages/miniapp-router-worker/*</code><br>
+              <code>packages/sample-cloud/*</code><br>
+              <code>packages/miniapp/src/index.ts</code><br>
+              <code>tests/router-worker.test.mjs</code>, <code>tests/sample-cloud.test.mjs</code><br>
+              package scripts, lockfile, docs, lead-react build artifacts
+            </td>
+            <td>Main router, capability cloud, SDK runtime contract, tests, and deploy wiring.</td>
+          </tr>
+          <tr>
+            <td><code>codebolt-edge-api</code></td>
+            <td>
+              <code>src/handlers/authHandlers/miniappLoginCodeHandlers.ts</code><br>
+              <code>src/routes/authRoutes.ts</code><br>
+              <code>src/db/migrations/006_miniapp_login_codes.sql</code><br>
+              <code>src/types/base.ts</code>
+            </td>
+            <td>MiniApp auth-code issuance and redemption API.</td>
+          </tr>
+          <tr>
+            <td><code>codeboltportalcloudflare</code></td>
+            <td>
+              <code>src/views/auth/MiniAppAuth/*</code><br>
+              <code>src/configs/routes.config/protectedRoutes.ts</code><br>
+              <code>src/components/route/ProtectedRoute.tsx</code><br>
+              <code>src/views/auth/SignUp/SignUp.tsx</code>
+            </td>
+            <td>Portal-to-app-domain login handoff and redirect preservation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Live Deployment State</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Status</th>
+            <th>URL or Route</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MiniApp router</td>
+            <td><span class="pill ok">deployed</span></td>
+            <td><code>codebolt.app/*</code>, <code>*.codebolt.app/*</code></td>
+          </tr>
+          <tr>
+            <td>Sample cloud</td>
+            <td><span class="pill ok">deployed</span></td>
+            <td><code>https://codebolt-miniapp-sample-cloud.arrowai.workers.dev</code></td>
+          </tr>
+          <tr>
+            <td>Lead React MiniApp</td>
+            <td><span class="pill ok">deployed</span></td>
+            <td><code>https://lead-react.netlify.app</code> and routed through <code>leadreact.codebolt.app</code></td>
+          </tr>
+          <tr>
+            <td>Edge API</td>
+            <td><span class="pill ok">deployed</span></td>
+            <td><code>https://api.codebolt.ai/api/auth/miniapp-login-codes</code></td>
+          </tr>
+          <tr>
+            <td>Portal</td>
+            <td><span class="pill ok">deployed</span></td>
+            <td><code>https://portal.codebolt.ai/miniapp-auth</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Current seeded install</h3>
+      <pre>{
+  "id": "leadreact",
+  "appId": "lead-react",
+  "upstreamUrl": "https://lead-react.netlify.app",
+  "capabilityUrl": "https://codebolt-miniapp-sample-cloud.arrowai.workers.dev",
+  "workspaceId": "public-leadreact",
+  "access": "authenticated",
+  "enabled": true
+}</pre>
+    </section>
+
+    <section>
+      <h2>Review Checklist</h2>
+      <ul>
+        <li>Verify <code>leadreact.codebolt.app</code> redirects to <code>codebolt.app/auth/start</code> when no <code>cb_app_session</code> cookie is present.</li>
+        <li>Verify portal login returns to <code>codebolt.app/auth/callback</code> and sets a <code>.codebolt.app</code> cookie.</li>
+        <li>After auth, verify <code>/api/leads</code> returns <code>{ "documents": [...] }</code> and the React UI no longer crashes on <code>documents.length</code>.</li>
+        <li>Confirm browser devtools do not expose <code>x-codebolt-execution-token</code> in frontend JavaScript; it should be added only by the router to upstream server requests.</li>
+        <li>Confirm install access behavior for <code>public</code>, <code>authenticated</code>, and owner/allow-list private installs.</li>
+        <li>Review sample-cloud limitation before production: tokens are unsigned development tokens and capability storage is test KV state.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Validation</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>node --test tests\sample-cloud.test.mjs</code></td>
+            <td><span class="pill ok">passed</span></td>
+          </tr>
+          <tr>
+            <td><code>node --test tests\router-worker.test.mjs</code></td>
+            <td><span class="pill ok">passed</span></td>
+          </tr>
+          <tr>
+            <td>Sample cloud deployed health and capability smoke</td>
+            <td><span class="pill ok">passed</span></td>
+          </tr>
+          <tr>
+            <td><code>leadreact.codebolt.app/api/leads</code> after SDK/router header fix</td>
+            <td><span class="pill ok">returned 200 before auth mode was enabled; now unauthenticated calls redirect</span></td>
+          </tr>
+          <tr>
+            <td>Repo-wide TypeScript in edge-api and portal</td>
+            <td><span class="pill warn">pre-existing unrelated errors remain; changed handlers/build path deployed successfully</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Known Risks and Follow-Ups</h2>
+      <ul>
+        <li><strong>sample-cloud is not production auth.</strong> It mints unsigned dev tokens and should be replaced by real CodeBolt capability execution tokens.</li>
+        <li><strong>Install metadata is currently in KV.</strong> This is good for v1 testing, but production should move install ownership, sharing, and deployment metadata into the real API.</li>
+        <li><strong>Same-zone routing needs discipline.</strong> The router should proxy provider deployments such as Netlify; avoid same-zone Worker route fetch loops.</li>
+        <li><strong>Public share behavior is not fully modeled yet.</strong> The router has <code>public</code> and <code>authenticated</code>; a richer share principal can be added later.</li>
+        <li><strong>Frontend error handling should still be hardened.</strong> The backend 500 is fixed, but React should not assume successful API shape after any failed fetch.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

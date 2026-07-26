@@ -32,6 +32,8 @@ miniapp/
   packages/
     miniapp/              # @codebolt/miniapp SDK and Nitro adapter
     host/                 # Local host process and worker runtime
+    miniapp-router-worker/ # codebolt.app Cloudflare Worker router
+    sample-cloud/         # test CodeBolt Cloud capability service
   examples/
     leads/                # Lead depository MiniApp
     lead-react/           # Simple Vite React lead tracker MiniApp
@@ -47,6 +49,10 @@ miniapp/
 - `packages/miniapp/README.md`: SDK and Nitro adapter reference.
 - `packages/host/README.md`: local host, worker lifecycle, capabilities, and
   routing behavior.
+- `packages/miniapp-router-worker/README.md`: Cloudflare Worker router for
+  `codebolt.app` MiniApp install subdomains.
+- `packages/sample-cloud/README.md`: test capability cloud for local and
+  deployed MiniApp capability calls.
 - `examples/leads/README.md`: lead depository example.
 - `examples/onboarding/README.md`: employee onboarding example.
 - `gates/README.md`: feasibility gates and what they prove.

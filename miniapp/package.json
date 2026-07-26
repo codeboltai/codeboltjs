@@ -19,11 +19,16 @@
     "gates": "pnpm gate:build && pnpm gate:mount && pnpm gate:worker",
     "start": "node packages/host/src/cli.mjs --dir examples",
     "miniapp": "node packages/miniappmanager/src/cli.mjs",
+    "sample-cloud": "node packages/sample-cloud/src/cli.mjs",
+    "sample-cloud:deploy": "pnpm exec wrangler deploy -c packages/sample-cloud/wrangler.jsonc",
+    "miniapp-router:deploy": "pnpm exec wrangler deploy -c packages/miniapp-router-worker/wrangler.jsonc",
     "test:capabilities": "node --test tests/capabilities.test.mjs",
+    "test:sample-cloud": "node --test tests/sample-cloud.test.mjs",
+    "test:router-worker": "node --test tests/router-worker.test.mjs",
     "test:integration": "node --test tests/integration.test.mjs",
     "test:remote-cloudflare": "node --test tests/remote-cloudflare.test.mjs",
     "test:remote-node": "node --test tests/remote-node.test.mjs",
-    "test": "pnpm gates && pnpm build:examples && pnpm test:capabilities && pnpm test:integration && pnpm build:remote-node && pnpm test:remote-node && pnpm build:remote-cloudflare && pnpm test:remote-cloudflare"
+    "test": "pnpm gates && pnpm build:examples && pnpm test:capabilities && pnpm test:sample-cloud && pnpm test:router-worker && pnpm test:integration && pnpm build:remote-node && pnpm test:remote-node && pnpm build:remote-cloudflare && pnpm test:remote-cloudflare"
   },
   "devDependencies": {
     "jiti": "^2.6.1",

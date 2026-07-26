@@ -1,0 +1,24 @@
+{
+  "name": "@codebolt/miniapp-sample-cloud",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "codebolt-sample-cloud": "./src/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./worker": "./src/worker.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "wrangler.jsonc"
+  ],
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { cp, lstat, readdir, readFile, realpath, rm, stat } from "node:fs/promises";
 import { basename, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -12,6 +12,42 @@ const providerPresets = {
 
 function posixPath(path) {
   return path.replaceAll("\\", "/");
+}
+
+const crcTable = new Uint32Array(256).map((_, index) => {
+  let value = index;
+  for (let bit = 0; bit < 8; bit += 1) {
+    value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+  }
+  return value >>> 0;
+});
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function uint16(value) {
+  const buffer = Buffer.allocUnsafe(2);
+  buffer.writeUInt16LE(value);
+  return buffer;
+}
+
+function uint32(value) {
+  const buffer = Buffer.allocUnsafe(4);
+  buffer.writeUInt32LE(value >>> 0);
+  return buffer;
+}
+
+function dosDateTime(date = new Date()) {
+  const year = Math.max(1980, date.getFullYear());
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+    date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate(),
+  };
 }
 
 function fromEnv(env, names) {
@@ -30,6 +66,17 @@ function redact(value) {
 function required(name, value, hint) {
   if (!value) {
     throw new Error(`${name} is required. Pass ${hint.flag} or set ${hint.env}.`);
+  }
+  return value;
+}
+
+function requireDenoV2Token(token) {
+  const value = required("Deno token", token, {
+    flag: "--token or --deno-token",
+    env: "DENO_DEPLOY_TOKEN",
+  });
+  if (!value.startsWith("ddo_")) {
+    throw new Error("Deno Subhosting v2 requires an organization token with the ddo_ prefix. Create one in Deno Deploy organization settings and set DENO_DEPLOY_TOKEN.");
   }
   return value;
 }
@@ -143,6 +190,122 @@ async function fileRecords(directory) {
   );
 }
 
+function fileRecord(relativePath, content) {
+  const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
+  return {
+    path: undefined,
+    relativePath,
+    size: buffer.byteLength,
+    sha1: createHash("sha1").update(buffer).digest("hex"),
+    content: buffer,
+  };
+}
+
+async function materializeLinkedDirectories(directory) {
+  if (!(await exists(directory))) return;
+  const entries = await readdir(directory, { withFileTypes: true });
+  await Promise.all(entries.map(async (entry) => {
+    const path = resolve(directory, entry.name);
+    const info = await lstat(path);
+
+    if (info.isSymbolicLink()) {
+      const target = await realpath(path);
+      const targetInfo = await stat(target);
+      if (!targetInfo.isDirectory()) return;
+      await rm(path, { recursive: true, force: true });
+      await cp(target, path, { recursive: true });
+      return;
+    }
+
+    if (info.isDirectory()) {
+      await materializeLinkedDirectories(path);
+    }
+  }));
+}
+
+async function materializeVercelFunctionLinks(outputDir) {
+  await materializeLinkedDirectories(resolve(outputDir, "functions"));
+}
+
+function withNetlifyFunctionRedirect(files, functionName) {
+  const redirectPath = "_redirects";
+  const fallback = `/* /.netlify/functions/${functionName} 200`;
+  const existing = files.find((file) => file.relativePath === redirectPath);
+  if (!existing) {
+    return [...files, fileRecord(redirectPath, `${fallback}\n`)];
+  }
+  const current = existing.content.toString("utf8");
+  if (current.includes(`/.netlify/functions/${functionName}`)) return files;
+  const next = `${current.trimEnd()}\n${fallback}\n`;
+  return files.map((file) => file.relativePath === redirectPath
+    ? fileRecord(redirectPath, next)
+    : file);
+}
+
+function zipFiles(files) {
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  const { time, date } = dosDateTime();
+
+  for (const file of files) {
+    const name = Buffer.from(file.relativePath, "utf8");
+    const checksum = crc32(file.content);
+    const localHeader = Buffer.concat([
+      uint32(0x04034b50),
+      uint16(20),
+      uint16(0x0800),
+      uint16(0),
+      uint16(time),
+      uint16(date),
+      uint32(checksum),
+      uint32(file.size),
+      uint32(file.size),
+      uint16(name.length),
+      uint16(0),
+      name,
+    ]);
+    localParts.push(localHeader, file.content);
+
+    centralParts.push(Buffer.concat([
+      uint32(0x02014b50),
+      uint16(20),
+      uint16(20),
+      uint16(0x0800),
+      uint16(0),
+      uint16(time),
+      uint16(date),
+      uint32(checksum),
+      uint32(file.size),
+      uint32(file.size),
+      uint16(name.length),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint16(0),
+      uint32(0),
+      uint32(offset),
+      name,
+    ]));
+
+    offset += localHeader.length + file.content.length;
+  }
+
+  const centralDirectory = Buffer.concat(centralParts);
+  const end = Buffer.concat([
+    uint32(0x06054b50),
+    uint16(0),
+    uint16(0),
+    uint16(files.length),
+    uint16(files.length),
+    uint32(centralDirectory.length),
+    uint32(offset),
+    uint16(0),
+  ]);
+
+  return Buffer.concat([...localParts, centralDirectory, end]);
+}
+
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
@@ -240,8 +403,28 @@ async function apiFetch(url, { token, method = "GET", headers = {}, body } = {})
   return data;
 }
 
+async function apiFetchMaybe(url, { token, method = "GET", headers = {}, body } = {}) {
+  const response = await fetch(url, {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+    body,
+  });
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : {};
+  return {
+    ok: response.ok,
+    status: response.status,
+    statusText: response.statusText,
+    data,
+  };
+}
+
 async function vercelPlan(appRoot, options) {
   const outputDir = resolve(options.outputDir || appRoot, options.outputDir ? "." : ".vercel/output");
+  await materializeVercelFunctionLinks(outputDir);
   const files = await fileRecords(outputDir);
   const miniApp = await readMiniAppManifest(appRoot, outputDir);
   return {
@@ -265,32 +448,102 @@ async function deployVercel(plan, credentials, options) {
     env: "VERCEL_TOKEN",
   });
 
-  const teamQuery = credentials.teamId ? { teamId: credentials.teamId } : {};
-  for (const file of plan._files) {
-    const url = withQuery("https://api.vercel.com/v2/now/files", teamQuery);
-    await apiFetch(url, {
-      token: credentials.token,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "x-vercel-digest": file.sha1,
-      },
-      body: file.content,
-    });
-  }
+  const args = ["vercel", "deploy", "--prebuilt", "--yes"];
+  if (options.production) args.push("--prod");
+  if (credentials.teamId) args.push("--scope", credentials.teamId);
+  const npmExecPath = process.env.npm_execpath;
+  const command = npmExecPath ? process.execPath : "npx";
+  const commandArgs = npmExecPath
+    ? [npmExecPath, "exec", ...args]
+    : args;
 
-  const url = withQuery("https://api.vercel.com/v13/deployments", teamQuery);
-  return apiFetch(url, {
-    token: credentials.token,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: credentials.project || options.name || options.miniApp?.id || basename(options.appRoot),
-      target: options.production ? "production" : "preview",
-      files: plan.files,
-      projectSettings: { framework: null },
-    }),
+  const output = await runCommand(command, commandArgs, {
+    cwd: options.appRoot,
+    env: {
+      ...process.env,
+      VERCEL_TOKEN: credentials.token,
+      ...(credentials.project ? { VERCEL_PROJECT_ID: credentials.project } : {}),
+    },
+    shell: process.platform === "win32" && !npmExecPath,
   });
+  const parsedOutput = parseJsonMaybe(output);
+  const url = parsedOutput?.deployment?.url || output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => /^https?:\/\/[^\s]+\.vercel\.app/.test(line));
+  return {
+    url,
+    deploymentId: parsedOutput?.deployment?.id,
+    readyState: parsedOutput?.deployment?.readyState,
+    target: parsedOutput?.deployment?.target,
+    inspectorUrl: parsedOutput?.deployment?.inspectorUrl,
+    output,
+  };
+}
+
+function parseJsonMaybe(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}
+
+async function runCommand(command, args, options) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(command, args, {
+      ...options,
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: options.shell ?? false,
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (signal) {
+        reject(new Error(`${command} stopped by ${signal}.`));
+        return;
+      }
+      if (code !== 0) {
+        reject(new Error(`${command} failed with exit code ${code}.\n${stderr || stdout}`));
+        return;
+      }
+      resolvePromise(stdout.trim());
+    });
+  });
+}
+
+function toVercelProjectName(value) {
+  const name = value
+    ?.toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/---+/g, "--")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 100);
+  if (!name) {
+    throw new Error("Vercel project name could not be derived. Ensure codeboltMiniApp({ id }) emits a manifest id.");
+  }
+  return name;
+}
+
+function vercelProjectName(appRoot, miniApp) {
+  return toVercelProjectName(miniApp?.id || basename(appRoot));
+}
+
+function vercelProjectPlan(credentials, appRoot, miniApp) {
+  return {
+    action: credentials.project ? "deploy-existing" : "create-or-reuse",
+    name: vercelProjectName(appRoot, miniApp),
+    source: miniApp?.id ? "miniapp-manifest" : "app-root",
+    ...(credentials.project ? { project: credentials.project } : {}),
+    ...(credentials.teamId ? { teamId: credentials.teamId } : {}),
+  };
 }
 
 async function netlifyPlan(appRoot, options) {
@@ -299,20 +552,25 @@ async function netlifyPlan(appRoot, options) {
     : (await exists(resolve(appRoot, "dist")))
       ? resolve(appRoot, "dist")
       : resolve(appRoot, ".output/public");
-  const files = await fileRecords(publicDir);
   const functionsDir = resolve(appRoot, ".netlify/functions-internal");
   const hasFunctions = await exists(functionsDir);
+  const functions = hasFunctions ? await netlifyFunctions(functionsDir) : [];
+  const files = functions.length
+    ? withNetlifyFunctionRedirect(await fileRecords(publicDir), functions[0].name)
+    : await fileRecords(publicDir);
   const miniApp = await readMiniAppManifest(appRoot, publicDir);
   return {
     target: "netlify",
     outputDir: publicDir,
     miniApp,
     functionsDir: hasFunctions ? functionsDir : undefined,
-    functionUploadsSupported: false,
+    functionCount: functions.length,
     fileCount: files.length,
     byteCount: files.reduce((total, file) => total + file.size, 0),
     files: Object.fromEntries(files.map((file) => [file.relativePath, file.sha1])),
+    functions: Object.fromEntries(functions.map((fn) => [fn.name, fn.sha256])),
     _files: files,
+    _functions: functions,
   };
 }
 
@@ -321,11 +579,6 @@ async function deployNetlify(plan, credentials, options) {
     flag: "--token or --netlify-token",
     env: "NETLIFY_AUTH_TOKEN",
   });
-  if (plan.functionsDir) {
-    throw new Error(
-      `Netlify Nitro server functions were detected at ${plan.functionsDir}. Static file deploy is wired; server function bundle upload still needs a Netlify function packager.`,
-    );
-  }
 
   const siteId = credentials.siteId || (await createNetlifySite(credentials, options)).id;
   const deploy = await apiFetch(
@@ -337,7 +590,11 @@ async function deployNetlify(plan, credentials, options) {
       token: credentials.token,
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ files: plan.files, async: false }),
+      body: JSON.stringify({
+        files: plan.files,
+        functions: plan.functions,
+        async: false,
+      }),
     },
   );
 
@@ -361,7 +618,108 @@ async function deployNetlify(plan, credentials, options) {
     );
   }
 
-  return deploy;
+  const requiredFunctions = deploy.required_functions || [];
+  for (const requiredFunction of requiredFunctions) {
+    const fn = plan._functions.find(
+      (entry) => entry.name === requiredFunction || entry.sha256 === requiredFunction,
+    );
+    if (!fn) throw new Error(`Netlify requested unknown function: ${requiredFunction}`);
+    await apiFetch(
+      withQuery(
+        `https://api.netlify.com/api/v1/deploys/${deploy.id}/functions/${encodeURIComponent(fn.name)}`,
+        { runtime: "js" },
+      ),
+      {
+        token: credentials.token,
+        method: "PUT",
+        headers: { "Content-Type": "application/zip" },
+        body: fn.zip,
+      },
+    );
+  }
+
+  return pollNetlifyDeploy(deploy.id, credentials.token);
+}
+
+async function netlifyFunctions(functionsDir) {
+  const entries = await readdir(functionsDir, { withFileTypes: true });
+  const functions = [];
+  for (const entry of entries) {
+    const path = resolve(functionsDir, entry.name);
+    if (!entry.isDirectory() || !(await exists(resolve(path, "server.mjs")))) continue;
+    const files = await netlifyFunctionFiles(path, entry.name);
+    const zip = zipFiles(files);
+    functions.push({
+      name: entry.name,
+      fileCount: files.length,
+      size: zip.byteLength,
+      sha256: createHash("sha256").update(zip).digest("hex"),
+      zip,
+    });
+  }
+  return functions.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function netlifyFunctionFiles(functionDir, functionName) {
+  const files = await fileRecords(functionDir);
+  if (files.some((file) => file.relativePath === `${functionName}.js`)) return files;
+  return [
+    ...files,
+    fileRecord(`${functionName}.js`, netlifyLambdaBridge()),
+  ].sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+}
+
+function netlifyLambdaBridge() {
+  return `exports.handler = async (event, context) => {
+  const mod = await import("./server.mjs");
+  const headers = new Headers();
+  const inputHeaders = event.headers || {};
+  for (const [name, value] of Object.entries(inputHeaders)) {
+    if (value !== undefined && value !== null) headers.set(name, String(value));
+  }
+
+  const host = headers.get("host") || "localhost";
+  const proto = headers.get("x-forwarded-proto") || "https";
+  const query = event.rawQuery ? \`?\${event.rawQuery}\` : "";
+  const path = event.path || "/";
+  const url = event.rawUrl || \`\${proto}://\${host}\${path}\${query}\`;
+  const method = event.httpMethod || "GET";
+  const init = { method, headers };
+  if (!["GET", "HEAD"].includes(method) && event.body !== undefined && event.body !== null) {
+    init.body = event.isBase64Encoded
+      ? Buffer.from(event.body, "base64")
+      : event.body;
+  }
+
+  const request = new Request(url, init);
+  request.context = context;
+  const response = await mod.default(request, context);
+  const responseHeaders = {};
+  const cookies = [];
+  for (const [name, value] of response.headers.entries()) {
+    if (name.toLowerCase() === "set-cookie") cookies.push(value);
+    else responseHeaders[name] = value;
+  }
+
+  return {
+    statusCode: response.status,
+    headers: responseHeaders,
+    multiValueHeaders: cookies.length ? { "set-cookie": cookies } : undefined,
+    body: Buffer.from(await response.arrayBuffer()).toString("base64"),
+    isBase64Encoded: true,
+  };
+};
+`;
+}
+
+async function pollNetlifyDeploy(deployId, token) {
+  let latest;
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    latest = await apiFetch(`https://api.netlify.com/api/v1/deploys/${deployId}`, { token });
+    if (["ready", "error"].includes(latest.state)) return latest;
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 1000));
+  }
+  return latest;
 }
 
 async function createNetlifySite(credentials, options) {
@@ -402,6 +760,39 @@ function netlifySitePlan(credentials, appRoot, miniApp) {
   };
 }
 
+function toDenoAppSlug(value) {
+  const slug = value
+    ?.toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 63);
+  if (!slug) {
+    throw new Error("Deno app slug could not be derived. Pass --app or ensure codeboltMiniApp({ id }) emits a manifest id.");
+  }
+  return slug;
+}
+
+function resolveDenoApp(credentials, miniApp) {
+  if (credentials.app) {
+    return {
+      app: credentials.app,
+      source: "credentials",
+    };
+  }
+  return {
+    app: toDenoAppSlug(miniApp?.id),
+    source: "miniapp-manifest",
+  };
+}
+
+function denoAppPlan(denoApp) {
+  return {
+    action: "create-or-reuse",
+    app: denoApp.app,
+    source: denoApp.source,
+  };
+}
+
 function denoAsset(file) {
   const contentType = file.relativePath.endsWith(".ts") ||
     file.relativePath.endsWith(".js") ||
@@ -439,17 +830,46 @@ async function denoPlan(appRoot, options) {
 }
 
 async function deployDeno(plan, credentials) {
-  required("Deno token", credentials.token, {
-    flag: "--token or --deno-token",
-    env: "DENO_DEPLOY_TOKEN",
-  });
-  required("Deno app", credentials.app, {
-    flag: "--app",
+  requireDenoV2Token(credentials.token);
+
+  const app = required("Deno app", credentials.app, {
+    flag: "--app or a MiniApp manifest id",
     env: "DENO_APP",
   });
+  const existing = await apiFetchMaybe(
+    `https://api.deno.com/v2/apps/${encodeURIComponent(app)}`,
+    { token: credentials.token },
+  );
+  if (!existing.ok && existing.status !== 404) {
+    const message = existing.data?.error?.message || existing.data?.message || existing.statusText;
+    throw new Error(`GET https://api.deno.com/v2/apps/${app} failed: ${existing.status} ${message}`);
+  }
+  const appResult = existing.ok
+    ? { action: "reuse", app: existing.data }
+    : {
+        action: "create",
+        app: await apiFetch("https://api.deno.com/v2/apps", {
+          token: credentials.token,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug: app,
+            labels: {
+              "custom.codebolt.miniapp": "true",
+              ...(plan.miniApp?.id ? { "custom.codebolt.miniapp.id": plan.miniApp.id } : {}),
+            },
+            config: {
+              runtime: {
+                type: "dynamic",
+                entrypoint: plan.entrypoint,
+              },
+            },
+          }),
+        }),
+      };
 
-  return apiFetch(
-    `https://api.deno.com/v2/apps/${encodeURIComponent(credentials.app)}/deploy`,
+  const deployment = await apiFetch(
+    `https://api.deno.com/v2/apps/${encodeURIComponent(app)}/deploy`,
     {
       token: credentials.token,
       method: "POST",
@@ -465,6 +885,10 @@ async function deployDeno(plan, credentials) {
       }),
     },
   );
+  return {
+    app: appResult,
+    deployment,
+  };
 }
 
 async function createPlan(target, appRoot, options) {
@@ -491,9 +915,17 @@ export async function deployMiniApp(options) {
   };
   const plan = await createPlan(target, appRoot, options);
   const credentials = resolveCredentials(target, options, env);
-  const provider = target === "netlify"
-    ? { site: netlifySitePlan(credentials, appRoot, plan.miniApp) }
-    : undefined;
+  const denoApp = target === "deno" ? resolveDenoApp(credentials, plan.miniApp) : undefined;
+  if (target === "deno") {
+    credentials.app = denoApp.app;
+  }
+  const provider = target === "vercel"
+    ? { project: vercelProjectPlan(credentials, appRoot, plan.miniApp) }
+    : target === "netlify"
+      ? { site: netlifySitePlan(credentials, appRoot, plan.miniApp) }
+      : target === "deno"
+        ? { app: denoAppPlan(denoApp) }
+        : undefined;
   const result = {
     target,
     appRoot,
@@ -503,6 +935,7 @@ export async function deployMiniApp(options) {
     plan: {
       ...plan,
       _files: undefined,
+      _functions: undefined,
       assets: plan.assets ? Object.keys(plan.assets) : undefined,
     },
   };

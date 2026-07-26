@@ -107,6 +107,18 @@ For local CodeBolt hosting, `useMiniApp()` reads the worker-injected runtime
 bridge. For remote Node or Cloudflare output, it reads the execution token from
 the request and calls the configured CodeBolt Cloud capability endpoint.
 
+Pass the Nitro `event` in server routes:
+
+```ts
+export default defineHandler((event) => useMiniApp(event).db.list("leads"));
+```
+
+Remote serverless requests need the event because the execution token lives in
+the current request headers. Local host mode can work without an event because
+the host injects a runtime bridge into the MiniApp worker. Tool handlers usually
+do not call `useMiniApp()` directly because the CodeBolt tool route creates the
+context and passes it to the tool handler.
+
 ## Nitro Export
 
 ```ts

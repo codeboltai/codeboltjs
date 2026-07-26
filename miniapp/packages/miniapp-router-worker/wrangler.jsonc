@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "codebolt-miniapp-router",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "codebolt.app/*",
+      "zone_name": "codebolt.app"
+    },
+    {
+      "pattern": "*.codebolt.app/*",
+      "zone_name": "codebolt.app"
+    }
+  ],
+  "vars": {
+    "ROOT_DOMAIN": "codebolt.app",
+    "CODEBOLT_PORTAL_URL": "https://portal.codebolt.ai",
+    "CODEBOLT_API_URL": "https://api.codebolt.ai/api"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "MINIAPP_INSTALLS",
+      "id": "6e8cf0b9e07240d685df42f117315115"
+    },
+    {
+      "binding": "MINIAPP_AUTH_STATE",
+      "id": "a13a16ba5fc1498fb653ede4b4fbe655"
+    }
+  ]
+}
