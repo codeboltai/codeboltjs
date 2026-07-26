@@ -1,10 +1,16 @@
 {
   "name": "@codebolt/miniapp-host",
-  "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "bin": {
+    "codebolt-miniapp-host": "./src/cli.mjs"
+  },
   "exports": {
     ".": "./src/index.mjs"
   },
+  "files": [
+    "src"
+  ],
   "dependencies": {
     "unstorage": "^1.17.4"
   }

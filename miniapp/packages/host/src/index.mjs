@@ -1,9 +1,9 @@
 import { createReadStream } from "node:fs";
-import { readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createCapabilityService } from "./capabilities.mjs";
 import { createIdentityAuthority } from "./identity.mjs";
 import { MiniAppRuntime } from "./miniapp-runtime.mjs";
@@ -27,6 +27,14 @@ function json(value, status = 200) {
 function appIdFromHost(host) {
   const hostname = host.split(":")[0].toLowerCase();
   return hostname.endsWith(".localhost") ? hostname.slice(0, -10) : "";
+}
+
+function pathValue(value) {
+  return value instanceof URL ? fileURLToPath(value) : String(value);
+}
+
+function manifestPath(appRoot) {
+  return resolve(appRoot, ".output", "codebolt", "miniapp.manifest.json");
 }
 
 function splitSetCookie(value) {
@@ -87,19 +95,67 @@ async function writeWebResponse(response, nodeResponse, onCookieRewrite) {
   });
 }
 
-async function loadApp(rootDir, id) {
-  const outputDir = resolve(rootDir, "examples", id, ".output");
+async function loadApp(appRoot) {
+  const root = resolve(pathValue(appRoot));
+  const outputDir = resolve(root, ".output");
   const manifest = JSON.parse(
-    await readFile(resolve(outputDir, "codebolt", "miniapp.manifest.json"), "utf8"),
+    await readFile(manifestPath(root), "utf8"),
   );
+  if (!manifest.id) {
+    throw new Error(`${manifestPath(root)} is missing required id.`);
+  }
   return {
     manifest,
     outputDir,
     handlerUrl: pathToFileURL(resolve(outputDir, manifest.runtime.handler)),
     publicDir: resolve(outputDir, manifest.runtime.publicDir),
-    installId: `${id}-local`,
+    installId: `${manifest.id}-local`,
     workspaceId: "local-workspace",
   };
+}
+
+async function discoverAppRoots(miniappDir) {
+  const root = resolve(pathValue(miniappDir));
+  const entries = await readdir(root, { withFileTypes: true });
+  const candidates = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => resolve(root, entry.name))
+    .sort((a, b) => a.localeCompare(b));
+  const appRoots = [];
+  for (const candidate of candidates) {
+    try {
+      const info = await stat(manifestPath(candidate));
+      if (info.isFile()) appRoots.push(candidate);
+    } catch {
+      // Non-MiniApp child directories are allowed in the parent directory.
+    }
+  }
+  return appRoots;
+}
+
+async function loadApps({ miniappDir, appRoots }) {
+  if (miniappDir && appRoots?.length) {
+    throw new Error("Pass either miniappDir or appRoots, not both.");
+  }
+  const roots = appRoots?.length
+    ? appRoots.map((appRoot) => resolve(pathValue(appRoot)))
+    : miniappDir
+      ? await discoverAppRoots(miniappDir)
+      : [];
+  if (!roots.length) {
+    throw new Error("No built MiniApp manifests found.");
+  }
+
+  const apps = new Map();
+  for (const root of roots) {
+    const app = await loadApp(root);
+    const id = app.manifest.id;
+    if (apps.has(id)) {
+      throw new Error(`Duplicate MiniApp id: ${id}`);
+    }
+    apps.set(id, app);
+  }
+  return apps;
 }
 
 async function staticResponse(app, pathname) {
@@ -124,17 +180,14 @@ async function staticResponse(app, pathname) {
 }
 
 export async function createMiniAppHost({
-  rootDir,
-  dataDir = resolve(rootDir, ".data"),
+  miniappDir,
+  appRoots,
+  dataDir = resolve(process.cwd(), ".data"),
   port = 4310,
   idleMs = 300_000,
   logger = console,
 } = {}) {
-  const apps = new Map();
-  for (const id of ["leads", "lead-react", "onboarding"]) {
-    const app = await loadApp(rootDir, id);
-    apps.set(id, app);
-  }
+  const apps = await loadApps({ miniappDir, appRoots });
 
   const authority = createIdentityAuthority();
   const capabilityService = createCapabilityService({ dataDir });
@@ -247,11 +300,12 @@ export async function createMiniAppHost({
         server.listen(port, "127.0.0.1", resolvePromise);
       });
       const address = server.address();
+      const appUrls = Object.fromEntries(
+        [...apps.keys()].map((id) => [id, `http://${id}.localhost:${address.port}`]),
+      );
       return {
         port: address.port,
-        leads: `http://leads.localhost:${address.port}`,
-        leadReact: `http://lead-react.localhost:${address.port}`,
-        onboarding: `http://onboarding.localhost:${address.port}`,
+        appUrls,
       };
     },
     async close() {

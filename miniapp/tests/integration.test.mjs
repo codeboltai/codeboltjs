@@ -8,11 +8,12 @@ import { fileURLToPath } from "node:url";
 import { createMiniAppHost } from "../packages/host/src/index.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
+const examplesDir = resolve(rootDir, "examples");
 setDefaultResultOrder("ipv4first");
 const dataDir = await mkdtemp(resolve(tmpdir(), "codebolt-miniapp-"));
 const warnings = [];
 const host = await createMiniAppHost({
-  rootDir,
+  miniappDir: examplesDir,
   dataDir,
   port: 0,
   idleMs: 80,
@@ -46,7 +47,10 @@ test.after(async () => {
 });
 
 test("one port serves static UIs without workers", async () => {
-  assert.equal(new URL(urls.leads).port, new URL(urls.onboarding).port);
+  assert.equal(
+    new URL(urls.appUrls.leads).port,
+    new URL(urls.appUrls.onboarding).port,
+  );
   assert.deepEqual(host.apps.get("leads").manifest.ui, {
     title: "Lead Depository",
     route: "/",
@@ -58,29 +62,57 @@ test("one port serves static UIs without workers", async () => {
   const reactResponse = await appFetch("lead-react", "/");
   assert.equal(reactResponse.status, 200);
   assert.match(await reactResponse.text(), /React Leads/);
-  assert.deepEqual(
-    (await status()).apps.map((app) => app.active),
-    [false, false, false],
-  );
+  assert.deepEqual((await status()).apps.map((app) => app.active), [
+    false,
+    false,
+    false,
+  ]);
+});
+
+test("explicit app roots mount selected MiniApps", async () => {
+  const selected = await createMiniAppHost({
+    appRoots: [resolve(examplesDir, "lead-react")],
+    port: 0,
+  });
+  try {
+    assert.deepEqual([...selected.apps.keys()], ["lead-react"]);
+    const selectedUrls = await selected.listen();
+    assert.deepEqual(Object.keys(selectedUrls.appUrls), ["lead-react"]);
+  } finally {
+    await selected.close();
+  }
+});
+
+test("empty MiniApp directories fail clearly", async () => {
+  const emptyDir = await mkdtemp(resolve(tmpdir(), "codebolt-empty-miniapps-"));
+  try {
+    await assert.rejects(
+      () => createMiniAppHost({ miniappDir: emptyDir }),
+      /No built MiniApp manifests found/,
+    );
+  } finally {
+    await rm(emptyDir, { recursive: true, force: true });
+  }
 });
 
 test("cached discovery lists tools without starting workers", async () => {
   const response = await fetch(`${origin}/__codebolt/tools`);
   const payload = await response.json();
   assert.deepEqual(
-    payload.tools.map((tool) => tool.qualifiedName),
+    payload.tools.map((tool) => tool.qualifiedName).sort(),
     [
+      "lead-react.add-lead",
       "leads.add-lead",
       "leads.create-task-for-lead",
-      "lead-react.add-lead",
       "onboarding.add-employee",
       "onboarding.complete-step",
     ],
   );
-  assert.deepEqual(
-    (await status()).apps.map((app) => app.active),
-    [false, false, false],
-  );
+  assert.deepEqual((await status()).apps.map((app) => app.active), [
+    false,
+    false,
+    false,
+  ]);
 });
 
 test("tool validation and lazy routing target one worker", async () => {

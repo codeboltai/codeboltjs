@@ -116,7 +116,7 @@ or emit the MiniApp manifest.
 
 The host package runs the local prototype server. It:
 
-- reads built MiniApp manifests from `examples/<id>/.output/codebolt/`
+- reads built MiniApp manifests from `<miniappDir>/<id>/.output/codebolt/`
 - serves static files from each MiniApp's built `public` directory
 - exposes `/__codebolt/tools` and `/__codebolt/status`
 - routes tool calls to the correct MiniApp worker
@@ -240,6 +240,20 @@ Start the local host:
 pnpm start
 ```
 
+In this repo, `pnpm start` runs the movable host with `--dir examples`. The
+host itself only expects built MiniApp roots shaped like:
+
+```text
+<miniappDir>/<id>/.output/codebolt/miniapp.manifest.json
+```
+
+You can also run the host package directly:
+
+```powershell
+node packages/host/src/cli.mjs --dir examples
+node packages/host/src/cli.mjs examples/leads examples/lead-react examples/onboarding
+```
+
 The local applications are available at:
 
 - `http://leads.localhost:4310`
@@ -302,8 +316,8 @@ how they are verified.
 
 - This is a prototype, not a hardened production runtime.
 - Worker Threads are crash/runtime isolation, not a hostile-code sandbox.
-- The local host currently mounts the example app ids explicitly:
-  `leads`, `lead-react`, and `onboarding`.
+- The repo start script points the host at `examples/`; the host package itself
+  loads MiniApps from manifests and does not hardcode example app ids.
 - Local capabilities are backed by filesystem storage for testing and demo use.
 - The Cloudflare and Node remote tests use a mock CodeBolt Cloud capability
   endpoint.

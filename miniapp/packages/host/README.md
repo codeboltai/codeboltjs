@@ -1,6 +1,6 @@
 # @codebolt/miniapp-host
 
-Local host runtime for the MiniApp prototype.
+Local host runtime for built CodeBolt MiniApps.
 
 This package is the local CodeBolt-side process. It is not used by remote Node
 or Cloudflare deployments. Remote deployments run as ordinary Nitro output and
@@ -8,7 +8,7 @@ call CodeBolt Cloud capabilities over HTTP.
 
 ## Responsibilities
 
-- Load built MiniApp manifests from `examples/<id>/.output/codebolt/miniapp.manifest.json`.
+- Load built MiniApp manifests from `<miniappDir>/<id>/.output/codebolt/miniapp.manifest.json`.
 - Serve static assets from each MiniApp's built `public` directory without
   starting a worker.
 - Expose host-level discovery endpoints:
@@ -52,7 +52,7 @@ for the owning MiniApp.
 import { createMiniAppHost } from "@codebolt/miniapp-host";
 
 const host = await createMiniAppHost({
-  rootDir: new URL("../../", import.meta.url),
+  miniappDir: new URL("./examples", import.meta.url),
   port: 4310,
   idleMs: 300_000,
 });
@@ -61,13 +61,49 @@ const urls = await host.listen();
 await host.close();
 ```
 
+`listen()` returns:
+
+```js
+{
+  port: 4310,
+  appUrls: {
+    "lead-react": "http://lead-react.localhost:4310"
+  }
+}
+```
+
 Options:
 
-- `rootDir`: workspace root containing `examples/`
+- `miniappDir`: parent directory containing built MiniApp folders
+- `appRoots`: explicit built MiniApp root directories
 - `dataDir`: filesystem directory for local capability persistence
 - `port`: host port, defaults to `4310`
 - `idleMs`: idle worker shutdown delay, defaults to five minutes
 - `logger`: object with `warn` and `error`
+
+Pass either `miniappDir` or `appRoots`, not both.
+
+## CLI
+
+Run every built MiniApp under a parent directory:
+
+```powershell
+codebolt-miniapp-host --dir examples
+```
+
+Run selected MiniApps by root path:
+
+```powershell
+codebolt-miniapp-host examples/leads examples/lead-react
+```
+
+Useful options:
+
+```text
+--port <port>
+--data-dir <dir>
+--idle-ms <ms>
+```
 
 ## Capability Ownership
 
@@ -101,6 +137,8 @@ From the workspace root:
 pnpm build:examples
 pnpm start
 ```
+
+The workspace `start` script calls the host with `--dir examples`.
 
 Then open:
 
