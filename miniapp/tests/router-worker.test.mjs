@@ -20,6 +20,14 @@ function createKv(initial = {}) {
     async delete(key) {
       values.delete(key);
     },
+    async list({ prefix = "" } = {}) {
+      return {
+        keys: [...values.keys()]
+          .filter((name) => name.startsWith(prefix))
+          .sort()
+          .map((name) => ({ name })),
+      };
+    },
   };
 }
 
@@ -48,6 +56,30 @@ function createEnv(overrides = {}) {
         capabilityUrl: "https://sample-cloud.test",
         workspaceId: "public-workspace",
         access: "public",
+        enabled: true,
+      }),
+      "app:lead-react": JSON.stringify({
+        id: "lead-react",
+        title: "Lead React",
+        description: "Simple lead tracker.",
+        version: "0.1.0",
+        developerUserId: "developer-1",
+        developerName: "CodeBolt",
+        installPolicy: "anyone",
+        defaultAccess: "private",
+        upstreamUrl: "https://lead-react.netlify.app",
+        capabilityUrl: "https://sample-cloud.test",
+        enabled: true,
+      }),
+      "app:developer-app": JSON.stringify({
+        id: "developer-app",
+        title: "Developer App",
+        description: "Developer-only app.",
+        developerUserId: "developer-1",
+        installPolicy: "developer_only",
+        defaultAccess: "private",
+        upstreamUrl: "https://lead-react.netlify.app",
+        capabilityUrl: "https://sample-cloud.test",
         enabled: true,
       }),
     }),
@@ -214,4 +246,97 @@ test("public install proxies without session as anonymous", async () => {
     const body = await response.json();
     assert.equal(body.authorization, "Bearer token-for-publicapp-anonymous:publicapp");
   });
+});
+
+test("apps list renders published apps on apex domain", async () => {
+  const response = await handleRouterRequest(
+    new Request("https://codebolt.app/apps"),
+    createEnv(),
+  );
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type"), /text\/html/);
+  const body = await response.text();
+  assert.match(body, /Lead React/);
+  assert.match(body, /Developer App/);
+  assert.match(body, /Sign in is required before installing an app/);
+});
+
+test("app detail shows sign-in install action when user is not signed in", async () => {
+  const response = await handleRouterRequest(
+    new Request("https://codebolt.app/apps/lead-react"),
+    createEnv(),
+  );
+
+  assert.equal(response.status, 200);
+  const body = await response.text();
+  assert.match(body, /Simple lead tracker/);
+  assert.match(body, /\/auth\/start\?installId=__catalog__/);
+});
+
+test("catalog login can start without an existing install", async () => {
+  const env = createEnv();
+  const response = await handleRouterRequest(
+    new Request("https://codebolt.app/auth/start?installId=__catalog__&returnTo=%2Fapps%2Flead-react"),
+    env,
+  );
+
+  assert.equal(response.status, 302);
+  const location = new URL(response.headers.get("location"));
+  assert.equal(location.origin, "https://portal.codebolt.ai");
+  assert.equal(location.searchParams.get("installId"), "__catalog__");
+  const state = location.searchParams.get("state");
+  const stored = await env.MINIAPP_AUTH_STATE.get(`state:${state}`, "json");
+  assert.equal(stored.installId, "__catalog__");
+  assert.equal(stored.returnTo, "/apps/lead-react");
+});
+
+test("authenticated app install creates private install record and user pointer", async () => {
+  const env = createEnv();
+  const session = await signSession({
+    userId: "user-2",
+    email: "user2@example.com",
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  }, env.CODEBOLT_APP_COOKIE_SECRET);
+
+  const response = await handleRouterRequest(
+    new Request("https://codebolt.app/apps/lead-react/install", {
+      method: "POST",
+      headers: { cookie: `cb_app_session=${encodeURIComponent(session)}` },
+    }),
+    env,
+  );
+
+  assert.equal(response.status, 302);
+  const location = new URL(response.headers.get("location"));
+  assert.equal(location.hostname.endsWith(".codebolt.app"), true);
+  assert.match(location.hostname, /^lead-react-[a-f0-9]{8}\.codebolt\.app$/);
+
+  const installId = location.hostname.split(".")[0];
+  const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
+  assert.equal(install.appId, "lead-react");
+  assert.equal(install.ownerUserId, "user-2");
+  assert.equal(install.workspaceId, "personal-user-2");
+  assert.equal(install.access, "private");
+  assert.equal(await env.MINIAPP_INSTALLS.get("user-install:user-2:lead-react"), installId);
+});
+
+test("developer-only app cannot be installed by other users", async () => {
+  const env = createEnv();
+  const session = await signSession({
+    userId: "user-2",
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  }, env.CODEBOLT_APP_COOKIE_SECRET);
+
+  const response = await handleRouterRequest(
+    new Request("https://codebolt.app/apps/developer-app/install", {
+      method: "POST",
+      headers: { cookie: `cb_app_session=${encodeURIComponent(session)}` },
+    }),
+    env,
+  );
+
+  assert.equal(response.status, 403);
+  const body = await response.text();
+  assert.match(body, /only be installed by its developer/);
 });

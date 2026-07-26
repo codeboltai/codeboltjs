@@ -171,7 +171,7 @@
   <main>
     <header>
       <h1>CodeBolt MiniApp Router Review</h1>
-      <p class="muted">Review artifact for the <code>codebolt.app</code> MiniApp routing, auth handoff, sample capability cloud, and lead-react deploy changes.</p>
+      <p class="muted">Review artifact for the <code>codebolt.app</code> MiniApp routing, catalog/install surface, auth handoff, sample capability cloud, and lead-react deploy changes.</p>
       <p>
         <span class="pill ok">Router deployed</span>
         <span class="pill ok">Sample cloud deployed</span>
@@ -192,7 +192,7 @@
       <div class="grid">
         <div class="box">
           <h3>Public Surface</h3>
-          <p><code>codebolt.app</code> handles health and auth paths. <code>&lt;installId&gt;.codebolt.app</code> handles installed MiniApps.</p>
+          <p><code>codebolt.app</code> handles health, app catalog, install, and auth paths. <code>&lt;installId&gt;.codebolt.app</code> handles installed MiniApps.</p>
         </div>
         <div class="box">
           <h3>Auth Boundary</h3>
@@ -202,6 +202,10 @@
           <h3>Capability Boundary</h3>
           <p><code>sample-cloud</code> provides test <code>db</code>, <code>blob</code>, and <code>tasks</code> capabilities until this moves into the real API.</p>
         </div>
+        <div class="box">
+          <h3>Install Boundary</h3>
+          <p><code>app:&lt;appId&gt;</code> controls who can create installs. <code>install:&lt;installId&gt;</code> controls who can open one installed instance.</p>
+        </div>
       </div>
     </section>
 
@@ -209,27 +213,39 @@
       <h2>Runtime Flow</h2>
       <div class="flow">
         <div class="step">
-          <strong>1. Browser Opens App</strong>
+          <strong>1. User Finds App</strong>
+          <code>https://codebolt.app/apps</code>
+          <p>The apex catalog reads published <code>app:&lt;appId&gt;</code> records and shows app detail/install pages.</p>
+        </div>
+        <div class="step">
+          <strong>2. User Installs App</strong>
+          <code>POST /apps/:appId/install</code>
+          <p>The router checks app install policy, creates a private install record, and redirects to the install subdomain.</p>
+        </div>
+        <div class="step">
+          <strong>3. Browser Opens Install</strong>
           <code>https://leadreact.codebolt.app/</code>
           <p>Cloudflare route invokes the MiniApp router Worker.</p>
         </div>
         <div class="step">
-          <strong>2. Router Resolves Install</strong>
+          <strong>4. Router Resolves Install</strong>
           <code>MINIAPP_INSTALLS: install:leadreact</code>
           <p>The record gives upstream URL, capability URL, workspace, access mode, and app id.</p>
         </div>
         <div class="step">
-          <strong>3. Auth Runs If Needed</strong>
+          <strong>5. Auth Runs If Needed</strong>
           <code>access: authenticated/private</code>
           <p>Unauthenticated users redirect through portal and edge-api login-code redemption.</p>
         </div>
         <div class="step">
-          <strong>4. Router Proxies</strong>
+          <strong>6. Router Proxies</strong>
           <code>x-codebolt-execution-token</code>
           <p>The upstream MiniApp receives server-only execution headers and calls sample-cloud capabilities.</p>
         </div>
       </div>
       <pre>Browser
+  -> codebolt.app/apps
+  -> app detail -> install policy check -> install:&lt;installId&gt; created
   -> leadreact.codebolt.app
   -> codebolt-miniapp-router Worker
   -> MINIAPP_INSTALLS KV
@@ -254,6 +270,16 @@
             <td>MiniApp router Worker</td>
             <td>Added <code>packages/miniapp-router-worker</code> with route parsing, signed cookies, KV install lookup, auth start/callback/logout, token minting, and request proxying.</td>
             <td>Creates the app-domain control plane for <code>*.codebolt.app</code>.</td>
+          </tr>
+          <tr>
+            <td>App catalog</td>
+            <td>Added apex routes <code>GET /apps</code>, <code>GET /apps/:appId</code>, and <code>POST /apps/:appId/install</code>.</td>
+            <td>Gives users a temporary install page on <code>codebolt.app</code> before this moves into the portal.</td>
+          </tr>
+          <tr>
+            <td>App install policy</td>
+            <td>Added <code>app:&lt;appId&gt;</code> records with <code>developer_only</code>, <code>anyone</code>, and <code>unlisted</code> install policies.</td>
+            <td>Separates who may create installs from who may open a created install.</td>
           </tr>
           <tr>
             <td>Router access model</td>
@@ -314,7 +340,7 @@
               <code>tests/router-worker.test.mjs</code>, <code>tests/sample-cloud.test.mjs</code><br>
               package scripts, lockfile, docs, lead-react build artifacts
             </td>
-            <td>Main router, capability cloud, SDK runtime contract, tests, and deploy wiring.</td>
+            <td>Main router, app catalog/install flow, capability cloud, SDK runtime contract, tests, and deploy wiring.</td>
           </tr>
           <tr>
             <td><code>codebolt-edge-api</code></td>

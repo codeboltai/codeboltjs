@@ -15,13 +15,48 @@ standalone reviewer artifact, open `../../codebolt-app-miniapp-router-review.htm
 
 ```txt
 GET  https://codebolt.app/health
+GET  https://codebolt.app/apps
+GET  https://codebolt.app/apps/<appId>
+POST https://codebolt.app/apps/<appId>/install
 GET  https://codebolt.app/auth/start
 GET  https://codebolt.app/auth/callback
 GET  https://codebolt.app/auth/logout
 ANY  https://<installId>.codebolt.app/*
 ```
 
-Subdomains are reserved for MiniApp installs. Auth uses apex `/auth/*` paths.
+Subdomains are reserved for MiniApp installs. The temporary app catalog and auth
+handoff use apex paths so the catalog can later move to the portal without
+changing install URLs.
+
+## App Records
+
+Published app records are stored in the same KV namespace as `app:<appId>`:
+
+```json
+{
+  "id": "lead-react",
+  "title": "Lead React",
+  "description": "Simple lead tracker.",
+  "version": "0.1.0",
+  "developerUserId": "developer-user-id",
+  "developerName": "CodeBolt",
+  "installPolicy": "anyone",
+  "defaultAccess": "private",
+  "upstreamUrl": "https://lead-react.netlify.app",
+  "capabilityUrl": "https://codebolt-miniapp-sample-cloud.<account>.workers.dev",
+  "enabled": true
+}
+```
+
+`installPolicy` controls who can create an install:
+
+- `developer_only`: only `developerUserId` can install.
+- `anyone`: any signed-in CodeBolt user can install.
+- `unlisted`: any signed-in user with the detail URL can install; it is hidden
+  from `/apps`.
+
+`defaultAccess` becomes the install-level access mode for newly created installs.
+Use `private` as the normal default.
 
 ## Install Records
 
@@ -42,6 +77,10 @@ Install records are stored in `MINIAPP_INSTALLS` as `install:<installId>`:
 
 Private installs require a valid `cb_app_session` cookie for `.codebolt.app`.
 Public installs proxy as an anonymous principal.
+
+The router also stores `user-install:<userId>:<appId>` pointers so repeated
+installs by the same user open the existing install instead of creating
+duplicates.
 
 ## Secrets
 

@@ -60,12 +60,19 @@ Auth routes live on the apex domain:
 
 ```txt
 GET /health
+GET /apps
+GET /apps/:appId
+POST /apps/:appId/install
 GET /auth/start
 GET /auth/callback
 GET /auth/logout
 ```
 
-App install routes live on subdomains:
+The `/apps` routes are a temporary app catalog and install surface. They live on
+`codebolt.app` now, but the data model is separated so this page can later move
+to the portal without changing installed app URLs.
+
+Installed app routes live on subdomains:
 
 ```txt
 ANY https://<installId>.codebolt.app/*
@@ -74,6 +81,53 @@ ANY https://<installId>.codebolt.app/*
 Subdomains are intentionally reserved for apps. Auth uses apex paths so
 `auth.codebolt.app` remains available for a future dedicated auth service if
 needed.
+
+## Published App Records
+
+Published MiniApps are stored in the router KV namespace under:
+
+```txt
+app:<appId>
+```
+
+Example:
+
+```json
+{
+  "id": "lead-react",
+  "title": "Lead React",
+  "description": "Simple lead tracker.",
+  "version": "0.1.0",
+  "developerUserId": "developer-user-id",
+  "developerName": "CodeBolt",
+  "installPolicy": "anyone",
+  "defaultAccess": "private",
+  "upstreamUrl": "https://lead-react.netlify.app",
+  "capabilityUrl": "https://codebolt-miniapp-sample-cloud.arrowai.workers.dev",
+  "enabled": true
+}
+```
+
+App fields:
+
+- `id`: published app id.
+- `title`, `description`, `version`: catalog display metadata.
+- `developerUserId`: owner allowed to install `developer_only` apps.
+- `installPolicy`: controls who can create an install.
+- `defaultAccess`: access mode copied to new install records.
+- `upstreamUrl`: shared provider deployment.
+- `capabilityUrl`: capability cloud used by installs of this app.
+- `enabled`: disabled apps do not show or install.
+
+Install policies:
+
+- `developer_only`: only the developer can create an install.
+- `anyone`: any signed-in CodeBolt user can install.
+- `unlisted`: any signed-in user with the app detail URL can install; hidden
+  from `/apps`.
+
+This is separate from install access. App policy answers "who can create an
+install"; install access answers "who can open this installed instance".
 
 ### Sample Cloud
 
@@ -250,6 +304,44 @@ Fields:
 - `allowedUserIds`: optional additional users for private installs.
 - `access`: `public`, `authenticated`, or private by default.
 - `enabled`: disabled installs return `404`.
+
+The router also stores a user/app pointer:
+
+```txt
+user-install:<userId>:<appId> -> <installId>
+```
+
+This keeps the temporary catalog idempotent for normal usage: clicking Install
+again opens the user's existing install instead of creating a duplicate.
+
+## Install Creation Flow
+
+From the temporary catalog:
+
+```txt
+GET  https://codebolt.app/apps
+GET  https://codebolt.app/apps/<appId>
+POST https://codebolt.app/apps/<appId>/install
+```
+
+When a signed-in user installs:
+
+1. Router reads `app:<appId>`.
+2. Router checks `installPolicy`.
+3. Router checks `user-install:<userId>:<appId>` for an existing install.
+4. If none exists, router creates a new `install:<installId>` record.
+5. New install defaults to `access: "private"` unless the app says otherwise.
+6. Browser redirects to `https://<installId>.codebolt.app`.
+
+If the user is not signed in, the detail page links to the existing auth handoff
+using a catalog-only sentinel install id:
+
+```txt
+installId=__catalog__
+```
+
+This creates an app-domain session without needing a real install record first.
+The user returns to the app detail page and can click Install.
 
 Current seeded record:
 
