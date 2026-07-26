@@ -34,6 +34,18 @@ function localTarget(): NitroConfig {
 export function resolveTarget(
   target = process.env.MINIAPP_TARGET,
 ): NitroConfig {
+  if (target === "vercel") {
+    return { preset: "vercel" };
+  }
+
+  if (target === "netlify") {
+    return { preset: "netlify" };
+  }
+
+  if (target === "deno") {
+    return { preset: "deno-deploy" };
+  }
+
   if (target === "node") {
     return {
       preset: "node-server",

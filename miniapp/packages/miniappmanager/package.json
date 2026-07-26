@@ -1,0 +1,15 @@
+{
+  "name": "@codebolt/miniappmanager",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "codebolt-miniapp": "./src/cli.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ]
+}

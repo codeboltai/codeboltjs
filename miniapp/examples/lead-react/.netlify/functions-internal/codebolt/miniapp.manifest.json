@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "lead-react",
+  "title": "React Leads",
+  "version": "0.1.0",
+  "ui": {
+    "title": "React Leads",
+    "route": "/"
+  },
+  "runtime": {
+    "handler": "server/index.mjs",
+    "publicDir": "../../dist"
+  },
+  "tools": [
+    {
+      "name": "add-lead",
+      "qualifiedName": "lead-react.add-lead",
+      "description": "Store a lead from the React MiniApp.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "collections": [
+    {
+      "name": "leads",
+      "schema": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "company"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "staticAssets": [
+    {
+      "path": "_headers",
+      "size": 0
+    },
+    {
+      "path": "_redirects",
+      "size": 0
+    },
+    {
+      "path": "assets/index-BRf11qwg.js",
+      "size": 195867
+    },
+    {
+      "path": "assets/index-ClmvtBjK.css",
+      "size": 1091
+    },
+    {
+      "path": "index.html",
+      "size": 396
+    }
+  ]
+}

@@ -18,6 +18,7 @@
     "gate:worker": "node gates/worker-transport/verify.mjs",
     "gates": "pnpm gate:build && pnpm gate:mount && pnpm gate:worker",
     "start": "node packages/host/src/cli.mjs --dir examples",
+    "miniapp": "node packages/miniappmanager/src/cli.mjs",
     "test:capabilities": "node --test tests/capabilities.test.mjs",
     "test:integration": "node --test tests/integration.test.mjs",
     "test:remote-cloudflare": "node --test tests/remote-cloudflare.test.mjs",

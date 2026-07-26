@@ -14,7 +14,7 @@ call CodeBolt Cloud capabilities over HTTP.
 - Expose host-level discovery endpoints:
   - `GET /__codebolt/tools`
   - `GET /__codebolt/status`
-  - `POST /__codebolt/reload/:id`
+  - `POST /__codebolt/apps/:id/reload`
 - Route global tool calls like `leads.add-lead` to the owning MiniApp.
 - Lazily start one Node Worker Thread per active MiniApp backend.
 - Inject signed execution identity into each worker request.
@@ -127,7 +127,7 @@ is prototype persistence for development and tests.
 - Idle eviction starts only after active requests and streams finish.
 - In-flight requests fail with `503 MINIAPP_WORKER_EXITED` if a worker dies.
 - Three crashes within sixty seconds mark the MiniApp unhealthy.
-- `POST /__codebolt/reload/:id` clears unhealthy state and restarts on demand.
+- `POST /__codebolt/apps/:id/reload` clears unhealthy state and restarts on demand.
 
 ## Manual Run
 

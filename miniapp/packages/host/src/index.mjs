@@ -244,7 +244,7 @@ export async function createMiniAppHost({
         }
       }
 
-      const reloadMatch = url.pathname.match(/^\/__codebolt\/reload\/([^/]+)$/);
+      const reloadMatch = url.pathname.match(/^\/__codebolt\/apps\/([^/]+)\/reload$/);
       if (request.method === "POST" && reloadMatch) {
         const runtime = runtimes.get(reloadMatch[1]);
         if (!runtime) {

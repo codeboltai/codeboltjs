@@ -257,7 +257,7 @@ test("worker crashes fail fast, open the breaker, and reload clears it", async (
   );
   assert.equal((await appFetch("leads", "/api/leads")).status, 503);
 
-  const reloaded = await fetch(`${origin}/__codebolt/reload/leads`, {
+  const reloaded = await fetch(`${origin}/__codebolt/apps/leads/reload`, {
     method: "POST",
   });
   assert.equal(reloaded.status, 200);
