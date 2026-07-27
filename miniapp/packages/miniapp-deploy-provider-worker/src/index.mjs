@@ -17,6 +17,11 @@ function cleanSlug(value, fallback = "miniapp") {
   return slug || fallback;
 }
 
+function cleanDenoSlug(value, fallback = "miniapp") {
+  const slug = cleanSlug(value, fallback).slice(0, 32).replace(/-+$/, "");
+  return slug || fallback;
+}
+
 function getSecret(env) {
   return env.PROVIDER_WORKER_SECRET || env.MINIAPP_DEPLOY_PROVIDER_SECRET || env.CODEBOLT_PROVIDER_SECRET;
 }
@@ -107,6 +112,28 @@ async function apiFetchMaybe(url, options) {
   };
 }
 
+function asArrayPayload(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.apps)) return data.apps;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.results)) return data.results;
+  return [];
+}
+
+async function findDenoApp(token, slug) {
+  const listed = await apiFetchMaybe(
+    withQuery("https://api.deno.com/v2/apps", {
+      limit: "100",
+      "labels[custom.codebolt.miniapp]": "true",
+      "labels[custom.codebolt.miniapp.slug]": slug,
+    }),
+    { token },
+  );
+  if (!listed.ok) return null;
+  return asArrayPayload(listed.data).find((app) => app?.slug === slug || app?.name === slug) || null;
+}
+
 async function normalizeBundle(bundle) {
   if (!bundle || !Array.isArray(bundle.files) || !bundle.files.length) {
     throw new Error("bundle.files is required.");
@@ -175,17 +202,13 @@ async function deployDeno(payload, env) {
   }
   const files = await normalizeBundle(payload.bundle);
   const nitro = readJsonFile(files, "nitro.json", {});
-  const app = cleanSlug(env.DENO_APP || `${env.DENO_APP_PREFIX || "codebolt-miniapp"}-${payload.appId}`);
+  const app = cleanDenoSlug(env.DENO_APP || `${env.DENO_APP_PREFIX || "codebolt-miniapp"}-${payload.appId}`);
   const entrypoint = env.DENO_ENTRYPOINT || nitro.serverEntry || "server/index.mjs";
   const assets = Object.fromEntries(files.map((file) => [file.path, denoAsset(file)]));
 
-  const existing = await apiFetchMaybe(`https://api.deno.com/v2/apps/${encodeURIComponent(app)}`, { token });
-  if (!existing.ok && existing.status !== 404) {
-    throw new Error(existing.data?.error?.message || existing.data?.message || `Deno app lookup failed with ${existing.status}`);
-  }
-  const appResult = existing.ok
-    ? existing.data
-    : await apiFetch("https://api.deno.com/v2/apps", {
+  const existing = await findDenoApp(token, app);
+  const appResult = existing
+    || await apiFetch("https://api.deno.com/v2/apps", {
         token,
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -194,6 +217,7 @@ async function deployDeno(payload, env) {
           labels: {
             "custom.codebolt.miniapp": "true",
             "custom.codebolt.miniapp.id": payload.appId,
+            "custom.codebolt.miniapp.slug": app,
           },
           config: {
             runtime: { type: "dynamic", entrypoint },
@@ -201,7 +225,8 @@ async function deployDeno(payload, env) {
         }),
       });
 
-  const deployment = await apiFetch(`https://api.deno.com/v2/apps/${encodeURIComponent(app)}/deploy`, {
+  const appTarget = appResult.id || appResult.uuid || app;
+  const deployment = await apiFetch(`https://api.deno.com/v2/apps/${encodeURIComponent(appTarget)}/deploy`, {
     token,
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -222,6 +247,7 @@ async function deployDeno(payload, env) {
     appResult.url,
     appResult.domain,
     appResult.domains,
+    env.DENO_DEFAULT_DOMAIN || (env.DENO_ORG_SLUG ? `${app}.${env.DENO_ORG_SLUG}.deno.net` : undefined),
     `${app}.deno.net`,
   );
   return {
