@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MiniApp Cloud Deploy Provider Review</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17202a;
+        --muted: #5b6472;
+        --line: #d8dde6;
+        --panel: #f7f9fb;
+        --paper: #ffffff;
+        --green: #1f7a4d;
+        --blue: #2457a6;
+        --orange: #a55d14;
+        --red: #a83232;
+        --violet: #6246a2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #edf1f5;
+        color: var(--ink);
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+        line-height: 1.45;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 24px 56px;
+      }
+
+      header {
+        padding: 28px 0 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin: 36px 0 14px;
+        font-size: 24px;
+        letter-spacing: 0;
+      }
+
+      h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      code {
+        background: #eef2f6;
+        border: 1px solid #dce3ec;
+        border-radius: 5px;
+        padding: 1px 5px;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      .subtitle {
+        max-width: 900px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        padding: 5px 11px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pill.ok {
+        border-color: #b9dcc9;
+        color: var(--green);
+        background: #effaf4;
+      }
+
+      .pill.warn {
+        border-color: #eed0a9;
+        color: var(--orange);
+        background: #fff7ec;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .panel {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .panel p:last-child,
+      li:last-child {
+        margin-bottom: 0;
+      }
+
+      .metric {
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: 1fr 44px 1fr 44px 1fr;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .flow-node {
+        min-height: 116px;
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--blue);
+        background: var(--paper);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .flow-node.provider {
+        border-top-color: var(--violet);
+      }
+
+      .flow-node.runtime {
+        border-top-color: var(--green);
+      }
+
+      .arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 26px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 11px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f2f5f8;
+        font-size: 13px;
+        color: #3b4552;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .tag {
+        display: inline-block;
+        border-radius: 5px;
+        padding: 2px 7px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tag.ok {
+        background: #e5f5ec;
+        color: var(--green);
+      }
+
+      .tag.warn {
+        background: #fff0d7;
+        color: var(--orange);
+      }
+
+      .tag.info {
+        background: #e8effb;
+        color: var(--blue);
+      }
+
+      .tag.fail {
+        background: #fde8e8;
+        color: var(--red);
+      }
+
+      .sequence {
+        counter-reset: step;
+        display: grid;
+        gap: 10px;
+      }
+
+      .sequence div {
+        position: relative;
+        padding: 12px 12px 12px 44px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .sequence div::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--blue);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .callout {
+        border-left: 4px solid var(--orange);
+        background: #fff8ef;
+        padding: 14px 16px;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .good {
+        border-left-color: var(--green);
+        background: #f1fbf5;
+      }
+
+      .codeblock {
+        white-space: pre-wrap;
+        background: #101820;
+        color: #eef4f8;
+        border-radius: 8px;
+        padding: 14px;
+        overflow-x: auto;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 13px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin-bottom: 7px;
+      }
+
+      footer {
+        margin-top: 36px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 860px) {
+        main {
+          padding: 24px 16px 44px;
+        }
+
+        .grid,
+        .two,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .arrow {
+          min-height: 24px;
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>MiniApp Cloud Deploy Provider Review</h1>
+        <p class="subtitle">
+          Review artifact for the Cloudflare provider-worker deployment path, provider registry wiring,
+          Deno Subhosting fixes, and the current end-to-end test state for <code>examples/lead-react</code>.
+        </p>
+        <div class="status-row">
+          <span class="pill ok">Provider worker deployed</span>
+          <span class="pill ok">Provider registered as default</span>
+          <span class="pill ok">Deno runtime serves UI</span>
+          <span class="pill warn">Remote DB/tool context pending</span>
+        </div>
+      </header>
+
+      <section>
+        <h2>Executive Summary</h2>
+        <div class="grid">
+          <div class="panel">
+            <div class="metric">3</div>
+            <div class="metric-label">Provider platforms exposed</div>
+            <p>Deno Subhosting, Vercel Platform, and Netlify are advertised from the provider manifest.</p>
+          </div>
+          <div class="panel">
+            <div class="metric">2</div>
+            <div class="metric-label">Workers deployed</div>
+            <p>The provider worker and Edge API worker were both deployed to the Cloudflare account.</p>
+          </div>
+          <div class="panel">
+            <div class="metric">1</div>
+            <div class="metric-label">Known runtime gap</div>
+            <p>DB-backed MiniApp tools need the remote capability bridge before full tool execution can pass.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Runtime Flow</h2>
+        <div class="flow">
+          <div class="flow-node">
+            <h3>CodeBolt CLI / Edge API</h3>
+            <p>Receives a built MiniApp bundle and manifest, selects the default provider from D1, and calls provider <code>/deploy</code>.</p>
+          </div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-node provider">
+            <h3>Provider Worker</h3>
+            <p>Owns platform tokens and deploys to Deno, Vercel, or Netlify. The deployed worker is the default provider.</p>
+          </div>
+          <div class="arrow">-&gt;</div>
+          <div class="flow-node runtime">
+            <h3>Provider Runtime</h3>
+            <p>Deno serves the built MiniApp UI. Tool execution reaches the runtime but currently lacks cloud context.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Deployed Endpoints</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Surface</th>
+              <th>URL</th>
+              <th>Status</th>
+              <th>Evidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Provider worker</td>
+              <td><code>https://codebolt-miniapp-deploy-provider.arrowai.workers.dev</code></td>
+              <td><span class="tag ok">Live</span></td>
+              <td><code>/health</code> returned <code>{"ok":true}</code>; <code>/manifest</code> returned all three platforms.</td>
+            </tr>
+            <tr>
+              <td>Edge API worker</td>
+              <td><code>https://codebolt-edge-api.arrowai.workers.dev</code></td>
+              <td><span class="tag ok">Live</span></td>
+              <td><code>/api/miniapps/deploy-providers</code> returns the registered provider row.</td>
+            </tr>
+            <tr>
+              <td>Custom API domain</td>
+              <td><code>https://api.codebolt.ai/api/miniapps/deploy-providers</code></td>
+              <td><span class="tag warn">Not routed</span></td>
+              <td>Returns <code>404</code>; custom domain is not serving the newly deployed Edge worker route.</td>
+            </tr>
+            <tr>
+              <td>Deno smoke runtime</td>
+              <td><code>https://codebolt-miniapp-lead-react-smok.codeboltai.deno.net</code></td>
+              <td><span class="tag ok">UI verified</span></td>
+              <td>Root request returned <code>200</code> HTML for the React Leads UI.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Changed Files</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Repo</th>
+              <th>File</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>miniapp</code></td>
+              <td><code>packages/miniapp-deploy-provider-worker/src/index.mjs</code></td>
+              <td>Implemented/fixed Deno app lookup by slug, app-id deploy target, Deno slug limit, and org-aware runtime URL.</td>
+            </tr>
+            <tr>
+              <td><code>miniapp</code></td>
+              <td><code>packages/miniapp-deploy-provider-worker/wrangler.jsonc</code></td>
+              <td>Added <code>DENO_ORG_SLUG: "codeboltai"</code> so returned Deno URLs use the active org domain.</td>
+            </tr>
+            <tr>
+              <td><code>miniapp</code></td>
+              <td><code>package.json</code></td>
+              <td>Added provider-worker deploy/check scripts.</td>
+            </tr>
+            <tr>
+              <td><code>codebolt-edge-api</code></td>
+              <td><code>src/handlers/scheduledTaskHandlers/createScheduledTask.ts</code></td>
+              <td>Fixed duplicate <code>metadata</code> declaration that blocked Edge API worker deployment.</td>
+            </tr>
+            <tr>
+              <td><code>codebolt-edge-api</code></td>
+              <td><code>src/db/migrations/007_miniapp_registry.sql</code></td>
+              <td>Applied to production D1 because MiniApp provider registry tables were missing.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Provider Registry</h2>
+        <div class="two grid">
+          <div class="panel">
+            <h3>D1 Provider Row</h3>
+            <ul>
+              <li><code>provider_id</code>: <code>codebolt-miniapp-deploy-provider</code></li>
+              <li><code>worker_url</code>: <code>https://codebolt-miniapp-deploy-provider.arrowai.workers.dev</code></li>
+              <li><code>default_platform</code>: <code>deno-subhosting</code></li>
+              <li><code>enabled</code>: <code>1</code></li>
+              <li><code>is_default</code>: <code>1</code></li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Secrets Loaded</h3>
+            <ul>
+              <li><code>DENO_DEPLOY_TOKEN</code></li>
+              <li><code>VERCEL_TOKEN</code></li>
+              <li><code>NETLIFY_AUTH_TOKEN</code></li>
+            </ul>
+            <p>Values were loaded from <code>D:\Codeboltapps\codeboltjs\miniapp\.env</code> and uploaded as Worker secrets without printing them.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Test Sequence</h2>
+        <div class="sequence">
+          <div>
+            <strong>Provider worker deploy.</strong>
+            <p>Ran <code>pnpm exec wrangler deploy -c packages/miniapp-deploy-provider-worker/wrangler.jsonc</code>.</p>
+          </div>
+          <div>
+            <strong>Provider manifest verification.</strong>
+            <p>Checked <code>/health</code> and <code>/manifest</code>; manifest includes Deno, Vercel, and Netlify.</p>
+          </div>
+          <div>
+            <strong>D1 migration and provider registration.</strong>
+            <p>Applied <code>007_miniapp_registry.sql</code> and upserted provider row into <code>codeboltproduction</code>.</p>
+          </div>
+          <div>
+            <strong>Edge API deploy.</strong>
+            <p>Fixed a duplicate variable declaration and deployed <code>codebolt-edge-api</code> to Cloudflare.</p>
+          </div>
+          <div>
+            <strong>Lead React build.</strong>
+            <p>Ran <code>pnpm --dir examples\lead-react build</code>; Vite and Nitro build completed successfully.</p>
+          </div>
+          <div>
+            <strong>Deno provider smoke deploy.</strong>
+            <p>Direct <code>POST /deploy</code> succeeded and returned <code>providerDeploymentId: 48gj3fc90zpk</code>.</p>
+          </div>
+          <div>
+            <strong>Runtime UI verification.</strong>
+            <p>The returned Deno URL served <code>200</code> HTML.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Deno Fix Detail</h2>
+        <div class="codeblock">Before:
+GET /v2/apps/{slug} and POST /v2/apps/{slug}/deploy
+Returned: Invalid UUID
+
+After:
+GET /v2/apps?labels[...] to find app by slug
+POST /v2/apps to create app when missing
+POST /v2/apps/{appId}/deploy for revision creation
+
+Additional:
+Deno app slug is capped to 32 characters.
+Runtime URL uses ${app}.${DENO_ORG_SLUG}.deno.net.</div>
+      </section>
+
+      <section>
+        <h2>Current Gap</h2>
+        <div class="callout">
+          <h3>Remote tool execution still needs the capability bridge</h3>
+          <p>
+            The deployed MiniApp route <code>/__codebolt/tools/add-lead</code> is reachable, but the handler fails with
+            <code>Remote MiniApp execution context is unavailable.</code>
+          </p>
+          <p>
+            This comes from <code>packages/miniapp/src/index.ts</code>: remote execution expects an execution token and a
+            cloud capability URL so calls like <code>db.set</code>, <code>blob.put</code>, and <code>tasks.create</code>
+            can be proxied back to CodeBolt cloud.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Review Checklist</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Result</th>
+              <th>Reviewer Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Provider worker syntax</td>
+              <td><span class="tag ok">Pass</span></td>
+              <td><code>pnpm --dir packages\miniapp-deploy-provider-worker run check</code></td>
+            </tr>
+            <tr>
+              <td>Provider worker deployed</td>
+              <td><span class="tag ok">Pass</span></td>
+              <td>Latest deploy returned worker URL and version id.</td>
+            </tr>
+            <tr>
+              <td>Secrets installed</td>
+              <td><span class="tag ok">Pass</span></td>
+              <td>Deno, Vercel, and Netlify tokens uploaded through Wrangler secret commands.</td>
+            </tr>
+            <tr>
+              <td>Edge provider registry route</td>
+              <td><span class="tag ok">Pass</span></td>
+              <td>Works on <code>codebolt-edge-api.arrowai.workers.dev</code>.</td>
+            </tr>
+            <tr>
+              <td>Custom API domain</td>
+              <td><span class="tag warn">Pending</span></td>
+              <td><code>api.codebolt.ai</code> still returns <code>404</code> for MiniApp provider route.</td>
+            </tr>
+            <tr>
+              <td>Deno MiniApp UI</td>
+              <td><span class="tag ok">Pass</span></td>
+              <td>Root URL serves the React UI HTML.</td>
+            </tr>
+            <tr>
+              <td>Deno MiniApp DB tool</td>
+              <td><span class="tag fail">Blocked</span></td>
+              <td>Requires cloud capability bridge and execution token integration.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Next Implementation Work</h2>
+        <div class="grid two">
+          <div class="panel">
+            <h3>Capability Bridge</h3>
+            <ul>
+              <li>Add cloud endpoints for MiniApp runtime capabilities such as <code>db.get</code>, <code>db.set</code>, <code>blob.put</code>, and <code>tasks.create</code>.</li>
+              <li>Use install/workspace/user claims from the execution token to scope data access.</li>
+              <li>Return <code>capabilityUrl</code> from deployment/install flows so remote runtime calls have a cloud base URL.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Routing</h3>
+            <ul>
+              <li>Point <code>api.codebolt.ai</code> to the Edge worker version with MiniApp routes.</li>
+              <li>Decide whether provider <code>/deploy</code> should be protected with <code>PROVIDER_WORKER_SECRET</code> in production.</li>
+              <li>Register provider through admin API once admin secret flow is available in environment.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Generated for review after deploying the MiniApp deploy provider worker, uploading provider secrets,
+        registering the provider in production D1, and smoke-testing <code>examples/lead-react</code> on Deno.
+      </footer>
+    </main>
+  </body>
+</html>
