@@ -1,0 +1,36 @@
+title: Mail Tool Tester
+version: 0.1.0
+unique_id: mail-tool-tester
+initial_message: Mail Tool Tester is a static diagnostic agent that smoke-tests every CodeBolt mail tool.
+description: Static agent for exercising all CodeBolt mail tools end to end.
+longDescription: |
+  Mail Tool Tester registers test agents, creates mail threads, sends and replies
+  to messages, reads inbox/thread/message state, searches and summarizes mail,
+  checks acknowledgement and read operations, and exercises file reservation
+  operations. It reports a concise pass/fail table to the chat.
+tags:
+  - testing
+  - mail
+  - diagnostics
+avatarSrc: https://placehold.co/200x200
+avatarFallback: MT
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: true
+    supportedlanguages:
+      - typescript
+      - javascript
+    supportedframeworks:
+      - codebolt
+  sdlc_steps_managed:
+    - name: testing
+      example_instructions:
+        - Test all mail tools
+        - Run mail tool smoke test
+actions:
+  - name: Test Mail Tools
+    description: Smoke-tests every CodeBolt mail tool with deterministic test data.
+    detailDescription: Registers sender and recipient agents, creates a thread, sends messages, reads and searches mail, and exercises file reservations.
+    actionPrompt: Test all mail tools and report pass/fail results.
+author: codebolt
