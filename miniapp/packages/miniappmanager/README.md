@@ -1,5 +1,10 @@
 # @codebolt/miniappmanager
 
+Deprecated: this package was a deployment POC that called provider APIs with
+developer-supplied provider tokens. New MiniApp deployments should use
+`codebolt miniapp deploy`, which sends the built MiniApp manifest to CodeBolt
+cloud through Edge API so provider credentials remain server-side.
+
 CLI for building and deploying CodeBolt MiniApps to provider APIs without requiring Git-based deploys.
 
 ```powershell

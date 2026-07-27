@@ -118,7 +118,35 @@ async function readJson(response, label) {
   return data;
 }
 
+function edgeApiBase(env) {
+  return String(env.CODEBOLT_API_URL || "").replace(/\/+$/, "");
+}
+
+function edgeServiceSecret(env) {
+  return env.CODEBOLT_MINIAPP_ROUTER_SECRET || env.MINIAPP_ROUTER_SECRET || env.CODEBOLT_APP_AUTH_REDEEM_SECRET;
+}
+
+async function fetchEdgeJson(env, path, init = {}) {
+  const base = edgeApiBase(env);
+  if (!base) throw new Error("CODEBOLT_API_URL is not configured.");
+  const headers = new Headers(init.headers || {});
+  headers.set("accept", "application/json");
+  const secret = edgeServiceSecret(env);
+  if (secret) headers.set("x-codebolt-service-secret", secret);
+  const response = await fetch(`${base}${path}`, { ...init, headers });
+  return readJson(response, `Edge API ${path}`);
+}
+
 async function getInstall(env, installId) {
+  if (edgeApiBase(env) && edgeServiceSecret(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/router/installs/${encodeURIComponent(installId)}`);
+      const install = data.install;
+      if (install && install.enabled !== false) return { ...install, id: install.id ?? installId };
+    } catch {
+      // Fall through to KV so existing POC installs keep working during migration.
+    }
+  }
   const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
   if (!install || install.enabled === false) return null;
   return { ...install, id: install.id ?? installId };
@@ -318,12 +346,34 @@ function normalizeApp(app, appId) {
 }
 
 async function getApp(env, appId) {
+  if (edgeApiBase(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/registry/${encodeURIComponent(appId)}`);
+      if (data.app) return normalizeApp(data.app, appId);
+    } catch {
+      // Fall through to KV so existing POC app records keep working during migration.
+    }
+  }
   const app = await env.MINIAPP_INSTALLS.get(appKey(appId), "json");
   if (!app || app.enabled === false) return null;
   return normalizeApp(app, appId);
 }
 
 async function listApps(env, { includeUnlisted = false } = {}) {
+  if (edgeApiBase(env)) {
+    try {
+      const suffix = includeUnlisted ? "?includeUnlisted=true" : "";
+      const data = await fetchEdgeJson(env, `/miniapps/registry${suffix}`);
+      if (Array.isArray(data.apps)) {
+        return data.apps
+          .map((app) => normalizeApp(app, app.id))
+          .filter((app) => includeUnlisted || app.installPolicy !== "unlisted")
+          .sort((left, right) => left.title.localeCompare(right.title));
+      }
+    } catch {
+      // Fall through to KV so existing POC app records keep working during migration.
+    }
+  }
   if (typeof env.MINIAPP_INSTALLS.list !== "function") return [];
   const listed = await env.MINIAPP_INSTALLS.list({ prefix: "app:" });
   const apps = [];
@@ -468,12 +518,29 @@ async function handleAppInstall(request, env, appId) {
   `));
 
   const installId = await uniqueInstallId(env, app.id);
+  if (edgeApiBase(env) && edgeServiceSecret(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/router/apps/${encodeURIComponent(app.id)}/install`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          installId,
+          userId: session.userId,
+          workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
+          access: app.defaultAccess ?? "private",
+        }),
+      });
+      return redirect(installUrl(env, data.installId || installId));
+    } catch {
+      // Fall through to KV install creation during migration.
+    }
+  }
   const install = {
     id: installId,
     appId: app.id,
     appTitle: app.title,
-    upstreamUrl: app.upstreamUrl,
-    capabilityUrl: app.capabilityUrl,
+    upstreamUrl: app.deployment?.upstreamUrl || app.upstreamUrl || app.deployment?.runtimeUrl,
+    capabilityUrl: app.deployment?.capabilityUrl || app.capabilityUrl,
     workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
     ownerUserId: session.userId,
     access: app.defaultAccess ?? "private",

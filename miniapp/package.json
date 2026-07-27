@@ -22,6 +22,8 @@
     "sample-cloud": "node packages/sample-cloud/src/cli.mjs",
     "sample-cloud:deploy": "pnpm exec wrangler deploy -c packages/sample-cloud/wrangler.jsonc",
     "miniapp-router:deploy": "pnpm exec wrangler deploy -c packages/miniapp-router-worker/wrangler.jsonc",
+    "miniapp-deploy-provider:deploy": "pnpm exec wrangler deploy -c packages/miniapp-deploy-provider-worker/wrangler.jsonc",
+    "miniapp-deploy-provider:check": "node --check packages/miniapp-deploy-provider-worker/src/index.mjs",
     "test:capabilities": "node --test tests/capabilities.test.mjs",
     "test:sample-cloud": "node --test tests/sample-cloud.test.mjs",
     "test:router-worker": "node --test tests/router-worker.test.mjs",
