@@ -121,17 +121,21 @@ function withMockFetch(handler) {
     });
 }
 
-test("private install without session redirects to auth start", async () => {
+test("private install without session shows login handoff", async () => {
   const response = await handleRouterRequest(
     new Request("https://leadreact.codebolt.app/api/leads"),
     createEnv(),
   );
 
-  assert.equal(response.status, 302);
-  const location = new URL(response.headers.get("location"));
-  assert.equal(location.href.startsWith("https://codebolt.app/auth/start?"), true);
-  assert.equal(location.searchParams.get("installId"), "leadreact");
-  assert.equal(location.searchParams.get("returnTo"), "https://leadreact.codebolt.app/api/leads");
+  assert.equal(response.status, 401);
+  assert.match(response.headers.get("content-type"), /text\/html/);
+  const body = await response.text();
+  assert.match(body, /Sign in required/);
+  assert.match(body, /Continue to CodeBolt/);
+  assert.match(body, /https:\/\/codebolt\.app\/auth\/start\?installId=leadreact/);
+  assert.match(body, /returnTo=https%3A%2F%2Fleadreact\.codebolt\.app%2Fapi%2Fleads/);
+  assert.doesNotMatch(body, /setTimeout/);
+  assert.doesNotMatch(body, /Browse MiniApps/);
 });
 
 test("auth start records state and redirects to portal", async () => {
@@ -199,7 +203,7 @@ test("private install with valid session proxies and injects execution token", a
   });
 });
 
-test("authenticated install redirects without session and allows any signed-in user", async () => {
+test("authenticated install shows login handoff without session and allows any signed-in user", async () => {
   await withMockFetch(async () => {
     const env = createEnv({
       MINIAPP_INSTALLS: createKv({
@@ -219,7 +223,8 @@ test("authenticated install redirects without session and allows any signed-in u
       new Request("https://authapp.codebolt.app/api/leads"),
       env,
     );
-    assert.equal(unauthenticated.status, 302);
+    assert.equal(unauthenticated.status, 401);
+    assert.match(await unauthenticated.text(), /Sign in required/);
 
     const session = await signSession({
       userId: "any-user",
@@ -233,6 +238,30 @@ test("authenticated install redirects without session and allows any signed-in u
     );
     assert.equal(authenticated.status, 200);
   });
+});
+
+test("private install with wrong signed-in user shows access denied", async () => {
+  const env = createEnv();
+  const session = await signSession({
+    userId: "user-2",
+    email: "user2@example.com",
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  }, env.CODEBOLT_APP_COOKIE_SECRET);
+
+  const response = await handleRouterRequest(
+    new Request("https://leadreact.codebolt.app/", {
+      headers: { cookie: `cb_app_session=${encodeURIComponent(session)}` },
+    }),
+    env,
+  );
+
+  assert.equal(response.status, 403);
+  assert.match(response.headers.get("content-type"), /text\/html/);
+  const body = await response.text();
+  assert.match(body, /Access Denied/);
+  assert.match(body, /user2@example\.com/);
+  assert.match(body, /Try another account/);
+  assert.doesNotMatch(body, /Browse MiniApps/);
 });
 
 test("public install proxies without session as anonymous", async () => {
@@ -251,7 +280,7 @@ test("public install proxies without session as anonymous", async () => {
 test("apps list renders published apps on apex domain", async () => {
   const response = await handleRouterRequest(
     new Request("https://codebolt.app/apps"),
-    createEnv(),
+    createEnv({ CODEBOLT_API_URL: "" }),
   );
 
   assert.equal(response.status, 200);
