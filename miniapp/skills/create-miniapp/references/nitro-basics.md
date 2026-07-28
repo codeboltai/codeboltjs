@@ -24,7 +24,7 @@ CodeBolt MiniApp integration owns:
 
 - tool discovery
 - collection discovery
-- view discovery
+- one UI entry declared in `codeboltMiniApp({ title, route })`
 - manifest generation
 - tool input validation
 - platform capability bridge

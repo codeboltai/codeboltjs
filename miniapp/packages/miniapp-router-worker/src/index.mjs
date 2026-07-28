@@ -102,7 +102,7 @@ export function installIdFromHost(host, rootDomain = defaultRootDomain) {
   if (!hostname.endsWith(`.${root}`)) return null;
   const prefix = hostname.slice(0, -root.length - 1);
   if (!prefix || prefix.includes(".")) return null;
-  return /^[a-z0-9][a-z0-9-]{0,62}$/.test(prefix) ? prefix : null;
+  return /^[a-z0-9][a-z0-9_-]{0,127}$/.test(prefix) ? prefix : null;
 }
 
 function getEnv(env, name, fallback) {
@@ -607,7 +607,14 @@ async function handleAuthCallback(request, env) {
     },
     body: JSON.stringify({ code, state, installId: stateRecord.installId }),
   });
-  const redeemed = await readJson(redeem, "Redeem login code");
+  let redeemed;
+  try {
+    redeemed = await readJson(redeem, "Redeem login code");
+  } catch (error) {
+    return json(redeem.status || 400, {
+      error: error?.message || "Unable to authorize MiniApp session.",
+    });
+  }
 
   const ttlSeconds = Number(getEnv(env, "SESSION_TTL_SECONDS", 86400));
   const session = {
@@ -663,19 +670,29 @@ async function createExecutionToken(install, session) {
 
 function proxyHeaders(request, token, install) {
   const headers = new Headers(request.headers);
+  headers.delete("host");
   headers.delete("cookie");
   headers.delete("authorization");
+  headers.delete("connection");
+  headers.delete("content-length");
   headers.delete("x-codebolt-execution-token");
   headers.delete("x-codebolt-cloud-url");
   headers.delete("x-codebolt-capability-url");
-  headers.set("authorization", `Bearer ${token}`);
-  headers.set("x-codebolt-execution-token", token);
-  headers.set("x-codebolt-cloud-url", normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl"));
+  headers.set("x-codebolt-miniapp-id", install.appId);
+  headers.set("x-codebolt-install-id", install.id);
+  headers.set("x-codebolt-workspace-id", install.workspaceId);
+  if (token) {
+    headers.set("authorization", `Bearer ${token}`);
+    headers.set("x-codebolt-execution-token", token);
+  }
+  if (install.capabilityUrl) {
+    headers.set("x-codebolt-cloud-url", normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl"));
+  }
   return headers;
 }
 
 async function proxyInstallRequest(request, install, session) {
-  const token = await createExecutionToken(install, session);
+  const token = install.capabilityUrl ? await createExecutionToken(install, session) : null;
   const inputUrl = new URL(request.url);
   const upstream = new URL(inputUrl.pathname + inputUrl.search, normalizeBaseUrl(install.upstreamUrl, "install.upstreamUrl"));
   return fetch(upstream, {
@@ -703,7 +720,14 @@ async function handleInstallRequest(request, env, installId) {
     return redirect(start.toString());
   }
 
-  return proxyInstallRequest(request, install, session);
+  try {
+    return await proxyInstallRequest(request, install, session);
+  } catch (error) {
+    return json(502, {
+      error: "Unable to proxy MiniApp request.",
+      detail: error?.message || String(error),
+    });
+  }
 }
 
 export async function handleRouterRequest(request, env) {
