@@ -1008,11 +1008,14 @@ function hasInstallAccess(install, session) {
   return false;
 }
 
-async function createExecutionToken(install, session) {
+async function createExecutionToken(env, install, session) {
   const capabilityUrl = normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl");
+  const headers = { "content-type": "application/json" };
+  const secret = edgeServiceSecret(env);
+  if (secret) headers["x-codebolt-service-secret"] = secret;
   const response = await fetch(`${capabilityUrl}/token`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({
       miniAppId: install.appId,
       installId: install.id,
@@ -1043,13 +1046,15 @@ function proxyHeaders(request, token, install) {
     headers.set("x-codebolt-execution-token", token);
   }
   if (install.capabilityUrl) {
-    headers.set("x-codebolt-cloud-url", normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl"));
+    const capabilityUrl = normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl");
+    headers.set("x-codebolt-cloud-url", capabilityUrl);
+    headers.set("x-codebolt-capability-url", capabilityUrl);
   }
   return headers;
 }
 
-async function proxyInstallRequest(request, install, session) {
-  const token = install.capabilityUrl ? await createExecutionToken(install, session) : null;
+async function proxyInstallRequest(request, env, install, session) {
+  const token = install.capabilityUrl ? await createExecutionToken(env, install, session) : null;
   const inputUrl = new URL(request.url);
   const upstream = new URL(inputUrl.pathname + inputUrl.search, normalizeBaseUrl(install.upstreamUrl, "install.upstreamUrl"));
   return fetch(upstream, {
@@ -1081,7 +1086,7 @@ async function handleInstallRequest(request, env, installId) {
   }
 
   try {
-    return await proxyInstallRequest(request, install, session);
+    return await proxyInstallRequest(request, env, install, session);
   } catch (error) {
     return json(502, {
       error: "Unable to proxy MiniApp request.",
