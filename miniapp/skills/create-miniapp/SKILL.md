@@ -33,11 +33,27 @@ Identify:
 - the package manager and root package file
 - whether `@codebolt/miniapp` is already installed or workspace-local
 - where MiniApps or examples live
+- whether the project has a `.codebolt/` directory
 - where Nitro config files live
 - whether the project uses TypeScript, plain JavaScript, React, Vue, or static UI
 - which build and validation commands already exist
 
 Prefer existing project conventions over the examples in this skill.
+
+## Choose The MiniApp Directory
+
+When creating a new MiniApp, first decide its target directory:
+
+- If the user gives an explicit path, use that path.
+- If extending an existing MiniApp, keep its current directory.
+- If the project root contains a `.codebolt/` directory, treat it as a CodeBolt
+  project and create the MiniApp under `.codebolt/miniapps/<miniappName>`.
+- Create `.codebolt/miniapps/` when needed.
+- Otherwise, follow the project's existing MiniApp convention or create a
+  top-level `<miniappName>/` directory.
+
+Use the same stable, hostname-safe MiniApp id for `<miniappName>` unless the
+project clearly separates package directory names from platform ids.
 
 ## MiniApp Shape
 
