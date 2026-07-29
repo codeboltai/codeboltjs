@@ -198,6 +198,13 @@ function prefixedPath(root, path) {
   return `${cleanRoot}/${cleanPath}`;
 }
 
+function vercelRuntimeUrl(name, target, deployment) {
+  if ((target || "production") === "production") {
+    return `https://${name}.vercel.app`;
+  }
+  return firstUrl(deployment.alias, deployment.aliases, deployment.url);
+}
+
 function denoAsset(file) {
   const textLike = /\.(mjs|js|ts|json|html|css|txt|svg|xml|map)$/i.test(file.path);
   return {
@@ -295,6 +302,7 @@ async function deployVercel(payload, env) {
   ));
 
   const name = cleanSlug(env.VERCEL_PROJECT || `${env.VERCEL_PROJECT_PREFIX || "codebolt-miniapp"}-${payload.appId}`);
+  const target = env.VERCEL_TARGET || "production";
   const deployment = await apiFetch(withQuery("https://api.vercel.com/v13/deployments", deploymentQuery), {
     token,
     method: "POST",
@@ -302,7 +310,7 @@ async function deployVercel(payload, env) {
     body: JSON.stringify({
       version: 2,
       name,
-      target: env.VERCEL_TARGET || "production",
+      target,
       files: files.map((file) => ({
         file: prefixedPath(outputRoot, file.path),
         sha: file.sha1,
@@ -312,7 +320,7 @@ async function deployVercel(payload, env) {
     }),
   });
 
-  const runtimeUrl = firstUrl(deployment.alias, deployment.aliases, deployment.url);
+  const runtimeUrl = vercelRuntimeUrl(name, target, deployment);
   return {
     status: deployment.readyState || deployment.status || "provisioning",
     runtimeUrl,
