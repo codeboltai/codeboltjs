@@ -1,0 +1,21 @@
+{
+  "name": "@codebolt/miniapp-deploy-provider-worker",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "wrangler.jsonc"
+  ],
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/index.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

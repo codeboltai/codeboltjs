@@ -98,6 +98,14 @@ Read `references/nitro-basics.md` when creating or debugging:
 Keep Nitro responsible for HTTP routing and deployment output. Keep CodeBolt
 responsible for MiniApp discovery, tools, manifests, and platform capabilities.
 
+Read `references/local-cloud-publish.md` when the task involves:
+
+- running MiniApps in the local host or CodeBolt app
+- publishing MiniApps through CodeBolt Cloud
+- portal catalog/install behavior
+- exposing local or cloud MiniApp tools to agents
+- explaining install policy versus per-install access
+
 ## Configure Nitro
 
 Use `@codebolt/miniapp/nitro` only from `nitro.config.ts`:
@@ -278,6 +286,9 @@ In local CodeBolt hosting:
 Do not add per-MiniApp hidden dev servers unless the user explicitly asks for
 that separate development mode.
 
+For exact local host routes, CodeBolt app routes, and local tool id shapes, read
+`references/local-cloud-publish.md`.
+
 ## Remote Runtime Expectations
 
 In remote deployment:
@@ -290,6 +301,9 @@ In remote deployment:
 
 Remote code should not care whether it is running in Node or Cloudflare. The SDK
 should hide environment and capability transport differences.
+
+For cloud publishing, portal install flow, provider platforms, and cloud tool id
+shapes, read `references/local-cloud-publish.md`.
 
 ## Validation
 
@@ -324,6 +338,7 @@ For a new MiniApp, verify:
 Before calling a MiniApp production-ready, confirm:
 
 - `nitro.config.ts` uses the MiniApp Nitro module.
+- the build emits `.output/codebolt/miniapp.manifest.json`.
 - every tool has JSON Schema input.
 - validators are build-time compatible with Cloudflare.
 - collections are declared when needed.
@@ -334,6 +349,8 @@ Before calling a MiniApp production-ready, confirm:
 - list screens use batch/filter APIs rather than N+1 loops.
 - remote output uses execution-token identity.
 - local static asset discovery does not require backend startup.
+- publish/install documentation reflects the current `appId` versus `installId`
+  model.
 
 ## When To Change Platform Runtime
 

@@ -214,6 +214,8 @@ integration explicit and easy to customize in `nitro.config.ts`.
 ## Related Docs
 
 - `../../packages/host/README.md`: local host and worker runtime.
+- `../../MINIAPP_PUBLISHING_AND_USAGE.md`: local usage, cloud publishing,
+  portal install flow, and agent tool exposure.
 - `../../examples/leads/README.md`: lead depository example.
 - `../../examples/onboarding/README.md`: onboarding example.
 - `../../skills/create-miniapp/SKILL.md`: agent instructions for authoring new

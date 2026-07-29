@@ -1,5 +1,9 @@
 # @codebolt/miniapp-sample-cloud
 
+Deprecated: this package is a local capability-server POC. Production MiniApp
+registry, installs, tool metadata, and cloud execution now belong in Edge API,
+with `packages/miniapp-router-worker` acting as the routing/proxy layer.
+
 Test-only CodeBolt Cloud capability server for remote MiniApp deployments.
 
 For the full MiniApp routing architecture and how this package fits into the

@@ -51,6 +51,8 @@ miniapp/
   routing behavior.
 - `packages/miniapp-router-worker/README.md`: Cloudflare Worker router for
   `codebolt.app` MiniApp install subdomains.
+- `MINIAPP_PUBLISHING_AND_USAGE.md`: local CodeBolt use, cloud publishing,
+  portal catalog/install flow, and agent tool exposure.
 - `packages/sample-cloud/README.md`: test capability cloud for local and
   deployed MiniApp capability calls.
 - `examples/leads/README.md`: lead depository example.

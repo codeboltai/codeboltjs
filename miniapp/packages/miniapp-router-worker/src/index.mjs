@@ -102,7 +102,7 @@ export function installIdFromHost(host, rootDomain = defaultRootDomain) {
   if (!hostname.endsWith(`.${root}`)) return null;
   const prefix = hostname.slice(0, -root.length - 1);
   if (!prefix || prefix.includes(".")) return null;
-  return /^[a-z0-9][a-z0-9-]{0,62}$/.test(prefix) ? prefix : null;
+  return /^[a-z0-9][a-z0-9_-]{0,127}$/.test(prefix) ? prefix : null;
 }
 
 function getEnv(env, name, fallback) {
@@ -118,7 +118,35 @@ async function readJson(response, label) {
   return data;
 }
 
+function edgeApiBase(env) {
+  return String(env.CODEBOLT_API_URL || "").replace(/\/+$/, "");
+}
+
+function edgeServiceSecret(env) {
+  return env.CODEBOLT_MINIAPP_ROUTER_SECRET || env.MINIAPP_ROUTER_SECRET || env.CODEBOLT_APP_AUTH_REDEEM_SECRET;
+}
+
+async function fetchEdgeJson(env, path, init = {}) {
+  const base = edgeApiBase(env);
+  if (!base) throw new Error("CODEBOLT_API_URL is not configured.");
+  const headers = new Headers(init.headers || {});
+  headers.set("accept", "application/json");
+  const secret = edgeServiceSecret(env);
+  if (secret) headers.set("x-codebolt-service-secret", secret);
+  const response = await fetch(`${base}${path}`, { ...init, headers });
+  return readJson(response, `Edge API ${path}`);
+}
+
 async function getInstall(env, installId) {
+  if (edgeApiBase(env) && edgeServiceSecret(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/router/installs/${encodeURIComponent(installId)}`);
+      const install = data.install;
+      if (install && install.enabled !== false) return { ...install, id: install.id ?? installId };
+    } catch {
+      // Fall through to KV so existing POC installs keep working during migration.
+    }
+  }
   const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
   if (!install || install.enabled === false) return null;
   return { ...install, id: install.id ?? installId };
@@ -286,6 +314,358 @@ function appPage(title, body) {
 </html>`;
 }
 
+function statusIllustration(kind) {
+  if (kind === "denied") {
+    return `
+      <svg viewBox="0 0 220 150" aria-hidden="true" class="status-art">
+        <rect x="42" y="34" width="136" height="78" rx="10" fill="#f4f7fb" stroke="#d7e1ed"/>
+        <rect x="58" y="48" width="104" height="50" rx="6" fill="#ffffff" stroke="#cad7e5"/>
+        <path d="M110 62v20" stroke="#0f766e" stroke-width="7" stroke-linecap="round"/>
+        <path d="M94 68v14c0 12 8 22 16 26 8-4 16-14 16-26V68l-16-8-16 8Z" fill="#d9f3ef" stroke="#0f766e" stroke-width="3"/>
+        <path d="M80 120h60" stroke="#9fb2c5" stroke-width="3" stroke-linecap="round"/>
+        <path d="M72 128h76" stroke="#d7e1ed" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="163" cy="44" r="13" fill="#fff1f2" stroke="#e11d48" stroke-width="3"/>
+        <path d="M158 39l10 10M168 39l-10 10" stroke="#e11d48" stroke-width="3" stroke-linecap="round"/>
+      </svg>`;
+  }
+  return `
+    <svg viewBox="0 0 220 150" aria-hidden="true" class="status-art">
+      <rect x="44" y="34" width="132" height="82" rx="12" fill="#f4f7fb" stroke="#d7e1ed"/>
+      <path d="M76 92h70" stroke="#d7e1ed" stroke-width="8" stroke-linecap="round"/>
+      <path d="M76 72h44" stroke="#d7e1ed" stroke-width="8" stroke-linecap="round"/>
+      <path d="M128 72h26" stroke="#0f766e" stroke-width="8" stroke-linecap="round"/>
+      <path d="M145 59l18 13-18 13" fill="none" stroke="#0f766e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="74" cy="72" r="6" fill="#0f766e"/>
+      <rect x="83" y="46" width="34" height="14" rx="7" fill="#d9f3ef" stroke="#8fd2c7"/>
+      <path d="M91 53h18" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function statusPage({ title, eyebrow, body, actions, kind }) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)} - CodeBolt</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #657085;
+      --line: #d9e2ed;
+      --accent: #0f766e;
+      --accent-ink: #ffffff;
+      --danger: #be123c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(15,118,110,0.08), transparent 34%),
+        linear-gradient(315deg, rgba(38,86,134,0.10), transparent 42%),
+        var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 24px;
+    }
+    main {
+      width: min(100%, 440px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 24px 70px rgba(23, 32, 51, 0.14);
+      padding: 28px;
+      text-align: center;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .brand-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      background: var(--accent);
+      box-shadow: inset 0 -6px 0 rgba(255,255,255,0.20);
+    }
+    .status-art {
+      width: min(230px, 78%);
+      height: auto;
+      margin: 2px auto 14px;
+      display: block;
+    }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: ${kind === "denied" ? "var(--danger)" : "var(--accent)"};
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 12px auto 0;
+      color: var(--muted);
+      max-width: 330px;
+    }
+    dl {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 8px 12px;
+      margin: 18px 0 0;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+    dt { color: var(--muted); }
+    dd { margin: 0; word-break: break-word; }
+    .actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .button {
+      border: 1px solid var(--accent);
+      border-radius: 7px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 8px 14px;
+      font: inherit;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .button.secondary {
+      background: var(--panel);
+      color: var(--accent);
+    }
+    .button:hover { filter: brightness(0.96); text-decoration: none; }
+    @media (max-width: 520px) {
+      body { padding: 16px; }
+      main { padding: 22px; }
+      dl { grid-template-columns: 1fr; gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><span class="brand-mark"></span><span>CodeBolt</span></div>
+    ${statusIllustration(kind)}
+    <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+    <h1>${escapeHtml(title)}</h1>
+    ${body}
+    <div class="actions">${actions}</div>
+  </main>
+</body>
+</html>`;
+}
+
+function loginHandoffPage(env, install, loginUrl) {
+  const title = `Sign in to ${install.appTitle || install.appId || "MiniApp"}`;
+  return statusPage({
+    title,
+    eyebrow: "Sign in required",
+    kind: "login",
+    body: `
+      <p>Continue to CodeBolt to verify your account before opening this installed MiniApp.</p>
+    `,
+    actions: `
+      <a class="button" href="${escapeHtml(loginUrl)}">Continue to CodeBolt</a>
+    `,
+  });
+}
+
+function accessDeniedPage(env, install, requestUrl, session) {
+  const title = "Access denied";
+  const rootDomain = getEnv(env, "ROOT_DOMAIN", defaultRootDomain);
+  const logoutUrl = new URL(`https://${rootDomain}/auth/logout`);
+  logoutUrl.searchParams.set("returnTo", requestUrl);
+  const user = session?.email || session?.userName || session?.userId || "this CodeBolt account";
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)} - CodeBolt</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fafbfc;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ec;
+      --accent: #0f766e;
+      --danger: #e11d48;
+      --danger-soft: #ffe4ec;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 28px;
+    }
+    main {
+      width: min(100%, 760px);
+      text-align: center;
+      padding: 24px 0 34px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .brand-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      background: var(--accent);
+      box-shadow: inset 0 -6px 0 rgba(255,255,255,0.22);
+    }
+    .scene {
+      width: min(520px, 92vw);
+      height: auto;
+      margin: 0 auto 28px;
+      display: block;
+    }
+    h1 {
+      margin: 0;
+      color: var(--danger);
+      font-size: clamp(32px, 7vw, 56px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    .summary {
+      margin: 14px auto 0;
+      color: var(--muted);
+      max-width: 460px;
+      font-size: 17px;
+    }
+    dl {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, auto));
+      justify-content: center;
+      gap: 8px 14px;
+      margin: 26px auto 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    dt {
+      text-align: right;
+      font-weight: 650;
+      color: #4b5563;
+    }
+    dd {
+      margin: 0;
+      max-width: min(360px, 52vw);
+      text-align: left;
+      word-break: break-word;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .button {
+      border: 1px solid var(--accent);
+      border-radius: 7px;
+      background: var(--accent);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 8px 16px;
+      font: inherit;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .button:hover { filter: brightness(0.96); }
+    @media (max-width: 560px) {
+      body { padding: 20px; }
+      main { padding-top: 8px; }
+      dl { grid-template-columns: 1fr; gap: 2px; }
+      dt, dd { text-align: center; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><span class="brand-mark"></span><span>CodeBolt</span></div>
+    <svg viewBox="0 0 560 230" aria-hidden="true" class="scene">
+      <path d="M54 174h452" stroke="#f7a8bd" stroke-width="5" stroke-linecap="round"/>
+      <path d="M116 174V106h42v68M180 174V86h58v88M260 174V58h74v116M356 174V40h58v134M436 174v-52h70v52" fill="#f1f3f6"/>
+      <path d="M120 174h80M326 174h118" stroke="#f7a8bd" stroke-width="5" stroke-linecap="round"/>
+      <g stroke="#f4729a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="#ffe4ec">
+        <path d="M150 132h120v40H150z"/>
+        <path d="M160 102h100l10 30H150z"/>
+        <path d="M168 102l-18 70M198 102l-18 70M228 102l-18 70M258 102l-18 70"/>
+        <path d="M352 132h120v40H352z"/>
+        <path d="M362 102h100l10 30H352z"/>
+        <path d="M370 102l-18 70M400 102l-18 70M430 102l-18 70M460 102l-18 70"/>
+      </g>
+      <g stroke="#e11d48" stroke-width="5" stroke-linecap="round">
+        <path d="M282 174V94"/>
+        <circle cx="282" cy="82" r="20" fill="#fff1f2"/>
+        <path d="M272 72l20 20M292 72l-20 20"/>
+      </g>
+      <path d="M78 92h54M88 122h34M388 34h58M438 74h36M460 104h54" stroke="#f4729a" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <h1>Access Denied</h1>
+    <p class="summary">${escapeHtml(install.appTitle || install.appId || "This MiniApp")} is private to another workspace or user.</p>
+    <dl>
+      <dt>Install</dt><dd>${escapeHtml(install.id)}</dd>
+      <dt>Signed in as</dt><dd>${escapeHtml(user)}</dd>
+    </dl>
+    <div class="actions">
+      <a class="button" href="${escapeHtml(logoutUrl.toString())}">Try another account</a>
+    </div>
+  </main>
+</body>
+</html>`;
+}
+
+function safeReturnTo(value, rootDomain = defaultRootDomain) {
+  if (!value) return "/";
+  try {
+    const url = new URL(value, `https://${rootDomain}`);
+    if (url.origin === `https://${rootDomain}` || url.hostname.endsWith(`.${rootDomain}`)) {
+      return url.toString();
+    }
+  } catch {
+    // Fall back to the MiniApp catalog for malformed return targets.
+  }
+  return `https://${rootDomain}/apps`;
+}
+
 function slugPart(value, fallback = "app") {
   const slug = String(value ?? "")
     .toLowerCase()
@@ -318,12 +698,34 @@ function normalizeApp(app, appId) {
 }
 
 async function getApp(env, appId) {
+  if (edgeApiBase(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/registry/${encodeURIComponent(appId)}`);
+      if (data.app) return normalizeApp(data.app, appId);
+    } catch {
+      // Fall through to KV so existing POC app records keep working during migration.
+    }
+  }
   const app = await env.MINIAPP_INSTALLS.get(appKey(appId), "json");
   if (!app || app.enabled === false) return null;
   return normalizeApp(app, appId);
 }
 
 async function listApps(env, { includeUnlisted = false } = {}) {
+  if (edgeApiBase(env)) {
+    try {
+      const suffix = includeUnlisted ? "?includeUnlisted=true" : "";
+      const data = await fetchEdgeJson(env, `/miniapps/registry${suffix}`);
+      if (Array.isArray(data.apps)) {
+        return data.apps
+          .map((app) => normalizeApp(app, app.id))
+          .filter((app) => includeUnlisted || app.installPolicy !== "unlisted")
+          .sort((left, right) => left.title.localeCompare(right.title));
+      }
+    } catch {
+      // Fall through to KV so existing POC app records keep working during migration.
+    }
+  }
   if (typeof env.MINIAPP_INSTALLS.list !== "function") return [];
   const listed = await env.MINIAPP_INSTALLS.list({ prefix: "app:" });
   const apps = [];
@@ -468,12 +870,29 @@ async function handleAppInstall(request, env, appId) {
   `));
 
   const installId = await uniqueInstallId(env, app.id);
+  if (edgeApiBase(env) && edgeServiceSecret(env)) {
+    try {
+      const data = await fetchEdgeJson(env, `/miniapps/router/apps/${encodeURIComponent(app.id)}/install`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          installId,
+          userId: session.userId,
+          workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
+          access: app.defaultAccess ?? "private",
+        }),
+      });
+      return redirect(installUrl(env, data.installId || installId));
+    } catch {
+      // Fall through to KV install creation during migration.
+    }
+  }
   const install = {
     id: installId,
     appId: app.id,
     appTitle: app.title,
-    upstreamUrl: app.upstreamUrl,
-    capabilityUrl: app.capabilityUrl,
+    upstreamUrl: app.deployment?.upstreamUrl || app.upstreamUrl || app.deployment?.runtimeUrl,
+    capabilityUrl: app.deployment?.capabilityUrl || app.capabilityUrl,
     workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
     ownerUserId: session.userId,
     access: app.defaultAccess ?? "private",
@@ -540,7 +959,14 @@ async function handleAuthCallback(request, env) {
     },
     body: JSON.stringify({ code, state, installId: stateRecord.installId }),
   });
-  const redeemed = await readJson(redeem, "Redeem login code");
+  let redeemed;
+  try {
+    redeemed = await readJson(redeem, "Redeem login code");
+  } catch (error) {
+    return json(redeem.status || 400, {
+      error: error?.message || "Unable to authorize MiniApp session.",
+    });
+  }
 
   const ttlSeconds = Number(getEnv(env, "SESSION_TTL_SECONDS", 86400));
   const session = {
@@ -559,8 +985,13 @@ async function handleAuthCallback(request, env) {
   });
 }
 
-function handleLogout(env) {
-  return redirect("/", {
+function handleLogout(request, env) {
+  const url = new URL(request.url);
+  const returnTo = safeReturnTo(
+    url.searchParams.get("returnTo"),
+    getEnv(env, "ROOT_DOMAIN", defaultRootDomain),
+  );
+  return redirect(returnTo, {
     "set-cookie": cookieHeader(sessionCookieName, "", {
       domain: `.${getEnv(env, "ROOT_DOMAIN", defaultRootDomain)}`,
       maxAge: 0,
@@ -577,11 +1008,14 @@ function hasInstallAccess(install, session) {
   return false;
 }
 
-async function createExecutionToken(install, session) {
+async function createExecutionToken(env, install, session) {
   const capabilityUrl = normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl");
+  const headers = { "content-type": "application/json" };
+  const secret = edgeServiceSecret(env);
+  if (secret) headers["x-codebolt-service-secret"] = secret;
   const response = await fetch(`${capabilityUrl}/token`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify({
       miniAppId: install.appId,
       installId: install.id,
@@ -596,19 +1030,31 @@ async function createExecutionToken(install, session) {
 
 function proxyHeaders(request, token, install) {
   const headers = new Headers(request.headers);
+  headers.delete("host");
   headers.delete("cookie");
   headers.delete("authorization");
+  headers.delete("connection");
+  headers.delete("content-length");
   headers.delete("x-codebolt-execution-token");
   headers.delete("x-codebolt-cloud-url");
   headers.delete("x-codebolt-capability-url");
-  headers.set("authorization", `Bearer ${token}`);
-  headers.set("x-codebolt-execution-token", token);
-  headers.set("x-codebolt-cloud-url", normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl"));
+  headers.set("x-codebolt-miniapp-id", install.appId);
+  headers.set("x-codebolt-install-id", install.id);
+  headers.set("x-codebolt-workspace-id", install.workspaceId);
+  if (token) {
+    headers.set("authorization", `Bearer ${token}`);
+    headers.set("x-codebolt-execution-token", token);
+  }
+  if (install.capabilityUrl) {
+    const capabilityUrl = normalizeBaseUrl(install.capabilityUrl, "install.capabilityUrl");
+    headers.set("x-codebolt-cloud-url", capabilityUrl);
+    headers.set("x-codebolt-capability-url", capabilityUrl);
+  }
   return headers;
 }
 
-async function proxyInstallRequest(request, install, session) {
-  const token = await createExecutionToken(install, session);
+async function proxyInstallRequest(request, env, install, session) {
+  const token = install.capabilityUrl ? await createExecutionToken(env, install, session) : null;
   const inputUrl = new URL(request.url);
   const upstream = new URL(inputUrl.pathname + inputUrl.search, normalizeBaseUrl(install.upstreamUrl, "install.upstreamUrl"));
   return fetch(upstream, {
@@ -630,13 +1076,23 @@ async function handleInstallRequest(request, env, installId) {
 
   if (!hasInstallAccess(install, session)) {
     const currentUrl = new URL(request.url);
+    if (session?.userId) {
+      return html(403, accessDeniedPage(env, install, currentUrl.toString(), session));
+    }
     const start = new URL(`https://${getEnv(env, "ROOT_DOMAIN", defaultRootDomain)}/auth/start`);
     start.searchParams.set("installId", install.id);
     start.searchParams.set("returnTo", currentUrl.toString());
-    return redirect(start.toString());
+    return html(401, loginHandoffPage(env, install, start.toString()));
   }
 
-  return proxyInstallRequest(request, install, session);
+  try {
+    return await proxyInstallRequest(request, env, install, session);
+  } catch (error) {
+    return json(502, {
+      error: "Unable to proxy MiniApp request.",
+      detail: error?.message || String(error),
+    });
+  }
 }
 
 export async function handleRouterRequest(request, env) {
@@ -649,7 +1105,7 @@ export async function handleRouterRequest(request, env) {
     if (url.pathname === "/apps" || url.pathname.startsWith("/apps/")) return handleAppsRoute(request, env);
     if (url.pathname === "/auth/start") return handleAuthStart(request, env);
     if (url.pathname === "/auth/callback") return handleAuthCallback(request, env);
-    if (url.pathname === "/auth/logout") return handleLogout(env);
+    if (url.pathname === "/auth/logout") return handleLogout(request, env);
     return text(404, "Not Found");
   }
 

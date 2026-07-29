@@ -98,6 +98,19 @@ async function allFiles(directory: string): Promise<string[]> {
   }
 }
 
+async function existingServerEntry(serverDir: string): Promise<string> {
+  const candidates = ["index.mjs", "index.ts", "index.js"];
+  for (const candidate of candidates) {
+    const path = resolve(serverDir, candidate);
+    try {
+      if ((await stat(path)).isFile()) return path;
+    } catch {
+      // Try the next common Nitro server entry filename.
+    }
+  }
+  return resolve(serverDir, "index.mjs");
+}
+
 async function readDefinition(path: string): Promise<Definition> {
   const jiti = createJiti(import.meta.url, { interopDefault: true });
   const definition = await jiti.import(path, { default: true }) as Definition;
@@ -194,6 +207,7 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
         const manifestDir = resolve(nitro.options.output.dir, "codebolt");
         await mkdir(manifestDir, { recursive: true });
         const publicFiles = await allFiles(nitro.options.output.publicDir);
+        const serverEntryPath = await existingServerEntry(nitro.options.output.serverDir);
         const staticAssets = await Promise.all(
           publicFiles.map(async (path) => ({
             path: relative(nitro.options.output.publicDir, path).replaceAll("\\", "/"),
@@ -212,7 +226,7 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
           runtime: {
             handler: relative(
               nitro.options.output.dir,
-              resolve(nitro.options.output.serverDir, "index.mjs"),
+              serverEntryPath,
             ).replaceAll("\\", "/"),
             publicDir: relative(
               nitro.options.output.dir,

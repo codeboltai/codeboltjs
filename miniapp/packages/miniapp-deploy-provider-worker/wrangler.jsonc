@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "codebolt-miniapp-deploy-provider",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": true,
+  "vars": {
+    "DEFAULT_PLATFORM": "deno-subhosting",
+    "DENO_APP_PREFIX": "codebolt-miniapp",
+    "DENO_ORG_SLUG": "codeboltai",
+    "NETLIFY_SITE_PREFIX": "codebolt-miniapp",
+    "VERCEL_PROJECT_PREFIX": "codebolt-miniapp"
+  }
+}

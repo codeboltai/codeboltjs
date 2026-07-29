@@ -1,0 +1,8 @@
+name = "codebolt-connectors-work"
+main = "src/index.ts"
+compatibility_date = "2024-05-30"
+
+[vars]
+CONNECTOR_WORKER_ID = "codebolt-connectors-work"
+CONNECTOR_WORKER_NAME = "Work Management Connectors"
+CONNECTOR_WORKER_DESCRIPTION = "Issue, ticket, document, and planning-system integrations."

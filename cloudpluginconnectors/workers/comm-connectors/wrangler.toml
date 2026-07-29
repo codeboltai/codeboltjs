@@ -1,0 +1,8 @@
+name = "codebolt-connectors-comm"
+main = "src/index.ts"
+compatibility_date = "2024-05-30"
+
+[vars]
+CONNECTOR_WORKER_ID = "codebolt-connectors-comm"
+CONNECTOR_WORKER_NAME = "Communication Connectors"
+CONNECTOR_WORKER_DESCRIPTION = "Messaging, email, and calendar integrations with stricter content controls."
