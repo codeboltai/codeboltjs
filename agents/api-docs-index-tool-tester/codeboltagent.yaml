@@ -1,0 +1,22 @@
+title: API Docs Index Tool Tester
+version: 0.1.0
+unique_id: api-docs-index-tool-tester
+initial_message: API Docs Index Tool Tester is ready to validate API docs index tools.
+description: Runs smoke tests against @codebolt/api-docs-index APIs and local tool actions.
+tags:
+  - testing
+  - api-docs-index
+  - codebolt-agent
+longDescription: |
+  This agent validates the API docs index package by calling the direct APIs and
+  local tool adapters, checking returned schemas, canary signatures, module specs,
+  authoring helpers, generated project validation, and optional sandbox execution.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: AT
+actions:
+  - name: Test API Docs Index Tools
+    description: Calls every safe api-docs-index API/tool action and reports pass/fail results.
+    detailDescription: Use this to validate search_api_docs, get_api_spec, module lookups, examples, authoring, validation, and sandbox log tools.
+    actionPrompt: Test all API docs index tools and report whether they return correct results.
+supportRemix: true
+author: CodeBolt

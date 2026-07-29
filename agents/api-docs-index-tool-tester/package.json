@@ -1,0 +1,18 @@
+{
+  "name": "api-docs-index-tool-tester",
+  "version": "0.1.0",
+  "description": "CodeBolt agent that smoke-tests @codebolt/api-docs-index APIs and local tools.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "API_DOCS_INDEX_STANDALONE=1 API_DOCS_INDEX_SKIP_SANDBOX=1 node index.js",
+    "test:runtime": "API_DOCS_INDEX_STANDALONE=1 node index.js"
+  },
+  "dependencies": {
+    "@codebolt/api-docs-index": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/api-docs-index",
+    "@codebolt/agent": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/agent",
+    "@codebolt/codeboltjs": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/CodeBolt/sdks/codeboltjs",
+    "zod": "^3.22.4"
+  },
+  "private": true
+}
