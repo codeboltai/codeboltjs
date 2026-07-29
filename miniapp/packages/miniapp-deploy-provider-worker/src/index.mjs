@@ -186,6 +186,18 @@ function firstUrl(...values) {
   return undefined;
 }
 
+function prefixedPath(root, path) {
+  const cleanRoot = String(root || "")
+    .replaceAll("\\", "/")
+    .replace(/^\/+|\/+$/g, "");
+  const cleanPath = String(path || "")
+    .replaceAll("\\", "/")
+    .replace(/^\/+/, "");
+  if (!cleanRoot || cleanRoot === ".") return cleanPath;
+  if (cleanPath === cleanRoot || cleanPath.startsWith(`${cleanRoot}/`)) return cleanPath;
+  return `${cleanRoot}/${cleanPath}`;
+}
+
 function denoAsset(file) {
   const textLike = /\.(mjs|js|ts|json|html|css|txt|svg|xml|map)$/i.test(file.path);
   return {
@@ -265,6 +277,8 @@ async function deployVercel(payload, env) {
   const teamId = env.VERCEL_TEAM_ID || env.VERCEL_ORG_ID;
   const teamSlug = env.VERCEL_TEAM_SLUG;
   const query = { teamId, slug: teamSlug };
+  const deploymentQuery = { ...query, prebuilt: "1" };
+  const outputRoot = payload.bundle?.root || ".vercel/output";
 
   await Promise.all(files.map((file) =>
     apiFetch(withQuery("https://api.vercel.com/v2/now/files", query), {
@@ -281,15 +295,16 @@ async function deployVercel(payload, env) {
   ));
 
   const name = cleanSlug(env.VERCEL_PROJECT || `${env.VERCEL_PROJECT_PREFIX || "codebolt-miniapp"}-${payload.appId}`);
-  const deployment = await apiFetch(withQuery("https://api.vercel.com/v13/deployments", query), {
+  const deployment = await apiFetch(withQuery("https://api.vercel.com/v13/deployments", deploymentQuery), {
     token,
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
+      version: 2,
       name,
       target: env.VERCEL_TARGET || "production",
       files: files.map((file) => ({
-        file: file.path,
+        file: prefixedPath(outputRoot, file.path),
         sha: file.sha1,
         size: file.size,
       })),
@@ -297,7 +312,7 @@ async function deployVercel(payload, env) {
     }),
   });
 
-  const runtimeUrl = firstUrl(deployment.url, deployment.alias, deployment.aliases);
+  const runtimeUrl = firstUrl(deployment.alias, deployment.aliases, deployment.url);
   return {
     status: deployment.readyState || deployment.status || "provisioning",
     runtimeUrl,
