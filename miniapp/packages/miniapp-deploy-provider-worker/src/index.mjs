@@ -198,11 +198,22 @@ function prefixedPath(root, path) {
   return `${cleanRoot}/${cleanPath}`;
 }
 
+function vercelProjectDomain(name, deployment) {
+  const projectName = deployment?.project?.name || name;
+  return projectName ? `${projectName}.vercel.app` : undefined;
+}
+
 function vercelRuntimeUrl(name, target, deployment) {
-  if ((target || "production") === "production") {
-    return `https://${name}.vercel.app`;
-  }
-  return firstUrl(deployment.alias, deployment.aliases, deployment.url);
+  const production = (target || "production") === "production";
+  return firstUrl(
+    production ? vercelProjectDomain(name, deployment) : undefined,
+    deployment.domains,
+    deployment.project?.domains,
+    deployment.alias,
+    deployment.aliases,
+    deployment.automaticAliases,
+    deployment.url,
+  );
 }
 
 function denoAsset(file) {
