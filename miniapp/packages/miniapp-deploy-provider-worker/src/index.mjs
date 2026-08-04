@@ -112,6 +112,10 @@ async function apiFetchMaybe(url, options) {
   };
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function asArrayPayload(data) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.items)) return data.items;
@@ -216,6 +220,29 @@ function vercelRuntimeUrl(name, target, deployment) {
   );
 }
 
+function vercelDeploymentSettled(deployment) {
+  const state = String(deployment?.readyState || deployment?.status || "").toUpperCase();
+  return state === "READY" || state === "ERROR" || state === "CANCELED";
+}
+
+async function waitForVercelDeployment(token, query, deployment, target) {
+  const deploymentId = deployment?.id || deployment?.uid;
+  if (!deploymentId) return deployment;
+  const production = (target || "production") === "production";
+  let latest = deployment;
+  for (const delay of [1000, 2000, 3000, 5000, 8000]) {
+    if (vercelDeploymentSettled(latest) && (!production || latest.aliasAssigned !== false)) {
+      return latest;
+    }
+    await sleep(delay);
+    latest = await apiFetch(
+      withQuery(`https://api.vercel.com/v13/deployments/${encodeURIComponent(deploymentId)}`, query),
+      { token },
+    );
+  }
+  return latest;
+}
+
 function denoAsset(file) {
   const textLike = /\.(mjs|js|ts|json|html|css|txt|svg|xml|map)$/i.test(file.path);
   return {
@@ -314,6 +341,7 @@ async function deployVercel(payload, env) {
 
   const name = cleanSlug(env.VERCEL_PROJECT || `${env.VERCEL_PROJECT_PREFIX || "codebolt-miniapp"}-${payload.appId}`);
   const target = env.VERCEL_TARGET || "production";
+  const productionAlias = (target || "production") === "production" ? `${name}.vercel.app` : undefined;
   const deployment = await apiFetch(withQuery("https://api.vercel.com/v13/deployments", deploymentQuery), {
     token,
     method: "POST",
@@ -322,6 +350,7 @@ async function deployVercel(payload, env) {
       version: 2,
       name,
       target,
+      ...(productionAlias ? { alias: [productionAlias] } : {}),
       files: files.map((file) => ({
         file: prefixedPath(outputRoot, file.path),
         sha: file.sha1,
@@ -331,13 +360,18 @@ async function deployVercel(payload, env) {
     }),
   });
 
-  const runtimeUrl = vercelRuntimeUrl(name, target, deployment);
+  const latestDeployment = await waitForVercelDeployment(token, query, deployment, target);
+  const runtimeUrl = vercelRuntimeUrl(name, target, latestDeployment);
   return {
-    status: deployment.readyState || deployment.status || "provisioning",
+    status: latestDeployment.readyState || latestDeployment.status || deployment.readyState || deployment.status || "provisioning",
     runtimeUrl,
     upstreamUrl: runtimeUrl,
-    providerDeploymentId: deployment.id || deployment.uid,
-    providerResponse: deployment,
+    providerDeploymentId: latestDeployment.id || latestDeployment.uid || deployment.id || deployment.uid,
+    providerResponse: {
+      deployment,
+      latestDeployment,
+      requestedAlias: productionAlias,
+    },
   };
 }
 

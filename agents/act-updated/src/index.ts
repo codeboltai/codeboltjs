@@ -19,6 +19,98 @@ import { ProcessedMessage } from '@codebolt/types/agent';
 
 const eventQueue = codebolt.agentEventQueue;
 
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch (error) {
+    return `[Unserializable event: ${error instanceof Error ? error.message : String(error)}]`;
+  }
+}
+
+function summarizeExternalEvent(event: any): string {
+  if (!event || typeof event !== 'object') {
+    return String(event);
+  }
+
+  const eventId = event.eventId || event.id || 'no-event-id';
+  const eventType = event.type || event.eventType || 'unknown';
+  const source = event.metadata?.sourceAgentId || event.metadata?.source || 'system';
+  const targetThreadId = event.target?.threadId || event.threadId || event.data?.threadId || 'no-thread';
+  const dataKeys = event.data && typeof event.data === 'object'
+    ? Object.keys(event.data).join(',')
+    : 'no-data-keys';
+
+  return `eventId=${eventId}, type=${eventType}, source=${source}, targetThreadId=${targetThreadId}, dataKeys=${dataKeys}`;
+}
+
+function parseJsonObject(value: unknown): Record<string, any> | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? parsed as Record<string, any>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function getEventFailureReason(eventData: Record<string, any>): string | null {
+  if (!eventData || typeof eventData !== 'object') {
+    return null;
+  }
+
+  if (eventData.error) {
+    return typeof eventData.error === 'string' ? eventData.error : safeStringify(eventData.error);
+  }
+
+  const status = typeof eventData.status === 'string' ? eventData.status.toLowerCase() : '';
+  if (['failed', 'failure', 'error', 'errored', 'stopped', 'cancelled', 'canceled', 'crashed', 'timeout', 'timed_out'].includes(status)) {
+    return `Event status is ${eventData.status}`;
+  }
+
+  const messageObject = parseJsonObject(eventData.message);
+  const outputObject = parseJsonObject(eventData.output);
+  const nestedError = messageObject?.error || outputObject?.error;
+  if (nestedError) {
+    return typeof nestedError === 'string' ? nestedError : safeStringify(nestedError);
+  }
+
+  const nestedStatus = String(messageObject?.status || outputObject?.status || '').toLowerCase();
+  if (['failed', 'failure', 'error', 'errored', 'stopped', 'cancelled', 'canceled', 'crashed', 'timeout', 'timed_out'].includes(nestedStatus)) {
+    return `Nested result status is ${messageObject?.status || outputObject?.status}`;
+  }
+
+  return null;
+}
+
+function logExternalEvents(source: string, events: any[]): void {
+  console.log(`[act-updated][EventQueue][${source}] fetched ${events.length} event(s)`);
+
+  events.forEach((event, index) => {
+    console.log(`[act-updated][EventQueue][${source}] event[${index}] ${summarizeExternalEvent(event)}`);
+    console.log(`[act-updated][EventQueue][${source}] event[${index}] raw=${safeStringify(event)}`);
+  });
+}
+
+try {
+  const unsubscribeFromEventQueue = (eventQueue as any).onEvent?.((event: any) => {
+    console.log(`[act-updated][EventQueue:onEvent] ${summarizeExternalEvent(event)}`);
+    console.log(`[act-updated][EventQueue:onEvent] raw=${safeStringify(event)}`);
+  });
+
+  if (typeof unsubscribeFromEventQueue === 'function') {
+    console.log('[act-updated][EventQueue:onEvent] listener registered');
+  } else {
+    console.log('[act-updated][EventQueue:onEvent] listener registration unavailable');
+  }
+} catch (error) {
+  console.error('[act-updated][EventQueue:onEvent] listener registration failed:', error);
+}
+
 let systemPrompt = `
 
 You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.
@@ -116,6 +208,10 @@ Run **all applicable** checks for the detected stack. Skip a check only if the p
 
 - Use only provided tools; follow their schemas exactly
 - Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls
+- Application events may appear as user messages wrapped in XML-like tags such as thread_completion_event, thread_failure_event, background_command_completion_event, background_command_failure_event, steering_message, or agent_event. Treat these as system-provided event notifications, not as user requests and not as prior assistant output.
+- When a background child thread completion event arrives, incorporate the completion result into your current task state and continue the workflow from there.
+- When a background child thread failure event arrives, surface the failure to the parent workflow and either retry, continue with remaining independent work, or stop with a clear error depending on the user's objective.
+- If you are orchestrating child threads in batches, after the current batch has completed, launch the next batch with the thread tools thread_create_start or thread_create_background. Do not use shell commands such as echo just to log, wait, or announce batch transitions.
 - Use \`codebase_search\` to search for code in the codebase
 - If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.
 - Don't mention tool names to the user; describe actions naturally.
@@ -328,6 +424,7 @@ Specific markdown rules:
  */
 function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMessage {
   console.log(`[act-updated][Event] Received external event:`, JSON.stringify(event, null, 2));
+  console.log(`[act-updated][Event] Summary: ${summarizeExternalEvent(event)}`);
 
   if (!event) {
     console.warn(`[act-updated][Event] Skipping null/undefined event`);
@@ -343,8 +440,8 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     prompt.message.input = [];
   }
 
-  const eventType = event.type;
-  const eventData = event.data || {};
+  const eventType = event.type || event.eventType;
+  const eventData = event.data || event.payload || {};
   console.log(`[act-updated][Event] eventType=${eventType}, eventData keys=${Object.keys(eventData || {}).join(',')}`);
 
   if (eventType === 'steering') {
@@ -359,17 +456,51 @@ function processExternalEvent(event: any, prompt: ProcessedMessage): ProcessedMe
     });
     return prompt;
   } else if (eventType === 'threadCompletion') {
+    const failureReason = getEventFailureReason(eventData);
+    if (failureReason) {
+      console.warn(`[act-updated][Event] Injecting thread failure event: ${failureReason}`);
+      prompt.message.messages.push({
+        role: "user" as const,
+        content: `<thread_failure_event>
+<context>This is a Codebolt application event. A background child thread failed, stopped, or returned an error-shaped result. Treat this as a failed child task, report it to the parent workflow, and decide whether to retry, continue with remaining work, or stop based on the user's objective.</context>
+<reason>${failureReason}</reason>
+<event>${JSON.stringify(eventData, null, 2)}</event>
+</thread_failure_event>`
+      });
+      return prompt;
+    }
+
     console.log(`[act-updated][Event] Injecting thread completion event`);
     prompt.message.messages.push({
-      role: "assistant" as const,
-      content: `Background thread completed:\n${JSON.stringify(eventData, null, 2)}`
+      role: "user" as const,
+      content: `<thread_completion_event>
+<context>This is an application event from Codebolt, not user text and not assistant output. Use it to update background-thread state. If this completes the current batch, continue with the next required work and use thread tools for any next batch.</context>
+<event>${JSON.stringify(eventData, null, 2)}</event>
+</thread_completion_event>`
     });
     return prompt;
   } else if (eventType === 'backgroundCommandCompletion') {
+    const failureReason = getEventFailureReason(eventData);
+    if (failureReason) {
+      console.warn(`[act-updated][Event] Injecting background command failure event: ${failureReason}`);
+      prompt.message.messages.push({
+        role: "user" as const,
+        content: `<background_command_failure_event>
+<context>This is a Codebolt application event. A background command failed, stopped, or returned an error-shaped result. Treat this as a failed background task and surface the error in the current workflow.</context>
+<reason>${failureReason}</reason>
+<event>${JSON.stringify(eventData, null, 2)}</event>
+</background_command_failure_event>`
+      });
+      return prompt;
+    }
+
     console.log(`[act-updated][Event] Injecting background command completion event`);
     prompt.message.messages.push({
-      role: "assistant" as const,
-      content: `Background command completed:\n${JSON.stringify(eventData, null, 2)}`
+      role: "user" as const,
+      content: `<background_command_completion_event>
+<context>This is an application event from Codebolt, not user text and not assistant output. Use it to update background-command state and continue the current task.</context>
+<event>${JSON.stringify(eventData, null, 2)}</event>
+</background_command_completion_event>`
     });
     return prompt;
   } else if (eventType === 'forceStopCleanup') {
@@ -420,7 +551,17 @@ ${JSON.stringify(eventData, null, 2)}
     });
     return prompt;
   } else {
-    console.warn(`[act-updated][Event] Unknown event type: ${eventType}, skipping`);
+    const normalizedEventType = eventType || event.eventType || 'unknown';
+    console.warn(`[act-updated][Event] Unknown event type: ${normalizedEventType}, injecting generic event`);
+    prompt.message.messages.push({
+      role: "user" as const,
+      content: `<agent_event>
+<type>${normalizedEventType}</type>
+<source>${event.metadata?.sourceAgentId || event.metadata?.source || 'system'}</source>
+<content>${JSON.stringify(eventData, null, 2)}</content>
+<metadata>${JSON.stringify(event.metadata || {}, null, 2)}</metadata>
+</agent_event>`
+    });
     return prompt;
   }
 }
@@ -428,8 +569,9 @@ ${JSON.stringify(eventData, null, 2)}
 const externalEventProcessor = {
   async modify(_originalRequest: FlatUserMessage, createdMessage: ProcessedMessage): Promise<ProcessedMessage> {
     let nextPrompt = createdMessage;
+    console.log('[act-updated][EventQueue][messageModifier] fetching pending events');
     const pendingEvents = await eventQueue.getPendingEvents();
-    console.log(`[act-updated][Loop] Pending external events: ${pendingEvents.length}`);
+    logExternalEvents('messageModifier', pendingEvents);
     for (const externalEvent of pendingEvents) {
       nextPrompt = processExternalEvent(externalEvent, nextPrompt);
     }
@@ -440,8 +582,9 @@ const externalEventProcessor = {
 const externalEventPostToolProcessor = {
   async modify({ nextPrompt }: { nextPrompt: ProcessedMessage }) {
     let updatedPrompt = nextPrompt;
+    console.log('[act-updated][EventQueue][postTool] fetching pending events');
     const pendingEvents = await eventQueue.getPendingEvents();
-    console.log(`[act-updated][Loop] Pending post-tool external events: ${pendingEvents.length}`);
+    logExternalEvents('postTool', pendingEvents);
 
     for (const externalEvent of pendingEvents) {
       updatedPrompt = processExternalEvent(externalEvent, updatedPrompt);
@@ -516,7 +659,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage) => {
     if (!executionResult.success) {
       throw new Error(executionResult.error || 'act-updated failed to process the message.');
     }
-
+  console.log(`[act-updated] Agent Finised with ${executionResult.finalMessage}`);
+    
     return executionResult.finalMessage;
 
   } catch (error) {
