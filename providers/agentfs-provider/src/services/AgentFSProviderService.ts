@@ -9,12 +9,19 @@ import type {
 } from '@codebolt/types/provider';
 import path from 'path';
 import os from 'os';
+import { promises as hostFs } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 import {
     DiffResult,
     IProviderService,
     ProviderConfig,
 } from '../interfaces/IProviderService';
 import { createPrefixedLogger, Logger } from '../utils/logger';
+import { OverlayFileSystem } from './OverlayFileSystem.js';
+type DeltaFileSystemContract = import('./OverlayFileSystem.js').DeltaFileSystem;
 
 type AgentFSStats = {
     size?: number;
@@ -48,7 +55,19 @@ type AgentFSFileSystem = {
 
 type AgentFSInstance = {
     fs: AgentFSFileSystem;
+    kv?: AgentFSKvStore;
     close?: () => Promise<void> | void;
+};
+
+/**
+ * Minimal contract for the KV store exposed by the AgentFS SDK instance.
+ * Used to persist overlay whiteouts across provider restarts.
+ */
+type AgentFSKvStore = {
+    set(key: string, value: unknown): Promise<void>;
+    get<T = unknown>(key: string): Promise<T | undefined>;
+    list(prefix: string): Promise<{ key: string; value: unknown }[]>;
+    delete(key: string): Promise<void>;
 };
 
 type AgentFSModule = {
@@ -72,11 +91,13 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     private readonly providerConfig: ProviderConfig;
     private readonly logger: Logger;
     private agent: AgentFSInstance | null = null;
+    private overlay: OverlayFileSystem | null = null;
     private agentFsId: string | null = null;
     private environmentPath: string | null = null;
     private baseProjectPath: string | null = null;
     private requestedPath: string | undefined;
     private pathSource: AgentFSPathSource = 'provider_proposed';
+    private clonedEnvironmentPath: string | null = null;
 
     constructor(config: ProviderConfig = {}) {
         super({
@@ -91,6 +112,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         this.providerConfig = {
             agentFSSdkPackage: config.agentFSSdkPackage ?? 'agentfs-sdk',
             agentFSIdPrefix: config.agentFSIdPrefix ?? 'codebolt',
+            cloneBaseProject: config.cloneBaseProject ?? true,
             timeouts: {
                 wsConnection: config.timeouts?.wsConnection ?? 30_000,
                 cleanup: config.timeouts?.cleanup ?? 15_000,
@@ -150,6 +172,7 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
             this.agentFsId = null;
             this.requestedPath = undefined;
             this.pathSource = 'provider_proposed';
+            this.clonedEnvironmentPath = null;
             this.resetState();
 
             this.logger.log('Provider stopped successfully for environment:', initVars.environmentName);
@@ -417,13 +440,128 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         this.state.workspacePath = this.environmentPath;
         this.state.projectPath = this.environmentPath;
         this.logger.log('Opened AgentFS store:', this.agentFsId);
+
+        // The overlay needs a read-only base layer. When a base project
+        // path exists, prefer a frozen copy-on-write clone of it rather
+        // than reading the live project directory. On APFS `cp -cR`
+        // dispatches clonefile(2): near-instant and near-zero disk
+        // (contents are shared until a write diverges). The clone is a
+        // point-in-time snapshot, so an environment started now is not
+        // affected by later edits to the original project.
+        let overlayBasePath: string | null = null;
+        if (this.baseProjectPath && this.environmentPath) {
+            if (this.providerConfig.cloneBaseProject) {
+                overlayBasePath = await this.cloneBaseProject(
+                    this.baseProjectPath,
+                    this.environmentPath
+                );
+            } else {
+                overlayBasePath = this.baseProjectPath;
+            }
+        }
+
+        if (overlayBasePath && this.agent.kv) {
+            this.overlay = new OverlayFileSystem({
+                // The SDK's fs exposes readFile as distinct overloads
+                // (Buffer vs string); the provider's looser local type
+                // collapses them, so cast through the overlay's contract.
+                delta: this.agent.fs as unknown as DeltaFileSystemContract,
+                kv: this.agent.kv,
+                baseProjectPath: overlayBasePath,
+                logger: this.logger,
+            });
+            this.logger.log('Enabled copy-on-write overlay with base:', overlayBasePath);
+        }
+    }
+
+    /**
+     * Materialize a copy-on-write clone of the base project into the
+     * environment path using `cp -cR`.
+     *
+     * - On APFS this is a clonefile(2) clone: instant and ~0 disk.
+     * - On other filesystems `cp -cR` falls back to a full copy, which is
+     *   still correct but slower and disk-heavy.
+     *
+     * If the environment path already exists (e.g. a resumed environment),
+     * the clone is skipped and the existing directory is reused as the
+     * overlay base. Cloning is also skipped when the environment path is
+     * inside the base project (would copy itself / cause recursion).
+     */
+    private async cloneBaseProject(
+        baseProjectPath: string,
+        environmentPath: string
+    ): Promise<string> {
+        const isNested = environmentPath === baseProjectPath
+            || environmentPath.startsWith(`${baseProjectPath}${path.sep}`)
+            || environmentPath.startsWith(`${baseProjectPath}/`);
+
+        if (isNested) {
+            this.logger.log(
+                'Environment path is inside the base project; skipping clone and using base as overlay.',
+                { baseProjectPath, environmentPath }
+            );
+            return baseProjectPath;
+        }
+
+        try {
+            await hostFs.access(environmentPath);
+            this.logger.log(
+                'Environment path already exists; reusing it as overlay base (no clone).',
+                { environmentPath }
+            );
+            this.clonedEnvironmentPath = environmentPath;
+            return environmentPath;
+        } catch {
+            // Environment path does not exist yet — proceed to clone.
+        }
+
+        const parentDirectory = path.dirname(environmentPath);
+        await hostFs.mkdir(parentDirectory, { recursive: true });
+
+        const cloneTimerStart = Date.now();
+        try {
+            // `cp -cR src/ dst/`: copy the *contents* of src into dst.
+            // The trailing slash semantics ensure dst ends up containing the
+            // project files rather than a nested src/ directory.
+            await execFileAsync('cp', ['-cR', `${baseProjectPath}/`, `${environmentPath}/`]);
+            this.clonedEnvironmentPath = environmentPath;
+            this.logger.log(
+                `Cloned base project via 'cp -cR' in ${Date.now() - cloneTimerStart}ms.`,
+                { baseProjectPath, environmentPath }
+            );
+        } catch (error) {
+            const stderr = error instanceof Error ? error.message : String(error);
+            this.logger.error(
+                `'cp -cR' failed; falling back to live base as overlay base. Error: ${stderr}`
+            );
+            // Fall back to the live base directory so the overlay still works.
+            return baseProjectPath;
+        }
+
+        return environmentPath;
     }
 
     protected async teardownEnvironment(): Promise<void> {
+        this.overlay = null;
         if (this.agent?.close) {
             await this.agent.close();
         }
         this.agent = null;
+
+        // Remove the cloned base directory we created during setup. On APFS
+        // `cp -cR` produces a copy-on-write clone, so removal is cheap and
+        // reclaims the CoW-diverged blocks written by the agent.
+        const clonedPath = this.clonedEnvironmentPath;
+        this.clonedEnvironmentPath = null;
+        if (clonedPath) {
+            try {
+                await hostFs.rm(clonedPath, { recursive: true, force: true });
+                this.logger.log('Removed cloned environment path:', clonedPath);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                this.logger.error('Failed to remove cloned environment path:', message);
+            }
+        }
     }
 
     protected async ensureAgentServer(): Promise<void> {
@@ -447,9 +585,19 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         }
     }
 
+    /**
+     * Resolve the active filesystem for file operations.
+     *
+     * When a copy-on-write overlay is enabled (base project path present),
+     * returns the overlay so reads fall through to the base directory and
+     * writes land in the delta. Otherwise returns the raw AgentFS delta.
+     */
     private getAgentFS(): AgentFSFileSystem {
         if (!this.agent) {
             throw new Error('AgentFS is not initialized');
+        }
+        if (this.overlay) {
+            return this.overlay as unknown as AgentFSFileSystem;
         }
         return this.agent.fs;
     }

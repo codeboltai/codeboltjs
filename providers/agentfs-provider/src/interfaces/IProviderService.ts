@@ -31,6 +31,15 @@ export interface ProviderConfig {
     agentFSSdkPackage?: string;
     agentFSIdPrefix?: string;
     executionMode?: 'local_thread_pool';
+    /**
+     * When true (default), materialize a copy-on-write clone of the base
+     * project into the environment path on setup using `cp -cR`. On APFS
+     * this is near-instant and near-zero disk (clonefile CoW), and it
+     * freezes a point-in-time snapshot so the environment is isolated from
+     * later edits to the original project. Falls back to live base reads
+     * when cloning is unavailable or would cause a copy cycle.
+     */
+    cloneBaseProject?: boolean;
     timeouts?: {
         wsConnection?: number;
         cleanup?: number;
