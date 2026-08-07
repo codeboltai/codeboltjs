@@ -15,8 +15,6 @@
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run clean && npm run build",
     "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
-    "test:server": "NODE_ENV=test npx ts-node --esm test-local.ts server",
-    "test:full": "NODE_ENV=test npx ts-node --esm test-local.ts full",
     "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts"
   },
   "keywords": [
@@ -28,13 +26,15 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/codeboltjs": "latest",
-    "@codebolt/provider": "workspace:*",
+    "@codebolt/provider": "file:../../packages/provider",
     "@codebolt/types": "^5.1.12",
+    "agentfs-sdk": "^0.6.4",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
     "@types/ws": "^8.5.13",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "engines": {

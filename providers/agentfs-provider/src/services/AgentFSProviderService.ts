@@ -2,178 +2,110 @@ import {
     BaseProvider,
     ProviderStartResult,
 } from '@codebolt/provider';
-import {
+import type {
     AgentStartMessage,
     ProviderInitVars,
     RawMessageForAgent,
 } from '@codebolt/types/provider';
-import {
-    IProviderService,
-    ProviderConfig,
-    DiffResult
-} from '../interfaces/IProviderService';
-import { createPrefixedLogger, Logger } from '../utils/logger';
-import {
-    startAgentServer as startAgentServerUtil,
-    stopAgentServer as stopAgentServerUtil,
-    isAgentServerRunning as isAgentServerRunningUtil,
-} from '../utils/agentServer';
-import { exec, spawn, ChildProcess } from 'child_process';
-import { promisify } from 'util';
 import path from 'path';
 import os from 'os';
-import net from 'net';
-import * as fs from 'fs/promises';
+import {
+    DiffResult,
+    IProviderService,
+    ProviderConfig,
+} from '../interfaces/IProviderService';
+import { createPrefixedLogger, Logger } from '../utils/logger';
 
-const execAsync = promisify(exec);
+type AgentFSStats = {
+    size?: number;
+    mode?: number;
+    mtime?: number | Date | string;
+    ctime?: number | Date | string;
+    isFile?: () => boolean;
+    isDirectory?: () => boolean;
+};
+
+type AgentFSDirEntry = {
+    name: string;
+    stats: AgentFSStats;
+};
+
+type AgentFSFileSystem = {
+    writeFile(path: string, data: string | Buffer): Promise<void>;
+    readFile(path: string, encoding?: BufferEncoding): Promise<Buffer | string>;
+    readdir(path: string): Promise<string[]>;
+    readdirPlus?: (path: string) => Promise<AgentFSDirEntry[]>;
+    stat(path: string): Promise<AgentFSStats>;
+    exists?: (path: string) => Promise<boolean>;
+    access?: (path: string) => Promise<void>;
+    deleteFile?: (path: string) => Promise<void>;
+    unlink?: (path: string) => Promise<void>;
+    mkdir?: (path: string) => Promise<void>;
+    rm?: (path: string, options?: { recursive?: boolean; force?: boolean }) => Promise<void>;
+    rmdir?: (path: string) => Promise<void>;
+    rename?: (oldPath: string, newPath: string) => Promise<void>;
+};
+
+type AgentFSInstance = {
+    fs: AgentFSFileSystem;
+    close?: () => Promise<void> | void;
+};
+
+type AgentFSModule = {
+    AgentFS: {
+        open(options?: { id?: string }): Promise<AgentFSInstance>;
+    };
+};
+
+type ProjectChild = {
+    id: string;
+    name: string;
+    path: string;
+    isFolder: boolean;
+    size: number;
+    lastModified: string;
+};
+
+type AgentFSPathSource = 'provider_proposed' | 'user_override';
 
 export class AgentFSProviderService extends BaseProvider implements IProviderService {
     private readonly providerConfig: ProviderConfig;
     private readonly logger: Logger;
-    private projectPath: string | null = null;
-    private agentFSBinary: string;
-    private nfsServerProcess: ChildProcess | null = null;
-    private overlayName: string | null = null;
-    private currentNfsPort: number = 11111;
+    private agent: AgentFSInstance | null = null;
+    private agentFsId: string | null = null;
+    private environmentPath: string | null = null;
     private baseProjectPath: string | null = null;
+    private requestedPath: string | undefined;
+    private pathSource: AgentFSPathSource = 'provider_proposed';
 
     constructor(config: ProviderConfig = {}) {
         super({
-            agentServerPort: config.agentServerPort ?? 3001,
-            agentServerHost: config.agentServerHost ?? 'localhost',
+            agentServerPort: 0,
+            agentServerHost: 'localhost',
             wsRegistrationTimeout: config.timeouts?.wsConnection ?? 10_000,
             reconnectAttempts: 10,
             reconnectDelay: 1_000,
-            transport: 'websocket',
+            transport: 'custom',
         });
 
         this.providerConfig = {
-            agentServerPort: config.agentServerPort ?? 3001,
-            agentServerHost: config.agentServerHost ?? 'localhost',
-            agentFSBinaryPath: config.agentFSBinaryPath ?? 'agentfs',
-            nfsPort: config.nfsPort ?? 11111,
+            agentFSSdkPackage: config.agentFSSdkPackage ?? 'agentfs-sdk',
+            agentFSIdPrefix: config.agentFSIdPrefix ?? 'codebolt',
             timeouts: {
-                agentServerStartup: config.timeouts?.agentServerStartup ?? 60_000,
                 wsConnection: config.timeouts?.wsConnection ?? 30_000,
-                gitOperations: config.timeouts?.gitOperations ?? 30_000,
                 cleanup: config.timeouts?.cleanup ?? 15_000,
-            }
+            },
         };
 
-        this.agentFSBinary = this.providerConfig.agentFSBinaryPath!;
-        this.currentNfsPort = this.providerConfig.nfsPort!;
         this.logger = createPrefixedLogger('[AgentFS Provider]');
-    }
-
-    /**
-     * Check if a port is available (not in use)
-     */
-    private async isPortAvailable(port: number): Promise<boolean> {
-        return new Promise((resolve) => {
-            const server = net.createServer();
-            server.once('error', () => resolve(false));
-            server.once('listening', () => {
-                server.close();
-                resolve(true);
-            });
-            server.listen(port, '127.0.0.1');
-        });
-    }
-
-    /**
-     * Find an available port, starting from the preferred port
-     */
-    private async findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
-        let port = preferredPort;
-        for (let i = 0; i < maxAttempts; i++) {
-            if (await this.isPortAvailable(port)) {
-                return port;
-            }
-            this.logger.warn(`Port ${port} is in use, trying next port...`);
-            port++;
-        }
-        throw new Error(`Could not find an available port after ${maxAttempts} attempts starting from ${preferredPort}`);
     }
 
     async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
         this.logger.log('Starting provider with environment:', initVars.environmentName);
-        let projectPath = initVars.projectPath as string | undefined;
-        if (!projectPath) {
-            throw new Error('Project path is not available in initVars');
-        }
-        this.baseProjectPath = projectPath;
-
-        // Use environment name as overlay name
-        this.overlayName = initVars.environmentName;
-        // Mount point in user's home directory
-        const mountPoint = path.join("/Users/ravirawat/desktop", '.codebolt', 'agentfs_mounts', this.overlayName);
-
-        try {
-            await fs.mkdir(mountPoint, { recursive: true });
-
-            this.logger.log(`Initializing agentfs overlay: ${this.overlayName}`);
-
-            // Step 1: Initialize overlay
-            await this.runAgentFSCommand(['init', this.overlayName, '--base', projectPath]);
-            this.logger.log(`Overlay ${this.overlayName} initialized.`);
-
-            // Step 2: Check port availability and start NFS server
-            const preferredPort = this.providerConfig.nfsPort!;
-            this.currentNfsPort = await this.findAvailablePort(preferredPort);
-            this.logger.log(`Starting NFS server for overlay: ${this.overlayName} on port ${this.currentNfsPort}`);
-
-            // Use --port flag if using a non-default port
-            const serveArgs = ['serve', 'nfs', this.overlayName];
-            if (this.currentNfsPort !== 11111) {
-                serveArgs.push('--port', this.currentNfsPort.toString());
-            }
-
-            this.nfsServerProcess = spawn(this.agentFSBinary, serveArgs, {
-                detached: false,
-                stdio: ['ignore', 'pipe', 'pipe']
-            });
-
-            this.nfsServerProcess.stdout?.on('data', (data) => {
-                this.logger.log(`NFS server stdout: ${data.toString().trim()}`);
-            });
-            this.nfsServerProcess.stderr?.on('data', (data) => {
-                this.logger.warn(`NFS server stderr: ${data.toString().trim()}`);
-            });
-            this.nfsServerProcess.on('exit', (code, signal) => {
-                this.logger.warn(`NFS server exited: code=${code}, signal=${signal}`);
-                this.nfsServerProcess = null;
-            });
-
-            // Wait for NFS server to start
-            await new Promise(r => setTimeout(r, 2000));
-
-            // Step 3: Mount via NFS with dynamic port
-            this.logger.log(`Mounting NFS at ${mountPoint} using port ${this.currentNfsPort}`);
-            await execAsync(`mount -t nfs -o vers=3,tcp,port=${this.currentNfsPort},mountport=${this.currentNfsPort},nolock 127.0.0.1:/ "${mountPoint}"`);
-
-            // Wait for mount to stabilize
-            await new Promise(r => setTimeout(r, 1000));
-
-            this.projectPath = mountPoint;
-            this.logger.log(`Successfully mounted agentfs at: ${this.projectPath}`);
-        } catch (error: any) {
-            this.logger.warn('Failed to mount agentfs, using raw project path (TEST MODE only):', error);
-            // Cleanup on failure
-            if (this.nfsServerProcess) {
-                this.nfsServerProcess.kill();
-                this.nfsServerProcess = null;
-            }
-            // Fallback for tests or if mount fails
-            this.projectPath = projectPath;
-        }
 
         const result = await super.onProviderStart(initVars);
-        this.logger.log('Started Environment with mounted path:', this.projectPath);
-
-        // Start heartbeat monitoring after successful provider start
         this.startHeartbeat();
 
-        // Register this environment as connected
         if (initVars.environmentName) {
             this.registerConnectedEnvironment(initVars.environmentName);
             this.startEnvironmentHeartbeat(initVars.environmentName);
@@ -181,14 +113,17 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
 
         return {
             ...result,
-            worktreePath: this.projectPath!,
-            resolvedPath: this.projectPath!,
-            environmentPath: this.projectPath!,
-            requestedPath: undefined,
-            pathSource: 'provider_proposed',
+            worktreePath: this.environmentPath ?? result.workspacePath,
+            resolvedPath: this.environmentPath ?? result.workspacePath,
+            environmentPath: this.environmentPath ?? result.workspacePath,
+            requestedPath: this.requestedPath,
+            pathSource: this.pathSource,
             syncMode: 'workspace_sync',
             mergeStrategy: 'workspace_sync',
-            parentPath: this.baseProjectPath,
+            executionMode: 'local_thread_pool',
+            parentPath: this.baseProjectPath ?? undefined,
+            agentFSId: this.agentFsId,
+            filesystemProvider: 'agentfs',
             syncPolicy: this.getSyncPolicy(),
             defaultSyncMode: 'workspace_sync',
             supportedSyncModes: ['workspace_sync'],
@@ -196,20 +131,68 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         };
     }
 
-    getProspectivePath(request: Record<string, any>): Record<string, any> {
-        const environmentName = String(request.environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
-        const parentPath = String(request.projectPath || request.parentProjectPath || request.parentPath || this.baseProjectPath || '').trim() || undefined;
-        const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
-        const defaultPath = path.join(os.homedir(), 'Desktop', '.codebolt', 'agentfs_mounts', environmentName);
+    async onProviderStop(initVars: ProviderInitVars): Promise<void> {
+        this.logger.log('Provider stop requested for environment:', initVars.environmentName);
+
+        try {
+            this.stopHeartbeat();
+
+            if (initVars.environmentName) {
+                this.unregisterConnectedEnvironment(initVars.environmentName);
+            }
+
+            await this.teardownEnvironment();
+            this.state.initialized = false;
+            this.state.workspacePath = null;
+            this.state.projectPath = null;
+            this.environmentPath = null;
+            this.baseProjectPath = null;
+            this.agentFsId = null;
+            this.requestedPath = undefined;
+            this.pathSource = 'provider_proposed';
+            this.resetState();
+
+            this.logger.log('Provider stopped successfully for environment:', initVars.environmentName);
+        } catch (error) {
+            this.logger.error('Error stopping provider:', error);
+            throw error;
+        }
+    }
+
+    async onProviderAgentStart(_agentMessage: AgentStartMessage): Promise<void> {
+        this.logger.log('Ignoring provider agent start; application owns message handling for AgentFS environments.');
+    }
+
+    async onRawMessage(_message: RawMessageForAgent): Promise<void> {
+        this.logger.log('Ignoring raw message; application owns event and message handling for AgentFS environments.');
+    }
+
+    getProspectivePath(request: Record<string, unknown>): Record<string, unknown> {
+        const environmentName = this.safeEnvironmentName(this.getString(request, 'environmentName') || 'environment');
+        const parentPath = this.resolveOptionalPath(
+            this.getString(request, 'projectPath') ??
+            this.getString(request, 'parentProjectPath') ??
+            this.getString(request, 'parentPath') ??
+            this.getString(request, 'parentBasePath') ??
+            this.baseProjectPath ??
+            undefined,
+            undefined
+        );
+        const requestedPath =
+            this.getString(request, 'environmentPath') ??
+            this.getString(request, 'requestedPath') ??
+            this.getString(request, 'resolvedPath') ??
+            this.getString(request, 'path');
         const resolvedPath = requestedPath
-            ? (path.isAbsolute(requestedPath) ? path.resolve(requestedPath) : path.resolve(parentPath || process.cwd(), requestedPath))
-            : defaultPath;
+            ? this.resolvePathInput(requestedPath, parentPath)
+            : this.getDefaultEnvironmentPath(parentPath, environmentName);
+
         return {
             path: resolvedPath,
             projectPath: resolvedPath,
             resolvedPath,
             environmentPath: resolvedPath,
-            requestedPath: requestedPath || undefined,
+            requestedPath,
             pathSource: requestedPath ? 'user_override' : 'provider_proposed',
             source: requestedPath ? 'user_override' : 'provider_proposed',
             syncMode: 'workspace_sync',
@@ -217,6 +200,8 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
             parentPath,
             parentProjectPath: parentPath,
             editable: true,
+            agentFSId: this.getAgentFSId(environmentName),
+            filesystemProvider: 'agentfs',
             syncPolicy: this.getSyncPolicy(),
             defaultSyncMode: 'workspace_sync',
             supportedSyncModes: ['workspace_sync'],
@@ -224,329 +209,404 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
         };
     }
 
-    getSyncPolicy(): Record<string, any> {
+    getSyncPolicy(): Record<string, unknown> {
         return {
             defaultSyncMode: 'workspace_sync',
             modes: [
                 {
                     value: 'workspace_sync',
-                    label: 'Workspace sync',
-                    description: 'Mount an AgentFS workspace backed by the parent project.',
-                    pathFolder: 'agentfs_mounts',
+                    label: 'AgentFS',
+                    description: 'Use Turso AgentFS as the environment filesystem. Messages and events stay in the application.',
+                    pathFolder: 'agentfs',
                     createsGitWorktree: false,
-                    usesWorkspaceSync: true,
-                    cleanup: 'filesystem',
+                    usesWorkspaceSync: false,
+                    cleanup: 'runtime_provider',
                 },
             ],
         };
     }
 
-    async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
-        this.logger.log('Agent start requested, forwarding to agent server:', agentMessage);
-        await this.ensureAgentServer();
-
-        // Ensure transport is connected if we have environment state
-        if (!this.agentServer.isConnected && this.state.environmentName) {
-            this.logger.log('Agent server not connected, attempting to reconnect transport...');
-            await this.ensureTransportConnection({
-                environmentName: this.state.environmentName,
-                projectPath: this.state.projectPath ?? undefined
-            } as any);
-        }
-
-        this.logger.log('Agent server connected, forwarding agent start to agent server...', agentMessage);
-        await super.onProviderAgentStart(agentMessage);
-    }
-
-    async onProviderStop(initVars: ProviderInitVars): Promise<void> {
-        this.logger.log('Provider stop requested for environment:', initVars.environmentName);
-        try {
-            // Stop heartbeat monitoring first
-            this.stopHeartbeat();
-
-            // Unregister environment
-            if (initVars.environmentName) {
-                this.unregisterConnectedEnvironment(initVars.environmentName);
-            }
-
-            await this.stopAgentServer();
-
-            if (this.projectPath && this.projectPath.includes('.agentfs_mnt')) {
-                this.logger.log(`Unmounting ${this.projectPath}...`);
-                try {
-                    try {
-                        // MacOS
-                        await execAsync(`umount "${this.projectPath}"`);
-                    } catch (e) {
-                        // Linux fallback
-                        try {
-                            await execAsync(`fusermount -u "${this.projectPath}"`);
-                        } catch (e2) {
-                            this.logger.warn('Unmount failed with both umount and fusermount via shell, trying force...');
-                        }
-                    }
-
-                    // Clean dir
-                    await fs.rm(this.projectPath, { recursive: true, force: true });
-                } catch (e) {
-                    this.logger.error('Error during unmount/cleanup:', e);
-                }
-            }
-
-            // Stop NFS server process
-            if (this.nfsServerProcess) {
-                this.logger.log('Stopping NFS server process...');
-                this.nfsServerProcess.kill();
-                this.nfsServerProcess = null;
-            }
-
-            // Optionally destroy the overlay
-            if (this.overlayName) {
-                try {
-                    this.logger.log(`Destroying overlay: ${this.overlayName}`);
-                    await this.runAgentFSCommand(['destroy', this.overlayName]);
-                } catch (e) {
-                    this.logger.warn('Failed to destroy overlay (may already be destroyed):', e);
-                }
-                this.overlayName = null;
-            }
-
-            this.resetState();
-            this.logger.log('Provider stopped successfully');
-        } catch (error) {
-            this.logger.error('Error stopping provider:', error);
-            throw error;
-        }
-    }
-
-    // File System Operations - Using Standard FS on Mount Point
-
-    // AgentFS specific helper - strictly for CLI commands like mount
-    private async runAgentFSCommand(args: string[]): Promise<string> {
-        try {
-            const command = `${this.agentFSBinary} ${args.join(' ')}`;
-            // We run from where? Maybe doesn't matter for specific commands.
-            const { stdout } = await execAsync(command);
-            return stdout;
-        } catch (error: any) {
-            this.logger.error(`Error running agentfs command: ${args.join(' ')}`, error);
-            throw new Error(`AgentFS command failed: ${error.message}`);
-        }
-    }
-
     async onReadFile(filePath: string): Promise<string> {
-        this.logger.log('Reading file:', filePath);
-        return fs.readFile(path.join(this.projectPath!, filePath), 'utf-8');
+        this.logger.log('Reading AgentFS file:', filePath);
+        const content = await this.getAgentFS().readFile(this.toAgentPath(filePath), 'utf-8');
+        return typeof content === 'string' ? content : content.toString('utf-8');
     }
 
     async onWriteFile(filePath: string, content: string): Promise<void> {
-        this.logger.log('Writing file:', filePath);
-        const fullPath = path.join(this.projectPath!, filePath);
-        await fs.mkdir(path.dirname(fullPath), { recursive: true });
-        await fs.writeFile(fullPath, content, 'utf-8');
+        this.logger.log('Writing AgentFS file:', filePath);
+        await this.getAgentFS().writeFile(this.toAgentPath(filePath), content);
     }
 
     async onDeleteFile(filePath: string): Promise<void> {
-        this.logger.log('Deleting file:', filePath);
-        await fs.unlink(path.join(this.projectPath!, filePath));
+        this.logger.log('Deleting AgentFS file:', filePath);
+        const fs = this.getAgentFS();
+        const agentPath = this.toAgentPath(filePath);
+
+        if (fs.deleteFile) {
+            await fs.deleteFile(agentPath);
+            return;
+        }
+
+        if (fs.unlink) {
+            await fs.unlink(agentPath);
+            return;
+        }
+
+        throw new Error('AgentFS SDK does not expose file deletion.');
     }
 
     async onDeleteFolder(folderPath: string): Promise<void> {
-        this.logger.log('Deleting folder:', folderPath);
-        await fs.rm(path.join(this.projectPath!, folderPath), { recursive: true, force: true });
+        this.logger.log('Deleting AgentFS folder:', folderPath);
+        const agentPath = this.toAgentPath(folderPath);
+        const fs = this.getAgentFS();
+
+        if (fs.rm) {
+            await fs.rm(agentPath, { recursive: true, force: true });
+            return;
+        }
+
+        throw new Error('AgentFS SDK does not expose directory deletion. Install a SDK version with fs.rm support or route folder deletion through the application.');
     }
 
     async onRenameItem(oldPath: string, newPath: string): Promise<void> {
-        this.logger.log('Renaming item:', oldPath, 'to', newPath);
-        await fs.rename(path.join(this.projectPath!, oldPath), path.join(this.projectPath!, newPath));
+        this.logger.log('Renaming AgentFS item:', oldPath, 'to', newPath);
+        const fs = this.getAgentFS();
+
+        if (fs.rename) {
+            await fs.rename(this.toAgentPath(oldPath), this.toAgentPath(newPath));
+            return;
+        }
+
+        throw new Error('AgentFS SDK does not expose rename. Install a SDK version with fs.rename support or route rename through the application.');
     }
 
     async onCreateFolder(folderPath: string): Promise<void> {
-        this.logger.log('Creating folder:', folderPath);
-        await fs.mkdir(path.join(this.projectPath!, folderPath), { recursive: true });
+        this.logger.log('Creating AgentFS folder:', folderPath);
+        const fs = this.getAgentFS();
+
+        if (fs.mkdir) {
+            await this.ensureDirectory(this.toAgentPath(folderPath));
+            return;
+        }
+
+        throw new Error('AgentFS SDK does not expose empty directory creation. File writes still create parent directories automatically.');
     }
 
     async onGetProject(parentId: string = 'root'): Promise<any[]> {
-        this.logger.log(`Getting project: ${parentId}`);
-        const parentPath = parentId === 'root' ? this.projectPath! : path.join(this.projectPath!, parentId);
-        this.logger.log('Getting project:', parentPath);
+        this.logger.log('Getting AgentFS project structure for parentId:', parentId);
+        const parentPath = parentId === 'root' ? '/' : this.toAgentPath(parentId);
+        const fs = this.getAgentFS();
 
         try {
-            const items = await fs.readdir(parentPath, { withFileTypes: true });
+            if (!(await this.pathExists(parentPath))) {
+                return [];
+            }
 
-            const children = await Promise.all(items.map(async (item) => {
-                // if (item.name.startsWith('.') && item.name !== '.codebolt') return null;
+            const parentStats = await fs.stat(parentPath);
+            if (parentStats.isDirectory && !parentStats.isDirectory()) {
+                return [];
+            }
 
-                const itemPath = path.join(parentPath, item.name);
-                const relativePath = parentId === 'root' ? item.name : path.join(parentId, item.name);
-                const stats = await fs.stat(itemPath);
+            const children = fs.readdirPlus
+                ? (await fs.readdirPlus(parentPath)).map((entry) => this.toProjectChild(parentId, entry.name, entry.stats))
+                : await Promise.all((await fs.readdir(parentPath)).map(async (entry) => {
+                    const entryName = entry.endsWith('/') ? entry.slice(0, -1) : entry;
+                    const stats = await fs.stat(path.posix.join(parentPath, entryName));
+                    return this.toProjectChild(parentId, entryName, stats);
+                }));
 
-                return {
-                    id: relativePath,
-                    name: item.name,
-                    path: itemPath,
-                    isFolder: item.isDirectory(),
-                    size: item.isDirectory() ? 0 : stats.size,
-                    lastModified: stats.mtime.toISOString()
-                };
-            }));
-
-            return children.filter(Boolean).sort((a: any, b: any) => {
-                if (a.isFolder === b.isFolder) return a.name.localeCompare(b.name);
-                return a.isFolder ? -1 : 1;
+            children.sort((a, b) => {
+                if (a.isFolder && !b.isFolder) return -1;
+                if (!a.isFolder && b.isFolder) return 1;
+                return a.name.localeCompare(b.name);
             });
-        } catch (e) {
-            this.logger.error('Error listing project:', e);
+
+            return children;
+        } catch (error: any) {
+            this.logger.error('Error listing AgentFS project structure:', error);
             return [];
         }
     }
 
-    // Worktree / Environment Management
-    async createWorktree(projectPath: string, environmentName: string): Promise<any> {
-        // AgentFS treats the project path as the environment
+    async onGetFullProject(): Promise<any[]> {
+        return this.onGetProject('root');
+    }
+
+    async createWorktree(_projectPath: string, environmentName: string): Promise<any> {
         return {
-            path: projectPath,
-            branch: environmentName,
-            isCreated: true
+            path: this.environmentPath,
+            branch: this.getAgentFSId(environmentName),
+            isCreated: Boolean(this.agent),
+            syncMode: 'workspace_sync',
+            filesystemProvider: 'agentfs',
         };
     }
 
-    async removeWorktree(projectPath: string): Promise<boolean> {
-        // No-op for AgentFS as we don't manage separate worktrees usually
+    async removeWorktree(_projectPath: string): Promise<boolean> {
         return true;
     }
 
     getWorktreeInfo(): any {
         return {
-            path: this.projectPath,
-            branch: this.state.environmentName,
-            isCreated: !!this.projectPath
+            path: this.environmentPath,
+            branch: this.agentFsId,
+            isCreated: Boolean(this.agent),
+            syncMode: 'workspace_sync',
+            filesystemProvider: 'agentfs',
         };
     }
 
-    // Git specific operations - might not apply or need connection to agentfs versioning
     async onGetDiffFiles(): Promise<DiffResult> {
-        return { files: [] };
+        return {
+            files: [],
+            summary: {
+                totalFiles: 0,
+                totalAdditions: 0,
+                totalDeletions: 0,
+                totalChanges: 0,
+            },
+            rawDiff: '',
+        };
     }
 
     async onMergeAsPatch(): Promise<string> {
-        return 'Not implemented';
+        throw new Error('Merge/push workflow is not supported for AgentFS provider mode.');
     }
 
     async onSendPR(): Promise<void> {
-        // Not implemented
+        throw new Error('PR workflow is not supported for AgentFS provider mode.');
     }
 
     onCreatePatchRequest(): void {
-        // Not implemented
+        throw new Error('Patch workflow is not supported for AgentFS provider mode.');
     }
 
     onCreatePullRequestRequest(): void {
-        // Not implemented
+        throw new Error('Pull request workflow is not supported for AgentFS provider mode.');
     }
 
     async onUserMessage(userMessage: RawMessageForAgent): Promise<void> {
-        this.logger.log('onUserMessage received:', userMessage?.messageId);
-        await super.onRawMessage(userMessage);
-    }
-
-    // Agent Server Management
-    async startAgentServer(): Promise<void> {
-        this.logger.log('Starting agent server...');
-        if (this.agentServer.process && !this.agentServer.process.killed) {
-            return;
-        }
-
-        this.agentServer.process = await startAgentServerUtil({
-            logger: this.logger,
-            port: this.providerConfig.agentServerPort,
-            projectPath: this.projectPath ?? undefined
-        });
-
-        this.agentServer.process.on('exit', (code, signal) => {
-            this.logger.warn(`Agent Server exited: ${code} ${signal}`);
-            this.agentServer.process = null;
-            this.agentServer.isConnected = false;
-        });
-    }
-
-    async connectToAgentServer(worktreePath: string, environmentName: string): Promise<void> {
-        if (this.agentServer.isConnected) return;
-        await this.ensureTransportConnection({ environmentName, type: 'agentfs' });
-    }
-
-    async stopAgentServer(): Promise<boolean> {
-        const result = await stopAgentServerUtil({
-            logger: this.logger,
-            processRef: this.agentServer.process,
-        });
-        this.agentServer.process = null;
-        return result;
-    }
-
-    async sendMessageToAgent(message: RawMessageForAgent): Promise<boolean> {
-        return await this.sendToAgentServer(message);
-    }
-
-    getAgentServerConnection() {
-        return {
-            process: this.agentServer.process,
-            wsConnection: this.agentServer.wsConnection,
-            serverUrl: this.agentServer.serverUrl,
-            isConnected: this.agentServer.isConnected,
-            metadata: this.agentServer.metadata
-        };
+        await this.onRawMessage(userMessage);
     }
 
     isInitialized(): boolean {
-        return this.agentServer.isConnected;
+        return this.state.initialized && Boolean(this.agent);
     }
 
-    protected async ensureAgentServer(): Promise<void> {
-        const isRunning = await isAgentServerRunningUtil(
-            this.providerConfig as any,
-            this.logger,
-            this.agentServer.serverUrl
-        );
-        if (!isRunning) {
-            await this.startAgentServer();
-        }
-    }
-
-    // Internal helpers
     protected async resolveProjectContext(initVars: ProviderInitVars): Promise<void> {
-        this.state.projectPath = initVars.projectPath as string;
+        const preview = this.getProspectivePath(initVars as Record<string, unknown>);
+        this.environmentPath = String(preview.resolvedPath);
+        this.baseProjectPath = typeof initVars.projectPath === 'string' ? path.resolve(initVars.projectPath) : null;
+        this.requestedPath = preview.requestedPath as string | undefined;
+        this.pathSource = preview.pathSource as AgentFSPathSource;
+        this.agentFsId = String(preview.agentFSId);
+        this.state.projectPath = this.environmentPath;
     }
 
-    protected async resolveWorkspacePath(initVars: ProviderInitVars): Promise<string> {
-        return this.state.projectPath!;
+    protected async resolveWorkspacePath(_initVars: ProviderInitVars): Promise<string> {
+        if (!this.environmentPath) {
+            throw new Error('AgentFS environment path is undefined');
+        }
+        return this.environmentPath;
     }
 
-    protected async setupEnvironment(initVars: ProviderInitVars): Promise<void> {
-        // Any AgentFS specific setup?
+    protected async setupEnvironment(_initVars: ProviderInitVars): Promise<void> {
+        const sdkPackage = this.providerConfig.agentFSSdkPackage ?? 'agentfs-sdk';
+        const module = await import(sdkPackage) as AgentFSModule;
+        this.agent = await module.AgentFS.open({ id: this.agentFsId ?? undefined });
+        this.state.workspacePath = this.environmentPath;
+        this.state.projectPath = this.environmentPath;
+        this.logger.log('Opened AgentFS store:', this.agentFsId);
     }
 
     protected async teardownEnvironment(): Promise<void> {
-        // Any AgentFS specific teardown?
+        if (this.agent?.close) {
+            await this.agent.close();
+        }
+        this.agent = null;
     }
 
-    protected buildWebSocketUrl(initVars: ProviderInitVars): string {
-        const query = new URLSearchParams({
-            clientType: 'app',
-            appId: `agentfs-${initVars.environmentName}`,
-            projectName: initVars.environmentName,
-        });
+    protected async ensureAgentServer(): Promise<void> {
+        this.logger.log('AgentFS provider does not manage an agent server.');
+    }
 
-        if (this.state.projectPath) {
-            query.set('currentProject', this.state.projectPath);
-        }
-        // Note: agentServer.serverUrl is from base class, initialized in constructor? 
-        // Actually BaseProvider sets initialized default, we override if needed.
-        return `${this.agentServer.serverUrl}?${query.toString()}`;
+    async ensureTransportConnection(_initVars: ProviderInitVars): Promise<void> {
+        this.logger.log('AgentFS provider does not manage message/event transport.');
+    }
+
+    protected async beforeClose(): Promise<void> {
+        this.logger.log('Received close signal for AgentFS provider.');
     }
 
     async onCloseSignal(): Promise<void> {
-        this.logger.log('Close signal received');
-        await this.stopAgentServer();
+        try {
+            this.stopHeartbeat();
+            await this.teardownEnvironment();
+        } catch (error: any) {
+            this.logger.error('Error during AgentFS close cleanup:', error);
+        }
+    }
+
+    private getAgentFS(): AgentFSFileSystem {
+        if (!this.agent) {
+            throw new Error('AgentFS is not initialized');
+        }
+        return this.agent.fs;
+    }
+
+    private getAgentFSId(environmentName: string): string {
+        const prefix = this.providerConfig.agentFSIdPrefix ?? 'codebolt';
+        return `${prefix}-${this.safeEnvironmentName(environmentName)}`;
+    }
+
+    private getString(source: Record<string, unknown>, key: string): string | undefined {
+        const value = source[key];
+        return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+    }
+
+    private safeEnvironmentName(environmentName: string): string {
+        return (environmentName || 'environment').replace(/[^a-zA-Z0-9_.-]/g, '-');
+    }
+
+    private resolveOptionalPath(inputPath: string | undefined, basePath: string | undefined): string | undefined {
+        return inputPath ? this.resolvePathInput(inputPath, basePath) : undefined;
+    }
+
+    private resolvePathInput(inputPath: string, basePath: string | undefined): string {
+        if (inputPath === '~') {
+            return os.homedir();
+        }
+
+        if (inputPath.startsWith(`~${path.sep}`) || inputPath.startsWith('~/')) {
+            return path.resolve(os.homedir(), inputPath.slice(2));
+        }
+
+        if (path.isAbsolute(inputPath)) {
+            return path.resolve(inputPath);
+        }
+
+        return path.resolve(basePath || process.cwd(), inputPath);
+    }
+
+    private getDefaultEnvironmentPath(parentPath: string | undefined, environmentName: string): string {
+        const basePath = parentPath || this.baseProjectPath || process.cwd();
+        return path.join(basePath, '.codebolt', 'agentfs', this.safeEnvironmentName(environmentName));
+    }
+
+    private toAgentPath(inputPath: string): string {
+        const relativePath = this.toRelativeAgentPath(inputPath);
+        return `/${relativePath}`.replace(/\/+/g, '/') || '/';
+    }
+
+    private toRelativeAgentPath(inputPath: string): string {
+        if (!inputPath || inputPath === 'root' || inputPath === '/') {
+            return '';
+        }
+
+        const normalizedInput = inputPath.replace(/\\/g, '/');
+        const normalizedEnvironment = this.environmentPath?.replace(/\\/g, '/');
+
+        if (normalizedEnvironment && path.isAbsolute(inputPath)) {
+            const relativePath = path.relative(this.environmentPath!, inputPath);
+            return this.cleanRelativePath(relativePath);
+        }
+
+        if (normalizedEnvironment && normalizedInput.startsWith(`${normalizedEnvironment}/`)) {
+            return this.cleanRelativePath(normalizedInput.slice(normalizedEnvironment.length + 1));
+        }
+
+        return this.cleanRelativePath(normalizedInput);
+    }
+
+    private cleanRelativePath(inputPath: string): string {
+        const normalized = path.posix.normalize(inputPath.replace(/\\/g, '/'));
+        if (normalized === '.' || normalized === '/') {
+            return '';
+        }
+        return normalized.replace(/^\/+/, '');
+    }
+
+    private toDisplayPath(relativePath: string): string {
+        if (!this.environmentPath) {
+            return this.toAgentPath(relativePath);
+        }
+        return path.join(this.environmentPath, relativePath);
+    }
+
+    private async pathExists(agentPath: string): Promise<boolean> {
+        const fs = this.getAgentFS();
+
+        if (fs.exists) {
+            return fs.exists(agentPath);
+        }
+
+        if (fs.access) {
+            try {
+                await fs.access(agentPath);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        try {
+            await fs.stat(agentPath);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private async ensureDirectory(agentPath: string): Promise<void> {
+        const fs = this.getAgentFS();
+        const parts = this.cleanRelativePath(agentPath).split('/').filter(Boolean);
+        let currentPath = '';
+
+        for (const part of parts) {
+            currentPath = path.posix.join(currentPath, part);
+            const absoluteCurrentPath = `/${currentPath}`;
+
+            if (await this.pathExists(absoluteCurrentPath)) {
+                continue;
+            }
+
+            await fs.mkdir?.(absoluteCurrentPath);
+        }
+    }
+
+    private toProjectChild(parentId: string, entryName: string, stats: AgentFSStats): ProjectChild {
+        const relativePath = parentId === 'root'
+            ? entryName
+            : path.posix.join(this.toRelativeAgentPath(parentId), entryName);
+        const isFolder = stats.isDirectory ? stats.isDirectory() : false;
+
+        return {
+            id: relativePath,
+            name: entryName,
+            path: this.toDisplayPath(relativePath),
+            isFolder,
+            size: isFolder ? 0 : stats.size ?? 0,
+            lastModified: this.toIsoDate(stats.mtime),
+        };
+    }
+
+    private toIsoDate(input: number | Date | string | undefined): string {
+        if (input instanceof Date) {
+            return input.toISOString();
+        }
+
+        if (typeof input === 'number') {
+            const millis = input > 10_000_000_000 ? input : input * 1000;
+            return new Date(millis).toISOString();
+        }
+
+        if (typeof input === 'string') {
+            const parsed = Date.parse(input);
+            if (!Number.isNaN(parsed)) {
+                return new Date(parsed).toISOString();
+            }
+        }
+
+        return new Date(0).toISOString();
     }
 }

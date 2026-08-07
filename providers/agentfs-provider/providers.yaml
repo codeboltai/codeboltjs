@@ -1,12 +1,18 @@
 name: agentfs-provider
+unique_id: agentfs-provider
 version: 1.0.0
-description: AgentFS Provider for CodeBolt
+description: Filesystem-only Turso AgentFS provider for CodeBolt
 entrypoint: dist/index.js
 config:
-  agentServerPort: 3001
-  agentServerHost: localhost
+  agentFSSdkPackage: agentfs-sdk
+  agentFSIdPrefix: codebolt
+  executionMode: local_thread_pool
+  syncMode: workspace_sync
+  mergeStrategy: workspace_sync
+  supportedSyncModes:
+    - workspace_sync
+  supportedMergeStrategies:
+    - workspace_sync
   timeouts:
-    agentServerStartup: 30000
     wsConnection: 10000
-    gitOperations: 30000
     cleanup: 15000

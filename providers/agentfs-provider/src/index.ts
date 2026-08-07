@@ -5,7 +5,6 @@ const providerService = new AgentFSProviderService();
 const handlers = providerService.getEventHandlers();
 
 codebolt.onProviderStart(handlers.onProviderStart);
-codebolt.onProviderAgentStart(handlers.onProviderAgentStart);
 codebolt.onProviderStop(handlers.onProviderStop);
 codebolt.onCloseSignal(handlers.onCloseSignal);
 codebolt.onRawMessage(async (message: any) => {
@@ -35,11 +34,13 @@ codebolt.onRawMessage(async (message: any) => {
     }
     return;
   }
-  await handlers.onRawMessage(message);
 });
 
 codebolt.onReadFile(providerService.onReadFile.bind(providerService));
 codebolt.onWriteFile(providerService.onWriteFile.bind(providerService));
+codebolt.onDeleteFile(providerService.onDeleteFile.bind(providerService));
+codebolt.onDeleteFolder(providerService.onDeleteFolder.bind(providerService));
+codebolt.onRenameItem(providerService.onRenameItem.bind(providerService));
+codebolt.onCreateFolder(providerService.onCreateFolder.bind(providerService));
 codebolt.onGetFullProject(providerService.onGetProject.bind(providerService));
 codebolt.onGetTreeChildren(providerService.onGetProject.bind(providerService));
-// Implement other handlers as needed

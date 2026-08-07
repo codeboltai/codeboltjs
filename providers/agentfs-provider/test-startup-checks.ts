@@ -1,90 +1,46 @@
-
 import { AgentFSProviderService } from './dist/services/AgentFSProviderService.js';
-import type { ProviderInitVars, AgentStartMessage } from '@codebolt/types/provider';
-
-// Helper to wait
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import type { ProviderInitVars } from '@codebolt/types/provider';
 
 async function runTests() {
-    console.log('Starting Integrated Startup Flow Test for AgentFS Provider...');
-
-    const TEST_PORT = 3335;
-    const TEST_PROJECT_PATH = process.cwd();
+    console.log('Starting AgentFS provider filesystem-only startup smoke test...');
 
     const provider = new AgentFSProviderService({
-        agentServerPort: TEST_PORT,
-        agentFSBinaryPath: process.env.AGENTFS_BINARY_PATH || 'agentfs'
+        agentFSSdkPackage: process.env.AGENTFS_SDK_PACKAGE || 'agentfs-sdk',
+        agentFSIdPrefix: process.env.AGENTFS_ID_PREFIX || 'codebolt-test',
     });
 
+    const initVars: ProviderInitVars = {
+        projectPath: process.cwd(),
+        environmentName: `agentfs-smoke-${Date.now()}`,
+    } as any;
+
     try {
-        const initVars: ProviderInitVars = {
-            projectPath: TEST_PROJECT_PATH,
-            environmentName: `test-env-agentfs-${Date.now()}`,
-        } as any;
+        const startResult = await provider.onProviderStart(initVars);
+        console.log('Provider started:', {
+            workspacePath: startResult.workspacePath,
+            agentFSId: startResult.agentFSId,
+            transport: startResult.transport,
+        });
 
-        const agentMsg: AgentStartMessage = {
-            type: 'messageResponse',
-            message: {
-                type: 'messageResponse',
-                userMessage: 'hi\n\n',
-                currentFile: '',
-                selectedAgent: { id: '', name: '', lastMessage: {} },
-                mentionedFiles: [],
-                mentionedFolders: [],
-                mentionedMultiFile: [],
-                mentionedMCPs: [],
-                uploadedImages: [],
-                actions: [],
-                mentionedAgents: [],
-                mentionedDocs: [],
-                links: [],
-                universalAgentLastMessage: '',
-                selection: null,
-                controlFiles: [],
-                feedbackMessage: '',
-                terminalMessage: '',
-                messageId: '',
-                threadId: 'test-thread-id',
-                templateType: 'userChat',
-                processId: '',
-                activeFile: '',
-                openedFiles: [],
-                isRemoteTask: true,
-                environment: {
-                    name: initVars.environmentName,
-                    provider: { type: 'agentfs-provider' },
-                    config: {},
-                    id: 'test-env-id',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                },
-                shadowGitHash: ''
-            },
-            sender: { senderType: 'user', senderInfo: {} },
-            templateType: 'userChat',
-            data: { text: 'hi' }
-        } as any;
+        await provider.onWriteFile('smoke/hello.txt', 'hello from agentfs');
+        const content = await provider.onReadFile('smoke/hello.txt');
+        if (content !== 'hello from agentfs') {
+            throw new Error(`Unexpected file content: ${content}`);
+        }
 
-        // Step 1: Provider Start
-        console.log('\nStep 1: Calling onProviderStart...');
-        await provider.onProviderStart(initVars);
-        console.log('Step 1 Complete: Provider started successfully.');
+        const children = await provider.onGetProject('smoke');
+        if (!children.some((child: any) => child.name === 'hello.txt')) {
+            throw new Error('Expected smoke/hello.txt in AgentFS directory listing');
+        }
 
-        // Step 2: Agent Start
-        console.log('\nStep 2: Calling onProviderAgentStart...');
-        await provider.onProviderAgentStart(agentMsg);
-        console.log('Step 2 Complete: Agent started successfully.');
-
-    } catch (e: any) {
-        console.error('Test Failed:', e);
-        process.exit(1);
+        await provider.onDeleteFile('smoke/hello.txt');
+        console.log('Filesystem smoke test completed successfully.');
     } finally {
-        console.log('\nTest execution completed.');
-        await provider.stopAgentServer();
+        await provider.onProviderStop(initVars);
     }
 }
 
-runTests().catch(e => {
-    console.error('Unhandled Error:', e);
+runTests().catch((error) => {
+    console.error('AgentFS provider startup smoke test failed:', error);
     process.exit(1);
 });
