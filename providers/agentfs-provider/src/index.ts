@@ -7,6 +7,7 @@ const handlers = providerService.getEventHandlers();
 codebolt.onProviderStart(handlers.onProviderStart);
 codebolt.onProviderStop(handlers.onProviderStop);
 codebolt.onCloseSignal(handlers.onCloseSignal);
+codebolt.onGetDiffFiles(handlers.onGetDiffFiles);
 codebolt.onRawMessage(async (message: any) => {
   if (message?.type === 'providerProspectivePath' || message?.action === 'providerProspectivePath') {
     const websocket = (codebolt as any).websocket;

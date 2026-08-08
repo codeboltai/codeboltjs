@@ -21,6 +21,7 @@ import {
 } from '../interfaces/IProviderService';
 import { createPrefixedLogger, Logger } from '../utils/logger';
 import { OverlayFileSystem } from './OverlayFileSystem.js';
+import { getDirectoryDiff } from '../utils/directoryDiff.js';
 type DeltaFileSystemContract = import('./OverlayFileSystem.js').DeltaFileSystem;
 
 type AgentFSStats = {
@@ -380,16 +381,16 @@ export class AgentFSProviderService extends BaseProvider implements IProviderSer
     }
 
     async onGetDiffFiles(): Promise<DiffResult> {
-        return {
-            files: [],
-            summary: {
-                totalFiles: 0,
-                totalAdditions: 0,
-                totalDeletions: 0,
-                totalChanges: 0,
-            },
-            rawDiff: '',
-        };
+        if (!this.baseProjectPath || !this.environmentPath) {
+            throw new Error('Cannot get environment diff before the provider is initialized.');
+        }
+
+        return getDirectoryDiff({
+            parentPath: this.baseProjectPath,
+            environmentPath: this.environmentPath,
+            timeout: this.providerConfig.timeouts?.cleanup ?? 15_000,
+            logger: this.logger,
+        });
     }
 
     async onMergeAsPatch(): Promise<string> {

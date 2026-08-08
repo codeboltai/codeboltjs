@@ -15,7 +15,8 @@
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run clean && npm run build",
     "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
-    "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts"
+    "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts",
+    "test:diff": "npm run build && NODE_ENV=test npx ts-node --esm test-diff.ts"
   },
   "keywords": [
     "codebolt",
