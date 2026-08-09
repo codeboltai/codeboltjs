@@ -7,6 +7,8 @@ supportedSyncModes:
 defaultSyncMode: git
 config:
   executionMode: local_thread_pool
+  filesystem:
+    type: local
   cleanupEnvironmentPath: true
   timeouts:
     wsConnection: 10000

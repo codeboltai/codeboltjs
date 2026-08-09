@@ -13,10 +13,7 @@
     "clean": "rm -rf dist",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run clean && npm run build",
-    "test:local": "NODE_ENV=test npx ts-node --esm test-local.ts",
-    "test:startup": "NODE_ENV=test npx ts-node --esm test-startup-checks.ts",
-    "test:diff": "npm run build && NODE_ENV=test npx ts-node --esm test-diff.ts"
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "codebolt",
@@ -26,16 +23,10 @@
   "author": "CodeBolt",
   "license": "MIT",
   "dependencies": {
-    "@codebolt/codeboltjs": "latest",
-    "@codebolt/provider": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/packages/provider",
-    "@codebolt/types": "^5.1.12",
-    "agentfs-sdk": "^0.6.4",
-    "ws": "^8.18.0"
+    "@codebolt/codeboltjs": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
-    "@types/ws": "^8.5.13",
-    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "engines": {

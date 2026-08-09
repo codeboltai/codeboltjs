@@ -13,6 +13,8 @@ import { startAgentServer, stopAgentServer, isPortInUse, testServerHealth } from
 import type { ProviderInitVars, RawMessageForAgent } from '@codebolt/types/provider';
 import type { ChildProcess } from 'child_process';
 import WebSocket from 'ws';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
 // Configuration
 const TEST_CONFIG = {
@@ -72,74 +74,16 @@ async function testCreateWorktree(provider: GitWorktreeProviderService) {
     }
 }
 
-/**
- * Test getting project structure
- */
-async function testGetProject(provider: GitWorktreeProviderService, parentId: string = 'root') {
-    logger.log('=== Testing Get Project Structure ===');
-    logger.log('  ParentId:', parentId);
-
-    try {
-        const children = await provider.onGetProject(parentId);
-
-        logger.log(`Found ${children.length} items:`);
-        children.slice(0, 10).forEach((item: any) => {
-            logger.log(`  - ${item.isFolder ? '[DIR]' : '[FILE]'} ${item.name}`);
-        });
-
-        if (children.length > 10) {
-            logger.log(`  ... and ${children.length - 10} more items`);
-        }
-
-        return children;
-    } catch (error) {
-        logger.error('Failed to get project structure:', error);
-        throw error;
-    }
-}
-
-/**
- * Test reading a file
- */
-async function testReadFile(provider: GitWorktreeProviderService, filePath: string) {
-    logger.log('=== Testing Read File ===');
-    logger.log('  FilePath:', filePath);
-
-    try {
-        const content = await provider.onReadFile(filePath);
-
-        logger.log(`File content (first 200 chars):`);
-        logger.log(content.substring(0, 200) + (content.length > 200 ? '...' : ''));
-
-        return content;
-    } catch (error) {
-        logger.error('Failed to read file:', error);
-        throw error;
-    }
-}
-
-/**
- * Test writing a file
- */
 async function testWriteFile(provider: GitWorktreeProviderService, filePath: string, content: string) {
-    logger.log('=== Testing Write File ===');
-    logger.log('  FilePath:', filePath);
+    const worktreePath = provider.getWorktreeInfo().path;
+    if (!worktreePath) throw new Error('No worktree path available');
+    await fs.writeFile(path.join(worktreePath, filePath), content, 'utf8');
+}
 
-    try {
-        await provider.onWriteFile(filePath, content);
-        logger.log('File written successfully');
-
-        // Verify by reading it back
-        const readContent = await provider.onReadFile(filePath);
-        if (readContent === content) {
-            logger.log('File content verified successfully');
-        } else {
-            logger.warn('File content mismatch!');
-        }
-    } catch (error) {
-        logger.error('Failed to write file:', error);
-        throw error;
-    }
+async function deleteTestFile(provider: GitWorktreeProviderService, filePath: string) {
+    const worktreePath = provider.getWorktreeInfo().path;
+    if (!worktreePath) throw new Error('No worktree path available');
+    await fs.unlink(path.join(worktreePath, filePath));
 }
 
 /**
@@ -484,7 +428,7 @@ async function runFullProviderTests() {
 
         // Cleanup
         logger.log('\n--- Phase 7: Cleanup ---');
-        await provider.onDeleteFile(testFilePath);
+        await deleteTestFile(provider, testFilePath);
         await testRemoveWorktree(provider);
 
         logger.log('');
@@ -530,35 +474,19 @@ async function runAllTests() {
         // Test 1: Create worktree
         await testCreateWorktree(provider);
 
-        // Test 2: Get project structure (root)
-        const rootItems = await testGetProject(provider, 'root');
-
-        // Test 3: Get project structure (subdirectory, if exists)
-        const srcDir = rootItems.find((item: any) => item.name === 'src' && item.isFolder);
-        if (srcDir) {
-            await testGetProject(provider, srcDir.id);
-        }
-
-        // Test 4: Read a file (package.json usually exists)
-        try {
-            await testReadFile(provider, 'package.json');
-        } catch {
-            logger.warn('package.json not found, skipping read test');
-        }
-
-        // Test 5: Write a test file
+        // Write a file directly to produce a worktree diff. Filesystem routing is tested by the application server.
         const testFilePath = 'test-file-from-local-test.txt';
         await testWriteFile(provider, testFilePath, `Test content created at ${new Date().toISOString()}`);
 
-        // Test 6: Get diff files (after writing)
+        // Get diff files after writing.
         await testGetDiffFiles(provider);
 
-        // Test 7: Delete the test file
+        // Delete the test file.
         logger.log('=== Cleaning up test file ===');
-        await provider.onDeleteFile(testFilePath);
+        await deleteTestFile(provider, testFilePath);
         logger.log('Test file deleted');
 
-        // Test 8: Remove worktree
+        // Remove worktree.
         await testRemoveWorktree(provider);
 
         logger.log('');

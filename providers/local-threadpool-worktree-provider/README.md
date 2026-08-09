@@ -4,16 +4,15 @@ A local execution provider for CodeBolt that operates on a pre-provisioned envir
 
 ## Overview
 
-This provider is intended for `local_thread_pool` execution mode. It uses an environment path supplied by the server during provider start, runs one agent server for that workspace, and performs all file operations inside that local workspace.
+This provider is intended for `local_thread_pool` execution mode. It creates and cleans up the worktree selected by the application server. Agent execution and ordinary filesystem operations stay in the application server.
 
 ## Features
 
 - Uses `environmentPath` from provider start as workspace root
-- Starts/stops the local agent server for the workspace
-- Supports per-environment file read/write/rename/delete operations
+- Creates and removes the environment Git worktree
 - Supports workspace diff from git status/diff
 - Cleans workspace folder after run when `cleanupEnvironmentPath` is enabled
-- WebSocket-based communication with agent server
+- Does not start a secondary agent server or filesystem transport
 
 ## Usage
 
@@ -26,12 +25,11 @@ pnpm start
 
 ## Configuration
 
-- `agentServerPort`: Port for the agent server (default: `3001`)
-- `agentServerHost`: Host for the agent server (default: `localhost`)
+- `filesystem.type`: Filesystem routing owner (`local` for this provider)
 - `cleanupEnvironmentPath`: Delete environment directory on stop when true (default: `true`)
-- `timeouts`: Timeout configuration for startup/connection/operations
+- `timeouts`: Timeout configuration for Git and cleanup operations
 
 ## Notes
 
-- This provider intentionally does not run git worktree creation/deletion itself; the server/runtime creates and hands out workspace paths.
+- The application server resolves prospective paths and handles local filesystem requests.
 - Merge/Patch and PR workflows are not supported in local threadpool mode.

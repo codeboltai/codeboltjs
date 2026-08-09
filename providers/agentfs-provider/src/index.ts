@@ -1,47 +1,56 @@
-import codebolt from "@codebolt/codeboltjs";
-import { AgentFSProviderService } from "./services/AgentFSProviderService";
+import codebolt from '@codebolt/codeboltjs';
+import { execFile } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { promisify } from 'node:util';
 
-const providerService = new AgentFSProviderService();
-const handlers = providerService.getEventHandlers();
+const exec = promisify(execFile);
+let base = '';
+let overlay = '';
 
-codebolt.onProviderStart(handlers.onProviderStart);
-codebolt.onProviderStop(handlers.onProviderStop);
-codebolt.onCloseSignal(handlers.onCloseSignal);
-codebolt.onGetDiffFiles(handlers.onGetDiffFiles);
-codebolt.onRawMessage(async (message: any) => {
-  if (message?.type === 'providerProspectivePath' || message?.action === 'providerProspectivePath') {
-    const websocket = (codebolt as any).websocket;
-    const send = (payload: Record<string, unknown>) => {
-      if (websocket?.readyState === 1) websocket.send(JSON.stringify(payload));
-    };
-    try {
-      const preview = providerService.getProspectivePath(message);
-      send({
-        type: 'remoteProviderEvent',
-        action: 'providerProspectivePathResponse',
-        requestId: message.requestId,
-        status: true,
-        data: preview,
-        message: preview,
-      });
-    } catch (error: any) {
-      send({
-        type: 'remoteProviderEvent',
-        action: 'providerProspectivePathResponse',
-        requestId: message.requestId,
-        status: false,
-        error: error?.message || 'Failed to resolve prospective environment path',
-      });
-    }
-    return;
-  }
+codebolt.onProviderStart(async (vars) => {
+  base = path.resolve(String(vars.projectPath || ''));
+  const name = vars.environmentName.replace(/[^a-zA-Z0-9_.-]/g, '-');
+  overlay = path.resolve(String(vars.environmentPath || path.join(os.tmpdir(), 'codebolt-agentfs', name)));
+  if (!vars.projectPath || base === overlay || base.startsWith(`${overlay}${path.sep}`) || overlay.startsWith(`${base}${path.sep}`))
+    throw new Error('AgentFS requires separate projectPath and environmentPath directories');
+  await fs.rm(overlay, { recursive: true, force: true });
+  await fs.mkdir(path.dirname(overlay), { recursive: true });
+  await exec('cp', ['-cR', `${base}/`, `${overlay}/`]);
+  return { success: true, environmentName: vars.environmentName, agentServerUrl: '', transport: 'custom',
+    workspacePath: overlay, worktreePath: overlay, environmentPath: overlay, resolvedPath: overlay,
+    parentPath: base, parentProjectPath: base, requestedPath: vars.requestedPath || vars.environmentPath,
+    pathSource: vars.pathSource || (vars.environmentPath ? 'user_override' : 'provider_proposed'),
+    executionMode: 'local_thread_pool', syncMode: 'workspace_sync', mergeStrategy: 'workspace_sync',
+    supportedSyncModes: ['workspace_sync'], supportedMergeStrategies: ['workspace_sync'] };
 });
 
-codebolt.onReadFile(providerService.onReadFile.bind(providerService));
-codebolt.onWriteFile(providerService.onWriteFile.bind(providerService));
-codebolt.onDeleteFile(providerService.onDeleteFile.bind(providerService));
-codebolt.onDeleteFolder(providerService.onDeleteFolder.bind(providerService));
-codebolt.onRenameItem(providerService.onRenameItem.bind(providerService));
-codebolt.onCreateFolder(providerService.onCreateFolder.bind(providerService));
-codebolt.onGetFullProject(providerService.onGetProject.bind(providerService));
-codebolt.onGetTreeChildren(providerService.onGetProject.bind(providerService));
+codebolt.onProviderStop(async (vars) => {
+  if (overlay) await fs.rm(overlay, { recursive: true, force: true });
+  base = '';
+  overlay = '';
+  return { success: true, environmentName: vars.environmentName };
+});
+
+codebolt.onGetDiffFiles(async () => {
+  if (!base || !overlay) throw new Error('AgentFS provider is not started');
+  let rawDiff = '';
+  try {
+    rawDiff = (await exec('diff', ['-rq', base, overlay])).stdout;
+  } catch (error) {
+    const result = error as { code?: number; stdout?: string };
+    if (result.code !== 1) throw error;
+    rawDiff = result.stdout || '';
+  }
+  const files = rawDiff.trim().split('\n').filter((line) => line.startsWith('Files ') || line.startsWith('Only in ')).map((line) => {
+    const changed = line.startsWith(`Files ${base}/`) && line.endsWith(' differ');
+    const only = line.match(/^Only in (.*): (.*)$/);
+    const absolute = changed ? line.slice(6, line.indexOf(` and ${overlay}/`)) : path.join(only?.[1] || '', only?.[2] || '');
+    const status = changed ? 'modified' : absolute === base || absolute.startsWith(`${base}${path.sep}`) ? 'deleted' : 'added';
+    const file = path.relative(status === 'added' ? overlay : base, absolute);
+    return { file, path: file, status, changes: 0, insertions: 0, deletions: 0, binary: false };
+  });
+  return { files, insertions: 0, deletions: 0, changed: files.length, rawDiff,
+    summary: { totalFiles: files.length, totalAdditions: 0, totalDeletions: 0, totalChanges: files.length } };
+});
