@@ -1,0 +1,11 @@
+{
+  "name": "@codebolt/standalone-miniapp-cli",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codebolt/standalone-miniapp-format": "workspace:*"
+  },
+  "bin": {
+    "standalone-miniapp": "./src/cli.mjs"
+  }
+}

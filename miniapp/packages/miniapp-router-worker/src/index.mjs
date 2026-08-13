@@ -1,6 +1,8 @@
 const defaultRootDomain = "codebolt.app";
 const sessionCookieName = "cb_app_session";
 const catalogLoginInstallId = "__catalog__";
+const platformWorkerType = "platformworker";
+const miniAppBundleType = "miniappbundle";
 
 function text(status, body, headers = {}) {
   return new Response(body, { status, headers });
@@ -142,14 +144,27 @@ async function getInstall(env, installId) {
     try {
       const data = await fetchEdgeJson(env, `/miniapps/router/installs/${encodeURIComponent(installId)}`);
       const install = data.install;
-      if (install && install.enabled !== false) return { ...install, id: install.id ?? installId };
+      if (install && install.enabled !== false) return normalizeInstall(install, installId);
     } catch {
       // Fall through to KV so existing POC installs keep working during migration.
     }
   }
   const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
   if (!install || install.enabled === false) return null;
-  return { ...install, id: install.id ?? installId };
+  return normalizeInstall(install, installId);
+}
+
+function normalizeRoutingType(value) {
+  if (value === miniAppBundleType) return miniAppBundleType;
+  return platformWorkerType;
+}
+
+function normalizeInstall(install, installId) {
+  return {
+    ...install,
+    id: install.id ?? installId,
+    type: normalizeRoutingType(install.type),
+  };
 }
 
 function redirect(location, headers = {}) {
@@ -688,12 +703,17 @@ function userInstallKey(userId, appId) {
 }
 
 function normalizeApp(app, appId) {
+  const deployment = app.deployment ?? {};
+  const deploymentMetadata = deployment.metadata ?? {};
   return {
     ...app,
     id: app.id ?? appId,
     title: app.title ?? app.name ?? app.id ?? appId,
     installPolicy: app.installPolicy ?? "developer_only",
     defaultAccess: app.defaultAccess ?? "private",
+    type: normalizeRoutingType(app.type ?? deployment.type ?? deploymentMetadata.type),
+    packageId: app.packageId ?? deployment.packageId ?? deploymentMetadata.packageId,
+    miniappServerUrl: app.miniappServerUrl ?? deployment.miniappServerUrl ?? deploymentMetadata.miniappServerUrl,
   };
 }
 
@@ -821,7 +841,11 @@ async function handleAppDetail(request, env, appId) {
       <dl>
         <dt>App ID</dt><dd>${escapeHtml(app.id)}</dd>
         <dt>Developer</dt><dd>${escapeHtml(app.developerName || app.developerUserId || "Unknown")}</dd>
-        <dt>Upstream</dt><dd>${escapeHtml(app.upstreamUrl || "Not configured")}</dd>
+        <dt>Runtime type</dt><dd>${escapeHtml(app.type)}</dd>
+        ${app.type === miniAppBundleType
+          ? `<dt>Package</dt><dd>${escapeHtml(app.packageId || "Not configured")}</dd>
+             <dt>MiniApp Server</dt><dd>${escapeHtml(app.miniappServerUrl || "Router default")}</dd>`
+          : `<dt>Upstream</dt><dd>${escapeHtml(app.upstreamUrl || app.deployment?.upstreamUrl || app.deployment?.runtimeUrl || "Not configured")}</dd>`}
         <dt>Capabilities</dt><dd>${escapeHtml(app.capabilityUrl || "Not configured")}</dd>
         ${existing ? `<dt>Your install</dt><dd><a href="${escapeHtml(installUrl(env, existing.id))}">${escapeHtml(installUrl(env, existing.id))}</a></dd>` : ""}
       </dl>
@@ -842,6 +866,61 @@ async function uniqueInstallId(env, appId) {
     if (!(await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json"))) return installId;
   }
   throw new Error("Unable to allocate install id.");
+}
+
+function bundleServerUrl(env, record) {
+  return normalizeBaseUrl(record.miniappServerUrl || env.MINIAPP_BUNDLE_SERVER_URL, "miniapp bundle server URL");
+}
+
+function bundleServerHeaders(env, headers = {}) {
+  const result = new Headers(headers);
+  result.set("accept", "application/json");
+  if (env.MINIAPP_BUNDLE_SERVER_TOKEN) {
+    result.set("authorization", `Bearer ${env.MINIAPP_BUNDLE_SERVER_TOKEN}`);
+  }
+  return result;
+}
+
+async function readBundleServerResponse(response, label) {
+  const body = await response.text();
+  let data = {};
+  try {
+    data = body ? JSON.parse(body) : {};
+  } catch {
+    throw new Error(`${label} returned a non-JSON response (${response.status}).`);
+  }
+  if (!response.ok) {
+    throw new Error(`${label} failed: ${response.status} ${data.error ?? response.statusText}`);
+  }
+  return data;
+}
+
+async function ensureBundleInstance(env, app, { installId, scopeId }) {
+  if (app.type !== miniAppBundleType) return;
+  if (!app.packageId) throw new Error("miniappbundle app.packageId is required.");
+  const base = bundleServerUrl(env, app);
+  const instanceUrl = `${base}/api/scopes/${encodeURIComponent(scopeId)}/instances/${encodeURIComponent(installId)}`;
+  const current = await fetch(instanceUrl, { headers: bundleServerHeaders(env) });
+  if (current.ok) {
+    const data = await readBundleServerResponse(current, "Read MiniApp bundle instance");
+    if (data.instance?.packageId === app.packageId) return;
+    const updated = await fetch(instanceUrl, {
+      method: "PATCH",
+      headers: bundleServerHeaders(env, { "content-type": "application/json" }),
+      body: JSON.stringify({ packageId: app.packageId }),
+    });
+    await readBundleServerResponse(updated, "Update MiniApp bundle instance");
+    return;
+  }
+  if (current.status !== 404) {
+    await readBundleServerResponse(current, "Read MiniApp bundle instance");
+  }
+  const created = await fetch(`${base}/api/scopes/${encodeURIComponent(scopeId)}/instances`, {
+    method: "POST",
+    headers: bundleServerHeaders(env, { "content-type": "application/json" }),
+    body: JSON.stringify({ packageId: app.packageId, instanceId: installId }),
+  });
+  await readBundleServerResponse(created, "Create MiniApp bundle instance");
 }
 
 async function handleAppInstall(request, env, appId) {
@@ -870,35 +949,62 @@ async function handleAppInstall(request, env, appId) {
   `));
 
   const installId = await uniqueInstallId(env, app.id);
+  const workspaceId = app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`;
+  let edgeInstall = null;
   if (edgeApiBase(env) && edgeServiceSecret(env)) {
     try {
-      const data = await fetchEdgeJson(env, `/miniapps/router/apps/${encodeURIComponent(app.id)}/install`, {
+      edgeInstall = await fetchEdgeJson(env, `/miniapps/router/apps/${encodeURIComponent(app.id)}/install`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           installId,
           userId: session.userId,
-          workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
+          workspaceId,
           access: app.defaultAccess ?? "private",
         }),
       });
-      return redirect(installUrl(env, data.installId || installId));
     } catch {
       // Fall through to KV install creation during migration.
     }
+  }
+  if (edgeInstall) {
+    const resolvedInstallId = edgeInstall.installId || installId;
+    try {
+      await ensureBundleInstance(env, app, { installId: resolvedInstallId, scopeId: workspaceId });
+    } catch (error) {
+      return json(502, {
+        error: "MiniApp install was created, but its bundle instance could not be provisioned.",
+        detail: error?.message || String(error),
+        installId: resolvedInstallId,
+      });
+    }
+    return redirect(installUrl(env, resolvedInstallId));
   }
   const install = {
     id: installId,
     appId: app.id,
     appTitle: app.title,
+    type: app.type,
     upstreamUrl: app.deployment?.upstreamUrl || app.upstreamUrl || app.deployment?.runtimeUrl,
     capabilityUrl: app.deployment?.capabilityUrl || app.capabilityUrl,
-    workspaceId: app.defaultWorkspaceId ?? `personal-${slugPart(session.userId, "user")}`,
+    packageId: app.packageId,
+    miniappServerUrl: app.miniappServerUrl,
+    scopeId: workspaceId,
+    instanceId: installId,
+    workspaceId,
     ownerUserId: session.userId,
     access: app.defaultAccess ?? "private",
     enabled: true,
     createdAt: new Date().toISOString(),
   };
+  try {
+    await ensureBundleInstance(env, app, { installId, scopeId: workspaceId });
+  } catch (error) {
+    return json(502, {
+      error: "MiniApp bundle instance could not be provisioned.",
+      detail: error?.message || String(error),
+    });
+  }
   await env.MINIAPP_INSTALLS.put(`install:${installId}`, JSON.stringify(install));
   await env.MINIAPP_INSTALLS.put(userInstallKey(session.userId, app.id), installId);
   return redirect(installUrl(env, installId));
@@ -1028,7 +1134,7 @@ async function createExecutionToken(env, install, session) {
   return data.token;
 }
 
-function proxyHeaders(request, token, install) {
+function proxyHeaders(request, token, install, authorizationToken = token) {
   const headers = new Headers(request.headers);
   headers.delete("host");
   headers.delete("cookie");
@@ -1041,8 +1147,10 @@ function proxyHeaders(request, token, install) {
   headers.set("x-codebolt-miniapp-id", install.appId);
   headers.set("x-codebolt-install-id", install.id);
   headers.set("x-codebolt-workspace-id", install.workspaceId);
+  if (authorizationToken) {
+    headers.set("authorization", `Bearer ${authorizationToken}`);
+  }
   if (token) {
-    headers.set("authorization", `Bearer ${token}`);
     headers.set("x-codebolt-execution-token", token);
   }
   if (install.capabilityUrl) {
@@ -1056,10 +1164,16 @@ function proxyHeaders(request, token, install) {
 async function proxyInstallRequest(request, env, install, session) {
   const token = install.capabilityUrl ? await createExecutionToken(env, install, session) : null;
   const inputUrl = new URL(request.url);
-  const upstream = new URL(inputUrl.pathname + inputUrl.search, normalizeBaseUrl(install.upstreamUrl, "install.upstreamUrl"));
+  const isBundle = install.type === miniAppBundleType;
+  const upstream = isBundle
+    ? new URL(
+        `/run/${encodeURIComponent(install.scopeId || install.workspaceId)}/${encodeURIComponent(install.instanceId || install.id)}${inputUrl.pathname}${inputUrl.search}`,
+        bundleServerUrl(env, install),
+      )
+    : new URL(inputUrl.pathname + inputUrl.search, normalizeBaseUrl(install.upstreamUrl, "install.upstreamUrl"));
   return fetch(upstream, {
     method: request.method,
-    headers: proxyHeaders(request, token, install),
+    headers: proxyHeaders(request, token, install, isBundle ? env.MINIAPP_BUNDLE_SERVER_TOKEN : token),
     body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
     redirect: "manual",
   });

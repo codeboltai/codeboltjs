@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hello MiniApp</title>
+  <style>body{font-family:system-ui;margin:3rem;max-width:40rem}button{padding:.6rem 1rem}pre{background:#eee;padding:1rem}</style>
+</head>
+<body>
+  <h1>Hello MiniApp</h1>
+  <p>This application has no Nitro or CodeBolt dependency.</p>
+  <button id="increment">Increment persistent counter</button>
+  <pre id="output">Loading…</pre>
+  <script type="module">
+    const output = document.querySelector('#output');
+    async function show(path, options) {
+      const response = await fetch(path, options);
+      output.textContent = JSON.stringify(await response.json(), null, 2);
+    }
+    document.querySelector('#increment').onclick = () => show('./api/counter/increment', { method: 'POST' });
+    show('./api/counter');
+  </script>
+</body>
+</html>

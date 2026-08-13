@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeBolt Standalone MiniApp Architecture</title>
+  <style>
+    :root { color-scheme: dark; --bg:#081019; --panel:#101b27; --panel2:#142332; --ink:#eef7ff; --muted:#9fb2c5; --line:#263b4e; --cyan:#64d8cb; --blue:#79a9ff; --amber:#ffd37a; --green:#84dfa4; --red:#ff8b9c; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:radial-gradient(circle at 85% 0,rgba(62,129,181,.18),transparent 27rem),var(--bg); color:var(--ink); font:15px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    a { color:var(--cyan); }
+    code { color:#cbe3ff; background:#0a1520; border:1px solid var(--line); border-radius:5px; padding:.1em .35em; }
+    pre { margin:12px 0 0; padding:16px; overflow:auto; background:#07111a; border:1px solid var(--line); border-radius:8px; color:#cbe3ff; line-height:1.55; }
+    pre code { padding:0; border:0; background:none; }
+    .layout { display:grid; grid-template-columns:250px minmax(0,1fr); min-height:100vh; }
+    nav { position:sticky; top:0; height:100vh; overflow:auto; padding:28px 20px; border-right:1px solid var(--line); background:rgba(8,16,25,.88); backdrop-filter:blur(16px); }
+    .brand { font-weight:800; letter-spacing:.02em; font-size:17px; }
+    .tag { color:var(--cyan); font:700 11px/1.2 ui-monospace,monospace; text-transform:uppercase; letter-spacing:.12em; }
+    nav ol { list-style:none; padding:18px 0 0; margin:0; }
+    nav a { display:block; color:var(--muted); text-decoration:none; padding:6px 0; }
+    nav a:hover { color:var(--ink); }
+    main { width:min(1180px,100%); padding:58px clamp(24px,5vw,72px) 100px; }
+    header { padding-bottom:38px; border-bottom:1px solid var(--line); }
+    h1 { margin:10px 0 18px; max-width:920px; font-size:clamp(38px,6vw,72px); line-height:1.02; letter-spacing:-.045em; }
+    h2 { margin:66px 0 18px; font-size:30px; letter-spacing:-.025em; }
+    h3 { margin:28px 0 10px; font-size:18px; }
+    p { margin:8px 0 14px; color:var(--muted); max-width:880px; }
+    .lead { color:#c5d8ea; font-size:19px; max-width:900px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+    .chip { border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:5px 10px; color:#c8d8e8; font-size:12px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin:18px 0; }
+    .card { padding:18px; border:1px solid var(--line); border-radius:10px; background:linear-gradient(145deg,var(--panel2),var(--panel)); }
+    .card h3 { margin:0 0 6px; }
+    .card p { margin:0; }
+    .diagram { display:grid; grid-template-columns:repeat(7,minmax(110px,1fr)); gap:10px; align-items:stretch; margin:24px 0; }
+    .node { min-height:104px; padding:14px; display:flex; flex-direction:column; justify-content:center; border:1px solid var(--line); border-radius:9px; background:var(--panel); }
+    .node strong { display:block; color:var(--ink); }
+    .node span { display:block; color:var(--muted); font-size:12px; }
+    .arrow { align-self:center; text-align:center; color:var(--cyan); font-size:23px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .flow { counter-reset:flow; margin:18px 0; }
+    .step { position:relative; margin:0 0 10px; padding:14px 16px 14px 54px; background:var(--panel); border:1px solid var(--line); border-radius:8px; color:var(--muted); }
+    .step::before { counter-increment:flow; content:counter(flow); position:absolute; left:15px; top:13px; width:25px; height:25px; display:grid; place-items:center; background:var(--cyan); color:#06221e; border-radius:50%; font-weight:800; }
+    table { width:100%; border-collapse:collapse; margin:16px 0; background:var(--panel); border:1px solid var(--line); }
+    th,td { padding:11px 13px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { color:var(--ink); background:#142333; }
+    td { color:var(--muted); }
+    .callout { margin:20px 0; padding:16px 18px; border-left:4px solid var(--cyan); background:rgba(100,216,203,.08); color:#c8e1de; }
+    .warn { border-color:var(--amber); background:rgba(255,211,122,.08); }
+    .yes { color:var(--green); } .no { color:var(--red); }
+    .filetree { color:#b7caDC; }
+    footer { margin-top:70px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); }
+    @media(max-width:900px){.layout{display:block}nav{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav ol{columns:2}.diagram{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.split{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav>
+    <div class="tag">Architecture note</div>
+    <div class="brand">Standalone MiniApps</div>
+    <ol>
+      <li><a href="#decision">1. Core decision</a></li>
+      <li><a href="#topology">2. Cloud topology</a></li>
+      <li><a href="#package">3. .miniapp package</a></li>
+      <li><a href="#server">4. MiniApp Server</a></li>
+      <li><a href="#router">5. Typed routing</a></li>
+      <li><a href="#flows">6. Lifecycle flows</a></li>
+      <li><a href="#storage">7. State ownership</a></li>
+      <li><a href="#security">8. Security</a></li>
+      <li><a href="#local">9. Local execution</a></li>
+      <li><a href="#operations">10. Operations</a></li>
+      <li><a href="#status">11. Status and gaps</a></li>
+    </ol>
+  </nav>
+  <main>
+    <header>
+      <div class="tag">Implemented design · 13 August 2026</div>
+      <h1>One public URL, two MiniApp execution models.</h1>
+      <p class="lead">The router keeps <code>https://&lt;installId&gt;.codebolt.app</code> stable. Its install record now chooses between a separately deployed platform Worker and a packaged MiniApp running inside the shared Cloudflare MiniApp Server.</p>
+      <div class="chips"><span class="chip">Cloudflare Worker</span><span class="chip">Durable Objects</span><span class="chip">Worker Loader</span><span class="chip">Dynamic Worker facets</span><span class="chip">R2 packages</span><span class="chip">KV routing</span></div>
+    </header>
+
+    <section id="decision">
+      <h2>1. Core decision</h2>
+      <div class="split">
+        <article class="card"><div class="tag">type: platformworker</div><h3>Existing deployment model</h3><p>A provider deploys a complete MiniApp runtime to Netlify, Cloudflare, Deno, or another platform. The router proxies the public install URL to <code>upstreamUrl</code> and can mint a CodeBolt execution token through <code>capabilityUrl</code>.</p></article>
+        <article class="card"><div class="tag">type: miniappbundle</div><h3>New shared-server model</h3><p>The application is uploaded once as an immutable <code>.miniapp</code> package. The shared MiniApp Server creates an instance, loads its modules through Worker Loader, and runs its facet without deploying another top-level Worker.</p></article>
+      </div>
+      <div class="callout">The MiniApp package does not contain its own server control plane. Upload, start, stop, update, delete, storage allocation, limits, and dynamic execution are responsibilities of the one-time-deployed MiniApp Server.</div>
+    </section>
+
+    <section id="topology">
+      <h2>2. Cloud topology</h2>
+      <div class="diagram">
+        <div class="node"><strong>Browser</strong><span>&lt;installId&gt;.codebolt.app</span></div><div class="arrow">→</div>
+        <div class="node"><strong>MiniApp Router</strong><span>auth + typed target resolution</span></div><div class="arrow">→</div>
+        <div class="node"><strong>MiniApp Server</strong><span>supervisor selection + package load</span></div><div class="arrow">→</div>
+        <div class="node"><strong>Dynamic facet</strong><span>one isolated MiniApp instance</span></div>
+      </div>
+      <div class="grid">
+        <div class="card"><h3>R2</h3><p>Stores content-addressed, immutable <code>.miniapp</code> files at <code>packages/&lt;sha256&gt;.miniapp</code>.</p></div>
+        <div class="card"><h3>Supervisor DO</h3><p>One deterministic supervisor per scope. It stores instance metadata and owns dynamic facets.</p></div>
+        <div class="card"><h3>Storage DO</h3><p>One deterministic storage namespace per <code>scopeId:instanceId</code>, separate from code execution.</p></div>
+        <div class="card"><h3>Worker Loader</h3><p>Builds a dynamic Worker from package modules plus a server-owned wrapper and applies server-owned limits.</p></div>
+      </div>
+    </section>
+
+    <section id="package">
+      <h2>3. The <code>.miniapp</code> package</h2>
+      <p>The package is a single deterministic binary file. Consumers do not unzip a directory beside it. The format library reads the manifest and indexed payloads directly and verifies integrity before installation.</p>
+      <table><thead><tr><th>Layer</th><th>Purpose</th></tr></thead><tbody>
+        <tr><td>Magic + format version</td><td>Rejects unrelated files and unsupported container revisions.</td></tr>
+        <tr><td>Canonical header</td><td>Contains manifest metadata and the ordered file index.</td></tr>
+        <tr><td>Payload bytes</td><td>Stores runtime modules and public assets with deterministic offsets.</td></tr>
+        <tr><td>SHA-256 digest</td><td>Becomes the package ID and detects byte-level modification.</td></tr>
+      </tbody></table>
+      <pre><code>hello-miniapp/
+├─ miniapp.json               # codebolt.miniapp.v1 manifest
+├─ modules/main.mjs           # application fetch handler
+└─ public/index.html          # browser UI
+
+miniapp pack hello-miniapp --output hello-miniapp.miniapp
+miniapp verify hello-miniapp.miniapp
+miniapp upload hello-miniapp.miniapp --server &lt;server-url&gt;</code></pre>
+      <p>The manifest declares the application ID and version, runtime main module, Cloudflare compatibility date/flags, optional UI entry, and any package-level metadata. It does not choose a Durable Object ID or hold infrastructure credentials.</p>
+    </section>
+
+    <section id="server">
+      <h2>4. MiniApp Server responsibilities</h2>
+      <div class="flow">
+        <div class="step"><strong>Registry:</strong> accept and validate a package, compute its content address, and persist it to R2.</div>
+        <div class="step"><strong>Supervisor:</strong> map a scope to a Durable Object and persist instance records such as package revision and lifecycle status.</div>
+        <div class="step"><strong>Loader:</strong> read package modules, add the trusted runtime wrapper, set bindings and limits, and construct the dynamic Worker.</div>
+        <div class="step"><strong>Facet:</strong> obtain a stable instance facet owned by the supervisor and dispatch the request to it.</div>
+        <div class="step"><strong>Storage bridge:</strong> expose only the server-controlled storage API backed by the instance's Storage DO.</div>
+      </div>
+      <table><thead><tr><th>Server route</th><th>Use</th><th>Caller</th></tr></thead><tbody>
+        <tr><td><code>GET /health</code></td><td>Liveness check</td><td>Operations</td></tr>
+        <tr><td><code>POST /api/packages</code></td><td>Upload and install a package</td><td>CLI / deployment service</td></tr>
+        <tr><td><code>GET /api/packages/:packageId</code></td><td>Inspect package object metadata</td><td>CLI / control plane</td></tr>
+        <tr><td><code>/api/scopes/:scope/instances/*</code></td><td>Create, inspect, update, stop, or delete instances</td><td>Router / control plane</td></tr>
+        <tr><td><code>/run/:scope/:instance/*</code></td><td>Execute code or return a packaged asset</td><td>MiniApp Router</td></tr>
+      </tbody></table>
+    </section>
+
+    <section id="router">
+      <h2>5. Typed routing records</h2>
+      <p>The public hostname continues to identify an install. The resolved install record now contains an explicit route type. Legacy records without a type normalize to <code>platformworker</code>.</p>
+      <div class="split">
+        <pre><code>{
+  "id": "lead-react-ab12cd34",
+  "appId": "lead-react",
+  "type": "platformworker",
+  "upstreamUrl": "https://...",
+  "capabilityUrl": "https://...",
+  "workspaceId": "personal-user",
+  "access": "private"
+}</code></pre>
+        <pre><code>{
+  "id": "hello-ab12cd34",
+  "appId": "hello-miniapp",
+  "type": "miniappbundle",
+  "packageId": "&lt;sha256&gt;",
+  "scopeId": "personal-user",
+  "instanceId": "hello-ab12cd34",
+  "workspaceId": "personal-user",
+  "access": "private"
+}</code></pre>
+      </div>
+      <table><thead><tr><th>Concern</th><th>platformworker</th><th>miniappbundle</th></tr></thead><tbody>
+        <tr><td>Target</td><td><code>upstreamUrl + browser path</code></td><td><code>server/run/scope/instance + browser path</code></td></tr>
+        <tr><td>Code lifecycle</td><td>External platform deployment</td><td>R2 package + dynamic Worker facet</td></tr>
+        <tr><td>Authorization on internal hop</td><td>Optional short-lived execution token</td><td>MiniApp Server service token</td></tr>
+        <tr><td>Browser URL</td><td colspan="2"><code>https://&lt;installId&gt;.codebolt.app/*</code></td></tr>
+      </tbody></table>
+      <div class="callout warn"><strong>Why the direct server URL is not the product URL:</strong> the Worker address is an internal execution endpoint. Publishing its bearer token in browser JavaScript would expose package management and every instance. The router provides normal browser accessibility while keeping the management plane private.</div>
+    </section>
+
+    <section id="flows">
+      <h2>6. Lifecycle flows</h2>
+      <h3>Package publication</h3>
+      <div class="flow"><div class="step">Build creates a deterministic <code>.miniapp</code>.</div><div class="step">CLI uploads raw bytes to the MiniApp Server.</div><div class="step">Server validates the archive and stores it in R2 under its SHA-256 package ID.</div><div class="step">Registry/deployment metadata records <code>type: miniappbundle</code> and that package ID.</div></div>
+      <h3>User installation</h3>
+      <div class="flow"><div class="step">Router authenticates the user and allocates the public install ID.</div><div class="step">Install metadata is created with its type, scope, instance and package target.</div><div class="step">For <code>miniappbundle</code>, the router calls the server to create the instance. If it already exists with another package, it updates the revision.</div><div class="step">Browser is redirected to <code>https://&lt;installId&gt;.codebolt.app</code>.</div></div>
+      <h3>Browser request</h3>
+      <div class="flow"><div class="step">Router resolves install ID from the subdomain and checks public/authenticated/private access.</div><div class="step">It strips browser cookies and authorization headers before the internal hop.</div><div class="step">The record type selects either the platform upstream or MiniApp Server run route.</div><div class="step">The MiniApp Server loads the current package revision, serves a public asset directly or dispatches to the instance facet.</div></div>
+    </section>
+
+    <section id="storage">
+      <h2>7. State ownership and isolation</h2>
+      <table><thead><tr><th>State</th><th>Owner</th><th>Key / identity</th></tr></thead><tbody>
+        <tr><td>Package bytes</td><td>R2</td><td>SHA-256 package ID</td></tr>
+        <tr><td>Install route and access policy</td><td>Edge API / router KV fallback</td><td>install ID</td></tr>
+        <tr><td>Instance metadata and current revision</td><td>Supervisor DO</td><td>scope ID + instance ID</td></tr>
+        <tr><td>Application data</td><td>Storage DO</td><td>scope ID + instance ID</td></tr>
+        <tr><td>Executing code</td><td>Dynamic Worker facet</td><td>supervisor + instance + package + revision</td></tr>
+      </tbody></table>
+      <p>Updating a package changes the instance revision and aborts the old facet, but it does not move or discard the Storage DO. Deleting an instance removes its facet, metadata, and storage deliberately.</p>
+    </section>
+
+    <section id="security">
+      <h2>8. Security boundaries</h2>
+      <div class="grid">
+        <div class="card"><h3 class="yes">Browser boundary</h3><p>The browser sees only the install domain. Router session cookies are removed before proxying.</p></div>
+        <div class="card"><h3 class="yes">Service boundary</h3><p><code>MINIAPP_BUNDLE_SERVER_TOKEN</code> exists only on the router and matches <code>MINIAPP_SERVER_TOKEN</code> on the server.</p></div>
+        <div class="card"><h3 class="yes">Runtime boundary</h3><p>The server supplies bindings, outbound policy and CPU/subrequest limits; the package cannot define them.</p></div>
+        <div class="card"><h3 class="no">Not yet a full trust sandbox</h3><p>The prototype needs production policy for allowed compatibility flags, package signing, quotas, observability and abuse handling.</p></div>
+      </div>
+    </section>
+
+    <section id="local">
+      <h2>9. Local execution</h2>
+      <p>The format and app contract are Cloudflare-independent. The current cloud server uses Worker Loader and facets; a local server can use the same package parser, manifest and request contract while substituting a Node or workerd execution adapter and a local storage adapter.</p>
+      <pre class="filetree"><code>standalonetests/
+├─ packages/miniapp-format/       package writer, parser and verifier
+├─ packages/miniapp-cli/          pack, inspect, verify and upload commands
+├─ apps/hello-miniapp/            minimal framework-free example
+├─ apps/miniapp-server/           one-time Cloudflare control/execution plane
+└─ tests/                          format, lifecycle and Wrangler integration
+
+packages/miniapp-router-worker/   public hostname, auth and typed proxy</code></pre>
+    </section>
+
+    <section id="operations">
+      <h2>10. Operations</h2>
+      <pre><code># MiniApp Server
+wrangler secret put MINIAPP_SERVER_TOKEN
+wrangler deploy -c standalonetests/apps/miniapp-server/wrangler.jsonc
+
+# Router; use the same secret value
+wrangler secret put MINIAPP_BUNDLE_SERVER_TOKEN \
+  -c packages/miniapp-router-worker/wrangler.jsonc
+wrangler deploy -c packages/miniapp-router-worker/wrangler.jsonc
+
+# Current MiniApp Server
+https://standalone-codebolt-miniapp-server.arrowai.workers.dev
+
+# Public application URL shape
+https://&lt;installId&gt;.codebolt.app</code></pre>
+      <p>The router configuration contains the default MiniApp Server URL. An individual record can override <code>miniappServerUrl</code> for migration or multi-region routing, but keeping a default avoids duplicating infrastructure URLs in every install.</p>
+    </section>
+
+    <section id="status">
+      <h2>11. Implemented status and next integration gaps</h2>
+      <table><thead><tr><th>Area</th><th>Status</th><th>Notes</th></tr></thead><tbody>
+        <tr><td>Deterministic package format</td><td class="yes">Implemented</td><td>Pack, inspect, verify and upload.</td></tr>
+        <tr><td>Cloudflare MiniApp Server</td><td class="yes">Implemented + deployed</td><td>R2, Supervisor DO, Storage DO, Worker Loader and facets.</td></tr>
+        <tr><td>Typed router proxy</td><td class="yes">Implemented</td><td>Both route types, service auth, query/body forwarding and legacy fallback.</td></tr>
+        <tr><td>Install-time bundle provisioning</td><td class="yes">Implemented</td><td>Create/update instance before public redirect.</td></tr>
+        <tr><td>Edge API type projection</td><td class="yes">Implemented</td><td>Reads type/package/server fields from deployment metadata.</td></tr>
+        <tr><td>Registry publishing UI/API for raw bundle uploads</td><td class="no">Next</td><td>Must persist <code>type</code> and <code>packageId</code> when publishing.</td></tr>
+        <tr><td>Production secrets + router deploy</td><td class="no">Operational step</td><td>Set matching server/router tokens, deploy, then seed a bundle-backed catalog record.</td></tr>
+        <tr><td>CodeBolt/Nitro adapters</td><td class="no">Later phase</td><td>Compile framework output into the same package/runtime contract.</td></tr>
+      </tbody></table>
+    </section>
+    <footer>CodeBolt Standalone MiniApp prototype · reviewer-facing implementation architecture</footer>
+  </main>
+</div>
+</body>
+</html>

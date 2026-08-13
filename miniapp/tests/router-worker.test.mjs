@@ -84,6 +84,8 @@ function createEnv(overrides = {}) {
       }),
     }),
     MINIAPP_AUTH_STATE: createKv(),
+    MINIAPP_BUNDLE_SERVER_URL: "https://standalone-server.test",
+    MINIAPP_BUNDLE_SERVER_TOKEN: "bundle-server-secret",
     ...overrides,
   };
 }
@@ -110,6 +112,16 @@ function withMockFetch(handler) {
         cloudUrl: request.headers.get("x-codebolt-cloud-url"),
         cookie: request.headers.get("cookie"),
         path: url.pathname,
+      });
+    }
+    if (url.hostname === "standalone-server.test" && url.pathname.startsWith("/run/")) {
+      return Response.json({
+        ok: true,
+        authorization: request.headers.get("authorization"),
+        executionToken: request.headers.get("x-codebolt-execution-token"),
+        cookie: request.headers.get("cookie"),
+        path: url.pathname,
+        query: url.search,
       });
     }
     return Response.json({ error: "unexpected fetch" }, { status: 500 });
@@ -277,6 +289,56 @@ test("public install proxies without session as anonymous", async () => {
   });
 });
 
+test("miniappbundle install routes through MiniApp Server with an internal token", async () => {
+  await withMockFetch(async () => {
+    const env = createEnv({
+      MINIAPP_INSTALLS: createKv({
+        "install:bundledapp": JSON.stringify({
+          id: "bundledapp",
+          appId: "hello-miniapp",
+          type: "miniappbundle",
+          packageId: "a".repeat(64),
+          scopeId: "workspace-1",
+          instanceId: "hello-instance",
+          access: "public",
+          enabled: true,
+        }),
+      }),
+    });
+
+    const response = await handleRouterRequest(
+      new Request("https://bundledapp.codebolt.app/api/counter?source=browser", {
+        headers: {
+          authorization: "Bearer browser-token",
+          cookie: "browser-cookie=value",
+        },
+      }),
+      env,
+    );
+
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.path, "/run/workspace-1/hello-instance/api/counter");
+    assert.equal(body.query, "?source=browser");
+    assert.equal(body.authorization, "Bearer bundle-server-secret");
+    assert.equal(body.executionToken, null);
+    assert.equal(body.cookie, null);
+  });
+});
+
+test("records without type remain backward-compatible platformworker installs", async () => {
+  await withMockFetch(async () => {
+    const response = await handleRouterRequest(
+      new Request("https://publicapp.codebolt.app/legacy"),
+      createEnv(),
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.path, "/legacy");
+    assert.equal(body.authorization, "Bearer token-for-publicapp-anonymous:publicapp");
+  });
+});
+
 test("apps list renders published apps on apex domain", async () => {
   const response = await handleRouterRequest(
     new Request("https://codebolt.app/apps"),
@@ -344,10 +406,72 @@ test("authenticated app install creates private install record and user pointer"
   const installId = location.hostname.split(".")[0];
   const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
   assert.equal(install.appId, "lead-react");
+  assert.equal(install.type, "platformworker");
   assert.equal(install.ownerUserId, "user-2");
   assert.equal(install.workspaceId, "personal-user-2");
   assert.equal(install.access, "private");
   assert.equal(await env.MINIAPP_INSTALLS.get("user-install:user-2:lead-react"), installId);
+});
+
+test("installing a miniappbundle provisions its instance and stores bundle routing fields", async () => {
+  await withMockFetch(async (calls) => {
+    const packageId = "b".repeat(64);
+    const env = createEnv({
+      CODEBOLT_API_URL: "",
+      MINIAPP_INSTALLS: createKv({
+        "app:bundle-app": JSON.stringify({
+          id: "bundle-app",
+          title: "Bundle App",
+          developerUserId: "developer-1",
+          installPolicy: "anyone",
+          defaultAccess: "private",
+          type: "miniappbundle",
+          packageId,
+          enabled: true,
+        }),
+      }),
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input, init = {}) => {
+      const request = input instanceof Request ? input : new Request(input, init);
+      calls.push(request);
+      const url = new URL(request.url);
+      if (url.hostname === "standalone-server.test" && request.method === "GET") {
+        return Response.json({ error: "INSTANCE_NOT_FOUND" }, { status: 404 });
+      }
+      if (url.hostname === "standalone-server.test" && request.method === "POST") {
+        return Response.json({ instance: { id: "created", packageId } }, { status: 201 });
+      }
+      return originalFetch(request);
+    };
+
+    try {
+      const session = await signSession({
+        userId: "user-2",
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      }, env.CODEBOLT_APP_COOKIE_SECRET);
+      const response = await handleRouterRequest(
+        new Request("https://codebolt.app/apps/bundle-app/install", {
+          method: "POST",
+          headers: { cookie: `cb_app_session=${encodeURIComponent(session)}` },
+        }),
+        env,
+      );
+      assert.equal(response.status, 302);
+      const installId = new URL(response.headers.get("location")).hostname.split(".")[0];
+      const install = await env.MINIAPP_INSTALLS.get(`install:${installId}`, "json");
+      assert.equal(install.type, "miniappbundle");
+      assert.equal(install.packageId, packageId);
+      assert.equal(install.scopeId, "personal-user-2");
+      assert.equal(install.instanceId, installId);
+      const provision = calls.find((call) => call.method === "POST" && new URL(call.url).hostname === "standalone-server.test");
+      assert.ok(provision);
+      assert.equal(new URL(provision.url).pathname, "/api/scopes/personal-user-2/instances");
+      assert.equal(provision.headers.get("authorization"), "Bearer bundle-server-secret");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
 
 test("developer-only app cannot be installed by other users", async () => {

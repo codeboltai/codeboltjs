@@ -1,0 +1,17 @@
+{
+  "format": "codebolt.miniapp.v1",
+  "id": "hello-miniapp",
+  "title": "Hello MiniApp",
+  "version": "0.1.0",
+  "runtime": {
+    "protocol": "codebolt.fetch.v1",
+    "mainModule": "modules/main.mjs",
+    "compatibilityDate": "2026-07-29"
+  },
+  "ui": {
+    "entry": "public/index.html"
+  },
+  "capabilities": [
+    "storage.documents"
+  ]
+}

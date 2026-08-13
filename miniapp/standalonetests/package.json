@@ -1,0 +1,22 @@
+{
+  "name": "codebolt-standalone-miniapp-tests",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "miniapp": "node packages/miniapp-cli/src/cli.mjs",
+    "pack:hello": "node packages/miniapp-cli/src/cli.mjs pack apps/hello-miniapp --output dist/hello-miniapp.miniapp",
+    "inspect:hello": "node packages/miniapp-cli/src/cli.mjs inspect dist/hello-miniapp.miniapp",
+    "verify:hello": "node packages/miniapp-cli/src/cli.mjs verify dist/hello-miniapp.miniapp",
+    "test": "node --test tests",
+    "test:wrangler": "node scripts/wrangler-integration.mjs",
+    "dev:server": "wrangler dev --config apps/miniapp-server/wrangler.jsonc --local",
+    "deploy:server": "wrangler deploy --config apps/miniapp-server/wrangler.jsonc"
+  },
+  "devDependencies": {
+    "wrangler": "4.114.0"
+  }
+}

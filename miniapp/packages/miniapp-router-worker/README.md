@@ -1,11 +1,18 @@
 # @codebolt/miniapp-router-worker
 
-Cloudflare Worker that routes `*.codebolt.app` install subdomains to deployed
-MiniApps.
+Cloudflare Worker that routes `*.codebolt.app` install subdomains to either
+independently deployed MiniApps or `.miniapp` bundles executed by the shared
+MiniApp Server.
 
 The router owns browser auth for the app domain, reads install records from KV,
-mints short-lived execution tokens through sample-cloud, and proxies requests to
-the MiniApp provider deployment.
+mints short-lived execution tokens when a capability service is configured, and
+proxies requests according to the install record's `type`.
+
+- `platformworker` preserves the original multi-deployment route and proxies to
+  `upstreamUrl`.
+- `miniappbundle` proxies to the shared MiniApp Server's
+  `/run/<scopeId>/<instanceId>/*` route. The browser never receives the MiniApp
+  Server token.
 
 For the full end-to-end structure, auth handoff, proxy flow, deployment state,
 and review checklist, see `../../MINIAPP_ROUTER_ARCHITECTURE.md`. For a
@@ -66,6 +73,7 @@ Install records are stored in `MINIAPP_INSTALLS` as `install:<installId>`:
 {
   "id": "installid",
   "appId": "lead-react",
+  "type": "platformworker",
   "upstreamUrl": "https://lead-react.netlify.app",
   "capabilityUrl": "https://codebolt-miniapp-sample-cloud.<account>.workers.dev",
   "workspaceId": "personal:user-id",
@@ -74,6 +82,33 @@ Install records are stored in `MINIAPP_INSTALLS` as `install:<installId>`:
   "enabled": true
 }
 ```
+
+Bundle-backed installs use this target shape:
+
+```json
+{
+  "id": "hello-7b3a9d20",
+  "appId": "hello-miniapp",
+  "type": "miniappbundle",
+  "packageId": "<sha256 package id>",
+  "scopeId": "personal-user-id",
+  "instanceId": "hello-7b3a9d20",
+  "miniappServerUrl": "https://standalone-codebolt-miniapp-server.arrowai.workers.dev",
+  "workspaceId": "personal-user-id",
+  "ownerUserId": "user-id",
+  "access": "private",
+  "enabled": true
+}
+```
+
+`miniappServerUrl` is optional when `MINIAPP_BUNDLE_SERVER_URL` is configured on
+the router. Records created before the discriminator was introduced are treated
+as `platformworker` for backward compatibility.
+
+When a catalog app of type `miniappbundle` is installed, the router creates (or
+updates) the matching MiniApp Server instance before redirecting the browser to
+`https://<installId>.codebolt.app`. That public URL remains stable even if the
+server implementation or package revision changes.
 
 Private installs require a valid `cb_app_session` cookie for `.codebolt.app`.
 Public installs proxy as an anonymous principal.
@@ -87,10 +122,13 @@ duplicates.
 ```powershell
 pnpm --dir packages/miniapp-router-worker exec wrangler secret put CODEBOLT_APP_COOKIE_SECRET
 pnpm --dir packages/miniapp-router-worker exec wrangler secret put CODEBOLT_APP_AUTH_REDEEM_SECRET
+pnpm --dir packages/miniapp-router-worker exec wrangler secret put MINIAPP_BUNDLE_SERVER_TOKEN
 ```
 
 The redeem secret must match the service secret used by the edge API endpoint
 that redeems MiniApp login codes.
+`MINIAPP_BUNDLE_SERVER_TOKEN` must match `MINIAPP_SERVER_TOKEN` on the standalone
+MiniApp Server. It is only sent on the router-to-server hop.
 
 ## Deploy
 

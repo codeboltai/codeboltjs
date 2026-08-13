@@ -17,7 +17,8 @@
   "vars": {
     "ROOT_DOMAIN": "codebolt.app",
     "CODEBOLT_PORTAL_URL": "https://portal.codebolt.ai",
-    "CODEBOLT_API_URL": "https://api.codebolt.ai/api"
+    "CODEBOLT_API_URL": "https://api.codebolt.ai/api",
+    "MINIAPP_BUNDLE_SERVER_URL": "https://standalone-codebolt-miniapp-server.arrowai.workers.dev"
   },
   "kv_namespaces": [
     {

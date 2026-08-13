@@ -1,0 +1,11 @@
+{
+  "name": "standalone-miniapp-server",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codebolt/standalone-miniapp-format": "workspace:*"
+  },
+  "devDependencies": {
+    "wrangler": "4.114.0"
+  }
+}

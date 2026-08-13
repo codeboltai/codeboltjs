@@ -1,0 +1,41 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "standalone-codebolt-miniapp-server",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-29",
+  "worker_loaders": [
+    {
+      "binding": "MINIAPP_LOADER"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MINIAPP_SUPERVISORS",
+        "class_name": "MiniAppSupervisor"
+      },
+      {
+        "name": "MINIAPP_STORAGE",
+        "class_name": "MiniAppStorage"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "MiniAppSupervisor",
+        "MiniAppStorage"
+      ]
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MINIAPP_PACKAGES",
+      "bucket_name": "standalone-codebolt-miniapp-packages"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
