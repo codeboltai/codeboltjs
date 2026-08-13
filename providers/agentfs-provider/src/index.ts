@@ -9,6 +9,14 @@ const exec = promisify(execFile);
 let base = '';
 let overlay = '';
 
+interface GitRevisionBootstrap {
+  type: 'git_revision';
+  reviewRequestId?: string;
+  headCommitSha: string;
+  retainedRef?: string;
+  branchName?: string;
+}
+
 codebolt.onProviderStart(async (vars) => {
   base = path.resolve(String(vars.projectPath || ''));
   const name = vars.environmentName.replace(/[^a-zA-Z0-9_.-]/g, '-');
@@ -18,13 +26,32 @@ codebolt.onProviderStart(async (vars) => {
     throw new Error('AgentFS requires separate projectPath and environmentPath directories');
   await fs.rm(overlay, { recursive: true, force: true });
   await fs.mkdir(path.dirname(overlay), { recursive: true });
-  await exec('cp', ['-cR', `${base}/`, `${overlay}/`]);
+  const bootstrap = (vars as Record<string, unknown>).bootstrap as GitRevisionBootstrap | undefined;
+  let bootstrapResult: Record<string, unknown> | undefined;
+  if (bootstrap) {
+    if (bootstrap.type !== 'git_revision' || !bootstrap.headCommitSha || !bootstrap.retainedRef) {
+      throw new Error('AgentFS review bootstrap requires git_revision, headCommitSha, and retainedRef');
+    }
+    await fs.mkdir(overlay, { recursive: true });
+    await exec('git', ['init', '--quiet'], { cwd: overlay });
+    await exec('git', ['fetch', '--no-tags', base, bootstrap.retainedRef], { cwd: overlay });
+    await exec('git', ['checkout', '-b', bootstrap.branchName || `codebolt/review/${name}`, bootstrap.headCommitSha], { cwd: overlay });
+    const actualRevision = (await exec('git', ['rev-parse', 'HEAD^{commit}'], { cwd: overlay })).stdout.trim();
+    if (actualRevision !== bootstrap.headCommitSha) {
+      throw new Error(`AgentFS review bootstrap mismatch: expected ${bootstrap.headCommitSha}, got ${actualRevision}`);
+    }
+    bootstrapResult = { type: 'git_revision', verified: true, expectedRevision: bootstrap.headCommitSha,
+      actualRevision, reviewRequestId: bootstrap.reviewRequestId };
+  } else {
+    await exec('cp', ['-cR', `${base}/`, `${overlay}/`]);
+  }
   return { success: true, environmentName: vars.environmentName, agentServerUrl: '', transport: 'custom',
     workspacePath: overlay, worktreePath: overlay, environmentPath: overlay, resolvedPath: overlay,
     parentPath: base, parentProjectPath: base, requestedPath: vars.requestedPath || vars.environmentPath,
     pathSource: vars.pathSource || (vars.environmentPath ? 'user_override' : 'provider_proposed'),
     executionMode: 'local_thread_pool', syncMode, mergeStrategy: syncMode,
-    supportedSyncModes: ['git', 'workspace_sync'], supportedMergeStrategies: ['git', 'workspace_sync'] };
+    supportedSyncModes: ['git', 'workspace_sync'], supportedMergeStrategies: ['git', 'workspace_sync'],
+    bootstrapResult };
 });
 
 codebolt.onProviderStop(async (vars) => {

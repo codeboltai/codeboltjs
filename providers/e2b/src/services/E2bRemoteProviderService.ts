@@ -34,12 +34,21 @@ interface E2bProviderConfig {
   };
 }
 
+interface GitRevisionBootstrap {
+  type: 'git_revision';
+  reviewRequestId?: string;
+  headCommitSha: string;
+  branchName?: string;
+  bundlePath?: string;
+}
+
 export class E2bRemoteProviderService extends BaseProvider {
   private sandbox: any = null;
   private sandboxId: string | null = null;
   private baseProjectPath: string | null = null;
   private sandboxWorkspacePath: string = '/home/user';
   private setupInProgress = false;
+  private bootstrapResult: Record<string, unknown> | undefined;
   private backgroundCommand: any = null;
   private pendingNarrativeRequests: Map<string, {
     resolve: (value: any) => void;
@@ -237,6 +246,7 @@ export class E2bRemoteProviderService extends BaseProvider {
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
+    this.bootstrapResult = undefined;
     this.logger.log('onProviderStart initVars:', JSON.stringify(initVars, null, 2));
 
     const projectPath = initVars.projectPath as string | undefined;
@@ -372,6 +382,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       gitHeadRef: (initVars as any).gitHeadRef,
       gitProvider: rmrSourceType === 'git' ? 'github' : undefined,
       rmrPolicy: this.getRmrPolicy(initVars as any),
+      bootstrapResult: this.bootstrapResult,
     } as ProviderStartResult & Record<string, any>;
 
     await this.afterConnected(startResult);
@@ -1429,9 +1440,35 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.setEnvironmentResourceId(this.sandboxId);
     }
 
-    // Clone git repo if provided
+    const bootstrap = (initVars as Record<string, unknown>).bootstrap as GitRevisionBootstrap | undefined;
+    if (bootstrap && (bootstrap.type !== 'git_revision' || !bootstrap.headCommitSha || !bootstrap.bundlePath)) {
+      throw new Error('E2B review bootstrap requires git_revision, headCommitSha, and bundlePath');
+    }
+
+    // A review bundle is self-contained, so the reviewed commit need not be pushed to a remote.
+    if (bootstrap && this.sandbox) {
+      const remoteBundle = await this.uploadFileToSandbox(bootstrap.bundlePath!, '/tmp/codebolt-review.bundle');
+      const quotedWorkspace = this.shellQuote(this.sandboxWorkspacePath);
+      const quotedBundle = this.shellQuote(remoteBundle);
+      const branchName = bootstrap.branchName || `codebolt/review/${initVars.environmentName}`;
+      await this.sandbox.commands.run(`mkdir -p ${quotedWorkspace}`);
+      await this.sandbox.commands.run(`git -C ${quotedWorkspace} init --quiet`);
+      await this.sandbox.commands.run(`git -C ${quotedWorkspace} fetch --no-tags ${quotedBundle} ${bootstrap.headCommitSha}`);
+      await this.sandbox.commands.run(`git -C ${quotedWorkspace} checkout -b ${this.shellQuote(branchName)} ${bootstrap.headCommitSha}`);
+      const verify = await this.sandbox.commands.run(`git -C ${quotedWorkspace} rev-parse 'HEAD^{commit}'`);
+      const actualRevision = String(verify.stdout || '').trim();
+      if (actualRevision !== bootstrap.headCommitSha) {
+        throw new Error(`E2B review bootstrap mismatch: expected ${bootstrap.headCommitSha}, got ${actualRevision}`);
+      }
+      await this.sandbox.commands.run(`rm -f ${quotedBundle}`);
+      this.bootstrapResult = { type: 'git_revision', verified: true, expectedRevision: bootstrap.headCommitSha,
+        actualRevision, reviewRequestId: bootstrap.reviewRequestId };
+      this.logger.log('Review bundle materialized at commit:', actualRevision);
+    }
+
+    // Clone git repo if provided and this is a normal environment.
     const gitUrl = initVars.gitUrl as string | undefined;
-    if (gitUrl && this.sandbox) {
+    if (!bootstrap && gitUrl && this.sandbox) {
       this.logger.log('Cloning repository:', gitUrl);
       const branch = initVars.gitBranch as string | undefined;
       const cloneCmd = branch

@@ -11,6 +11,8 @@ config:
   sandboxTemplate: "dwss02awnos2d3sva6pw"
   autoStopInterval: 0
 capabilities:
+  bootstrapTypes:
+    - git_revision
   syncModes:
     - git
     - workspace_sync

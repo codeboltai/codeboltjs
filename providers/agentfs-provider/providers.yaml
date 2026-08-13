@@ -3,6 +3,8 @@ unique_id: agentfs-provider
 version: 1.0.0
 description: Copy-on-write local filesystem provider for CodeBolt
 entrypoint: dist/index.js
+supportedBootstrapTypes:
+  - git_revision
 config:
   executionMode: local_thread_pool
   filesystem:
