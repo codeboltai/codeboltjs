@@ -7,9 +7,11 @@ config:
   executionMode: local_thread_pool
   filesystem:
     type: local
-  syncMode: workspace_sync
-  mergeStrategy: workspace_sync
+  syncMode: git
+  mergeStrategy: git
   supportedSyncModes:
+    - git
     - workspace_sync
   supportedMergeStrategies:
+    - git
     - workspace_sync

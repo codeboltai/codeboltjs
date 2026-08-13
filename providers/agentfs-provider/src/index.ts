@@ -12,6 +12,7 @@ let overlay = '';
 codebolt.onProviderStart(async (vars) => {
   base = path.resolve(String(vars.projectPath || ''));
   const name = vars.environmentName.replace(/[^a-zA-Z0-9_.-]/g, '-');
+  const syncMode = vars.syncMode === 'git' ? 'git' : 'workspace_sync';
   overlay = path.resolve(String(vars.environmentPath || path.join(os.tmpdir(), 'codebolt-agentfs', name)));
   if (!vars.projectPath || base === overlay || base.startsWith(`${overlay}${path.sep}`) || overlay.startsWith(`${base}${path.sep}`))
     throw new Error('AgentFS requires separate projectPath and environmentPath directories');
@@ -22,8 +23,8 @@ codebolt.onProviderStart(async (vars) => {
     workspacePath: overlay, worktreePath: overlay, environmentPath: overlay, resolvedPath: overlay,
     parentPath: base, parentProjectPath: base, requestedPath: vars.requestedPath || vars.environmentPath,
     pathSource: vars.pathSource || (vars.environmentPath ? 'user_override' : 'provider_proposed'),
-    executionMode: 'local_thread_pool', syncMode: 'workspace_sync', mergeStrategy: 'workspace_sync',
-    supportedSyncModes: ['workspace_sync'], supportedMergeStrategies: ['workspace_sync'] };
+    executionMode: 'local_thread_pool', syncMode, mergeStrategy: syncMode,
+    supportedSyncModes: ['git', 'workspace_sync'], supportedMergeStrategies: ['git', 'workspace_sync'] };
 });
 
 codebolt.onProviderStop(async (vars) => {
