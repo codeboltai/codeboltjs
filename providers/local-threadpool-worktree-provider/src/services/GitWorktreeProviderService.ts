@@ -24,6 +24,24 @@ import { getDiff } from '../utils/gitDiff';
 
 const execFileAsync = promisify(execFile);
 
+interface GitRevisionBootstrap {
+  type: 'git_revision';
+  purpose?: 'new_work' | 'review';
+  reviewRequestId?: string;
+  baseCommitSha?: string;
+  headCommitSha: string;
+  retainedRef?: string;
+  branchName?: string;
+}
+
+interface GitRevisionBootstrapResult {
+  type: 'git_revision';
+  verified: boolean;
+  expectedRevision: string;
+  actualRevision: string;
+  reviewRequestId?: string;
+}
+
 export class GitWorktreeProviderService
   extends BaseProvider
   implements IProviderService {
@@ -49,6 +67,7 @@ export class GitWorktreeProviderService
   private currentSyncMode: LocalThreadpoolSyncMode = 'git';
   private currentPathSource: LocalThreadpoolPathSource = 'provider_proposed';
   private requestedPath: string | undefined;
+  private bootstrapResult: GitRevisionBootstrapResult | undefined;
 
   private readonly defaultEmptyDiffResult: DiffResult = {
     files: [],
@@ -98,6 +117,7 @@ export class GitWorktreeProviderService
 
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
+    this.bootstrapResult = undefined;
 
     try {
       const result = await super.onProviderStart(initVars);
@@ -123,6 +143,7 @@ export class GitWorktreeProviderService
         syncPolicy: this.syncPolicy,
         defaultSyncMode: this.syncPolicy.defaultSyncMode,
         supportedSyncModes: this.supportedSyncModes,
+        bootstrapResult: this.bootstrapResult,
       } as ProviderStartResult & { worktreePath?: string };
     } finally {
       // No secondary agent server is managed by this provider.
@@ -154,6 +175,7 @@ export class GitWorktreeProviderService
       this.currentSyncMode = 'git';
       this.currentPathSource = 'provider_proposed';
       this.requestedPath = undefined;
+      this.bootstrapResult = undefined;
 
       this.resetState();
 
@@ -338,7 +360,12 @@ export class GitWorktreeProviderService
     throw new Error('Function not implemented.');
   }
 
-  async createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo> {
+  async createWorktree(
+    projectPath: string,
+    environmentName: string,
+    targetPath?: string,
+    options: { branchName?: string; startRef?: string } = {}
+  ): Promise<WorktreeInfo> {
     try {
       const basePath = path.resolve(projectPath);
       await this.git(['rev-parse', '--is-inside-work-tree'], basePath);
@@ -349,10 +376,13 @@ export class GitWorktreeProviderService
         ? path.resolve(targetPath)
         : this.getDefaultEnvironmentPath(basePath, environmentName, 'git');
       const worktreeRoot = path.dirname(worktreePath);
-      const branchName = `codebolt/local-threadpool-${tag}`;
+      const branchName = options.branchName || `codebolt/local-threadpool-${tag}`;
+      const startRef = options.startRef || 'HEAD';
+
+      await this.git(['cat-file', '-e', `${startRef}^{commit}`], basePath);
 
       await fs.mkdir(worktreeRoot, { recursive: true });
-      await this.git(['worktree', 'add', '-b', branchName, worktreePath, 'HEAD'], basePath);
+      await this.git(['worktree', 'add', '-b', branchName, worktreePath, startRef], basePath);
 
       return {
         path: worktreePath,
@@ -485,11 +515,41 @@ export class GitWorktreeProviderService
 
       if (this.currentSyncMode === 'git') {
         const basePath = this.baseProjectPath || workspacePath;
-        const createdInfo = await this.createWorktree(basePath, initVars.environmentName, workspacePath);
+        const bootstrap = (initVars as Record<string, unknown>).bootstrap as GitRevisionBootstrap | undefined;
+        if (bootstrap && bootstrap.type !== 'git_revision') {
+          throw new Error(`Unsupported environment bootstrap type: ${(bootstrap as any).type}`);
+        }
+        const expectedRevision = bootstrap?.headCommitSha;
+        if (bootstrap && !expectedRevision) {
+          throw new Error('Git revision bootstrap requires headCommitSha');
+        }
+        const createdInfo = await this.createWorktree(basePath, initVars.environmentName, workspacePath, {
+          branchName: bootstrap?.branchName,
+          startRef: expectedRevision,
+        });
         this.environmentInfo = createdInfo;
         this.state.workspacePath = createdInfo.path;
         this.state.projectPath = createdInfo.path;
         this.environmentPath = createdInfo.path;
+
+        if (expectedRevision) {
+          if (!createdInfo.path) {
+            throw new Error('Git worktree creation did not return a workspace path');
+          }
+          const { stdout } = await this.git(['rev-parse', 'HEAD^{commit}'], createdInfo.path);
+          const actualRevision = stdout.trim();
+          if (actualRevision !== expectedRevision) {
+            await this.removeWorktree(createdInfo.path);
+            throw new Error(`Review bootstrap revision mismatch: expected ${expectedRevision}, got ${actualRevision}`);
+          }
+          this.bootstrapResult = {
+            type: 'git_revision',
+            verified: true,
+            expectedRevision,
+            actualRevision,
+            reviewRequestId: bootstrap?.reviewRequestId,
+          };
+        }
         return;
       }
 

@@ -5,6 +5,8 @@ entrypoint: dist/index.js
 supportedSyncModes:
   - git
 defaultSyncMode: git
+supportedBootstrapTypes:
+  - git_revision
 config:
   executionMode: local_thread_pool
   filesystem:

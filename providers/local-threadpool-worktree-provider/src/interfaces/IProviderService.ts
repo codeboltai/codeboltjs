@@ -105,7 +105,12 @@ export interface IProviderService {
   onSendPR(): Promise<void>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
-  createWorktree(projectPath: string, environmentName: string, targetPath?: string): Promise<WorktreeInfo>;
+  createWorktree(
+    projectPath: string,
+    environmentName: string,
+    targetPath?: string,
+    options?: { branchName?: string; startRef?: string }
+  ): Promise<WorktreeInfo>;
   removeWorktree(projectPath: string): Promise<boolean>;
   getWorktreeInfo(): WorktreeInfo;
   isInitialized(): boolean;

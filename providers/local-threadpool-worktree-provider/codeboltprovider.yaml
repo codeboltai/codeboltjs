@@ -9,6 +9,8 @@ runtime: node
 supportedSyncModes:
   - git
 defaultSyncMode: git
+supportedBootstrapTypes:
+  - git_revision
 config:
   agentServerPort: 3001
   agentServerHost: localhost
