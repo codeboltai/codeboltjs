@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "nitro-miniapp",
+  "title": "Nitro MiniApp",
+  "version": "0.1.0",
+  "ui": {
+    "title": "Nitro MiniApp",
+    "route": "/"
+  },
+  "capabilities": [
+    "storage.documents",
+    "storage.blobs"
+  ],
+  "runtime": {
+    "handler": "server/index.mjs",
+    "publicDir": "public"
+  },
+  "staticAssets": [
+    {
+      "path": "_headers",
+      "size": 0
+    },
+    {
+      "path": "index.html",
+      "size": 285
+    }
+  ]
+}

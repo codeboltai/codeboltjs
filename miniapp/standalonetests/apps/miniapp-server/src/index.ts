@@ -1,9 +1,10 @@
 import { installPackage } from "./package-registry";
+import { MiniAppAssets } from "./assets";
 import { MiniAppStorage } from "./storage";
 import { MiniAppSupervisor } from "./supervisor";
 import type { Env } from "./types";
 
-export { MiniAppStorage, MiniAppSupervisor };
+export { MiniAppAssets, MiniAppStorage, MiniAppSupervisor };
 
 function json(value: unknown, status = 200): Response {
   return Response.json(value, { status });

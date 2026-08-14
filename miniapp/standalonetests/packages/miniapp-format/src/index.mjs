@@ -6,6 +6,7 @@ const MAX_CONTENT_BYTES = 32 * 1024 * 1024;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const FILE_KINDS = new Set(["module", "asset", "source", "json", "text", "data", "wasm"]);
 
 export class MiniAppFormatError extends Error {
   constructor(code, message) {
@@ -75,7 +76,7 @@ export async function buildMiniAppArchive({ manifest: rawManifest, files: rawFil
     const data = bytes(file.data).slice();
     if (data.byteLength > MAX_FILE_BYTES) fail("FILE_TOO_LARGE", `MiniApp file is too large: ${path}`);
     const kind = file.kind ?? (path.startsWith("public/") ? "asset" : "module");
-    if (!["module", "asset", "source"].includes(kind)) fail("INVALID_FILE_KIND", `Unsupported MiniApp file kind: ${kind}`);
+    if (!FILE_KINDS.has(kind)) fail("INVALID_FILE_KIND", `Unsupported MiniApp file kind: ${kind}`);
     return { path, kind, mediaType: file.mediaType || "application/octet-stream", data };
   }).sort((a, b) => a.path.localeCompare(b.path));
   if (!seen.has(manifest.runtime.mainModule)) fail("MAIN_MODULE_MISSING", `Main module is missing: ${manifest.runtime.mainModule}`);
@@ -131,6 +132,9 @@ export async function parseMiniAppArchive(value, { verify = true } = {}) {
     const path = normalizePath(entry.path);
     if (seen.has(path)) fail("DUPLICATE_PATH", `Duplicate MiniApp file: ${path}`);
     seen.add(path);
+    if (!FILE_KINDS.has(entry.kind)) fail("INVALID_FILE_KIND", `Unsupported MiniApp file kind: ${entry.kind}`);
+    if (typeof entry.mediaType !== "string" || !entry.mediaType) fail("INVALID_FILE_INDEX", `Invalid media type: ${path}`);
+    if (typeof entry.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(entry.sha256)) fail("INVALID_FILE_INDEX", `Invalid checksum: ${path}`);
     if (!Number.isSafeInteger(entry.offset) || !Number.isSafeInteger(entry.length) || entry.offset !== expectedOffset || entry.length < 0 || entry.length > MAX_FILE_BYTES || entry.offset + entry.length > contentLength) fail("INVALID_FILE_INDEX", `Invalid file index: ${path}`);
     const data = archive.subarray(contentStart + entry.offset, contentStart + entry.offset + entry.length);
     if (verify && await sha256Hex(data) !== entry.sha256) fail("CHECKSUM_MISMATCH", `Checksum mismatch for ${path}.`);

@@ -1,0 +1,16 @@
+{
+  "name": "@codebolt/standalone-miniapp-nitro",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./nitro": "./src/nitro.mjs",
+    "./runtime": "./src/runtime.mjs"
+  },
+  "bin": {
+    "nitro-miniapp": "./src/cli.mjs"
+  },
+  "dependencies": {
+    "@codebolt/standalone-miniapp-format": "workspace:*"
+  }
+}
