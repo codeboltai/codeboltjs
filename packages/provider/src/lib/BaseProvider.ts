@@ -9,6 +9,9 @@ import {
   ProviderStartResult,
   ProviderState,
   ProviderTransport,
+  ProviderScreenStatus,
+  ProviderScreenCapture,
+  ProviderScreenSession,
 
 } from "./ProviderTypes";
 import { ProviderInitVars } from "@codebolt/types/provider";
@@ -206,6 +209,24 @@ export abstract class BaseProvider
     }
   }
 
+  async onProviderScreenStatus(_request?: Record<string, unknown>): Promise<ProviderScreenStatus> {
+    return {
+      enabled: false,
+      state: "unavailable",
+      previewAvailable: false,
+      interactionAvailable: false,
+      message: "This environment provider does not support screen access",
+    };
+  }
+
+  async onProviderScreenCapture(_request?: Record<string, unknown>): Promise<ProviderScreenCapture> {
+    throw new Error("This environment provider does not support screen preview");
+  }
+
+  async onProviderScreenSession(_request?: Record<string, unknown>): Promise<ProviderScreenSession> {
+    throw new Error("This environment provider does not support interactive screen sessions");
+  }
+
   /**
    * Returns provider lifecycle event handlers that can be used by the host
    * application to register callbacks in a consistent way.
@@ -218,6 +239,9 @@ export abstract class BaseProvider
       onGetDiffFiles: () => this.onGetDiffFiles(),
       onCloseSignal: () => this.onCloseSignal(),
       onRawMessage: (msg) => this.onRawMessage(msg),
+      onProviderScreenStatus: (request) => this.onProviderScreenStatus(request),
+      onProviderScreenCapture: (request) => this.onProviderScreenCapture(request),
+      onProviderScreenSession: (request) => this.onProviderScreenSession(request),
     };
   }
 

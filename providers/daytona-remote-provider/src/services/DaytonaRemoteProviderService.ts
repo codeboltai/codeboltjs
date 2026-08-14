@@ -4,6 +4,9 @@ import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@c
 import {
   BaseProvider,
   ProviderStartResult,
+  ProviderScreenStatus,
+  ProviderScreenCapture,
+  ProviderScreenSession,
 } from '@codebolt/provider';
 import { Daytona, Sandbox } from '@daytonaio/sdk';
 import { NarrativeClient } from '@codebolt/narrative';
@@ -40,6 +43,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
   private sandboxWorkspacePath: string = '/home/daytona';
   private isStartupCheck = false;
   private setupInProgress = false;
+  private screenAccessEnabled = false;
   private sandboxAgentSessionId = 'codebolt-agent-server';
   private sandboxAgentCommandId: string | null = null;
   private sandboxPreviewToken: string | null = null;
@@ -162,6 +166,7 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       throw new Error('Project path is not available in initVars');
     }
     this.baseProjectPath = projectPath;
+    this.screenAccessEnabled = Boolean((initVars as any).screenAccess?.enabled);
     this.sandboxWorkspacePath = this.getProspectivePath(initVars as Record<string, any>).resolvedPath;
 
     // Allow runtime override of Daytona config from initVars
@@ -215,6 +220,13 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
       supportedMergeStrategies: ['git', 'workspace_sync'],
+      screenAccess: {
+        enabled: this.screenAccessEnabled,
+        state: this.screenAccessEnabled ? 'ready' : 'disabled',
+        previewAvailable: this.screenAccessEnabled,
+        interactionAvailable: this.screenAccessEnabled,
+        transport: this.screenAccessEnabled ? 'novnc' : undefined,
+      },
     } as ProviderStartResult & Record<string, any>;
 
     await this.afterConnected(startResult);
@@ -700,6 +712,14 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       this.logger.log('Created new Daytona sandbox:', this.sandboxId);
     }
 
+    if (this.screenAccessEnabled) {
+      if (!(this.sandbox as any)?.computerUse?.start) {
+        throw new Error('The selected Daytona sandbox image does not support screen access');
+      }
+      await (this.sandbox as any).computerUse.start();
+      this.logger.log('Started Daytona desktop and noVNC services');
+    }
+
     // Clone git repo if provided
     const gitUrl = initVars.gitUrl as string | undefined;
     if (gitUrl && this.sandbox) {
@@ -821,6 +841,54 @@ export class DaytonaRemoteProviderService extends BaseProvider {
       this.daytonaClient = null;
       this.sandboxId = null;
     }
+  }
+
+  async onProviderScreenStatus(): Promise<ProviderScreenStatus> {
+    if (!this.screenAccessEnabled) {
+      return { enabled: false, state: 'disabled', previewAvailable: false, interactionAvailable: false };
+    }
+    const ready = Boolean((this.sandbox as any)?.computerUse);
+    return {
+      enabled: true,
+      state: ready ? 'ready' : 'starting',
+      previewAvailable: ready,
+      interactionAvailable: ready,
+      transport: 'novnc',
+      message: ready ? 'Daytona desktop is ready' : 'Daytona desktop is starting',
+    };
+  }
+
+  async onProviderScreenCapture(): Promise<ProviderScreenCapture> {
+    const computerUse = (this.sandbox as any)?.computerUse;
+    if (!this.screenAccessEnabled || !computerUse?.screenshot) throw new Error('Daytona screen access is not enabled');
+    const capture: any = await computerUse.screenshot.takeCompressed({ format: 'jpeg', quality: 80, scale: 1 });
+    const rawData = capture?.data || capture?.image || capture?.base64 || capture?.screenshot;
+    const dataBase64 = Buffer.isBuffer(rawData)
+      ? rawData.toString('base64')
+      : String(rawData || '').replace(/^data:[^;]+;base64,/, '');
+    if (!dataBase64) throw new Error('Daytona screenshot response did not include image data');
+    return {
+      mimeType: 'image/jpeg',
+      dataBase64,
+      ...(Number.isFinite(Number(capture?.width)) ? { width: Number(capture.width) } : {}),
+      ...(Number.isFinite(Number(capture?.height)) ? { height: Number(capture.height) } : {}),
+      capturedAt: new Date().toISOString(),
+    };
+  }
+
+  async onProviderScreenSession(): Promise<ProviderScreenSession> {
+    if (!this.screenAccessEnabled || !this.sandbox) throw new Error('Daytona interactive screen is not enabled');
+    await (this.sandbox as any).computerUse.start();
+    const previewLink: any = await (this.sandbox as any).getSignedPreviewUrl(6080, 3600);
+    const rawUrl = String(previewLink?.url || '');
+    if (!rawUrl) throw new Error('Daytona did not return a noVNC preview URL');
+    const url = new URL(rawUrl);
+    if (previewLink?.token && !url.searchParams.has('token')) url.searchParams.set('token', previewLink.token);
+    return {
+      url: url.toString(),
+      transport: 'novnc',
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+    };
   }
 
   protected async ensureAgentServer(): Promise<void> {

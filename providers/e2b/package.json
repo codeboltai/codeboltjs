@@ -27,6 +27,7 @@
     "@codebolt/provider": "workspace:*",
     "@codebolt/types": "^5.1.12",
     "@e2b/code-interpreter": "latest",
+    "@e2b/desktop": "2.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

@@ -11,7 +11,31 @@ codebolt.onProviderStart(handlers.onProviderStart);
 codebolt.onProviderAgentStart(handlers.onProviderAgentStart);
 codebolt.onProviderStop(handlers.onProviderStop);
 codebolt.onCloseSignal(handlers.onCloseSignal);
+(codebolt as any).onProviderScreenStatus?.(handlers.onProviderScreenStatus);
+(codebolt as any).onProviderScreenCapture?.(handlers.onProviderScreenCapture);
+(codebolt as any).onProviderScreenSession?.(handlers.onProviderScreenSession);
 codebolt.onRawMessage(async (message: any) => {
+  const screenResponseActions: Record<string, string> = {
+    providerScreenStatus: 'providerScreenStatusResponse',
+    providerScreenCapture: 'providerScreenCaptureResponse',
+    providerScreenSession: 'providerScreenSessionResponse',
+  };
+  const screenHandlers: Record<string, (request: any) => Promise<any>> = {
+    providerScreenStatus: handlers.onProviderScreenStatus,
+    providerScreenCapture: handlers.onProviderScreenCapture,
+    providerScreenSession: handlers.onProviderScreenSession,
+  };
+  const screenType = String(message?.type || message?.action || '');
+  if (screenHandlers[screenType]) {
+    const websocket = (codebolt as any).websocket;
+    try {
+      const result = await screenHandlers[screenType](message);
+      websocket?.send(JSON.stringify({ type: 'remoteProviderEvent', action: screenResponseActions[screenType], requestId: message.requestId, status: true, success: true, data: result, message: result }));
+    } catch (error: any) {
+      websocket?.send(JSON.stringify({ type: 'remoteProviderEvent', action: screenResponseActions[screenType], requestId: message.requestId, status: false, success: false, error: error?.message || 'Provider screen request failed' }));
+    }
+    return;
+  }
   if (message?.type === 'providerProspectivePath' || message?.action === 'providerProspectivePath') {
     const websocket = (codebolt as any).websocket;
     const send = (payload: Record<string, unknown>) => {

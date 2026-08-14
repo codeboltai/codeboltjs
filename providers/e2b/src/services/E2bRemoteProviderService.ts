@@ -4,17 +4,29 @@ import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@c
 import {
   BaseProvider,
   ProviderStartResult,
+  ProviderScreenStatus,
+  ProviderScreenCapture,
+  ProviderScreenSession,
 } from '@codebolt/provider';
 import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 
 let _SandboxClass: any = null;
+let _DesktopSandboxClass: any = null;
 async function getE2bSandbox(): Promise<any> {
   if (!_SandboxClass) {
     const mod = require('@e2b/code-interpreter');
     _SandboxClass = mod.Sandbox;
   }
   return _SandboxClass;
+}
+
+async function getE2bDesktopSandbox(): Promise<any> {
+  if (!_DesktopSandboxClass) {
+    const mod = require('@e2b/desktop');
+    _DesktopSandboxClass = mod.Sandbox;
+  }
+  return _DesktopSandboxClass;
 }
 
 interface E2bProviderConfig {
@@ -48,6 +60,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   private baseProjectPath: string | null = null;
   private sandboxWorkspacePath: string = '/home/user';
   private setupInProgress = false;
+  private screenAccessEnabled = false;
   private bootstrapResult: Record<string, unknown> | undefined;
   private backgroundCommand: any = null;
   private pendingNarrativeRequests: Map<string, {
@@ -255,6 +268,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
     this.baseProjectPath = projectPath;
     this.lastInitVars = initVars;
+    this.screenAccessEnabled = Boolean((initVars as any).screenAccess?.enabled);
 
     // Set sandbox workspace path using project name so code goes into a subdirectory
     const requestedSandboxPath = (initVars as any).resolvedPath || (initVars as any).requestedPath || (initVars as any).environmentPath;
@@ -382,6 +396,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       gitHeadRef: (initVars as any).gitHeadRef,
       gitProvider: rmrSourceType === 'git' ? 'github' : undefined,
       rmrPolicy: this.getRmrPolicy(initVars as any),
+      screenAccess: {
+        enabled: this.screenAccessEnabled,
+        state: this.screenAccessEnabled ? 'ready' : 'disabled',
+        previewAvailable: this.screenAccessEnabled,
+        interactionAvailable: this.screenAccessEnabled,
+        transport: this.screenAccessEnabled ? 'vnc' : undefined,
+      },
       bootstrapResult: this.bootstrapResult,
     } as ProviderStartResult & Record<string, any>;
 
@@ -1400,7 +1421,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       || (initVars.sandboxId as string | undefined);
     if (existingSandboxId) {
       try {
-        const SandboxCls = await getE2bSandbox();
+        const SandboxCls = this.screenAccessEnabled ? await getE2bDesktopSandbox() : await getE2bSandbox();
         this.sandbox = await SandboxCls.connect(existingSandboxId);
         this.sandboxId = existingSandboxId;
         this.logger.log('Reconnected to existing sandbox:', existingSandboxId);
@@ -1426,11 +1447,20 @@ export class E2bRemoteProviderService extends BaseProvider {
         createParams.envs = initVars.envVars as Record<string, string>;
       }
 
-      const SandboxCls = await getE2bSandbox();
-      // E2B SDK v2: template is a positional arg, NOT an opts field.
-      this.sandbox = this.providerConfig.sandboxTemplate
-        ? await SandboxCls.create(this.providerConfig.sandboxTemplate, createParams)
-        : await SandboxCls.create(createParams);
+      const SandboxCls = this.screenAccessEnabled ? await getE2bDesktopSandbox() : await getE2bSandbox();
+      if (this.screenAccessEnabled) {
+        const requestedResolution = (initVars as any).screenAccess?.resolution;
+        this.sandbox = await SandboxCls.create({
+          ...createParams,
+          resolution: [requestedResolution?.width || 1280, requestedResolution?.height || 720],
+          dpi: 96,
+        });
+      } else {
+        // E2B SDK v2: template is a positional arg, NOT an opts field.
+        this.sandbox = this.providerConfig.sandboxTemplate
+          ? await SandboxCls.create(this.providerConfig.sandboxTemplate, createParams)
+          : await SandboxCls.create(createParams);
+      }
       this.sandboxId = this.sandbox.sandboxId || null;
       this.logger.log('Created new E2B sandbox:', this.sandboxId);
     }
@@ -1438,6 +1468,12 @@ export class E2bRemoteProviderService extends BaseProvider {
     // Persist sandbox ID for recovery across restarts
     if (this.sandboxId) {
       this.setEnvironmentResourceId(this.sandboxId);
+    }
+
+    if (this.screenAccessEnabled) {
+      if (!this.sandbox?.stream?.start) throw new Error('The selected E2B sandbox does not support desktop streaming');
+      await this.sandbox.stream.start();
+      this.logger.log('Started E2B desktop stream');
     }
 
     const bootstrap = (initVars as Record<string, unknown>).bootstrap as GitRevisionBootstrap | undefined;
@@ -1531,6 +1567,39 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.sandbox = null;
       this.sandboxId = null;
     }
+  }
+
+  async onProviderScreenStatus(): Promise<ProviderScreenStatus> {
+    if (!this.screenAccessEnabled) {
+      return { enabled: false, state: 'disabled', previewAvailable: false, interactionAvailable: false };
+    }
+    const ready = Boolean(this.sandbox?.screenshot && this.sandbox?.stream?.getUrl);
+    return {
+      enabled: true,
+      state: ready ? 'ready' : 'starting',
+      previewAvailable: ready,
+      interactionAvailable: ready,
+      transport: 'vnc',
+      message: ready ? 'E2B desktop is ready' : 'E2B desktop is starting',
+    };
+  }
+
+  async onProviderScreenCapture(): Promise<ProviderScreenCapture> {
+    if (!this.screenAccessEnabled || !this.sandbox?.screenshot) throw new Error('E2B screen access is not enabled');
+    const bytes = await this.sandbox.screenshot('bytes');
+    return {
+      mimeType: 'image/png',
+      dataBase64: Buffer.from(bytes).toString('base64'),
+      capturedAt: new Date().toISOString(),
+    };
+  }
+
+  async onProviderScreenSession(): Promise<ProviderScreenSession> {
+    if (!this.screenAccessEnabled || !this.sandbox?.stream) throw new Error('E2B interactive screen is not enabled');
+    await this.sandbox.stream.start();
+    const url = String(this.sandbox.stream.getUrl() || '');
+    if (!url) throw new Error('E2B did not return a desktop stream URL');
+    return { url, transport: 'vnc' };
   }
 
   /**
@@ -1851,7 +1920,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   protected async onEnvironmentRecoveryFailed(oldResourceId: string): Promise<void> {
     this.logger.warn('Environment recovery failed for sandbox:', oldResourceId, '- attempting cleanup');
     try {
-      const SandboxCls = await getE2bSandbox();
+      const SandboxCls = this.screenAccessEnabled ? await getE2bDesktopSandbox() : await getE2bSandbox();
       const orphan = await SandboxCls.connect(oldResourceId);
       await orphan.kill();
       this.logger.log('Killed orphaned sandbox:', oldResourceId);

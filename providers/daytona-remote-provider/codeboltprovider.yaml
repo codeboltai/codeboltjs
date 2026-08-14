@@ -16,3 +16,9 @@ config:
     agentServerStartup: 30000
     wsConnection: 10000
     cleanup: 15000
+capabilities:
+  screenAccess:
+    preview: true
+    interaction: true
+    transports:
+      - novnc

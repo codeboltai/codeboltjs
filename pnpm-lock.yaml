@@ -4979,6 +4979,9 @@ importers:
       '@e2b/code-interpreter':
         specifier: latest
         version: 2.4.0
+      '@e2b/desktop':
+        specifier: 2.0.0
+        version: 2.0.0
       ws:
         specifier: ^8.18.0
         version: 8.19.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -7851,6 +7854,10 @@ packages:
   '@e2b/code-interpreter@2.4.0':
     resolution: {integrity: sha512-6yLi0I2/FBhB6beqtuiFMTajB3PHQw+5+apuI3QdEv1Rx8e2Xp0h37SL0Y6tuVJQ2Frp7P3wWT77Wvy6l6OHPA==}
     engines: {node: '>=20'}
+
+  '@e2b/desktop@2.0.0':
+    resolution: {integrity: sha512-EJf9szMQ78EO0BelpdMy4cYCNcQVI7Jv6gMQuoodTYEi+0wY5feM3GH3Ke9WuCzPGl0xFJK4uztaUbtLLFBNGQ==}
+    engines: {node: '>=18'}
 
   '@e2b/sdk@0.16.2':
     resolution: {integrity: sha512-byj1NWAPcR1UjvdbLK45of/vyfp9qj4L5EhQo4eSF2rKVhlGXIRXfA/+HEnWF8eRS6084b+rkFy7ITvuCcQCUQ==}
@@ -23462,6 +23469,10 @@ snapshots:
       - webpack-cli
 
   '@e2b/code-interpreter@2.4.0':
+    dependencies:
+      e2b: 2.14.1
+
+  '@e2b/desktop@2.0.0':
     dependencies:
       e2b: 2.14.1
 

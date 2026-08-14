@@ -5,6 +5,31 @@ import { ProviderInitVars } from "@codebolt/types/provider";
 
 export type ProviderTransportType = "websocket" | "custom";
 
+export type ProviderScreenTransport = "vnc" | "webrtc" | "novnc" | "provider";
+
+export interface ProviderScreenStatus {
+  enabled: boolean;
+  state: "disabled" | "starting" | "ready" | "unavailable" | "error";
+  previewAvailable: boolean;
+  interactionAvailable: boolean;
+  transport?: ProviderScreenTransport;
+  message?: string;
+}
+
+export interface ProviderScreenCapture {
+  mimeType: "image/png" | "image/jpeg" | "image/webp";
+  dataBase64: string;
+  width?: number;
+  height?: number;
+  capturedAt: string;
+}
+
+export interface ProviderScreenSession {
+  url: string;
+  transport: ProviderScreenTransport;
+  expiresAt?: string;
+}
+
 
 export interface ProviderStartResult {
   success: boolean;
@@ -13,6 +38,7 @@ export interface ProviderStartResult {
   workspacePath: string;
   worktreePath?: string;
   transport: ProviderTransportType;
+  screenAccess?: ProviderScreenStatus;
   [key: string]: unknown;
 }
 
@@ -68,6 +94,9 @@ export interface ProviderLifecycleHandlers {
   onGetDiffFiles(): Promise<any>;
   onCloseSignal(): Promise<void>;
   onRawMessage(message: RawMessageForAgent): Promise<void>;
+  onProviderScreenStatus(request?: Record<string, unknown>): Promise<ProviderScreenStatus>;
+  onProviderScreenCapture(request?: Record<string, unknown>): Promise<ProviderScreenCapture>;
+  onProviderScreenSession(request?: Record<string, unknown>): Promise<ProviderScreenSession>;
 }
 
 export interface ProviderTransport {
@@ -82,5 +111,8 @@ export interface ProviderEventHandlers {
   onGetDiffFiles: () => Promise<any>;
   onCloseSignal: () => Promise<void>;
   onRawMessage: (message: RawMessageForAgent) => Promise<void>;
+  onProviderScreenStatus: (request?: Record<string, unknown>) => Promise<ProviderScreenStatus>;
+  onProviderScreenCapture: (request?: Record<string, unknown>) => Promise<ProviderScreenCapture>;
+  onProviderScreenSession: (request?: Record<string, unknown>) => Promise<ProviderScreenSession>;
 }
 

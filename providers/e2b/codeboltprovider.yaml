@@ -12,6 +12,11 @@ config:
   sandboxTemplate: "dwss02awnos2d3sva6pw"
   autoStopInterval: 0
 capabilities:
+  screenAccess:
+    preview: true
+    interaction: true
+    transports:
+      - vnc
   bootstrapTypes:
     - git_revision
   syncModes:
