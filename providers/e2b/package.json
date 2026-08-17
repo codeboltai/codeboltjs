@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@codebolt/codeboltjs": "^5.1.25",
-    "@codebolt/provider": "workspace:*",
+    "@codebolt/provider": "file:/Users/ravirawat/Documents/codeboltai/AiEditor/codeboltjs/packages/provider",
     "@codebolt/types": "^5.1.12",
     "@e2b/code-interpreter": "latest",
     "@e2b/desktop": "2.0.0",

@@ -281,9 +281,18 @@ export class E2bRemoteProviderService extends BaseProvider {
       this.logger.log('Sandbox workspace path set to:', this.sandboxWorkspacePath);
     }
 
-    // Allow runtime override of E2B config from initVars
-    if (initVars.e2bApiKey) {
-      this.providerConfig.e2bApiKey = initVars.e2bApiKey as string;
+    // Environment creation sends provider settings inside environmentConfig.
+    // Keep supporting the legacy top-level fields as well.
+    const runtimeConfig = (initVars as any).environmentConfig as E2bProviderConfig | undefined;
+    const runtimeApiKey = (initVars as any).e2bApiKey || runtimeConfig?.e2bApiKey;
+    if (runtimeApiKey) {
+      this.providerConfig.e2bApiKey = runtimeApiKey;
+    }
+    if (runtimeConfig?.sandboxTemplate) {
+      this.providerConfig.sandboxTemplate = runtimeConfig.sandboxTemplate;
+    }
+    if (runtimeConfig?.autoStopInterval !== undefined) {
+      this.providerConfig.autoStopInterval = runtimeConfig.autoStopInterval;
     }
     this.logger.log('Using E2B sandbox template:', this.providerConfig.sandboxTemplate);
     const rmrSourceType = this.getRequestedRmrSourceType(initVars as any);

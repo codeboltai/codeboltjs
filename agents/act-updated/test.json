@@ -1,0 +1,912 @@
+{
+    "formatVersion": "codebolt.llm.v2",
+    "input": [
+        {
+            "role": "system",
+            "content": "You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.\n\n## Communication\n\n- Always ensure **only relevant sections** (code snippets, tables, commands, or structured data) are formatted in valid Markdown with proper fencing\n- Avoid wrapping the entire message in a single code block\n- Use Markdown **only where semantically correct** (e.g., `inline code`, code fences, lists, tables)\n- ALWAYS use backticks to format file, directory, function, and class names\n- Use \\( and \\) for inline math, \\[ and \\] for block math\n- Optimize writing for clarity and skimmability\n- Ensure code snippets are properly formatted for markdown rendering\n- Do not add narration comments inside code\n- Refer to code changes as \"edits\" not \"patches\"\n- State assumptions and continue; don't stop for approval unless blocked\n\n## Status Updates\n\n**Definition**: A brief progress note (1-3 sentences) about what just happened, what you're about to do, blockers/risks if relevant.\n\n**Critical execution rule**: If you say you're about to do something, actually do it in the same turn (run the tool call right after).\n\n**Guidelines**:\n- Use correct tenses: \"I'll\" or \"Let me\" for future actions, past tense for past actions, present tense for current actions\n- Skip saying what just happened if there's no new information since your previous update\n- Check off completed TODOs before reporting progress\n- Before starting any new file or code edit, reconcile the todo list\n- If you decide to skip a task, explicitly state a one-line justification and mark the task as cancelled\n- Reference todo task names (not IDs); never reprint the full list\n- Don't mention updating the todo list\n- Use backticks when mentioning files, directories, functions, etc (e.g., `app/components/Card.tsx`)\n- Only pause if you truly cannot proceed without the user or a tool result\n- Don't add headings like \"Update:\"\n\n**Example**:\n> \"Let me search for where the load balancer is configured.\"\n> \"I found the load balancer configuration. Now I'll update the number of replicas to 3.\"\n> \"My edit introduced a linter error. Let me fix that.\"\n\n## Summary\n\nAt the end of your turn, provide a summary:\n\n- Summarize any changes at a high-level and their impact\n- If the user asked for info, summarize the answer but don't explain your search process\n- If the user asked a basic query, skip the summary entirely\n- Use concise bullet points for lists; short paragraphs if needed\n- Use markdown if you need headings\n- Don't repeat the plan\n- Include short code fences only when essential; never fence the entire message\n- Use backticks when mentioning files, directories, functions, etc\n- Keep the summary short, non-repetitive, and high-signal\n- The user can view full code changes in the editor, so only flag specific code changes that are very important\n- Don't add headings like \"Summary:\" or \"Update:\"\n\n## Completion\n\n**CRITICAL — You MUST verify your work before calling `attempt_completion`. Never mark a task as done without first confirming there are no errors.**\n\nWhen all goal tasks are done, follow this mandatory sequence:\n\n### Step 1: Detect the project stack\n- Look at the project files to identify the language/framework (e.g., `package.json` → Node/JS/TS, `requirements.txt`/`pyproject.toml` → Python, `go.mod` → Go, `Cargo.toml` → Rust, `pom.xml`/`build.gradle` → Java, etc.)\n\n### Step 2: Run verification checks (use the terminal)\nRun **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:\n\n- **Build**: Run the project's build command (e.g., `npm run build`, `go build ./...`, `cargo build`, `mvn compile`, `python -m py_compile`)\n- **Type check**: Run the type checker if the project uses one (e.g., `npx tsc --noEmit`, `mypy .`, `pyright`)\n- **Lint**: Run the linter if configured (e.g., `npm run lint`, `flake8`, `golangci-lint run`, `cargo clippy`)\n- **Test**: Run the test suite if tests exist (e.g., `npm test`, `pytest`, `go test ./...`, `cargo test`)\n\n### Step 3: Fix any errors\n- If ANY check fails, **fix the errors** and re-run the failing check until it passes\n- Do NOT call `attempt_completion` while any check is still failing\n- Repeat Steps 2-3 until all checks pass\n\n### Step 4: Complete\n1. Confirm that all tasks are checked off in the todo list\n2. Reconcile and close the todo list\n3. Give your summary per the summary spec\n4. **Only now** call `attempt_completion`\n\n## Workflow\n\n1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)\n2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly\n3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update\n4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding\n5. Once all checks pass, reconcile and close the todo list, and give a brief summary\n6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding\n\n## Tool Calling\n\n- Use only provided tools; follow their schemas exactly\n- Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls\n- Application events may appear as user messages wrapped in XML-like tags such as thread_completion_event, thread_failure_event, background_command_completion_event, background_command_failure_event, steering_message, or agent_event. Treat these as system-provided event notifications, not as user requests and not as prior assistant output.\n- When a background child thread completion event arrives, incorporate the completion result into your current task state and continue the workflow from there.\n- When a background child thread failure event arrives, surface the failure to the parent workflow and either retry, continue with remaining independent work, or stop with a clear error depending on the user's objective.\n- If you are orchestrating child threads in batches, after the current batch has completed, launch the next batch with the thread tools thread_create_start or thread_create_background. Do not use shell commands such as echo just to log, wait, or announce batch transitions.\n- Use `codebase_search` to search for code in the codebase\n- If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.\n- Don't mention tool names to the user; describe actions naturally.\n- If info is discoverable via tools, prefer that over asking the user.\n- Read multiple files as needed; don't guess.\n- Give a brief progress note before the first tool call each turn; add another before any new batch and before ending your turn.\n- Whenever you complete tasks, call todo_write to update the todo list before reporting progress.\n- There is no apply_patch CLI available in terminal. Use the appropriate tool for editing the code instead.\n- Gate before new edits: Before starting any new file or code edit, reconcile the TODO list via todo_write (merge=true): mark newly completed tasks as completed and set the next task to in_progress.\n- Cadence after steps: After each successful step (e.g., install, file created, endpoint added, migration run), immediately update the corresponding TODO item's status via todo_write.\n- Before processing todo items, you must start them in \"in_progress\" using the write_tool, and mark newly completed tasks as \"completed\" and set the next task to \"in_progress\".\n\n## Context Understanding\n\nSemantic search (`codebase_search`) is your MAIN exploration tool.\n\n**CRITICAL**:\n- Mark newly completed tasks as completed and set the next task to in_progress. `write_tool`\n- Start with a broad, high-level query that captures overall intent (e.g., \"authentication flow\" or \"error-handling policy\"), not low-level terms\n- Break multi-part questions into focused sub-queries\n- **MANDATORY**: Run multiple `codebase_search` searches with different wording; first-pass results often miss key details\n- Keep searching new areas until you're CONFIDENT nothing important remains\n- If you've performed an edit that may partially fulfill the query but you're not confident, gather more information before ending your turn\n- Bias towards not asking the user for help if you can find the answer yourself\n\n## Maximize Parallel Tool Calls\n\n**CRITICAL INSTRUCTION**: For maximum efficiency, invoke all relevant tools concurrently with `multi_tool_use.parallel` rather than sequentially. Prioritize calling tools in parallel whenever possible.\n\n**Examples**:\n- When reading 3 files, run 3 tool calls in parallel to read all 3 files at once\n- When running multiple read-only commands like `read_file`, `grep_search` or `codebase_search`, always run all commands in parallel\n- Limit to 3-5 tool calls at a time or they might time out\n\n**Cases that SHOULD use parallel tool calls**:\n- Searching for different patterns (imports, usage, definitions)\n- Multiple grep searches with different regex patterns\n- Reading multiple files or searching different directories\n- Combining `codebase_search` with grep for comprehensive results\n- Any information gathering where you know upfront what you're looking for\n\nBefore making tool calls, briefly consider: What information do I need to fully answer this question? Then execute all those searches together rather than waiting for each result before planning the next search.\n\n**DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously. Parallel tool execution can be 3-5x faster than sequential calls.\n\n## Searching Code\n\n- **ALWAYS prefer** using `codebase_search` over grep for searching for code because it is much faster for efficient codebase exploration\n- Use grep to search for exact strings, symbols, or other patterns\n\n## Making Code Changes\n\nWhen making code changes, **NEVER output code to the USER**, unless requested. Instead use one of the code edit tools to implement the change.\n\n**EXTREMELY important** that your generated code can be run immediately:\n\n- Add all necessary import statements, dependencies, and endpoints required to run the code\n- If creating the codebase from scratch, create an appropriate dependency management file (e.g., `requirements.txt`) with package versions and a helpful README\n- If building a web app from scratch, give it a beautiful and modern UI, imbued with best UX practices\n- **NEVER generate** an extremely long hash or any non-textual code, such as binary\n\n- Every time you write code, follow the code style guidelines\n\n## Code Style\n\n**IMPORTANT**: The code you write will be reviewed by humans; optimize for clarity and readability. Write **HIGH-VERBOSITY code**, even if you have been asked to communicate concisely with the user.\n\n### Naming\n\n- Avoid short variable/symbol names. Never use 1-2 character names\n- Functions should be verbs/verb-phrases, variables should be nouns/noun-phrases\n- Use meaningful variable names as described in Martin's \"Clean Code\":\n  - Descriptive enough that comments are generally not needed\n  - Prefer full words over abbreviations\n  - Use variables to capture the meaning of complex conditions or operations\n\n**Examples (Bad → Good)**:\n- `genYmdStr` → `generateDateString`\n- `n` → `numSuccessfulRequests`\n- `[key, value] of map` → `[userId, user] of userIdToUser`\n- `resMs` → `fetchUserDataResponseMs`\n\n### Static Typed Languages\n\n- Explicitly annotate function signatures and exported/public APIs\n- Don't annotate trivially inferred variables\n- Avoid unsafe typecasts or types like `any`\n\n### Control Flow\n\n- Use guard clauses/early returns\n- Handle error and edge cases first\n- Avoid unnecessary try/catch blocks\n- **NEVER catch errors** without meaningful handling\n- Avoid deep nest\n...[truncated 5560 chars for debug payload]"
+        },
+        {
+            "role": "system",
+            "content": "You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.\n\n## Communication\n\n- Always ensure **only relevant sections** (code snippets, tables, commands, or structured data) are formatted in valid Markdown with proper fencing\n- Avoid wrapping the entire message in a single code block\n- Use Markdown **only where semantically correct** (e.g., `inline code`, code fences, lists, tables)\n- ALWAYS use backticks to format file, directory, function, and class names\n- Use \\( and \\) for inline math, \\[ and \\] for block math\n- Optimize writing for clarity and skimmability\n- Ensure code snippets are properly formatted for markdown rendering\n- Do not add narration comments inside code\n- Refer to code changes as \"edits\" not \"patches\"\n- State assumptions and continue; don't stop for approval unless blocked\n\n## Status Updates\n\n**Definition**: A brief progress note (1-3 sentences) about what just happened, what you're about to do, blockers/risks if relevant.\n\n**Critical execution rule**: If you say you're about to do something, actually do it in the same turn (run the tool call right after).\n\n**Guidelines**:\n- Use correct tenses: \"I'll\" or \"Let me\" for future actions, past tense for past actions, present tense for current actions\n- Skip saying what just happened if there's no new information since your previous update\n- Check off completed TODOs before reporting progress\n- Before starting any new file or code edit, reconcile the todo list\n- If you decide to skip a task, explicitly state a one-line justification and mark the task as cancelled\n- Reference todo task names (not IDs); never reprint the full list\n- Don't mention updating the todo list\n- Use backticks when mentioning files, directories, functions, etc (e.g., `app/components/Card.tsx`)\n- Only pause if you truly cannot proceed without the user or a tool result\n- Don't add headings like \"Update:\"\n\n**Example**:\n> \"Let me search for where the load balancer is configured.\"\n> \"I found the load balancer configuration. Now I'll update the number of replicas to 3.\"\n> \"My edit introduced a linter error. Let me fix that.\"\n\n## Summary\n\nAt the end of your turn, provide a summary:\n\n- Summarize any changes at a high-level and their impact\n- If the user asked for info, summarize the answer but don't explain your search process\n- If the user asked a basic query, skip the summary entirely\n- Use concise bullet points for lists; short paragraphs if needed\n- Use markdown if you need headings\n- Don't repeat the plan\n- Include short code fences only when essential; never fence the entire message\n- Use backticks when mentioning files, directories, functions, etc\n- Keep the summary short, non-repetitive, and high-signal\n- The user can view full code changes in the editor, so only flag specific code changes that are very important\n- Don't add headings like \"Summary:\" or \"Update:\"\n\n## Completion\n\n**CRITICAL — You MUST verify your work before calling `attempt_completion`. Never mark a task as done without first confirming there are no errors.**\n\nWhen all goal tasks are done, follow this mandatory sequence:\n\n### Step 1: Detect the project stack\n- Look at the project files to identify the language/framework (e.g., `package.json` → Node/JS/TS, `requirements.txt`/`pyproject.toml` → Python, `go.mod` → Go, `Cargo.toml` → Rust, `pom.xml`/`build.gradle` → Java, etc.)\n\n### Step 2: Run verification checks (use the terminal)\nRun **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:\n\n- **Build**: Run the project's build command (e.g., `npm run build`, `go build ./...`, `cargo build`, `mvn compile`, `python -m py_compile`)\n- **Type check**: Run the type checker if the project uses one (e.g., `npx tsc --noEmit`, `mypy .`, `pyright`)\n- **Lint**: Run the linter if configured (e.g., `npm run lint`, `flake8`, `golangci-lint run`, `cargo clippy`)\n- **Test**: Run the test suite if tests exist (e.g., `npm test`, `pytest`, `go test ./...`, `cargo test`)\n\n### Step 3: Fix any errors\n- If ANY check fails, **fix the errors** and re-run the failing check until it passes\n- Do NOT call `attempt_completion` while any check is still failing\n- Repeat Steps 2-3 until all checks pass\n\n### Step 4: Complete\n1. Confirm that all tasks are checked off in the todo list\n2. Reconcile and close the todo list\n3. Give your summary per the summary spec\n4. **Only now** call `attempt_completion`\n\n## Workflow\n\n1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)\n2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly\n3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update\n4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding\n5. Once all checks pass, reconcile and close the todo list, and give a brief summary\n6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding\n\n## Tool Calling\n\n- Use only provided tools; follow their schemas exactly\n- Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls\n- Application events may appear as user messages wrapped in XML-like tags such as thread_completion_event, thread_failure_event, background_command_completion_event, background_command_failure_event, steering_message, or agent_event. Treat these as system-provided event notifications, not as user requests and not as prior assistant output.\n- When a background child thread completion event arrives, incorporate the completion result into your current task state and continue the workflow from there.\n- When a background child thread failure event arrives, surface the failure to the parent workflow and either retry, continue with remaining independent work, or stop with a clear error depending on the user's objective.\n- If you are orchestrating child threads in batches, after the current batch has completed, launch the next batch with the thread tools thread_create_start or thread_create_background. Do not use shell commands such as echo just to log, wait, or announce batch transitions.\n- Use `codebase_search` to search for code in the codebase\n- If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.\n- Don't mention tool names to the user; describe actions naturally.\n- If info is discoverable via tools, prefer that over asking the user.\n- Read multiple files as needed; don't guess.\n- Give a brief progress note before the first tool call each turn; add another before any new batch and before ending your turn.\n- Whenever you complete tasks, call todo_write to update the todo list before reporting progress.\n- There is no apply_patch CLI available in terminal. Use the appropriate tool for editing the code instead.\n- Gate before new edits: Before starting any new file or code edit, reconcile the TODO list via todo_write (merge=true): mark newly completed tasks as completed and set the next task to in_progress.\n- Cadence after steps: After each successful step (e.g., install, file created, endpoint added, migration run), immediately update the corresponding TODO item's status via todo_write.\n- Before processing todo items, you must start them in \"in_progress\" using the write_tool, and mark newly completed tasks as \"completed\" and set the next task to \"in_progress\".\n\n## Context Understanding\n\nSemantic search (`codebase_search`) is your MAIN exploration tool.\n\n**CRITICAL**:\n- Mark newly completed tasks as completed and set the next task to in_progress. `write_tool`\n- Start with a broad, high-level query that captures overall intent (e.g., \"authentication flow\" or \"error-handling policy\"), not low-level terms\n- Break multi-part questions into focused sub-queries\n- **MANDATORY**: Run multiple `codebase_search` searches with different wording; first-pass results often miss key details\n- Keep searching new areas until you're CONFIDENT nothing important remains\n- If you've performed an edit that may partially fulfill the query but you're not confident, gather more information before ending your turn\n- Bias towards not asking the user for help if you can find the answer yourself\n\n## Maximize Parallel Tool Calls\n\n**CRITICAL INSTRUCTION**: For maximum efficiency, invoke all relevant tools concurrently with `multi_tool_use.parallel` rather than sequentially. Prioritize calling tools in parallel whenever possible.\n\n**Examples**:\n- When reading 3 files, run 3 tool calls in parallel to read all 3 files at once\n- When running multiple read-only commands like `read_file`, `grep_search` or `codebase_search`, always run all commands in parallel\n- Limit to 3-5 tool calls at a time or they might time out\n\n**Cases that SHOULD use parallel tool calls**:\n- Searching for different patterns (imports, usage, definitions)\n- Multiple grep searches with different regex patterns\n- Reading multiple files or searching different directories\n- Combining `codebase_search` with grep for comprehensive results\n- Any information gathering where you know upfront what you're looking for\n\nBefore making tool calls, briefly consider: What information do I need to fully answer this question? Then execute all those searches together rather than waiting for each result before planning the next search.\n\n**DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously. Parallel tool execution can be 3-5x faster than sequential calls.\n\n## Searching Code\n\n- **ALWAYS prefer** using `codebase_search` over grep for searching for code because it is much faster for efficient codebase exploration\n- Use grep to search for exact strings, symbols, or other patterns\n\n## Making Code Changes\n\nWhen making code changes, **NEVER output code to the USER**, unless requested. Instead use one of the code edit tools to implement the change.\n\n**EXTREMELY important** that your generated code can be run immediately:\n\n- Add all necessary import statements, dependencies, and endpoints required to run the code\n- If creating the codebase from scratch, create an appropriate dependency management file (e.g., `requirements.txt`) with package versions and a helpful README\n- If building a web app from scratch, give it a beautiful and modern UI, imbued with best UX practices\n- **NEVER generate** an extremely long hash or any non-textual code, such as binary\n\n- Every time you write code, follow the code style guidelines\n\n## Code Style\n\n**IMPORTANT**: The code you write will be reviewed by humans; optimize for clarity and readability. Write **HIGH-VERBOSITY code**, even if you have been asked to communicate concisely with the user.\n\n### Naming\n\n- Avoid short variable/symbol names. Never use 1-2 character names\n- Functions should be verbs/verb-phrases, variables should be nouns/noun-phrases\n- Use meaningful variable names as described in Martin's \"Clean Code\":\n  - Descriptive enough that comments are generally not needed\n  - Prefer full words over abbreviations\n  - Use variables to capture the meaning of complex conditions or operations\n\n**Examples (Bad → Good)**:\n- `genYmdStr` → `generateDateString`\n- `n` → `numSuccessfulRequests`\n- `[key, value] of map` → `[userId, user] of userIdToUser`\n- `resMs` → `fetchUserDataResponseMs`\n\n### Static Typed Languages\n\n- Explicitly annotate function signatures and exported/public APIs\n- Don't annotate trivially inferred variables\n- Avoid unsafe typecasts or types like `any`\n\n### Control Flow\n\n- Use guard clauses/early returns\n- Handle error and edge cases first\n- Avoid unnecessary try/catch blocks\n- **NEVER catch errors** without meaningful handling\n- Avoid deep nest\n...[truncated 5560 chars for debug payload]"
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Friday, 14 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "can you start child environment using create_and_start_thread tool create that environment using agentfs provider then  assign change hello to greeting function when child finish it task then close that child env using environment_merge_and_close tool"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "I'll help you set up a child environment with the agentfs provider, assign the greeting function task, and then merge/close it when done. Let me first discover the available tools for this workflow."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_7d9e9c84289f43539f84b7ad",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"explanation\":\"Browsing the tool catalogue to locate thread creation and environment merge tools.\",\"mode\":\"categories\"}"
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_5ae2540f95d74a0ba1927d20",
+            "name": "tool_search",
+            "arguments": "{\"explanation\":\"Searching for the create_and_start_thread tool needed to spawn the child environment.\",\"query\":\"create and start thread child environment agentfs\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_7d9e9c84289f43539f84b7ad",
+            "output": "Available CodeBolt tool categories (80 categories, 686 callable tools):\n\n- actionblock (3 tools): actionBlock_getDetail, actionBlock_list, actionBlock_start\n- Agents [agent] (6 tools): agent_details, agent_find, agent_get_llm_roles, agent_list, agent_send_message - Discover, start, message, inspect, and manage other agents.\n- Artifacts [artifact] (5 tools): artifact_create, artifact_delete, artifact_get, artifact_list, artifact_update - Create, inspect, update, list, and remove durable outputs produced by agents.\n- async (2 tools): async_task_control, async_task_list\n- attempt (1 tools): attempt_completion\n- autotesting (18 tools): autotesting_add_case_to_suite, autotesting_create_case, autotesting_create_run, autotesting_create_suite, autotesting_delete_case\n- background (4 tools): background_threads_add_running_agent, background_threads_check_completion, background_threads_get_running_count, background_threads_on_completion\n- browser (33 tools): browser_action, browser_click, browser_click_element, browser_close, browser_enter - Open web pages, inspect their contents, and interact with browser elements.\n- calendar (8 tools): calendar_create_event, calendar_delete_event, calendar_get_event, calendar_get_status, calendar_get_upcoming - Create, inspect, update, and coordinate scheduled events.\n- canvas (9 tools): canvas_add_content, canvas_create, canvas_delete, canvas_get, canvas_get_content - Create and manipulate visual or spatial content on an application canvas.\n- Capabilities [capability] (7 tools): capability_detail, capability_get_detail, capability_get_status, capability_list, capability_list_powers - Discover and invoke registered application or runtime capabilities.\n- chat (7 tools): chat_ask, chat_confirm, chat_get_history, chat_notify, chat_send - Send messages and interact with application chat sessions.\n- clickup (69 tools): cloud_clickup--add_dependency, cloud_clickup--add_tag_to_task, cloud_clickup--add_task_link, cloud_clickup--add_task_to_list, cloud_clickup--create_checklist - Interact with ClickUp through its connected service actions.\n- codebase (2 tools): codebase_search, codebase_search_mcp_tool\n- Code Map [codemap] (7 tools): codemap_create, codemap_delete, codemap_get, codemap_list, codemap_save - Create and inspect structured maps of codebase components, symbols, and dependencies.\n- Code Utilities [codeutils] (4 tools): codeutils_get_files_markdown, codeutils_get_matcher_list, codeutils_match_detail, codeutils_perform_match - Apply code-focused utilities such as parsing, validation, transformation, and structural inspection.\n- computer (1 tools): computer_use\n- Connector Management [connector_management] (5 tools): cloud_codebolt_connectors--get_connector_details, cloud_codebolt_connectors--list_available_connectors, cloud_codebolt_connectors--list_installed_connectors, cloud_codebolt_connectors--request_connector_install, cloud_codebolt_connectors--search_available_connectors - Discover, install, configure, and inspect available cloud connectors.\n- context (16 tools): context_compaction_dry_run, context_compaction_get_config, context_compaction_get_step_specs, context_compaction_run, context_compaction_update_config - Read and manage contextual information supplied to an agent or workflow.\n- Database Memory [dbmemory] (2 tools): dbmemory_add_knowledge, dbmemory_get_knowledge - Store and query structured memory backed by a persistent database.\n- Debugging [debug] (2 tools): debug_add_log, debug_open_browser - Inspect diagnostic information and troubleshoot agent, tool, or application behavior.\n- deliberation (8 tools): deliberation_create, deliberation_get, deliberation_get_winner, deliberation_list, deliberation_respond\n- Documentation [docs] (7 tools): docs_cache_status, docs_download_latest, docs_get_module_dts, docs_get_module_spec, docs_get_spec - Search and retrieve technical documentation, API specifications, and module references.\n- edit (1 tools): edit\n- Environments [environment] (17 tools): environment_computer_use, environment_create, environment_delete, environment_get, environment_get_local_providers - Create, inspect, start, stop, and communicate with isolated execution environments.\n- episodic (19 tools): episodic_append_event, episodic_archive_memory, episodic_create_memory, episodic_get_agents, episodic_get_event_types\n- eventlog (10 tools): eventlog_append_event, eventlog_append_events, eventlog_create_instance, eventlog_delete_instance, eventlog_get_instance\n- eventqueue (3 tools): eventqueue_get_pending, eventqueue_get_stats, eventqueue_wait_next\n- execute (1 tools): execute_command\n- execution (17 tools): execution_plan_acquire_next_task, execution_plan_add_group, execution_plan_add_task, execution_plan_approve_gate, execution_plan_complete_task\n- executionplan (17 tools): executionPlan_acquireNextTask, executionPlan_addGroup, executionPlan_addTask, executionPlan_approveGate, executionPlan_completeTask\n- feature (9 tools): feature_plan_add_section, feature_plan_create, feature_plan_get, feature_plan_list, feature_plan_remove_section\n- feedback (7 tools): feedback_create, feedback_get, feedback_list, feedback_reply, feedback_respond\n- Files [file] (11 tools): file_intent_cancel, file_intent_check_overlap, file_intent_complete, file_intent_create, file_intent_delete - Read, create, edit, move, and inspect files in the current workspace.\n- Feature Flags [flags] (13 tools): flags_add_available, flags_disable, flags_disable_thread, flags_enable, flags_enable_thread - Inspect and update feature flags that control application or agent behavior.\n- fork (1 tools): fork_context\n- File System [fs] (13 tools): fs_create_file, fs_create_folder, fs_delete_file, fs_delete_folder, fs_file_search - Perform lower-level filesystem operations when standard workspace file tools are insufficient.\n- generatenamedtag (1 tools): generateNamedTag\n- get (1 tools): get_available_tools_manifest\n- git (11 tools): git_add, git_branch, git_checkout, git_clone, git_commit - Inspect and modify Git repository state, history, branches, commits, and changes.\n- glob (1 tools): glob\n- grep (1 tools): grep\n- history (2 tools): history_summarize, history_summarize_all - Inspect previously recorded actions, states, or conversation activity.\n- Jobs [job] (13 tools): job_add_dependency, job_bid_add, job_create, job_delete, job_get - Create and manage durable work items with status, priority, ownership, and scheduling information.\n- kg (40 tools): kg_add_edge, kg_add_edges, kg_add_memory_record, kg_add_memory_records, kg_create_instance\n- kvstore (3 tools): kvStore_createInstance, kvStore_get, kvStore_set\n- Language Models [llm] (6 tools): llm_delete_role, llm_get_config, llm_get_configured_providers, llm_inference, llm_list_roles - Invoke and manage language-model requests, responses, and related configuration.\n- mail (23 tools): mail_acknowledge, mail_archive_thread, mail_check_conflicts, mail_create_thread, mail_fetch_inbox - Send, receive, inspect, reply to, and organize asynchronous agent messages.\n- mcp (4 tools): mcp_configure_server, mcp_execute_tool, mcp_get_tools, mcp_list_servers - Discover, configure, inspect, and execute tools provided by MCP servers.\n- memory (12 tools): memory_json_delete, memory_json_list, memory_json_save, memory_json_update, memory_markdown_delete - Store and retrieve general information that should remain available beyond the current message.\n- memoryingestion (2 tools): memoryIngestion_create, memoryIngestion_execute\n- Notes [note] (10 tools): note_add_comment, note_create, note_delete, note_delete_comment, note_get - Create and maintain human-readable notes associated with ongoing work.\n- outputparsers (6 tools): outputparsers_parse_csv, outputparsers_parse_errors, outputparsers_parse_json, outputparsers_parse_text, outputparsers_parse_warnings\n- persistent (9 tools): persistent_memory_create, persistent_memory_delete, persistent_memory_execute_retrieval, persistent_memory_get, persistent_memory_get_step_specs\n- plan (6 tools): plan_add_task, plan_create, plan_get_all, plan_get_detail, plan_start_task\n- portfolio (14 tools): portfolio_add_appreciation, portfolio_add_karma, portfolio_add_talent, portfolio_add_testimonial, portfolio_delete_testimonial\n- project (5 tools): project_get_editor_status, project_get_path, project_get_repo_map, project_get_settings, project_run - Read and manage project-level configuration, metadata, and lifecycle operations.\n- Retrieval-Augmented Generation [rag] (2 tools): rag_add_file, rag_retrieve_knowledge - Index and retrieve relevant source material for grounded model responses.\n- read (2 tools): read_file, read_many_files\n- Reviews [review] (8 tools): review_add_comment, review_approve, review_create, review_get, review_list - Request, perform, and manage reviews of work products or changes.\n- reviewmergerequest (16 tools): reviewMergeRequest_addLinkedJob, reviewMergeRequest_addReview, reviewMergeRequest_byAgent, reviewMergeRequest_bySwarm, reviewMergeRequest_checkConflict\n- Roadmaps [roadmap] (12 tools): roadmap_create_feature, roadmap_create_idea, roadmap_create_phase, roadmap_createIdea, roadmap_createPhase - Organize longer-term goals, milestones, dependencies, and delivery progress.\n- rule (7 tools): rule_create, rule_delete, rule_evaluate, rule_get, rule_get_possible_variables\n- search (2 tools): search_get_first_link, search_web - Find text, files, symbols, and matching content across the workspace.\n- sendtonamedtag (1 tools): sendToNamedTag\n- skill (1 tools): skill_detail\n- slack (23 tools): cloud_slack--add_reaction, cloud_slack--delete_file, cloud_slack--delete_message, cloud_slack--get_channel_messages, cloud_slack--get_conversation - Interact with Slack through its connected service actions.\n- state (5 tools): state_add_agent, state_get_agent, state_get_app, state_get_project, state_update_project - Read and update structured state associated with an agent, workflow, or application.\n- Tasks [task] (7 tools): task_assign, task_create, task_delete, task_execute, task_get - Create, assign, update, and inspect units of work handled by agents or users.\n- terminal (6 tools): terminal_get_command_status, terminal_list_commands, terminal_read_command_output, terminal_stop_command, terminal_tui - Run shell commands and interact with command-line processes in an execution environment.\n- Threads [thread] (19 tools): thread_add_context, thread_create, thread_create_background, thread_create_start, thread_delete - Create and manage agent conversation threads, context, execution, and lifecycle state.\n- Todos [todo] (6 tools): todo_add, todo_export, todo_import, todo_list, todo_list_incomplete - Maintain a concise checklist of steps and completion states for the current task.\n- tokenizer (2 tools): tokenizer_add, tokenizer_get - Count, estimate, and inspect token usage for model input and output.\n- tool (1 tools): tool_search\n- update (14 tools): update_request_add_comment, update_request_add_dispute, update_request_complete, update_request_create, update_request_delete\n- user (10 tools): user_message_get_config, user_message_get_current, user_message_get_mentioned_files, user_message_get_text, user_utilities_get_current\n- Utilities [utils] (1 tools): utils_edit_file_and_apply_diff - Perform general-purpose helper operations that do not belong to a narrower group.\n- vector (4 tools): vector_add_item, vector_get, vector_query, vector_query_items\n- web (1 tools): web_fetch\n- write (1 tools): write_file\n\nUse mode=\"list\" with category=\"<name>\" to browse a category, or mode=\"get\" with toolName=\"<tool>\" to retrieve callable schema.",
+            "status": "completed"
+        },
+        {
+            "type": "tool_search_output",
+            "execution": "server",
+            "status": "completed",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "thread_create_start",
+                    "description": "Creates and immediately starts a new thread with the specified options.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "options": {
+                                "description": "Advanced thread creation and start options. Prefer the top-level task, selectedAgent, environment, and environmentId fields for common use.",
+                                "type": "object"
+                            },
+                            "task": {
+                                "description": "Task prompt to start the new thread with. This is sent as the thread userMessage.",
+                                "type": "string"
+                            },
+                            "userMessage": {
+                                "description": "Optional explicit user message to start the thread with. Defaults to task.",
+                                "type": "string"
+                            },
+                            "title": {
+                                "description": "Optional title of the new thread. Defaults to task.",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Optional description of the new thread. Defaults to task.",
+                                "type": "string"
+                            },
+                            "selectedAgent": {
+                                "description": "Optional selected agent id or selected agent object.",
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "agentId": {
+                                "description": "Optional agent id.",
+                                "type": "string"
+                            },
+                            "groupId": {
+                                "description": "Optional group ID for organizing threads.",
+                                "type": "string"
+                            },
+                            "isGrouped": {
+                                "description": "Whether the thread belongs to a group.",
+                                "type": "boolean"
+                            },
+                            "policyProfileId": {
+                                "description": "Explicit guardrail policy profile id for this thread.",
+                                "type": "string"
+                            },
+                            "policyProfileName": {
+                                "description": "Guardrail policy profile name to resolve for this thread, for example \"allow-all\".",
+                                "type": "string"
+                            },
+                            "environment": {
+                                "description": "Existing environment id or environment object to run the new thread in. When provided, the thread starts in that environment instead of creating a new one.",
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "environmentId": {
+                                "description": "Existing environment id to run the new thread in. Alias for environment.",
+                                "type": "string"
+                            },
+                            "remoteEnv": {
+                                "description": "If true, creates a remote environment and starts the agent there. If false/undefined, runs locally.",
+                                "type": "boolean"
+                            },
+                            "environmentProvider": {
+                                "description": "The environment provider to use when remoteEnv is true. Object with name, optional unique_id and providerId.",
+                                "type": "object"
+                            },
+                            "environmentName": {
+                                "description": "Optional custom name for the remote environment.",
+                                "type": "string"
+                            },
+                            "waitForCompletion": {
+                                "description": "If true, wait for the thread to complete before returning. Defaults to false.",
+                                "type": "boolean"
+                            },
+                            "execution_mode": {
+                                "description": "Unified task execution mode. Defaults to background_scoped. foreground_scoped and auto_scoped wait boundedly before converting to background_scoped; background_detached survives user force-stop.",
+                                "enum": [
+                                    "foreground_scoped",
+                                    "auto_scoped",
+                                    "background_scoped",
+                                    "background_detached"
+                                ],
+                                "type": "string"
+                            },
+                            "wait_ms": {
+                                "description": "Milliseconds to wait before returning. foreground_scoped/auto_scoped convert to background_scoped if still running.",
+                                "type": "number"
+                            },
+                            "llm": {
+                                "description": "Optional runtime LLM override for the started agent/thread. Use llm_get_configured_providers before choosing provider/model.",
+                                "type": "object",
+                                "properties": {
+                                    "provider": {
+                                        "type": "string"
+                                    },
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "roleOverrides": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "object",
+                                            "properties": {
+                                                "provider": {
+                                                    "type": "string"
+                                                },
+                                                "model": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "provider",
+                                                "model"
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "contextoverride_id": {
+                                "description": "Saved context id returned by thread_save_context to use as startup context for the new agent/thread.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "task"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "environment_create",
+                    "description": "Creates a new environment with the specified name and provider. The provider must be from the available local or runner providers list.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "The name of the environment to create.",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Optional description of the environment.",
+                                "type": "string"
+                            },
+                            "provider": {
+                                "description": "Provider configuration object. Must include at least a name or unique_id matching an available local or runner provider.",
+                                "type": "object"
+                            },
+                            "config": {
+                                "description": "Optional additional configuration.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "provider"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "mail_create_thread",
+                    "description": "Creates a new mail thread with specified subject, participants, and optional type.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "subject": {
+                                "description": "The subject of the thread",
+                                "type": "string"
+                            },
+                            "participants": {
+                                "description": "The participants in the thread",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": {
+                                "description": "The type of thread",
+                                "type": "string",
+                                "enum": [
+                                    "agent-to-agent",
+                                    "agent-to-user",
+                                    "broadcast"
+                                ]
+                            },
+                            "metadata": {
+                                "description": "Additional metadata for the thread",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "subject",
+                            "participants"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "environment_start_agent",
+                    "description": "EnvironmentStartAgent",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to run the agent in.",
+                                "type": "string"
+                            },
+                            "agentId": {
+                                "description": "The ID of the agent to start. If not provided, uses the default agent.",
+                                "type": "string"
+                            },
+                            "task": {
+                                "description": "The task or instruction for the agent to execute.",
+                                "type": "string"
+                            },
+                            "threadId": {
+                                "description": "Optional thread ID for tracking conversation context.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId",
+                            "task"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "environment_merge_and_close",
+                    "description": "EnvironmentMergeAndClose",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explaining why the environment changes should be retained and the environment closed.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the running environment.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "environment_restart",
+                    "description": "Restarts an environment by ID (stops then starts the provider).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to restart.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "environment_start",
+                    "description": "Starts an environment by ID. Waits until the provider process is fully ready before returning.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to start.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "thread_create_background",
+                    "description": "ThreadCreateBackground",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "groupId": {
+                                "description": "Optional group ID for organizing threads.",
+                                "type": "string"
+                            },
+                            "title": {
+                                "description": "Title of the background thread.",
+                                "type": "string"
+                            },
+                            "task": {
+                                "description": "Task description related to the thread.",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Description of the thread.",
+                                "type": "string"
+                            },
+                            "userMessage": {
+                                "description": "The user message to start the thread with.",
+                                "type": "string"
+                            },
+                            "selectedAgent": {
+                                "description": "The selected agent id get it from <workerAgent> tag ",
+                                "type": "string"
+                            },
+                            "isGrouped": {
+                                "description": "Whether the thread belongs to a group",
+                                "type": "boolean"
+                            },
+                            "policyProfileId": {
+                                "description": "Explicit guardrail policy profile id for this thread.",
+                                "type": "string"
+                            },
+                            "policyProfileName": {
+                                "description": "Guardrail policy profile name to resolve for this thread, for example \"allow-all\".",
+                                "type": "string"
+                            },
+                            "remoteEnv": {
+                                "description": "If true, creates a remote environment and starts the agent there. If false/undefined, runs locally.",
+                                "type": "boolean"
+                            },
+                            "environmentProvider": {
+                                "description": "The environment provider to use when remoteEnv is true. Object with name, optional unique_id and providerId.",
+                                "type": "object"
+                            },
+                            "environmentName": {
+                                "description": "Optional custom name for the remote environment.",
+                                "type": "string"
+                            },
+                            "execution_mode": {
+                                "description": "Unified task execution mode. Defaults to background_scoped. foreground_scoped and auto_scoped wait boundedly before converting to background_scoped; background_detached survives user force-stop.",
+                                "enum": [
+                                    "foreground_scoped",
+                                    "auto_scoped",
+                                    "background_scoped",
+                                    "background_detached"
+                                ],
+                                "type": "string"
+                            },
+                            "wait_ms": {
+                                "description": "Milliseconds to wait before returning. foreground_scoped/auto_scoped convert to background_scoped if still running.",
+                                "type": "number"
+                            },
+                            "llm": {
+                                "description": "Optional runtime LLM override for the started agent/thread. Use llm_get_configured_providers before choosing provider/model.",
+                                "type": "object",
+                                "properties": {
+                                    "provider": {
+                                        "type": "string"
+                                    },
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "roleOverrides": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "object",
+                                            "properties": {
+                                                "provider": {
+                                                    "type": "string"
+                                                },
+                                                "model": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "provider",
+                                                "model"
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "contextoverride_id": {
+                                "description": "Saved context id returned by thread_save_context to use as startup context for the new agent/thread.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "task",
+                            "selectedAgent"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "thread_start",
+                    "description": "Starts a thread by its ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "threadId": {
+                                "description": "The ID of the thread to start.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "threadId"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                },
+                {
+                    "type": "function",
+                    "name": "thread_create",
+                    "description": "Creates a new thread with the specified options.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "options": {
+                                "description": "Thread creation options object containing thread parameters.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "options"
+                        ]
+                    },
+                    "kind": "codeboltTool"
+                }
+            ],
+            "resources": [],
+            "call_id": "call_5ae2540f95d74a0ba1927d20"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "I found the tools I need. Let me first read `index.js` to understand the current code and set up a plan for the child environment workflow."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_8c62fcf032584d809b4e832c",
+            "name": "read_file",
+            "arguments": "{\"absolute_path\":\"/Users/ravirawat/codebolt-projects/objective-aquamarine/index.js\",\"explanation\":\"Reading index.js to see the current hello code before assigning the child environment task.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_8c62fcf032584d809b4e832c",
+            "output": "export function greeting() { return 'hello'; }\n",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "The file currently exports `greeting()` returning `'hello'` — the child will work on converting the hello logic. Now let me get the exact schemas for the thread creation and environment tools."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_49036cb4c9cc410784067770",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"category\":\"environment\",\"explanation\":\"Listing environment tools to find environment_merge_and_close and provider options.\",\"mode\":\"list\"}"
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_2aef27d337d14bbcbd077ad9",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"explanation\":\"Retrieving the callable schema for thread_create_start to spawn the child environment thread.\",\"mode\":\"get\",\"toolName\":\"thread_create_start\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_49036cb4c9cc410784067770",
+            "output": "Matching CodeBolt callable tools (17 shown of 17):\n\n- environment_computer_use [environment/execute] - Observe and control a remote environment desktop through its environment provider. Check capabilities before acting.\n- environment_create [environment/execute] - Creates a new environment with the specified name and provider. The provider must be from the available local or runner providers list.\n- environment_delete [environment/delete] - Deletes an environment by ID.\n- environment_get [environment/read] - Gets an environment by its ID.\n- environment_get_local_providers [environment/read] - Gets all available local environment providers.\n- environment_get_runner_providers [environment/read] - Gets available runner environment providers.\n- environment_get_running_providers [environment/read] - Gets all currently running environment providers.\n- environment_list [environment/read] - Lists all environments.\n- environment_merge_and_close [environment/delete] - Creates a retained review merge request from a running environment, then closes the environment without merging the request.\n- environment_restart [environment/execute] - Restarts an environment by ID (stops then starts the provider).\n- environment_send_message [environment/execute] - Sends a message to an environment provider.\n- environment_start [environment/execute] - Starts an environment by ID. Waits until the provider process is fully ready before returning.\n- environment_start_agent [environment/execute] - Starts an agent in a specified environment. Sends the task to the environment provider which launches and runs the agent.\n- environment_statistics [environment/read] - Gets environment statistics including counts and health information.\n- environment_status [environment/read] - Gets the status of an environment including state, health, and error information.\n- environment_stop [environment/execute] - Stops an environment by ID.\n- environment_update [environment/edit] - Updates an existing environment by ID.\n\nUse mode=\"details\" for callable schemas for these tools, or mode=\"get\" with an exact toolName.",
+            "status": "completed"
+        },
+        {
+            "type": "tool_search_output",
+            "execution": "client",
+            "status": "completed",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "thread_create_start",
+                    "description": "Creates and immediately starts a new thread with the specified options.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "options": {
+                                "description": "Advanced thread creation and start options. Prefer the top-level task, selectedAgent, environment, and environmentId fields for common use.",
+                                "type": "object"
+                            },
+                            "task": {
+                                "description": "Task prompt to start the new thread with. This is sent as the thread userMessage.",
+                                "type": "string"
+                            },
+                            "userMessage": {
+                                "description": "Optional explicit user message to start the thread with. Defaults to task.",
+                                "type": "string"
+                            },
+                            "title": {
+                                "description": "Optional title of the new thread. Defaults to task.",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Optional description of the new thread. Defaults to task.",
+                                "type": "string"
+                            },
+                            "selectedAgent": {
+                                "description": "Optional selected agent id or selected agent object.",
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "agentId": {
+                                "description": "Optional agent id.",
+                                "type": "string"
+                            },
+                            "groupId": {
+                                "description": "Optional group ID for organizing threads.",
+                                "type": "string"
+                            },
+                            "isGrouped": {
+                                "description": "Whether the thread belongs to a group.",
+                                "type": "boolean"
+                            },
+                            "policyProfileId": {
+                                "description": "Explicit guardrail policy profile id for this thread.",
+                                "type": "string"
+                            },
+                            "policyProfileName": {
+                                "description": "Guardrail policy profile name to resolve for this thread, for example \"allow-all\".",
+                                "type": "string"
+                            },
+                            "environment": {
+                                "description": "Existing environment id or environment object to run the new thread in. When provided, the thread starts in that environment instead of creating a new one.",
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "environmentId": {
+                                "description": "Existing environment id to run the new thread in. Alias for environment.",
+                                "type": "string"
+                            },
+                            "remoteEnv": {
+                                "description": "If true, creates a remote environment and starts the agent there. If false/undefined, runs locally.",
+                                "type": "boolean"
+                            },
+                            "environmentProvider": {
+                                "description": "The environment provider to use when remoteEnv is true. Object with name, optional unique_id and providerId.",
+                                "type": "object"
+                            },
+                            "environmentName": {
+                                "description": "Optional custom name for the remote environment.",
+                                "type": "string"
+                            },
+                            "waitForCompletion": {
+                                "description": "If true, wait for the thread to complete before returning. Defaults to false.",
+                                "type": "boolean"
+                            },
+                            "execution_mode": {
+                                "description": "Unified task execution mode. Defaults to background_scoped. foreground_scoped and auto_scoped wait boundedly before converting to background_scoped; background_detached survives user force-stop.",
+                                "enum": [
+                                    "foreground_scoped",
+                                    "auto_scoped",
+                                    "background_scoped",
+                                    "background_detached"
+                                ],
+                                "type": "string"
+                            },
+                            "wait_ms": {
+                                "description": "Milliseconds to wait before returning. foreground_scoped/auto_scoped convert to background_scoped if still running.",
+                                "type": "number"
+                            },
+                            "llm": {
+                                "description": "Optional runtime LLM override for the started agent/thread. Use llm_get_configured_providers before choosing provider/model.",
+                                "type": "object",
+                                "properties": {
+                                    "provider": {
+                                        "type": "string"
+                                    },
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "roleOverrides": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "object",
+                                            "properties": {
+                                                "provider": {
+                                                    "type": "string"
+                                                },
+                                                "model": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "provider",
+                                                "model"
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            "contextoverride_id": {
+                                "description": "Saved context id returned by thread_save_context to use as startup context for the new agent/thread.",
+                                "type": "string"
+                            },
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "task"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "thread_create_start"
+                        }
+                    }
+                }
+            ],
+            "resources": [],
+            "call_id": "call_2aef27d337d14bbcbd077ad9"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "`thread_create_start` is available to me directly and supports the `environmentProvider` option. Let me get the schema for `environment_merge_and_close` and verify `agentfs` is an available provider."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_eae89d7404834b4fb4788d09",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"explanation\":\"Retrieving the callable schema for environment_merge_and_close.\",\"mode\":\"get\",\"toolName\":\"environment_merge_and_close\"}"
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_ce5095c4050645f5a7df84e4",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"explanation\":\"Retrieving the schema for environment_get_local_providers to confirm agentfs availability.\",\"mode\":\"get\",\"toolName\":\"environment_get_local_providers\"}"
+        },
+        {
+            "type": "tool_search_output",
+            "execution": "client",
+            "status": "completed",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "environment_merge_and_close",
+                    "description": "Creates a retained review merge request from a running environment, then closes the environment without merging the request.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explaining why the environment changes should be retained and the environment closed.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the running environment.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_merge_and_close"
+                        }
+                    }
+                }
+            ],
+            "resources": [],
+            "call_id": "call_eae89d7404834b4fb4788d09"
+        },
+        {
+            "type": "tool_search_output",
+            "execution": "client",
+            "status": "completed",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "environment_get_local_providers",
+                    "description": "Gets all available local environment providers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_get_local_providers"
+                        }
+                    }
+                }
+            ],
+            "resources": [],
+            "call_id": "call_ce5095c4050645f5a7df84e4"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "The manifest details mode isn't returning the schemas in a readable form, but the tool names confirm both `environment_merge_and_close` and the provider listing exist. Let me verify the `agentfs` provider is available."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_7bdb653153794d5fa8098084",
+            "name": "environment_get_local_providers",
+            "arguments": "{\"explanation\":\"Confirming agentfs is an available local environment provider before creating the child environment.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_7bdb653153794d5fa8098084",
+            "output": "Found 2 local provider(s):\n- agentfs-provider (agentfs-provider)\n- e2b-remote-provider (e2b-remote-provider)\n",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "`agentfs-provider` is confirmed as available. Let me check the thread tool schemas so I pass the right parameters."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_820abf99dff742718774bee6",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"category\":\"thread\",\"explanation\":\"Listing thread tools to pick the right creation tool for a child environment thread.\",\"mode\":\"list\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_820abf99dff742718774bee6",
+            "output": "Matching CodeBolt callable tools (19 shown of 19):\n\n- thread_add_context [thread/execute] - Replaces the current context memory messages for a thread, preserving the previous context in history.\n- thread_create [thread/edit] - Creates a new thread with the specified options.\n- thread_create_background [thread/execute] - Creates a thread in the background and resolves when the agent starts or fails.\n- thread_create_start [thread/execute] - Creates and immediately starts a new thread with the specified options.\n- thread_delete [thread/delete] - Deletes a thread by its ID.\n- thread_get [thread/read] - Retrieves detailed information about a specific thread.\n- thread_get_context [thread/read] - Retrieves the structured context memory record for a thread.\n- thread_get_context_compacted [thread/read] - Retrieves the compacted context placeholder or stored compacted context for a thread.\n- thread_get_context_summary [thread/read] - Retrieves the stored context summary for a thread.\n- thread_get_messages [thread/read] - Retrieves messages for a specific thread with optional pagination.\n- thread_get_raw_conversations [thread/read] - Retrieves raw conversation records for a thread from the thread message store.\n- thread_list [thread/read] - Retrieves a list of threads with optional filtering.\n- thread_save_context [thread/execute] - Saves the current running context for a thread as an immutable reusable saved context and returns a context id.\n- thread_send_message [thread/execute] - Sends a message to an existing thread. Running threads receive an event; stopped threads are resumed.\n- thread_send_to_parent [thread/execute] - Sends a message from the current thread to its parent thread.\n- thread_start [thread/execute] - Starts a thread by its ID.\n- thread_update [thread/edit] - Updates an existing thread with the specified changes.\n- thread_update_status [thread/edit] - Updates the status of a thread.\n- thread_wait_for_completion [thread/execute] - Compatibility wrapper that waits for a previously started thread through async_task_control. The wait is bounded.\n\nUse mode=\"details\" for callable schemas for these tools, or mode=\"get\" with an exact toolName.",
+            "status": "completed"
+        }
+    ],
+    "tool_choice": "auto",
+    "saveToContext": true,
+    "__debugArrayTruncation": {
+        "tools": "Omitted 66 array items from debug payload"
+    }
+}

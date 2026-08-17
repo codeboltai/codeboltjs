@@ -594,6 +594,29 @@ function toResponsesTools(tools: any[] | undefined): any[] | undefined {
     return mapped.length > 0 ? mapped : undefined;
 }
 
+function collectAvailableTools(options: any): any[] | undefined {
+    const tools: any[] = [...(Array.isArray(options?.tools) ? options.tools : [])];
+
+    for (const item of options?.input ?? []) {
+        if (
+            (item?.type === 'tool_search_output' || item?.type === 'additional_tools')
+            && Array.isArray(item.tools)
+        ) {
+            tools.push(...item.tools);
+        }
+    }
+
+    const mapped = toResponsesTools(tools);
+    if (!mapped) return undefined;
+
+    const byName = new Map<string, any>();
+    for (const tool of mapped) {
+        const key = tool?.name || JSON.stringify(tool);
+        if (!byName.has(key)) byName.set(key, tool);
+    }
+    return Array.from(byName.values());
+}
+
 /**
  * Normalize whatever the UI/agent passed as the model id into the literal
  * id the ChatGPT-account backend expects. The picker sometimes sends the
@@ -654,7 +677,7 @@ function buildResponsesBody(options: any): any {
         tool_choice: 'auto',
         parallel_tool_calls: true,
     };
-    const tools = toResponsesTools(options?.tools);
+    const tools = collectAvailableTools(options);
     if (tools) body.tools = tools;
     if (options?.temperature !== undefined) body.temperature = options.temperature;
     if (options?.cache?.prompt_cache_key) {
