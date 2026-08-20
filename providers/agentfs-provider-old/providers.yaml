@@ -1,20 +1,19 @@
 name: agentfs-provider
 unique_id: agentfs-provider
-version: 1.4.0
-description: Mounted AgentFS copy-on-write overlay provider for CodeBolt
-type: provider
+version: 1.0.0
+description: Copy-on-write local filesystem provider for CodeBolt
 entrypoint: dist/index.js
-runtime: node
-author: ravi
+supportedBootstrapTypes:
+  - git_revision
 config:
   executionMode: local_thread_pool
   filesystem:
-    type: provider
-  timeouts:
-    providerStart: 180000
+    type: local
   syncMode: git
   mergeStrategy: git
   supportedSyncModes:
     - git
+    - workspace_sync
   supportedMergeStrategies:
     - git
+    - workspace_sync
