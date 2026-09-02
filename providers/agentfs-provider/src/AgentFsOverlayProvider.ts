@@ -1,5 +1,6 @@
 import { execFile, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { promises as host } from 'node:fs';
+import type { Stats } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -23,6 +24,33 @@ interface AgentFsChange {
 }
 
 const run = promisify(execFile);
+const transientFsErrorCodes = new Set(['ENOENT', 'ESTALE', 'EIO']);
+
+async function resolveNodeRuntime(): Promise<string> {
+  const isElectron = Boolean((process.versions as NodeJS.ProcessVersions & { electron?: string }).electron)
+    || process.execPath.includes('CodeBolt Helper');
+  const candidates = [
+    process.env.CODEBOLT_NODE_BINARY,
+    process.env.NODE_BINARY,
+    process.env.npm_node_execpath,
+    isElectron ? undefined : process.execPath,
+    'node',
+    '/opt/homebrew/bin/node',
+    '/usr/local/bin/node',
+    '/usr/bin/node',
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidate of [...new Set(candidates)]) {
+    try {
+      await run(candidate, ['--version']);
+      return candidate;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return process.execPath;
+}
 
 export class AgentFsOverlayProvider {
   private mountProcess: ChildProcessWithoutNullStreams | null = null;
@@ -181,7 +209,7 @@ export class AgentFsOverlayProvider {
 
   async onWriteFile(filePath: string, content: string): Promise<void> {
     const target = this.resolve(filePath);
-    await host.mkdir(path.dirname(target), { recursive: true });
+    await this.ensureDirectory(path.dirname(target));
     await host.writeFile(target, content);
   }
 
@@ -196,42 +224,45 @@ export class AgentFsOverlayProvider {
 
   async onCreateFolder(folderPath: string): Promise<void> {
     const target = this.resolve(folderPath);
-    await host.mkdir(target, { recursive: true });
+    await this.ensureDirectory(target);
   }
 
   async onRenameItem(oldPath: string, newPath: string): Promise<void> {
     const source = this.resolve(oldPath);
     const target = this.resolve(newPath);
-    await host.mkdir(path.dirname(target), { recursive: true });
+    await this.ensureDirectory(path.dirname(target));
     await host.rename(source, target);
   }
 
   async onCopyFile(sourcePath: string, destinationPath: string): Promise<void> {
     const target = this.resolve(destinationPath);
-    await host.mkdir(path.dirname(target), { recursive: true });
+    await this.ensureDirectory(path.dirname(target));
     await host.copyFile(this.resolve(sourcePath), target);
   }
 
   async onCopyFolder(sourcePath: string, destinationPath: string): Promise<void> {
     const target = this.resolve(destinationPath);
+    await this.ensureDirectory(path.dirname(target));
     await host.cp(this.resolve(sourcePath), target, { recursive: true });
   }
 
   async onGetProject(parentId = 'root'): Promise<Record<string, unknown>[]> {
     const directory = this.resolve(parentId === 'root' ? '' : parentId);
     const entries = await host.readdir(directory, { withFileTypes: true });
-    return Promise.all(entries.map(async (entry) => {
+    const children: Array<Record<string, unknown> | null> = await Promise.all(entries.map(async (entry) => {
       const child = path.join(directory, entry.name);
-      const stats = await host.stat(child);
+      const stats = await this.statWithRetry(child);
+      if (!stats) return null;
       return {
         id: path.relative(this.environmentPath, child),
         name: entry.name,
         path: child,
-        isFolder: entry.isDirectory(),
+        isFolder: stats.isDirectory(),
         size: stats.size,
         lastModified: stats.mtime.toISOString(),
       };
     }));
+    return children.filter((child): child is Record<string, unknown> => Boolean(child));
   }
 
   async onGetFullProject(): Promise<Record<string, unknown>> {
@@ -276,7 +307,7 @@ export class AgentFsOverlayProvider {
         .map((change) => change.path);
       await host.rm(exportPath, { recursive: true, force: true });
       await host.writeFile(inputPath, JSON.stringify(changedFiles));
-      await run(process.execPath, [
+      await run(await resolveNodeRuntime(), [
         path.join(__dirname, 'extractDelta.js'),
         this.databasePath,
         inputPath,
@@ -417,6 +448,42 @@ export class AgentFsOverlayProvider {
     await host.rmdir(directory).catch(() => undefined);
   }
 
+  private async ensureDirectory(directory: string): Promise<void> {
+    const existing = await host.stat(directory).catch(() => null);
+    if (existing?.isDirectory()) return;
+    if (existing) throw new Error(`Path exists and is not a directory: ${directory}`);
+
+    try {
+      await host.mkdir(directory, { recursive: true });
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== 'EEXIST') throw error;
+
+      const afterRace = await host.stat(directory).catch(() => null);
+      if (!afterRace?.isDirectory()) {
+        throw new Error(`Path exists and is not a directory: ${directory}`);
+      }
+    }
+  }
+
+  private async statWithRetry(target: string, attempts = 3): Promise<Stats | null> {
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await host.stat(target);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code || '';
+        if (!transientFsErrorCodes.has(code) || attempt === attempts) {
+          if (transientFsErrorCodes.has(code)) return null;
+          throw error;
+        }
+        await new Promise((resolve) => {
+          setTimeout(resolve, attempt * 25);
+        });
+      }
+    }
+    return null;
+  }
+
   private async readAgentFsChanges(): Promise<AgentFsChange[]> {
     const { stdout } = await run(this.agentFsBin, ['diff', this.databasePath], {
       maxBuffer: 50 * 1024 * 1024,
@@ -455,6 +522,7 @@ export class AgentFsOverlayProvider {
       }, 30_000);
       const receive = (data: Buffer) => {
         const message = data.toString();
+        if (settled) return;
         output += message;
         console.log(`[agentfs-provider] ${message.trimEnd()}`);
         if (!settled && output.includes('Mounted at')) {

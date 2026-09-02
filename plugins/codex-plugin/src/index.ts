@@ -440,13 +440,28 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
             }
         }
 
-        if (item.type === 'function_call' || item.type === 'tool_search_call') {
+        if (item.type === 'tool_search_call') {
+            const callId = item.call_id || item.id;
+            if (callId) seenFunctionCallIds.add(callId);
+            input.push({
+                type: 'tool_search_call',
+                call_id: callId,
+                execution: item.execution || 'client',
+                status: item.status || 'completed',
+                arguments: typeof item.arguments === 'string'
+                    ? item.arguments
+                    : (item.arguments || {}),
+            });
+            continue;
+        }
+
+        if (item.type === 'function_call') {
             const callId = item.call_id || item.id;
             if (callId) seenFunctionCallIds.add(callId);
             input.push({
                 type: 'function_call',
                 call_id: callId,
-                name: item.type === 'tool_search_call' ? 'tool_search' : item.name,
+                name: item.name,
                 arguments: stringifyValue(item.arguments || {}),
             });
             continue;
@@ -472,20 +487,13 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
         }
 
         if (item.type === 'tool_search_output') {
-            if (!seenFunctionCallIds.has(item.call_id || item.id)) {
-                input.push({
-                    role: 'user',
-                    content: [{
-                        type: 'input_text',
-                        text: `Tool search result for ${item.call_id || item.id}:\n${stringifyValue(toToolSearchOutputPayload(item))}`,
-                    }],
-                });
-                continue;
-            }
+            const responseTools = toResponsesTools(item.tools) ?? [];
             input.push({
-                type: 'function_call_output',
+                type: 'tool_search_output',
+                execution: item.execution || 'client',
                 call_id: item.call_id || item.id,
-                output: stringifyValue(toToolSearchOutputPayload(item)),
+                status: item.status || 'completed',
+                tools: responseTools,
             });
             continue;
         }
@@ -560,8 +568,8 @@ function toResponsesTools(tools: any[] | undefined): any[] | undefined {
 
         if (t?.type === 'tool_search') {
             mapped.push({
-                type: 'function',
-                name: 'tool_search',
+                type: 'tool_search',
+                execution: t.execution || 'client',
                 description: t.description || 'Search for available tools and resources.',
                 parameters: sanitizeJsonSchema(
                     t.parameters ?? {
@@ -598,10 +606,7 @@ function collectAvailableTools(options: any): any[] | undefined {
     const tools: any[] = [...(Array.isArray(options?.tools) ? options.tools : [])];
 
     for (const item of options?.input ?? []) {
-        if (
-            (item?.type === 'tool_search_output' || item?.type === 'additional_tools')
-            && Array.isArray(item.tools)
-        ) {
+        if (item?.type === 'additional_tools' && Array.isArray(item.tools)) {
             tools.push(...item.tools);
         }
     }
