@@ -65,8 +65,14 @@ export class AgentFsOverlayProvider {
   private baseSha = '';
   private headRef = '';
   private bootstrapResult: Record<string, unknown> | undefined;
+  private operationQueue: Promise<void> = Promise.resolve();
+  private exportCounter = 0;
 
   async onProviderStart(vars: ProviderInitVars): Promise<Record<string, unknown>> {
+    return this.withExclusiveMountAccess(() => this.startProvider(vars));
+  }
+
+  private async startProvider(vars: ProviderInitVars): Promise<Record<string, unknown>> {
     console.log('[agentfs-provider] providerStart received', JSON.stringify({
       environmentName: vars.environmentName,
       projectPath: vars.projectPath,
@@ -89,9 +95,13 @@ export class AgentFsOverlayProvider {
     const parentSha = (await this.git(['rev-parse', 'HEAD^{commit}'], this.basePath)).trim();
     this.baseSha = bootstrap?.baseCommitSha || parentSha;
     this.headRef = bootstrap?.branchName || `codebolt/agentfs/${name}`;
-    this.environmentPath = path.resolve(String(
-      vars.environmentPath || path.join(os.tmpdir(), 'codebolt-agentfs', name, 'workspace'),
-    ));
+    const defaultEnvironmentPath = path.join(
+      os.tmpdir(),
+      'codebolt-agentfs',
+      `${name}-${process.pid}-${Date.now()}`,
+      'workspace',
+    );
+    this.environmentPath = path.resolve(String(vars.environmentPath || defaultEnvironmentPath));
     this.statePath = `${this.environmentPath}.agentfs`;
     this.databasePath = path.join(this.statePath, '.agentfs', 'overlay.db');
     this.reviewRepositoryPath = path.join(this.statePath, 'review.git');
@@ -270,6 +280,37 @@ export class AgentFsOverlayProvider {
   }
 
   async onGetDiffFiles(): Promise<Record<string, unknown>> {
+    return this.withExclusiveMountAccess(() => this.getDiffFiles());
+  }
+
+  async onMergeAsPatch(): Promise<string> {
+    return this.withExclusiveMountAccess(() => this.mergeAsPatch());
+  }
+
+  async onSendPR(): Promise<Record<string, unknown>> {
+    return this.withExclusiveMountAccess(() => this.sendPR());
+  }
+
+  async onCreatePatchRequest(): Promise<Record<string, unknown>> {
+    return { success: true, patch: await this.onMergeAsPatch() };
+  }
+
+  async onCreatePullRequestRequest(): Promise<Record<string, unknown>> {
+    return this.onSendPR();
+  }
+
+  async onProviderStop(vars: ProviderInitVars): Promise<Record<string, unknown>> {
+    return this.withExclusiveMountAccess(async () => {
+      await this.cleanup();
+      return { success: true, environmentName: vars.environmentName };
+    });
+  }
+
+  async onCloseSignal(): Promise<void> {
+    await this.withExclusiveMountAccess(() => this.cleanup());
+  }
+
+  private async getDiffFiles(): Promise<Record<string, unknown>> {
     let changes: AgentFsChange[] = [];
     await this.unmountOverlay();
     try {
@@ -294,13 +335,14 @@ export class AgentFsOverlayProvider {
     };
   }
 
-  async onMergeAsPatch(): Promise<string> {
+  private async mergeAsPatch(): Promise<string> {
     if (!this.environmentPath || !this.baseSha) throw new Error('AgentFS provider is not started');
     await this.unmountOverlay();
     try {
       const changes = await this.readAgentFsChanges();
-      const exportPath = path.join(this.statePath, '.review-delta');
-      const inputPath = path.join(this.statePath, '.review-changes.json');
+      const exportId = `${process.pid}-${Date.now()}-${this.exportCounter += 1}`;
+      const exportPath = path.join(this.statePath, `.review-delta-${exportId}`);
+      const inputPath = path.join(this.statePath, `.review-changes-${exportId}.json`);
       const changedFiles = changes
         .filter((change) => change.status !== 'deleted' && change.type !== 'd')
         .filter((change) => change.path !== '.git' && !change.path.startsWith('.git/'))
@@ -351,9 +393,9 @@ export class AgentFsOverlayProvider {
     }
   }
 
-  async onSendPR(): Promise<Record<string, unknown>> {
+  private async sendPR(): Promise<Record<string, unknown>> {
     if (!this.environmentPath || !this.basePath) throw new Error('AgentFS provider is not started');
-    const diffPatch = await this.onMergeAsPatch();
+    const diffPatch = await this.mergeAsPatch();
     const majorFilesChanged = (await this.reviewGit(
       ['diff', '--cached', '--name-only', this.baseSha],
     )).split('\n').filter(Boolean);
@@ -393,23 +435,6 @@ export class AgentFsOverlayProvider {
     };
   }
 
-  async onCreatePatchRequest(): Promise<Record<string, unknown>> {
-    return { success: true, patch: await this.onMergeAsPatch() };
-  }
-
-  async onCreatePullRequestRequest(): Promise<Record<string, unknown>> {
-    return this.onSendPR();
-  }
-
-  async onProviderStop(vars: ProviderInitVars): Promise<Record<string, unknown>> {
-    await this.cleanup();
-    return { success: true, environmentName: vars.environmentName };
-  }
-
-  async onCloseSignal(): Promise<void> {
-    await this.cleanup();
-  }
-
   private resolve(input: string): string {
     if (!this.environmentPath) throw new Error('AgentFS provider is not started');
     const value = input === 'root' ? '' : input;
@@ -436,6 +461,20 @@ export class AgentFsOverlayProvider {
       `--work-tree=${this.environmentPath}`,
       ...args,
     ], this.statePath);
+  }
+
+  private async withExclusiveMountAccess<T>(operation: () => Promise<T>): Promise<T> {
+    const previous = this.operationQueue;
+    let release!: () => void;
+    this.operationQueue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
   }
 
   private async removeTree(directory: string): Promise<void> {

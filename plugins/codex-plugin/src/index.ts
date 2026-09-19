@@ -137,13 +137,26 @@ const PROVIDER_ID = 'openaicodex';
 // or the server's lookup key will diverge from the registered key.
 const PROVIDER_NAME = 'OpenAI Codex';
 const CODEX_URL = 'https://chatgpt.com/backend-api/codex/responses';
-const OPENAI_MODELS_URL = 'https://api.openai.com/v1/models';
+// Model discovery endpoint. NOTE: this must be the ChatGPT backend (same host
+// as CODEX_URL), NOT api.openai.com/v1/models — the OAuth token from "Sign in
+// with ChatGPT" has no api.model.read scope and gets a 403 there. The backend
+// also requires a client_version query param; too-old versions return an
+// empty list, so keep it at a recent-looking semver.
+const CODEX_MODELS_URL =
+    'https://chatgpt.com/backend-api/codex/models?client_version=1.0.0';
 type ModelMetadata = {
     id: string;
     name: string;
     tokenLimit?: number;
     maxOutputTokens?: number;
+    supportsReasoning?: boolean;
+    reasoningWireFormat?: string;
+    reasoningOptions?: Array<Record<string, unknown>>;
 };
+
+const CODEX_REASONING_OPTIONS = [
+    { type: 'effort', values: ['minimal', 'low', 'medium', 'high'], default: 'medium' },
+];
 
 const discoveredModelMetadata = new Map<
     string,
@@ -177,6 +190,7 @@ const FALLBACK_MODELS = [
 ].map((model) => ({
     ...model,
     ...OPENAI_MODEL_METADATA[model.id],
+    ...getCodexReasoningCapability(),
 }));
 
 function notifyChat(message: string): void {
@@ -608,6 +622,11 @@ function collectAvailableTools(options: any): any[] | undefined {
     for (const item of options?.input ?? []) {
         if (item?.type === 'additional_tools' && Array.isArray(item.tools)) {
             tools.push(...item.tools);
+            continue;
+        }
+
+        if (item?.type === 'tool_search_output' && Array.isArray(item.tools)) {
+            tools.push(...item.tools);
         }
     }
 
@@ -644,6 +663,7 @@ function extractModelMetadata(model: any): { tokenLimit?: number; maxOutputToken
     return {
         tokenLimit:
             coercePositiveNumber(model?.context_window) ??
+            coercePositiveNumber(model?.max_context_window) ??
             coercePositiveNumber(model?.input_token_limit) ??
             coercePositiveNumber(model?.token_limit),
         maxOutputTokens:
@@ -654,6 +674,36 @@ function extractModelMetadata(model: any): { tokenLimit?: number; maxOutputToken
 
 function getModelMetadata(modelId: string): { tokenLimit?: number; maxOutputTokens?: number } {
     return discoveredModelMetadata.get(modelId) ?? OPENAI_MODEL_METADATA[modelId] ?? {};
+}
+
+function getCodexReasoningCapability(): Pick<
+    ModelMetadata,
+    'supportsReasoning' | 'reasoningWireFormat' | 'reasoningOptions'
+> {
+    return {
+        supportsReasoning: true,
+        reasoningWireFormat: 'openai_responses',
+        reasoningOptions: CODEX_REASONING_OPTIONS,
+    };
+}
+
+function getReasoningEffort(options: any): string | undefined {
+    const reasoning = options?.reasoning;
+    const effort =
+        typeof reasoning?.effort === 'string'
+            ? reasoning.effort
+            : typeof reasoning?.reasoningEffort === 'string'
+                ? reasoning.reasoningEffort
+                : typeof options?.reasoningEffort === 'string'
+                    ? options.reasoningEffort
+                    : undefined;
+    return effort || undefined;
+}
+
+function getCodexReasoningRequest(options: any): Record<string, unknown> | undefined {
+    const effort = getReasoningEffort(options);
+    if (!effort) return undefined;
+    return { effort };
 }
 
 function getProviderManifest(models: ModelMetadata[]) {
@@ -685,6 +735,8 @@ function buildResponsesBody(options: any): any {
     const tools = collectAvailableTools(options);
     if (tools) body.tools = tools;
     if (options?.temperature !== undefined) body.temperature = options.temperature;
+    const reasoning = getCodexReasoningRequest(options);
+    if (reasoning) body.reasoning = reasoning;
     if (options?.cache?.prompt_cache_key) {
         body.prompt_cache_key = options.cache.prompt_cache_key;
     }
@@ -1205,8 +1257,8 @@ async function getSavedCredentialsForDiscovery(): Promise<OAuthCredentials | nul
 
 async function fetchDynamicModelsWithCredentials(
     creds: OAuthCredentials
-): Promise<Array<{ id: string; name: string }>> {
-    const res = await fetch(OPENAI_MODELS_URL, {
+): Promise<ModelMetadata[]> {
+    const res = await fetch(CODEX_MODELS_URL, {
         headers: {
             Authorization: `Bearer ${creds.access_token}`,
             'chatgpt-account-id': creds.account_id,
@@ -1221,27 +1273,42 @@ async function fetchDynamicModelsWithCredentials(
     }
 
     const payload: any = await res.json();
-    const models: ModelMetadata[] = Array.isArray(payload?.data)
-        ? payload.data
-              .map((model: any) => {
-                  const id = String(model?.id ?? '').trim();
-                  if (!id) return null;
-                  const metadata = extractModelMetadata(model);
-                  discoveredModelMetadata.set(id, metadata);
-                  return {
-                      id,
-                      name: id,
-                      ...metadata,
-                  };
-              })
-              .filter(Boolean)
-        : [];
+    // Response shape: { models: [{ slug, display_name, visibility, priority, context_window, ... }] }
+    const catalogModels: any[] = Array.isArray(payload?.models) ? payload.models : [];
+
+    const models: ModelMetadata[] = catalogModels
+        .filter((model: any) => {
+            const id = String(model?.slug ?? '').trim();
+            if (!id) return false;
+            // Hidden entries (codex-auto-review, reserve slots) are not user-pickable.
+            if (model?.visibility === 'hide') return false;
+            return true;
+        })
+        .map((model: any) => {
+            const id = String(model.slug).trim();
+            const metadata = extractModelMetadata(model);
+            discoveredModelMetadata.set(id, metadata);
+            return {
+                id,
+                name: String(model?.display_name ?? id).trim() || id,
+                ...metadata,
+                ...getCodexReasoningCapability(),
+            };
+        });
 
     if (models.length === 0) {
         throw new Error('Model discovery returned no models');
     }
 
-    models.sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id));
+    // priority: lower number = listed first by the Codex UI.
+    models.sort(
+        (a: ModelMetadata & { priority?: number }, b: ModelMetadata & { priority?: number }) => {
+            const pa = typeof a.priority === 'number' ? a.priority : Number.MAX_SAFE_INTEGER;
+            const pb = typeof b.priority === 'number' ? b.priority : Number.MAX_SAFE_INTEGER;
+            if (pa !== pb) return pa - pb;
+            return a.id.localeCompare(b.id);
+        }
+    );
     return models;
 }
 
@@ -1385,6 +1452,73 @@ async function callCodex(
     }
 }
 
+const DEFAULT_CODEX_MAX_RETRIES = 2;
+const CODEX_RETRY_BASE_DELAY_MS = 1000;
+
+function isRetryableCodexTransportError(error: unknown): boolean {
+    const message = String((error as any)?.message || error).toLowerCase();
+    return /terminated|timed? out|timeout|fetch failed|network|socket|connection|reset|502|503|504/.test(message);
+}
+
+function sleepForCodexRetry(delayMs: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+            reject(new Error('Request was aborted'));
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            signal?.removeEventListener('abort', onAbort);
+            resolve();
+        }, delayMs);
+        const onAbort = () => {
+            clearTimeout(timeout);
+            reject(new Error('Request was aborted'));
+        };
+        signal?.addEventListener('abort', onAbort, { once: true });
+    });
+}
+
+async function callCodexWithRetry(
+    options: any,
+    onChunk: ((chunk: any) => void) | null,
+    requestId: string,
+): Promise<any> {
+    const maxRetries = Number.isInteger(options?.maxRetries)
+        ? Math.max(0, options.maxRetries)
+        : DEFAULT_CODEX_MAX_RETRIES;
+    let hasEmittedOutput = false;
+
+    const emitChunk = (chunk: any): void => {
+        hasEmittedOutput = true;
+        onChunk?.(chunk);
+    };
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await callCodex(options, emitChunk, requestId);
+        } catch (error) {
+            const canRetry =
+                attempt < maxRetries &&
+                !hasEmittedOutput &&
+                !options?.signal?.aborted &&
+                isRetryableCodexTransportError(error);
+
+            if (!canRetry) throw error;
+
+            const delayMs = CODEX_RETRY_BASE_DELAY_MS * 2 ** attempt;
+            console.warn(
+                `[CodexPlugin] transient stream failure; retrying request ${requestId} ` +
+                    `(attempt ${attempt + 1}/${maxRetries}, delay=${delayMs}ms): ` +
+                    `${(error as any)?.message || error}`
+            );
+            await sleepForCodexRetry(delayMs, options?.signal);
+        }
+    }
+
+    throw new Error(`Codex request failed after ${maxRetries + 1} attempts`);
+}
+
 // =============================================================================
 // Plugin lifecycle
 // =============================================================================
@@ -1412,7 +1546,7 @@ plugin.onStart(async (ctx: any) => {
             `[CodexPlugin] completionRequest ${req.requestId} model=${req.options?.model}`
         );
         try {
-            const response = await callCodex(req.options, null, req.requestId);
+            const response = await callCodexWithRetry(req.options, null, req.requestId);
             llmProvider.sendReply(req.requestId, response, true);
         } catch (error: any) {
             console.error('[CodexPlugin] completion error:', error?.message || error);
@@ -1462,7 +1596,7 @@ plugin.onStart(async (ctx: any) => {
             `[CodexPlugin] streamRequest ${req.requestId} model=${req.options?.model}`
         );
         try {
-            const finalResponse = await callCodex(
+            const finalResponse = await callCodexWithRetry(
                 req.options,
                 (chunk) => {
                     llmProvider.sendChunk(req.requestId, chunk);
