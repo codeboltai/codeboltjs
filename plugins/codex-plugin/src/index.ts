@@ -501,7 +501,11 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
         }
 
         if (item.type === 'tool_search_output') {
-            const responseTools = toResponsesTools(item.tools) ?? [];
+            const responseTools = (toResponsesTools(item.tools) ?? []).map((tool) => ({
+                ...tool,
+                // Codex requires top-level tools loaded by search to be deferred.
+                defer_loading: true,
+            }));
             input.push({
                 type: 'tool_search_output',
                 execution: item.execution || 'client',
