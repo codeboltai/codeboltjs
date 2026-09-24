@@ -47,10 +47,15 @@ POST /__codebolt/tools/<appId>.<toolName>
 POST /__codebolt/apps/<appId>/reload
 ```
 
-Use relative API paths in UI code:
+Resolve API paths against the page URL in UI code. A leading slash such as
+`/api/leads` is host-absolute: under the CodeBolt app it escapes the
+`/miniapps/<id>/` mount and returns the host HTML fallback. Use:
 
 ```js
-await fetch("/api/leads");
+const apiBase = location.pathname.endsWith("/")
+  ? location.pathname
+  : `${location.pathname}/`;
+await fetch(`${apiBase}api/leads`);
 ```
 
 Do not hardcode a local host URL inside the MiniApp.
@@ -78,6 +83,21 @@ miniapp.reload
 miniapp.howToCreate
 miniapp.createStarter
 ```
+
+Common failure modes:
+
+```text
+503 MINIAPP_UNHEALTHY              crash breaker open; POST /api/miniapps/:id/reload
+HTML where JSON was expected       UI used a host-absolute path; make it
+                                   document-relative (see above)
+500 only on body-bearing requests  runtime-global assumptions in the handler
+                                   (for example bare crypto); see SKILL.md
+                                   Runtime Portability
+```
+
+A reload resets the crash counter; if the app returns to 503 immediately, the
+handler is crashing on request dispatch — inspect handler code for
+runtime-specific globals or imports rather than retrying.
 
 Local MiniApp tools are exposed through the server tool registry with ids:
 

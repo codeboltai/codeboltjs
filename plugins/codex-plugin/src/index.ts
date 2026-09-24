@@ -501,17 +501,24 @@ function toResponsesInputFromOptions(options: any): { instructions: string; inpu
         }
 
         if (item.type === 'tool_search_output') {
-            const responseTools = (toResponsesTools(item.tools) ?? []).map((tool) => ({
-                ...tool,
-                // Codex requires top-level tools loaded by search to be deferred.
-                defer_loading: true,
-            }));
+            const callId = item.call_id || item.id;
+            const outputPayload = stringifyValue(toToolSearchOutputPayload(item));
+
+            if (!seenFunctionCallIds.has(callId)) {
+                input.push({
+                    role: 'user',
+                    content: [{
+                        type: 'input_text',
+                        text: `Tool search result for ${callId}:\n${outputPayload}`,
+                    }],
+                });
+                continue;
+            }
+
             input.push({
-                type: 'tool_search_output',
-                execution: item.execution || 'client',
-                call_id: item.call_id || item.id,
-                status: item.status || 'completed',
-                tools: responseTools,
+                type: 'function_call_output',
+                call_id: callId,
+                output: outputPayload,
             });
             continue;
         }
