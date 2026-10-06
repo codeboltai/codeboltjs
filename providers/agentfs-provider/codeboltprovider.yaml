@@ -1,6 +1,6 @@
 name: agentfs-provider
 unique_id: agentfs-provider
-version: 1.4.0
+version: 1.4.2
 description: Mounted AgentFS copy-on-write overlay provider for CodeBolt
 type: provider
 entrypoint: dist/index.js

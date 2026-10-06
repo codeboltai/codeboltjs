@@ -1,5 +1,5 @@
 {
-  "name": "@codebolt/git-worktree-production",
+  "name": "@codebolt/worktree",
   "version": "1.0.9",
   "description": "Production-ready Git Worktree Provider for CodeBolt",
   "main": "dist/index.js",
