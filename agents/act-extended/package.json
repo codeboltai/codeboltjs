@@ -22,9 +22,9 @@
   "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.26.0",
-    "@codebolt/agent": "6.1.27",
+    "@codebolt/agent": "file:../../../CodeBolt/sdks/agent",
     "@codebolt/thirdpartyagents": "latest",
-    "@codebolt/codeboltjs": "5.1.50",
+    "@codebolt/codeboltjs": "file:../../../CodeBolt/sdks/codeboltjs",
     "@codebolt/types": "5.1.14",
     "copy-webpack-plugin": "^12.0.2",
     "node-loader": "^2.1.0",

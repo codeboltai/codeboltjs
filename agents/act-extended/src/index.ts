@@ -2,6 +2,8 @@ import codebolt from '@codebolt/codeboltjs';
 import { createAgent } from '@codebolt/agent/unified';
 import type { FlatUserMessage } from '@codebolt/types/sdk';
 import type { MessageModifier, ProcessedMessage } from '@codebolt/types/agent';
+import fs from 'fs';
+import path from 'path';
 
 let systemPrompt = `
 
@@ -358,8 +360,8 @@ class AdditionalVariableModifier implements MessageModifier {
       ...createdMessage,
       message: {
         ...createdMessage.message,
-        messages: [
-          ...createdMessage.message.messages,
+        input: [
+          ...(Array.isArray(createdMessage.message.input) ? createdMessage.message.input : []),
           {
             role: 'system',
             content: `Additional variables:\n${value}`,
@@ -371,13 +373,35 @@ class AdditionalVariableModifier implements MessageModifier {
 }
 
 codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+  const agentRequest: FlatUserMessage = {
+    ...reqMessage,
+    mentionedMCPs: Array.from(new Set([
+      ...(reqMessage.mentionedMCPs ?? []),
+      'job',
+      'swarm',
+      ...(additionalVariable?.swarmId ? ['agentDeliberation'] : []),
+    ])),
+  };
+  console.log(JSON.stringify(additionalVariable))
+
+  let activeSystemPrompt = systemPrompt;
+  if (additionalVariable?.swarmId) {
+    const bundledSkillPath = path.join(__dirname, 'skills/swarm-worker/SKILL.md');
+    const sourceSkillPath = path.resolve(__dirname, '../skills/swarm-worker/SKILL.md');
+    const skillPath = fs.existsSync(bundledSkillPath) ? bundledSkillPath : sourceSkillPath;
+    const swarmSkill = fs.readFileSync(skillPath, 'utf8')
+      .replace(/^---\s*[\s\S]*?---\s*/, '')
+      .trim();
+    activeSystemPrompt = `${systemPrompt}\n\n${swarmSkill}`;
+  }
+
   const agent = createAgent({
-    systemPrompt,
+    systemPrompt: activeSystemPrompt,
     enableLogging: true,
     messageModifiers: [new AdditionalVariableModifier(additionalVariable)],
   });
 
-  const result = await agent.run(reqMessage);
+  const result = await agent.run(agentRequest);
   const response = result.success ? result.finalMessage || '' : result.error || 'Agent execution failed.';
   return response;
 });

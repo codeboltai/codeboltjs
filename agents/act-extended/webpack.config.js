@@ -16,6 +16,7 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'codeboltagent.yaml', to: './' }, // Copy codeboltagent.yaml to the dist folder
+        { from: 'skills/swarm-worker/SKILL.md', to: './skills/swarm-worker/SKILL.md' },
       ],
     }),
     new webpack.ProvidePlugin({
