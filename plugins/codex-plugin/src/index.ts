@@ -155,7 +155,7 @@ type ModelMetadata = {
 };
 
 const CODEX_REASONING_OPTIONS = [
-    { type: 'effort', values: ['minimal', 'low', 'medium', 'high'], default: 'medium' },
+    { type: 'effort', values: ['low', 'medium', 'high'], default: 'medium' },
 ];
 
 const discoveredModelMetadata = new Map<
@@ -687,14 +687,27 @@ function getModelMetadata(modelId: string): { tokenLimit?: number; maxOutputToke
     return discoveredModelMetadata.get(modelId) ?? OPENAI_MODEL_METADATA[modelId] ?? {};
 }
 
-function getCodexReasoningCapability(): Pick<
+function getCodexReasoningCapability(model?: any): Pick<
     ModelMetadata,
     'supportsReasoning' | 'reasoningWireFormat' | 'reasoningOptions'
 > {
+    // The catalog reports capabilities per model. Advertising `minimal` for
+    // every model causes internal compaction requests to fail on newer models.
+    const levels: unknown[] = Array.isArray(model?.supported_reasoning_levels)
+        ? model.supported_reasoning_levels : [];
+    const values = [...new Set(levels.map((level: any) =>
+        typeof level === 'string' ? level : level?.effort,
+    ).filter((effort: unknown): effort is string =>
+        typeof effort === 'string' && effort.trim().length > 0,
+    ))];
+    const defaultEffort = values.includes(model?.default_reasoning_level)
+        ? model.default_reasoning_level : values.includes('medium') ? 'medium' : values[0];
     return {
         supportsReasoning: true,
         reasoningWireFormat: 'openai_responses',
-        reasoningOptions: CODEX_REASONING_OPTIONS,
+        reasoningOptions: values.length
+            ? [{ type: 'effort', values, default: defaultEffort }]
+            : CODEX_REASONING_OPTIONS,
     };
 }
 
@@ -1303,7 +1316,7 @@ async function fetchDynamicModelsWithCredentials(
                 id,
                 name: String(model?.display_name ?? id).trim() || id,
                 ...metadata,
-                ...getCodexReasoningCapability(),
+                ...getCodexReasoningCapability(model),
             };
         });
 
