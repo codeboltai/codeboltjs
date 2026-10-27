@@ -186,6 +186,69 @@ for MCP, plugin, project-local, and cloud connector tools.
 
 ## Cloud Publishing
 
+CodeBolt supports two independent cloud deployment modes. The existing
+`miniapp deploy` command remains the dedicated deployment path. The new
+`miniapp bundle` commands package Cloudflare-compatible output into one
+portable `.miniapp` archive and run it inside the shared MiniApp Server.
+
+```text
+Dedicated deployment (platformworker)
+  CodeBolt CLI -> deploy provider -> one separately deployed Worker/app
+
+Shared bundle runtime (miniappbundle)
+  CodeBolt CLI -> Edge API -> .miniapp package store
+    -> one isolated MiniApp Server instance per installation
+    -> MiniApp Router is the public URL
+```
+
+### Shared `.miniapp` Bundle
+
+Build an archive without uploading it:
+
+```powershell
+codebolt action miniapp bundle build <miniapp-root>
+```
+
+This selects the Nitro `cloudflare-module` target, preserves its complete ESM
+module graph and public assets, writes a deterministic archive under `dist/`,
+and verifies every stored checksum. To package an existing
+`.output-cloudflare` directory, add `--no-build`.
+
+Build, upload, and register the bundle in one command:
+
+```powershell
+codebolt action miniapp bundle deploy <miniapp-root> `
+  --token $env:CODEBOLT_AUTH_TOKEN `
+  --install-policy anyone `
+  --default-access private
+```
+
+The Edge API uploads the archive to the shared MiniApp Server, records a
+`miniappbundle` deployment in the same catalog used by dedicated deployments,
+and exposes its tools. Installation creates or updates the matching isolated
+runtime instance; uninstall removes that instance. The browser continues to
+open the MiniApp Router URL, not the MiniApp Server management endpoint.
+
+Bundle-specific options:
+
+```text
+--output <file>          destination .miniapp archive
+--no-build               package existing .output-cloudflare
+--cloud-url <url>        default: https://api.codebolt.ai
+--token <token>          or CODEBOLT_AUTH_TOKEN / CODEBOLT_CLOUD_AUTH_TOKEN
+--install-policy <mode>  developer_only | anyone | unlisted
+--default-access <mode>  private | authenticated | public
+--developer-name <name>  catalog publisher display name
+--json                    print raw build or deployment JSON
+```
+
+The shared runtime injects the request-scoped `useMiniApp(event)` context,
+including install/workspace identity, database and blob storage, assets, and
+CodeBolt task operations. App bundles contain app logic only; they do not
+contain a Durable Object class or MiniApp Server management logic.
+
+### Dedicated Provider Deployment
+
 Cloud publishing is routed through CodeBolt Cloud. The user CLI does not need
 provider credentials for Deno, Vercel, or Netlify. Those secrets live on the
 admin-managed provider worker.
@@ -201,10 +264,10 @@ CodeBolt CLI
               -> Portal shows catalog entries
 ```
 
-Publish with the CodeBolt CLI:
+Publish a dedicated deployment with the CodeBolt CLI:
 
 ```powershell
-codebolt miniapp deploy <miniapp-root> `
+codebolt action miniapp deploy <miniapp-root> `
   --token $env:CODEBOLT_AUTH_TOKEN `
   --platform deno-subhosting `
   --install-policy anyone `
@@ -232,6 +295,7 @@ GET  /api/miniapps/registry
 GET  /api/miniapps/my
 GET  /api/miniapps/registry/:appId
 POST /api/miniapps/deployments
+POST /api/miniapps/bundle-deployments
 GET  /api/miniapps/installs
 POST /api/miniapps/apps/:appId/install
 POST /api/miniapps/installs/:installId/tools/:toolName/execute
@@ -292,7 +356,8 @@ Agents tab
 
 Typical user flow:
 
-1. Publish a MiniApp with `codebolt miniapp deploy`.
+1. Publish a MiniApp with `codebolt action miniapp deploy` or
+   `codebolt action miniapp bundle deploy`.
 2. Open Portal -> Registry -> MiniApps -> All MiniApps.
 3. Install the MiniApp.
 4. Open Portal -> Agents -> Installed MiniApps.
@@ -316,8 +381,11 @@ Cloud tool ids are shaped like:
 miniapp.cloud.<installId>.<toolName>
 ```
 
-The cloud execution endpoint creates a short-lived execution token for the
-installed MiniApp and forwards the call to the deployed runtime/capability URL.
+For a dedicated deployment, the cloud execution endpoint creates a short-lived
+execution token and forwards the call to its runtime/capability URL. For a
+bundle deployment, Edge calls the installed MiniApp Server instance through the
+server's internal authenticated route. In both cases the handler receives the
+same verified identity:
 The MiniApp receives verified identity:
 
 ```text
@@ -363,4 +431,3 @@ Before publishing:
 - Cloudflare-bound code avoids filesystem, process APIs, `eval`, `new Function`,
   and request-time Ajv compilation.
 - `pnpm test` or the project-specific build/test commands pass.
-

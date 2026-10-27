@@ -106,6 +106,48 @@ const runtimeSymbol = Symbol.for("codebolt.miniapp.runtime");
 interface MiniAppEvent {
   req: {
     headers: Headers;
+    runtime?: {
+      cloudflare?: {
+        env?: {
+          CODEBOLT_MINIAPP_RUNTIME?: NativeMiniAppRuntime;
+        };
+      };
+    };
+  };
+}
+
+interface NativeMiniAppRuntime {
+  instance: {
+    miniAppId: string;
+    instanceId: string;
+    scopeId: string;
+  };
+  principal?: Principal;
+  db: DocumentStore;
+  blob: BlobStore;
+  codebolt?: { tasks?: TaskService };
+}
+
+function nativeContext(event?: MiniAppEvent): MiniAppContext | null {
+  const runtime = event?.req.runtime?.cloudflare?.env?.CODEBOLT_MINIAPP_RUNTIME;
+  if (!runtime) return null;
+  const unavailable = async () => {
+    throw new Error("MINIAPP_TASK_SERVICE_UNAVAILABLE");
+  };
+  return {
+    miniAppId: runtime.instance.miniAppId,
+    installId: runtime.instance.instanceId,
+    workspaceId: runtime.instance.scopeId,
+    principal: runtime.principal ?? { userId: "miniapp-runtime", roles: [] },
+    db: runtime.db,
+    blob: runtime.blob,
+    codebolt: {
+      tasks: runtime.codebolt?.tasks ?? {
+        create: unavailable,
+        list: unavailable,
+        count: unavailable,
+      },
+    },
   };
 }
 
@@ -180,6 +222,8 @@ function getBridge(event?: MiniAppEvent): RuntimeBridge {
 }
 
 export function useMiniApp(event?: MiniAppEvent): MiniAppContext {
+  const native = nativeContext(event);
+  if (native) return native;
   const bridge = getBridge(event);
   const identity = bridge.getContext();
   return {

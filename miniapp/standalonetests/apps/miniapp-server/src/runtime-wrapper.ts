@@ -20,6 +20,7 @@ export class MiniAppFacet extends DurableObject {
     });
     const runtime = Object.freeze({
       instance: Object.freeze(this.env.INSTANCE),
+      principal: Object.freeze({ userId: "miniapp-runtime", roles: [] }),
       db,
       blob: Object.freeze({
         get: (key) => this.env.STORAGE.blobGet(key),
@@ -28,6 +29,22 @@ export class MiniAppFacet extends DurableObject {
         list: (options = {}) => this.env.STORAGE.blobList(options),
       }),
       assets: this.env.ASSETS,
+      codebolt: Object.freeze({
+        tasks: Object.freeze({
+          create: async (input) => {
+            const id = "task-" + crypto.randomUUID();
+            return db.set("__codebolt_tasks", id, { ...input, status: "open", createdAt: new Date().toISOString() });
+          },
+          list: async (filter = {}) => {
+            const tasks = (await db.list("__codebolt_tasks")).documents;
+            return tasks.filter((task) => (!filter.entityType || task.entityType === filter.entityType) && (!filter.entityId || task.entityId === filter.entityId));
+          },
+          count: async (filter = {}) => {
+            const tasks = (await db.list("__codebolt_tasks")).documents;
+            return tasks.filter((task) => (!filter.entityType || task.entityType === filter.entityType) && (!filter.entityId || task.entityId === filter.entityId)).length;
+          },
+        }),
+      }),
       storage: Object.freeze({
         get: db.get,
         set: db.set,

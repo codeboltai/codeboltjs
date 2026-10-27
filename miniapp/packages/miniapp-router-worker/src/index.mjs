@@ -709,6 +709,7 @@ function normalizeApp(app, appId) {
     ...app,
     id: app.id ?? appId,
     title: app.title ?? app.name ?? app.id ?? appId,
+    developerUserId: app.developerUserId ?? app.ownerUserId,
     installPolicy: app.installPolicy ?? "developer_only",
     defaultAccess: app.defaultAccess ?? "private",
     type: normalizeRoutingType(app.type ?? deployment.type ?? deploymentMetadata.type),

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starter MiniApp</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { max-width: 44rem; margin: 4rem auto; padding: 0 1rem; }
+      form { display: flex; gap: .5rem; }
+      input { flex: 1; padding: .7rem; }
+      button { padding: .7rem 1rem; }
+      li { margin: .7rem 0; }
+      #status { min-height: 1.5rem; opacity: .75; }
+    </style>
+  </head>
+  <body>
+    <h1>Starter MiniApp</h1>
+    <p>One UI, one relative API, and one agent-callable tool.</p>
+    <form id="item-form">
+      <input id="title" name="title" placeholder="Add an item" required />
+      <button type="submit">Add</button>
+    </form>
+    <p id="status" role="status"></p>
+    <ul id="items"></ul>
+    <script type="module">
+      const form = document.querySelector("#item-form");
+      const title = document.querySelector("#title");
+      const status = document.querySelector("#status");
+      const list = document.querySelector("#items");
+
+      async function request(url, options) {
+        const response = await fetch(url, options);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || `Request failed: ${response.status}`);
+        return payload;
+      }
+
+      async function refresh() {
+        const result = await request("/api/items");
+        list.replaceChildren(...result.documents.map((item) => {
+          const row = document.createElement("li");
+          row.textContent = item.title;
+          return row;
+        }));
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Saving…";
+        try {
+          await request("/api/items", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ title: title.value }),
+          });
+          form.reset();
+          await refresh();
+          status.textContent = "Saved.";
+        } catch (error) {
+          status.textContent = error instanceof Error ? error.message : String(error);
+        }
+      });
+
+      refresh().catch((error) => {
+        status.textContent = error instanceof Error ? error.message : String(error);
+      });
+    </script>
+  </body>
+</html>

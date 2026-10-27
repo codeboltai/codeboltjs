@@ -2,6 +2,20 @@
 
 This is a compact Nitro reference for agents creating CodeBolt MiniApps.
 
+## Contents
+
+- [Official References](#official-references)
+- [Division Of Responsibility](#division-of-responsibility)
+- [Minimal Config](#minimal-config)
+- [File-Based Routes](#file-based-routes)
+- [Handlers](#handlers)
+- [Public Assets](#public-assets)
+- [Build Targets](#build-targets)
+- [Cloudflare Compatibility](#cloudflare-compatibility)
+- [Route Ownership](#route-ownership)
+
+## Official References
+
 Official references:
 
 - Nitro docs: https://nitro.build/
@@ -114,7 +128,7 @@ Nitro includes public assets in output. In local CodeBolt hosting, the CodeBolt
 host should serve those files directly so loading the UI does not start a
 MiniApp backend worker.
 
-## Useful Presets
+## Build Targets
 
 MiniApps normally care about:
 
@@ -148,11 +162,12 @@ Cloudflare Workers are not Node servers. Avoid:
 - direct filesystem access
 - direct process access
 - Node-only libraries in routes intended for Cloudflare
+- Node HTTP servers such as Express or Fastify inside the MiniApp
 
 For MiniApps, compile tool validators at build time and use the SDK capability
 bridge for storage, blobs, tasks, and platform calls.
 
-## Route Ownership Reminder
+## Route Ownership
 
 The MiniApp UI entry is not a Nitro route declaration. It is platform metadata
 from `codeboltMiniApp({ title, route })`.

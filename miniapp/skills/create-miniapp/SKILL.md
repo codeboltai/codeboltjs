@@ -1,28 +1,18 @@
 ---
 name: create-miniapp
-description: Create production-ready CodeBolt MiniApps with frontend UI, Nitro backend routes, CodeBolt tools, collections, host-owned capabilities, and local or remote deployment targets. Use when an agent must scaffold, extend, debug, or validate a MiniApp using @codebolt/miniapp, Nitro, Node deployment, or Cloudflare Workers.
+description: Create, scaffold, extend, debug, validate, package, and publish production CodeBolt MiniApps using @codebolt/miniapp and Nitro. Use for MiniApp UI and API development, CodeBolt tools and collections, db/blob/task capabilities, local CodeBolt hosting, dedicated cloud deployment, Cloudflare-native .miniapp bundles, catalog installation, or migration of an existing web app into a MiniApp.
 ---
 
 # Create CodeBolt MiniApps
 
-Use this skill to create or extend a CodeBolt MiniApp in any project that
-contains, depends on, or wants to adopt the MiniApp SDK.
+Build a MiniApp as a portable full-stack application. Keep app logic inside the
+bundle and platform lifecycle, identity, isolation, routing, and storage inside
+CodeBolt.
 
-A MiniApp is a small full-stack app that can:
+## Start With Discovery
 
-- serve a frontend UI
-- expose Nitro API routes
-- declare CodeBolt tools
-- declare storage collections
-- declare one platform-visible UI entry
-- use host-owned capabilities such as `db`, `blob`, and `codebolt.tasks`
-- run locally inside the CodeBolt host or remotely as Node/Cloudflare output
-
-## Discover The Project
-
-Do not assume a fixed repository layout. Inspect the current project first.
-
-Use fast file discovery:
+Inspect the target project before editing. Do not assume this prototype's paths,
+package manager, framework, or scripts.
 
 ```powershell
 rg --files
@@ -30,34 +20,42 @@ rg --files
 
 Identify:
 
-- the package manager and root package file
-- whether `@codebolt/miniapp` is already installed or workspace-local
-- where MiniApps or examples live
-- whether the project has a `.codebolt/` directory
-- where Nitro config files live
-- whether the project uses TypeScript, plain JavaScript, React, Vue, or static UI
-- which build and validation commands already exist
+- the requested app directory and existing project conventions
+- the package manager from lockfiles and `packageManager`
+- the installed `@codebolt/miniapp` and `nitro` versions
+- existing `nitro.config.*`, `server/`, `public/`, and frontend directories
+- local build, test, lint, typecheck, and host commands
+- whether the user wants local-only, dedicated cloud, or shared bundle runtime
+- whether an existing MiniApp id or stored data must remain compatible
 
-Prefer existing project conventions over the examples in this skill.
+Read [project-discovery.md](references/project-discovery.md) when adopting an
+existing project, choosing a directory, or resolving package-manager/build
+conventions.
 
-## Choose The MiniApp Directory
+## Choose The Deployment Shape Early
 
-When creating a new MiniApp, first decide its target directory:
+Use one source tree for all targets through `resolveTarget()`.
 
-- If the user gives an explicit path, use that path.
-- If extending an existing MiniApp, keep its current directory.
-- If the project root contains a `.codebolt/` directory, treat it as a CodeBolt
-  project and create the MiniApp under `.codebolt/miniapps/<miniappName>`.
-- Create `.codebolt/miniapps/` when needed.
-- Otherwise, follow the project's existing MiniApp convention or create a
-  top-level `<miniappName>/` directory.
+| Need | Target | Command |
+|---|---|---|
+| CodeBolt local host | local Nitro `standard` output | project build |
+| Separate provider deployment | `platformworker` | `codebolt action miniapp deploy` |
+| Shared Cloudflare-native runtime | `miniappbundle` | `codebolt action miniapp bundle deploy` |
 
-Use the same stable, hostname-safe MiniApp id for `<miniappName>` unless the
-project clearly separates package directory names from platform ids.
+Prefer `miniappbundle` when the app should run in CodeBolt's shared Cloudflare
+architecture without deploying a separate Worker. Use a dedicated deployment
+only when separate provider ownership or provider-specific behavior is required.
 
-## MiniApp Shape
+Read [local-cloud-publish.md](references/local-cloud-publish.md) before running
+or changing any cloud command.
 
-A conventional MiniApp layout is:
+## Scaffold Or Reuse The App
+
+For a new app, copy `assets/starter-miniapp/` into the selected directory, then
+rename all `starter-miniapp` identity values. Do not blindly replace an existing
+project with the starter.
+
+The conventional shape is:
 
 ```text
 <miniapp>/
@@ -71,44 +69,19 @@ A conventional MiniApp layout is:
     collections/
 ```
 
-This layout is a convention, not a requirement. If the project has a different
-MiniApp convention, follow it.
+Use a stable lowercase hostname-safe id matching `[a-z0-9-]+`. Treat it as a
+persistent platform identifier, not a display name. Changing it creates a new
+catalog/storage identity.
 
-Use stable MiniApp ids that are lowercase and hostname-safe:
+Install current packages using the detected package manager:
 
-```text
-customer-intake
-issue-board
-employee-onboarding
+```powershell
+npm install @codebolt/miniapp nitro
 ```
-
-Avoid spaces, uppercase letters, and punctuation outside `[a-z0-9-]`.
-
-## Nitro Reference
-
-Read `references/nitro-basics.md` when creating or debugging:
-
-- `nitro.config.ts`
-- `server/api` routes
-- `server/routes` routes
-- public assets
-- Node output
-- Cloudflare Worker output
-
-Keep Nitro responsible for HTTP routing and deployment output. Keep CodeBolt
-responsible for MiniApp discovery, tools, manifests, and platform capabilities.
-
-Read `references/local-cloud-publish.md` when the task involves:
-
-- running MiniApps in the local host or CodeBolt app
-- publishing MiniApps through CodeBolt Cloud
-- portal catalog/install behavior
-- exposing local or cloud MiniApp tools to agents
-- explaining install policy versus per-install access
 
 ## Configure Nitro
 
-Use `@codebolt/miniapp/nitro` only from `nitro.config.ts`:
+Use the Nitro adapter only from `nitro.config.ts`:
 
 ```ts
 import { defineConfig } from "nitro";
@@ -123,36 +96,33 @@ export default defineConfig({
       id: "customer-intake",
       title: "Customer Intake",
       version: "0.1.0",
+      description: "Collect and manage customer intake records.",
       route: "/",
+      installPolicy: "developer_only",
+      defaultAccess: "private",
     }),
   ],
 });
 ```
 
-Guidelines:
+Keep `defineConfig`, `serverDir`, and `modules` visible so applications can add
+their own Nitro modules and settings. Do not duplicate target-selection policy;
+compose `resolveTarget()`.
 
-- `id` is the stable platform id.
-- `title` is the user-visible name.
-- `version` should change when behavior or manifest semantics change.
-- `route` is the UI entry route, defaulting to `/` when omitted.
-- `resolveTarget()` lets the same source build for local, Node, and Cloudflare.
-- Do not import `@codebolt/miniapp/nitro` from runtime code.
+Read [nitro-basics.md](references/nitro-basics.md) for routing, handlers, assets,
+presets, and Cloudflare restrictions.
 
-## Use The SDK
+## Implement The Runtime Contract
 
-Use the root SDK export from tools, collections, and API routes:
+Import runtime helpers from the root package:
 
 ```ts
-import {
-  defineTool,
-  defineCollection,
-  useMiniApp,
-} from "@codebolt/miniapp";
+import { defineCollection, defineTool, useMiniApp } from "@codebolt/miniapp";
 ```
 
-Runtime context exposes:
+Use the request-scoped context for all platform-owned state:
 
-```ts
+```text
 context.miniAppId
 context.installId
 context.workspaceId
@@ -162,206 +132,90 @@ context.blob
 context.codebolt.tasks
 ```
 
-Never let MiniApp input override workspace, install, MiniApp, or user identity.
-Those values come from the verified platform execution context.
+Pass the Nitro event to `useMiniApp(event)` in API routes. Tool handlers receive
+the context directly.
 
-## Define Tools
+Never accept `miniAppId`, `installId`, `workspaceId`, or `principal.userId` from
+request or tool input. The platform verifies and injects identity.
 
-Place tool files under the project's MiniApp tool directory, usually
-`server/tools`.
+Read [authoring-contract.md](references/authoring-contract.md) before adding
+tools, collections, API routes, blobs, tasks, pagination, or a frontend.
 
-```ts
-import { defineTool } from "@codebolt/miniapp";
+## Keep Browser And Tool Surfaces Separate
 
-export default defineTool({
-  name: "add-customer",
-  description: "Add a customer intake record.",
-  inputSchema: {
-    type: "object",
-    additionalProperties: false,
-    required: ["id", "name"],
-    properties: {
-      id: { type: "string", minLength: 1 },
-      name: { type: "string", minLength: 1 },
-      email: { type: "string" },
-    },
-  },
-  async handler(context, input) {
-    return context.db.set("customers", input.id, input);
-  },
-});
-```
-
-Tool rules:
-
-- Use JSON Schema for input.
-- Keep tool names unique within one MiniApp.
-- Expect global tool names to be `<miniAppId>.<toolName>`.
-- Invalid input must fail before handler logic runs.
-- Prefer coarse operations over chatty loops.
-- Use `db.getMany`, `db.setMany`, filtered `db.list`, and task `count` APIs.
-- Do not call direct platform APIs from tools; use `context.db`,
-  `context.blob`, and `context.codebolt.tasks`.
-
-Cloudflare rule: do not compile JSON Schema at request time. Cloudflare Workers
-reject string-based code generation, including runtime Ajv compilation.
-
-## Define Collections
-
-Declare collection metadata under the MiniApp collection directory, usually
-`server/collections`.
-
-```ts
-import { defineCollection } from "@codebolt/miniapp";
-
-export default defineCollection({
-  name: "customers",
-  schema: {
-    type: "object",
-    required: ["id", "name"],
-    properties: {
-      id: { type: "string" },
-      name: { type: "string" },
-      email: { type: "string" },
-    },
-  },
-});
-```
-
-Collections describe manifest metadata and expected document shape. Storage
-implementation and namespace enforcement belong to the platform.
-
-## Add API Routes
-
-Use Nitro API routes for frontend/backend calls.
-
-```ts
-import { defineHandler } from "nitro/h3";
-import { useMiniApp } from "@codebolt/miniapp";
-
-export default defineHandler((event) => {
-  return useMiniApp(event).db.list("customers", { limit: 50 });
-});
-```
-
-API rules:
-
-- Browser code should call relative paths such as `/api/customers`.
-- Use `useMiniApp(event)` so local and remote runtimes share the same code.
-- Do not create a separate Express/Fastify server for a MiniApp.
-- Keep platform access behind MiniApp capabilities.
-- Avoid N+1 capability calls in list screens.
-
-## Build The Frontend
-
-For simple MiniApps, static files in `public/` are enough.
-
-For richer MiniApps, follow the project's existing frontend framework. The key
-contract is that frontend code calls relative MiniApp APIs, not hardcoded local
-ports or hostnames.
-
-Good:
+Use MiniApp-owned API routes for browser interactions:
 
 ```js
 await fetch("/api/customers");
 ```
 
-Avoid:
+Use `server/tools` for agent-callable operations. Do not make UI code call
+`/__codebolt/tools/*`; that is a platform/control-plane surface.
 
-```js
-await fetch("http://localhost:4310/api/customers");
-```
+Use relative URLs. Never bake localhost, a deployment hostname, the MiniApp
+Server management URL, or a router hostname into app code.
 
-## Local Runtime Expectations
+## Build In Small Verified Slices
 
-In local CodeBolt hosting:
+Implement in this order:
 
-- one host process owns the port
-- static assets should not start workers
-- tool and UI discovery should use cached manifests
-- backend/tool requests lazily start the owning MiniApp worker
-- worker crashes should not kill sibling MiniApps
-- host-owned capabilities enforce namespace isolation
+1. Configure identity, policies, and the `/` UI entry.
+2. Define collection schemas.
+3. Add API routes using `useMiniApp(event)`.
+4. Add agent tools using the same storage operations.
+5. Build the UI against relative APIs.
+6. Build and inspect the emitted manifest.
+7. Exercise valid and invalid API/tool inputs.
+8. Validate the Cloudflare target when bundle deployment is intended.
 
-Do not add per-MiniApp hidden dev servers unless the user explicitly asks for
-that separate development mode.
-
-For exact local host routes, CodeBolt app routes, and local tool id shapes, read
-`references/local-cloud-publish.md`.
-
-## Remote Runtime Expectations
-
-In remote deployment:
-
-- each MiniApp can deploy independently
-- Node output runs as a normal Nitro Node server
-- Cloudflare output runs as a Cloudflare Worker
-- storage/blob/tasks calls go to CodeBolt Cloud capability APIs
-- the execution token carries user/workspace/install/MiniApp identity
-
-Remote code should not care whether it is running in Node or Cloudflare. The SDK
-should hide environment and capability transport differences.
-
-For cloud publishing, portal install flow, provider platforms, and cloud tool id
-shapes, read `references/local-cloud-publish.md`.
-
-## Validation
-
-Use the current project's scripts. Prefer existing commands over inventing new
-ones.
-
-Typical checks:
+Use `scripts/validate-miniapp.mjs` after source changes:
 
 ```powershell
-pnpm build
-pnpm test
+node <skill-dir>/scripts/validate-miniapp.mjs <miniapp-root>
+node <skill-dir>/scripts/validate-miniapp.mjs <miniapp-root> --require-build
 ```
 
-When the project has MiniApp-specific target scripts, validate:
+Read [build-and-validation.md](references/build-and-validation.md) for the
+target matrix, manifest checks, realistic smoke tests, and completion criteria.
 
-- local build
-- local host behavior
-- remote Node output
-- Cloudflare Worker output through Wrangler/workerd
+## Cloudflare Safety Rules
 
-For a new MiniApp, verify:
+For Cloudflare-bound routes and tools:
 
-- static UI loads
-- tool discovery includes the new tools
-- invalid tool input is rejected
-- API routes can use `useMiniApp(event)`
-- storage and blob operations are namespaced
-- remote output can call CodeBolt Cloud capabilities
+- avoid filesystem and process dependencies at request time
+- avoid Node-only networking/server libraries
+- never use `eval`, `new Function`, or request-time schema compilation
+- let the MiniApp Nitro module generate standalone validators during build
+- preserve the complete Nitro ESM graph in the `.miniapp` archive
+- keep Durable Objects, dynamic Worker loading, and management endpoints out of
+  MiniApp source; those belong to the shared MiniApp Server
 
-## Production Checklist
+## Diagnose By Boundary
 
-Before calling a MiniApp production-ready, confirm:
+Determine which boundary failed before changing code:
 
-- `nitro.config.ts` uses the MiniApp Nitro module.
-- the build emits `.output/codebolt/miniapp.manifest.json`.
-- every tool has JSON Schema input.
-- validators are build-time compatible with Cloudflare.
-- collections are declared when needed.
-- the MiniApp UI entry route is declared in config when it is not `/`.
-- UI calls relative API paths.
-- no Node-only APIs are used in Cloudflare-bound routes.
-- storage, blob, and tasks go through `useMiniApp()`.
-- list screens use batch/filter APIs rather than N+1 loops.
-- remote output uses execution-token identity.
-- local static asset discovery does not require backend startup.
-- publish/install documentation reflects the current `appId` versus `installId`
-  model.
+```text
+authoring -> Nitro build -> manifest -> .miniapp archive
+  -> Edge catalog -> install provisioning -> router -> dynamic runtime
+  -> request-scoped capability bridge -> centralized storage
+```
 
-## When To Change Platform Runtime
+Read [troubleshooting.md](references/troubleshooting.md) for symptom-driven
+checks. Do not replace a failed layer with duplicated responsibilities in the
+MiniApp.
 
-Creating a MiniApp should usually not require platform runtime changes.
+## Agent Completion Contract
 
-Platform changes are only expected when:
+Before reporting completion:
 
-- the local host has an explicit MiniApp allowlist
-- tests hardcode available MiniApps
-- the shell catalog needs a new registration path
-- deployment automation needs a new target
-- the MiniApp requires a new platform capability
+- preserve unrelated user changes
+- list the app id, target directory, and chosen runtime type
+- report exact build/test/validation commands and results
+- state whether cloud deployment was only prepared or actually executed
+- when deployed, report package id, app/version/deployment ids, and runtime URL
+- distinguish source validation, bundle validation, installation, and live tool
+  execution; do not call a manifest-only change end-to-end
+- call out any remaining release, authentication, pricing, or platform blocker
 
-Keep ordinary MiniApp feature code separate from platform runtime changes.
+Do not publish, install, change production access, or deploy unless the user has
+authorized that external action.
